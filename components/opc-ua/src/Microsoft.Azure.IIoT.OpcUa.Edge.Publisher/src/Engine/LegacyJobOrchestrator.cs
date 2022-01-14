@@ -782,21 +782,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredNodesOnEndpointAsync));
             var sw = Stopwatch.StartNew();
-            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             List<OpcNodeOnEndpointModel> response = new List<OpcNodeOnEndpointModel>();
+            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
                 var nodeFound = false;
-                if (!_publishedNodesEntries.Any()) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Node not found in endpoint.");
-                }
-                else {
-                    foreach (var entry in _publishedNodesEntries) {
-                        if (request.EndpointUrl == entry.EndpointUrl) {
-                            nodeFound = true;
-                            response.AddRange(entry.OpcNodes.Select(n => n.ToNodeOnEndpointModel()).ToList());
-                        }
+                
+                foreach (var entry in _publishedNodesEntries) {
+                    //if (request.EndpointUrl.OriginalString == entry.EndpointUrl.OriginalString) {
+                    if (entry.IsSelectedNode(request)) {
+                        nodeFound = true;
+                        response.AddRange(entry.OpcNodes.Select(n => n.ToNodeOnEndpointModel()).ToList());
                     }
                 }
+
                 if (!nodeFound) {
                     throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Node not found in endpoint.");
                 }

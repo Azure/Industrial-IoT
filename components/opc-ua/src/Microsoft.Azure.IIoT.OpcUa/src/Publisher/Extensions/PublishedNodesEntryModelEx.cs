@@ -59,6 +59,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         }
 
         /// <summary>
+        /// Validates if the entry has same group as the model
+        /// </summary>
+        public static bool IsSelectedNode(this PublishedNodesEntryModel model, PublishedNodesEntryModel that) {
+
+            if (model == that) {
+                return true;
+            }
+
+            if (model == null || that == null) {
+                return false;
+            }
+
+            if (model.EndpointUrl.OriginalString == that.EndpointUrl.OriginalString) { 
+                if (model.DataSetWriterGroup == that.DataSetWriterGroup || that.DataSetWriterGroup == null) {
+                    if (model.DataSetWriterId == that.DataSetWriterId || that.DataSetWriterId == null) {
+                        if (model.DataSetPublishingInterval == that.DataSetPublishingInterval || that.DataSetPublishingInterval == null) {
+                            if (model.UseSecurity == that.UseSecurity || that.UseSecurity == null) {
+                                if (model.OpcAuthenticationMode == that.OpcAuthenticationMode) {
+                                    if (model.OpcAuthenticationUsername == that.OpcAuthenticationUsername || that.OpcAuthenticationUsername == null) {
+                                        if (model.OpcAuthenticationPassword == that.OpcAuthenticationPassword || that.OpcAuthenticationPassword == null) {
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }   
+            return false;
+        }
+
+        /// <summary>
         /// Returns the GroupId if available otherwise a valid identifier cmposed of endpoint url and hash
         /// </summary>
         public static string GetGroupId(this PublishedNodesEntryModel model) {

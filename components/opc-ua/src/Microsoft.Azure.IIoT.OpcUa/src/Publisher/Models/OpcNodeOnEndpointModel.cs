@@ -23,24 +23,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string ExpandedNodeId { get; set; }
 
-        /// <summary> Sampling interval </summary>
+        /// <summary> Sampling interval in milliseconds</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? OpcSamplingInterval { get; set; }
 
-        /// <summary> Publishing interval </summary>
+        /// <summary> Publishing interval in milliseconds</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? OpcPublishingInterval { get; set; }
+
+        /// <summary> DataSetFieldId </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public string DataSetFieldId { get; set; }
 
         /// <summary> Display name </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DisplayName { get; set; }
 
-        /// <summary> Heartbeat </summary>
+        /// <summary> Heartbeat in seconds</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? HeartbeatInterval { get; set; }
 
-        /// <summary> Queue Size for the monitored item </summary>
+        /// <summary> Skip first value </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public bool? SkipFirst { get; set; }
+
+        /// <summary> Queue Size for the monitored item </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public uint? QueueSize { get; set; }
     }
 }
