@@ -786,11 +786,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             List<OpcNodeOnEndpointModel> response = new List<OpcNodeOnEndpointModel>();
             try {
                 var nodeFound = false;
-                if (!_publishedNodesEntrys.Any()) {
+                if (!_publishedNodesEntries.Any()) {
                     throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Node not found in endpoint.");
                 }
                 else {
-                    foreach (var entry in _publishedNodesEntrys) {
+                    foreach (var entry in _publishedNodesEntries) {
                         if (request.EndpointUrl == entry.EndpointUrl) {
                             nodeFound = true;
                             response.AddRange(entry.OpcNodes.Select(n => n.ToNodeOnEndpointModel()).ToList());
