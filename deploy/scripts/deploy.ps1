@@ -71,12 +71,12 @@
  .PARAMETER numberOfWindowsGateways
     Number of Windows gateways to deploy into the simulation.
 
- .PARAMETER gatewayVMSKU
+ .PARAMETER gatewayVmSku
     Virtual machine SKU size that hosts simulated edge gateway.
     Suggestion: use VM with at least 2 cores and 8 GB of memory.
     Must Support Generation 1.
 
- .PARAMETER OPCPLCVMSKU
+ .PARAMETER opcPlcVmSku
     Virtual machine SKU size that hosts simulated OPC UA PLC.
     Suggestion: use VM with at least 1 core and 2 GB of memory.
     Must Support Generation 1.
@@ -99,8 +99,8 @@ param(
     [string] $acrRegistryName,
     [string] $acrSubscriptionName,
     [string] $simulationProfile,
-    [string] $gatewayVMSKU,
-    [string] $OPCPLCVMSKU,
+    [string] $gatewayVmSku,
+    [string] $opcPlcVmSku,
     [int] $numberOfLinuxGateways = 0,
     [int] $numberOfWindowsGateways = 0,
     [int] $numberOfSimulationsPerEdge = 0,
@@ -835,7 +835,7 @@ Function New-Deployment() {
 
         # To be refactored: it's necessary to filter out the unsupported SKU sizes.
         # It still there isn't a API to identify the generations supported by the SKU sizes.
-        if ([string]::IsNullOrEmpty($script:gatewayVMSKU)) {
+        if ([string]::IsNullOrEmpty($script:gatewayVmSku)) {
             
             # Get all vm skus available in the location and in the account
             $availableVms = Get-AzComputeResourceSku | Where-Object {
@@ -866,10 +866,10 @@ Function New-Deployment() {
             }
         }
         else {
-            $templateParameters.Add("edgeVmSize", $script:gatewayVMSKU)
+            $templateParameters.Add("edgeVmSize", $script:gatewayVmSku)
         }
 
-        if ([string]::IsNullOrEmpty($script:OPCPLCVMSKU)) {
+        if ([string]::IsNullOrEmpty($script:opcPlcVmSku)) {
 
             # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulation containers.
             $simulationVmSizes = Get-AzVMSize $script:resourceGroupLocation `
@@ -890,7 +890,7 @@ Function New-Deployment() {
             }
         }    
         else {
-            $templateParameters.Add("simulationVmSize", $script:OPCPLCVMSKU)
+            $templateParameters.Add("simulationVmSize", $script:opcPlcVmSku)
         }
 
         $adminUser = "sandboxuser"
