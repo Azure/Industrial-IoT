@@ -95,7 +95,29 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
             return new GetConfiguredNodesOnEndpointResponseApiModel {
                 EndpointUrl = EndpointUrl,
-                OpcNodes = model,
+                OpcNodes = model.Select(n => n.ToApiModel()).ToList(),
+            };
+        }
+
+
+        /// <summary>
+        /// Create an api model from service model
+        /// </summary>
+        public static OpcNodeOnEndpointApiModel ToApiModel(
+            this OpcNodeOnEndpointModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new OpcNodeOnEndpointApiModel {
+                Id = model.Id,
+                ExpandedNodeId = model.ExpandedNodeId,
+                OpcSamplingInterval = model.OpcSamplingInterval,
+                OpcPublishingInterval = model.OpcPublishingInterval,
+                DataSetFieldId = model.DataSetFieldId,
+                DisplayName = model.DisplayName,
+                HeartbeatInterval = model.HeartbeatInterval,
+                SkipFirst = model.SkipFirst,
+                QueueSize = model.QueueSize,
             };
         }
     }

@@ -26,6 +26,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "opcNodes", Order = 1,
             EmitDefaultValue = false)]
-        public List<OpcNodeOnEndpointModel> OpcNodes { get; set; }
+        public List<OpcNodeOnEndpointApiModel> OpcNodes { get; set; }
     }
 }

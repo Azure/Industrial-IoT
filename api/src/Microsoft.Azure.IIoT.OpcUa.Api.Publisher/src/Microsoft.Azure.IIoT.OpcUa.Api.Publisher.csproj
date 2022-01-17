@@ -7,7 +7,6 @@
     <Description>Azure Industrial IoT OPC Publisher API</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
   </ItemGroup>
 </Project>
