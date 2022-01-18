@@ -762,19 +762,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<List<ConfiguredEndpointModel>> GetConfiguredEndpointsAsync(
+        public async Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredEndpointsAsync));
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
-            var endpoints = new List<ConfiguredEndpointModel>();
+            var endpoints = new List<PublishedNodesEntryModel>();
 
             try {
-                endpoints = _publishedNodesEntries.Select(model => new ConfiguredEndpointModel {
+                endpoints = _publishedNodesEntries.Select(model => new PublishedNodesEntryModel {
                     EndpointUrl = model.EndpointUrl,
                     UseSecurity = model.UseSecurity,
                     OpcAuthenticationMode = model.OpcAuthenticationMode,
                     OpcAuthenticationUsername = model.OpcAuthenticationUsername,
-                    EncryptedAuthUsername = model.EncryptedAuthUsername,
                     DataSetWriterGroup = model.DataSetWriterGroup,
                     DataSetWriterId = model.DataSetWriterId,
                     DataSetPublishingInterval = model.DataSetPublishingInterval,

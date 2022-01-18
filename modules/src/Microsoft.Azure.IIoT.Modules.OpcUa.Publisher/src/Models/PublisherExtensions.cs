@@ -74,15 +74,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// <summary>
         /// Create an api model from service model
         /// </summary>
-        public static ConfiguredEndpointsResponseApiModel ToConfiguredEndpointsApiModel(
-            this List<ConfiguredEndpointModel> endpoints) {
+        public static List<PublishNodesRequestApiModel> ToApiModel(
+            this List<PublishedNodesEntryModel> endpoints) {
             if (endpoints == null) {
                 return null;
             }
 
-            return new ConfiguredEndpointsResponseApiModel {
-                Endpoints = endpoints
-            };
+            return endpoints.Select(e => new PublishNodesRequestApiModel {
+                EndpointUrl = e.EndpointUrl.AbsoluteUri,
+                UseSecurity = (bool)e.UseSecurity,
+                OpcAuthenticationMode = (AuthenticationMode)e.OpcAuthenticationMode,
+                UserName = e.OpcAuthenticationUsername,
+                DataSetWriterGroup = e.DataSetWriterGroup,
+                DataSetWriterId = e.DataSetWriterId,
+                DataSetPublishingInterval = e.DataSetPublishingInterval
+            }).ToList();
         }
     }
 }
