@@ -270,7 +270,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .Contain("succeeded");
             }
 
-            var endpointRequest = new GetConfiguredNodesOnEndpointsRequestApiModel();
+            var endpointRequest = new PublishNodesRequestApiModel();
             endpointRequest.EndpointUrl = endpointUrl;
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -279,10 +279,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            Assert.True(response.Subject.EndpointUrl == endpointUrl);
-            Assert.True(response.Subject.OpcNodes.Count == 2);
-            Assert.True(response.Subject.OpcNodes[0].Id == "ns=2;s=FastUInt1");
-            Assert.True(response.Subject.OpcNodes[1].Id == "ns=2;s=FastUInt2");
+            Assert.True(response.Subject.Count == 2);
+            Assert.True(response.Subject[0].Id == "ns=2;s=FastUInt1");
+            Assert.True(response.Subject[1].Id == "ns=2;s=FastUInt2");
         }
     }
 }

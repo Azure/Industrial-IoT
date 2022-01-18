@@ -73,9 +73,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for GetConfiguredNodesOnEndpoint DM
         /// </summary>
-        public async Task<GetConfiguredNodesOnEndpointResponseApiModel> GetConfiguredNodesOnEndpointAsync(GetConfiguredNodesOnEndpointsRequestApiModel request) {
+        public async Task<List<PublishedNodeApiModel>> GetConfiguredNodesOnEndpointAsync(PublishNodesRequestApiModel request) {
             var response = await _configServices.GetConfiguredNodesOnEndpointAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return response.ToApiModel(request.EndpointUrl);
+            return response.ToApiModel();
         }
 
         /// <summary>

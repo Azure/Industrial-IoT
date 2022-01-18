@@ -24,13 +24,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             if (model == null) {
                 return null;
             }
+
             return new PublishedNodesEntryModel {
                 EndpointUrl = new Uri(model.EndpointUrl),
                 UseSecurity = model.UseSecurity,
-                OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
+                OpcAuthenticationMode = (OpcAuthenticationMode?)model.OpcAuthenticationMode,
                 OpcAuthenticationPassword = model.Password,
                 OpcAuthenticationUsername = model.UserName,
-                OpcNodes = model.OpcNodes.Select(n => n.ToServiceModel()).ToList(),
+                OpcNodes = model.OpcNodes != null ? model.OpcNodes.Select(n => n.ToServiceModel()).ToList() : null,
                 DataSetWriterGroup = model.DataSetWriterGroup,
                 DataSetWriterId = model.DataSetWriterId,
                 DataSetPublishingInterval = model.DataSetPublishingInterval,
@@ -59,19 +60,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         }
 
         /// <summary>
-        /// Create a service model for an api model
-        /// </summary>
-        public static PublishedNodesEntryModel ToServiceModel(
-            this GetConfiguredNodesOnEndpointsRequestApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new PublishedNodesEntryModel {
-                EndpointUrl = new Uri(model.EndpointUrl)
-            };
-        }
-
-        /// <summary>
         /// Create an api model from service model
         /// </summary>
         public static PublishedNodesResponseApiModel ToApiModel(
@@ -88,27 +76,24 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// <summary>
         /// Create an api model from service model
         /// </summary>
-        public static GetConfiguredNodesOnEndpointResponseApiModel ToApiModel(
-            this List<OpcNodeOnEndpointModel> model, string EndpointUrl) {
+        public static List<PublishedNodeApiModel> ToApiModel(
+            this List<OpcNodeModel> model) {
             if (model == null) {
                 return null;
             }
-            return new GetConfiguredNodesOnEndpointResponseApiModel {
-                EndpointUrl = EndpointUrl,
-                OpcNodes = model.Select(n => n.ToApiModel()).ToList(),
-            };
-        }
 
+            return model.Select(n => n.ToApiModel()).ToList();
+        }
 
         /// <summary>
         /// Create an api model from service model
         /// </summary>
-        public static OpcNodeOnEndpointApiModel ToApiModel(
-            this OpcNodeOnEndpointModel model) {
+        public static PublishedNodeApiModel ToApiModel(
+            this OpcNodeModel model) {
             if (model == null) {
                 return null;
             }
-            return new OpcNodeOnEndpointApiModel {
+            return new PublishedNodeApiModel {
                 Id = model.Id,
                 ExpandedNodeId = model.ExpandedNodeId,
                 OpcSamplingInterval = model.OpcSamplingInterval,

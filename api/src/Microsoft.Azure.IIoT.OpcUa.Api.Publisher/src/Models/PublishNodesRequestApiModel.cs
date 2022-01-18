@@ -14,6 +14,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     [DataContract]
     public class PublishNodesRequestApiModel {
 
+        /// <summary>
+        /// constructor
+        /// </summary>
+        public PublishNodesRequestApiModel() {
+            OpcAuthenticationMode = null;
+        }
+
         /// <summary> The Group the stream belongs to - DataSetWriterGroup. </summary>
         [DataMember(Name = "dataSetWriterGroup", Order = 0,
             EmitDefaultValue = false)]
@@ -42,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary> endpoint authentication mode </summary>
         [DataMember(Name = "opcAuthenticationMode", Order = 5,
             EmitDefaultValue = false)]
-        public AuthenticationMode OpcAuthenticationMode { get; set; }
+        public AuthenticationMode? OpcAuthenticationMode { get; set; }
 
         /// <summary> Endpoint's username </summary>
         [DataMember(Name = "userName", Order = 6,

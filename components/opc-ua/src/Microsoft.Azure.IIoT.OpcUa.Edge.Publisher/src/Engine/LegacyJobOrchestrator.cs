@@ -25,7 +25,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Extensions;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -776,21 +775,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<List<OpcNodeOnEndpointModel>> GetConfiguredNodesOnEndpointAsync(
+        public async Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request,
             CancellationToken ct = default) {
 
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredNodesOnEndpointAsync));
             var sw = Stopwatch.StartNew();
-            List<OpcNodeOnEndpointModel> response = new List<OpcNodeOnEndpointModel>();
+            List<OpcNodeModel> response = new List<OpcNodeModel>();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
                 var nodeFound = false;
                 
                 foreach (var entry in _publishedNodesEntries) {
-                    if (IsSameDataSet(entry,request)) {
+                    if (entry.HasSameGroup(request) &&
+                        (entry.DataSetWriterId == request.DataSetWriterId || request.DataSetWriterId == null)) {
                         nodeFound = true;
-                        response.AddRange(entry.OpcNodes.Select(n => n.ToNodeOnEndpointModel()).ToList());
+                        response.AddRange(entry.OpcNodes);
                     }
                 }
 
