@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             return new PublishedNodesEntryModel {
                 EndpointUrl = new Uri(model.EndpointUrl),
                 UseSecurity = model.UseSecurity,
-                OpcAuthenticationMode = (OpcAuthenticationMode?)model.OpcAuthenticationMode,
+                OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
                 OpcAuthenticationPassword = model.Password,
                 OpcAuthenticationUsername = model.UserName,
                 OpcNodes = model.OpcNodes != null ? model.OpcNodes.Select(n => n.ToServiceModel()).ToList() : null,

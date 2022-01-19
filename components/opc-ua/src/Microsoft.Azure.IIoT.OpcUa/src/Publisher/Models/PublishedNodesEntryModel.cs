@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
 
         /// <summary> authentication mode </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public OpcAuthenticationMode? OpcAuthenticationMode { get; set; }
+        public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
 
         /// <summary> encrypted username </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
