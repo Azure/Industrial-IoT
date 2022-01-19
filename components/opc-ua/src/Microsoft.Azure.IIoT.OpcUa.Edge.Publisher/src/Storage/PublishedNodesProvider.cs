@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
-
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Serilog;
     using System;
@@ -43,13 +43,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
         /// <summary>
         /// Provider of utilities for published nodes file.
         /// </summary>
-        /// <param name="legacyCliModel"> LegacyCliModel that will define location of published nodes file. </param>
+        /// <param name="legacyCliModelProvider"> legacyCliModelProvider that will define location of published nodes file. </param>
         /// <param name="logger"> Logger </param>
-        public PublishedNodesProvider(
-            LegacyCliModel legacyCliModel,
-            ILogger logger
-        ) {
-            _legacyCliModel = legacyCliModel ?? throw new ArgumentNullException(nameof(legacyCliModel));
+        public PublishedNodesProvider(ILegacyCliModelProvider legacyCliModelProvider, ILogger logger) {
+
+            _legacyCliModel = legacyCliModelProvider?.LegacyCliModel ??
+                throw new ArgumentNullException(nameof(legacyCliModelProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var directory = Path.GetDirectoryName(_legacyCliModel.PublishedNodesFile);
@@ -60,10 +59,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
 
             var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
-            _fileSystemWatcher.Deleted += Deleted;
-            _fileSystemWatcher.Created += Created;
-            _fileSystemWatcher.Changed += Changed;
-            _fileSystemWatcher.Renamed += Renamed;
+            _fileSystemWatcher.Deleted += FileSystemWatcher_Deleted;
+            _fileSystemWatcher.Created += FileSystemWatcher_Created;
+            _fileSystemWatcher.Changed += FileSystemWatcher_Changed;
+            _fileSystemWatcher.Renamed += FileSystemWatcher_Renamed;
+            _fileSystemWatcher.EnableRaisingEvents = true;
 
             _lock = new SemaphoreSlim(1, 1);
         }
@@ -100,7 +100,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
             finally {
                 _lock.Release();
             }
-
         }
 
         /// <inheritdoc/>
@@ -167,7 +166,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
 
         /// <inheritdoc/>
         public void Dispose() {
+            _fileSystemWatcher.EnableRaisingEvents = false;
+            _fileSystemWatcher.Deleted -= FileSystemWatcher_Deleted;
+            _fileSystemWatcher.Created -= FileSystemWatcher_Created;
+            _fileSystemWatcher.Changed -= FileSystemWatcher_Changed;
+            _fileSystemWatcher.Renamed -= FileSystemWatcher_Renamed;
+
             _fileSystemWatcher?.Dispose();
+        }
+
+        private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
+            Changed.Invoke(sender, e);
+        }
+
+        private void FileSystemWatcher_Created(object sender, FileSystemEventArgs e) {
+            Created.Invoke(sender, e);
+        }
+
+        private void FileSystemWatcher_Deleted(object sender, FileSystemEventArgs e) {
+            Deleted.Invoke(sender, e);
+        }
+
+        private void FileSystemWatcher_Renamed(object sender, RenamedEventArgs e) {
+            Renamed.Invoke(sender, e);
         }
     }
 }

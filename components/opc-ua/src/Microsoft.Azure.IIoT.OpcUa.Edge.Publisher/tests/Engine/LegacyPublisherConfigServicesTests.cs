@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
@@ -121,7 +121,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
@@ -189,7 +189,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
@@ -256,7 +256,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
@@ -315,7 +315,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
@@ -378,7 +378,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
