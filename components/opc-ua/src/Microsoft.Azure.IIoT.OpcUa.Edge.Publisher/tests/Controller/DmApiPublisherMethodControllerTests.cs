@@ -221,5 +221,68 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .BeTrue();
             }
         }
+
+        [Theory]
+        [InlineData("Controller/DmApiPayloadCollection.json")]
+        public async Task DmApiGetConfiguredEndpointsTest(string publishedNodesFile) {
+            var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
+            var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var identityMock = new Mock<IIdentity>();
+            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+
+            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+
+            legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
+            agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
+
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
+
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
+            var methodsController = new PublisherMethodsController(orchestrator);
+
+            using var publishPayloads = new StreamReader(publishedNodesFile);
+            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>
+                (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+
+            foreach (var request in publishNodesRequests) {
+
+                var publishNodesResult = await FluentActions
+                    .Invoking(async () => await methodsController
+                    .PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+                publishNodesResult.Subject.StatusMessage.First()
+                    .Should()
+                    .Contain("succeeded");
+            }
+
+            var endpoints = await FluentActions
+                .Invoking(async () => await methodsController
+                .GetConfiguredEndpointsAsync().ConfigureAwait(false))
+                .Should()
+                .NotThrowAsync()
+                .ConfigureAwait(false);
+
+            endpoints.Subject.Count.Should().Be(5);
+            var endpointsHash = endpoints.Subject.Select(e => e.GetHashCode()).ToList();
+            Assert.True(endpointsHash.Distinct().Count() == endpointsHash.Count());
+        }
     }
-}
+ }
