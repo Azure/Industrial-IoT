@@ -24,11 +24,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Serializers.NewtonSoft;
     using Xunit;
     using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
     /// </summary>
-    public class DmApiPublisherControllerTests {
+    public class DmApiPublisherControllerTests : TempFileProviderBase {
 
         [Theory]
         [InlineData("Controller/DmApiPayloadCollection.json")]
@@ -38,19 +40,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/empty_pn.json", 
-                PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+
+            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
+
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
-                TraceLogger.Create(),
-                identityMock.Object);
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
@@ -127,19 +139,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/empty_pn.json",
-                PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+
+            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
+
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
-                TraceLogger.Create(),
-                identityMock.Object);
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);

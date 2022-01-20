@@ -1432,7 +1432,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(blobContent));
             await blobClient.UploadAsync(memoryStream, cancellationToken);
 
-            Log.Debug("Uploadede data to Azure Blob.");
+            Log.Debug("Uploaded data to Azure Blob.");
             return blobClient.Uri.ToString();
         }
 

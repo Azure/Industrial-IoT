@@ -16,38 +16,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Diagnostics;
     using FluentAssertions;
     using Models;
-    using Module;
     using Moq;
     using Publisher.Engine;
     using Serializers.NewtonSoft;
     using Xunit;
     using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using System.Text;
     using System;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
 
     /// <summary>
     /// Tests the Direct methods configuration for the LegacyJobOrchestrator class
     /// </summary>
-    public class LegacyPublisherConfigServicesTests : IDisposable {
-
-        private readonly string _tempPublishedNodesFile;
-
-        public LegacyPublisherConfigServicesTests() {
-            _tempPublishedNodesFile = Path.GetTempFileName();
-        }
-
-        public void Dispose() {
-            try {
-                // Remove temporary published nodes file if one was created.
-                if (File.Exists(_tempPublishedNodesFile)) {
-                    File.Delete(_tempPublishedNodesFile);
-                }
-            }
-            catch (Exception) {
-                // Nothign to do.
-            }
-        }
+    public class LegacyPublisherConfigServicesTests : TempFileProviderBase {
 
         [Theory]
         [InlineData("Engine/publishednodes.json")]
@@ -57,18 +40,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task PublishNodesOnEmptyConfiguration(string publishedNodesFile) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
-            var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/empty_pn.json", PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+
+            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var orchestrator = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object, jobSerializer, TraceLogger.Create(), identityMock.Object);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
-            using var payloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(await payloads.ReadToEndAsync().ConfigureAwait(false));
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
+
+            string payload = Utils.GetFileContent(publishedNodesFile);
+            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in publishNodesRequest) {
                 var publishNodesResult = await FluentActions
@@ -109,19 +108,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task PublishNodesOnExistingConfiguration(string existingConfig, string newConfig) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
-            var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = existingConfig, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            Utils.CopyContent(existingConfig, _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var orchestrator = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object, jobSerializer, TraceLogger.Create(), identityMock.Object);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
-            using var payloads = new StreamReader(newConfig);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(await payloads.ReadToEndAsync().ConfigureAwait(false));
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
+
+            string payload = Utils.GetFileContent(newConfig);
+            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in publishNodesRequest) {
                 var publishNodesResult = await FluentActions
@@ -163,19 +176,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task PublishNodesOnNewConfiguration(string existingConfig, string newConfig) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
-            var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = existingConfig, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            Utils.CopyContent(existingConfig, _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var orchestrator = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object, jobSerializer, TraceLogger.Create(), identityMock.Object);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
-            using var payloads = new StreamReader(newConfig);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(await payloads.ReadToEndAsync().ConfigureAwait(false));
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
+
+            string payload = Utils.GetFileContent(newConfig);
+            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in publishNodesRequest) {
                 var publishNodesResult = await FluentActions
@@ -216,19 +243,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task UnpublishNodesOnExistingConfiguration(string publishedNodesFile) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
-            var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = publishedNodesFile, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var orchestrator = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object, jobSerializer, TraceLogger.Create(), identityMock.Object);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
-            using var payloads = new StreamReader(publishedNodesFile);
-            var unpublishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(await payloads.ReadToEndAsync().ConfigureAwait(false));
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
+
+            string payload = Utils.GetFileContent(publishedNodesFile);
+            var unpublishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in unpublishNodesRequest) {
                 var unpublishNodesResult = await FluentActions
@@ -261,26 +302,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task UnpublishNodesOnNonExistingConfiguration(string existingConfig, string newConfig) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
-            var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = existingConfig, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            Utils.CopyContent(existingConfig, _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var orchestrator = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object, jobSerializer, TraceLogger.Create(), identityMock.Object);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
-            using var payloads = new StreamReader(newConfig);
-            var unpublishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(await payloads.ReadToEndAsync());
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
+
+            string payload = Utils.GetFileContent(newConfig);
+            var unpublishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in unpublishNodesRequest) {
                 var unpublishNodesResult = await FluentActions
                     .Invoking(async () => await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .ThrowAsync<MethodCallStatusException>()
-                    .WithMessage("Response 404 Endpoint not found.: {}")
+                    .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}*")
                     .ConfigureAwait(false);
             }
 
@@ -307,29 +362,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task PublishNodesStressTest() {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
-            var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            using (var fileStream = new FileStream(_tempPublishedNodesFile, FileMode.Open, FileAccess.Write)) {
+            using (var fileStream = new FileStream(_tempFile, FileMode.Open, FileAccess.Write)) {
                 fileStream.Write(Encoding.UTF8.GetBytes("[]"));
             }
 
             var legacyCliModel = new LegacyCliModel {
-                PublishedNodesFile = _tempPublishedNodesFile,
+                PublishedNodesFile = _tempFile,
                 PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
             };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
+
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
-                TraceLogger.Create(),
-                identityMock.Object
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
 
             var numberOfEndpoints = 100;
@@ -392,7 +450,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                      ).Count(v => v == expectedNumberOfNodes)
                      .Should()
                      .Be(expectedNumberOfEndpoints);
-
             }
 
             // Check

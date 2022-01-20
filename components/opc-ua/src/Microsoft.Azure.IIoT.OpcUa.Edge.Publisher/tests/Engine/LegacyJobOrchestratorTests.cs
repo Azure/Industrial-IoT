@@ -10,8 +10,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Agent.Framework;
     using Agent.Framework.Models;
     using Diagnostics;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
     using Models;
-    using Module;
     using Moq;
     using Publisher.Engine;
     using Serializers.NewtonSoft;
@@ -21,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     /// <summary>
     /// Tests the LegacyJobOrchestrator class
     /// </summary>
-    public class LegacyJobOrchestratorTests {
+    public class LegacyJobOrchestratorTests : TempFileProviderBase {
 
         [Theory]
         [InlineData("Engine/publishednodes.json")]
@@ -29,20 +30,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task GetAvailableJobAsyncMulithreading(string publishedNodesFile) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
-            var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = publishedNodesFile, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var converter = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object, jobSerializer, TraceLogger.Create(), identityMock.Object);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
+
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
             for (var i = 0; i < 10; i++) {
-                tasks.Add(converter.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
+                tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
             }
 
             await Task.WhenAll(tasks);
@@ -61,22 +77,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public void Test_PnJson_With_Multiple_Jobs_Expect_DifferentJobIds(string publishedNodesFile) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
-            var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = publishedNodesFile, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var converter = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object, jobSerializer, TraceLogger.Create(), identityMock.Object);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
 
-            var job1 = converter.GetAvailableJobAsync(1.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                TraceLogger.Create(),
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
+
+            var job1 = orchestrator.GetAvailableJobAsync(1.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.NotNull(job1);
-            var job2 = converter.GetAvailableJobAsync(2.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var job2 = orchestrator.GetAvailableJobAsync(2.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.NotNull(job2);
-            var job3 = converter.GetAvailableJobAsync(3.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var job3 = orchestrator.GetAvailableJobAsync(3.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.Null(job3);
 
             Assert.NotEqual(job1.Job.Id, job2.Job.Id);
