@@ -7,27 +7,27 @@ a Helm chart on top of a platform deployed through either `deploy.cmd` or `deplo
 
 ## Table of contents <!-- omit in toc -->
 
-* [Introduction](#introduction)
-* [Prerequisites](#prerequisites)
-* [Deployment Steps](#deployment-steps)
-  * [Create an AKS cluster](#create-an-aks-cluster)
-  * [Create a Public IP address](#create-a-public-ip-address)
-  * [Get credentials for kubectl](#get-credentials-for-kubectl)
-  * [Deploy ingress-nginx Helm chart](#deploy-ingress-nginx-helm-chart)
-  * [Deploy cert-manager Helm chart](#deploy-cert-manager-helm-chart)
-  * [Create ClusterIssuer resource](#create-clusterissuer-resource)
-  * [Stop App Service resources](#stop-app-service-resources)
-  * [Deploy azure-industrial-iot Helm chart](#deploy-azure-industrial-iot-helm-chart)
-    * [Using configuration in Azure Key Vault](#using-configuration-in-azure-key-vault)
-    * [Passing Azure resource details through YAML file](#passing-azure-resource-details-through-yaml-file)
-    * [Installing `azure-industrial-iot` Helm chart](#installing-azure-industrial-iot-helm-chart)
-      * [Installing the chart from GitHub repository](#installing-the-chart-from-github-repository)
-      * [Installing the chart from Helm chart repository](#installing-the-chart-from-helm-chart-repository)
-  * [Check status of deployed resources](#check-status-of-deployed-resources)
-  * [Enable Prometheus metrics scraping](#enable-prometheus-metrics-scraping)
-  * [Update Redirect URIs of web App Registration](#update-redirect-uris-of-web-app-registration)
-  * [Remove App Service and App Service Plan resources](#remove-app-service-and-app-service-plan-resources)
-  * [Access Engineering Tool and Swagger UIs](#access-engineering-tool-and-swagger-uis)
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [Deployment Steps](#deployment-steps)
+  - [Create an AKS cluster](#create-an-aks-cluster)
+  - [Create a Public IP address](#create-a-public-ip-address)
+  - [Get credentials for kubectl](#get-credentials-for-kubectl)
+  - [Deploy ingress-nginx Helm chart](#deploy-ingress-nginx-helm-chart)
+  - [Deploy cert-manager Helm chart](#deploy-cert-manager-helm-chart)
+  - [Create ClusterIssuer resource](#create-clusterissuer-resource)
+  - [Stop App Service resources](#stop-app-service-resources)
+  - [Deploy azure-industrial-iot Helm chart](#deploy-azure-industrial-iot-helm-chart)
+    - [Using configuration in Azure Key Vault](#using-configuration-in-azure-key-vault)
+    - [Passing Azure resource details through YAML file](#passing-azure-resource-details-through-yaml-file)
+    - [Installing `azure-industrial-iot` Helm chart](#installing-azure-industrial-iot-helm-chart)
+      - [Installing the chart from GitHub repository](#installing-the-chart-from-github-repository)
+      - [Installing the chart from Helm chart repository](#installing-the-chart-from-helm-chart-repository)
+  - [Check status of deployed resources](#check-status-of-deployed-resources)
+  - [Enable Prometheus metrics scraping](#enable-prometheus-metrics-scraping)
+  - [Update Redirect URIs of web App Registration](#update-redirect-uris-of-web-app-registration)
+  - [Remove App Service and App Service Plan resources](#remove-app-service-and-app-service-plan-resources)
+  - [Access Engineering Tool and Swagger UIs](#access-engineering-tool-and-swagger-uis)
 
 ## Introduction
 
@@ -360,7 +360,7 @@ If you decide to pass all Azure resource details through YAML file, please follo
 to get the parameters. In the end, `aiiot.yaml` value file would look something like the one below.
 
 In this case as well, we will have to set up Access Policies for service principal of `service` App
-Registration in Azure Key Vault so that Engineering Tool and OPC-Vault microservices are able to fetch the
+Registration in Azure Key Vault so that Engineering Tool microservice is able to fetch the
 `dataprotection` key from  Azure Key Vault. That is required for proper functionality of
 [ASP.NET Core Data Protection](https://docs.microsoft.com/aspnet/core/security/data-protection/configuration/overview?view=aspnetcore-3.1#protectkeyswithazurekeyvault)
 feature.

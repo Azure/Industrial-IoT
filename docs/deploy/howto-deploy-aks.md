@@ -4,39 +4,39 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
-* [Download `Microsoft.Azure.IIoT.Deployment` Binaries](#download-microsoftazureiiotdeployment-binaries)
-* [Running Microsoft.Azure.IIoT.Deployment](#running-microsoftazureiiotdeployment)
-  * [Run Modes](#run-modes)
-  * [Running with User Credentials](#running-with-user-credentials)
-  * [Running with Service Principal Credentials](#running-with-service-principal-credentials)
-  * [Sample Run](#sample-run)
-  * [Granting Admin Consent](#granting-admin-consent)
-  * [Resource Cleanup](#resource-cleanup)
-* [Configuration](#configuration)
-  * [JSON File Configuration Provider](#json-file-configuration-provider)
-  * [Environment Variables Configuration Provider](#environment-variables-configuration-provider)
-  * [Command-line Configuration Provider](#command-line-configuration-provider)
-  * [Parameters](#parameters)
-  * [Special Notes](#special-notes)
-* [Deployed Resources](#deployed-resources)
-  * [AKS](#aks)
-    * [Kubernetes Dashboard](#kubernetes-dashboard)
-  * [Helm Charts](#helm-charts)
-  * [APIs of Microservices](#apis-of-microservices)
-* [Missing And Planned Features](#missing-and-planned-features)
-  * [Configuring Azure Resources](#configuring-azure-resources)
-  * [User Interface](#user-interface)
-* [Resources](#resources)
+- [Download `Microsoft.Azure.IIoT.Deployment` Binaries](#download-microsoftazureiiotdeployment-binaries)
+- [Running Microsoft.Azure.IIoT.Deployment](#running-microsoftazureiiotdeployment)
+  - [Run Modes](#run-modes)
+  - [Running with User Credentials](#running-with-user-credentials)
+  - [Running with Service Principal Credentials](#running-with-service-principal-credentials)
+  - [Sample Run](#sample-run)
+  - [Granting Admin Consent](#granting-admin-consent)
+  - [Resource Cleanup](#resource-cleanup)
+- [Configuration](#configuration)
+  - [JSON File Configuration Provider](#json-file-configuration-provider)
+  - [Environment Variables Configuration Provider](#environment-variables-configuration-provider)
+  - [Command-line Configuration Provider](#command-line-configuration-provider)
+  - [Parameters](#parameters)
+  - [Special Notes](#special-notes)
+- [Deployed Resources](#deployed-resources)
+  - [AKS](#aks)
+    - [Kubernetes Dashboard](#kubernetes-dashboard)
+  - [Helm Charts](#helm-charts)
+  - [APIs of Microservices](#apis-of-microservices)
+- [Missing And Planned Features](#missing-and-planned-features)
+  - [Configuring Azure Resources](#configuring-azure-resources)
+  - [User Interface](#user-interface)
+- [Resources](#resources)
 
-`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Azure Industrial IoT solution.
-It takes care of deploying Azure infrastructure resources and microservices of Azure Industrial IoT solution.
+`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying the Azure Industrial IoT solution, 
+which deploys the required Azure infrastructure resources and microservices required by the Azure Industrial IoT solution.
 By default, it deploys `2.8.1` version of Azure Industrial IoT microservices.
 
-The main difference compared to the [script based deployment](howto-deploy-all-in-one.md) option is that
-from an infrastructure perspective `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
+The main difference between the [script based deployment](howto-deploy-all-in-one.md) option is that 
+`Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
 Kubernetes Service (AKS) cluster, while `deploy.ps1` runs the entire platform as a web application.
 
-Source codes of `Microsoft.Azure.IIoT.Deployment` can be found in the following directory:
+Source code for the `Microsoft.Azure.IIoT.Deployment` tool can be found in the following directory:
 [deploy/src/Microsoft.Azure.IIoT.Deployment/](../../deploy/src/Microsoft.Azure.IIoT.Deployment/)
 
 ## Download `Microsoft.Azure.IIoT.Deployment` Binaries
