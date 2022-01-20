@@ -134,6 +134,18 @@ An OPC UA always send the current value of a data item when OPC Publisher first 
 
 There are several command line arguments that can be used to set global settings for OPC Publisher. They are described [here](publisher-commandline.md).
 
+
+### Configuration via IoT Hub Direct methods
+
+**Please note: This feature right now is only available starting with version 2.8.2.**
+
+OPC Publisher implements the following [IoT Hub Direct Methods](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods) which can be called from an application (from anywhere in the world) leveraging the [IoT Hub Device SDK](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks):
+
+
+
+
+
+
 ### Configuration via the built-in OPC UA Server Interface
 **Please note: This feature right now is only available in version 2.5 and below.**
 
