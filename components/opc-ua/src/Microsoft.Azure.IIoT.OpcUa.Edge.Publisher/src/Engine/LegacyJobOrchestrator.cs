@@ -482,6 +482,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Persist _publishedNodesEntries to published nodes file.
         /// </summary>
+        /// <remarks>
+        /// Note that the method assumes that it is called from a locked block on _lockConfig.
+        /// So please acquire the lock on _lockConfig before performing the call.
+        /// </remarks>
         private void PersistPublishedNodes() {
             var updatedContent = _jsonSerializer.SerializeToString(_publishedNodesEntries, SerializeOption.Indented);
             _publishedNodesProvider.WriteContent(updatedContent, true);

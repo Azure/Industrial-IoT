@@ -335,7 +335,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             else {
                                 monitoredItem.DisplayName = null;
                                 _logger.Warning("Failed to read display name for '{monitoredItem}' due to '{statusCode}'",
-                                    monitoredItem.StartNodeId, errors[index]);
+                                    monitoredItem.StartNodeId, errors[index].StatusCode);
                             }
                             index++;
                         }
@@ -543,16 +543,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (change.Key == null) {
                             continue;
                         }
-                        _logger.Information("Set Monitoring to {value} for {count} nodes in subscription " +
-                            "{subscription}", change.Key.Value, change.Count(),
-                            rawSubscription.DisplayName);
-                        var results = rawSubscription.SetMonitoringMode(change.Key.Value,
-                            change.Select(t => t.Item).ToList());
+                        _logger.Information("Set monitoring to '{value}' for {count} items in subscription '{subscription}'.",
+                            change.Key.Value, change.Count(), rawSubscription.DisplayName);
+
+                        var itemsToChange = change.Select(t => t.Item).ToList();
+                        var results = rawSubscription.SetMonitoringMode(change.Key.Value, itemsToChange);
                         if (results != null) {
-                            _logger.Information("Failed to set monitoring for {count} nodes in subscription " +
-                                "{subscription}",
-                                results.Count(r => (r == null) ? false : StatusCode.IsNotGood(r.StatusCode)),
-                                rawSubscription.DisplayName);
+                            var erroneousResultsCount = results
+                                .Count(r => (r == null) ? false : StatusCode.IsNotGood(r.StatusCode));
+
+                            // Check the number of erroneous results and log.
+                            if (erroneousResultsCount > 0) {
+                                _logger.Warning("Failed to set monitoring for {count} items in subscription '{subscription}'.",
+                                    erroneousResultsCount, rawSubscription.DisplayName);
+
+                                for (int i = 0; i < results.Count && i < itemsToChange.Count; ++ i) {
+                                    if (StatusCode.IsNotGood(results[i].StatusCode)){
+                                        _logger.Warning("Set monitoring for item '{item}' in subscription '{subscription}' failed with '{status}'.",
+                                            itemsToChange[i].StartNodeId, rawSubscription.DisplayName, results[i].StatusCode);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -742,7 +753,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Timestamp = publishTime,
                         Notifications = notification.ToMonitoredItemNotifications(
                                 subscription?.MonitoredItems)?.ToList()
+                                ?? new List<MonitoredItemNotificationModel>(),
                     };
+
                     // add the heartbeat for monitored items that did not receive a datachange notification
                     // Try access lock if we cannot continue...
                     List<MonitoredItemWrapper> currentlyMonitored = null;
@@ -760,40 +773,51 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         // a datachange notification
                         foreach (var item in currentlyMonitored) {
                             if (!notification.MonitoredItems.
-                                Exists(m => m.ClientHandle == item.Item.ClientHandle)) {
-                                if (item.ValidateHeartbeat(publishTime)) {
-                                    var defaultNotification =
-                                        new MonitoredItemNotificationModel {
-                                            Id = item?.Template?.Id,
-                                            DisplayName = item.Item.DisplayName,
-                                            NodeId = item?.Template?.StartNodeId,
-                                            AttributeId = item.Item.AttributeId,
-                                            ClientHandle = item.Item.ClientHandle,
-                                            Value = new DataValue(Variant.Null,
-                                                item.Item?.Status?.Error?.StatusCode ??
-                                                StatusCodes.BadMonitoredItemIdInvalid),
-                                            Overflow = false,
-                                            NotificationData = null,
-                                            StringTable = null,
-                                            DiagnosticInfo = null,
-                                        };
+                                Exists(m => m.ClientHandle == item.Item.ClientHandle)
+                                && item.ValidateHeartbeat(publishTime)) {
 
-                                    var heartbeatValue = item.Item?.LastValue.
-                                        ToMonitoredItemNotification(item.Item, () => defaultNotification);
-                                    if (heartbeatValue != null) {
-                                        heartbeatValue.SequenceNumber = sequenceNumber;
-                                        heartbeatValue.IsHeartbeat = true;
-                                        heartbeatValue.PublishTime = publishTime;
-                                        if (message.Notifications == null) {
-                                            message.Notifications =
-                                                new List<MonitoredItemNotificationModel>();
-                                        }
-                                        message.Notifications.Add(heartbeatValue);
-                                    }
-                                    continue;
+                                MonitoredItemNotificationModel GetDefaultNotification()
+                                {
+                                    return new MonitoredItemNotificationModel {
+                                        Id = item?.Template?.Id,
+                                        DisplayName = item.Item.DisplayName,
+                                        NodeId = item?.Template?.StartNodeId,
+                                        AttributeId = item.Item.AttributeId,
+                                        ClientHandle = item.Item.ClientHandle,
+                                        Value = new DataValue(Variant.Null,
+                                            item.Item?.Status?.Error?.StatusCode ??
+                                            StatusCodes.BadMonitoredItemIdInvalid),
+                                        Overflow = false,
+                                        NotificationData = null,
+                                        StringTable = null,
+                                        DiagnosticInfo = null,
+                                    };
                                 }
+
+                                var heartbeatValue = item.Item?.LastValue.
+                                    ToMonitoredItemNotification(item.Item, GetDefaultNotification);
+                                if (heartbeatValue != null) {
+                                    heartbeatValue.SequenceNumber = sequenceNumber;
+                                    heartbeatValue.IsHeartbeat = true;
+                                    heartbeatValue.PublishTime = publishTime;
+                                    message.Notifications?.Add(heartbeatValue);
+                                }
+                                continue;
                             }
                             item.ValidateHeartbeat(publishTime);
+                        }
+                    }
+
+                    if (_logger.IsEnabled(Serilog.Events.LogEventLevel.Debug)) {
+                        var erroneousNotifications = message.Notifications?
+                            .Where(n => n.Value.Value == null
+                                || StatusCode.IsNotGood(n.Value.StatusCode))
+                            .ToList();
+
+                        if (erroneousNotifications.Count > 0) {
+                            _logger.Debug("Found {count} notifications with null value or not good status " +
+                                "code for '{subscription}' subscription.", erroneousNotifications.Count,
+                                subscription.DisplayName);
                         }
                     }
 
