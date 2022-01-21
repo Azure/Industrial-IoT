@@ -18,6 +18,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
     using System.Net;
     using System.Linq;
+    using IIoTPlatform_E2E_Tests.TestModels;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -74,24 +75,24 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
 
             // Create base edge deployment.
-            var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
-            Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
-            _output.WriteLine("Created/Updated new edge base deployment.");
+            //var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
+            //Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
+            //_output.WriteLine("Created/Updated new edge base deployment.");
 
-            // Create layered edge deployment.
-            var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
-            Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
-            _output.WriteLine("Created/Updated layered deployment for publisher module.");
+            //// Create layered edge deployment.
+            //var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
+            //Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
+            //_output.WriteLine("Created/Updated layered deployment for publisher module.");
 
             var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
-                _context.DeviceConfig.DeviceId,
-                cts.Token,
-                new string[] { "publisher_standalone" }
-            ).GetAwaiter().GetResult());
-            Assert.Null(exception);
+            //var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+            //    _context.DeviceConfig.DeviceId,
+            //    cts.Token,
+            //    new string[] { "publisher_standalone" }
+            //).GetAwaiter().GetResult());
+            //Assert.Null(exception);
 
             var request = nodesToPublish.ToApiModel();
 
@@ -109,6 +110,19 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Wait some time to generate events to process.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            var NodesOnEndpoint = new PublishedNodesEntryModel();
+            var opcPlcIp = _context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[2];
+            NodesOnEndpoint.EndpointUrl = $"opc.tcp://{opcPlcIp}:50000";
+            var request1 = NodesOnEndpoint.ToApiModel();
+
+            var response1 = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
+                Name = "GetConfiguredNodesOnEndpoint_V1",
+                JsonPayload = _serializer.SerializeToString(request)
+            }, _context, cts.Token).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, response.Status);
+
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
