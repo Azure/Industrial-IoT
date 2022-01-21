@@ -237,9 +237,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            Assert.True(response.Subject.Count == 2);
-            Assert.True(response.Subject[0].Id == "ns=2;s=FastUInt1");
-            Assert.True(response.Subject[1].Id == "ns=2;s=FastUInt2");
+            response.Subject.Count()
+                .Should()
+                .Be(2);
+            response.Subject.First().Id
+                .Should()
+                .Be("ns=2;s=FastUInt1");
+            response.Subject[1].Id
+                .Should()
+                .Be("ns=2;s=FastUInt2");
         }
 
         [Theory]
@@ -251,38 +257,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var endpointRequest = new PublishNodesRequestApiModel();
             endpointRequest.EndpointUrl = endpointUrl;
             endpointRequest.DataSetWriterGroup = DataSetWriterGroup;
-            //endpointRequest.OpcAuthenticationMode = AuthenticationMode.UsernamePassword;
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-            Assert.True(response.Subject.Count == 1);
-            Assert.True(response.Subject[0].Id == "ns=2;s=SlowUInt2");
-        }
-
-        [Theory]
-        [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointAsyncDataSetWriterIdTest(string publishedNodesFile) {
-            var endpointUrl = "opc.tcp://opcplc:50010";
-            var DataSetWriterId = "Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d";
-            var methodsController = await publishNodeAsync(publishedNodesFile);
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
-            endpointRequest.DataSetWriterId = DataSetWriterId;
-            //endpointRequest.OpcAuthenticationMode = AuthenticationMode.UsernamePassword;
-            var response = await FluentActions
-                    .Invoking(async () => await methodsController
-                    .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
-                    .Should()
-                    .NotThrowAsync()
-                    .ConfigureAwait(false);
-
-            Assert.True(response.Subject.Count == 2);
-            Assert.True(response.Subject[0].Id == "ns=2;s=FastUInt1");
-            Assert.True(response.Subject[1].Id == "ns=2;s=FastUInt2");
+ 
+            response.Subject.Count()
+                .Should()
+                .Be(1);
+            response.Subject.First().Id
+                .Should()
+                .Be("ns=2;s=SlowUInt2");
         }
 
         [Theory]
@@ -294,7 +281,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var endpointRequest = new PublishNodesRequestApiModel();
             endpointRequest.EndpointUrl = endpointUrl;
             endpointRequest.UseSecurity = useSecurity;
-            //endpointRequest.OpcAuthenticationMode = AuthenticationMode.UsernamePassword;
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
@@ -302,21 +288,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            Assert.True(response.Subject.Count == 2);
-            Assert.True(response.Subject[0].Id == "ns=2;s=SlowUInt1");
-            Assert.True(response.Subject[1].Id == "ns=2;s=SlowUInt2");
+            response.Subject.Count()
+                .Should()
+                .Be(1);
+            response.Subject.First().Id
+                .Should()
+                .Be("ns=2;s=SlowUInt3");
         }
 
         [Theory]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task DmApiGetConfiguredNodesOnEndpointOpcAuthenticationModeTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
-            var authenticationMode = AuthenticationMode.UsernamePassword;
+            var authenticationMode = AuthenticationMode.Anonymous;
+            var DataSetWriterGroup = "Leaf1";
             var methodsController = await publishNodeAsync(publishedNodesFile);
             var endpointRequest = new PublishNodesRequestApiModel();
             endpointRequest.EndpointUrl = endpointUrl;
             endpointRequest.OpcAuthenticationMode = authenticationMode;
-            //endpointRequest.OpcAuthenticationMode = AuthenticationMode.UsernamePassword;
+            endpointRequest.DataSetWriterGroup = DataSetWriterGroup;
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
@@ -324,20 +314,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            Assert.True(response.Subject.Count == 2);
-            Assert.True(response.Subject[0].Id == "ns=2;s=SlowUInt1");
-            Assert.True(response.Subject[1].Id == "ns=2;s=SlowUInt2");
+            response.Subject.Count()
+                .Should()
+                .Be(1);
+            response.Subject.First().Id
+                .Should()
+                .Be("ns=2;s=SlowUInt2");
         }
 
         [Theory]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task DmApiGetConfiguredNodesOnEndpointUsernamePasswordTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
+            var authenticationMode = AuthenticationMode.UsernamePassword;
             var username = "usr";
             var password = "pwd";
             var methodsController = await publishNodeAsync(publishedNodesFile);
             var endpointRequest = new PublishNodesRequestApiModel();
             endpointRequest.EndpointUrl = endpointUrl;
+            endpointRequest.OpcAuthenticationMode = authenticationMode;
             endpointRequest.UserName = username;
             endpointRequest.Password = password;
 
@@ -348,29 +343,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            Assert.True(response.Subject.Count == 1);
-            Assert.True(response.Subject[0].Id == "ns=2;s=SlowUInt1");
-        }
-
-        [Theory]
-        [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointDataSetPublishingIntervalTest(string publishedNodesFile) {
-            var endpointUrl = "opc.tcp://opcplc:50000";
-            var dataSetPublishingInterval = 3000;
-            var methodsController = await publishNodeAsync(publishedNodesFile);
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
-            endpointRequest.DataSetPublishingInterval = dataSetPublishingInterval;
-
-            var response = await FluentActions
-                    .Invoking(async () => await methodsController
-                    .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
-                    .Should()
-                    .NotThrowAsync()
-                    .ConfigureAwait(false);
-
-            Assert.True(response.Subject.Count == 1);
-            Assert.True(response.Subject[0].Id == "ns=2;s=SlowUInt2");
+            response.Subject.Count()
+                .Should()
+                .Be(2);
+            response.Subject.First().Id
+                .Should()
+                .Be("ns=2;s=FastUInt3");
+            response.Subject[1].Id
+                .Should()
+                .Be("ns=2;s=FastUInt4");
         }
 
         /// <summary>
