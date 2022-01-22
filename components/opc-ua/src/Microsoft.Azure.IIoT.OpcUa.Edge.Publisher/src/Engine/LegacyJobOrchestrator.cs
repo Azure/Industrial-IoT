@@ -779,18 +779,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodesEntryModel> GetConfiguredNodesOnEndpointAsync(
+        public async Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request,
             CancellationToken ct = default) {
 
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredNodesOnEndpointAsync));
+            var sw = Stopwatch.StartNew();
+            List<OpcNodeModel> response = new List<OpcNodeModel>();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
-                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+                var nodeFound = false;
+                
+                foreach (var entry in _publishedNodesEntries) {
+                    if (entry.HasSameGroup(request)) {  
+                        nodeFound = true;
+                        response.AddRange(entry.OpcNodes);
+                    }
+                }
+
+                if (!nodeFound) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Node not found in endpoint.");
+                }
+            }
+            catch (MethodCallStatusException) {
+                throw;
+            }
+            catch (Exception e) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
+                sw.Stop();
                 _lockConfig.Release();
             }
+            return response;
         }
 
         /// <inheritdoc/>
