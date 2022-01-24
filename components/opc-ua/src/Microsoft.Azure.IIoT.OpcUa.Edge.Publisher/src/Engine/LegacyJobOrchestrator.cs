@@ -545,6 +545,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 var found = false;
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _legacyCliModel);
+
                 if (jobs.Any()) {
                     await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
                     try {
@@ -679,7 +680,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 // Remove entries without nodes.
-                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes.Count == 0);
+                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes == null || entry.OpcNodes.Count == 0);
 
                 PersistPublishedNodes();
 
@@ -709,6 +710,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
 
+                    // In the case that all OpcNodes entries were removed from existingGroups
+                    // ToWriterGroupJobs() will return an empty result. So we need to manually
+                    // remove corresponsing entries from _assignedJobs and _availableJobs.
                     if (!found) {
                         var entryJobId = _publishedNodesJobConverter.
                             ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
@@ -763,6 +767,148 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             finally {
                 _lockConfig.Release();
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<string>> AddOrUpdateEndpointsAsync(
+            IEnumerable<PublishedNodesEntryModel> request,
+            CancellationToken ct = default
+        ) {
+            var methodName = nameof(AddOrUpdateEndpointsAsync);
+            _logger.Information("{methodName} method triggered ... ", methodName);
+            var sw = Stopwatch.StartNew();
+
+            if (request is null) {
+                _logger.Information("{methodName} method finished in {elapsed}", methodName, sw.Elapsed);
+                sw.Stop();
+
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "null request provided");
+            }
+
+            var response = new List<string>();
+
+            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            try {
+                // ToDo: Uncomment ValidateRequest() once our test requests pass validation.
+                // This will throw SerializerException if values of request fields are not conformant.
+                //ValidateRequest(request);
+
+                // First let's check that endpoints that we are asked to remove exist.
+                var dataSetsToRemove = request.Where(e => e.OpcNodes is null || e.OpcNodes.Count == 0).ToList();
+                var dataSetsToUpdate = request.Where(e => !(e.OpcNodes is null) && e.OpcNodes.Count > 0).ToList();
+
+                foreach (var dataSetToRemove in dataSetsToRemove) {
+                    var foundDataSet = false;
+                    foreach (var entry in _publishedNodesEntries) {
+                        foundDataSet = foundDataSet || IsSameDataSet(entry, dataSetToRemove);
+                    }
+                    if (!foundDataSet) {
+                        throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                            $"Endpoint not found: {dataSetToRemove.EndpointUrl}");
+                    }
+                }
+
+                var existingGroups = new List<PublishedNodesEntryModel>();
+
+                foreach (var dataSetToUpdate in request) {
+                    bool dataSetFound = false;
+                    foreach (var entry in _publishedNodesEntries) {
+                        if (entry.HasSameGroup(dataSetToUpdate)) {
+                            // We may have several entries with the same DataSetGroup definition,
+                            // so we will update nodes only if the whole DataSet definition matches.
+                            if (IsSameDataSet(entry, dataSetToUpdate)) {
+                                if (dataSetToUpdate.OpcNodes is null || dataSetToUpdate.OpcNodes.Count == 0 || dataSetFound) {
+                                    // In this case existing OpcNodes entries should be cleaned up.
+                                    entry.OpcNodes.Clear();
+                                } else {
+                                    // We will add OpcNodes to the first matching entry
+                                    // and the rest will be cleaned up.
+                                    entry.OpcNodes = dataSetToUpdate.OpcNodes;
+                                    dataSetFound = true;
+                                }
+                            }
+
+                            // Even if DataSets did not match, we need to add this entry to existingGroups
+                            // so that generated job definition is complete.
+                            existingGroups.Add(entry);
+                        }
+                    }
+
+                    response.Add($"Update succeeded for EndpointUrl: {dataSetToUpdate.EndpointUrl}");
+                }
+
+                // Remove entries without nodes.
+                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes == null || entry.OpcNodes.Count == 0);
+
+                PersistPublishedNodes();
+
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _legacyCliModel);
+
+                await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
+                try {
+                    // We will first update existing jobs. Then we will cleanup empty ones.
+                    var processedJobIds = new HashSet<string>();
+
+                    if (jobs.Any()) {
+                        foreach (var job in jobs) {
+                            var newJob = ToJobProcessingInstructionModel(job);
+
+                            if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                                continue;
+                            }
+
+                            var jobFound = false;
+                            foreach (var assignedJob in _assignedJobs) {
+                                if (newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                    _assignedJobs[assignedJob.Key] = newJob;
+                                    jobFound = true;
+                                    break;
+                                }
+                            }
+                            if (!jobFound) {
+                                _availableJobs.AddOrUpdate(newJob.Job.Id, newJob);
+                            }
+
+                            processedJobIds.Add(newJob.Job.Id);
+                        }
+                    }
+
+                    // In the case that all OpcNodes entries were removed from existingGroups
+                    // ToWriterGroupJobs() will return an empty result. So we need to manually
+                    // remove entries from _assignedJobs and _availableJobs that were marked for
+                    // removal in request.
+                    foreach (var dataSetToRemove in dataSetsToRemove) {
+                        var entryJobId = _publishedNodesJobConverter.
+                            ToConnectionModel(dataSetToRemove, _legacyCliModel).CreateConnectionId();
+
+                        // If entry with this JobId was already processed, then there already
+                        // was an update operation for it. We will skip its removal.
+                        if (!processedJobIds.Contains(entryJobId)) {
+                            var jobFound = false;
+                            foreach (var assignedJob in _assignedJobs) {
+                                if (entryJobId == assignedJob.Value.Job.Id) {
+                                    jobFound = _assignedJobs.Remove(assignedJob.Key);
+                                    break;
+                                }
+                            }
+                            if (!jobFound) {
+                                _availableJobs.Remove(entryJobId);
+                            }
+                        }
+                    }
+                }
+                finally {
+                    _lockJobs.Release();
+                }
+            }
+            finally {
+                _lockConfig.Release();
+
+                _logger.Information("{methodName} method finished in {elapsed}", methodName, sw.Elapsed);
+                sw.Stop();
+            }
+
+            return response;
         }
 
         /// <inheritdoc/>

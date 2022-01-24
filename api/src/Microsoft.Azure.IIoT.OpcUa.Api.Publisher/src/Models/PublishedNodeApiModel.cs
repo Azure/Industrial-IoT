@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public string Id { get; set; }
 
         /// <summary> Expanded Node identifier </summary>
-        [DataMember(Name = "expandedNodeId", Order = 1, 
+        [DataMember(Name = "expandedNodeId", Order = 1,
             EmitDefaultValue = false)]
         public string ExpandedNodeId { get; set; }
 
