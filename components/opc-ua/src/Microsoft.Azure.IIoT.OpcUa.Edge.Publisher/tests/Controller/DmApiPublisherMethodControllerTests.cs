@@ -228,7 +228,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task DmApiGetConfiguredNodesOnEndpointAsyncTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50010";
 
-            var endpointRequest = new PublishNodesRequestApiModel {
+            var endpointRequest = new PublishNodesEndpointApiModel {
                 EndpointUrl = endpointUrl,
             };
 
@@ -261,7 +261,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var username = "usr";
             var password = "pwd";
 
-            var endpointRequest = new PublishNodesRequestApiModel {
+            var endpointRequest = new PublishNodesEndpointApiModel {
                 EndpointUrl = endpointUrl,
                 DataSetWriterGroup = dataSetWriterGroup,
                 DataSetWriterId = dataSetWriterId,
@@ -299,7 +299,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ToList();
 
             var endpoints = Enumerable.Range(0, 5)
-                .Select(i => new PublishNodesRequestApiModel {
+                .Select(i => new PublishNodesEndpointApiModel {
                     EndpointUrl = "opc.tcp://opcplc:50000",
                     DataSetWriterId = i > 1
                         ? $"DataSetWriterId{i}"
@@ -337,7 +337,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var endpointUrl = "opc.tcp://opcplc:50000";
             var useSecurity = false;
 
-            var endpointRequest = new PublishNodesRequestApiModel {
+            var endpointRequest = new PublishNodesEndpointApiModel {
                 EndpointUrl = endpointUrl,
                 UseSecurity = useSecurity,
             };
@@ -368,7 +368,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var dataSetPublishingInterval = 3000;
             var authenticationMode = AuthenticationMode.Anonymous;
 
-            var endpointRequest = new PublishNodesRequestApiModel {
+            var endpointRequest = new PublishNodesEndpointApiModel {
                 EndpointUrl = endpointUrl,
                 DataSetWriterGroup = dataSetWriterGroup,
                 DataSetWriterId = dataSetWriterId,
@@ -401,7 +401,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var username = "usr";
             var password = "pwd";
 
-            var endpointRequest = new PublishNodesRequestApiModel {
+            var endpointRequest = new PublishNodesEndpointApiModel {
                 EndpointUrl = endpointUrl,
                 OpcAuthenticationMode = authenticationMode,
                 UserName = username,
