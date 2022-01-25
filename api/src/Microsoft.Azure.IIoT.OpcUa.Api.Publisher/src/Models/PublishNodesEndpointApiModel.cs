@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     /// A monitored and published item
     /// </summary>
     [DataContract]
-    public class PublishNodesRequestApiModel {
+    public class PublishNodesEndpointApiModel {
 
         /// <summary> The Group the stream belongs to - DataSetWriterGroup. </summary>
         [DataMember(Name = "dataSetWriterGroup", Order = 0,

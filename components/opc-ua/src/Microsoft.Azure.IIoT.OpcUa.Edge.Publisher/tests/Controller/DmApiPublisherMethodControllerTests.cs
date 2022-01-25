@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>(
+            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
@@ -165,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>
+            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>
                 (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequests) {
@@ -256,9 +256,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>
+            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>
                 (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
+            // Check that GetConfiguredEndpointsAsync returns empty list
+            var endpoints = await FluentActions
+                .Invoking(async () => await methodsController
+                .GetConfiguredEndpointsAsync().ConfigureAwait(false))
+                .Should()
+                .NotThrowAsync()
+                .ConfigureAwait(false);
+
+            endpoints.Subject.Count.Should().Be(0);
+
+            // Publish nodes
             foreach (var request in publishNodesRequests) {
 
                 var publishNodesResult = await FluentActions
@@ -273,7 +284,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .Contain("succeeded");
             }
 
-            var endpoints = await FluentActions
+            // Check configured endpoints count
+            endpoints = await FluentActions
                 .Invoking(async () => await methodsController
                 .GetConfiguredEndpointsAsync().ConfigureAwait(false))
                 .Should()
