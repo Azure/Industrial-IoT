@@ -111,12 +111,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Wait some time to generate events to process.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-            //await Task.Delay(10000, cts.Token);
 
-            //Create request for GetConfiguredNodesOnEndpoint metod call
-            var NodesOnEndpoint = new PublishedNodesEntryModel();
-            NodesOnEndpoint.EndpointUrl = request.EndpointUrl;
-            var requestGetConfiguredNodesOnEndpoint = NodesOnEndpoint.ToApiModel();
+            //Create request for GetConfiguredNodesOnEndpoint method call
+            var nodesOnEndpoint = new PublishedNodesEntryModel();
+            nodesOnEndpoint.EndpointUrl = request.EndpointUrl;
+            var requestGetConfiguredNodesOnEndpoint = nodesOnEndpoint.ToApiModel();
 
             //Call GetConfiguredNodesOnEndpoint direct method
             var responseGetConfiguredNodesOnEndpoint = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
@@ -216,10 +215,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Wait some time to generate events to process.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
 
-            //Create request for GetConfiguredNodesOnEndpoint metod call
-            var NodesOnEndpoint = new PublishedNodesEntryModel();
-            NodesOnEndpoint.EndpointUrl = request.EndpointUrl;
-            var requestGetConfiguredNodesOnEndpoint = NodesOnEndpoint.ToApiModel();
+            //Create request for GetConfiguredNodesOnEndpoint method call
+            var nodesOnEndpoint = new PublishedNodesEntryModel();
+            nodesOnEndpoint.EndpointUrl = request.EndpointUrl;
+            var requestGetConfiguredNodesOnEndpoint = nodesOnEndpoint.ToApiModel();
 
             //Call GetConfiguredNodesOnEndpoint direct method
             var responseGetConfiguredNodesOnEndpoint = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
