@@ -15,7 +15,6 @@ OPC Twin Microservice in cloud exposes a [REST API](../api/twin/readme.md) to ca
 ## Supported OPC UA Services
 
 * **Read** and **Write** a “Value” on a Variable node
-  Write is also exposed as Desired/Reported Property on the endpoint identity
 * **Call** a “Method Node”
 * **Read** and **Write** Node “Attributes
 * **History Read** and **Update** service calls to interact with Historians
