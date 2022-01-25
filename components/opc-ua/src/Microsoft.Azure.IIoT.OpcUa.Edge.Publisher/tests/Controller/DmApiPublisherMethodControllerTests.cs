@@ -227,9 +227,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task DmApiGetConfiguredNodesOnEndpointAsyncTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50010";
+
+            var endpointRequest = new PublishNodesRequestApiModel {
+                EndpointUrl = endpointUrl,
+            };
+
             var methodsController = await publishNodeAsync(publishedNodesFile);
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
+
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
@@ -250,26 +254,82 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Theory]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointAsyncdataSetWriterGroupTest(string publishedNodesFile) {
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncDataSetWriterGroupTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
-            var DataSetWriterGroup = "Leaf1";
-            var methodsController = await publishNodeAsync(publishedNodesFile);  
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
-            endpointRequest.DataSetWriterGroup = DataSetWriterGroup;
+            var dataSetWriterGroup = "Leaf0";
+            var dataSetWriterId = "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234";
+            var authenticationMode = AuthenticationMode.UsernamePassword;
+            var username = "usr";
+            var password = "pwd";
+
+            var endpointRequest = new PublishNodesRequestApiModel {
+                EndpointUrl = endpointUrl,
+                DataSetWriterGroup = dataSetWriterGroup,
+                DataSetWriterId = dataSetWriterId,
+                OpcAuthenticationMode = authenticationMode,
+                UserName = username,
+                Password = password,
+            };
+
+            var methodsController = await publishNodeAsync(publishedNodesFile);
+
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
- 
+
             response.Subject.Count()
                 .Should()
                 .Be(1);
             response.Subject.First().Id
                 .Should()
-                .Be("ns=2;s=SlowUInt2");
+                .Be("ns=2;s=SlowUInt1");
+        }
+
+        [Fact]
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncDataSetWriterIdTest() {
+            // Testing that we can differentiate between endpoints
+            // even if they only have different DataSetWriterIds.
+
+            var opcNodes = Enumerable.Range(0, 5)
+                .Select(i => new PublishedNodeApiModel {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                })
+                .ToList();
+
+            var endpoints = Enumerable.Range(0, 5)
+                .Select(i => new PublishNodesRequestApiModel {
+                    EndpointUrl = "opc.tcp://opcplc:50000",
+                    DataSetWriterId = i > 1
+                        ? $"DataSetWriterId{i}"
+                        : (i == 1 ? "" : null),
+                    OpcNodes = opcNodes.GetRange(0, i + 1).ToList(),
+                })
+                .ToList();
+
+            var methodsController = await publishNodeAsync("Engine/empty_pn.json");
+
+            for (var i = 0; i < 5; ++i) {
+                await methodsController.PublishNodesAsync(endpoints[i]).ConfigureAwait(false);
+            }
+
+            for (var i = 0; i < 5; ++i) {
+                var response = await FluentActions
+                        .Invoking(async () => await methodsController
+                        .GetConfiguredNodesOnEndpointAsync(endpoints[i]).ConfigureAwait(false))
+                        .Should()
+                        .NotThrowAsync()
+                        .ConfigureAwait(false);
+
+                response.Subject.Count
+                    .Should()
+                    .Be(i + 1);
+                response.Subject.Last().Id
+                    .Should()
+                    .Be($"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}");
+            }
         }
 
         [Theory]
@@ -277,10 +337,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task DmApiGetConfiguredNodesOnEndpointAsyncUseSecurityTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
             var useSecurity = false;
+
+            var endpointRequest = new PublishNodesRequestApiModel {
+                EndpointUrl = endpointUrl,
+                UseSecurity = useSecurity,
+            };
+
             var methodsController = await publishNodeAsync(publishedNodesFile);
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
-            endpointRequest.UseSecurity = useSecurity;
+
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
@@ -298,15 +362,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Theory]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointOpcAuthenticationModeTest(string publishedNodesFile) {
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncOpcAuthenticationModeTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
+            var dataSetWriterGroup = "Leaf1";
+            var dataSetWriterId = "Leaf1_10000_3085991c-b85c-4311-9bfb-a916da952235";
+            var dataSetPublishingInterval = 3000;
             var authenticationMode = AuthenticationMode.Anonymous;
-            var DataSetWriterGroup = "Leaf1";
+
+            var endpointRequest = new PublishNodesRequestApiModel {
+                EndpointUrl = endpointUrl,
+                DataSetWriterGroup = dataSetWriterGroup,
+                DataSetWriterId = dataSetWriterId,
+                DataSetPublishingInterval = dataSetPublishingInterval,
+                OpcAuthenticationMode = authenticationMode,
+            };
+
             var methodsController = await publishNodeAsync(publishedNodesFile);
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
-            endpointRequest.OpcAuthenticationMode = authenticationMode;
-            endpointRequest.DataSetWriterGroup = DataSetWriterGroup;
+
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
@@ -324,17 +396,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Theory]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointUsernamePasswordTest(string publishedNodesFile) {
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncUsernamePasswordTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
             var authenticationMode = AuthenticationMode.UsernamePassword;
             var username = "usr";
             var password = "pwd";
+
+            var endpointRequest = new PublishNodesRequestApiModel {
+                EndpointUrl = endpointUrl,
+                OpcAuthenticationMode = authenticationMode,
+                UserName = username,
+                Password = password,
+            };
+
             var methodsController = await publishNodeAsync(publishedNodesFile);
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
-            endpointRequest.OpcAuthenticationMode = authenticationMode;
-            endpointRequest.UserName = username;
-            endpointRequest.Password = password;
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController

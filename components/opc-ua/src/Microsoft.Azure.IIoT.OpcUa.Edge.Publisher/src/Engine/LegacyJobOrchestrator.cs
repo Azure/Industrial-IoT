@@ -278,9 +278,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return _publishedNodesJobConverter.Read(content, null);
         }
 
-        private bool IsSameDataSet(PublishedNodesEntryModel entry1, PublishedNodesEntryModel entry2) {
+        private static bool IsSameDataSet(PublishedNodesEntryModel entry1, PublishedNodesEntryModel entry2) {
             return entry1.HasSameGroup(entry2)
-                && entry1.DataSetWriterId == entry2.DataSetWriterId
+                && string.Equals(entry1.DataSetWriterId, entry2.DataSetWriterId, StringComparison.InvariantCulture)
                 && entry1.DataSetPublishingInterval == entry2.DataSetPublishingInterval;
         }
 
@@ -788,17 +788,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             List<OpcNodeModel> response = new List<OpcNodeModel>();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
-                var nodeFound = false;
-                
+                var endpointFound = false;
+
                 foreach (var entry in _publishedNodesEntries) {
-                    if (entry.HasSameGroup(request)) {  
-                        nodeFound = true;
+                    if (IsSameDataSet(entry, request)) {
+                        endpointFound = true;
                         response.AddRange(entry.OpcNodes);
                     }
                 }
 
-                if (!nodeFound) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Node not found in endpoint.");
+                if (!endpointFound) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                        $"Endpoint not found: {request.EndpointUrl}");
                 }
             }
             catch (MethodCallStatusException) {
