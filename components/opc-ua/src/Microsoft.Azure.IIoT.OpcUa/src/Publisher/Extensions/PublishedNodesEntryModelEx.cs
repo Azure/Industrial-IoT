@@ -31,6 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             if (string.Compare(model.EndpointUrl.OriginalString, that.EndpointUrl.OriginalString, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
+
             if (model.UseSecurity != that.UseSecurity) {
                 return false;
             }

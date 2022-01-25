@@ -25,8 +25,7 @@
     "DataSetWriterId": "Leaf1_10000_3085991c-b85c-4311-9bfb-a916da952235",
     "DataSetPublishingInterval": 3000,
     "EndpointUrl": "opc.tcp://opcplc:50000",
-    "UseSecurity": false,
-    "OpcAuthenticationMode": "UsernamePassword",
+    "OpcAuthenticationMode": "Anonymous",
     "OpcNodes": [
       {
         "Id": "ns=2;s=SlowUInt2",
@@ -43,6 +42,7 @@
     "DataSetWriterGroup": "Leaf0",
     "DataSetWriterId": "Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
     "EndpointUrl": "opc.tcp://opcplc:50010",
+    "OpcAuthenticationMode": "Anonymous",
     "UseSecurity": false,
     "OpcNodes": [
       {
@@ -51,6 +51,37 @@
       },
       {
         "Id": "ns=2;s=FastUInt2",
+        "OpcPublishingInterval": 2000
+      }
+    ]
+  },
+  {
+    "EndpointUrl": "opc.tcp://opcplc:50000",
+    "UseSecurity": false,
+    "OpcNodes": [
+      {
+        "Id": "ns=2;s=SlowUInt3",
+        "DataSetFieldId": "ns=2;s=SlowUInt3",
+        "DisplayName": "SlowUint",
+        "OpcSamplingInterval": 2000,
+        "HeartbeatInterval": 4,
+        "SkipFirst": true,
+        "QueueSize": 10
+      }
+    ]
+  },
+  {
+    "EndpointUrl": "opc.tcp://opcplc:50000",
+    "OpcAuthenticationMode": "UsernamePassword",
+    "UserName": "usr",
+    "Password": "pwd",
+    "OpcNodes": [
+      {
+        "Id": "ns=2;s=FastUInt3",
+        "OpcPublishingInterval": 1000
+      },
+      {
+        "Id": "ns=2;s=FastUInt4",
         "OpcPublishingInterval": 2000
       }
     ]
