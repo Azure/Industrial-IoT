@@ -344,8 +344,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         case StatusCodes.BadSessionNotActivated:
                         case StatusCodes.BadServerHalted:
                         case StatusCodes.BadServerNotConnected:
-                            _logger.Warning("Failed to reconnect session '{id}', " +
-                                "will retry later", id);
+                        case StatusCodes.BadInvalidState:
+                        case StatusCodes.BadRequestTimeout:
+                            _logger.Warning("Failed to reconnect session '{id}' due to {exception}, " +
+                                "will retry later", id, e.Message);
                             if (wrapper.MissedKeepAlives < wrapper.MaxKeepAlives) {
                                 // retry later
                                 return;
