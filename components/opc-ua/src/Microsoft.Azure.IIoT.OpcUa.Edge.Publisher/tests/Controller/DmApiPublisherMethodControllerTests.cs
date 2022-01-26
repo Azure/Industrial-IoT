@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>(
+            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>
+            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>
                 (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequests) {
@@ -227,9 +227,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task DmApiGetConfiguredNodesOnEndpointAsyncTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50010";
+
+            var endpointRequest = new PublishNodesEndpointApiModel {
+                EndpointUrl = endpointUrl,
+            };
+
             var methodsController = await publishNodeAsync(publishedNodesFile);
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
@@ -250,26 +253,82 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Theory]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointAsyncdataSetWriterGroupTest(string publishedNodesFile) {
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncDataSetWriterGroupTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
-            var DataSetWriterGroup = "Leaf1";
-            var methodsController = await publishNodeAsync(publishedNodesFile);  
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
-            endpointRequest.DataSetWriterGroup = DataSetWriterGroup;
+            var dataSetWriterGroup = "Leaf0";
+            var dataSetWriterId = "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234";
+            var authenticationMode = AuthenticationMode.UsernamePassword;
+            var username = "usr";
+            var password = "pwd";
+
+            var endpointRequest = new PublishNodesEndpointApiModel {
+                EndpointUrl = endpointUrl,
+                DataSetWriterGroup = dataSetWriterGroup,
+                DataSetWriterId = dataSetWriterId,
+                OpcAuthenticationMode = authenticationMode,
+                UserName = username,
+                Password = password,
+            };
+
+            var methodsController = await publishNodeAsync(publishedNodesFile);
+
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
- 
+
             response.Subject.Count()
                 .Should()
                 .Be(1);
             response.Subject.First().Id
                 .Should()
-                .Be("ns=2;s=SlowUInt2");
+                .Be("ns=2;s=SlowUInt1");
+        }
+
+        [Fact]
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncDataSetWriterIdTest() {
+            // Testing that we can differentiate between endpoints
+            // even if they only have different DataSetWriterIds.
+
+            var opcNodes = Enumerable.Range(0, 5)
+                .Select(i => new PublishedNodeApiModel {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                })
+                .ToList();
+
+            var endpoints = Enumerable.Range(0, 5)
+                .Select(i => new PublishNodesEndpointApiModel {
+                    EndpointUrl = "opc.tcp://opcplc:50000",
+                    DataSetWriterId = i > 1
+                        ? $"DataSetWriterId{i}"
+                        : (i == 1 ? "" : null),
+                    OpcNodes = opcNodes.GetRange(0, i + 1).ToList(),
+                })
+                .ToList();
+
+            var methodsController = await publishNodeAsync("Engine/empty_pn.json");
+
+            for (var i = 0; i < 5; ++i) {
+                await methodsController.PublishNodesAsync(endpoints[i]).ConfigureAwait(false);
+            }
+
+            for (var i = 0; i < 5; ++i) {
+                var response = await FluentActions
+                        .Invoking(async () => await methodsController
+                        .GetConfiguredNodesOnEndpointAsync(endpoints[i]).ConfigureAwait(false))
+                        .Should()
+                        .NotThrowAsync()
+                        .ConfigureAwait(false);
+
+                response.Subject.Count
+                    .Should()
+                    .Be(i + 1);
+                response.Subject.Last().Id
+                    .Should()
+                    .Be($"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}");
+            }
         }
 
         [Theory]
@@ -277,10 +336,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task DmApiGetConfiguredNodesOnEndpointAsyncUseSecurityTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
             var useSecurity = false;
+
+            var endpointRequest = new PublishNodesEndpointApiModel {
+                EndpointUrl = endpointUrl,
+                UseSecurity = useSecurity,
+            };
+
             var methodsController = await publishNodeAsync(publishedNodesFile);
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
-            endpointRequest.UseSecurity = useSecurity;
+          
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
@@ -298,15 +361,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Theory]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointOpcAuthenticationModeTest(string publishedNodesFile) {
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncOpcAuthenticationModeTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
+            var dataSetWriterGroup = "Leaf1";
+            var dataSetWriterId = "Leaf1_10000_3085991c-b85c-4311-9bfb-a916da952235";
+            var dataSetPublishingInterval = 3000;
             var authenticationMode = AuthenticationMode.Anonymous;
-            var DataSetWriterGroup = "Leaf1";
+
+            var endpointRequest = new PublishNodesEndpointApiModel {
+                EndpointUrl = endpointUrl,
+                DataSetWriterGroup = dataSetWriterGroup,
+                DataSetWriterId = dataSetWriterId,
+                DataSetPublishingInterval = dataSetPublishingInterval,
+                OpcAuthenticationMode = authenticationMode,
+            };
+
             var methodsController = await publishNodeAsync(publishedNodesFile);
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
-            endpointRequest.OpcAuthenticationMode = authenticationMode;
-            endpointRequest.DataSetWriterGroup = DataSetWriterGroup;
+
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
@@ -324,17 +395,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Theory]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointUsernamePasswordTest(string publishedNodesFile) {
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncUsernamePasswordTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
             var authenticationMode = AuthenticationMode.UsernamePassword;
             var username = "usr";
             var password = "pwd";
+
+            var endpointRequest = new PublishNodesEndpointApiModel {
+                EndpointUrl = endpointUrl,
+                OpcAuthenticationMode = authenticationMode,
+                UserName = username,
+                Password = password,
+            };
+
             var methodsController = await publishNodeAsync(publishedNodesFile);
-            var endpointRequest = new PublishNodesRequestApiModel();
-            endpointRequest.EndpointUrl = endpointUrl;
-            endpointRequest.OpcAuthenticationMode = authenticationMode;
-            endpointRequest.UserName = username;
-            endpointRequest.Password = password;
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -388,7 +462,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>(
+            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
@@ -403,6 +477,81 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .Contain("succeeded");
             }
             return methodsController;
+        }
+
+        [Theory]
+        [InlineData("Controller/DmApiPayloadCollection.json")]
+        public async Task DmApiGetConfiguredEndpointsTest(string publishedNodesFile) {
+            var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
+            var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var identityMock = new Mock<IIdentity>();
+            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+
+            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+
+            legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
+            agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
+
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
+
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
+            var methodsController = new PublisherMethodsController(orchestrator);
+
+            using var publishPayloads = new StreamReader(publishedNodesFile);
+            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>
+                (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+
+            // Check that GetConfiguredEndpointsAsync returns empty list
+            var endpoints = await FluentActions
+                .Invoking(async () => await methodsController
+                .GetConfiguredEndpointsAsync().ConfigureAwait(false))
+                .Should()
+                .NotThrowAsync()
+                .ConfigureAwait(false);
+
+            endpoints.Subject.Count.Should().Be(0);
+
+            // Publish nodes
+            foreach (var request in publishNodesRequests) {
+
+                var publishNodesResult = await FluentActions
+                    .Invoking(async () => await methodsController
+                    .PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+                publishNodesResult.Subject.StatusMessage.First()
+                    .Should()
+                    .Contain("succeeded");
+            }
+
+            // Check configured endpoints count
+            endpoints = await FluentActions
+                .Invoking(async () => await methodsController
+                .GetConfiguredEndpointsAsync().ConfigureAwait(false))
+                .Should()
+                .NotThrowAsync()
+                .ConfigureAwait(false);
+
+            endpoints.Subject.Count.Should().Be(5);
+            var endpointsHash = endpoints.Subject.Select(e => e.GetHashCode()).ToList();
+            Assert.True(endpointsHash.Distinct().Count() == endpointsHash.Count());
         }
 
     }

@@ -16,12 +16,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// <summary>
         /// Create an api model
         /// </summary>
-        public static PublishNodesRequestApiModel ToApiModel(
+        public static PublishNodesEndpointApiModel ToApiModel(
             this PublishedNodesEntryModel model) {
             if (model == null) {
                 return null;
             }
-            return new PublishNodesRequestApiModel {
+            return new PublishNodesEndpointApiModel {
 
                 DataSetWriterGroup = model.DataSetWriterGroup,
                 DataSetWriterId = model.DataSetWriterId,

@@ -278,9 +278,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return _publishedNodesJobConverter.Read(content, null);
         }
 
-        private bool IsSameDataSet(PublishedNodesEntryModel entry1, PublishedNodesEntryModel entry2) {
+        private static bool IsSameDataSet(PublishedNodesEntryModel entry1, PublishedNodesEntryModel entry2) {
             return entry1.HasSameGroup(entry2)
-                && entry1.DataSetWriterId == entry2.DataSetWriterId
+                && string.Equals(entry1.DataSetWriterId, entry2.DataSetWriterId, StringComparison.InvariantCulture)
                 && entry1.DataSetPublishingInterval == entry2.DataSetPublishingInterval;
         }
 
@@ -770,12 +770,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredEndpointsAsync));
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            var endpoints = new List<PublishedNodesEntryModel>();
+
             try {
-                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+                endpoints = _publishedNodesEntries.Select(model => new PublishedNodesEntryModel {
+                    EndpointUrl = model.EndpointUrl,
+                    UseSecurity = model.UseSecurity,
+                    OpcAuthenticationMode = model.OpcAuthenticationMode,
+                    OpcAuthenticationUsername = model.OpcAuthenticationUsername,
+                    DataSetWriterGroup = model.DataSetWriterGroup,
+                    DataSetWriterId = model.DataSetWriterId,
+                    DataSetPublishingInterval = model.DataSetPublishingInterval,
+                }).ToList();
+            }
+            catch (MethodCallStatusException) {
+                throw;
+            }
+            catch (Exception e) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
                 _lockConfig.Release();
             }
+            return endpoints;
         }
 
         /// <inheritdoc/>
@@ -788,17 +805,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             List<OpcNodeModel> response = new List<OpcNodeModel>();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
-                var nodeFound = false;
-                
+                var endpointFound = false;
+
                 foreach (var entry in _publishedNodesEntries) {
-                    if (entry.HasSameGroup(request)) {  
-                        nodeFound = true;
+                    if (IsSameDataSet(entry, request)) {
+                        endpointFound = true;
                         response.AddRange(entry.OpcNodes);
                     }
                 }
 
-                if (!nodeFound) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Node not found in endpoint.");
+                if (!endpointFound) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                        $"Endpoint not found: {request.EndpointUrl}");
                 }
             }
             catch (MethodCallStatusException) {
