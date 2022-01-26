@@ -101,7 +101,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             //Call Publish direct method
             var response = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
-                Name = "PublishNodes_V1",
+                Name = TestConstants.DirectMethodNames.PublishNodes,
                 JsonPayload = _serializer.SerializeToString(request)
             }, _context, cts.Token).ConfigureAwait(false);
 
@@ -121,7 +121,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             //Call GetConfiguredNodesOnEndpoint direct method
             var responseGetConfiguredNodesOnEndpoint = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
-                Name = "GetConfiguredNodesOnEndpoint_V1",
+                Name = TestConstants.DirectMethodNames.GetConfiguredNodesOnEndpoint,
                 JsonPayload = _serializer.SerializeToString(requestGetConfiguredNodesOnEndpoint)
             }, _context, cts.Token).ConfigureAwait(false);
 
@@ -154,7 +154,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             //Call Unpublish direct method
             response = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
-                Name = "UnPublishNodes_V1",
+                Name = TestConstants.DirectMethodNames.UnPublishNodes,
                 JsonPayload = _serializer.SerializeToString(request)
             }, _context, cts.Token).ConfigureAwait(false);
 
@@ -216,7 +216,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             //Call Publish direct method
             var response = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
-                Name = "PublishNodes",
+                Name = TestConstants.DirectMethodLegacyNames.PublishNodes,
                 JsonPayload = _serializer.SerializeToString(request)
             }, _context, cts.Token).ConfigureAwait(false);
 
@@ -236,7 +236,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             //Call GetConfiguredNodesOnEndpoint direct method
             var responseGetConfiguredNodesOnEndpoint = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
-                Name = "GetConfiguredNodesOnEndpoint",
+                Name = TestConstants.DirectMethodLegacyNames.GetConfiguredNodesOnEndpoint,
                 JsonPayload = _serializer.SerializeToString(requestGetConfiguredNodesOnEndpoint)
             }, _context, cts.Token).ConfigureAwait(false);
 
@@ -272,7 +272,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             //Call Unpublish direct method
             response = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
-                Name = "UnpublishNodes",
+                Name = TestConstants.DirectMethodLegacyNames.UnPublishNodes,
                 JsonPayload = _serializer.SerializeToString(request)
             }, _context, cts.Token).ConfigureAwait(false);
 
