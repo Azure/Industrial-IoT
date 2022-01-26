@@ -29,6 +29,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 Password = model.OpcAuthenticationPassword,
                 UserName = model.OpcAuthenticationUsername,
                 OpcNodes = model.OpcNodes.Select(n => n.ToApiModel()).ToList(),
+                DataSetWriterGroup = model.DataSetWriterGroup,
+                DataSetPublishingInterval = model.DataSetPublishingInterval
             };
         }
 
