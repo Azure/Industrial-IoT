@@ -25,6 +25,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
 
                 DataSetWriterGroup = model.DataSetWriterGroup,
                 DataSetWriterId = model.DataSetWriterId,
+                DataSetPublishingInterval = model.DataSetPublishingInterval,
                 EndpointUrl = model.EndpointUrl,
                 UseSecurity = model.UseSecurity,
                 Password = model.OpcAuthenticationPassword,
