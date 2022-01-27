@@ -278,9 +278,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return _publishedNodesJobConverter.Read(content, null);
         }
 
-        private bool IsSameDataSet(PublishedNodesEntryModel entry1, PublishedNodesEntryModel entry2) {
+        private static bool IsSameDataSet(PublishedNodesEntryModel entry1, PublishedNodesEntryModel entry2) {
             return entry1.HasSameGroup(entry2)
-                && entry1.DataSetWriterId == entry2.DataSetWriterId
+                && string.Equals(entry1.DataSetWriterId, entry2.DataSetWriterId, StringComparison.InvariantCulture)
                 && entry1.DataSetPublishingInterval == entry2.DataSetPublishingInterval;
         }
 
@@ -770,27 +770,67 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredEndpointsAsync));
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            var endpoints = new List<PublishedNodesEntryModel>();
+
             try {
-                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+                endpoints = _publishedNodesEntries.Select(model => new PublishedNodesEntryModel {
+                    EndpointUrl = model.EndpointUrl,
+                    UseSecurity = model.UseSecurity,
+                    OpcAuthenticationMode = model.OpcAuthenticationMode,
+                    OpcAuthenticationUsername = model.OpcAuthenticationUsername,
+                    DataSetWriterGroup = model.DataSetWriterGroup,
+                    DataSetWriterId = model.DataSetWriterId,
+                    DataSetPublishingInterval = model.DataSetPublishingInterval,
+                }).ToList();
+            }
+            catch (MethodCallStatusException) {
+                throw;
+            }
+            catch (Exception e) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
                 _lockConfig.Release();
             }
+            return endpoints;
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodesEntryModel> GetConfiguredNodesOnEndpointAsync(
+        public async Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request,
             CancellationToken ct = default) {
 
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredNodesOnEndpointAsync));
+            var sw = Stopwatch.StartNew();
+            List<OpcNodeModel> response = new List<OpcNodeModel>();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
-                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+                var endpointFound = false;
+
+                foreach (var entry in _publishedNodesEntries) {
+                    if (IsSameDataSet(entry, request)) {
+                        endpointFound = true;
+                        response.AddRange(entry.OpcNodes);
+                    }
+                }
+
+                if (!endpointFound) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                        $"Endpoint not found: {request.EndpointUrl}");
+                }
+            }
+            catch (MethodCallStatusException) {
+                throw;
+            }
+            catch (Exception e) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
+                sw.Stop();
                 _lockConfig.Release();
             }
+            return response;
         }
 
         /// <inheritdoc/>
