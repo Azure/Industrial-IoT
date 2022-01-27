@@ -915,6 +915,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
                         }
                     }
+
+                    AdjustMaxWorkersAgentConfig();
                 }
                 finally {
                     _lockJobs.Release();
