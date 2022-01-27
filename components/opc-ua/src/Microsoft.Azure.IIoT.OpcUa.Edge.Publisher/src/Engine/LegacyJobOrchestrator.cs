@@ -771,7 +771,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task<List<string>> AddOrUpdateEndpointsAsync(
-            IEnumerable<PublishedNodesEntryModel> request,
+            List<PublishedNodesEntryModel> request,
             CancellationToken ct = default
         ) {
             var methodName = nameof(AddOrUpdateEndpointsAsync);
@@ -809,32 +809,51 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 var existingGroups = new List<PublishedNodesEntryModel>();
+                var requestDataSetsFound = Enumerable.Repeat(false, request.Count).ToList(); ;
 
-                foreach (var dataSetToUpdate in request) {
-                    bool dataSetFound = false;
-                    foreach (var entry in _publishedNodesEntries) {
+                foreach (var entry in _publishedNodesEntries) {
+                    var groupFound = false;
+
+                    for (var k = 0; k < request.Count; ++k) {
+                        var dataSetToUpdate = request[k];
                         if (entry.HasSameGroup(dataSetToUpdate)) {
+                            groupFound = true;
+
                             // We may have several entries with the same DataSetGroup definition,
                             // so we will update nodes only if the whole DataSet definition matches.
                             if (IsSameDataSet(entry, dataSetToUpdate)) {
-                                if (dataSetToUpdate.OpcNodes is null || dataSetToUpdate.OpcNodes.Count == 0 || dataSetFound) {
+                                if (dataSetToUpdate.OpcNodes is null || dataSetToUpdate.OpcNodes.Count == 0 || requestDataSetsFound[k]) {
                                     // In this case existing OpcNodes entries should be cleaned up.
                                     entry.OpcNodes.Clear();
-                                } else {
+                                }
+                                else {
                                     // We will add OpcNodes to the first matching entry
                                     // and the rest will be cleaned up.
                                     entry.OpcNodes = dataSetToUpdate.OpcNodes;
-                                    dataSetFound = true;
                                 }
-                            }
 
-                            // Even if DataSets did not match, we need to add this entry to existingGroups
-                            // so that generated job definition is complete.
-                            existingGroups.Add(entry);
+                                // We do not need to look for another matching data set in request.
+                                requestDataSetsFound[k] = true;
+                                break;
+                            }
                         }
                     }
 
-                    response.Add($"Update succeeded for EndpointUrl: {dataSetToUpdate.EndpointUrl}");
+                    if (groupFound) {
+                        // Even if DataSets did not match, we need to add this entry to existingGroups
+                        // so that generated job definition is complete.
+                        existingGroups.Add(entry);
+                    }
+                }
+
+                // Add new data sets from request.
+                for (var k = 0; k < request.Count; ++k) {
+                    if (!requestDataSetsFound[k]) {
+                        existingGroups.Add(request[k]);
+                        _publishedNodesEntries.Add(request[k]);
+                    }
+
+                    response.Add($"Update succeeded for EndpointUrl: {request[k].EndpointUrl}");
                 }
 
                 // Remove entries without nodes.

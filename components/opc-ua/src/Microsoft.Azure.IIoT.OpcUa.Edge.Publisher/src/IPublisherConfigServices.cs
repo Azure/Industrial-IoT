@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Update nodes of endpoints in the published nodes configuration.
         /// </summary>
         Task<List<string>> AddOrUpdateEndpointsAsync(
-            IEnumerable<PublishedNodesEntryModel> request,
+            List<PublishedNodesEntryModel> request,
             CancellationToken ct = default
         );
 

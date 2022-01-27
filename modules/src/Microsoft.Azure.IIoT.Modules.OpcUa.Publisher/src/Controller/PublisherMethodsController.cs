@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         public async Task<PublishedNodesResponseApiModel> AddOrUpdateEndpointsAsync(
             List<PublishNodesRequestApiModel> request
         ) {
-            var endpoints = request?.Select(e => e.ToServiceModel());
+            var endpoints = request?.Select(e => e.ToServiceModel()).ToList();
             var response = await _configServices
                 .AddOrUpdateEndpointsAsync(endpoints)
                 .ConfigureAwait(false);
