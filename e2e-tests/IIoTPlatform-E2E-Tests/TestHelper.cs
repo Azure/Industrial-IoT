@@ -604,12 +604,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="IIoTMultipleNodesTestContext">context</param>
         /// <param name="CancellationTokenSource">cancellation token</param>
-        public static async Task<PublishedNodesEntryModel> CreateMultipleNodesModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct) {
+        public static async Task<PublishedNodesEntryModel> CreateMultipleNodesModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct, int endpointIndex = 2, int numberOfNodes = 250) {
             await context.LoadSimulatedPublishedNodes(ct);
 
             PublishedNodesEntryModel nodesToPublish;
             if (context.SimulatedPublishedNodes.Count > 1) {
-                var testPlc = context.SimulatedPublishedNodes.Skip(2).First().Value;
+                var testPlc = context.SimulatedPublishedNodes.Skip(endpointIndex).First().Value;
                 nodesToPublish = context.GetEntryModelWithoutNodes(testPlc);
 
                 // We want to take several slow and fast nodes.
@@ -620,7 +620,7 @@ namespace IIoTPlatform_E2E_Tests {
                     .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
                     .Where(node => node.Id.Contains("slow", StringComparison.OrdinalIgnoreCase)
                         || node.Id.Contains("fast", StringComparison.OrdinalIgnoreCase))
-                    .Take(250)
+                    .Take(numberOfNodes)
                     .Select(opcNode => {
                         var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
                         opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
@@ -632,14 +632,14 @@ namespace IIoTPlatform_E2E_Tests {
                 context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, nodesToPublish);
             }
             else {
-                var opcPlcIp = context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[2];
+                var opcPlcIp = context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[endpointIndex];
                 nodesToPublish = new PublishedNodesEntryModel {
                     EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
                     UseSecurity = false
                 };
 
                 var nodes = new List<OpcUaNodesModel>();
-                for (int i = 0; i < 250; i++) {
+                for (int i = 0; i < numberOfNodes; i++) {
                     nodes.Add(new OpcUaNodesModel {
                         Id = $"ns=2;s=SlowUInt{i + 1}",
                         OpcPublishingInterval = 10000 / 2,

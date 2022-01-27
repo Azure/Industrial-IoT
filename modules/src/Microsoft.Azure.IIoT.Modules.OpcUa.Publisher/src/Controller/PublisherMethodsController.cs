@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// Handler for PublishNodes direct method
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> PublishNodesAsync(
-            PublishNodesRequestApiModel request) {
+            PublishNodesEndpointApiModel request) {
             var response = await _configServices.PublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
             return response.ToApiModel();
         }
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// Handler for UnpublishNodes DM
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> UnpublishNodesAsync(
-            PublishNodesRequestApiModel request) {
+            PublishNodesEndpointApiModel request) {
             var response = await _configServices.UnpublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
             return response.ToApiModel();
         }
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// Handler for UnpublishAllNodes DM
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> UnpublishAllNodesAsync(
-            PublishNodesRequestApiModel request) {
+            PublishNodesEndpointApiModel request) {
 
             if (request.OpcNodes != null) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "OpcNodes is set.");
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// Handler for AddOrUpdateEndpoints direct method.
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> AddOrUpdateEndpointsAsync(
-            List<PublishNodesRequestApiModel> request
+            List<PublishNodesEndpointApiModel> request
         ) {
             var endpoints = request?.Select(e => e.ToServiceModel()).ToList();
             var response = await _configServices
@@ -78,16 +78,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for GetConfiguredEndpoints DM
         /// </summary>
-        public async Task<List<PublishedNodesResponseApiModel>> GetConfiguredEndpointsAsync() {
+        public async Task<List<PublishNodesEndpointApiModel>> GetConfiguredEndpointsAsync() {
 
-            await Task.Delay(0);
-            throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+            var response = await _configServices.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            return response.ToApiModel();
         }
 
         /// <summary>
         /// Handler for GetConfiguredNodesOnEndpoint DM
         /// </summary>
-        public async Task<List<PublishedNodeApiModel>> GetConfiguredNodesOnEndpointAsync(PublishNodesRequestApiModel request) {
+        public async Task<List<PublishedNodeApiModel>> GetConfiguredNodesOnEndpointAsync(PublishNodesEndpointApiModel request) {
             var response = await _configServices.GetConfiguredNodesOnEndpointAsync(request.ToServiceModel()).ConfigureAwait(false);
             return response.ToApiModel();
         }
@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for GetDiagnosticInfo DM
         /// </summary>
-        public async Task GetDiagnosticInfoAsync(PublishNodesRequestApiModel request) {
+        public async Task GetDiagnosticInfoAsync(PublishNodesEndpointApiModel request) {
             await Task.Delay(0);
             throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
         }

@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// Create a service model for an api model
         /// </summary>
         public static PublishedNodesEntryModel ToServiceModel(
-            this PublishNodesRequestApiModel model) {
+            this PublishNodesEndpointApiModel model) {
             if (model == null) {
                 return null;
             }
@@ -73,6 +73,26 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             return new PublishedNodesResponseApiModel {
                 StatusMessage = model
             };
+        }
+
+        /// <summary>
+        /// Create an api model from service model ignoring the password
+        /// </summary>
+        public static List<PublishNodesEndpointApiModel> ToApiModel(
+            this List<PublishedNodesEntryModel> endpoints) {
+            if (endpoints == null) {
+                return null;
+            }
+
+            return endpoints.Select(e => new PublishNodesEndpointApiModel {
+                EndpointUrl = e.EndpointUrl.AbsoluteUri,
+                UseSecurity = (bool)e.UseSecurity,
+                OpcAuthenticationMode = (AuthenticationMode)e.OpcAuthenticationMode,
+                UserName = e.OpcAuthenticationUsername,
+                DataSetWriterGroup = e.DataSetWriterGroup,
+                DataSetWriterId = e.DataSetWriterId,
+                DataSetPublishingInterval = e.DataSetPublishingInterval
+            }).ToList();
         }
 
         /// <summary>
