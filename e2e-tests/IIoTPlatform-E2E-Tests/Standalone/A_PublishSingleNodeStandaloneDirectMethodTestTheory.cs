@@ -95,6 +95,15 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
+            //Call GetConfiguredEndpoints direct method, initially there should be no endpoints
+            var responseGetConfiguredEndpoints = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
+                Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
+            }, _context, cts.Token).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
+            var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Equal(configuredEndpointsResponse.Count, 0);
+
             var request = model.ToApiModel();
 
             //Call Publish direct method
@@ -118,15 +127,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var requestGetConfiguredNodesOnEndpoint = nodesOnEndpoint.ToApiModel();
 
             //Call GetConfiguredEndpoints direct method
-            var responseGetConfiguredEndpoints = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
+            responseGetConfiguredEndpoints = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
                 Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
             }, _context, cts.Token).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
+            configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
             Assert.Equal(configuredEndpointsResponse.Count, 1);
-           // Assert.Equal(configuredEndpointsResponse[0].EndpointUrl, "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1");
-
 
             //Call GetConfiguredNodesOnEndpoint direct method
             var responseGetConfiguredNodesOnEndpoint = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
@@ -209,6 +216,17 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
+            //Call GetConfiguredEndpoints direct method, initially there should be no endpoints
+            var responseGetConfiguredEndpoints = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
+                Name = TestConstants.DirectMethodLegacyNames.GetConfiguredEndpoints
+            }, _context, cts.Token).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
+            var epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
+            var endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
+            var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
+            Assert.Equal(configuredEndpointsResponse.Count, 0);
+
             var request = model.ToApiModel();
 
             //Call Publish direct method
@@ -226,15 +244,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Wait some time to generate events to process.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
 
-            //call GetConfiguredEndpoints direct method
-            var responseGetConfiguredEndpoints = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
-                Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
+            //Call GetConfiguredEndpoints direct method
+            responseGetConfiguredEndpoints = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
+                Name = TestConstants.DirectMethodLegacyNames.GetConfiguredEndpoints
             }, _context, cts.Token).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
+            epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
+            endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
+            configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
             Assert.Equal(configuredEndpointsResponse.Count, 1);
-            // Assert.Equal(configuredEndpointsResponse[0].EndpointUrl, "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1");
 
             //Create request for GetConfiguredNodesOnEndpoint method call
             var nodesOnEndpoint = new PublishedNodesEntryModel();
