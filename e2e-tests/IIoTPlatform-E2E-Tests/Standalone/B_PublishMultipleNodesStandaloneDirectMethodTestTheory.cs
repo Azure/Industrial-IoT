@@ -130,7 +130,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(configuredEndpointsResponse.Count, 1);
+            Assert.Equal(1, configuredEndpointsResponse.Count);
+            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse[0], request);
 
             //Create request for GetConfiguredNodesOnEndpoint method call
             var nodesOnEndpoint = new PublishedNodesEntryModel();
@@ -267,7 +268,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
             endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
             configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
-            Assert.Equal(configuredEndpointsResponse.Count, 1);
+            Assert.Equal(1, configuredEndpointsResponse.Count);
+            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse[0], request);
 
             //Create request for GetConfiguredNodesOnEndpoint method call
             var nodesOnEndpoint = new PublishedNodesEntryModel();

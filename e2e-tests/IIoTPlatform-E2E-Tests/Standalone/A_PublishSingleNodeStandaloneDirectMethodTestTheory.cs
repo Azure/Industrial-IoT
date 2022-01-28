@@ -102,7 +102,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(configuredEndpointsResponse.Count, 0);
+            Assert.Equal(0, configuredEndpointsResponse.Count);
 
             var request = model.ToApiModel();
 
@@ -133,7 +133,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(configuredEndpointsResponse.Count, 1);
+            Assert.Equal(1, configuredEndpointsResponse.Count);
+            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse[0], request);
 
             //Call GetConfiguredNodesOnEndpoint direct method
             var responseGetConfiguredNodesOnEndpoint = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
@@ -225,7 +226,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
             var endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
             var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
-            Assert.Equal(configuredEndpointsResponse.Count, 0);
+            Assert.Equal(0, configuredEndpointsResponse.Count);
 
             var request = model.ToApiModel();
 
@@ -254,6 +255,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
             configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
             Assert.Equal(configuredEndpointsResponse.Count, 1);
+            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse[0], request);
 
             //Create request for GetConfiguredNodesOnEndpoint method call
             var nodesOnEndpoint = new PublishedNodesEntryModel();
