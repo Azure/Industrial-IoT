@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Agent.Framework;
     using Agent.Framework.Models;
@@ -136,6 +137,82 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ConfigureAwait(false);
         }
 
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task Test_AddOrUpdateEndpoints_AddEndpoints(
+            bool useDataSetSpecificEndpoints,
+            bool enableAvailableJobQuerying
+        ) {
+            _legacyCliModel.DefaultMaxNodesPerDataSet = 2;
+
+            InitLegacyJobOrchestrator();
+
+            var job0 = _legacyJobOrchestrator.GetAvailableJobAsync(0.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            Assert.Null(job0);
+
+            var numberOfEndpoints = 100;
+
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                })
+                .ToList();
+
+            var endpoints = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => GenerateEndpoint(i, opcNodes, useDataSetSpecificEndpoints))
+                .ToList();
+
+            async Task CallGetAvailableJobAsync(
+                LegacyJobOrchestrator legacyJobOrchestrator,
+                string workerId,
+                CancellationToken cancellationToken
+            ) {
+                try {
+                    while (!cancellationToken.IsCancellationRequested) {
+                        var jobProcessingInstructionModel = await legacyJobOrchestrator
+                            .GetAvailableJobAsync(workerId, null, cancellationToken)
+                            .ConfigureAwait(false);
+
+                        // Wait in between calls.
+                        await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                catch(OperationCanceledException) {
+                    // Nothing to do, just ignore.
+                }
+            }
+
+            var cts = new CancellationTokenSource();
+            var getAvailableJobTasks = new List<Task>();
+            if (enableAvailableJobQuerying) {
+                for (var i = 0; i < numberOfEndpoints; i++) {
+                    getAvailableJobTasks.Add(CallGetAvailableJobAsync(_legacyJobOrchestrator, i.ToString(), cts.Token));
+                }
+            }
+
+            var tasks = new List<Task<List<string>>>();
+            for (var i = 0; i < numberOfEndpoints; i++) {
+                tasks.Add(_legacyJobOrchestrator.AddOrUpdateEndpointsAsync(
+                    new List<PublishedNodesEntryModel> { endpoints[i] }));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            for (var i = 0; i < numberOfEndpoints; i++) {
+                var endpointNodes = await _legacyJobOrchestrator
+                    .GetConfiguredNodesOnEndpointAsync(endpoints[i])
+                    .ConfigureAwait(false);
+
+                AssertSameNodes(endpoints[i], endpointNodes);
+            }
+
+            cts.Cancel();
+            await Task.WhenAll(getAvailableJobTasks).ConfigureAwait(false);
+        }
+
         [Fact]
         public async Task Test_AddOrUpdateEndpoints_AddAndRemove() {
             _legacyCliModel.DefaultMaxNodesPerDataSet = 2;
@@ -150,25 +227,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
                 })
                 .ToList();
-
-            // Helper method.
-            PublishedNodesEntryModel GenerateEndpoint(int i, List<OpcNodeModel> opcNodes) {
-                return new PublishedNodesEntryModel {
-                    EndpointUrl = new Uri("opc.tcp://opcplc:50000"),
-                    DataSetWriterId = $"DataSetWriterId{i}",
-                    DataSetWriterGroup = "DataSetWriterGroup",
-                    DataSetPublishingInterval = (i + 1) * 1000,
-                    OpcNodes = opcNodes.GetRange(0, i + 1).ToList(),
-                };
-            }
-
-            // Helper method.
-            void AssertSameNodes(PublishedNodesEntryModel endpoint, List<OpcNodeModel> nodes) {
-                Assert.Equal(endpoint.OpcNodes.Count, nodes.Count);
-                for (var k = 0; k < endpoint.OpcNodes.Count; k++) {
-                    Assert.True(endpoint.OpcNodes[k].IsSame(nodes[k]));
-                }
-            }
 
             // Helper method.
             async Task AssertGetConfiguredNodesOnEndpointThrows(
@@ -260,6 +318,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ConfigureAwait(false);
 
             AssertSameNodes(updateRequest[3], endpointNodes4);
+        }
+
+        private static PublishedNodesEntryModel GenerateEndpoint(
+            int dataSetIndex,
+            List<OpcNodeModel> opcNodes,
+            bool customEndpoint = false
+        ) {
+            return new PublishedNodesEntryModel {
+                EndpointUrl = customEndpoint
+                    ? new Uri($"opc.tcp://opcplc:{50000 + dataSetIndex}")
+                    : new Uri("opc.tcp://opcplc:50000"),
+                DataSetWriterId = $"DataSetWriterId{dataSetIndex}",
+                DataSetWriterGroup = "DataSetWriterGroup",
+                DataSetPublishingInterval = (dataSetIndex + 1) * 1000,
+                OpcNodes = opcNodes.GetRange(0, dataSetIndex + 1).ToList(),
+            };
+        }
+
+        private static void AssertSameNodes(PublishedNodesEntryModel endpoint, List<OpcNodeModel> nodes) {
+            Assert.Equal(endpoint.OpcNodes.Count, nodes.Count);
+            for (var k = 0; k < endpoint.OpcNodes.Count; k++) {
+                Assert.True(endpoint.OpcNodes[k].IsSame(nodes[k]));
+            }
         }
     }
 }

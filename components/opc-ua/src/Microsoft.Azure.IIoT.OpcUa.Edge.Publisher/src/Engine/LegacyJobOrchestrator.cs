@@ -81,7 +81,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
+        public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(
+            string workerId,
+            JobRequestModel request,
+            CancellationToken ct = default
+        ) {
             await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
                 ct.ThrowIfCancellationRequested();
