@@ -155,7 +155,7 @@ Consists in the following methods that are inherited from 2.5.x plus some additi
 - GetConfiguredEndpoints_V1
 - GetConfiguredNodesOnEndpoints_V1
 - GetDiagnosticInfo_V1
-- AddOrUpdateNodes_v1
+- AddOrUpdateEndpoints_V1
 
 The methods request payload is backwards compatible with the 2.5.x DMs. The payload schema allows configuration of additional extensions introduced in the pn.json in the publisher 2.6.x and newer e.g. DataSetWriterGroup, DataSetWriterId, QueueSize per node, etc.
 
@@ -209,7 +209,7 @@ Method call request attributes:
 | `Tag`                            | no        | String  | empty                     | TODO                                                                                         |
 | `OpcNodes`                       | yes*      | OpcNode | empty                     | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
 
-*Note*: *OpcNodes field is mandatory for PublishNodes_V1, UnpublishNodes_V1 and AddOrUpdateNodes_V1. It shall not be specified for the rest of the methods.
+*Note*: *OpcNodes field is mandatory for PublishNodes_V1, UnpublishNodes_V1 and AddOrUpdateEndpoints_V1. It shall not be specified for the rest of the methods.
 
 OpcNode attributes:
 
@@ -231,12 +231,12 @@ OpcNode attributes:
 *Note*: **Id field may be omitted when ExpandedNodeIdId is present.
 
 A DataSet is a group of NodeIds within an OPC UA Server to be published with a same publishing interval.  
-DataSetWriter has one DataSet and contains the elements required to successfully establish a connection to the OPC UA Server. 
-A DatSetGroup is used to several DataSetWriters for a specific OPC UA server. 
+DataSetWriter has one DataSet and contains the elements required to successfully establish a connection to the OPC UA Server.
+A DatSetGroup is used to group several DataSetWriters for a specific OPC UA server.
 
 #### **PublishNodes_V1**
 
-PublishNodes enables a client to add a set of nodes to be published for a specific DataSetWriter. When a DataSetWriter already exist, the nodes shall be incrementally added to the very same dataset. When it does not already exist, a new DataSetWritter shall be created with the initial set of nodes contained in the request.
+PublishNodes enables a client to add a set of nodes to be published for a specific DataSetWriter. When a DataSetWriter already exists, the nodes shall be incrementally added to the very same dataset. When it does not already exist, a new DataSetWritter shall be created with the initial set of nodes contained in the request.
   
   *Request:* follows strictly the request payload schema as described above, the OpcNodes attribute being mandatory.
 
@@ -308,7 +308,7 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
   *Example:*
 
-#### **AddOrUpdateNodes_v1**
+#### **AddOrUpdateEndpoints_V1**
 
 *TODO: add description*
 
