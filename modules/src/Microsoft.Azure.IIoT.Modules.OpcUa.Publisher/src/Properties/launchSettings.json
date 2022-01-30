@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher": {
+      "commandName": "Project",
+      "commandLineArgs": "OpcPublisher"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "commandLineArgs": "OpcPublisher"
+    }
+  }
+}
