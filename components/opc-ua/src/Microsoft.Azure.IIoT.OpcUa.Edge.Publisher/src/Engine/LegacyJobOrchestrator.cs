@@ -499,6 +499,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered ... ", nameof(PublishNodesAsync));
             var sw = Stopwatch.StartNew();
+
+            if (request is null || request.OpcNodes is null || request.OpcNodes.Count == 0) {
+                var message = request is null
+                    ? kNullRequestMessage
+                    : kNullOrEmptyOpcNodesMessage;
+
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(PublishNodesAsync), sw.Elapsed);
+                sw.Stop();
+
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+            }
+
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             var response = new List<string>();
             try {
@@ -605,6 +617,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public async Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered ...", nameof(UnpublishNodesAsync));
             var sw = Stopwatch.StartNew();
+
+            if (request is null || request.OpcNodes is null || request.OpcNodes.Count == 0) {
+                var message = request is null
+                    ? kNullRequestMessage
+                    : kNullOrEmptyOpcNodesMessage;
+
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(UnpublishNodesAsync), sw.Elapsed);
+                sw.Stop();
+
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+            }
+
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             var response = new List<string>();
             try {
@@ -783,7 +807,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _logger.Information("{methodName} method finished in {elapsed}", methodName, sw.Elapsed);
                 sw.Stop();
 
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "null request provided");
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, kNullRequestMessage);
             }
 
             var response = new List<string>();
@@ -965,10 +989,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public async Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request,
-            CancellationToken ct = default) {
-
+            CancellationToken ct = default
+        ) {
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredNodesOnEndpointAsync));
             var sw = Stopwatch.StartNew();
+
+            if (request is null) {
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
+                sw.Stop();
+
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, kNullRequestMessage);
+            }
+
             List<OpcNodeModel> response = new List<OpcNodeModel>();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
@@ -1013,6 +1045,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _lockConfig.Release();
             }
         }
+
+        private readonly static string kNullRequestMessage = "null request is provided";
+        private readonly static string kNullOrEmptyOpcNodesMessage = "null or empty OpcNodes is provided in request";
 
         private readonly IJobSerializer _jobSerializer;
         private readonly LegacyCliModel _legacyCliModel;

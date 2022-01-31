@@ -124,6 +124,105 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         }
 
         [Fact]
+        public async Task Test_PublishNodes_NullOrEmpty() {
+            InitLegacyJobOrchestrator();
+
+            // Check null request.
+            await FluentActions
+                .Invoking(async () => await _legacyJobOrchestrator
+                    .PublishNodesAsync(null)
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage($"Response 400 null request is provided: {{}}")
+                .ConfigureAwait(false);
+
+
+            var request = new PublishedNodesEntryModel {
+                EndpointUrl = new Uri("opc.tcp://opcplc:50000"),
+            };
+
+            // Check null OpcNodes in request.
+            await FluentActions
+                .Invoking(async () => await _legacyJobOrchestrator
+                    .PublishNodesAsync(request)
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage($"Response 400 null or empty OpcNodes is provided in request: {{}}")
+                .ConfigureAwait(false);
+
+            request.OpcNodes = new List<OpcNodeModel>();
+
+            // Check empty OpcNodes in request.
+            await FluentActions
+                .Invoking(async () => await _legacyJobOrchestrator
+                    .PublishNodesAsync(request)
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage($"Response 400 null or empty OpcNodes is provided in request: {{}}")
+                .ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task Test_UnpublishNodes_NullOrEmpty() {
+            InitLegacyJobOrchestrator();
+
+            // Check null request.
+            await FluentActions
+                .Invoking(async () => await _legacyJobOrchestrator
+                    .UnpublishNodesAsync(null)
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage($"Response 400 null request is provided: {{}}")
+                .ConfigureAwait(false);
+
+
+            var request = new PublishedNodesEntryModel {
+                EndpointUrl = new Uri("opc.tcp://opcplc:50000"),
+            };
+
+            // Check null OpcNodes in request.
+            await FluentActions
+                .Invoking(async () => await _legacyJobOrchestrator
+                    .UnpublishNodesAsync(request)
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage($"Response 400 null or empty OpcNodes is provided in request: {{}}")
+                .ConfigureAwait(false);
+
+            request.OpcNodes = new List<OpcNodeModel>();
+
+            // Check empty OpcNodes in request.
+            await FluentActions
+                .Invoking(async () => await _legacyJobOrchestrator
+                    .UnpublishNodesAsync(request)
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage($"Response 400 null or empty OpcNodes is provided in request: {{}}")
+                .ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task Test_GetConfiguredNodesOnEndpoint_NullRequest() {
+            InitLegacyJobOrchestrator();
+
+            // Check call with null.
+            await FluentActions
+                .Invoking(async () => await _legacyJobOrchestrator
+                    .GetConfiguredNodesOnEndpointAsync(null)
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage($"Response 400 null request is provided: {{}}")
+                .ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task Test_AddOrUpdateEndpoints_NullRequest() {
             InitLegacyJobOrchestrator();
 
@@ -134,7 +233,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null request provided: {{}}")
+                .WithMessage($"Response 400 null request is provided: {{}}")
                 .ConfigureAwait(false);
         }
 
