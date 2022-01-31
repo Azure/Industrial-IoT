@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Models;
     using Moq;
     using Publisher.Engine;
@@ -211,6 +212,63 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             cts.Cancel();
             await Task.WhenAll(getAvailableJobTasks).ConfigureAwait(false);
+        }
+
+        [Theory]
+        [InlineData("Engine/empty_pn.json")]
+        [InlineData("Engine/pn_assets.json")]
+        [InlineData("Engine/pn_assets_with_optional_fields.json")]
+        [InlineData("Engine/publishednodes.json")]
+        [InlineData("Engine/publishednodeswithoptionalfields.json")]
+        [InlineData("Controller/DmApiPayloadCollection.json")]
+        [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
+        public async Task Test_AddOrUpdateEndpoints_RemoveEndpoints(string publishedNodesFile) {
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            InitLegacyJobOrchestrator();
+
+            string payload = Utils.GetFileContent(publishedNodesFile);
+            var payloadRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
+
+            var previousDataSets = new List<PublishedNodesEntryModel>();
+
+            int index = 0;
+            foreach (var request in payloadRequests) {
+                request.OpcNodes = index % 2 == 0
+                    ? null
+                    : new List<OpcNodeModel>();
+                ++index;
+
+                var sameDataSetRemoved = false;
+                foreach(var dataSet in previousDataSets) {
+                    sameDataSetRemoved = sameDataSetRemoved || request.HasSameDataSet(dataSet);
+                }
+
+                if (sameDataSetRemoved) {
+                    await FluentActions
+                        .Invoking(async () => await _legacyJobOrchestrator
+                            .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
+                            .ConfigureAwait(false))
+                        .Should()
+                        .ThrowAsync<MethodCallStatusException>()
+                        .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}: {{}}")
+                        .ConfigureAwait(false);
+                }
+                else {
+                    var result = await _legacyJobOrchestrator
+                        .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
+                        .ConfigureAwait(false);
+
+                    Assert.Equal(1, result.Count);
+                    Assert.Equal($"Update succeeded for EndpointUrl: { request.EndpointUrl }", result[0]);
+
+                    previousDataSets.Add(request);
+                }
+            }
+
+            var configuredEndpoints = await _legacyJobOrchestrator
+                .GetConfiguredEndpointsAsync()
+                .ConfigureAwait(false);
+            Assert.Equal(0, configuredEndpoints.Count);
         }
 
         [Fact]

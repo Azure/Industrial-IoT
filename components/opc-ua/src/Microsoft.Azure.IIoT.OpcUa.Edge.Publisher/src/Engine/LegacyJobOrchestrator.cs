@@ -282,12 +282,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return _publishedNodesJobConverter.Read(content, null);
         }
 
-        private static bool IsSameDataSet(PublishedNodesEntryModel entry1, PublishedNodesEntryModel entry2) {
-            return entry1.HasSameGroup(entry2)
-                && string.Equals(entry1.DataSetWriterId, entry2.DataSetWriterId, StringComparison.InvariantCulture)
-                && entry1.DataSetPublishingInterval == entry2.DataSetPublishingInterval;
-        }
-
         private void RefreshJobs(IEnumerable<PublishedNodesEntryModel> entries) {
             var availableJobs = new Dictionary<string, JobProcessingInstructionModel>();
             var assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
@@ -515,7 +509,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (entry.HasSameGroup(request)) {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will add nodes only if the whole DataSet definition matches.
-                        if (IsSameDataSet(entry, request)) {
+                        if (entry.HasSameDataSet(request)) {
                             // Create HashSet of nodes for this entry.
                             var existingNodesSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
                             existingNodesSet.UnionWith(entry.OpcNodes);
@@ -625,7 +619,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (entry.HasSameGroup(request)) {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will remove nodes only if the whole DataSet definition matches.
-                        if (IsSameDataSet(entry, request)) {
+                        if (entry.HasSameDataSet(request)) {
                             foreach (var node in entry.OpcNodes) {
                                 if (nodesToRemoveSet.Contains(node)) {
                                     // Found a node. Remove it from hash set.
@@ -661,7 +655,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (entry.HasSameGroup(request)) {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will remove nodes only if the whole DataSet definition matches.
-                        if (IsSameDataSet(entry, request)) {
+                        if (entry.HasSameDataSet(request)) {
                             var updatedNodes = new List<OpcNodeModel>();
 
                             foreach (var node in entry.OpcNodes) {
@@ -804,7 +798,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 foreach (var dataSetToRemove in dataSetsToRemove) {
                     var foundDataSet = false;
                     foreach (var entry in _publishedNodesEntries) {
-                        foundDataSet = foundDataSet || IsSameDataSet(entry, dataSetToRemove);
+                        foundDataSet = foundDataSet || entry.HasSameDataSet(dataSetToRemove);
                     }
                     if (!foundDataSet) {
                         throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
@@ -825,7 +819,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                             // We may have several entries with the same DataSetGroup definition,
                             // so we will update nodes only if the whole DataSet definition matches.
-                            if (IsSameDataSet(entry, dataSetToUpdate)) {
+                            if (entry.HasSameDataSet(dataSetToUpdate)) {
                                 if (dataSetToUpdate.OpcNodes is null || dataSetToUpdate.OpcNodes.Count == 0 || requestDataSetsFound[k]) {
                                     // In this case existing OpcNodes entries should be cleaned up.
                                     entry.OpcNodes.Clear();
@@ -979,7 +973,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var endpointFound = false;
 
                 foreach (var entry in _publishedNodesEntries) {
-                    if (IsSameDataSet(entry, request)) {
+                    if (entry.HasSameDataSet(request)) {
                         endpointFound = true;
                         response.AddRange(entry.OpcNodes);
                     }
