@@ -378,6 +378,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             AssertSameNodes(updateRequest[3], endpointNodes4);
         }
 
+        [Theory]
+        [InlineData("Engine/pn_opc_nodes_empty.json")]
+        [InlineData("Engine/pn_opc_nodes_null.json")]
+        [InlineData("Engine/pn_opc_nodes_empty_and_null.json")]
+        public async Task Test_InitLegacyJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile) {
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            InitLegacyJobOrchestrator();
+
+            // Engine/empty_opc_nodes.json contains entries with null or empty OpcNodes.
+            // Those entries should not result in any endpoint entries in LegacyJobOrchestrator.
+            var configuredEndpoints = await _legacyJobOrchestrator
+                .GetConfiguredEndpointsAsync()
+                .ConfigureAwait(false);
+            Assert.Equal(0, configuredEndpoints.Count);
+
+            // There should also not be any job entries.
+            var jobModel = await _legacyJobOrchestrator.GetAvailableJobAsync("0", new JobRequestModel());
+            Assert.Null(jobModel);
+        }
+
         private static PublishedNodesEntryModel GenerateEndpoint(
             int dataSetIndex,
             List<OpcNodeModel> opcNodes,

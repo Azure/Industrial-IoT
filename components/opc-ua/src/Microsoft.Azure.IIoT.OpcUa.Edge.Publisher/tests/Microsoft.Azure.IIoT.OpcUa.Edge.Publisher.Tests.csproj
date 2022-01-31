@@ -47,6 +47,15 @@
     <None Update="Controller\DmApiPayloadCollection.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Engine\pn_opc_nodes_empty_and_null.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Engine\pn_opc_nodes_null.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Engine\pn_opc_nodes_empty.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Engine\pn_assets_with_optional_fields.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

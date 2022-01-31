@@ -341,10 +341,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                         _lastKnownFileHash = currentFileHash;
                         if (!string.IsNullOrEmpty(content)) {
-                            IEnumerable<PublishedNodesEntryModel> entries = null;
+                            List<PublishedNodesEntryModel> entries = null;
 
                             try {
-                                entries = DeserializePublishedNodes(content);
+                                entries = DeserializePublishedNodes(content).ToList();
                             }
                             catch (IOException) {
                                 throw; //pass it thru, to handle retries
@@ -355,6 +355,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 _lastKnownFileHash = lastValidFileHash;
                                 break;
                             }
+
+                            // Remove entries with null or empty OpcNodes.
+                            entries.RemoveAll(entry => entry.OpcNodes == null || entry.OpcNodes.Count == 0);
 
                             _publishedNodesEntries.Clear();
                             _publishedNodesEntries.AddRange(entries);
@@ -821,7 +824,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             if (entry.HasSameDataSet(dataSetToUpdate)) {
                                 if (dataSetToUpdate.OpcNodes is null || dataSetToUpdate.OpcNodes.Count == 0 || requestDataSetsFound[k]) {
                                     // In this case existing OpcNodes entries should be cleaned up.
-                                    entry.OpcNodes.Clear();
+                                    entry.OpcNodes?.Clear();
                                 }
                                 else {
                                     // We will add OpcNodes to the first matching entry
