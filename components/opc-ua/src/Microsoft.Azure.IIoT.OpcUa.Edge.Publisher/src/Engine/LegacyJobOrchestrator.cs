@@ -793,7 +793,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 // First let's check that endpoints that we are asked to remove exist.
                 var dataSetsToRemove = request.Where(e => e.OpcNodes is null || e.OpcNodes.Count == 0).ToList();
-                var dataSetsToUpdate = request.Where(e => !(e.OpcNodes is null) && e.OpcNodes.Count > 0).ToList();
 
                 foreach (var dataSetToRemove in dataSetsToRemove) {
                     var foundDataSet = false;
