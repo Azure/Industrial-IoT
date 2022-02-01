@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading.Tasks.Dataflow;
     using Prometheus;
     using System.Text;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Dataflow engine
@@ -40,15 +41,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="engineConfiguration"></param>
         /// <param name="logger"></param>
         /// <param name="identity"></param>
+        /// <param name="publisherDiagnosticInfo"></param>
         public DataFlowProcessingEngine(IMessageTrigger messageTrigger, IMessageEncoder encoder,
             IMessageSink messageSink, IEngineConfiguration engineConfiguration, ILogger logger,
-            IIdentity identity) {
+            IIdentity identity, IPublisherDiagnosticInfo publisherDiagnosticInfo) {
             _config = engineConfiguration;
             _messageTrigger = messageTrigger;
             _messageSink = messageSink;
             _messageEncoder = encoder;
             _logger = logger;
             _identity = identity;
+            _publisherDiagnosticInfo = publisherDiagnosticInfo;
+            //_publisherDiagnosticInfo.SessionId = "pippo";
 
             if (_config.BatchSize.HasValue && _config.BatchSize.Value > 1) {
                 _dataSetMessageBufferSize = _config.BatchSize.Value;
@@ -175,6 +179,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             string messageSizeAveragePercentFormatted = $"({messageSizeAveragePercent}%)";
             double chunkSizeAverage = _messageEncoder.AvgMessageSize / (4 * 1024);
             double estimatedMsgChunksPerDay = Math.Ceiling(chunkSizeAverage) * sentMessagesPerSec * 60 * 60 * 24;
+            SessionDiagnosticInfo info = new SessionDiagnosticInfo();
+            Dictionary<string, SessionDiagnosticInfo> ii = new Dictionary<string, SessionDiagnosticInfo>();
 
             _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
 
@@ -209,6 +215,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  # Opc endpoint connected?            : {isConnectionOk,14:0}");
             diagInfo.AppendLine("  # Monitored Opc nodes succeeded count: {goodNodes,14:0}");
             diagInfo.AppendLine("  # Monitored Opc nodes failed count   : {badNodes,14:0}");
+
+
+
+            info.SessionId = Name;
+            info.IngestionDuration = TimeSpan.FromSeconds(totalDuration);
+            info.IngressDataChanges = _messageTrigger.DataChangesCount;
+            info.IngressValueChanges = _messageTrigger.ValueChangesCount;
+            info.IngressBatchBlockBufferSize = _batchDataSetMessageBlock.OutputCount;
+            info.EncodingBlockInputOutputSize = _messageEncoder.NotificationsProcessedCount;
+            info.EncoderNotificationsProcessed = _messageEncoder.NotificationsProcessedCount;
+            info.EncoderNotificationsDropped = _messageEncoder.NotificationsDroppedCount;
+            info.EncoderIoTMessagesProcessed = _messageEncoder.MessagesProcessedCount;
+            info.EncoderAvgNotificationsMessage = _messageEncoder.AvgNotificationsPerMessage;
+            info.EncoderAvgIoTMessageBodySize = _messageEncoder.AvgMessageSize;
+            info.EncoderAvgIoTChunkUsage = chunkSizeAverage;
+            info.EstimatedIoTChunksPerDay = estimatedMsgChunksPerDay;
+            info.OutgressBatchBlockBufferSize = _batchNetworkMessageBlock.OutputCount;
+            info.OutgressInputBufferCount = _sinkBlock.InputCount;
+            info.OutgressInputBufferDropped = _sinkBlockInputDroppedCount;
+            info.OutgressIoTMessageCount = _messageSink.SentMessagesCount;
+            info.ConnectionRetries = _messageTrigger.NumberOfConnectionRetries;
+            info.OpcEndpointConnected = _messageTrigger.IsConnectionOk;
+            info.MonitoredOpcNodesSucceededCount = _messageTrigger.NumberOfGoodNodes;
+            info.MonitoredOpcNodesFailedCount = _messageTrigger.NumberOfBadNodes;
+
+            //_publisherDiagnosticInfo.DiagnosticInfo.TryAdd(Name, info);
+            //_publisherDiagnosticInfo = info;
 
             _logger.Information(diagInfo.ToString(),
                 Name,
@@ -341,6 +374,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private TransformManyBlock<DataSetMessageModel[], NetworkMessageModel> _encodingBlock;
         private ActionBlock<NetworkMessageModel[]> _sinkBlock;
+        private IPublisherDiagnosticInfo _publisherDiagnosticInfo;
 
         /// <summary>
         /// Define the maximum size of messages

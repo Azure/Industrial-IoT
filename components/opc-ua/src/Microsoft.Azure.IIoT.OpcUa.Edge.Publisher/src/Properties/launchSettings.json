@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "Microsoft.Azure.IIoT.OpcUa.Edge.Publisher": {
+      "commandName": "Project"
+    }
+  }
+}

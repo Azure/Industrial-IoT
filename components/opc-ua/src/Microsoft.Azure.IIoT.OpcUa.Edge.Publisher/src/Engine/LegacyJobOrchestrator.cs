@@ -64,6 +64,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _lockJobs = new SemaphoreSlim(1, 1);
 
             _publishedNodesEntries = new List<PublishedNodesEntryModel>();
+            _publisherDiagnosticInfo = new Dictionary<string, SessionDiagnosticInfo>();
+            //_publisherDiagnosticInfo.DiagnosticInfo = new Dictionary<string, SessionDiagnosticInfo>();
+            //_publisherDiagnosticInfo = publisherDiagnosticInfo;
 
             RefreshJobFromFile();
             _publishedNodesProvider.Changed += _fileSystemWatcher_Changed;
@@ -310,6 +313,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                         else {
                             availableJobs.Add(newJobId, newJob);
+                            _publisherDiagnosticInfo.Add(newJobId, new SessionDiagnosticInfo());
                         }
                     }
                 }
@@ -838,9 +842,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             PublishedNodesEntryModel request,
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
+            Dictionary<string, SessionDiagnosticInfo> info = new Dictionary<string, SessionDiagnosticInfo>();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
-                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+
+                info = (Dictionary<string, SessionDiagnosticInfo>)_publisherDiagnosticInfo;
+                return null;
+            }
+            catch (MethodCallStatusException) {
+                throw;
+            }
+            catch (Exception e) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
                 _lockConfig.Release();
@@ -861,5 +874,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private Dictionary<string, JobProcessingInstructionModel> _availableJobs;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
+        //private readonly Dictionary<string, SessiorDiagnosticInfo> _publisherDiagnosticInfo;
+        private readonly Dictionary<string, SessionDiagnosticInfo> _publisherDiagnosticInfo;
     }
 }
