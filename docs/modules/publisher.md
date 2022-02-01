@@ -297,17 +297,25 @@ Returns the nodes configured for one Endpoint (Dataset)
 
   *Example:*
   >*Method Name:* `GetConfiguredNodesOnEndpoints_V1`\
-  *Payload:* `{"EndpointUrl": "opc.tcp://192.168.100.20:50000"}`\
-  *Response:*  
+  *Payload:* 
+  >``` json
+  >{
+  >    "EndpointUrl": "opc.tcp://192.168.100.20:50000"
+  >}
   >```
+  >*Response:*  
+  >``` json
   >{
   >    "status":200,
-  >    "payload":[
-  >      {"id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
-  >       "opcSamplingInterval":3000,
-  >       "opcSamplingIntervalTimespan":"00:00:03",
-  >       "heartbeatInterval":0,
-  >       "heartbeatIntervalTimespan":"00:00:00"}
+  >    "payload":
+  >    [
+  >       {
+  >         "id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
+  >         "opcSamplingInterval":3000,
+  >         "opcSamplingIntervalTimespan":"00:00:03",
+  >         "heartbeatInterval":0,
+  >         "heartbeatIntervalTimespan":"00:00:00"
+  >       }
   >    ]
   >}
   >```
