@@ -797,8 +797,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public async Task<List<string>> AddOrUpdateEndpointsAsync(
             List<PublishedNodesEntryModel> request,
-            CancellationToken ct = default
-        ) {
+            CancellationToken ct = default) {
+
             var methodName = nameof(AddOrUpdateEndpointsAsync);
             _logger.Information("{methodName} method triggered ... ", methodName);
             var sw = Stopwatch.StartNew();
