@@ -237,6 +237,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ConfigureAwait(false);
         }
 
+        [Fact]
+        public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries() {
+            InitLegacyJobOrchestrator();
+
+            var numberOfEndpoints = 3;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                })
+                .ToList();
+
+            var endpoints = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => GenerateEndpoint(i, opcNodes, false))
+                .ToList();
+
+            // Make endpoint at index 0 and 2 the same.
+            endpoints[2].DataSetWriterId = endpoints[0].DataSetWriterId;
+            endpoints[2].DataSetWriterGroup = endpoints[0].DataSetWriterGroup;
+            endpoints[2].DataSetPublishingInterval = endpoints[0].DataSetPublishingInterval;
+
+            // The call should throw an exception.
+            await FluentActions
+                .Invoking(async () => await _legacyJobOrchestrator
+                    .AddOrUpdateEndpointsAsync(endpoints)
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage($"Response 400 Request contains two entries for the same endpoint at index 0 and 2: {{}}")
+                .ConfigureAwait(false);
+        }
+
         [Theory]
         [InlineData(false, false)]
         [InlineData(false, true)]

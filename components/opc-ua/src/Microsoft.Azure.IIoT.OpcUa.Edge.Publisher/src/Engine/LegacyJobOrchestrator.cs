@@ -810,6 +810,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, kNullRequestMessage);
             }
 
+            // First, let's check that there are no 2 entries for the same endpoint in the request.
+            for (int itemIndex = 1; itemIndex < request.Count; itemIndex++) {
+                for (int prevItemIndex = 0; prevItemIndex < itemIndex; prevItemIndex++) {
+                    if (request[itemIndex].HasSameDataSet(request[prevItemIndex])) {
+                        throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
+                            $"Request contains two entries for the same endpoint at index {prevItemIndex} and {itemIndex}");
+                    }
+                }
+            }
+
             var response = new List<string>();
 
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
@@ -818,7 +828,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // This will throw SerializerException if values of request fields are not conformant.
                 //ValidateRequest(request);
 
-                // First let's check that endpoints that we are asked to remove exist.
+                // Second, let's check that endpoints that we are asked to remove exist.
                 var dataSetsToRemove = request.Where(e => e.OpcNodes is null || e.OpcNodes.Count == 0).ToList();
 
                 foreach (var dataSetToRemove in dataSetsToRemove) {

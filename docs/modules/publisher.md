@@ -256,7 +256,10 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
   *Response:*
 
-  *Exceptions:*
+  *Exceptions:* a response corresponding to an exception will be returned if:
+
+  - request payload contains an endpoint (DataSet) that is not present in publisher configuration.
+  - request payload contains a node that is not present in publisher configuration.
 
   *Example:*
 
@@ -380,8 +383,10 @@ previously configured nodes for a specific endpoint (DataSet).
   ]
   ```
 
-  *Exceptions:* if a request payload contains deletion request for an endpoint (DataSet) that is not present
-  in publisher configuration then a response corresponding to an exception will be returned.
+  *Exceptions:* a response corresponding to an exception will be returned if:
+
+  - request payload contains deletion request for an endpoint (DataSet) that is not present in publisher configuration.
+  - request payload contains two or more entries for the same endpoint (DataSet).
 
   *Example:*
 
