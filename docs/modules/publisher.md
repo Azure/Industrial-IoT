@@ -282,19 +282,22 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
   *Exceptions:*
 
-  *Example:*
+  *Example:* 
+      
 
 #### **GetConfiguredNodesOnEndpoints_V1**
 
-*TODO: add description*
+Returns the nodes configured for one Endpoint (Dataset)
 
-  *Request:*
+  *Request:* shall contain the elements necessary to uniquely identify a Dataset. The EndpointUrl is mandatory in the request, the other attributes are optional and can be used to refine your result.
 
-  *Response:*
+  *Response:* list of OpcNodes configured for the selected Endpoint (and optional parameters).
 
-  *Exceptions:*
+  *Exceptions:* an exception is thrown when method call returned a status othen than 200.
 
   *Example:*
+  >*Method Name:* `GetConfiguredNodesOnEndpoints_V1`\
+  *Payload:* `{"EndpointUrl": "opc.tcp://192.168.100.20:50000"}`
 
 #### **GetDiagnosticInfo_V1**
 
