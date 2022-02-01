@@ -11,9 +11,9 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PublisherDiagnosticInfo(Dictionary<string, SessionDiagnosticInfo> info) {
+        public PublisherDiagnosticInfo() {
 
-            DiagnosticInfo = info;
+            //DiagnosticInfo = info;
         }
 
         /// <summary>

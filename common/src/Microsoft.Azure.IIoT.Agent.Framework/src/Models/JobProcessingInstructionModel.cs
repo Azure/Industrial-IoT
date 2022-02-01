@@ -19,5 +19,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// Job to process
         /// </summary>
         public JobInfoModel Job { get; set; }
+
+        /// <summary>
+        /// DiagnosticInfo
+        /// </summary>
+        public JobDiagnosticInfoModel Info { get; set; }
     }
 }
