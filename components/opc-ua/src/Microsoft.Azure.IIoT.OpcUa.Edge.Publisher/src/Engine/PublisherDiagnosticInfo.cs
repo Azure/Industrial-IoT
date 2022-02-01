@@ -11,13 +11,9 @@
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PublisherDiagnosticInfo() {
+        public PublisherDiagnosticInfo(Dictionary<string, SessionDiagnosticInfo> info) {
 
-            //_diagnosticInfo = diagnosticInfo;
-            //if (diagnosticInfo != null) {
-            //    DiagnosticInfo.a;
-            //}
-            
+            DiagnosticInfo = info;
         }
 
         /// <summary>
