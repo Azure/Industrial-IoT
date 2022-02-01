@@ -237,7 +237,7 @@ A DatSetGroup is used to group several DataSetWriters for a specific OPC UA serv
 #### **PublishNodes_V1**
 
 PublishNodes enables a client to add a set of nodes to be published for a specific DataSetWriter. When a DataSetWriter already exists, the nodes shall be incrementally added to the very same dataset. When it does not already exist, a new DataSetWritter shall be created with the initial set of nodes contained in the request.
-
+  
   *Request:* follows strictly the request payload schema as described above, the OpcNodes attribute being mandatory.
 
   *Response:*
@@ -274,35 +274,16 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
 #### **GetConfiguredEndpoints_V1**
 
-Returns the configured endpoints (Datasets)
+*TODO: add description*
 
-  *Request:* N/A
+  *Request:*
 
-  *Response:* list of Endpoints configured (and optional parameters).
+  *Response:*
 
-  *Exceptions:* an exception is thrown when method call returns status other than 200.
+  *Exceptions:*
 
   *Example:* 
-  >*Method Name:* `GetConfiguredEndpoints_V1`
-  >*Response:*
-  >
-  >``` json
-  >{
-  >"status":200,
-  >"payload":
-  >[
-  >  {
-  >    "EndpointUrl": "opc.tcp://opcplc:50000/",
-  >    "DataSetWriterGroup": "Server0",
-  >    "DataSetWriterId": "Device0",
-  >    "DataSetPublishingInterval": 5000
-  >  },
-  >  {
-  >    "EndpointUrl": "opc.tcp://opcplc:50001/"
-  >  }
-  >]
-  >}
-  >```
+      
 
 #### **GetConfiguredNodesOnEndpoints_V1**
 
@@ -312,7 +293,7 @@ Returns the nodes configured for one Endpoint (Dataset)
 
   *Response:* list of OpcNodes configured for the selected Endpoint (and optional parameters).
 
-  *Exceptions:* an exception is thrown when method call returns status other than 200.
+  *Exceptions:* an exception is thrown when method call returned a status othen than 200.
 
   *Example:*
   >*Method Name:* `GetConfiguredNodesOnEndpoints_V1`\
