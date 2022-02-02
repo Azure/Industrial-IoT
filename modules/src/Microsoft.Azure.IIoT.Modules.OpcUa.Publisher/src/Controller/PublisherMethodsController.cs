@@ -52,11 +52,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> UnpublishAllNodesAsync(
             PublishNodesEndpointApiModel request) {
-
-            if (request.OpcNodes != null) {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "OpcNodes is set.");
-            }
-
             var response = await _configServices.UnpublishAllNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
             return response.ToApiModel();
         }

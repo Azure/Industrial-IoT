@@ -743,7 +743,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
-                _logger.Information("{nameof} method finished in {elapsed}", nameof(PublishNodesAsync), sw.Elapsed);
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(UnpublishNodesAsync), sw.Elapsed);
                 sw.Stop();
                 _lockConfig.Release();
             }
@@ -756,13 +756,89 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             PublishedNodesEntryModel request,
             CancellationToken ct) {
             _logger.Information("{nameof} method triggered", nameof(UnpublishAllNodesAsync));
+            var sw = Stopwatch.StartNew();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            var response = new List<string>();
             try {
-                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+
+                // Create HashSet of nodes to remove.
+                var nodesToRemoveSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
+
+                // Perform first pass to determine if we can find all nodes to remove.
+                var matchingGroups = new List<PublishedNodesEntryModel>();
+                foreach (var entry in _publishedNodesEntries) {
+                    if (entry.HasSameGroup(request)) {
+                        // We may have several entries with the same DataSetGroup definition,
+                        // so we will remove nodes only if the whole DataSet definition matches.
+                        if (IsSameDataSet(entry, request)) {
+                            entry.OpcNodes.Select(n => nodesToRemoveSet.Add(n));
+                            entry.OpcNodes.Clear();
+                            matchingGroups.Add(entry);
+                        }
+                    }
+                }
+
+                // Report error if no matching endpoint was found.
+                if (matchingGroups.Count == 0) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                        $"Endpoint not found: {request.EndpointUrl}");
+                }
+
+                // Report error if there were entries that did not have any nodes
+                if (nodesToRemoveSet.Count == 0) {
+                    request.OpcNodes = nodesToRemoveSet.ToList();
+                    var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
+                    throw new MethodCallStatusException(entriesNotFoundJson, (int)HttpStatusCode.NotFound, "Nodes not found");
+                }
+
+                // Remove entries without nodes.
+                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes.Count == 0);
+
+                PersistPublishedNodes();
+
+                var found = false;
+                await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
+                try {
+                    if (!found) {
+                        var entryJobId = _publishedNodesJobConverter.
+                            ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
+                        foreach (var assignedJob in _assignedJobs) {
+                            if (entryJobId == assignedJob.Value.Job.Id) {
+                                found = _assignedJobs.Remove(assignedJob.Key, out _);
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            found = _availableJobs.Remove(entryJobId, out _);
+                        }
+                    }
+                }
+                finally {
+                    _lockJobs.Release();
+                }
+
+                if (!found) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                        $"Endpoint not found: {request.EndpointUrl}");
+                }
+
+                // fire config update so that the worker supervisor pickes up the changes ASAP
+                TriggerAgentConfigUpdate();
+                response.Add($"Unpublishing all nodes succeeded for EndpointUrl: {request.EndpointUrl}");
+            }
+            catch (MethodCallStatusException) {
+                throw;
+            }
+            catch (Exception e) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(UnpublishAllNodesAsync), sw.Elapsed);
+                sw.Stop();
                 _lockConfig.Release();
             }
+
+            return response;
         }
 
         /// <inheritdoc/>
