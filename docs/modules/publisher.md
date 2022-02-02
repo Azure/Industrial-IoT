@@ -276,7 +276,7 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
 Returns the configured endpoints (Datasets)
 
-  *Request:* N/A
+  *Request:* {}
 
   *Response:* list of Endpoints configured (and optional parameters).
 
