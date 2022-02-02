@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Net;
+    using System.Linq;
 
     /// <summary>
     /// Publisher direct  method controller
@@ -58,6 +59,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
             }
 
             var response = await _configServices.UnpublishAllNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
+            return response.ToApiModel();
+        }
+
+        /// <summary>
+        /// Handler for AddOrUpdateEndpoints direct method.
+        /// </summary>
+        public async Task<PublishedNodesResponseApiModel> AddOrUpdateEndpointsAsync(
+            List<PublishNodesEndpointApiModel> request
+        ) {
+            var endpoints = request?.Select(e => e.ToServiceModel()).ToList();
+            var response = await _configServices
+                .AddOrUpdateEndpointsAsync(endpoints)
+                .ConfigureAwait(false);
             return response.ToApiModel();
         }
 

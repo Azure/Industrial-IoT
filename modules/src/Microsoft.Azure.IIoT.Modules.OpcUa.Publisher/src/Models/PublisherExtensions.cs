@@ -31,7 +31,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
                 OpcAuthenticationPassword = model.Password,
                 OpcAuthenticationUsername = model.UserName,
-                OpcNodes = model.OpcNodes != null ? model.OpcNodes.Select(n => n.ToServiceModel()).ToList() : null,
+                OpcNodes = model.OpcNodes != null
+                    ? model.OpcNodes.Select(n => n.ToServiceModel()).ToList()
+                    : null,
                 DataSetWriterGroup = model.DataSetWriterGroup,
                 DataSetWriterId = model.DataSetWriterId,
                 DataSetPublishingInterval = model.DataSetPublishingInterval,

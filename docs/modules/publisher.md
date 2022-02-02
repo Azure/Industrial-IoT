@@ -256,7 +256,10 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
   *Response:*
 
-  *Exceptions:*
+  *Exceptions:* a response corresponding to an exception will be returned if:
+
+  - request payload contains an endpoint (DataSet) that is not present in publisher configuration.
+  - request payload contains a node that is not present in publisher configuration.
 
   *Example:*
 
@@ -353,13 +356,56 @@ Returns the nodes configured for one Endpoint (Dataset)
 
 #### **AddOrUpdateEndpoints_V1**
 
-*TODO: add description*
+This method provide the means to perform a complete `published_nodes.json` update as well as update multiple
+endpoints (DataSets) at once. Unlike `PublishNodes_V1` method, `AddOrUpdateEndpoints_V1` shall completely
+change the node set for an endpoint (DataSet) with the one provided in the method’s request payload.
+Furthermore, by providing an empty list of nodes in the request, the user can remove completely the
+previously configured nodes for a specific endpoint (DataSet).
 
-  *Request:*
+  *Request:* represents a list of objects which should strictly follow the request payload schema as
+  described above. The `OpcNodes` attribute being empty list or `null` will be interpreted as a removal
+  request for that endpoint (DataSet).
 
-  *Response:*
+  Example request payload:
 
-  *Exceptions:*
+  ``` json
+  [
+    {
+      "EndpointUrl": "opc.tcp://opcplc:50000/",
+      "DataSetWriterGroup": "Server0",
+      "DataSetWriterId": "Device0",
+      "DataSetPublishingInterval": 5000,
+      "OpcNodes":
+      [
+        {
+          "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
+        }
+      ]
+    },
+    {
+      "EndpointUrl": "opc.tcp://opcplc:50001/",
+      "DataSetWriterGroup": "Server1",
+      "DataSetWriterId": "Device1",
+      "OpcNodes": []
+    }
+  ]
+  ```
+
+  *Response:* is a list of strings representing status of update for each endpoint (DataSet).
+
+  Example response payload:
+
+  ```json
+  [
+    "Update succeeded for EndpointUrl: opc.tcp://opcplc:50000/",
+    "Update succeeded for EndpointUrl: opc.tcp://opcplc:50001/"
+  ]
+  ```
+
+  *Exceptions:* a response corresponding to an exception will be returned if:
+
+  - request payload contains deletion request for an endpoint (DataSet) that is not present in publisher configuration.
+  - request payload contains two or more entries for the same endpoint (DataSet).
 
   *Example:*
 
