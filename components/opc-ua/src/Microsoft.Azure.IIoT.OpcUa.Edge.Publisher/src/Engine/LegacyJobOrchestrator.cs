@@ -761,20 +761,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var response = new List<string>();
             try {
 
-                // Create HashSet of nodes to remove.
-                var nodesToRemoveSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
-
-                // Perform first pass to determine if we can find all nodes to remove.
+                var found = false;
+                // Perform pass to determine existing groups
                 var matchingGroups = new List<PublishedNodesEntryModel>();
                 foreach (var entry in _publishedNodesEntries) {
                     if (entry.HasSameGroup(request)) {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will remove nodes only if the whole DataSet definition matches.
                         if (IsSameDataSet(entry, request)) {
-                            entry.OpcNodes.Select(n => nodesToRemoveSet.Add(n));
                             entry.OpcNodes.Clear();
-                            matchingGroups.Add(entry);
+                            found = true;
                         }
+                        matchingGroups.Add(entry);
                     }
                 }
 
@@ -785,20 +783,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 // Report error if there were entries that did not have any nodes
-                if (nodesToRemoveSet.Count == 0) {
-                    request.OpcNodes = nodesToRemoveSet.ToList();
+                if (!found) {
                     var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
                     throw new MethodCallStatusException(entriesNotFoundJson, (int)HttpStatusCode.NotFound, "Nodes not found");
                 }
 
                 // Remove entries without nodes.
-                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes.Count == 0);
+                _publishedNodesEntries.RemoveAll(entry => (entry.OpcNodes == null || entry.OpcNodes.Count == 0));
 
                 PersistPublishedNodes();
 
-                var found = false;
+                found = false;
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(matchingGroups, _legacyCliModel);
+
                 await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
                 try {
+                    if (jobs.Any()) {
+                        foreach (var job in jobs) {
+                            var newJob = ToJobProcessingInstructionModel(job);
+                            if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                                continue;
+                            }
+
+                            foreach (var assignedJob in _assignedJobs) {
+                                if (newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                    _assignedJobs[assignedJob.Key] = newJob;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found && _availableJobs.ContainsKey(newJob.Job.Id)) {
+                                _availableJobs[newJob.Job.Id] = newJob;
+                                found = true;
+                            }
+                        }
+                    }
+
                     if (!found) {
                         var entryJobId = _publishedNodesJobConverter.
                             ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
