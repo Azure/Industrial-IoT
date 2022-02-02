@@ -776,16 +776,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                 }
 
-                // Report error if no matching endpoint was found.
-                if (matchingGroups.Count == 0) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
-                        $"Endpoint not found: {request.EndpointUrl}");
-                }
-
                 // Report error if there were entries that did not have any nodes
                 if (!found) {
-                    var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
-                    throw new MethodCallStatusException(entriesNotFoundJson, (int)HttpStatusCode.NotFound, "Nodes not found");
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, $"Endpoint not found: {request.EndpointUrl}");
                 }
 
                 // Remove entries without nodes.
