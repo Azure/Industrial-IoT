@@ -48,5 +48,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <returns></returns>
         Task SwitchProcessMode(ProcessMode processMode,
             DateTime? timestamp);
+
+        /// <summary>
+        /// Reconfigure Trigger and take over the exsting resources
+        /// </summary>
+        void ReconfigureTrigger(object config);
     }
 }

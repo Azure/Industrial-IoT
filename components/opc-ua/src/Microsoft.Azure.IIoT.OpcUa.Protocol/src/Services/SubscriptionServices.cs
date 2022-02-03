@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
+    using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
@@ -18,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Prometheus;
+
 
     /// <summary>
     /// Subscription services implementation
@@ -31,9 +32,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create subscription manager
         /// </summary>
-        /// <param name="sessionManager"></param>
-        /// <param name="codec"></param>
-        /// <param name="logger"></param>
         public SubscriptionServices(ISessionManager sessionManager, IVariantEncoderFactory codec,
             ILogger logger) {
             _sessionManager = sessionManager ?? throw new ArgumentNullException(nameof(sessionManager));
@@ -88,8 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 get {
                     return (IsConnectionOk && _currentlyMonitored != null) ?
                         _currentlyMonitored
-                            .Where(x => x.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Reporting ||
-                                    x.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Sampling)
+                            .Where(x => x.Template.MonitoringMode != Publisher.Models.MonitoringMode.Disabled)
                             .Count() : 0;
                 }
             }
@@ -99,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 get {
                     return (IsConnectionOk && _currentlyMonitored != null) ?
                         _currentlyMonitored
-                            .Where(x => x.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
+                            .Where(x => x.Template.MonitoringMode == Publisher.Models.MonitoringMode.Disabled)
                             .Count() : 0;
                 }
             }
@@ -116,9 +113,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Subscription wrapper
             /// </summary>
-            /// <param name="outer"></param>
-            /// <param name="subscription"></param>
-            /// <param name="logger"></param>
             public SubscriptionWrapper(SubscriptionServices outer,
                 SubscriptionModel subscription, ILogger logger) {
                 _subscription = subscription.Clone() ??
@@ -289,10 +283,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <summary>
-            /// reads the display name of the nodes to be monitored
+            /// Reads the display name of the nodes to be monitored
             /// </summary>
-            /// <param name="session"></param>
-            /// <returns></returns>
             private void ResolveDisplayNames(Session session) {
                 if (!(_subscription?.Configuration?.ResolveDisplayName ?? false)) {
                     return;
@@ -354,10 +346,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Synchronize monitored items and triggering configuration in subscription
             /// </summary>
-            /// <param name="rawSubscription"></param>
-            /// <param name="monitoredItems"></param>
-            /// <param name="activate"></param>
-            /// <returns></returns>
             private async Task<bool> SetMonitoredItemsAsync(Subscription rawSubscription,
                 IEnumerable<MonitoredItemModel> monitoredItems, bool activate) {
 
@@ -477,48 +465,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (applyChanges) {
                     rawSubscription.ApplyChanges();
                     _currentlyMonitored = nowMonitored;
-                    if (!activate) {
-                        var map = _currentlyMonitored.ToDictionary(
-                            k => k.Template.Id ?? k.Template.StartNodeId, v => v);
-                        foreach (var item in _currentlyMonitored.ToList()) {
-                            if (item.Template.TriggerId != null &&
-                                map.TryGetValue(item.Template.TriggerId, out var trigger)) {
-                                trigger?.AddTriggerLink(item.ServerId.GetValueOrDefault());
-                            }
+
+                    var map = _currentlyMonitored.ToDictionary(
+                        k => k.Template.Id ?? k.Template.StartNodeId, v => v);
+                    foreach (var item in _currentlyMonitored.ToList()) {
+                        if (item.Template.TriggerId != null &&
+                            map.TryGetValue(item.Template.TriggerId, out var trigger)) {
+                            trigger?.AddTriggerLink(item.ServerId.GetValueOrDefault());
                         }
+                    }
 
-                        // Set up any new trigger configuration if needed
-                        foreach (var item in _currentlyMonitored.ToList()) {
-                            if (item.GetTriggeringLinks(out var added, out var removed)) {
-                                var response = await rawSubscription.Session.SetTriggeringAsync(
-                                    null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
-                                    new UInt32Collection(added), new UInt32Collection(removed))
-                                    .ConfigureAwait(false);
-                            }
+                    // Set up any new trigger configuration if needed
+                    foreach (var item in _currentlyMonitored.ToList()) {
+                        if (item.GetTriggeringLinks(out var added, out var removed)) {
+                            var response = await rawSubscription.Session.SetTriggeringAsync(
+                                null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
+                                new UInt32Collection(added), new UInt32Collection(removed))
+                                .ConfigureAwait(false);
                         }
+                    }
 
-                        // sanity check
-                        foreach (var monitoredItem in _currentlyMonitored) {
-                            if (monitoredItem.Item.Status.Error != null &&
-                                StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode)) {
-                                _logger.Warning("Error monitoring node {id} due to {code} in subscription " +
-                                    "{subscription}", monitoredItem.Item.StartNodeId,
-                                    monitoredItem.Item.Status.Error.StatusCode, rawSubscription.DisplayName);
-                                monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
-                                noErrorFound = false;
-                            }
+                    // sanity check
+                    foreach (var monitoredItem in _currentlyMonitored) {
+                        if (monitoredItem.Item.Status.Error != null &&
+                            StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode)) {
+                            _logger.Warning("Error monitoring node {id} due to {code} in subscription " +
+                                "{subscription}", monitoredItem.Item.StartNodeId,
+                                monitoredItem.Item.Status.Error.StatusCode, rawSubscription.DisplayName);
+                            monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                            noErrorFound = false;
                         }
+                    }
 
-                        count = _currentlyMonitored.Count(m => m.Item.Status.Error == null);
-                        kMonitoredItems.WithLabels(rawSubscription.Id.ToString()).Set(count);
+                    count = _currentlyMonitored.Count(m => m.Item.Status.Error == null);
+                    kMonitoredItems.WithLabels(rawSubscription.Id.ToString()).Set(count);
 
-                        _logger.Information("Now monitoring {count} nodes in subscription " +
-                            "{subscription}", count, rawSubscription.DisplayName);
+                    _logger.Information("Now monitoring {count} nodes in subscription " +
+                        "{subscription}", count, rawSubscription.DisplayName);
 
-                        if (_currentlyMonitored.Count != rawSubscription.MonitoredItemCount) {
-                            _logger.Error("Monitored items mismatch: wrappers{wrappers} != items:{items} ",
-                                _currentlyMonitored.Count, _currentlyMonitored.Count);
-                        }
+                    if (_currentlyMonitored.Count != rawSubscription.MonitoredItemCount) {
+                        _logger.Error("Monitored items mismatch: wrappers{wrappers} != items:{items} ",
+                            _currentlyMonitored.Count, _currentlyMonitored.Count);
                     }
                 }
                 else {
@@ -581,10 +568,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Retrieve a raw subscription with all settings applied (no lock)
             /// </summary>
-            /// <param name="session"></param>
-            /// <param name="configuration"></param>
-            /// <param name="activate"></param>
-            /// <returns></returns>
             private Subscription GetSubscription(Session session,
                 SubscriptionConfigurationModel configuration, bool activate) {
 
@@ -710,9 +693,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Subscription data changed
             /// </summary>
-            /// <param name="subscription"></param>
-            /// <param name="notification"></param>
-            /// <param name="stringTable"></param>
             private void OnSubscriptionDataChanged(Subscription subscription,
                 DataChangeNotification notification, IList<string> stringTable) {
                 try {
@@ -833,8 +813,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Monitored item notification handler
             /// </summary>
-            /// <param name="monitoredItem"></param>
-            /// <param name="eventArgs"></param>
             private void OnMonitoredItemChanged(MonitoredItem monitoredItem,
                 MonitoredItemNotificationEventArgs eventArgs) {
                 try {
@@ -908,7 +886,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// validates if a heartbeat is required.
             /// A heartbeat will be forced for the very first time
             /// </summary>
-            /// <returns></returns>
             public bool ValidateHeartbeat(DateTime currentPublish) {
                 if (NextHeartbeat == DateTime.MaxValue) {
                     return false;
@@ -924,8 +901,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Create wrapper
             /// </summary>
-            /// <param name="template"></param>
-            /// <param name="logger"></param>
             public MonitoredItemWrapper(MonitoredItemModel template, ILogger logger) {
                 _logger = logger?.ForContext<MonitoredItemWrapper>() ??
                     throw new ArgumentNullException(nameof(logger));
@@ -981,10 +956,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Create new stack monitored item
             /// </summary>
-            /// <param name="session"></param>
-            /// <param name="codec"></param>
-            /// <param name="activate"></param>
-            /// <returns></returns>
             internal void Create(Session session, IVariantEncoder codec, bool activate) {
                 Item = new MonitoredItem {
                     Handle = this,
@@ -1014,7 +985,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Add the monitored item identifier of the triggering item.
             /// </summary>
-            /// <param name="id"></param>
             internal void AddTriggerLink(uint? id) {
                 if (id != null) {
                     _newTriggers.Add(id.Value);
@@ -1024,7 +994,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Merge with desired state
             /// </summary>
-            /// <param name="model"></param>
             internal bool MergeWith(MonitoredItemWrapper model) {
 
                 if (model == null || Item == null) {
@@ -1084,9 +1053,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Get triggering configuration changes for this item
             /// </summary>
-            /// <param name="addLinks"></param>
-            /// <param name="removeLinks"></param>
-            /// <returns></returns>
             internal bool GetTriggeringLinks(out IEnumerable<uint> addLinks,
                 out IEnumerable<uint> removeLinks) {
                 var remove = _triggers.Except(_newTriggers).ToList();
@@ -1106,7 +1072,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Get any changes in the monitoring mode
             /// </summary>
-            /// <returns></returns>
             internal Opc.Ua.MonitoringMode? GetMonitoringModeChange() {
                 var change = _modeChange.ToStackType();
                 _modeChange = null;

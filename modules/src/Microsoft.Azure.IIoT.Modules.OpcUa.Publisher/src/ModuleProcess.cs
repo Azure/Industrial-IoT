@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Http.HealthChecks;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -18,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Serializers;
@@ -33,8 +35,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
-    using Microsoft.Azure.IIoT.Http.HealthChecks;
 
     /// <summary>
     /// Publisher module
@@ -116,13 +116,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         SetStackTraceMask();
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
-                            "OpcPublisher", version, this);
+                            "OpcPublisher", version, this).ConfigureAwait(false);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
-                        await workerSupervisor.StartAsync();
+                        await workerSupervisor.StartAsync().ConfigureAwait(false);
                         sessionManager = hostScope.Resolve<ISessionManager>();
                         OnRunning?.Invoke(this, true);
-                        await Task.WhenAny(_reset.Task, _exit.Task);
+                        await Task.WhenAny(_reset.Task, _exit.Task).ConfigureAwait(false);
                         if (_exit.Task.IsCompleted) {
                             logger.Information("Module exits...");
                             return _exitCode;
@@ -134,14 +134,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
-                        healthCheckManager.Stop();
-                        await workerSupervisor.StopAsync();
-                        await (sessionManager?.StopAsync() ?? Task.CompletedTask);
-                        await module.StopAsync();
                         OnRunning?.Invoke(this, false);
+                        await workerSupervisor.StopAsync().ConfigureAwait(false);
+                        await (sessionManager?.StopAsync()?? Task.CompletedTask).ConfigureAwait(false);
+                        await module.StopAsync().ConfigureAwait(false);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         server.StopWhenEnabled(moduleConfig, logger);
+                        healthCheckManager.Stop();
+                        logger.Information("Module stopped");
                     }
                 }
             }
