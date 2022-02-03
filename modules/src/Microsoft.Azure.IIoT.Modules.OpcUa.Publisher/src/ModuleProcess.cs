@@ -137,12 +137,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         OnRunning?.Invoke(this, false);
                         await workerSupervisor.StopAsync().ConfigureAwait(false);
                         await (sessionManager?.StopAsync()?? Task.CompletedTask).ConfigureAwait(false);
-                        await module.StopAsync().ConfigureAwait(false);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
-                        server.StopWhenEnabled(moduleConfig, logger);
                         healthCheckManager.Stop();
-                        logger.Information("Module stopped");
+                        server.StopWhenEnabled(moduleConfig, logger);
+                        await module.StopAsync().ConfigureAwait(false);
+                        logger.Information("Module stopped.");
                     }
                 }
             }
