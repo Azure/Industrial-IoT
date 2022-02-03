@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
 
         /// <inheritdoc/>
         public async Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat,
-            CancellationToken ct) {
+            JobDiagnosticInfoModel info, CancellationToken ct) {
             if (heartbeat == null) {
                 throw new ArgumentNullException(nameof(heartbeat));
             }

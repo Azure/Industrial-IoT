@@ -43,8 +43,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime {
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
                 builder.RegisterType<WriterGroupMessageTrigger>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
-                builder.RegisterType<PublisherDiagnosticInfo>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
                 switch (_jobConfig.MessagingMode) {
                     case MessagingMode.Samples:
                         builder.RegisterType<MonitoredItemMessageEncoder>()

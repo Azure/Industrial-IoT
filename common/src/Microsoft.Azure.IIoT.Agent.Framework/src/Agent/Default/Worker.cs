@@ -141,6 +141,16 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         }
 
         /// <summary>
+        /// Get Diagnostic Info
+        /// </summary>
+        private JobDiagnosticInfoModel GetDiagnosticInfo() {
+            if (_jobProcess != null) {
+                return _jobProcess.GetProcessDiagnosticInfo();
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Handler for ConfigUpdated event
         /// </summary>
         private void ConfigUpdate_Handler(object sender, EventArgs eventArgs) {
@@ -176,7 +186,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 var workerHeartbeat = await GetWorkerHeartbeatAsync(_cts.Token).ConfigureAwait(false);
 
                 await _jobManagerConnector.SendHeartbeatAsync(
-                    new HeartbeatModel { Worker = workerHeartbeat }, _cts.Token).ConfigureAwait(false);
+                    new HeartbeatModel { Worker = workerHeartbeat }, GetDiagnosticInfo(), _cts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException) {
                 // Done
@@ -278,6 +288,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                         _jobProcess = null;
                         break;
                     }
+
                     _logger.Information("Processing job continuation...");
                 }
             }
@@ -348,6 +359,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// </summary>
             public void ResetHeartbeat() {
                 Try.Op(() => _heartbeatTimer?.Change(TimeSpan.Zero, _outer._heartbeatInterval));
+            }
+
+            /// <summary>
+            /// Get Diagnostic Info
+            /// </summary>
+            /// <returns></returns>
+            public JobDiagnosticInfoModel GetProcessDiagnosticInfo() {
+                return _currentProcessingEngine.GetDiagnosticInfo().Result;
             }
 
             /// <summary>
@@ -451,7 +470,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                             ProcessMode = _currentJobProcessInstruction.ProcessMode.Value,
                             State = await _currentProcessingEngine.GetCurrentJobState().ConfigureAwait(false)
                         }
-                    }, ct).ConfigureAwait(false);
+                    }, GetProcessDiagnosticInfo(), ct).ConfigureAwait(false);
 
                 // Check for updated job
                 if (result.UpdatedJob != null && JobContinuation == null) {

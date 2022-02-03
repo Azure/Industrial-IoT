@@ -64,9 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _lockJobs = new SemaphoreSlim(1, 1);
 
             _publishedNodesEntries = new List<PublishedNodesEntryModel>();
-            _publisherDiagnosticInfo = new Dictionary<string, SessionDiagnosticInfo>();
-            //_publisherDiagnosticInfo.DiagnosticInfo = new Dictionary<string, SessionDiagnosticInfo>();
-            //_publisherDiagnosticInfo = publisherDiagnosticInfo;
+            _publisherDiagnosticInfo = new Dictionary<string, JobDiagnosticInfoModel>();
 
             RefreshJobFromFile();
             _publishedNodesProvider.Changed += _fileSystemWatcher_Changed;
@@ -115,11 +113,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <summary>
         /// Receives the heartbeat from the LegacyJobOrchestrator, JobProcess; used to control lifetime of job (cancel, restart, keep).
+        /// Used also to receive the diagnostic info
         /// </summary>
         /// <param name="heartbeat"></param>
+        /// <param name="info"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
+        public async Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, JobDiagnosticInfoModel info, CancellationToken ct = default) {
             if (heartbeat == null || heartbeat.Worker == null) {
                 throw new ArgumentNullException(nameof(heartbeat));
             }
@@ -174,6 +174,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         UpdatedJob = null,
                     };
                 }
+                if (info != null) {
+                    foreach (var assignedJob in _assignedJobs) {
+                    
+                        if (info.Id == assignedJob.Value.Job.Id) {
+                            _publisherDiagnosticInfo.AddOrUpdate(assignedJob.Value.Job.Id, info);
+                        }
+                    }
+                }
+
                 _logger.Debug("Worker update with {heartbeatInstruction} instruction for job {jobId}.",
                     heartbeatResultModel?.HeartbeatInstruction, job?.Job?.Id);
 
@@ -313,7 +322,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                         else {
                             availableJobs.Add(newJobId, newJob);
-                            _publisherDiagnosticInfo.Add(newJobId, new SessionDiagnosticInfo());
                         }
                     }
                 }
@@ -838,16 +846,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodesEntryModel> GetDiagnosticInfoAsync(
+        public async Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             PublishedNodesEntryModel request,
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
-            Dictionary<string, SessionDiagnosticInfo> info = new Dictionary<string, SessionDiagnosticInfo>();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
 
-                info = (Dictionary<string, SessionDiagnosticInfo>)_publisherDiagnosticInfo;
-                return null;
+                return _publisherDiagnosticInfo.Values.ToList();
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -874,7 +880,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private Dictionary<string, JobProcessingInstructionModel> _availableJobs;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
-        //private readonly Dictionary<string, SessiorDiagnosticInfo> _publisherDiagnosticInfo;
-        private readonly Dictionary<string, SessionDiagnosticInfo> _publisherDiagnosticInfo;
+        private Dictionary<string, JobDiagnosticInfoModel> _publisherDiagnosticInfo;
     }
 }

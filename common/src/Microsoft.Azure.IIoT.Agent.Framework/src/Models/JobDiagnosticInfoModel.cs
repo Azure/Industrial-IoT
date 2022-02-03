@@ -1,114 +1,118 @@
-﻿namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
     using System;
-    using System.Collections.Generic;
-    using System.Text;
 
     /// <summary>
-    /// Class to enable output to the console.
+    /// Model for a diagnostic info response.
     /// </summary>
     public class JobDiagnosticInfoModel {
-        /// <summary>
-        /// Sequence number of the event
-        /// </summary>
-        public string SessionId { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// Id
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// IngestionDuration
         /// </summary>
         public TimeSpan IngestionDuration { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// IngressDataChanges
         /// </summary>
         public ulong IngressDataChanges { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// IngressValueChanges
         /// </summary>
         public ulong IngressValueChanges { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// IngressBatchBlockBufferSize
         /// </summary>
         public int IngressBatchBlockBufferSize { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// EncodingBlockInputOutputSize
         /// </summary>
         public uint EncodingBlockInputOutputSize { get; set; }
 
         /// <summary>
-        /// Seq  uence number of the event
+        /// EncoderNotificationsProcessed
         /// </summary>
         public uint EncoderNotificationsProcessed { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// EncoderNotificationsDropped
         /// </summary>
         public uint EncoderNotificationsDropped { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// EncoderIoTMessagesProcessed
         /// </summary>
         public uint EncoderIoTMessagesProcessed { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// EncoderAvgNotificationsMessage
         /// </summary>
         public double EncoderAvgNotificationsMessage { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// EncoderAvgIoTMessageBodySize
         /// </summary>
         public double EncoderAvgIoTMessageBodySize { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// EncoderAvgIoTChunkUsage
         /// </summary>
         public double EncoderAvgIoTChunkUsage { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// EstimatedIoTChunksPerDay
         /// </summary>
         public double EstimatedIoTChunksPerDay { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// OutgressBatchBlockBufferSize
         /// </summary>
         public int OutgressBatchBlockBufferSize { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// OutgressInputBufferCount
         /// </summary>
         public int OutgressInputBufferCount { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// OutgressInputBufferDropped
         /// </summary>
         public ulong OutgressInputBufferDropped { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// OutgressIoTMessageCount
         /// </summary>
         public long OutgressIoTMessageCount { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// ConnectionRetries
         /// </summary>
         public int ConnectionRetries { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// OpcEndpointConnected
         /// </summary>
         public bool OpcEndpointConnected { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// MonitoredOpcNodesSucceededCount
         /// </summary>
         public int MonitoredOpcNodesSucceededCount { get; set; }
 
         /// <summary>
-        /// Sequence number of the event
+        /// MonitoredOpcNodesFailedCount
         /// </summary>
         public int MonitoredOpcNodesFailedCount { get; set; }
     }

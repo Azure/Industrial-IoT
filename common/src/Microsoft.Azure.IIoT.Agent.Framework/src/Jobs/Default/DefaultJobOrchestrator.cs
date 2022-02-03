@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
         /// <inheritdoc/>
         public async Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat,
-            CancellationToken ct) {
+            JobDiagnosticInfoModel info, CancellationToken ct) {
             if (_workerRepository != null) {
                 await _workerRepository.AddOrUpdate(heartbeat.Worker);
             }

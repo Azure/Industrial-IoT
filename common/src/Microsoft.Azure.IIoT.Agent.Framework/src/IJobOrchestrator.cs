@@ -27,9 +27,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// Send heartbeat
         /// </summary>
         /// <param name="heartbeat"></param>
+        /// <param name="info"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat,
+            JobDiagnosticInfoModel info,
             CancellationToken ct = default);
     }
 }
