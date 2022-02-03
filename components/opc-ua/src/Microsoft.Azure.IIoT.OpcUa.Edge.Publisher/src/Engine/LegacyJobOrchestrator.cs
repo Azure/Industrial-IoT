@@ -82,7 +82,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
+        public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(
+            string workerId,
+            JobRequestModel request,
+            CancellationToken ct = default
+        ) {
             await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
                 ct.ThrowIfCancellationRequested();
@@ -290,12 +294,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return _publishedNodesJobConverter.Read(content, null);
         }
 
-        private static bool IsSameDataSet(PublishedNodesEntryModel entry1, PublishedNodesEntryModel entry2) {
-            return entry1.HasSameGroup(entry2)
-                && string.Equals(entry1.DataSetWriterId, entry2.DataSetWriterId, StringComparison.InvariantCulture)
-                && entry1.DataSetPublishingInterval == entry2.DataSetPublishingInterval;
-        }
-
         private void RefreshJobs(IEnumerable<PublishedNodesEntryModel> entries) {
             var availableJobs = new Dictionary<string, JobProcessingInstructionModel>();
             var assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
@@ -355,10 +353,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                         _lastKnownFileHash = currentFileHash;
                         if (!string.IsNullOrEmpty(content)) {
-                            IEnumerable<PublishedNodesEntryModel> entries = null;
+                            List<PublishedNodesEntryModel> entries = null;
 
                             try {
-                                entries = DeserializePublishedNodes(content);
+                                entries = DeserializePublishedNodes(content).ToList();
                             }
                             catch (IOException) {
                                 throw; //pass it thru, to handle retries
@@ -369,6 +367,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 _lastKnownFileHash = lastValidFileHash;
                                 break;
                             }
+
+                            // Remove entries with null or empty OpcNodes.
+                            entries.RemoveAll(entry => entry.OpcNodes == null || entry.OpcNodes.Count == 0);
 
                             _publishedNodesEntries.Clear();
                             _publishedNodesEntries.AddRange(entries);
@@ -510,6 +511,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered ... ", nameof(PublishNodesAsync));
             var sw = Stopwatch.StartNew();
+
+            if (request is null || request.OpcNodes is null || request.OpcNodes.Count == 0) {
+                var message = request is null
+                    ? kNullRequestMessage
+                    : kNullOrEmptyOpcNodesMessage;
+
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(PublishNodesAsync), sw.Elapsed);
+                sw.Stop();
+
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+            }
+
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             var response = new List<string>();
             try {
@@ -523,7 +536,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (entry.HasSameGroup(request)) {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will add nodes only if the whole DataSet definition matches.
-                        if (IsSameDataSet(entry, request)) {
+                        if (entry.HasSameDataSet(request)) {
                             // Create HashSet of nodes for this entry.
                             var existingNodesSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
                             existingNodesSet.UnionWith(entry.OpcNodes);
@@ -557,6 +570,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 var found = false;
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _legacyCliModel);
+
                 if (jobs.Any()) {
                     await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
                     try {
@@ -615,6 +629,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public async Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered ...", nameof(UnpublishNodesAsync));
             var sw = Stopwatch.StartNew();
+
+            if (request is null || request.OpcNodes is null || request.OpcNodes.Count == 0) {
+                var message = request is null
+                    ? kNullRequestMessage
+                    : kNullOrEmptyOpcNodesMessage;
+
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(UnpublishNodesAsync), sw.Elapsed);
+                sw.Stop();
+
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+            }
+
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             var response = new List<string>();
             try {
@@ -632,7 +658,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (entry.HasSameGroup(request)) {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will remove nodes only if the whole DataSet definition matches.
-                        if (IsSameDataSet(entry, request)) {
+                        if (entry.HasSameDataSet(request)) {
                             foreach (var node in entry.OpcNodes) {
                                 if (nodesToRemoveSet.Contains(node)) {
                                     // Found a node. Remove it from hash set.
@@ -668,7 +694,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (entry.HasSameGroup(request)) {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will remove nodes only if the whole DataSet definition matches.
-                        if (IsSameDataSet(entry, request)) {
+                        if (entry.HasSameDataSet(request)) {
                             var updatedNodes = new List<OpcNodeModel>();
 
                             foreach (var node in entry.OpcNodes) {
@@ -691,7 +717,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 // Remove entries without nodes.
-                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes.Count == 0);
+                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes == null || entry.OpcNodes.Count == 0);
 
                 PersistPublishedNodes();
 
@@ -721,6 +747,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
 
+                    // In the case that all OpcNodes entries were removed from existingGroups
+                    // ToWriterGroupJobs() will return an empty result. So we need to manually
+                    // remove corresponsing entries from _assignedJobs and _availableJobs.
                     if (!found) {
                         var entryJobId = _publishedNodesJobConverter.
                             ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
@@ -778,6 +807,178 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
+        public async Task<List<string>> AddOrUpdateEndpointsAsync(
+            List<PublishedNodesEntryModel> request,
+            CancellationToken ct = default) {
+
+            var methodName = nameof(AddOrUpdateEndpointsAsync);
+            _logger.Information("{methodName} method triggered ... ", methodName);
+            var sw = Stopwatch.StartNew();
+
+            if (request is null) {
+                _logger.Information("{methodName} method finished in {elapsed}", methodName, sw.Elapsed);
+                sw.Stop();
+
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, kNullRequestMessage);
+            }
+
+            // First, let's check that there are no 2 entries for the same endpoint in the request.
+            for (int itemIndex = 1; itemIndex < request.Count; itemIndex++) {
+                for (int prevItemIndex = 0; prevItemIndex < itemIndex; prevItemIndex++) {
+                    if (request[itemIndex].HasSameDataSet(request[prevItemIndex])) {
+                        throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
+                            $"Request contains two entries for the same endpoint at index {prevItemIndex} and {itemIndex}");
+                    }
+                }
+            }
+
+            var response = new List<string>();
+
+            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            try {
+                // ToDo: Uncomment ValidateRequest() once our test requests pass validation.
+                // This will throw SerializerException if values of request fields are not conformant.
+                //ValidateRequest(request);
+
+                // Second, let's check that endpoints that we are asked to remove exist.
+                var dataSetsToRemove = request.Where(e => e.OpcNodes is null || e.OpcNodes.Count == 0).ToList();
+
+                foreach (var dataSetToRemove in dataSetsToRemove) {
+                    var foundDataSet = false;
+                    foreach (var entry in _publishedNodesEntries) {
+                        foundDataSet = foundDataSet || entry.HasSameDataSet(dataSetToRemove);
+                    }
+                    if (!foundDataSet) {
+                        throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                            $"Endpoint not found: {dataSetToRemove.EndpointUrl}");
+                    }
+                }
+
+                var existingGroups = new List<PublishedNodesEntryModel>();
+                var requestDataSetsFound = Enumerable.Repeat(false, request.Count).ToList(); ;
+
+                foreach (var entry in _publishedNodesEntries) {
+                    var groupFound = false;
+
+                    for (var k = 0; k < request.Count; ++k) {
+                        var dataSetToUpdate = request[k];
+                        if (entry.HasSameGroup(dataSetToUpdate)) {
+                            groupFound = true;
+
+                            // We may have several entries with the same DataSetGroup definition,
+                            // so we will update nodes only if the whole DataSet definition matches.
+                            if (entry.HasSameDataSet(dataSetToUpdate)) {
+                                if (dataSetToUpdate.OpcNodes is null || dataSetToUpdate.OpcNodes.Count == 0 || requestDataSetsFound[k]) {
+                                    // In this case existing OpcNodes entries should be cleaned up.
+                                    entry.OpcNodes?.Clear();
+                                }
+                                else {
+                                    // We will add OpcNodes to the first matching entry
+                                    // and the rest will be cleaned up.
+                                    entry.OpcNodes = dataSetToUpdate.OpcNodes;
+                                }
+
+                                // We do not need to look for another matching data set in request.
+                                requestDataSetsFound[k] = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (groupFound) {
+                        // Even if DataSets did not match, we need to add this entry to existingGroups
+                        // so that generated job definition is complete.
+                        existingGroups.Add(entry);
+                    }
+                }
+
+                // Add new data sets from request.
+                for (var k = 0; k < request.Count; ++k) {
+                    if (!requestDataSetsFound[k]) {
+                        existingGroups.Add(request[k]);
+                        _publishedNodesEntries.Add(request[k]);
+                    }
+
+                    response.Add($"Update succeeded for EndpointUrl: {request[k].EndpointUrl}");
+                }
+
+                // Remove entries without nodes.
+                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes == null || entry.OpcNodes.Count == 0);
+
+                PersistPublishedNodes();
+
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _legacyCliModel);
+
+                await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
+                try {
+                    // We will first update existing jobs. Then we will cleanup empty ones.
+                    var processedJobIds = new HashSet<string>();
+
+                    if (jobs.Any()) {
+                        foreach (var job in jobs) {
+                            var newJob = ToJobProcessingInstructionModel(job);
+
+                            if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                                continue;
+                            }
+
+                            var jobFound = false;
+                            foreach (var assignedJob in _assignedJobs) {
+                                if (newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                    _assignedJobs[assignedJob.Key] = newJob;
+                                    jobFound = true;
+                                    break;
+                                }
+                            }
+                            if (!jobFound) {
+                                _availableJobs.AddOrUpdate(newJob.Job.Id, newJob);
+                            }
+
+                            processedJobIds.Add(newJob.Job.Id);
+                        }
+                    }
+
+                    // In the case that all OpcNodes entries were removed from existingGroups
+                    // ToWriterGroupJobs() will return an empty result. So we need to manually
+                    // remove entries from _assignedJobs and _availableJobs that were marked for
+                    // removal in request.
+                    foreach (var dataSetToRemove in dataSetsToRemove) {
+                        var entryJobId = _publishedNodesJobConverter.
+                            ToConnectionModel(dataSetToRemove, _legacyCliModel).CreateConnectionId();
+
+                        // If entry with this JobId was already processed, then there already
+                        // was an update operation for it. We will skip its removal.
+                        if (!processedJobIds.Contains(entryJobId)) {
+                            var jobFound = false;
+                            foreach (var assignedJob in _assignedJobs) {
+                                if (entryJobId == assignedJob.Value.Job.Id) {
+                                    jobFound = _assignedJobs.Remove(assignedJob.Key);
+                                    break;
+                                }
+                            }
+                            if (!jobFound) {
+                                _availableJobs.Remove(entryJobId);
+                            }
+                        }
+                    }
+
+                    AdjustMaxWorkersAgentConfig();
+                }
+                finally {
+                    _lockJobs.Release();
+                }
+            }
+            finally {
+                _lockConfig.Release();
+
+                _logger.Information("{methodName} method finished in {elapsed}", methodName, sw.Elapsed);
+                sw.Stop();
+            }
+
+            return response;
+        }
+
+        /// <inheritdoc/>
         public async Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredEndpointsAsync));
@@ -810,17 +1011,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public async Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request,
-            CancellationToken ct = default) {
-
+            CancellationToken ct = default
+        ) {
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredNodesOnEndpointAsync));
             var sw = Stopwatch.StartNew();
+
+            if (request is null) {
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
+                sw.Stop();
+
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, kNullRequestMessage);
+            }
+
             List<OpcNodeModel> response = new List<OpcNodeModel>();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
                 var endpointFound = false;
 
                 foreach (var entry in _publishedNodesEntries) {
-                    if (IsSameDataSet(entry, request)) {
+                    if (entry.HasSameDataSet(request)) {
                         endpointFound = true;
                         response.AddRange(entry.OpcNodes);
                     }
@@ -865,6 +1074,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _lockConfig.Release();
             }
         }
+
+        private readonly static string kNullRequestMessage = "null request is provided";
+        private readonly static string kNullOrEmptyOpcNodesMessage = "null or empty OpcNodes is provided in request";
 
         private readonly IJobSerializer _jobSerializer;
         private readonly LegacyCliModel _legacyCliModel;

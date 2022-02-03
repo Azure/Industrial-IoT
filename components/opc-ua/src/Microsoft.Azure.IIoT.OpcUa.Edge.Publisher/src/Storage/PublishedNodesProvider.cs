@@ -176,19 +176,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
         }
 
         private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
-            Changed.Invoke(sender, e);
+            Changed?.Invoke(sender, e);
         }
 
         private void FileSystemWatcher_Created(object sender, FileSystemEventArgs e) {
-            Created.Invoke(sender, e);
+            Created?.Invoke(sender, e);
         }
 
         private void FileSystemWatcher_Deleted(object sender, FileSystemEventArgs e) {
-            Deleted.Invoke(sender, e);
+            Deleted?.Invoke(sender, e);
         }
 
         private void FileSystemWatcher_Renamed(object sender, RenamedEventArgs e) {
-            Renamed.Invoke(sender, e);
+            Renamed?.Invoke(sender, e);
         }
     }
 }

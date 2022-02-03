@@ -64,6 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 publishedNodesProvider,
                 newtonSoftJsonSerializer
             );
+
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
@@ -163,6 +164,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 publishedNodesProvider,
                 newtonSoftJsonSerializer
             );
+
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
@@ -343,7 +345,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             };
 
             var methodsController = await publishNodeAsync(publishedNodesFile);
-          
+
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
@@ -459,6 +461,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 publishedNodesProvider,
                 newtonSoftJsonSerializer
             );
+
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
@@ -510,6 +513,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 publishedNodesProvider,
                 newtonSoftJsonSerializer
             );
+
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
