@@ -111,8 +111,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public void Dispose() {
             _logger.Information("Disposing processing engine {Name}", Name);
-            _diagnosticsOutputTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _batchTriggerIntervalTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            _diagnosticsOutputTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+            _batchTriggerIntervalTimer?.Change(Timeout.Infinite, Timeout.Infinite);
             _messageTrigger.OnCounterReset -= MessageTriggerCounterResetReceived;
             _messageTrigger.OnMessage -= MessageTriggerMessageReceived;
             _batchDataSetMessageBlock.Complete();

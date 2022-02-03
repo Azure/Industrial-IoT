@@ -702,14 +702,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (notification == null) {
                         _logger.Warning(
                             "DataChange for subscription: {Subscription} having empty notification",
-                            subscription.DisplayName);
+                            subscription?.DisplayName);
                         return;
                     }
 
                     if (_currentlyMonitored == null) {
                         _logger.Information(
                             "DataChange for subscription: {Subscription} having no monitored items yet",
-                            subscription.DisplayName);
+                            subscription?.DisplayName);
                         return;
                     }
 
@@ -723,7 +723,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     _logger.Debug("DataChange for subscription: {Subscription}, sequence#: " +
                         "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
-                        subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
+                        subscription?.DisplayName, sequenceNumber, isKeepAlive, publishTime);
 
                     var message = new SubscriptionNotificationModel {
                         ServiceMessageContext = subscription?.Session?.MessageContext,
@@ -760,12 +760,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 {
                                     return new MonitoredItemNotificationModel {
                                         Id = item?.Template?.Id,
-                                        DisplayName = item.Item.DisplayName,
+                                        DisplayName = item?.Item?.DisplayName,
                                         NodeId = item?.Template?.StartNodeId,
                                         AttributeId = item.Item.AttributeId,
                                         ClientHandle = item.Item.ClientHandle,
                                         Value = new DataValue(Variant.Null,
-                                            item.Item?.Status?.Error?.StatusCode ??
+                                            item?.Item?.Status?.Error?.StatusCode ??
                                             StatusCodes.BadMonitoredItemIdInvalid),
                                         Overflow = false,
                                         NotificationData = null,
@@ -797,7 +797,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (erroneousNotifications.Count > 0) {
                             _logger.Debug("Found {count} notifications with null value or not good status " +
                                 "code for '{subscription}' subscription.", erroneousNotifications.Count,
-                                subscription.DisplayName);
+                                subscription?.DisplayName);
                         }
                     }
 

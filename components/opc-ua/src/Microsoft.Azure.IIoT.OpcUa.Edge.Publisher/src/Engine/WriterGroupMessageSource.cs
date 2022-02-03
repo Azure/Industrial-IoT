@@ -162,13 +162,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public void Reconfigure(object config) {
 
-            var jobConfig = config as WriterGroupJobModel;
+            var jobConfig = config as WriterGroupJobModel ?? throw new ArgumentNullException(nameof(config)); ;
+
             var writerGroupConfig = jobConfig?.ToWriterGroupJobConfiguration(_publisherId);
             _writerGroup = writerGroupConfig?.WriterGroup?.Clone();
-            var newSubscriptions = jobConfig.WriterGroup.DataSetWriters?
+            var newSubscriptions = jobConfig?.WriterGroup?.DataSetWriters?
                 .Select(g => new DataSetWriterSubscription(this, g, writerGroupConfig))
                 .ToList();
-            _publisherId = writerGroupConfig.PublisherId ?? Guid.NewGuid().ToString();
+            _publisherId = writerGroupConfig?.PublisherId ?? Guid.NewGuid().ToString();
             var toAdd = newSubscriptions.Except(_subscriptions).ToList();
             var toUpdate = _subscriptions.Intersect(newSubscriptions).ToList();
             var toRemove = _subscriptions.Except(newSubscriptions).ToList();
