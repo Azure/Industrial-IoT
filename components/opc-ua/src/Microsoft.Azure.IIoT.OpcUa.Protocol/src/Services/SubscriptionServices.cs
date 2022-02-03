@@ -128,7 +128,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public async Task CloseAsync() {
                 await _lock.WaitAsync().ConfigureAwait(false);
                 try {
-                    _logger.Information("Closing subscription {subscription}", Id);
                     _outer._sessionManager.UnregisterSubscription(this);
                     _outer._subscriptions.TryRemove(Id, out _);
                 }
@@ -141,6 +140,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         var subscription = session.Subscriptions.
                             SingleOrDefault(s => s.Handle == this);
                         if (subscription != null) {
+                            _logger.Information("Closing subscription {subscription}", Id);
                             Try.Op(() => subscription.PublishingEnabled = false);
                             Try.Op(() => subscription.ApplyChanges());
                             Try.Op(() => subscription.DeleteItems());

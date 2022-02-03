@@ -38,13 +38,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <summary>
         /// Create worker
         /// </summary>
-        /// <param name="jobManagerConnector"></param>
-        /// <param name="agentConfigProvider"></param>
-        /// <param name="jobConfigurationFactory"></param>
-        /// <param name="workerInstance"></param>
-        /// <param name="lifetimeScope"></param>
-        /// <param name="logger"></param>
-        /// <param name="agentRepository"></param>
         public Worker(IJobOrchestrator jobManagerConnector,
             IAgentConfigProvider agentConfigProvider, IJobSerializer jobConfigurationFactory,
             int workerInstance, ILifetimeScope lifetimeScope, ILogger logger,
@@ -102,10 +95,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             _agentConfigProvider.OnConfigUpdated -= ConfigUpdate_Handler;
             _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
-            // Inform services, that this worker has stopped working, so orchestrator can reassign job
+            // Inform services, that this worker has stopped working,
+            // so orchestrator can reassign the job
             if (_jobProcess != null && _jobProcess.Status != WorkerStatus.Stopped) {
                 _jobProcess.Status = WorkerStatus.Stopped;
-                await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false); // need to be send before cancel the CancellationToken
+                // need to be send before cancel the CancellationToken
+                await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
                 _jobProcess.Dispose();
                 _jobProcess = null;
             }
