@@ -356,7 +356,76 @@ namespace IIoTPlatform_E2E_Tests {
             /// Endpoint state Disconnected
             /// </summary>
             public const string Disconnected = "Disconnected";
+        }
 
+        /// <summary>
+        /// Direct Method names
+        /// </summary>
+        internal static class DirectMethodNames {
+            /// <summary>
+            /// Publish Nodes
+            /// </summary>
+            public const string PublishNodes = "PublishNodes_V1";
+
+            /// <summary>
+            /// UnPublish Nodes
+            /// </summary>
+            public const string UnPublishNodes = "UnPublishNodes_V1";
+
+            /// <summary>
+            /// GetConfiguredNodesOnEndpoint
+            /// </summary>
+            public const string GetConfiguredNodesOnEndpoint = "GetConfiguredNodesOnEndpoint_V1";
+
+            /// <summary>
+            /// GetConfiguredEndpoints
+            /// </summary>
+            public const string GetConfiguredEndpoints = "GetConfiguredEndpoints_V1";
+
+            /// <summary>
+            /// UnpublishAllNodes
+            /// </summary>
+            public const string UnpublishAllNodes = "UnpublishAllNodes_V1";
+
+            /// <summary>
+            /// GetDiagnosticInfo
+            /// </summary>
+            public const string GetDiagnosticInfo = "GetDiagnosticInfo_V1";
+        }
+
+        /// <summary>
+        /// Direct Method legacy names
+        /// </summary>
+        internal static class DirectMethodLegacyNames {
+            /// <summary>
+            /// Publish Node
+            /// </summary>
+            public const string PublishNodes = "PublishNodes";
+
+            /// <summary>
+            /// UnPublish Nodes
+            /// </summary>
+            public const string UnPublishNodes = "UnpublishNodes";
+
+            /// <summary>
+            /// GetConfiguredNodesOnEndpoint
+            /// </summary>
+            public const string GetConfiguredNodesOnEndpoint = "GetConfiguredNodesOnEndpoint";
+
+            /// <summary>
+            /// GetConfiguredEndpoints
+            /// </summary>
+            public const string GetConfiguredEndpoints = "GetConfiguredEndpoints";
+
+            /// <summary>
+            /// UnpublishAllNodes
+            /// </summary>
+            public const string UnpublishAllNodes = "UnpublishAllNodes";
+
+            /// <summary>
+            /// GetDiagnosticInfo
+            /// </summary>
+            public const string GetDiagnosticInfo = "GetDiagnosticInfo";
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration.Extension {
                 RegionType.CentralUS => Region.USCentral,
                 RegionType.NorthEurope => Region.EuropeNorth,
                 RegionType.WestEurope => Region.EuropeWest,
-                RegionType.SothEastAsia => Region.AsiaSouthEast,
+                RegionType.SouthEastAsia => Region.AsiaSouthEast,
                 RegionType.EastAustralia => Region.AustraliaEast,
                 _ => throw new Exception($"Unrecognized RegionType: {region}")
             };

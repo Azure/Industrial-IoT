@@ -31,6 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             if (string.Compare(model.EndpointUrl.OriginalString, that.EndpointUrl.OriginalString, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
+
             if (model.UseSecurity != that.UseSecurity) {
                 return false;
             }
@@ -56,6 +57,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Validates if the entry has same data set definition as the model. Comarison excludes OpcNodes.
+        /// </summary>
+        public static bool HasSameDataSet(this PublishedNodesEntryModel model, PublishedNodesEntryModel that) {
+            return model.HasSameGroup(that)
+                && string.Equals(model.DataSetWriterId, that.DataSetWriterId, StringComparison.InvariantCulture)
+                && model.DataSetPublishingInterval == that.DataSetPublishingInterval;
         }
 
         /// <summary>
