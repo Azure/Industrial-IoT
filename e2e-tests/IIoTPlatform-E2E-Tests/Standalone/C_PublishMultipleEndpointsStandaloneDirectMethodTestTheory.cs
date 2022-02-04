@@ -197,20 +197,26 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null) {
+                var expectedNodes = new HashSet<string> ();
                 foreach (var consumedNodes in _context.ConsumedOpcUaNodes) {
-                    var expectedNodes = consumedNodes.Value.OpcNodes.Select(n => n.Id).ToList();
-                    foreach (dynamic property in publishingMonitoringResultJson.valueChangesByNodeId) {
-                        var propertyName = (string)property.Name;
-                        var nodeId = propertyName.Split('#').Last();
-
-                        var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
-                        Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
-                        expectedNodes.Remove(expected);
+                    foreach (var opcNode in consumedNodes.Value.OpcNodes) {
+                        expectedNodes.Add(opcNode.Id);
                     }
-
-                    expectedNodes.ForEach(n => _context.OutputHelper.WriteLine(n));
-                    Assert.Empty(expectedNodes);
                 }
+
+                foreach (dynamic property in publishingMonitoringResultJson.valueChangesByNodeId) {
+                    var propertyName = (string)property.Name;
+                    var nodeId = propertyName.Split('#').Last();
+
+                    var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
+                    Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
+                    expectedNodes.Remove(expected);
+                }
+
+                foreach(var expectedNode in expectedNodes) {
+                    _context.OutputHelper.WriteLine(expectedNode);
+                }
+                Assert.Empty(expectedNodes);
             }
 
             //Call Unpublish direct method
@@ -289,8 +295,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(layeredDeploymentResult1, "Failed to create/update layered deployment for legacy publisher module.");
             _output.WriteLine("Created/Updated layered deployment for legacy publisher module.");
 
-            var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token).ConfigureAwait(false);
-
             // We will wait for module to be deployed.
             var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
                 _context.DeviceConfig.DeviceId,
@@ -313,6 +317,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
             Assert.Equal(configuredEndpointsResponse.Count, 0);
 
+            var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token).ConfigureAwait(false);
             var request = nodesToPublish.ToApiModel();
 
             //Call Publish direct method
