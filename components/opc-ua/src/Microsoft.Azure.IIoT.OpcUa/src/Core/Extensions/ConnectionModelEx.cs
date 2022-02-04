@@ -83,9 +83,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// endpoint url, hash and associated group
         /// </summary>
         public static string CreateConnectionId(this ConnectionModel model) {
-            return !string.IsNullOrEmpty(model.Group) ?
-                $"{ model.Endpoint.Url}_{CreateConsistentHash(model)}_{model.Group}" :
-                $"{ model.Endpoint.Url}_{CreateConsistentHash(model)}";
+            return !string.IsNullOrEmpty(model?.Group) ?
+                $"{model?.Endpoint?.Url}_{CreateConsistentHash(model):X8)}_{model.Group}" :
+                $"{model?.Endpoint?.Url}_{CreateConsistentHash(model):X8}";
         }
     }
 }
