@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigProvider,
             IJobSerializer jobSerializer, ILogger logger, IPublishedNodesProvider publishedNodesProvider,
             IJsonSerializer jsonSerializer
-        ) {
+        ) {         
             _publishedNodesJobConverter = publishedNodesJobConverter
                 ?? throw new ArgumentNullException(nameof(publishedNodesJobConverter));
             _legacyCliModel = legacyCliModelProvider.LegacyCliModel
@@ -320,6 +320,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                         else {
                             availableJobs.Add(newJobId, newJob);
+                            _publisherDiagnosticInfo.Add(newJobId, new JobDiagnosticInfoModel());
                         }
                     }
                 }
@@ -589,6 +590,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
                             if (!found) {
                                 _availableJobs.AddOrUpdate(newJob.Job.Id, newJob);
+                                _publisherDiagnosticInfo.AddOrUpdate(newJob.Job.Id, new JobDiagnosticInfoModel());
                                 found = true;
                             }
                         }
@@ -756,11 +758,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         foreach (var assignedJob in _assignedJobs) {
                             if (entryJobId == assignedJob.Value.Job.Id) {
                                 found = _assignedJobs.Remove(assignedJob.Key, out _);
+                                _publisherDiagnosticInfo.Remove(assignedJob.Key, out _);
                                 break;
                             }
                         }
                         if (!found) {
                             found = _availableJobs.Remove(entryJobId, out _);
+                            _publisherDiagnosticInfo.Remove(entryJobId, out _);
                         }
                     }
                 }
@@ -1059,6 +1063,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             PublishedNodesEntryModel request,
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
+            var sw = Stopwatch.StartNew();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
 
@@ -1071,6 +1076,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(GetDiagnosticInfoAsync), sw.Elapsed);
+                sw.Stop();
                 _lockConfig.Release();
             }
         }

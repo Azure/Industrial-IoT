@@ -27,6 +27,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using System.Threading;
+    using Castle.Core.Internal;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
@@ -558,5 +560,51 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.True(endpointsHash.Distinct().Count() == endpointsHash.Count());
         }
 
+        [Theory]
+        [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
+        public async Task DmApiGetDiagnosticInfoTest(string publishedNodesFile) {
+
+            var endpointRequest = new PublishNodesEndpointApiModel {};
+            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+
+            //publish nodes
+            var methodsController = await publishNodeAsync(publishedNodesFile);
+
+            var response = await FluentActions
+                    .Invoking(async () => await methodsController
+                    .GetDiagnosticInfoAsync(endpointRequest).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+            response.Subject.Count()
+                .Should()
+                .Be(5);
+
+            using var publishPayloads = new StreamReader(publishedNodesFile);
+            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
+                await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+
+            //unpublish nodes
+            foreach (var request in publishNodesRequest) {
+                var publishNodesResult = await FluentActions
+                    .Invoking(async () => await methodsController
+                    .UnpublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+            }
+
+            response = await FluentActions
+                .Invoking(async () => await methodsController
+                .GetDiagnosticInfoAsync(endpointRequest).ConfigureAwait(false))
+                .Should()
+                .NotThrowAsync()
+                .ConfigureAwait(false);
+
+            response.Subject.Count()
+                .Should()
+                .Be(0);
+        }
     }
 }
