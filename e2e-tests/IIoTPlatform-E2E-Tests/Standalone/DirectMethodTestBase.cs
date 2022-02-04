@@ -69,7 +69,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _context?.Dispose();
             _iotHubClient?.Dispose();
         }
     }

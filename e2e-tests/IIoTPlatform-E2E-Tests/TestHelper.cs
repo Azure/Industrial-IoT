@@ -604,7 +604,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="IIoTMultipleNodesTestContext">context</param>
         /// <param name="CancellationTokenSource">cancellation token</param>
-        public static async Task<PublishedNodesEntryModel> CreateMultipleNodesModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct, int endpointIndex = 2, int numberOfNodes = 250) {
+        public static async Task<PublishedNodesEntryModel> CreateMultipleNodesModelAsync(
+            IIoTMultipleNodesTestContext context,
+            CancellationToken ct,
+            int endpointIndex = 2,
+            int numberOfNodes = 250) {
+
             await context.LoadSimulatedPublishedNodes(ct);
 
             PublishedNodesEntryModel nodesToPublish;
