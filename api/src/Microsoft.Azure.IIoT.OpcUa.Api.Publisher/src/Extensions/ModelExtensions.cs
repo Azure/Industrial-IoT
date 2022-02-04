@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Auth.Models;
     using System.Linq;
 
@@ -1425,46 +1425,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 SubstituteValue = model.SubstituteValue?.Copy()
             };
         }
-
-#if mist
-        /// <summary>
-        /// Create config
-        /// </summary>
-        /// <param name="model"></param>
-        public static PublisherConfigApiModel ToApiModel(
-            this AgentConfigModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new PublisherConfigApiModel {
-                Capabilities = model.Capabilities?
-                    .ToDictionary(k => k.Key, v => v.Value),
-                HeartbeatInterval = model.HeartbeatInterval,
-                JobCheckInterval = model.JobCheckInterval,
-                JobOrchestratorUrl = model.JobOrchestratorUrl,
-                MaxWorkers = model.MaxWorkers
-            };
-        }
-
-        /// <summary>
-        /// Convert to service model
-        /// </summary>
-        /// <returns></returns>
-        public static AgentConfigModel ToServiceModel(
-            this PublisherConfigApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new AgentConfigModel {
-                Capabilities = model.Capabilities?
-                    .ToDictionary(k => k.Key, v => v.Value),
-                HeartbeatInterval = model.HeartbeatInterval,
-                JobCheckInterval = model.JobCheckInterval,
-                JobOrchestratorUrl = model.JobOrchestratorUrl,
-                MaxWorkers = model.MaxWorkers
-            };
-        }
-#endif
 
         /// <summary>
         /// Create api model from service model
