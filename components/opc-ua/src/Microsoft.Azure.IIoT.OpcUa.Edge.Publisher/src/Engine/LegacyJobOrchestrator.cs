@@ -377,6 +377,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             _publishedNodesEntries.Clear();
                         }
 
+                        // fire config update so that the worker supervisor pickes up the changes ASAP
                         TriggerAgentConfigUpdate();
                     }
                     else {
@@ -955,6 +956,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 finally {
                     _lockJobs.Release();
                 }
+
+                // fire config update so that the worker supervisor pickes up the changes ASAP
+                TriggerAgentConfigUpdate();
             }
             finally {
                 _lockConfig.Release();
@@ -969,9 +973,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public async Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
             CancellationToken ct = default) {
-            _logger.Information("{nameof} method triggered", nameof(GetConfiguredEndpointsAsync));
-            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+
+            var methodName = nameof(GetConfiguredEndpointsAsync);
+            _logger.Information("{nameof} method triggered", methodName);
+            var sw = Stopwatch.StartNew();
+
             var endpoints = new List<PublishedNodesEntryModel>();
+            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
 
             try {
                 endpoints = _publishedNodesEntries.Select(model => new PublishedNodesEntryModel {
@@ -992,6 +1000,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             finally {
                 _lockConfig.Release();
+
+                _logger.Information("{methodName} method finished in {elapsed}", methodName, sw.Elapsed);
+                sw.Stop();
             }
             return endpoints;
         }

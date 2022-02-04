@@ -22,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 return null;
             }
             return new PublishNodesEndpointApiModel {
-
                 DataSetWriterGroup = model.DataSetWriterGroup,
                 DataSetWriterId = model.DataSetWriterId,
                 DataSetPublishingInterval = model.DataSetPublishingInterval,
@@ -30,7 +29,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 UseSecurity = model.UseSecurity,
                 Password = model.OpcAuthenticationPassword,
                 UserName = model.OpcAuthenticationUsername,
-                OpcNodes = model.OpcNodes != null ? model.OpcNodes.Select(n => n.ToApiModel()).ToList() : null,
+                OpcNodes = model.OpcNodes != null
+                    ? model.OpcNodes.Select(n => n.ToApiModel()).ToList()
+                    : null,
             };
         }
 
@@ -54,5 +55,4 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             };
         }
     }
-    
 }
