@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System.Runtime.Serialization;
 
     /// <summary>

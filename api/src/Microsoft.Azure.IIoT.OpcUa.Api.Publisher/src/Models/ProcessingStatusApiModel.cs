@@ -4,41 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Runtime.Serialization;
     using System;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
 
     /// <summary>
-    /// Worker info
+    /// processing status
     /// </summary>
     [DataContract]
-    public class WorkerInfoApiModel {
+    public class ProcessingStatusApiModel {
 
         /// <summary>
-        /// Identifier of the worker instance
+        /// Last known heartbeat
         /// </summary>
-        [DataMember(Name = "workerId", Order = 0,
+        [DataMember(Name = "lastKnownHeartbeat", Order = 0,
             EmitDefaultValue = false)]
-        public string WorkerId { get; set; }
+        public DateTime? LastKnownHeartbeat { get; set; }
 
         /// <summary>
-        /// Identifier of the agent
+        /// Last known state
         /// </summary>
-        [DataMember(Name = "agentId", Order = 1,
+        [DataMember(Name = "lastKnownState", Order = 1,
             EmitDefaultValue = false)]
-        public string AgentId { get; set; }
+        public VariantValue LastKnownState { get; set; }
 
         /// <summary>
-        /// Worker status
+        /// Processing mode
         /// </summary>
-        [DataMember(Name = "status", Order = 2,
+        [DataMember(Name = "processMode", Order = 2,
             EmitDefaultValue = false)]
-        public WorkerStatus Status { get; set; }
-
-        /// <summary>
-        /// Last seen
-        /// </summary>
-        [DataMember(Name = "lastSeen", Order = 3,
-            EmitDefaultValue = false)]
-        public DateTime LastSeen { get; set; }
+        public ProcessMode? ProcessMode { get; set; }
     }
 }

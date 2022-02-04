@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
@@ -17,7 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     /// Api model extensions
     /// </summary>
     public static class ModelExtensions {
-
         /// <summary>
         /// Create model
         /// </summary>
@@ -1428,6 +1426,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             };
         }
 
+#if mist
         /// <summary>
         /// Create config
         /// </summary>
@@ -1465,7 +1464,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 MaxWorkers = model.MaxWorkers
             };
         }
-
+#endif
 
         /// <summary>
         /// Create api model from service model

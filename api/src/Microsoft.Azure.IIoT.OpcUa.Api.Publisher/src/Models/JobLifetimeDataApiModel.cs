@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using System.Runtime.Serialization;
     using System;
     using System.Collections.Generic;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
 
     /// <summary>
     /// Lifetime data

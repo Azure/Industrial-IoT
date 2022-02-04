@@ -4,33 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Heartbeat information
+    /// Processing instructions
     /// </summary>
     [DataContract]
-    public class WorkerHeartbeatApiModel {
+    public class JobProcessingInstructionApiModel {
 
         /// <summary>
-        /// Worker id
+        /// Processing mode
         /// </summary>
-        [DataMember(Name = "workerId", Order = 0,
+        [DataMember(Name = "processMode", Order = 0,
             EmitDefaultValue = false)]
-        public string WorkerId { get; set; }
+        public ProcessMode? ProcessMode { get; set; }
 
         /// <summary>
-        /// Agent id
+        /// Job to process
         /// </summary>
-        [DataMember(Name = "agentId", Order = 1,
+        [DataMember(Name = "job", Order = 1,
             EmitDefaultValue = false)]
-        public string AgentId { get; set; }
-
-        /// <summary>
-        /// Status
-        /// </summary>
-        [DataMember(Name = "status", Order = 2,
-            EmitDefaultValue = false)]
-        public WorkerStatus Status { get; set; }
+        public JobInfoApiModel Job { get; set; }
     }
 }

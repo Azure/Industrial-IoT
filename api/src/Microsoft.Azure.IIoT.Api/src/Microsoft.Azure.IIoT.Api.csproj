@@ -17,4 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Publisher\Clients\" />
+    <Folder Include="Publisher\Extensions\" />
+    <Folder Include="Publisher\Models\" />
+  </ItemGroup>
 </Project>
