@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -48,7 +48,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
 
             // Clean publishednodes.json.
-            await TestHelper.PublishNodesAsync(Array.Empty<PublishedNodesEntryModel>(), _context);
+            await TestHelper.CleanPublishedNodesJsonFiles(_context).ConfigureAwait(false);
 
             // Create base edge deployment.
             var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
@@ -62,7 +62,12 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token);
 
-            await TestHelper.PublishNodesAsync(new[] { model }, _context);
+            await TestHelper.PublishNodesAsync(
+                _context,
+                TestConstants.PublishedNodesFullName,
+                new[] { model }
+            ).ConfigureAwait(false);
+
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
 
             // Wait some time till the updated pn.json is reflected.
@@ -92,7 +97,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 $"Duplicate values detected: {(uint)publishingMonitoringResultJson.duplicateValueCount}");
 
             // Stop publishing nodes.
-            await TestHelper.PublishNodesAsync(Array.Empty<PublishedNodesEntryModel>(), _context);
+            await TestHelper.PublishNodesAsync(
+                _context,
+                TestConstants.PublishedNodesFullName,
+                Array.Empty<PublishedNodesEntryModel>()
+            ).ConfigureAwait(false);
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
 
             // Wait till the publishing has stopped.

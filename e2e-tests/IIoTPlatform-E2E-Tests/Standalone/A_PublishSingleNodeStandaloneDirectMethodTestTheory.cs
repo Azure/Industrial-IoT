@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -49,7 +49,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
 
             // Clean publishednodes.json.
-            await TestHelper.PublishNodesAsync(Array.Empty<PublishedNodesEntryModel>(), _context).ConfigureAwait(false);
+            await TestHelper.CleanPublishedNodesJsonFiles(_context).ConfigureAwait(false);
 
             // Create base edge deployment.
             var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token).ConfigureAwait(false);
@@ -187,7 +187,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
 
             // Clean publishednodes.json.
-            await TestHelper.PublishNodesAsync(Array.Empty<PublishedNodesEntryModel>(), _context).ConfigureAwait(false);
+            await TestHelper.CleanPublishedNodesJsonFiles(_context).ConfigureAwait(false);
 
             // Create base edge deployment.
             var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token).ConfigureAwait(false);
