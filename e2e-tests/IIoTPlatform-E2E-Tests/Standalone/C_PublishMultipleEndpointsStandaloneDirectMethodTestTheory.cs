@@ -207,7 +207,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 foreach (dynamic property in publishingMonitoringResultJson.valueChangesByNodeId) {
                     var propertyName = (string)property.Name;
                     var nodeId = propertyName.Split('#').Last();
-
                     var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
                     Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
                     expectedNodes.Remove(expected);
@@ -447,7 +446,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 foreach (dynamic property in publishingMonitoringResultJson.valueChangesByNodeId) {
                     var propertyName = (string)property.Name;
                     var nodeId = propertyName.Split('#').Last();
-
                     var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
                     Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
                     expectedNodes.Remove(expected);
