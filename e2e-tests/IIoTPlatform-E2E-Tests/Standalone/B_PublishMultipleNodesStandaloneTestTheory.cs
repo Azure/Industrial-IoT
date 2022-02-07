@@ -51,7 +51,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
 
             // Clean publishednodes.json.
-            await TestHelper.CleanPublishedNodesJsonFiles(_context).ConfigureAwait(false);
+            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context).ConfigureAwait(false);
 
             // Create base edge deployment.
             var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);

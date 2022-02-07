@@ -246,7 +246,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static async Task CleanPublishedNodesJsonFiles(IIoTPlatformTestContext context) {
+        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context) {
             await PublishNodesAsync(
                 context,
                 TestConstants.PublishedNodesFullName,
