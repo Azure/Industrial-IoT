@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigProvider,
             IJobSerializer jobSerializer, ILogger logger, IPublishedNodesProvider publishedNodesProvider,
             IJsonSerializer jsonSerializer
-        ) {         
+        ) {
             _publishedNodesJobConverter = publishedNodesJobConverter
                 ?? throw new ArgumentNullException(nameof(publishedNodesJobConverter));
             _legacyCliModel = legacyCliModelProvider.LegacyCliModel
@@ -123,7 +123,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="info"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, JobDiagnosticInfoModel info, CancellationToken ct = default) {
+        public async Task<HeartbeatResultModel> SendHeartbeatAsync(
+            HeartbeatModel heartbeat, 
+            JobDiagnosticInfoModel info, 
+            CancellationToken ct = default
+        ) {
             if (heartbeat == null || heartbeat.Worker == null) {
                 throw new ArgumentNullException(nameof(heartbeat));
             }
@@ -180,7 +184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 if (info != null) {
                     foreach (var assignedJob in _assignedJobs) {
-                    
+
                         if (info.Id == assignedJob.Value.Job.Id) {
                             _publisherDiagnosticInfo.AddOrUpdate(assignedJob.Value.Job.Id, info);
                         }
@@ -297,6 +301,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void RefreshJobs(IEnumerable<PublishedNodesEntryModel> entries) {
             var availableJobs = new Dictionary<string, JobProcessingInstructionModel>();
             var assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
+            var publisherDiagnosticInfo = new Dictionary<string, JobDiagnosticInfoModel>();
 
             var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _legacyCliModel);
 
@@ -320,7 +325,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                         else {
                             availableJobs.Add(newJobId, newJob);
-                            _publisherDiagnosticInfo.Add(newJobId, new JobDiagnosticInfoModel());
                         }
                     }
                 }
@@ -328,6 +332,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // Update local state.
                 _availableJobs = availableJobs;
                 _assignedJobs = assignedJobs;
+                _publisherDiagnosticInfo = publisherDiagnosticInfo;
 
                 AdjustMaxWorkersAgentConfig();
             }
@@ -590,7 +595,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
                             if (!found) {
                                 _availableJobs.AddOrUpdate(newJob.Job.Id, newJob);
-                                _publisherDiagnosticInfo.AddOrUpdate(newJob.Job.Id, new JobDiagnosticInfoModel());
                                 found = true;
                             }
                         }

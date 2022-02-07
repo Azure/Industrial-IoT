@@ -577,34 +577,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject
                 .Should()
-                .Be(5);
-
-            using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
-                await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
-
-            //unpublish nodes
-            foreach (var request in publishNodesRequest) {
-                var publishNodesResult = await FluentActions
-                    .Invoking(async () => await methodsController
-                    .UnpublishNodesAsync(request).ConfigureAwait(false))
-                    .Should()
-                    .NotThrowAsync()
-                    .ConfigureAwait(false);
-            }
-
-            response = await FluentActions
-                .Invoking(async () => await methodsController
-                .GetDiagnosticInfoAsync(endpointRequest).ConfigureAwait(false))
-                .Should()
-                .NotThrowAsync()
-                .ConfigureAwait(false);
-
-            response.Subject.Count()
-                .Should()
-                .Be(0);
+                .NotBeNull();
         }
     }
 }

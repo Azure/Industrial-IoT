@@ -366,7 +366,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// </summary>
             /// <returns></returns>
             public JobDiagnosticInfoModel GetProcessDiagnosticInfo() {
-                return _currentProcessingEngine.GetDiagnosticInfo().Result;
+                return _currentProcessingEngine.GetDiagnosticInfo().GetAwaiter().GetResult();
             }
 
             /// <summary>

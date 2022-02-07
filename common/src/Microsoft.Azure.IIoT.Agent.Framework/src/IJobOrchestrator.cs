@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat,
-            JobDiagnosticInfoModel info,
+            JobDiagnosticInfoModel info = null,
             CancellationToken ct = default);
     }
 }
