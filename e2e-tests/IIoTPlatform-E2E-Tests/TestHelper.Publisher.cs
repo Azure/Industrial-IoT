@@ -20,7 +20,7 @@ namespace IIoTPlatform_E2E_Tests {
                 Assert.Equal(expected.DataSetPublishingInterval, actual.DataSetPublishingInterval);
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
                 Assert.Equal(expected.DataSetWriterId, actual.DataSetWriterId);
-                Assert.Equal(expected.EndpointUrl, actual.EndpointUrl + '/');
+                Assert.Equal(expected.EndpointUrl.TrimEnd('/'), actual.EndpointUrl.TrimEnd('/'));
                 Assert.Equal(expected.OpcAuthenticationMode, actual.OpcAuthenticationMode);
                 Assert.Equal(expected.UserName, actual.UserName);
                 Assert.Equal(expected.UseSecurity, actual.UseSecurity);

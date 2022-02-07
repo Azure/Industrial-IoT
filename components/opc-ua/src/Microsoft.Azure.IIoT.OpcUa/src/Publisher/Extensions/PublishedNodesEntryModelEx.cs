@@ -60,6 +60,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         }
 
         /// <summary>
+        /// Validates if the entry has same data set definition as the model. Comarison excludes OpcNodes.
+        /// </summary>
+        public static bool HasSameDataSet(this PublishedNodesEntryModel model, PublishedNodesEntryModel that) {
+            return model.HasSameGroup(that)
+                && string.Equals(model.DataSetWriterId, that.DataSetWriterId, StringComparison.InvariantCulture)
+                && model.DataSetPublishingInterval == that.DataSetPublishingInterval;
+        }
+
+        /// <summary>
         /// Returns the GroupId if available otherwise a valid identifier cmposed of endpoint url and hash
         /// </summary>
         public static string GetGroupId(this PublishedNodesEntryModel model) {

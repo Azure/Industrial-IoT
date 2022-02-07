@@ -9,7 +9,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
     using Newtonsoft.Json;
     using TestExtensions;
 
-    public sealed class IoTHubLegacyPublisherDeployments : DeploymentConfiguration {
+    public sealed class IoTHubLegacyPublisherDeployments : ModuleDeploymentConfiguration {
 
         /// <summary>
         /// Create deployment
@@ -24,7 +24,11 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         /// <inheritdoc />
         protected override string DeploymentName => kDeploymentName + $"{DateTime.UtcNow.Ticks}";
 
+        /// <inheritdoc />
         protected override string TargetCondition => kTargetCondition;
+
+        /// <inheritdoc />
+        public override string ModuleName => kModuleName;
 
         /// <inheritdoc />
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
@@ -32,7 +36,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
 
             // Configure create options per os specified
             var createOptions = JsonConvert.SerializeObject(new {
-                Hostname = kModuleName,
+                Hostname = ModuleName,
                 Cmd = new[] {
                 "PkiRootPath=" + TestConstants.PublishedNodesFolderLegacy + "/pki",
                 "--aa",
@@ -54,7 +58,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
             {
                 ""$edgeAgent"": {
                     " + registryCredentials + @"
-                    ""properties.desired.modules." + kModuleName + @""": {
+                    ""properties.desired.modules." + ModuleName + @""": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""
@@ -66,14 +70,14 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                     }
                 },
                 ""$edgeHub"": {
-                    ""properties.desired.routes." + kModuleName + @"ToUpstream"": ""FROM /messages/modules/" + kModuleName + @"/* INTO $upstream"",
+                    ""properties.desired.routes." + ModuleName + @"ToUpstream"": ""FROM /messages/modules/" + ModuleName + @"/* INTO $upstream"",
                     ""properties.desired.routes.leafToUpstream"": ""FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream""
                 }
             }";
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(content);
         }
 
-        private const string kVersion = "2.5.5";
+        private const string kVersion = "2.5";
         private const string kModuleName = "publisher_standalone_legacy";
         private const string kDeploymentName = "__default-opcpublisher-standalone-legacy";
         private const string kTargetCondition = "(tags.__type__ = 'iiotedge' AND IS_DEFINED(tags.unmanaged))";
