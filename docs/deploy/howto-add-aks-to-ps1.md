@@ -360,7 +360,7 @@ If you decide to pass all Azure resource details through YAML file, please follo
 to get the parameters. In the end, `aiiot.yaml` value file would look something like the one below.
 
 In this case as well, we will have to set up Access Policies for service principal of `service` App
-Registration in Azure Key Vault so that Engineering Tool and OPC-Vault microservices are able to fetch the
+Registration in Azure Key Vault so that Engineering Tool microservice is able to fetch the
 `dataprotection` key from  Azure Key Vault. That is required for proper functionality of
 [ASP.NET Core Data Protection](https://docs.microsoft.com/aspnet/core/security/data-protection/configuration/overview?view=aspnetcore-3.1#protectkeyswithazurekeyvault)
 feature.

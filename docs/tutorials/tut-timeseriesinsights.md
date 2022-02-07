@@ -16,7 +16,8 @@ This how-to guide shows you how to visualize and analyze the OPC UA Telemetry us
 
 ## Time Series Insights explorer
 
-The Time Series Insights explorer is a web app you can use to visualize your telemetry. To retrieve the url of the application open the `.env` file saved as a result of the deployment.  Open a browser to the Url in the `PCS_TSI_URL` variable.  
+The Time Series Insights explorer is a web app you can use to visualize your telemetry. The url of the application can be retrieved from the Time Series Insights environment created from the deployment in your resource group. Open a browser to the Url.  
+   ![Time Series Insights environment](../media/tut-tsi-retrieve-url.png)
 
 Before using the Time Series Insights explorer you must grant access to the TSI data to the users entitled to visualize the data. Please note that on a fresh deployment no data access policies are set by default, therefore nobody can see the data. The data access policies need to be set in the Azure Portal, in the Time Series Insights Environment deployed in the IIoT's platform deployed resource group, as follows:
    ![Time Series Insights Explorer](../media/tut-tsi-dataaccess1.png)
