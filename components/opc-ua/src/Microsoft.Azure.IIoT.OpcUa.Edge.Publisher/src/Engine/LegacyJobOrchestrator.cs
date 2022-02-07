@@ -798,7 +798,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (entry.HasSameGroup(request)) {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will remove nodes only if the whole DataSet definition matches.
-                        if (IsSameDataSet(entry, request)) {
+                        if (entry.HasSameDataSet(request)) {
                             entry.OpcNodes.Clear();
                             found = true;
                         }
