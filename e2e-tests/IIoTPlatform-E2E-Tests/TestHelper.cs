@@ -212,8 +212,9 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         public static async Task PublishNodesAsync(
-            IEnumerable<PublishedNodesEntryModel> entries,
-            IIoTPlatformTestContext context
+            IIoTPlatformTestContext context,
+            string publishedNodesFullPath,
+            IEnumerable<PublishedNodesEntryModel> entries
         ) {
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
@@ -221,21 +222,42 @@ namespace IIoTPlatform_E2E_Tests {
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
             using var scpClient = CreateScpClientAndConnect(context);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-            scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
+
+            scpClient.Upload(stream, publishedNodesFullPath);
 
             if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
                 using var sshCient = CreateSshClientAndConnect(context);
                 foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
                     if (edge != string.Empty) {
                         // Copy file to the edge vm
-                        var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
+                        var command = $"scp -oStrictHostKeyChecking=no {publishedNodesFullPath} {edge}:{TestConstants.PublishedNodesFilename}";
                         sshCient.RunCommand(command);
+
                         // Move file to the target folder with sudo permissions
-                        command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
+                        command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {publishedNodesFullPath}'";
                         sshCient.RunCommand(command);
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Clean published nodes JSON files for both legacy (2.5) and current (2.8) versions.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context) {
+            await PublishNodesAsync(
+                context,
+                TestConstants.PublishedNodesFullName,
+                Array.Empty<PublishedNodesEntryModel>()
+            ).ConfigureAwait(false);
+
+            await PublishNodesAsync(
+                context,
+                TestConstants.PublishedNodesFullNameLegacy,
+                Array.Empty<PublishedNodesEntryModel>()
+            ).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -604,7 +626,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="IIoTMultipleNodesTestContext">context</param>
         /// <param name="CancellationTokenSource">cancellation token</param>
-        public static async Task<PublishedNodesEntryModel> CreateMultipleNodesModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct, int endpointIndex = 2, int numberOfNodes = 250) {
+        public static async Task<PublishedNodesEntryModel> CreateMultipleNodesModelAsync(
+            IIoTMultipleNodesTestContext context,
+            CancellationToken ct,
+            int endpointIndex = 2,
+            int numberOfNodes = 250) {
+
             await context.LoadSimulatedPublishedNodes(ct);
 
             PublishedNodesEntryModel nodesToPublish;
