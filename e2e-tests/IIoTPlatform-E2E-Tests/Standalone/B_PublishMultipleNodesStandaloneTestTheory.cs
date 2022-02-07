@@ -51,7 +51,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
 
             // Clean publishednodes.json.
-            await TestHelper.PublishNodesAsync(Array.Empty<PublishedNodesEntryModel>(), _context);
+            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context).ConfigureAwait(false);
 
             // Create base edge deployment.
             var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
@@ -65,7 +65,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token);
 
-            TestHelper.PublishNodesAsync(new[] { nodesToPublish }, _context).GetAwaiter().GetResult();
+            await TestHelper.PublishNodesAsync(
+                _context,
+                TestConstants.PublishedNodesFullName,
+                new[] { nodesToPublish }
+            ).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
             var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
@@ -109,7 +113,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             }
 
             // Stop publishing nodes.
-            await TestHelper.PublishNodesAsync(Array.Empty<PublishedNodesEntryModel>(), _context);
+            await TestHelper.PublishNodesAsync(
+                _context,
+                TestConstants.PublishedNodesFullName,
+                Array.Empty<PublishedNodesEntryModel>()
+            ).ConfigureAwait(false);
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
 
             // Wait till the publishing has stopped.
