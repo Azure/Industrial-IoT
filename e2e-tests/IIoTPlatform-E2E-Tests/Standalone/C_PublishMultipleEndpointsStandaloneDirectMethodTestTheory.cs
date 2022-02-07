@@ -189,8 +189,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
             //Call Unpublish direct method
+            request1.OpcNodes?.Clear();
             response = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
-                Name = TestConstants.DirectMethodNames.UnPublishNodes,
+                Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
                 JsonPayload = _serializer.SerializeToString(request1)
             }, _context, cts.Token).ConfigureAwait(false);
 
@@ -357,7 +358,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             //Call Unpublish direct method
             response = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
-                Name = TestConstants.DirectMethodLegacyNames.UnPublishNodes,
+                Name = TestConstants.DirectMethodLegacyNames.UnpublishAllNodes,
                 JsonPayload = _serializer.SerializeToString(request1)
             }, _context, cts.Token).ConfigureAwait(false);
 

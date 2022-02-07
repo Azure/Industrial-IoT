@@ -778,7 +778,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 // Report error if there were entries that did not have any nodes
                 if (!found) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, $"Endpoint not found: {request.EndpointUrl}");
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, $"Endpoint or node not found: {request.EndpointUrl}");
                 }
 
                 // Remove entries without nodes.
