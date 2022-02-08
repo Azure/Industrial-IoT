@@ -95,12 +95,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         "sample values.",
                         (int i) => this[LegacyCliConfigKeys.OpcSamplingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
                     { "op|opcpublishinginterval=", "Default value in milliseconds for the publishing interval " +
-                            "setting of the subscriptions against the OPC UA server.",
+                        "setting of the subscriptions against the OPC UA server.",
                         (int i) => this[LegacyCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
-                    { "ct|createsessiontimeout=", "The timeout in seconds used when creating a session to an endpoint.",
+                    { "ct|createsessiontimeout=", "Maximum amount of time in seconds that a session should " +
+                        "remain open by the OPC server without any activity (session timeout) " +
+                        "- to request from the OPC server at session creation.",
                         (uint u) => this[LegacyCliConfigKeys.OpcSessionCreationTimeout] = TimeSpan.FromSeconds(u).ToString() },
                     { "ki|keepaliveinterval=", "The interval in seconds the publisher is sending keep alive messages " +
-                            "to the OPC servers on the endpoints it is connected to.",
+                        "to the OPC servers on the endpoints it is connected to.",
                         (int i) => this[LegacyCliConfigKeys.OpcKeepAliveIntervalInSec] = TimeSpan.FromSeconds(i).ToString() },
                     { "kt|keepalivethreshold=", "Specify the number of keep alive packets a server can miss, " +
                         "before the session is disconneced.",
