@@ -324,7 +324,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 }
             }
 
-            var tasks = new List<Task<List<string>>>();
+            var tasks = new List<Task>();
             for (var i = 0; i < numberOfEndpoints; i++) {
                 tasks.Add(_legacyJobOrchestrator.AddOrUpdateEndpointsAsync(
                     new List<PublishedNodesEntryModel> { endpoints[i] }));
@@ -384,12 +384,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         .ConfigureAwait(false);
                 }
                 else {
-                    var result = await _legacyJobOrchestrator
-                        .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
+                    await FluentActions
+                        .Invoking(async () => await _legacyJobOrchestrator
+                            .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
+                            .ConfigureAwait(false))
+                        .Should()
+                        .NotThrowAsync()
                         .ConfigureAwait(false);
-
-                    Assert.Equal(1, result.Count);
-                    Assert.Equal($"Update succeeded for EndpointUrl: { request.EndpointUrl }", result[0]);
 
                     previousDataSets.Add(request);
                 }
@@ -435,7 +436,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .Select(i => GenerateEndpoint(i, opcNodes))
                 .ToList();
 
-            var tasks = new List<Task<List<string>>>();
+            var tasks = new List<Task>();
             for (var i = 0; i < 3; i++) {
                 tasks.Add(_legacyJobOrchestrator.PublishNodesAsync(endpoints[i]));
             }
@@ -475,11 +476,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ConfigureAwait(false);
 
             updateRequest.RemoveAt(3);
-            var result = await _legacyJobOrchestrator
-                .AddOrUpdateEndpointsAsync(updateRequest)
-                .ConfigureAwait(false);
-
-            Assert.Equal(result.Count, 4);
+            await _legacyJobOrchestrator.AddOrUpdateEndpointsAsync(updateRequest).ConfigureAwait(false);
 
             // Check endpoint 0.
             await AssertGetConfiguredNodesOnEndpointThrows(_legacyJobOrchestrator, endpoints[0])

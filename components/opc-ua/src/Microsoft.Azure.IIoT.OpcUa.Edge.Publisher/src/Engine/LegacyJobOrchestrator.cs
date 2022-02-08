@@ -497,7 +497,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
+        public async Task PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered ... ", nameof(PublishNodesAsync));
             var sw = Stopwatch.StartNew();
 
@@ -513,7 +513,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
-            var response = new List<string>();
             try {
                 // ToDo: Uncomment ValidateRequest() once our test requests pass validation.
                 // This will throw SerializerException if values of request fields are not conformant.
@@ -597,7 +596,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
-                response.Add($"Publishing succeeded for EndpointUrl: {request.EndpointUrl}");
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -611,11 +609,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _lockConfig.Release();
             }
 
-            return response;
         }
 
         /// <inheritdoc/>
-        public async Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
+        public async Task UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered ...", nameof(UnpublishNodesAsync));
             var sw = Stopwatch.StartNew();
 
@@ -631,7 +628,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
-            var response = new List<string>();
             try {
                 // ToDo: Uncomment ValidateRequest() once our test requests pass validation.
                 // This will throw SerializerException if values of request fields are not conformant.
@@ -764,7 +760,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
-                response.Add($"Unpublishing succeeded for EndpointUrl: {request.EndpointUrl}");
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -778,17 +773,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _lockConfig.Release();
             }
 
-            return response;
         }
 
         /// <inheritdoc/>
-        public async Task<List<string>> UnpublishAllNodesAsync(
+        public async Task UnpublishAllNodesAsync(
             PublishedNodesEntryModel request,
             CancellationToken ct) {
             _logger.Information("{nameof} method triggered", nameof(UnpublishAllNodesAsync));
             var sw = Stopwatch.StartNew();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
-            var response = new List<string>();
             try {
 
                 var found = false;
@@ -867,7 +860,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
-                response.Add($"Unpublishing all nodes succeeded for EndpointUrl: {request.EndpointUrl}");
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -880,12 +872,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 sw.Stop();
                 _lockConfig.Release();
             }
-
-            return response;
         }
 
         /// <inheritdoc/>
-        public async Task<List<string>> AddOrUpdateEndpointsAsync(
+        public async Task AddOrUpdateEndpointsAsync(
             List<PublishedNodesEntryModel> request,
             CancellationToken ct = default) {
 
@@ -909,8 +899,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                 }
             }
-
-            var response = new List<string>();
 
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
@@ -976,8 +964,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         existingGroups.Add(request[k]);
                         _publishedNodesEntries.Add(request[k]);
                     }
-
-                    response.Add($"Update succeeded for EndpointUrl: {request[k].EndpointUrl}");
                 }
 
                 // Remove entries without nodes.
@@ -1055,8 +1041,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _logger.Information("{methodName} method finished in {elapsed}", methodName, sw.Elapsed);
                 sw.Stop();
             }
-
-            return response;
         }
 
         /// <inheritdoc/>

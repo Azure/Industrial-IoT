@@ -35,8 +35,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> PublishNodesAsync(
             PublishNodesEndpointApiModel request) {
-            var response = await _configServices.PublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return response.ToApiModel();
+            await _configServices.PublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
+            return new PublishedNodesResponseApiModel();
         }
 
         /// <summary>
@@ -44,8 +44,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> UnpublishNodesAsync(
             PublishNodesEndpointApiModel request) {
-            var response = await _configServices.UnpublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return response.ToApiModel();
+            await _configServices.UnpublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
+            return new PublishedNodesResponseApiModel();
         }
 
         /// <summary>
@@ -56,8 +56,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
             if (request.OpcNodes != null && request.OpcNodes.Count > 0) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "OpcNodes is set.");
             }
-            var response = await _configServices.UnpublishAllNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return response.ToApiModel();
+            await _configServices.UnpublishAllNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
+            return new PublishedNodesResponseApiModel();
         }
 
         /// <summary>
@@ -67,10 +67,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
             List<PublishNodesEndpointApiModel> request
         ) {
             var endpoints = request?.Select(e => e.ToServiceModel()).ToList();
-            var response = await _configServices
-                .AddOrUpdateEndpointsAsync(endpoints)
-                .ConfigureAwait(false);
-            return response.ToApiModel();
+            await _configServices.AddOrUpdateEndpointsAsync(endpoints).ConfigureAwait(false);
+            return new PublishedNodesResponseApiModel();
         }
 
         /// <summary>

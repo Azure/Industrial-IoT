@@ -18,22 +18,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Add nodes to be published to the configuration
         /// </summary>
-        Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
+        Task PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Remove node from the actual configuration
         /// </summary>
-        Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
+        Task UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Resets the configuration for an endpoint
         /// </summary>
-        Task<List<string>> UnpublishAllNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
+        Task UnpublishAllNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Update nodes of endpoints in the published nodes configuration.
         /// </summary>
-        Task<List<string>> AddOrUpdateEndpointsAsync(
+        Task AddOrUpdateEndpointsAsync(
             List<PublishedNodesEntryModel> request,
             CancellationToken ct = default
         );
