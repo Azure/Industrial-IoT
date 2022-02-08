@@ -37,9 +37,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         public int IngressBatchBlockBufferSize { get; set; }
 
         /// <summary>
-        /// EncodingBlockInputOutputSize
+        /// EncodingBlockInputSize
         /// </summary>
-        public uint EncodingBlockInputOutputSize { get; set; }
+        public int EncodingBlockInputSize { get; set; }
+
+        /// <summary>
+        /// EncodingBlockOutputSize
+        /// </summary>
+        public int EncodingBlockOutputSize { get; set; }
 
         /// <summary>
         /// EncoderNotificationsProcessed

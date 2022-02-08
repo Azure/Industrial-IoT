@@ -186,14 +186,24 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 var workerHeartbeat = await GetWorkerHeartbeatAsync(_cts.Token).ConfigureAwait(false);
 
                 await _jobManagerConnector.SendHeartbeatAsync(
-                    new HeartbeatModel { Worker = workerHeartbeat }, GetDiagnosticInfo(), _cts.Token).ConfigureAwait(false);
+                    new HeartbeatModel { Worker = workerHeartbeat }, 
+                    GetDiagnosticInfo(), 
+                    _cts.Token
+                ).ConfigureAwait(false);
             }
             catch (OperationCanceledException) {
                 // Done
             }
             catch (Exception ex) {
                 _logger.Debug(ex, "Could not send worker heartbeat.");
-                kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace, "Could not send worker hearbeat").Inc();
+                kModuleExceptions.WithLabels(
+                    AgentId, 
+                    ex.Source, 
+                    ex.GetType().FullName, 
+                    ex.Message, 
+                    ex.StackTrace, 
+                    "Could not send worker hearbeat"
+                ).Inc();
             }
         }
 
@@ -366,7 +376,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// </summary>
             /// <returns></returns>
             public JobDiagnosticInfoModel GetProcessDiagnosticInfo() {
-                return _currentProcessingEngine.GetDiagnosticInfo().GetAwaiter().GetResult();
+                return _currentProcessingEngine.GetDiagnosticInfo();
             }
 
             /// <summary>

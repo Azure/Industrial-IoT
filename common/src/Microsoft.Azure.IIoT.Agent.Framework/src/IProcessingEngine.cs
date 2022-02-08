@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// Returns the diagnostic info of a job
         /// </summary>
         /// <returns></returns>
-        Task<JobDiagnosticInfoModel> GetDiagnosticInfo();
+        JobDiagnosticInfoModel GetDiagnosticInfo();
 
         /// <summary>
         /// Switch processing mode
