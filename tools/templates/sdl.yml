@@ -110,7 +110,7 @@ jobs:
       instanceUrlForTsaV2: MSAZURE
       projectNameMSAZURE: One
       areaPath: 'One\IoT\Platform and Devices\IoT Devices\Industrial\Community'
-      iterationPath: 'One\IoT\Industrial\Backlog'
+      iterationPath: 'One\Custom\IoT\Industrial\Backlog'
       uploadAPIScan: true
       uploadBinSkim: true
       uploadCredScan: true
