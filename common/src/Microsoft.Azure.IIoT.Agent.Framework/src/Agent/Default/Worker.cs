@@ -232,21 +232,24 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// </summary>
         private async Task ProcessAsync(JobProcessingInstructionModel jobProcessInstruction,
             CancellationToken ct) {
+            var currentProcessInstruction = jobProcessInstruction ??
+                throw new ArgumentNullException(nameof(jobProcessInstruction));
+
             try {
                 // Stop worker heartbeat to start the job heartbeat process
                 _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan); // Stop worker heartbeat
 
                 _logger.Information("Worker {WorkerId} processing job {JobId}, mode: {ProcessMode}",
-                    WorkerId, jobProcessInstruction.Job.Id, jobProcessInstruction.ProcessMode);
+                    WorkerId, currentProcessInstruction.Job.Id, currentProcessInstruction.ProcessMode);
 
                 // Execute processor
                 while (true) {
                     ct.ThrowIfCancellationRequested();
                     if (_jobProcess == null) {
-                        _jobProcess = new JobProcess(this, jobProcessInstruction, _lifetimeScope, _logger);
+                        _jobProcess = new JobProcess(this, currentProcessInstruction, _lifetimeScope, _logger);
                     }
                     else {
-                        _jobProcess.ProcessNewInstruction(jobProcessInstruction);
+                        _jobProcess.ProcessNewInstruction(currentProcessInstruction);
                     }
                     await _jobProcess.WaitAsync(ct).ConfigureAwait(false); // Does not throw
 
@@ -257,9 +260,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                         break;
                     }
 
-                    jobProcessInstruction = _jobProcess.JobContinuation;
+                    currentProcessInstruction = _jobProcess.JobContinuation;
                     _logger.Information("Worker {WorkerId} processing job {JobId} continuation in mode {ProcessMode}",
-                        WorkerId, jobProcessInstruction.Job.Id, jobProcessInstruction.ProcessMode);
+                        WorkerId, currentProcessInstruction.Job.Id, currentProcessInstruction.ProcessMode);
                 }
             }
             catch (OperationCanceledException) {
@@ -268,7 +271,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
             finally {
                 _logger.Information("Worker: {WorkerId}, Job: {JobId} processing completed ... ",
-                    WorkerId, jobProcessInstruction.Job.Id);
+                    WorkerId, currentProcessInstruction.Job.Id);
                 if (!ct.IsCancellationRequested) {
                     _heartbeatTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan); // restart worker heartbeat
                 }
