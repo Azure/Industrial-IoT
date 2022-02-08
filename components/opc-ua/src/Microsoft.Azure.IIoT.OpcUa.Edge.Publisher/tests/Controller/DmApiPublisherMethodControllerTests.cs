@@ -26,7 +26,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
@@ -119,6 +118,109 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false);
 
                 publishNodesResult.Subject.StatusMessage.First()
+                    .Should()
+                    .Contain("succeeded");
+            }
+
+            tasks = new List<Task<JobProcessingInstructionModel>>();
+            for (var i = 0; i < 10; i++) {
+                tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
+            }
+
+            tasks.Where(t => t.Result != null).Count()
+                .Should()
+                .Be(0);
+        }
+
+        [Theory]
+        [InlineData("Controller/DmApiPayloadCollection.json")]
+        public async Task DmApiPublishUnpublishAllNodesTest(string publishedNodesFile) {
+            var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
+            var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var identityMock = new Mock<IIdentity>();
+            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+
+            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+
+            legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
+            agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
+
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModelProviderMock.Object, logger);
+
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                logger,
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
+            );
+            var methodsController = new PublisherMethodsController(orchestrator);
+
+            using var publishPayloads = new StreamReader(publishedNodesFile);
+            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
+                await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+
+            foreach (var request in publishNodesRequest) {
+                var initialNode = request.OpcNodes.First();
+                for (int i = 0; i < 10000; i++) {
+                    request.OpcNodes.Add(new PublishedNodeApiModel {
+                        Id = initialNode.Id + i.ToString(),
+                        DataSetFieldId = initialNode.DataSetFieldId,
+                        DisplayName = initialNode.DisplayName,
+                        ExpandedNodeId = initialNode.ExpandedNodeId,
+                        HeartbeatIntervalTimespan = initialNode.HeartbeatIntervalTimespan,
+                        OpcPublishingInterval = initialNode.OpcPublishingInterval,
+                        OpcSamplingInterval = initialNode.OpcSamplingInterval,
+                        QueueSize = initialNode.QueueSize,
+                        SkipFirst = initialNode.SkipFirst,
+                    });
+                }
+
+                var publishNodesResult = await FluentActions
+                    .Invoking(async () => await methodsController.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+                publishNodesResult.Subject.StatusMessage.First()
+                    .Should()
+                    .Contain("succeeded");
+
+            }
+
+            var tasks = new List<Task<JobProcessingInstructionModel>>();
+            for (var i = 0; i < 10; i++) {
+                tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
+            }
+
+            tasks.Where(t => t.Result != null)
+                .Select(t => t.Result.Job.JobConfiguration)
+                .Distinct().Count()
+                .Should()
+                .Be(2);
+
+            var unpublishAllNodesRequest = publishNodesRequest.GroupBy(pn => string.Concat(pn.EndpointUrl, pn.DataSetWriterId, pn.DataSetPublishingInterval))
+                .Select(g => g.First()).ToList();
+
+            foreach (var request in unpublishAllNodesRequest) {
+                request.OpcNodes?.Clear();
+                var unpublishNodesResult = await FluentActions
+                    .Invoking(async () => await methodsController
+                    .UnpublishAllNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+                unpublishNodesResult.Subject.StatusMessage.First()
                     .Should()
                     .Contain("succeeded");
             }
