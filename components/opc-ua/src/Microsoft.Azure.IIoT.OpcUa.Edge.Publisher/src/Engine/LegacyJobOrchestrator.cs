@@ -247,6 +247,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 try {
                     _availableJobs.Clear();
                     _assignedJobs.Clear();
+                    _publisherDiagnosticInfo.Clear();
                 }
                 finally {
                     _lockJobs.Release();
@@ -387,6 +388,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             try {
                                 _availableJobs.Clear();
                                 _assignedJobs.Clear();
+                                _publisherDiagnosticInfo.Clear();
                             }
                             finally {
                                 _lockJobs.Release();
@@ -430,6 +432,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     try {
                         _availableJobs.Clear();
                         _assignedJobs.Clear();
+                        _publisherDiagnosticInfo.Clear();
                     }
                     finally {
                         _lockJobs.Release();
