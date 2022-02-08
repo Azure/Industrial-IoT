@@ -323,6 +323,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         var newJobId = newJob.Job.Id;
                         if (jobIdDict.ContainsKey(newJobId)) {
                             assignedJobs[jobIdDict[newJobId].Item2] = newJob;
+                            publisherDiagnosticInfo.Add(newJobId, _publisherDiagnosticInfo[newJobId]);
                         }
                         else {
                             availableJobs.Add(newJobId, newJob);
@@ -1081,7 +1082,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
             var sw = Stopwatch.StartNew();
-            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
 
                 return _publisherDiagnosticInfo.Values.ToList();
@@ -1095,7 +1096,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             finally {
                 _logger.Information("{nameof} method finished in {elapsed}", nameof(GetDiagnosticInfoAsync), sw.Elapsed);
                 sw.Stop();
-                _lockConfig.Release();
+                _lockJobs.Release();
             }
         }
 

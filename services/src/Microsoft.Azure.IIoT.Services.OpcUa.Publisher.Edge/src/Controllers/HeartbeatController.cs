@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Controllers {
                 throw new ArgumentNullException(nameof(heartbeat));
             }
             var result = await _orchestrator.SendHeartbeatAsync(
-                heartbeat.ToServiceModel(), null);
+                heartbeat.ToServiceModel());
             return result.ToApiModel();
         }
 
