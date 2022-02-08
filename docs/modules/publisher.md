@@ -250,7 +250,7 @@ PublishNodes enables a client to add a set of nodes to be published for a specif
 
 UnpublishNodes method enables a client to remove nodes from a previously configured DataSetWriter.
 
-*Note*: If all the nodes from a DataSet are to be unpublished, the DataSetWriter entity shall be completely removed from the configuration storage.
+*Note*: If all the nodes from a DataSetWriter are to be unpublished, the DataSetWriter entity shall be completely removed from the configuration storage.
 
   *Request:*  follows strictly the request payload schema as described above, the OpcNodes attribute being mandatory.
 
@@ -258,22 +258,48 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
   *Exceptions:* a response corresponding to an exception will be returned if:
 
-  - request payload contains an endpoint (DataSet) that is not present in publisher configuration.
-  - request payload contains a node that is not present in publisher configuration.
+  - request payload contains an endpoint (DataSet) that is not present in publisher configuration
+  - request payload contains a node that is not present in publisher configuration
 
   *Example:*
 
 #### **UnpublishAllNodes_V1**
 
-*TODO: add description*
+UnpublishAllNodes method enables a client to remove all the nodes from a previously configured DataSetWriter. The DataSetWriter entity will be completely removed from the configuration storage.
 
-  *Request:*
+  *Request:* follows strictly the request payload schema as described above, the OpcNodes attribute should be excluded.
 
   *Response:*
 
-  *Exceptions:*
+  *Exceptions:* a response corresponding to an exception will be returned if:
 
-  *Example:*
+- request payload contains an endpoint (DataSet) that is not present in publisher configuration
+- request payload contains OpcNodes
+
+ *Example:* 
+
+> *Method Name:* `UnpublishAllNodes_V1`
+>
+> *Payload*:
+>
+> ```json
+> {
+>     "EndpointUrl": "opc.tcp://opcplc:50000",
+>     "DataSetWriterGroup": "Server0",
+>     "DataSetWriterId": "Device0",
+>     "DataSetPublishingInterval": 5000
+> }
+> ```
+>
+> *Response:*
+>
+> ```json
+> [
+>     "Unpublishing all nodes succeeded for EndpointUrl: opc.tcp://opcplc:50000/"
+> ]
+> ```
+
+#### 
 
 #### **GetConfiguredEndpoints_V1**
 
@@ -319,26 +345,27 @@ Returns the nodes configured for one Endpoint (Dataset)
 
   *Example:*
   >*Method Name:* `GetConfiguredNodesOnEndpoints_V1`\
-  *Payload:* 
+  >  *Payload:* 
   >``` json
   >{
-  >    "EndpointUrl": "opc.tcp://192.168.100.20:50000"
+  >"EndpointUrl": "opc.tcp://192.168.100.20:50000"
   >}
   >```
   >*Response:*  
+  >
   >``` json
   >{
-  >    "status":200,
-  >    "payload":
-  >    [
-  >       {
-  >         "id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
-  >         "opcSamplingInterval":3000,
-  >         "opcSamplingIntervalTimespan":"00:00:03",
-  >         "heartbeatInterval":0,
-  >         "heartbeatIntervalTimespan":"00:00:00"
-  >       }
-  >    ]
+  >"status":200,
+  >"payload":
+  >[
+  >  {
+  >    "id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
+  >    "opcSamplingInterval":3000,
+  >    "opcSamplingIntervalTimespan":"00:00:03",
+  >    "heartbeatInterval":0,
+  >    "heartbeatIntervalTimespan":"00:00:00"
+  >  }
+  >]
   >}
   >```
 
