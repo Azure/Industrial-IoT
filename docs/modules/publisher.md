@@ -236,15 +236,43 @@ A DatSetGroup is used to group several DataSetWriters for a specific OPC UA serv
 
 #### **PublishNodes_V1**
 
-PublishNodes enables a client to add a set of nodes to be published for a specific DataSetWriter. When a DataSetWriter already exists, the nodes shall be incrementally added to the very same dataset. When it does not already exist, a new DataSetWritter shall be created with the initial set of nodes contained in the request.
+PublishNodes enables a client to add a set of nodes to be published for a specific DataSetWriter. When a DataSetWriter already exists, the nodes shall be incrementally added to the very same dataset. When it does not already exist, a new DataSetWriter shall be created with the initial set of nodes contained in the request.
 
   *Request:* follows strictly the request payload schema as described above, the OpcNodes attribute being mandatory.
 
-  *Response:*
+  *Response:* when successful Status 200 and an empty json (`{}`) as payload
 
   *Exceptions:*
 
   *Example:*
+  >*Method Name:* `PublishNodes_V1`
+  >
+  >*Request:*
+  >
+  >```json
+  > {
+  >   "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >   "DataSetWriterGroup": "Asset0",
+  >   "DataSetWriterId": "DataFlow0",
+  >   "DataSetPublishingInterval": 5000,
+  >   "OpcNodes":
+  >   [
+  >     {
+  >       "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
+  >     }
+  >   ]
+  > }
+  >```
+  >
+  >*Response:*
+  >
+  >```json
+  > {
+  >   "status": 200,
+  >   "payload": {}
+  > }
+  >```
+
 
 #### **UnpublishNodes_V1**
 
@@ -254,7 +282,7 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
   *Request:*  follows strictly the request payload schema as described above, the OpcNodes attribute being mandatory.
 
-  *Response:*
+  *Response:* when successful - Status 200 and an empty json (`{}`) as Payload
 
   *Exceptions:* a response corresponding to an exception will be returned if:
 
@@ -262,6 +290,32 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
   - request payload contains a node that is not present in publisher configuration.
 
   *Example:*
+  >*Method Name:* `UnpublishNodes_V1`
+  >*Request:*
+  >
+  >``` json
+  > {
+  >   "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >   "DataSetWriterGroup": "Asset0",
+  >   "DataSetWriterId": "DataFlow0",
+  >   "DataSetPublishingInterval": 5000,
+  >   "OpcNodes":
+  >   [
+  >     {
+  >       "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
+  >     }
+  >   ]
+  > }
+  >```
+  >
+  >*Response:*
+  >
+  >``` json
+  > {
+  >   "status": 200,
+  >   "payload": {}
+  > }
+  >```
 
 #### **UnpublishAllNodes_V1**
 
@@ -269,7 +323,7 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
   *Request:*
 
-  *Response:*
+*Response:* when successful - Status 200 and an empty json (`{}`) as Payload
 
   *Exceptions:*
 
@@ -391,23 +445,13 @@ previously configured nodes for a specific endpoint (DataSet).
   ]
   ```
 
-  *Response:* is a list of strings representing status of update for each endpoint (DataSet).
-
-  Example response payload:
-
-  ```json
-  [
-    "Update succeeded for EndpointUrl: opc.tcp://opcplc:50000/",
-    "Update succeeded for EndpointUrl: opc.tcp://opcplc:50001/"
-  ]
-  ```
-
+  *Response:* when successful -  Status 200 and an empty json (`{}`) as payload
+  
   *Exceptions:* a response corresponding to an exception will be returned if:
 
   - request payload contains deletion request for an endpoint (DataSet) that is not present in publisher configuration.
   - request payload contains two or more entries for the same endpoint (DataSet).
 
-  *Example:*
 
 ### Configuration via the built-in OPC UA Server Interface
 
