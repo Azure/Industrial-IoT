@@ -773,7 +773,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
-                _logger.Information("{nameof} method finished in {elapsed}", nameof(PublishNodesAsync), sw.Elapsed);
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(UnpublishNodesAsync), sw.Elapsed);
                 sw.Stop();
                 _lockConfig.Release();
             }
@@ -786,13 +786,102 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             PublishedNodesEntryModel request,
             CancellationToken ct) {
             _logger.Information("{nameof} method triggered", nameof(UnpublishAllNodesAsync));
+            var sw = Stopwatch.StartNew();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            var response = new List<string>();
             try {
-                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+
+                var found = false;
+                // Perform pass to determine existing groups
+                var matchingGroups = new List<PublishedNodesEntryModel>();
+                foreach (var entry in _publishedNodesEntries) {
+                    if (entry.HasSameGroup(request)) {
+                        // We may have several entries with the same DataSetGroup definition,
+                        // so we will remove nodes only if the whole DataSet definition matches.
+                        if (entry.HasSameDataSet(request)) {
+                            entry.OpcNodes.Clear();
+                            found = true;
+                        }
+                        matchingGroups.Add(entry);
+                    }
+                }
+
+                // Report error if there were entries that did not have any nodes
+                if (!found) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, $"Endpoint or node not found: {request.EndpointUrl}");
+                }
+
+                // Remove entries without nodes.
+                _publishedNodesEntries.RemoveAll(entry => (entry.OpcNodes == null || entry.OpcNodes.Count == 0));
+
+                PersistPublishedNodes();
+
+                found = false;
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(matchingGroups, _legacyCliModel);
+
+                await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
+                try {
+                    if (jobs.Any()) {
+                        foreach (var job in jobs) {
+                            var newJob = ToJobProcessingInstructionModel(job);
+                            if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                                continue;
+                            }
+
+                            foreach (var assignedJob in _assignedJobs) {
+                                if (newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                    _assignedJobs[assignedJob.Key] = newJob;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found && _availableJobs.ContainsKey(newJob.Job.Id)) {
+                                _availableJobs[newJob.Job.Id] = newJob;
+                                found = true;
+                            }
+                        }
+                    }
+
+                    if (!found) {
+                        var entryJobId = _publishedNodesJobConverter.
+                            ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
+                        foreach (var assignedJob in _assignedJobs) {
+                            if (entryJobId == assignedJob.Value.Job.Id) {
+                                found = _assignedJobs.Remove(assignedJob.Key, out _);
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            found = _availableJobs.Remove(entryJobId, out _);
+                        }
+                    }
+                }
+                finally {
+                    _lockJobs.Release();
+                }
+
+                if (!found) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                        $"Endpoint not found: {request.EndpointUrl}");
+                }
+
+                // fire config update so that the worker supervisor pickes up the changes ASAP
+                TriggerAgentConfigUpdate();
+                response.Add($"Unpublishing all nodes succeeded for EndpointUrl: {request.EndpointUrl}");
+            }
+            catch (MethodCallStatusException) {
+                throw;
+            }
+            catch (Exception e) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(UnpublishAllNodesAsync), sw.Elapsed);
+                sw.Stop();
                 _lockConfig.Release();
             }
+
+            return response;
         }
 
         /// <inheritdoc/>
