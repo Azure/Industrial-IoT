@@ -284,10 +284,10 @@ UnpublishAllNodes method enables a client to remove all the nodes from a previou
 >
 > ```json
 > {
->     "EndpointUrl": "opc.tcp://opcplc:50000",
->     "DataSetWriterGroup": "Server0",
->     "DataSetWriterId": "Device0",
->     "DataSetPublishingInterval": 5000
+>   "EndpointUrl": "opc.tcp://opcplc:50000",
+>   "DataSetWriterGroup": "Server0",
+>   "DataSetWriterId": "Device0",
+>   "DataSetPublishingInterval": 5000
 > }
 > ```
 >
@@ -295,7 +295,7 @@ UnpublishAllNodes method enables a client to remove all the nodes from a previou
 >
 > ```json
 > [
->     "Unpublishing all nodes succeeded for EndpointUrl: opc.tcp://opcplc:50000/"
+>   "Unpublishing all nodes succeeded for EndpointUrl: opc.tcp://opcplc:50000/"
 > ]
 > ```
 
@@ -317,19 +317,19 @@ Returns the configured endpoints (Datasets)
   >
   >``` json
   >{
-  >"status":200,
-  >"payload":
-  >[
-  >  {
-  >    "EndpointUrl": "opc.tcp://opcplc:50000/",
-  >    "DataSetWriterGroup": "Server0",
-  >    "DataSetWriterId": "Device0",
-  >    "DataSetPublishingInterval": 5000
-  >  },
-  >  {
-  >    "EndpointUrl": "opc.tcp://opcplc:50001/"
-  >  }
-  >]
+  >  "status":200,
+  >  "payload":
+  >  [
+  >      {
+  >          "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >          "DataSetWriterGroup": "Server0",
+  >          "DataSetWriterId": "Device0",
+  >          "DataSetPublishingInterval": 5000
+  >      },
+  >      {
+  >          "EndpointUrl": "opc.tcp://opcplc:50001/"
+  >      }
+  >  ] 
   >}
   >```
 
@@ -348,25 +348,25 @@ Returns the nodes configured for one Endpoint (Dataset)
   >  *Payload:* 
   >``` json
   >{
-  >"EndpointUrl": "opc.tcp://192.168.100.20:50000"
+  >  "EndpointUrl": "opc.tcp://192.168.100.20:50000"
   >}
   >```
   >*Response:*  
   >
   >``` json
   >{
-  >"status":200,
-  >"payload":
-  >[
-  >  {
-  >    "id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
-  >    "opcSamplingInterval":3000,
-  >    "opcSamplingIntervalTimespan":"00:00:03",
-  >    "heartbeatInterval":0,
-  >    "heartbeatIntervalTimespan":"00:00:00"
-  >  }
-  >]
-  >}
+  >  "status":200,
+  >  "payload":
+  >  [
+  >    {
+  >      "id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
+  >      "opcSamplingInterval":3000,
+  >      "opcSamplingIntervalTimespan":"00:00:03",
+  >      "heartbeatInterval":0,
+  >      "heartbeatIntervalTimespan":"00:00:00"
+  >    }
+  >  ] 
+  >} 
   >```
 
 #### **GetDiagnosticInfo_V1**
