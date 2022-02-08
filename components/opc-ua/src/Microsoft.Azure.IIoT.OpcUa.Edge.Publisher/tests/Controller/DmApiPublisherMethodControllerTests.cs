@@ -26,9 +26,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using System.Threading;
-    using Castle.Core.Internal;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
