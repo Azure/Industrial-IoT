@@ -120,12 +120,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Used also to receive the diagnostic info
         /// </summary>
         /// <param name="heartbeat"></param>
-        /// <param name="info"></param>
+        /// <param name="diagInfo"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public async Task<HeartbeatResultModel> SendHeartbeatAsync(
             HeartbeatModel heartbeat, 
-            JobDiagnosticInfoModel info, 
+            JobDiagnosticInfoModel diagInfo, 
             CancellationToken ct = default
         ) {
             if (heartbeat == null || heartbeat.Worker == null) {
@@ -182,11 +182,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         UpdatedJob = null,
                     };
                 }
-                if (info != null) {
+                if (diagInfo != null) {
                     foreach (var assignedJob in _assignedJobs) {
 
-                        if (info.Id == assignedJob.Value.Job.Id) {
-                            _publisherDiagnosticInfo.AddOrUpdate(assignedJob.Value.Job.Id, info);
+                        if (diagInfo.Id == assignedJob.Value.Job.Id) {
+                            _publisherDiagnosticInfo.AddOrUpdate(assignedJob.Value.Job.Id, diagInfo);
                         }
                     }
                 }
@@ -768,7 +768,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                         if (!found) {
                             found = _availableJobs.Remove(entryJobId, out _);
-                            _publisherDiagnosticInfo.Remove(entryJobId, out _);
                         }
                     }
                 }
@@ -961,6 +960,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             foreach (var assignedJob in _assignedJobs) {
                                 if (entryJobId == assignedJob.Value.Job.Id) {
                                     jobFound = _assignedJobs.Remove(assignedJob.Key);
+                                    _publisherDiagnosticInfo.Remove(assignedJob.Key);
                                     break;
                                 }
                             }
@@ -1064,7 +1064,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync(
-            PublishedNodesEntryModel request,
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
             var sw = Stopwatch.StartNew();

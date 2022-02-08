@@ -51,6 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Gets the diagnostic information for a specific endpoint
         /// </summary>
-        Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
+        Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync(CancellationToken ct = default);
     }
 }

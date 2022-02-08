@@ -564,7 +564,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task DmApiGetDiagnosticInfoTest(string publishedNodesFile) {
 
-            var endpointRequest = new PublishNodesEndpointApiModel {};
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
 
             //publish nodes
@@ -572,7 +571,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
-                    .GetDiagnosticInfoAsync(endpointRequest).ConfigureAwait(false))
+                    .GetDiagnosticInfoAsync().ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
