@@ -250,7 +250,7 @@ PublishNodes enables a client to add a set of nodes to be published for a specif
 
 UnpublishNodes method enables a client to remove nodes from a previously configured DataSetWriter.
 
-*Note*: If all the nodes from a DataSetWriter are to be unpublished, the DataSetWriter entity shall be completely removed from the configuration storage.
+*Note*: If all the nodes from a DataSet are to be unpublished, the DataSetWriter entity shall be completely removed from the configuration storage.
 
   *Request:*  follows strictly the request payload schema as described above, the OpcNodes attribute being mandatory.
 
