@@ -170,6 +170,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var diagnosticInfo = new JobDiagnosticInfoModel();
 
             diagnosticInfo.Id = Name;
+            diagnosticInfo.SentMessagesPerSec = sentMessagesPerSec;
             diagnosticInfo.IngestionDuration = TimeSpan.FromSeconds(totalDuration);
             diagnosticInfo.IngressDataChanges = _messageTrigger.DataChangesCount;
             diagnosticInfo.IngressValueChanges = _messageTrigger.ValueChangesCount;
@@ -202,27 +203,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void DiagnosticsOutputTimer_Elapsed(object state) {
             var info = GetDiagnosticInfo();
             var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
-            double totalDuration = _diagnosticStart != DateTime.MinValue ? totalSeconds : 0;
-            double valueChangesPerSec = info.IngressValueChanges / totalDuration;
-            double dataChangesPerSec = info.IngressDataChanges / totalDuration;
+            double valueChangesPerSec = info.IngressValueChanges / info.IngestionDuration.TotalSeconds;
+            double dataChangesPerSec = info.IngressDataChanges / info.IngestionDuration.TotalSeconds;
             double valueChangesPerSecLastMin = _messageTrigger.ValueChangesCountLastMinute / Math.Min(totalSeconds, 60d);
             double dataChangesPerSecLastMin = _messageTrigger.DataChangesCountLastMinute / Math.Min(totalSeconds, 60d);
-            double sentMessagesPerSec = totalDuration > 0 ? info.OutgressIoTMessageCount / totalDuration : 0;
             double messageSizeAveragePercent = Math.Round(info.EncoderAvgIoTMessageBodySize / _maxEncodedMessageSize * 100);
             string messageSizeAveragePercentFormatted = $"({messageSizeAveragePercent}%)";
-            double chunkSizeAverage = info.EncoderAvgIoTMessageBodySize / (4 * 1024);
-            double estimatedMsgChunksPerDay = Math.Ceiling(chunkSizeAverage) * sentMessagesPerSec * 60 * 60 * 24;
 
             _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
 
             var diagInfo = new StringBuilder();
             diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
             diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
-            string dataChangesPerSecFormatted = info.IngressDataChanges > 0 && totalDuration > 0
+            string dataChangesPerSecFormatted = info.IngressDataChanges > 0 && info.IngestionDuration.TotalSeconds > 0
                 ? $"(All time ~{dataChangesPerSec:0.##}/s; {_messageTrigger.DataChangesCountLastMinute.ToString("D2")} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
                 : "";
             diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
-            string valueChangesPerSecFormatted = info.IngressValueChanges > 0 && totalDuration > 0
+            string valueChangesPerSecFormatted = info.IngressValueChanges > 0 && info.IngestionDuration.TotalSeconds > 0
                 ? $"(All time ~{valueChangesPerSec:0.##}/s; {_messageTrigger.ValueChangesCountLastMinute.ToString("D2")} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
                 : "";
             diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
@@ -240,7 +237,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  # Outgress input buffer count        : {sinkBlockInputCount,14:n0}");
             diagInfo.AppendLine("  # Outgress input buffer dropped      : {sinkBlockInputDroppedCount,14:n0}");
 
-            string sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
+            string sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 && info.IngestionDuration.TotalSeconds > 0 ? $"({info.SentMessagesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  # Outgress IoT message count         : {messageSinkSentMessagesCount,14:n0} {sentMessagesPerSecFormatted}");
             diagInfo.AppendLine("  # Connection retries                 : {connectionRetries,14:0}");
             diagInfo.AppendLine("  # Opc endpoint connected?            : {isConnectionOk,14:0}");
@@ -279,7 +276,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             kDataChangesPerSecondLastMin.WithLabels(deviceId, moduleId, Name)
                 .Set(dataChangesPerSecLastMin);
             kValueChangesCount.WithLabels(deviceId, moduleId, Name)
-                .Set(_messageTrigger.ValueChangesCount);
+                .Set(info.IngressValueChanges);
             kValueChangesPerSecond.WithLabels(deviceId, moduleId, Name)
                 .Set(valueChangesPerSec);
             kValueChangesPerSecondLastMin.WithLabels(deviceId, moduleId, Name)
@@ -301,7 +298,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             kSentMessagesCount.WithLabels(deviceId, moduleId, Name)
                 .Set(info.OutgressIoTMessageCount);
             kSentMessagesPerSecond.WithLabels(deviceId, moduleId, Name)
-                .Set(sentMessagesPerSec);
+                .Set(info.SentMessagesPerSec);
             kNumberOfConnectionRetries.WithLabels(deviceId, moduleId, Name)
                 .Set(info.ConnectionRetries);
             kIsConnectionOk.WithLabels(deviceId, moduleId, Name)
@@ -311,9 +308,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             kNumberOfBadNodes.WithLabels(deviceId, moduleId, Name)
                 .Set(info.MonitoredOpcNodesFailedCount);
             kChunkSizeAvg.WithLabels(deviceId, moduleId, Name)
-                .Set(chunkSizeAverage);
+                .Set(info.EncoderAvgIoTChunkUsage);
             kEstimatedMsgChunksPerday.WithLabels(deviceId, moduleId, Name)
-                .Set(estimatedMsgChunksPerDay);
+                .Set(info.EstimatedIoTChunksPerDay);
         }
 
         /// <summary>

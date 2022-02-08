@@ -17,6 +17,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         public string Id { get; set; }
 
         /// <summary>
+        /// SentMessagesPerSec
+        /// </summary>
+        public double SentMessagesPerSec { get; set; }
+
+        /// <summary>
         /// IngestionDuration
         /// </summary>
         public TimeSpan IngestionDuration { get; set; }

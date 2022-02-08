@@ -323,7 +323,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         var newJobId = newJob.Job.Id;
                         if (jobIdDict.ContainsKey(newJobId)) {
                             assignedJobs[jobIdDict[newJobId].Item2] = newJob;
-                            publisherDiagnosticInfo.Add(newJobId, _publisherDiagnosticInfo[newJobId]);
+                            if (_publisherDiagnosticInfo.ContainsKey(newJobId)) {
+                                publisherDiagnosticInfo.Add(newJobId, _publisherDiagnosticInfo[newJobId]);
+                            }
                         }
                         else {
                             availableJobs.Add(newJobId, newJob);

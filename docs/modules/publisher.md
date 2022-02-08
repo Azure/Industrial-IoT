@@ -344,11 +344,11 @@ Returns the nodes configured for one Endpoint (Dataset)
 
 #### **GetDiagnosticInfo_V1**
 
-Returns a list of actual metrics for every DataFlow Processing Engine being processed by the publisher. 
+Returns a list of actual metrics for every endpoint (Dataset) . 
 
   *Request:* none
 
-  *Response:* list of actual metrics for every DataFlow Processing Engine
+  *Response:* list of actual metrics for every endpoint (Dataset).
 
   *Exceptions:* an exception is thrown when method call returns status other than 200.
 
@@ -362,6 +362,7 @@ Returns a list of actual metrics for every DataFlow Processing Engine being proc
   >    [
   >       {
   >          "Id":"opc.tcp://192.168.1.70:50000_-1841390920",
+  >          "SentMessagesPerSec":"2.6",
   >          "IngestionDuration":"{00:00:25.5491702}", 
   >          "IngressDataChanges":"25", 
   >          "IngressValueChanges":"103", 
