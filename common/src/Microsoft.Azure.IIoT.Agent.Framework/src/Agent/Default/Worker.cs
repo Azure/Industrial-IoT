@@ -135,23 +135,24 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// Handler for ConfigUpdated event
         /// </summary>
         private void ConfigUpdate_Handler(object sender, EventArgs eventArgs) {
-                _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
-                _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
-                if (!_cts.IsCancellationRequested) {
-                    if (_jobProcess != null) {
-                        _jobProcess.ResetHeartbeat();
-                    }
-                    else {
-                        _reset?.TrySetResult(true);
-                    }
+            _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
+            _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
+
+            if (_cts != null && !_cts.IsCancellationRequested) {
+                if (_jobProcess != null) {
+                    _jobProcess.ResetHeartbeat();
+                }
+                else {
+                    _reset?.TrySetResult(true);
                 }
             }
+        }
 
         /// <summary>
         /// Heartbeat timer elapsed handler
         /// </summary>
         private async void HeartbeatTimer_ElapsedAsync(object sender) {
-            if (!_cts.IsCancellationRequested) {
+            if (_cts != null && !_cts.IsCancellationRequested) {
                 await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
                 Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
             }
