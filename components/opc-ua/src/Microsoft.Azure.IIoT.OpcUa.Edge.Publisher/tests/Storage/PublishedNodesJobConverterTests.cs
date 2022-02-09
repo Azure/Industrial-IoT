@@ -99,9 +99,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
             Assert.Equal("testid", jobs
@@ -130,9 +130,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
             Assert.Equal("1000", jobs
@@ -162,9 +162,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
 
             Assert.NotEmpty(jobs);
@@ -193,9 +193,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -225,9 +225,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -266,11 +266,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromSeconds(5)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -322,9 +322,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
 
             Assert.NotEmpty(jobs);
@@ -352,9 +352,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -383,9 +383,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
 
             Assert.NotEmpty(jobs);
@@ -418,11 +418,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
 
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -449,11 +449,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -479,11 +479,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -511,11 +511,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -542,11 +542,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -573,11 +573,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -603,11 +603,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -635,11 +635,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -666,11 +666,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -697,9 +697,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -734,9 +734,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -771,9 +771,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -805,9 +805,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -836,9 +836,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -871,11 +871,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
 
-            var legacyCli = new LegacyCliModel() {
+            var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromSeconds(10)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -908,9 +908,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
 
             Assert.NotEmpty(jobs);
@@ -945,9 +945,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
 
             Assert.NotEmpty(jobs);
@@ -993,9 +993,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
 
             Assert.NotEmpty(jobs);
@@ -1033,9 +1033,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -1093,9 +1093,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -1152,9 +1152,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -1218,9 +1218,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -1285,9 +1285,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -1350,9 +1350,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -1393,9 +1393,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ");
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn.ToString(), new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli).ToList();
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -1441,9 +1441,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ");
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel();
+            var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn.ToString(), new StringReader(await schemaReader.ReadToEndAsync()));
-            var jobs = converter.ToWriterGroupJobs(entries, legacyCli).ToList();
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
 
             // No jobs
             Assert.NotEmpty(jobs);

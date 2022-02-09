@@ -27,21 +27,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
+    /// Job orchestrator represents the used in the standalone mode, based on configuration stored in
+    /// publishednodes.json with specific standalone command line arguments.
     /// </summary>
-    public class LegacyJobOrchestrator : IJobOrchestrator, IPublisherConfigServices, IDisposable {
+    public class StandaloneJobOrchestrator : IJobOrchestrator, IPublisherConfigServices, IDisposable {
         /// <summary>
-        /// Creates a new class of the LegacyJobOrchestrator.
+        /// Creates a new class of the StandaloneJobOrchestrator.
         /// </summary>
-        public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter,
-            ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigProvider,
+        public StandaloneJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter,
+            IStandaloneCliModelProvider standaloneCliModelProvider, IAgentConfigProvider agentConfigProvider,
             IJobSerializer jobSerializer, ILogger logger, IPublishedNodesProvider publishedNodesProvider,
             IJsonSerializer jsonSerializer
         ) {
             _publishedNodesJobConverter = publishedNodesJobConverter
                 ?? throw new ArgumentNullException(nameof(publishedNodesJobConverter));
-            _legacyCliModel = legacyCliModelProvider.LegacyCliModel
-                    ?? throw new ArgumentNullException(nameof(legacyCliModelProvider));
+            _standaloneCliModel = standaloneCliModelProvider.StandaloneCliModel
+                    ?? throw new ArgumentNullException(nameof(standaloneCliModelProvider));
             _agentConfig = agentConfigProvider
                     ?? throw new ArgumentNullException(nameof(agentConfigProvider));
 
@@ -68,10 +69,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <summary>
-        /// Gets the next available job - this will always return the job representation of the legacy publishednodes.json
-        /// along with legacy command line arguments.
+        /// Gets the next available job - this will always return the job representation of the standalone
+        /// mode publishednodes.json along with respective  command line arguments.
         /// </summary>
-        public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
+        public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId,
+            JobRequestModel request, CancellationToken ct = default) {
             await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
                 ct.ThrowIfCancellationRequested();
@@ -101,7 +103,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <summary>
-        /// Receives the heartbeat from the LegacyJobOrchestrator, JobProcess; used to control lifetime of job (cancel, restart, keep).
+        /// Receives the heartbeat from the StandaloneJobOrchestrator, JobProcess; used
+        /// to control lifetime of job (cancel, update, restart, keep).
         /// Used also to receive the diagnostic info
         /// </summary>
         public async Task<HeartbeatResultModel> SendHeartbeatAsync(
@@ -203,22 +206,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
-            _logger.Debug("File {publishedNodesFile} changed. Triggering file refresh ...", _legacyCliModel.PublishedNodesFile);
+            _logger.Debug("File {publishedNodesFile} changed. Triggering file refresh ...", _standaloneCliModel.PublishedNodesFile);
             RefreshJobFromFile();
         }
 
         private void _fileSystemWatcher_Created(object sender, FileSystemEventArgs e) {
-            _logger.Debug("File {publishedNodesFile} created. Triggering file refresh ...", _legacyCliModel.PublishedNodesFile);
+            _logger.Debug("File {publishedNodesFile} created. Triggering file refresh ...", _standaloneCliModel.PublishedNodesFile);
             RefreshJobFromFile();
         }
 
         private void _fileSystemWatcher_Renamed(object sender, FileSystemEventArgs e) {
-            _logger.Debug("File {publishedNodesFile} renamed. Triggering file refresh ...", _legacyCliModel.PublishedNodesFile);
+            _logger.Debug("File {publishedNodesFile} renamed. Triggering file refresh ...", _standaloneCliModel.PublishedNodesFile);
             RefreshJobFromFile();
         }
 
         private void _fileSystemWatcher_Deleted(object sender, FileSystemEventArgs e) {
-            _logger.Debug("File {publishedNodesFile} deleted. Clearing configuration ...", _legacyCliModel.PublishedNodesFile);
+            _logger.Debug("File {publishedNodesFile} deleted. Clearing configuration ...", _standaloneCliModel.PublishedNodesFile);
             _lockConfig.Wait();
             try {
                 _publishedNodesEntries.Clear();
@@ -242,9 +245,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (string.IsNullOrEmpty(content)) {
                 return null;
             }
-            var sha = new SHA256Managed();
-            var checksum = sha.ComputeHash(Encoding.UTF8.GetBytes(content));
-            return BitConverter.ToString(checksum).Replace("-", string.Empty);
+            using (var sha = new SHA256Managed()) {
+                var checksum = sha.ComputeHash(Encoding.UTF8.GetBytes(content));
+                return BitConverter.ToString(checksum).Replace("-", string.Empty);
+            }
         }
 
         /// <summary>
@@ -253,16 +257,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private IEnumerable<PublishedNodesEntryModel> DeserializePublishedNodes(string content) {
             bool ioErrorEncountered = false;
-            if (File.Exists(_legacyCliModel.PublishedNodesSchemaFile)) {
+            if (File.Exists(_standaloneCliModel.PublishedNodesSchemaFile)) {
                 try {
-                    using (var fileSchemaReader = new StreamReader(_legacyCliModel.PublishedNodesSchemaFile)) {
+                    using (var fileSchemaReader = new StreamReader(_standaloneCliModel.PublishedNodesSchemaFile)) {
                         return _publishedNodesJobConverter.Read(content, fileSchemaReader);
                     }
                 }
                 catch (IOException e) {
                     _logger.Warning(e, "File IO exception when reading published nodes schema file at \"{path}\"." +
                         "Falling back to deserializing content of published nodes file without schema validation.",
-                        _legacyCliModel.PublishedNodesSchemaFile);
+                        _standaloneCliModel.PublishedNodesSchemaFile);
                     ioErrorEncountered = true;
                 }
             }
@@ -271,7 +275,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!ioErrorEncountered) {
                 _logger.Information("Validation schema file {PublishedNodesSchemaFile} does not exist or is disabled, " +
                     "ignoring validation of {publishedNodesFile} file.",
-                    _legacyCliModel.PublishedNodesSchemaFile, _legacyCliModel.PublishedNodesFile);
+                    _standaloneCliModel.PublishedNodesSchemaFile, _standaloneCliModel.PublishedNodesFile);
             }
 
             return _publishedNodesJobConverter.Read(content, null);
@@ -282,7 +286,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
             var publisherDiagnosticInfo = new Dictionary<string, JobDiagnosticInfoModel>();
 
-            var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _legacyCliModel);
+            var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _standaloneCliModel);
 
             _lockJobs.Wait();
             try {
@@ -335,7 +339,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                     if (currentFileHash != _lastKnownFileHash) {
                         _logger.Information("File {publishedNodesFile} has changed, last known hash {LastHash}, new hash {NewHash}, reloading...",
-                            _legacyCliModel.PublishedNodesFile,
+                            _standaloneCliModel.PublishedNodesFile,
                             _lastKnownFileHash,
                             currentFileHash);
 
@@ -351,7 +355,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
                             catch (SerializerException ex) {
                                 _logger.Warning(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...",
-                                    _legacyCliModel.PublishedNodesFile);
+                                    _standaloneCliModel.PublishedNodesFile);
                                 _lastKnownFileHash = lastValidFileHash;
                                 break;
                             }
@@ -385,7 +389,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         //avoid double events from FileSystemWatcher
                         if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10)) {
                             _logger.Information("File {publishedNodesFile} has changed and content-hash" +
-                                " is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
+                                " is equal to last one, nothing to do", _standaloneCliModel.PublishedNodesFile);
                         }
                     }
                     _lastRead = lastWriteTime;
@@ -408,7 +412,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 catch (Exception e) {
                     _logger.Error(e, "Error while reloading {PublishedNodesFile}. Reseting the configuration.",
-                        _legacyCliModel.PublishedNodesFile);
+                        _standaloneCliModel.PublishedNodesFile);
                     _lockJobs.Wait();
                     try {
                         _availableJobs.Clear();
@@ -559,7 +563,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 PersistPublishedNodes();
 
                 var found = false;
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _legacyCliModel);
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _standaloneCliModel);
 
                 if (jobs.Any()) {
                     await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
@@ -610,7 +614,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 sw.Stop();
                 _lockConfig.Release();
             }
-
         }
 
         /// <inheritdoc/>
@@ -709,7 +712,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 PersistPublishedNodes();
 
                 var found = false;
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _legacyCliModel);
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _standaloneCliModel);
 
                 await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
                 try {
@@ -739,7 +742,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     // remove corresponsing entries from _assignedJobs and _availableJobs.
                     if (!found) {
                         var entryJobId = _publishedNodesJobConverter.
-                            ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
+                            ToConnectionModel(request, _standaloneCliModel).CreateConnectionId();
                         foreach (var assignedJob in _assignedJobs) {
                             if (entryJobId == assignedJob.Value.Job.Id) {
                                 found = _assignedJobs.Remove(assignedJob.Key, out _);
@@ -775,7 +778,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 sw.Stop();
                 _lockConfig.Release();
             }
-
         }
 
         /// <inheritdoc/>
@@ -813,7 +815,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 PersistPublishedNodes();
 
                 found = false;
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(matchingGroups, _legacyCliModel);
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(matchingGroups, _standaloneCliModel);
 
                 await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
                 try {
@@ -840,7 +842,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                     if (!found) {
                         var entryJobId = _publishedNodesJobConverter.
-                            ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
+                            ToConnectionModel(request, _standaloneCliModel).CreateConnectionId();
                         foreach (var assignedJob in _assignedJobs) {
                             if (entryJobId == assignedJob.Value.Job.Id) {
                                 found = _assignedJobs.Remove(assignedJob.Key, out _);
@@ -974,7 +976,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 PersistPublishedNodes();
 
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _legacyCliModel);
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _standaloneCliModel);
 
                 await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
                 try {
@@ -1011,7 +1013,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     // removal in request.
                     foreach (var dataSetToRemove in dataSetsToRemove) {
                         var entryJobId = _publishedNodesJobConverter.
-                            ToConnectionModel(dataSetToRemove, _legacyCliModel).CreateConnectionId();
+                            ToConnectionModel(dataSetToRemove, _standaloneCliModel).CreateConnectionId();
 
                         // If entry with this JobId was already processed, then there already
                         // was an update operation for it. We will skip its removal.
@@ -1137,7 +1139,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var sw = Stopwatch.StartNew();
             await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
-
                 return _publisherDiagnosticInfo.Values.ToList();
             }
             catch (MethodCallStatusException) {
@@ -1157,7 +1158,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly static string kNullOrEmptyOpcNodesMessage = "null or empty OpcNodes is provided in request";
 
         private readonly IJobSerializer _jobSerializer;
-        private readonly LegacyCliModel _legacyCliModel;
+        private readonly StandaloneCliModel _standaloneCliModel;
         private readonly IAgentConfigProvider _agentConfig;
         private readonly ILogger _logger;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
