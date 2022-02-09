@@ -286,8 +286,8 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
   *Exceptions:* a response corresponding to an exception will be returned if:
 
-  - request payload contains an endpoint (DataSet) that is not present in publisher configuration.
-  - request payload contains a node that is not present in publisher configuration.
+  - request payload contains an endpoint (DataSet) that is not present in publisher configuration
+  - request payload contains a node that is not present in publisher configuration
 
   *Example:*
   >*Method Name:* `UnpublishNodes_V1`
@@ -319,15 +319,41 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
 #### **UnpublishAllNodes_V1**
 
-*TODO: add description*
+UnpublishAllNodes method enables a client to remove all the nodes from a previously configured DataSetWriter. The DataSetWriter entity will be completely removed from the configuration storage.
 
-  *Request:*
+  *Request:* follows strictly the request payload schema as described above, the OpcNodes attribute should be excluded.
 
 *Response:* when successful - Status 200 and an empty json (`{}`) as Payload
 
-  *Exceptions:*
+  *Exceptions:* a response corresponding to an exception will be returned if:
 
-  *Example:*
+- request payload contains an endpoint (DataSet) that is not present in publisher configuration
+- request payload contains OpcNodes
+
+ *Example:* 
+
+> *Method Name:* `UnpublishAllNodes_V1`
+>
+> *Payload*:
+>
+> ```json
+> {
+>   "EndpointUrl": "opc.tcp://opcplc:50000",
+>   "DataSetWriterGroup": "Server0",
+>   "DataSetWriterId": "Device0",
+>   "DataSetPublishingInterval": 5000
+> }
+> ```
+>
+> *Response:*
+>
+> ```json
+> [
+>   "Unpublishing all nodes succeeded for EndpointUrl: opc.tcp://opcplc:50000/"
+> ]
+> ```
+
+#### 
 
 #### **GetConfiguredEndpoints_V1**
 
@@ -345,19 +371,19 @@ Returns the configured endpoints (Datasets)
   >
   >``` json
   >{
-  >"status":200,
-  >"payload":
-  >[
-  >  {
-  >    "EndpointUrl": "opc.tcp://opcplc:50000/",
-  >    "DataSetWriterGroup": "Server0",
-  >    "DataSetWriterId": "Device0",
-  >    "DataSetPublishingInterval": 5000
-  >  },
-  >  {
-  >    "EndpointUrl": "opc.tcp://opcplc:50001/"
-  >  }
-  >]
+  >  "status":200,
+  >  "payload":
+  >  [
+  >      {
+  >          "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >          "DataSetWriterGroup": "Server0",
+  >          "DataSetWriterId": "Device0",
+  >          "DataSetPublishingInterval": 5000
+  >      },
+  >      {
+  >          "EndpointUrl": "opc.tcp://opcplc:50001/"
+  >      }
+  >  ] 
   >}
   >```
 
@@ -373,12 +399,42 @@ Returns the nodes configured for one Endpoint (Dataset)
 
   *Example:*
   >*Method Name:* `GetConfiguredNodesOnEndpoints_V1`\
-  *Payload:* 
+  >  *Payload:* 
   >``` json
   >{
-  >    "EndpointUrl": "opc.tcp://192.168.100.20:50000"
+  >  "EndpointUrl": "opc.tcp://192.168.100.20:50000"
   >}
   >```
+  >*Response:*  
+  >
+  >``` json
+  >{
+  >  "status":200,
+  >  "payload":
+  >  [
+  >    {
+  >      "id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
+  >      "opcSamplingInterval":3000,
+  >      "opcSamplingIntervalTimespan":"00:00:03",
+  >      "heartbeatInterval":0,
+  >      "heartbeatIntervalTimespan":"00:00:00"
+  >    }
+  >  ] 
+  >} 
+  >```
+
+#### **GetDiagnosticInfo_V1**
+
+Returns a list of actual metrics for every endpoint (Dataset) . 
+
+  *Request:* none
+
+  *Response:* list of actual metrics for every endpoint (Dataset).
+
+  *Exceptions:* an exception is thrown when method call returns status other than 200.
+
+  *Example:*
+  >*Method Name:* `GetDiagnosticInfo_V1`\
   >*Response:*  
   >``` json
   >{
@@ -386,27 +442,33 @@ Returns the nodes configured for one Endpoint (Dataset)
   >    "payload":
   >    [
   >       {
-  >         "id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
-  >         "opcSamplingInterval":3000,
-  >         "opcSamplingIntervalTimespan":"00:00:03",
-  >         "heartbeatInterval":0,
-  >         "heartbeatIntervalTimespan":"00:00:00"
+  >          "Id":"opc.tcp://192.168.1.70:50000_-1841390920",
+  >          "SentMessagesPerSec":"2.6",
+  >          "IngestionDuration":"{00:00:25.5491702}", 
+  >          "IngressDataChanges":"25", 
+  >          "IngressValueChanges":"103", 
+  >          "IngressBatchBlockBufferSize":"0", 
+  >          "EncodingBlockInputSize":"0",
+  >          "EncodingBlockOutputSize":"0", 
+  >          "EncoderNotificationsProcessed":"83", 
+  >          "EncoderNotificationsDropped":"0", 
+  >          "EncoderIoTMessagesProcessed":"2", 
+  >          "EncoderAvgNotificationsMessage":"41.5", 
+  >          "EncoderAvgIoTMessageBodySize":"6128", 
+  >          "EncoderAvgIoTChunkUsage":"1.158034", 
+  >          "EstimatedIoTChunksPerDay":"13526.858105160689", 
+  >          "OutgressBatchBlockBufferSize":"0", 
+  >          "OutgressInputBufferCount":"0", 
+  >          "OutgressInputBufferDropped":"0", 
+  >          "OutgressIoTMessageCount":"0", 
+  >          "ConnectionRetries":"0", 
+  >          "OpcEndpointConnected":"true", 
+  >          "MonitoredOpcNodesSucceededCount":"5", 
+  >          "MonitoredOpcNodesFailedCount":"0" 
   >       }
   >    ]
   >}
   >```
-
-#### **GetDiagnosticInfo_V1**
-
-*TODO: add description*
-
-  *Request:*
-
-  *Response:*
-
-  *Exceptions:*
-
-  *Example:*
 
 #### **AddOrUpdateEndpoints_V1**
 

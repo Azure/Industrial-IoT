@@ -629,5 +629,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.True(endpointsHash.Distinct().Count() == endpointsHash.Count());
         }
 
+        [Theory]
+        [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
+        public async Task DmApiGetDiagnosticInfoTest(string publishedNodesFile) {
+
+            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+
+            //publish nodes
+            var methodsController = await publishNodeAsync(publishedNodesFile);
+
+            var response = await FluentActions
+                    .Invoking(async () => await methodsController
+                    .GetDiagnosticInfoAsync().ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+            response.Subject
+                .Should()
+                .NotBeNull();
+        }
     }
 }

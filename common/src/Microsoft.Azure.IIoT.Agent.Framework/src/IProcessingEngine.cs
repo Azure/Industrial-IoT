@@ -41,6 +41,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         Task<VariantValue> GetCurrentJobState();
 
         /// <summary>
+        /// Returns the diagnostic info of a job
+        /// </summary>
+        /// <returns></returns>
+        JobDiagnosticInfoModel GetDiagnosticInfo();
+
+        /// <summary>
         /// Switch processing mode
         /// </summary>
         /// <param name="processMode"></param>

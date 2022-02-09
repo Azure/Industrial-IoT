@@ -64,6 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _lockJobs = new SemaphoreSlim(1, 1);
 
             _publishedNodesEntries = new List<PublishedNodesEntryModel>();
+            _publisherDiagnosticInfo = new Dictionary<string, JobDiagnosticInfoModel>();
 
             RefreshJobFromFile();
             _publishedNodesProvider.Changed += _fileSystemWatcher_Changed;
@@ -116,11 +117,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <summary>
         /// Receives the heartbeat from the LegacyJobOrchestrator, JobProcess; used to control lifetime of job (cancel, restart, keep).
+        /// Used also to receive the diagnostic info
         /// </summary>
         /// <param name="heartbeat"></param>
+        /// <param name="diagInfo"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
+        public async Task<HeartbeatResultModel> SendHeartbeatAsync(
+            HeartbeatModel heartbeat, 
+            JobDiagnosticInfoModel diagInfo, 
+            CancellationToken ct = default
+        ) {
             if (heartbeat == null || heartbeat.Worker == null) {
                 throw new ArgumentNullException(nameof(heartbeat));
             }
@@ -175,6 +182,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         UpdatedJob = null,
                     };
                 }
+                if (diagInfo != null) {
+                    foreach (var assignedJob in _assignedJobs) {
+
+                        if (diagInfo.Id == assignedJob.Value.Job.Id) {
+                            _publisherDiagnosticInfo.AddOrUpdate(assignedJob.Value.Job.Id, diagInfo);
+                        }
+                    }
+                }
+
                 _logger.Debug("Worker update with {heartbeatInstruction} instruction for job {jobId}.",
                     heartbeatResultModel?.HeartbeatInstruction, job?.Job?.Id);
 
@@ -231,6 +247,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 try {
                     _availableJobs.Clear();
                     _assignedJobs.Clear();
+                    _publisherDiagnosticInfo.Clear();
                 }
                 finally {
                     _lockJobs.Release();
@@ -285,6 +302,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void RefreshJobs(IEnumerable<PublishedNodesEntryModel> entries) {
             var availableJobs = new Dictionary<string, JobProcessingInstructionModel>();
             var assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
+            var publisherDiagnosticInfo = new Dictionary<string, JobDiagnosticInfoModel>();
 
             var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _legacyCliModel);
 
@@ -305,6 +323,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         var newJobId = newJob.Job.Id;
                         if (jobIdDict.ContainsKey(newJobId)) {
                             assignedJobs[jobIdDict[newJobId].Item2] = newJob;
+                            if (_publisherDiagnosticInfo.ContainsKey(newJobId)) {
+                                publisherDiagnosticInfo.Add(newJobId, _publisherDiagnosticInfo[newJobId]);
+                            }
                         }
                         else {
                             availableJobs.Add(newJobId, newJob);
@@ -315,6 +336,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // Update local state.
                 _availableJobs = availableJobs;
                 _assignedJobs = assignedJobs;
+                _publisherDiagnosticInfo = publisherDiagnosticInfo;
 
                 AdjustMaxWorkersAgentConfig();
             }
@@ -369,6 +391,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             try {
                                 _availableJobs.Clear();
                                 _assignedJobs.Clear();
+                                _publisherDiagnosticInfo.Clear();
                             }
                             finally {
                                 _lockJobs.Release();
@@ -412,6 +435,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     try {
                         _availableJobs.Clear();
                         _assignedJobs.Clear();
+                        _publisherDiagnosticInfo.Clear();
                     }
                     finally {
                         _lockJobs.Release();
@@ -741,6 +765,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         foreach (var assignedJob in _assignedJobs) {
                             if (entryJobId == assignedJob.Value.Job.Id) {
                                 found = _assignedJobs.Remove(assignedJob.Key, out _);
+                                _publisherDiagnosticInfo.Remove(assignedJob.Key, out _);
                                 break;
                             }
                         }
@@ -1017,6 +1042,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             foreach (var assignedJob in _assignedJobs) {
                                 if (entryJobId == assignedJob.Value.Job.Id) {
                                     jobFound = _assignedJobs.Remove(assignedJob.Key);
+                                    _publisherDiagnosticInfo.Remove(assignedJob.Key);
                                     break;
                                 }
                             }
@@ -1127,16 +1153,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodesEntryModel> GetDiagnosticInfoAsync(
-            PublishedNodesEntryModel request,
+        public async Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
-            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            var sw = Stopwatch.StartNew();
+            await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
-                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+
+                return _publisherDiagnosticInfo.Values.ToList();
+            }
+            catch (MethodCallStatusException) {
+                throw;
+            }
+            catch (Exception e) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
-                _lockConfig.Release();
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(GetDiagnosticInfoAsync), sw.Elapsed);
+                sw.Stop();
+                _lockJobs.Release();
             }
         }
 
@@ -1157,5 +1192,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private Dictionary<string, JobProcessingInstructionModel> _availableJobs;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
+        private Dictionary<string, JobDiagnosticInfoModel> _publisherDiagnosticInfo;
     }
 }
