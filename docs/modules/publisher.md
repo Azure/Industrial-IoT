@@ -371,15 +371,50 @@ Returns the nodes configured for one Endpoint (Dataset)
 
 #### **GetDiagnosticInfo_V1**
 
-*TODO: add description*
+Returns a list of actual metrics for every endpoint (Dataset) . 
 
-  *Request:*
+  *Request:* none
 
-  *Response:*
+  *Response:* list of actual metrics for every endpoint (Dataset).
 
-  *Exceptions:*
+  *Exceptions:* an exception is thrown when method call returns status other than 200.
 
   *Example:*
+  >*Method Name:* `GetDiagnosticInfo_V1`\
+  >*Response:*  
+  >``` json
+  >{
+  >    "status":200,
+  >    "payload":
+  >    [
+  >       {
+  >          "Id":"opc.tcp://192.168.1.70:50000_-1841390920",
+  >          "SentMessagesPerSec":"2.6",
+  >          "IngestionDuration":"{00:00:25.5491702}", 
+  >          "IngressDataChanges":"25", 
+  >          "IngressValueChanges":"103", 
+  >          "IngressBatchBlockBufferSize":"0", 
+  >          "EncodingBlockInputSize":"0",
+  >          "EncodingBlockOutputSize":"0", 
+  >          "EncoderNotificationsProcessed":"83", 
+  >          "EncoderNotificationsDropped":"0", 
+  >          "EncoderIoTMessagesProcessed":"2", 
+  >          "EncoderAvgNotificationsMessage":"41.5", 
+  >          "EncoderAvgIoTMessageBodySize":"6128", 
+  >          "EncoderAvgIoTChunkUsage":"1.158034", 
+  >          "EstimatedIoTChunksPerDay":"13526.858105160689", 
+  >          "OutgressBatchBlockBufferSize":"0", 
+  >          "OutgressInputBufferCount":"0", 
+  >          "OutgressInputBufferDropped":"0", 
+  >          "OutgressIoTMessageCount":"0", 
+  >          "ConnectionRetries":"0", 
+  >          "OpcEndpointConnected":"true", 
+  >          "MonitoredOpcNodesSucceededCount":"5", 
+  >          "MonitoredOpcNodesFailedCount":"0" 
+  >       }
+  >    ]
+  >}
+  >```
 
 #### **AddOrUpdateEndpoints_V1**
 

@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Net;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using System.Linq;
 
     /// <summary>
@@ -93,9 +94,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for GetDiagnosticInfo DM
         /// </summary>
-        public async Task GetDiagnosticInfoAsync(PublishNodesEndpointApiModel request) {
-            await Task.Delay(0);
-            throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+        public async Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync() {
+            var response = await _configServices.GetDiagnosticInfoAsync().ConfigureAwait(false);
+            return response;
         }
 
         /// <summary>
