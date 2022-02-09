@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string OpcMaxStringLength = TransportQuotaConfig.MaxStringLengthKey;
 
         /// <summary>
-        /// Key for the OPC Session creation timeout in seconds.
+        /// Key for the default OPC Session timeout in seconds - to request from the OPC server at session creation.
         /// </summary>
         public const string OpcSessionCreationTimeout = ClientServicesConfig.DefaultSessionTimeoutKey;
 
