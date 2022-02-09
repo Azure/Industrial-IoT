@@ -509,7 +509,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/pn_opc_nodes_empty.json")]
         [InlineData("Engine/pn_opc_nodes_null.json")]
         [InlineData("Engine/pn_opc_nodes_empty_and_null.json")]
-        public async Task Test_InitstandaloneJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile) {
+        public async Task Test_InitStandaloneJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitStandaloneJobOrchestrator();
 

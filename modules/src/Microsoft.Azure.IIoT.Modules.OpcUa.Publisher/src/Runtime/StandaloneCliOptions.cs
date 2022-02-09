@@ -248,7 +248,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public StandaloneCliModel StandaloneCliModel {
             get {
                 if (_standaloneCliModel == null) {
-                    _standaloneCliModel = TostandaloneCliModel();
+                    _standaloneCliModel = ToStandaloneCliModel();
                 }
 
                 return _standaloneCliModel;
@@ -271,7 +271,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             return loggerConfiguration;
         }
 
-        private StandaloneCliModel TostandaloneCliModel() {
+        private StandaloneCliModel ToStandaloneCliModel() {
             var model = new StandaloneCliModel();
             model.PublishedNodesFile = GetValueOrDefault(StandaloneCliConfigKeys.PublishedNodesConfigurationFilename, StandaloneCliConfigKeys.DefaultPublishedNodesFilename);
             model.PublishedNodesSchemaFile = GetValueOrDefault(StandaloneCliConfigKeys.PublishedNodesConfigurationSchemaFilename, StandaloneCliConfigKeys.DefaultPublishedNodesSchemaFilename);
