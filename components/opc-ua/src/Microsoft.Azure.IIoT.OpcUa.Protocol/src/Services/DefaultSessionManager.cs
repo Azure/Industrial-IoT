@@ -303,15 +303,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             try {
 
                 if (!wrapper._subscriptions.Any()) {
-                    if (wrapper.IdleCount < wrapper.MaxKeepAlives) {
-                        wrapper.IdleCount++;
-                    }
-                    else {
-                        _logger.Information("Session '{id}' set to disconnect in {state}", id, wrapper.State);
-                        wrapper.State = SessionState.Disconnect;
-                        await HandleDisconnectAsync(id, wrapper).ConfigureAwait(false);
-                        return;
-                    }
+                    // if the session is idle, just drop it immediately
+                    _logger.Information("Idle expired session '{id}' set to {disconnect} state from {state}",
+                        id, SessionState.Disconnect, wrapper.State);
+                    wrapper.State = SessionState.Disconnect;
+                    await HandleDisconnectAsync(id, wrapper).ConfigureAwait(false);
+                    return;
                 }
                 else {
                     wrapper.IdleCount = 0;
@@ -344,8 +341,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         case StatusCodes.BadSessionNotActivated:
                         case StatusCodes.BadServerHalted:
                         case StatusCodes.BadServerNotConnected:
-                            _logger.Warning("Failed to reconnect session '{id}', " +
-                                "will retry later", id);
+                        case StatusCodes.BadInvalidState:
+                        case StatusCodes.BadRequestTimeout:
+                            _logger.Warning("Failed to reconnect session '{id}' due to {exception}, " +
+                                "will retry later", id, e.Message);
                             if (wrapper.MissedKeepAlives < wrapper.MaxKeepAlives) {
                                 // retry later
                                 return;
@@ -393,8 +392,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         wrapper.IdleCount++;
                     }
                     else {
-                        _logger.Information("Session '{id}' set to disconnect in {state}",
-                               id, wrapper.State);
+                        _logger.Information("Session '{id}' set to {disconnect} state from {state}",
+                               id, SessionState.Disconnect, wrapper.State);
                         wrapper.State = SessionState.Disconnect;
                         await HandleDisconnectAsync(id, wrapper).ConfigureAwait(false);
                         return;
@@ -427,6 +426,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         id, wrapper.State);
                     Try.Op(wrapper.Session.Dispose);
                     wrapper.Session = null;
+                }
+                if (!wrapper._subscriptions.Any()) {
+                    // The session is idle, stop initialization phase
+                    _logger.Information("Idle failed session '{id}' set to {disconnect} state from {state}",
+                        wrapper.Id, SessionState.Disconnect, wrapper.State);
+                    wrapper.State = SessionState.Disconnect;
+                    TriggerKeepAlive();
+                    return;
                 }
                 _logger.Debug("Initializing session '{id}'...", id);
                 var endpointUrlCandidates = id.Connection.Endpoint.Url.YieldReturn();
@@ -722,6 +729,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         wrapper.Id, e.CurrentState);
 
                     if (ServiceResult.IsGood(e.Status)) {
+                        wrapper.ReportedStatus = StatusCodes.Good;
                         wrapper.MissedKeepAlives = 0;
 
                         if (!wrapper._subscriptions.Any()) {
@@ -729,7 +737,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 wrapper.IdleCount++;
                             }
                             else {
-                                _logger.Information("Idle session '{id}' set to disconnect due to idle", wrapper.Id);
+                                _logger.Information("Idle expired session '{id}' set to {disconnect} state from {state}",
+                                    wrapper.Id, SessionState.Disconnect, wrapper.State);
                                 wrapper.State = SessionState.Disconnect;
                                 TriggerKeepAlive();
                             }
@@ -740,18 +749,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     else {
                         wrapper.ReportedStatus = e.Status.Code;
-                        _logger.Information("Session '{id}' set to refresh due to Keepalive with reported status {status}",
-                            wrapper.Id, e.Status);
+                        wrapper.MissedKeepAlives++;
+                        _logger.Information("Session '{id}' missed {keepAlives} Keepalive(s) due to bad {status}, " +
+                                "waiting to recover...", wrapper.Id, wrapper.MissedKeepAlives, e.Status);
                         if (wrapper.State == SessionState.Running) {
+                            _logger.Information("Session '{id}' set to refresh due to bad keepalive status {status}",
+                                wrapper.Id, e.Status);
                             wrapper.State = SessionState.Refresh;
+                        }
+                        if (!wrapper._subscriptions.Any()) {
+                            if (wrapper.IdleCount < wrapper.MaxKeepAlives) {
+                                wrapper.IdleCount++;
+                            }
+                            else {
+                                _logger.Information("Idle expired session '{id}' set to {disconnect} state from {state}",
+                                   wrapper.Id, SessionState.Disconnect, wrapper.State);
+                                wrapper.State = SessionState.Disconnect;
+                            }
+                        }
+                        else {
+                            wrapper.IdleCount = 0;
                         }
                         TriggerKeepAlive();
                     }
                 }
                 else {
-                    _logger.Warning("Keepalive received from unidentified session '{name}', server current state is {state}",
+                    _logger.Warning("Keepalive received from unidentified session '{name}', server's current state is {state}",
                         session?.SessionName, e.CurrentState);
-
                 }
             }
             catch (Exception ex) {
