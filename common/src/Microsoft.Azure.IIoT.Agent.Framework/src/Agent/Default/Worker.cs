@@ -5,14 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Autofac;
+    using Prometheus;
     using Serilog;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Exceptions;
-    using Prometheus;
 
     /// <summary>
     /// Individual agent worker
@@ -38,13 +38,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <summary>
         /// Create worker
         /// </summary>
-        /// <param name="jobManagerConnector"></param>
-        /// <param name="agentConfigProvider"></param>
-        /// <param name="jobConfigurationFactory"></param>
-        /// <param name="workerInstance"></param>
-        /// <param name="lifetimeScope"></param>
-        /// <param name="logger"></param>
-        /// <param name="agentRepository"></param>
         public Worker(IJobOrchestrator jobManagerConnector,
             IAgentConfigProvider agentConfigProvider, IJobSerializer jobConfigurationFactory,
             int workerInstance, ILifetimeScope lifetimeScope, ILogger logger,
@@ -94,22 +87,20 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
         /// <inheritdoc/>
         public async Task StopAsync() {
+            if (_cts == null) {
+                return;
+            }
+
+            _logger.Information("Stopping worker...");
+            _agentConfigProvider.OnConfigUpdated -= ConfigUpdate_Handler;
+            _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
+            // Inform services, that this worker has stopped working,
+            // so orchestrator can reassign the job
+            await StopJobProcess().ConfigureAwait(false);
+
             await _lock.WaitAsync().ConfigureAwait(false);
             try {
-                if (_cts == null) {
-                    return;
-                }
-
-                _logger.Information("Stopping worker...");
-                _agentConfigProvider.OnConfigUpdated -= ConfigUpdate_Handler;
-                _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-
-                // Inform services, that this worker has stopped working, so orchestrator can reassign job
-                if (_jobProcess != null) {
-                    _jobProcess.Status = WorkerStatus.Stopped;
-                    await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false); // need to be send before cancel the CancellationToken
-                }
-
                 // Stop worker
                 _cts.Cancel();
                 await _worker.ConfigureAwait(false);
@@ -154,40 +145,42 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// Handler for ConfigUpdated event
         /// </summary>
         private void ConfigUpdate_Handler(object sender, EventArgs eventArgs) {
-                _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
-                _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
-                if (!_cts.IsCancellationRequested) {
-                    if (_jobProcess != null) {
-                        _jobProcess.ResetHeartbeat();
-                    }
-                    else {
-                        _reset?.TrySetResult(true);
-                    }
+            _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
+            _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
+
+            if (_cts != null && !_cts.IsCancellationRequested) {
+                if (_jobProcess != null) {
+                    _jobProcess.ResetHeartbeat();
+                }
+                else {
+                    _reset?.TrySetResult(true);
                 }
             }
+        }
 
         /// <summary>
-        /// Heartbeat timer
+        /// Heartbeat timer elapsed handler
         /// </summary>
-        /// <param name="sender"></param>
         private async void HeartbeatTimer_ElapsedAsync(object sender) {
-
-            if (!_cts.IsCancellationRequested) {
+            if (_cts != null && !_cts.IsCancellationRequested) {
                 await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
                 Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
             }
         }
 
+        /// <summary>
+        /// Send the new heartbeat
+        /// </summary>
         private async Task SendHeartbeatWithoutResetTimerAsync() {
             try {
-                _logger.Debug("Sending heartbeat...");
+                _logger.Debug("Worker {workerId} sending heartbeat...", WorkerId);
 
                 // Note - will take lock for status
                 var workerHeartbeat = await GetWorkerHeartbeatAsync(_cts.Token).ConfigureAwait(false);
 
                 await _jobManagerConnector.SendHeartbeatAsync(
-                    new HeartbeatModel { Worker = workerHeartbeat }, 
-                    GetDiagnosticInfo(), 
+                    new HeartbeatModel { Worker = workerHeartbeat },
+                    GetDiagnosticInfo(),
                     _cts.Token
                 ).ConfigureAwait(false);
             }
@@ -195,24 +188,16 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 // Done
             }
             catch (Exception ex) {
-                _logger.Debug(ex, "Could not send worker heartbeat.");
-                kModuleExceptions.WithLabels(
-                    AgentId, 
-                    ex.Source, 
-                    ex.GetType().FullName, 
-                    ex.Message, 
-                    ex.StackTrace, 
-                    "Could not send worker hearbeat"
-                ).Inc();
+                _logger.Debug(ex, "Worker {workerId} could not send heartbeat.", WorkerId);
+                kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace, "Could not send worker hearbeat").Inc();
             }
         }
 
         /// <summary>
-        /// Process job
+        /// Process the actual job
         /// </summary>
-        /// <returns></returns>
         private async Task RunAsync(CancellationToken ct) {
-            _logger.Debug("Worker starting...");
+            _logger.Debug("Worker {workerId} starting...", WorkerId);
             while (!ct.IsCancellationRequested) {
                 try {
                     ct.ThrowIfCancellationRequested();
@@ -243,80 +228,79 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                         WorkerId, jobProcessInstruction.Job.Id);
                 }
                 catch (OperationCanceledException) {
-                    _logger.Information("Worker cancelled...");
+                    _logger.Information("Worker {workerId} cancelled...", WorkerId);
                 }
                 catch (Exception ex) {
                     // TODO: we should notify the exception
-                    _logger.Error(ex, "Worker: {Id}, exception during worker processing, wait {delay}...",
+                    _logger.Error(ex, "Worker {workerId}, exception during worker processing, wait {delay}...",
                         WorkerId, _jobCheckerInterval);
                     kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace, "Exception during worker processing").Inc();
                     await Task.Delay(_jobCheckerInterval, ct).ConfigureAwait(false);
                 }
             }
-            _logger.Information("Worker stopping...");
+            _logger.Information("Worker {workerId} stopping...", WorkerId);
         }
 
         /// <summary>
         /// Process jobs
         /// </summary>
-        /// <returns></returns>
         private async Task ProcessAsync(JobProcessingInstructionModel jobProcessInstruction,
             CancellationToken ct) {
+            var currentProcessInstruction = jobProcessInstruction ??
+                throw new ArgumentNullException(nameof(jobProcessInstruction));
+
             try {
                 // Stop worker heartbeat to start the job heartbeat process
                 _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan); // Stop worker heartbeat
 
-                _logger.Information("Worker: {WorkerId} processing job: {JobId}, mode: {ProcessMode}",
-                    WorkerId, jobProcessInstruction.Job.Id, jobProcessInstruction.ProcessMode);
+                _logger.Information("Worker {WorkerId} processing job {JobId}, mode: {ProcessMode}",
+                    WorkerId, currentProcessInstruction.Job.Id, currentProcessInstruction.ProcessMode);
 
                 // Execute processor
                 while (true) {
-                    _jobProcess = null;
                     ct.ThrowIfCancellationRequested();
-                    using (_jobProcess = new JobProcess(this, jobProcessInstruction,
-                        _lifetimeScope, _logger)) {
-                        await _jobProcess.WaitAsync(ct).ConfigureAwait(false); // Does not throw
+                    if (_jobProcess == null) {
+                        _jobProcess = new JobProcess(this, currentProcessInstruction, _lifetimeScope, _logger);
                     }
+                    else {
+                        _jobProcess.ProcessNewInstruction(currentProcessInstruction);
+                    }
+                    await _jobProcess.WaitAsync(ct).ConfigureAwait(false); // Does not throw
 
                     // Check if the job is to be continued with new configuration settings
-                    if (_jobProcess.JobContinuation == null) {
-                        _jobProcess.Status = WorkerStatus.Stopped;
-                        await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
-                        _jobProcess = null;
+                    if (_jobProcess?.JobContinuation?.Job?.JobConfiguration == null ||
+                        _jobProcess?.JobContinuation?.ProcessMode == null) {
+                        await StopJobProcess().ConfigureAwait(false);
                         break;
                     }
 
-                    jobProcessInstruction = _jobProcess.JobContinuation;
-                    if (jobProcessInstruction?.Job?.JobConfiguration == null ||
-                        jobProcessInstruction?.ProcessMode == null) {
-                        _logger.Information("Job continuation invalid, continue listening...");
-                        if (_jobProcess != null) {
-                            _jobProcess.Status = WorkerStatus.Stopped;
-                            await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
-                        }
-
-                        _jobProcess = null;
-                        break;
-                    }
-
-                    _logger.Information("Processing job continuation...");
+                    currentProcessInstruction = _jobProcess.JobContinuation;
+                    _logger.Information("Worker {WorkerId} processing job {JobId} continuation in mode {ProcessMode}",
+                        WorkerId, currentProcessInstruction.Job.Id, currentProcessInstruction.ProcessMode);
                 }
             }
             catch (OperationCanceledException) {
-                _logger.Information("Processing cancellation received ...");
-                if (_jobProcess != null) {
-                    _jobProcess.Status = WorkerStatus.Stopped;
-                    await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
-                }
-
-                _jobProcess = null;
+                _logger.Information("Worker {WorkerId} cancellation received ...", WorkerId);
+                await StopJobProcess().ConfigureAwait(false);
             }
             finally {
                 _logger.Information("Worker: {WorkerId}, Job: {JobId} processing completed ... ",
-                    WorkerId, jobProcessInstruction.Job.Id);
+                    WorkerId, currentProcessInstruction.Job.Id);
                 if (!ct.IsCancellationRequested) {
                     _heartbeatTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan); // restart worker heartbeat
                 }
+            }
+        }
+
+        /// <summary>
+        /// Stops and disposes the job process
+        /// </summary>
+        private async Task StopJobProcess() {
+            if (_jobProcess != null && _jobProcess.Status != WorkerStatus.Stopped) {
+                _jobProcess.Status = WorkerStatus.Stopped;
+                await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
+                _jobProcess.Dispose();
+                _jobProcess = null;
             }
         }
 
@@ -337,10 +321,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// <summary>
             /// Create processor
             /// </summary>
-            /// <param name="outer"></param>
-            /// <param name="jobProcessInstruction"></param>
-            /// <param name="workerScope"></param>
-            /// <param name="logger"></param>
             public JobProcess(Worker outer, JobProcessingInstructionModel jobProcessInstruction,
                 ILifetimeScope workerScope, ILogger logger) {
                 _outer = outer;
@@ -365,6 +345,21 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
 
             /// <summary>
+            /// Reconfigure the existing process
+            /// </summary>
+            public void ProcessNewInstruction(JobProcessingInstructionModel jobProcessInstruction) {
+                _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                    _outer._cts.Token);
+                _currentJobProcessInstruction = jobProcessInstruction;
+                var jobConfig = _outer._jobConfigurationFactory.DeserializeJobConfiguration(
+                    Job.JobConfiguration, Job.JobConfigurationType);
+
+                _currentProcessingEngine.ReconfigureTrigger(jobConfig);
+                JobContinuation = null;
+                _processor = Task.Run(() => ProcessAsync());
+            }
+
+            /// <summary>
             /// Trigger a heartbeat request immediately
             /// </summary>
             public void ResetHeartbeat() {
@@ -382,7 +377,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// <summary>
             /// Wait till completion or heartbeat cancelling
             /// </summary>
-            /// <returns></returns>
             public Task WaitAsync(CancellationToken ct) {
                 return _processor.ContinueWith(_ => Task.CompletedTask, ct);
             }
@@ -397,11 +391,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// <summary>
             /// Processor
             /// </summary>
-            /// <returns></returns>
             private async Task ProcessAsync() {
                 try {
                     Status = WorkerStatus.ProcessingJob;
                     _outer.OnJobStarted?.Invoke(this, new JobInfoEventArgs(Job));
+                    _logger.Information("Job {job} started.", Job.Id);
 
                     // Start sending heartbeats
                     _heartbeatTimer.Change(TimeSpan.FromSeconds(1), _outer._heartbeatInterval);
@@ -410,7 +404,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                         _cancellationTokenSource.Token).ConfigureAwait(false);
 
                     _cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                    _logger.Information("Job {job} completed.", Job.Id);
                 }
                 catch (OperationCanceledException) {
                     _logger.Information("Job {job} cancelled.", Job.Id);
@@ -425,13 +418,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     // Stop sending heartbeats
                      Try.Op(() => _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan));
                     await CleanupAsync().ConfigureAwait(false);
+                    _logger.Information("Job {job} completed.", Job.Id);
                 }
             }
 
             /// <summary>
             /// Cleanup job processing
             /// </summary>
-            /// <returns></returns>
             private async Task CleanupAsync() {
                 if (JobContinuation != null) {
                     // Continuation - do not update job state but continue
@@ -466,47 +459,49 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// <summary>
             /// Send heartbeat
             /// </summary>
-            /// <returns></returns>
             private async Task SendHeartbeatAsync(CancellationToken ct = default) {
                 _logger.Debug("Sending job processor heartbeat...");
                 var workerHeartbeat = await _outer.GetWorkerHeartbeatAsync(ct).ConfigureAwait(false);
-                var result = await _outer._jobManagerConnector.SendHeartbeatAsync(
-                    new HeartbeatModel {
-                        Worker = workerHeartbeat,
-                        Job = new JobHeartbeatModel {
-                            JobId = Job.Id,
-                            JobHash = Job.GetHashSafe(),
-                            Status = Job.LifetimeData.Status,
-                            ProcessMode = _currentJobProcessInstruction.ProcessMode.Value,
-                            State = await _currentProcessingEngine.GetCurrentJobState().ConfigureAwait(false)
-                        }
-                    }, GetProcessDiagnosticInfo(), ct).ConfigureAwait(false);
-
-                // Check for updated job
-                if (result.UpdatedJob != null && JobContinuation == null) {
-                    JobContinuation = result.UpdatedJob;
-                    // Cancel
-                    if (!_cancellationTokenSource.IsCancellationRequested) {
-                        _logger.Debug("Received job update request - continue ...");
-                        _cancellationTokenSource.Cancel();
-                        return;
-                    }
-                }
+                var result = await _outer._jobManagerConnector
+                    .SendHeartbeatAsync(
+                        new HeartbeatModel {
+                            Worker = workerHeartbeat,
+                            Job = new JobHeartbeatModel {
+                                JobId = Job.Id,
+                                JobHash = Job.GetHashSafe(),
+                                Status = Job.LifetimeData.Status,
+                                ProcessMode = _currentJobProcessInstruction.ProcessMode.Value,
+                                State = await _currentProcessingEngine.GetCurrentJobState().ConfigureAwait(false)
+                            }
+                        }, GetProcessDiagnosticInfo(), ct)
+                    .ConfigureAwait(false);
 
                 // Process instructions
                 switch (result.HeartbeatInstruction) {
                     case HeartbeatInstruction.SwitchToActive:
-                        await _currentProcessingEngine.SwitchProcessMode(ProcessMode.Active,
-                            result.LastActiveHeartbeat).ConfigureAwait(false);
+                        await _currentProcessingEngine
+                            .SwitchProcessMode(ProcessMode.Active, result.LastActiveHeartbeat)
+                            .ConfigureAwait(false);
                         break;
                     case HeartbeatInstruction.CancelProcessing:
+                        if (result.UpdatedJob != null && JobContinuation == null) {
+                            JobContinuation = result.UpdatedJob;
+                        }
                         if (!_cancellationTokenSource.IsCancellationRequested) {
                             _logger.Debug("Received job cancellation, cancelling processing...");
                             _cancellationTokenSource.Cancel();
                         }
                         break;
+                    case HeartbeatInstruction.Update:
                     case HeartbeatInstruction.Keep:
-                        // nothing to do.
+                        if (result.UpdatedJob != null && JobContinuation == null) {
+                            JobContinuation = result.UpdatedJob;
+                            // Cancel
+                            if (!_cancellationTokenSource.IsCancellationRequested) {
+                                _logger.Debug("Received job update request - continue ...");
+                                _cancellationTokenSource.Cancel();
+                            }
+                        }
                         break;
                 }
             }
@@ -531,20 +526,18 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
 
             private readonly Timer _heartbeatTimer;
-            private readonly Task _processor;
-            private readonly CancellationTokenSource _cancellationTokenSource;
-            private readonly JobProcessingInstructionModel _currentJobProcessInstruction;
             private readonly IProcessingEngine _currentProcessingEngine;
             private readonly ILifetimeScope _jobScope;
             private readonly Worker _outer;
             private readonly ILogger _logger;
+            private Task _processor;
+            private CancellationTokenSource _cancellationTokenSource;
+            private JobProcessingInstructionModel _currentJobProcessInstruction;
         }
 
         /// <summary>
         /// Get worker heartbeat
         /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
         private async Task<WorkerHeartbeatModel> GetWorkerHeartbeatAsync(CancellationToken ct) {
             var workerHeartbeat = new WorkerHeartbeatModel {
                 WorkerId = WorkerId,
@@ -560,7 +553,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <summary>
         /// Get status under lock
         /// </summary>
-        /// <returns></returns>
         private WorkerStatus GetStatus() {
             _lock.Wait();
             try {

@@ -33,13 +33,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Creates a new class of the LegacyJobOrchestrator.
         /// </summary>
-        /// <param name="publishedNodesJobConverter">The converter to read the job from the specified file.</param>
-        /// <param name="legacyCliModelProvider">The provider that provides the legacy command line arguments.</param>
-        /// <param name="agentConfigProvider">The provider that provides the agent configuration.</param>
-        /// <param name="jobSerializer">The serializer to (de)serialize job information.</param>
-        /// <param name="logger">Logger to write log messages.</param>
-        /// <param name="publishedNodesProvider">Published nodes provider.</param>
-        /// <param name="jsonSerializer">Json serializer.</param>
         public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter,
             ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigProvider,
             IJobSerializer jobSerializer, ILogger logger, IPublishedNodesProvider publishedNodesProvider,
@@ -78,22 +71,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Gets the next available job - this will always return the job representation of the legacy publishednodes.json
         /// along with legacy command line arguments.
         /// </summary>
-        /// <param name="workerId"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(
-            string workerId,
-            JobRequestModel request,
-            CancellationToken ct = default
-        ) {
+        public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
             await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
                 ct.ThrowIfCancellationRequested();
                 if (_assignedJobs.TryGetValue(workerId, out var job)) {
                     return job;
                 }
-                if (_availableJobs.Count > 0 && _availableJobs.Remove(_availableJobs.First().Key, out job)) {
+                if (_availableJobs.Any() && _availableJobs.Remove(_availableJobs.First().Key, out job)) {
                     _assignedJobs.AddOrUpdate(workerId, job);
                     return job;
                 }
@@ -119,15 +104,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Receives the heartbeat from the LegacyJobOrchestrator, JobProcess; used to control lifetime of job (cancel, restart, keep).
         /// Used also to receive the diagnostic info
         /// </summary>
-        /// <param name="heartbeat"></param>
-        /// <param name="diagInfo"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
         public async Task<HeartbeatResultModel> SendHeartbeatAsync(
-            HeartbeatModel heartbeat, 
-            JobDiagnosticInfoModel diagInfo, 
-            CancellationToken ct = default
-        ) {
+            HeartbeatModel heartbeat,
+            JobDiagnosticInfoModel diagInfo,
+            CancellationToken ct = default) {
             if (heartbeat == null || heartbeat.Worker == null) {
                 throw new ArgumentNullException(nameof(heartbeat));
             }
@@ -151,7 +131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 // JobProcess have to finished current and process new job (if job != null) otherwise complete
                                 //  TODO: since just the content of the datasets is changed, just trigger a job update
                                 heartbeatResultModel = new HeartbeatResultModel {
-                                    HeartbeatInstruction = HeartbeatInstruction.CancelProcessing,
+                                    HeartbeatInstruction = HeartbeatInstruction.Update,
                                     LastActiveHeartbeat = DateTime.UtcNow,
                                     UpdatedJob = job,
                                 };
@@ -271,8 +251,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Deserialize string representing published nodes file into PublishedNodesEntryModel entries and
         /// run schema validation if that is enables.
         /// </summary>
-        /// <param name="content"></param>
-        /// <returns></returns>
         private IEnumerable<PublishedNodesEntryModel> DeserializePublishedNodes(string content) {
             bool ioErrorEncountered = false;
             if (File.Exists(_legacyCliModel.PublishedNodesSchemaFile)) {
