@@ -27,9 +27,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
 
     /// <summary>
-    /// Tests the LegacyJobOrchestrator class
+    /// Tests the StandaloneJobOrchestrator class
     /// </summary>
-    public class LegacyJobOrchestratorTests : TempFileProviderBase {
+    public class StandaloneJobOrchestratorTests : TempFileProviderBase {
 
         private readonly AgentConfigModel _agentConfigModel;
         private readonly Mock<IAgentConfigProvider> _agentConfigProviderMock;
@@ -37,15 +37,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         private readonly PublisherJobSerializer _publisherJobSerializer;
         private readonly ILogger _logger;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
-        private readonly LegacyCliModel _legacyCliModel;
-        private readonly Mock<ILegacyCliModelProvider> _legacyCliModelProviderMock;
-        LegacyJobOrchestrator _legacyJobOrchestrator;
+        private readonly StandaloneCliModel _standaloneCliModel;
+        private readonly Mock<IStandaloneCliModelProvider> _standaloneCliModelProviderMock;
+        StandaloneJobOrchestrator _standaloneJobOrchestrator;
         private readonly PublishedNodesProvider _publishedNodesProvider;
 
         /// <summary>
         /// Constructor that initializes common resources used by tests.
         /// </summary>
-        public LegacyJobOrchestratorTests() {
+        public StandaloneJobOrchestratorTests() {
             _agentConfigModel = new AgentConfigModel();
             _agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             _agentConfigProviderMock.Setup(p => p.Config).Returns(_agentConfigModel);
@@ -57,25 +57,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Note that each test is responsible for setting content of _tempFile;
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
-            _legacyCliModel = new LegacyCliModel {
+            _standaloneCliModel = new StandaloneCliModel {
                 PublishedNodesFile = _tempFile,
                 PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
             };
 
-            _legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
-            _legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(_legacyCliModel);
+            _standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
+            _standaloneCliModelProviderMock.Setup(p => p.StandaloneCliModel).Returns(_standaloneCliModel);
 
-            _publishedNodesProvider = new PublishedNodesProvider(_legacyCliModelProviderMock.Object, _logger);
+            _publishedNodesProvider = new PublishedNodesProvider(_standaloneCliModelProviderMock.Object, _logger);
         }
 
         /// <summary>
-        /// Initializes _legacyJobOrchestrator.
+        /// Initializes _standaloneJobOrchestrator.
         /// This method should be called only after content of _tempFile is set.
         /// </summary>
-        private void InitLegacyJobOrchestrator() {
-            _legacyJobOrchestrator = new LegacyJobOrchestrator(
+        private void InitStandaloneJobOrchestrator() {
+            _standaloneJobOrchestrator = new StandaloneJobOrchestrator(
                 _publishedNodesJobConverter,
-                _legacyCliModelProviderMock.Object,
+                _standaloneCliModelProviderMock.Object,
                 _agentConfigProviderMock.Object,
                 _publisherJobSerializer,
                 _logger,
@@ -89,11 +89,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/publishednodeswithoptionalfields.json")]
         public async Task GetAvailableJobAsyncMulithreading(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
             for (var i = 0; i < 10; i++) {
-                tasks.Add(_legacyJobOrchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
+                tasks.Add(_standaloneJobOrchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
             }
 
             await Task.WhenAll(tasks);
@@ -111,13 +111,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/pn_assets_with_optional_fields.json")]
         public void Test_PnJson_With_Multiple_Jobs_Expect_DifferentJobIds(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
-            var job1 = _legacyJobOrchestrator.GetAvailableJobAsync(1.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var job1 = _standaloneJobOrchestrator.GetAvailableJobAsync(1.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.NotNull(job1);
-            var job2 = _legacyJobOrchestrator.GetAvailableJobAsync(2.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var job2 = _standaloneJobOrchestrator.GetAvailableJobAsync(2.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.NotNull(job2);
-            var job3 = _legacyJobOrchestrator.GetAvailableJobAsync(3.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var job3 = _standaloneJobOrchestrator.GetAvailableJobAsync(3.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.Null(job3);
 
             Assert.NotEqual(job1.Job.Id, job2.Job.Id);
@@ -125,11 +125,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_PublishNodes_NullOrEmpty() {
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
             // Check null request.
             await FluentActions
-                .Invoking(async () => await _legacyJobOrchestrator
+                .Invoking(async () => await _standaloneJobOrchestrator
                     .PublishNodesAsync(null)
                     .ConfigureAwait(false))
                 .Should()
@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Check null OpcNodes in request.
             await FluentActions
-                .Invoking(async () => await _legacyJobOrchestrator
+                .Invoking(async () => await _standaloneJobOrchestrator
                     .PublishNodesAsync(request)
                     .ConfigureAwait(false))
                 .Should()
@@ -156,7 +156,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Check empty OpcNodes in request.
             await FluentActions
-                .Invoking(async () => await _legacyJobOrchestrator
+                .Invoking(async () => await _standaloneJobOrchestrator
                     .PublishNodesAsync(request)
                     .ConfigureAwait(false))
                 .Should()
@@ -167,11 +167,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_UnpublishNodes_NullOrEmpty() {
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
             // Check null request.
             await FluentActions
-                .Invoking(async () => await _legacyJobOrchestrator
+                .Invoking(async () => await _standaloneJobOrchestrator
                     .UnpublishNodesAsync(null)
                     .ConfigureAwait(false))
                 .Should()
@@ -186,7 +186,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Check null OpcNodes in request.
             await FluentActions
-                .Invoking(async () => await _legacyJobOrchestrator
+                .Invoking(async () => await _standaloneJobOrchestrator
                     .UnpublishNodesAsync(request)
                     .ConfigureAwait(false))
                 .Should()
@@ -198,7 +198,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Check empty OpcNodes in request.
             await FluentActions
-                .Invoking(async () => await _legacyJobOrchestrator
+                .Invoking(async () => await _standaloneJobOrchestrator
                     .UnpublishNodesAsync(request)
                     .ConfigureAwait(false))
                 .Should()
@@ -209,11 +209,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_GetConfiguredNodesOnEndpoint_NullRequest() {
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
             // Check call with null.
             await FluentActions
-                .Invoking(async () => await _legacyJobOrchestrator
+                .Invoking(async () => await _standaloneJobOrchestrator
                     .GetConfiguredNodesOnEndpointAsync(null)
                     .ConfigureAwait(false))
                 .Should()
@@ -224,11 +224,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_AddOrUpdateEndpoints_NullRequest() {
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
             // Check call with null.
             await FluentActions
-                .Invoking(async () => await _legacyJobOrchestrator
+                .Invoking(async () => await _standaloneJobOrchestrator
                     .AddOrUpdateEndpointsAsync(null)
                     .ConfigureAwait(false))
                 .Should()
@@ -239,7 +239,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries() {
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
             var numberOfEndpoints = 3;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
@@ -259,7 +259,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // The call should throw an exception.
             await FluentActions
-                .Invoking(async () => await _legacyJobOrchestrator
+                .Invoking(async () => await _standaloneJobOrchestrator
                     .AddOrUpdateEndpointsAsync(endpoints)
                     .ConfigureAwait(false))
                 .Should()
@@ -277,11 +277,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             bool useDataSetSpecificEndpoints,
             bool enableAvailableJobQuerying
         ) {
-            _legacyCliModel.DefaultMaxNodesPerDataSet = 2;
+            _standaloneCliModel.DefaultMaxNodesPerDataSet = 2;
 
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
-            var job0 = _legacyJobOrchestrator.GetAvailableJobAsync(0.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var job0 = _standaloneJobOrchestrator.GetAvailableJobAsync(0.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.Null(job0);
 
             var numberOfEndpoints = 100;
@@ -297,13 +297,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ToList();
 
             async Task CallGetAvailableJobAsync(
-                LegacyJobOrchestrator legacyJobOrchestrator,
+                StandaloneJobOrchestrator standaloneJobOrchestrator,
                 string workerId,
                 CancellationToken cancellationToken
             ) {
                 try {
                     while (!cancellationToken.IsCancellationRequested) {
-                        var jobProcessingInstructionModel = await legacyJobOrchestrator
+                        var jobProcessingInstructionModel = await standaloneJobOrchestrator
                             .GetAvailableJobAsync(workerId, null, cancellationToken)
                             .ConfigureAwait(false);
 
@@ -320,20 +320,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var getAvailableJobTasks = new List<Task>();
             if (enableAvailableJobQuerying) {
                 for (var i = 0; i < numberOfEndpoints; i++) {
-                    getAvailableJobTasks.Add(CallGetAvailableJobAsync(_legacyJobOrchestrator, i.ToString(), cts.Token));
+                    getAvailableJobTasks.Add(CallGetAvailableJobAsync(_standaloneJobOrchestrator, i.ToString(), cts.Token));
                 }
             }
 
             var tasks = new List<Task>();
             for (var i = 0; i < numberOfEndpoints; i++) {
-                tasks.Add(_legacyJobOrchestrator.AddOrUpdateEndpointsAsync(
+                tasks.Add(_standaloneJobOrchestrator.AddOrUpdateEndpointsAsync(
                     new List<PublishedNodesEntryModel> { endpoints[i] }));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             for (var i = 0; i < numberOfEndpoints; i++) {
-                var endpointNodes = await _legacyJobOrchestrator
+                var endpointNodes = await _standaloneJobOrchestrator
                     .GetConfiguredNodesOnEndpointAsync(endpoints[i])
                     .ConfigureAwait(false);
 
@@ -354,7 +354,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task Test_AddOrUpdateEndpoints_RemoveEndpoints(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
             string payload = Utils.GetFileContent(publishedNodesFile);
             var payloadRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
@@ -375,7 +375,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
                 if (sameDataSetRemoved) {
                     await FluentActions
-                        .Invoking(async () => await _legacyJobOrchestrator
+                        .Invoking(async () => await _standaloneJobOrchestrator
                             .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
                             .ConfigureAwait(false))
                         .Should()
@@ -385,7 +385,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 }
                 else {
                     await FluentActions
-                        .Invoking(async () => await _legacyJobOrchestrator
+                        .Invoking(async () => await _standaloneJobOrchestrator
                             .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
                             .ConfigureAwait(false))
                         .Should()
@@ -396,7 +396,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 }
             }
 
-            var configuredEndpoints = await _legacyJobOrchestrator
+            var configuredEndpoints = await _standaloneJobOrchestrator
                 .GetConfiguredEndpointsAsync()
                 .ConfigureAwait(false);
             Assert.Equal(0, configuredEndpoints.Count);
@@ -404,11 +404,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_AddOrUpdateEndpoints_AddAndRemove() {
-            _legacyCliModel.DefaultMaxNodesPerDataSet = 2;
+            _standaloneCliModel.DefaultMaxNodesPerDataSet = 2;
 
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
-            var job0 = _legacyJobOrchestrator.GetAvailableJobAsync(0.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var job0 = _standaloneJobOrchestrator.GetAvailableJobAsync(0.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.Null(job0);
 
             var opcNodes = Enumerable.Range(0, 5)
@@ -419,11 +419,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Helper method.
             async Task AssertGetConfiguredNodesOnEndpointThrows(
-                LegacyJobOrchestrator legacyJobOrchestrator,
+                StandaloneJobOrchestrator standaloneJobOrchestrator,
                 PublishedNodesEntryModel endpoint
             ) {
                 await FluentActions
-                    .Invoking(async () => await legacyJobOrchestrator
+                    .Invoking(async () => await standaloneJobOrchestrator
                         .GetConfiguredNodesOnEndpointAsync(endpoint)
                         .ConfigureAwait(false))
                     .Should()
@@ -438,13 +438,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             var tasks = new List<Task>();
             for (var i = 0; i < 3; i++) {
-                tasks.Add(_legacyJobOrchestrator.PublishNodesAsync(endpoints[i]));
+                tasks.Add(_standaloneJobOrchestrator.PublishNodesAsync(endpoints[i]));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             for (var i = 0; i < 3; i++) {
-                var endpointNodes = await _legacyJobOrchestrator
+                var endpointNodes = await _standaloneJobOrchestrator
                     .GetConfiguredNodesOnEndpointAsync(endpoints[i])
                     .ConfigureAwait(false);
 
@@ -453,7 +453,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Those calls should throw.
             for (var i = 3; i < 5; i++) {
-                await AssertGetConfiguredNodesOnEndpointThrows(_legacyJobOrchestrator, endpoints[i])
+                await AssertGetConfiguredNodesOnEndpointThrows(_standaloneJobOrchestrator, endpoints[i])
                     .ConfigureAwait(false);
             }
 
@@ -467,7 +467,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Should throw as updateRequest[3] endpoint is not present in current configuratoin.
             await FluentActions
-                .Invoking(async () => await _legacyJobOrchestrator
+                .Invoking(async () => await _standaloneJobOrchestrator
                     .AddOrUpdateEndpointsAsync(updateRequest)
                     .ConfigureAwait(false))
                 .Should()
@@ -476,29 +476,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ConfigureAwait(false);
 
             updateRequest.RemoveAt(3);
-            await _legacyJobOrchestrator.AddOrUpdateEndpointsAsync(updateRequest).ConfigureAwait(false);
+            await _standaloneJobOrchestrator.AddOrUpdateEndpointsAsync(updateRequest).ConfigureAwait(false);
 
             // Check endpoint 0.
-            await AssertGetConfiguredNodesOnEndpointThrows(_legacyJobOrchestrator, endpoints[0])
+            await AssertGetConfiguredNodesOnEndpointThrows(_standaloneJobOrchestrator, endpoints[0])
                 .ConfigureAwait(false);
 
             // Check endpoint 1.
-            await AssertGetConfiguredNodesOnEndpointThrows(_legacyJobOrchestrator, endpoints[1])
+            await AssertGetConfiguredNodesOnEndpointThrows(_standaloneJobOrchestrator, endpoints[1])
                 .ConfigureAwait(false);
 
             // Check endpoint 2.
-            var endpointNodes2 = await _legacyJobOrchestrator
+            var endpointNodes2 = await _standaloneJobOrchestrator
                 .GetConfiguredNodesOnEndpointAsync(endpoints[2])
                 .ConfigureAwait(false);
 
             AssertSameNodes(updateRequest[2], endpointNodes2);
 
             // Check endpoint 3.
-            await AssertGetConfiguredNodesOnEndpointThrows(_legacyJobOrchestrator, endpoints[3])
+            await AssertGetConfiguredNodesOnEndpointThrows(_standaloneJobOrchestrator, endpoints[3])
                 .ConfigureAwait(false);
 
             // Check endpoint 4.
-            var endpointNodes4 = await _legacyJobOrchestrator
+            var endpointNodes4 = await _standaloneJobOrchestrator
                 .GetConfiguredNodesOnEndpointAsync(endpoints[4])
                 .ConfigureAwait(false);
 
@@ -509,19 +509,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/pn_opc_nodes_empty.json")]
         [InlineData("Engine/pn_opc_nodes_null.json")]
         [InlineData("Engine/pn_opc_nodes_empty_and_null.json")]
-        public async Task Test_InitLegacyJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile) {
+        public async Task Test_InitstandaloneJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
-            InitLegacyJobOrchestrator();
+            InitStandaloneJobOrchestrator();
 
             // Engine/empty_opc_nodes.json contains entries with null or empty OpcNodes.
-            // Those entries should not result in any endpoint entries in LegacyJobOrchestrator.
-            var configuredEndpoints = await _legacyJobOrchestrator
+            // Those entries should not result in any endpoint entries in standaloneJobOrchestrator.
+            var configuredEndpoints = await _standaloneJobOrchestrator
                 .GetConfiguredEndpointsAsync()
                 .ConfigureAwait(false);
             Assert.Equal(0, configuredEndpoints.Count);
 
             // There should also not be any job entries.
-            var jobModel = await _legacyJobOrchestrator.GetAvailableJobAsync("0", new JobRequestModel());
+            var jobModel = await _standaloneJobOrchestrator.GetAvailableJobAsync("0", new JobRequestModel());
             Assert.Null(jobModel);
         }
 
