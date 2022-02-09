@@ -391,6 +391,11 @@ namespace IIoTPlatform_E2E_Tests {
             /// GetDiagnosticInfo
             /// </summary>
             public const string GetDiagnosticInfo = "GetDiagnosticInfo_V1";
+
+            /// <summary>
+            /// AddOrUpdateEndpoints
+            /// </summary>
+            public const string AddOrUpdateEndpoints = "AddOrUpdateEndpoints_V1";
         }
 
         /// <summary>

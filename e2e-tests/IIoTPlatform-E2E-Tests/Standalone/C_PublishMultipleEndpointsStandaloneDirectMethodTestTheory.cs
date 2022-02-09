@@ -36,9 +36,14 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         ) : base(output, context) {}
 
         [Theory]
-        [InlineData(MessagingMode.Samples)]
-        [InlineData(MessagingMode.PubSub)]
-        async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode) {
+        [InlineData(MessagingMode.Samples, false)]
+        [InlineData(MessagingMode.Samples, true)]
+        [InlineData(MessagingMode.PubSub, false)]
+        [InlineData(MessagingMode.PubSub, true)]
+        async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode, bool useAddOrUpdate) {
+            // When useAddOrUpdate is true, all publishing and unpublishing operations
+            // will be performed through AddOrUpdateEndpoints direct method.
+
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
 
@@ -94,15 +99,29 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             nodesToPublish0.OpcNodes = nodes0.ToArray();
 
             var request0 = nodesToPublish0.ToApiModel();
+            MethodResultModel response = null;
 
-            //Call Publish direct method
-            var response = await CallMethodAsync(
-                new MethodParameterModel {
-                    Name = TestConstants.DirectMethodNames.PublishNodes,
-                    JsonPayload = _serializer.SerializeToString(request0)
-                },
-                cts.Token
-            ).ConfigureAwait(false);
+            //Publish nodes for endpoint 0
+            if (useAddOrUpdate) {
+                //Call AddOrUpdateEndpoints direct method
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
+                        JsonPayload = _serializer.SerializeToString(new List<PublishNodesEndpointApiModel> { request0 })
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
+            else {
+                //Call PublishNodes direct method
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.PublishNodes,
+                        JsonPayload = _serializer.SerializeToString(request0)
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
@@ -117,14 +136,27 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             var request1 = nodesToPublish1.ToApiModel();
 
-            //Call Publish direct method
-            response = await CallMethodAsync(
-                new MethodParameterModel {
-                    Name = TestConstants.DirectMethodNames.PublishNodes,
-                    JsonPayload = _serializer.SerializeToString(request1)
-                },
-                cts.Token
-            ).ConfigureAwait(false);
+            //Publish nodes for endpoint 1
+            if (useAddOrUpdate) {
+                //Call AddOrUpdateEndpoints direct method
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
+                        JsonPayload = _serializer.SerializeToString(new List<PublishNodesEndpointApiModel> { request1 })
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
+            else {
+                //Call PublishNodes direct method
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.PublishNodes,
+                        JsonPayload = _serializer.SerializeToString(request1)
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
@@ -193,7 +225,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
-            Assert.True((int)publishingMonitoringResultJson.totalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
 
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null) {
@@ -204,8 +236,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                     }
                 }
 
-                foreach (dynamic property in publishingMonitoringResultJson.valueChangesByNodeId) {
-                    var propertyName = (string)property.Name;
+                foreach (var property in publishingMonitoringResultJson.ValueChangesByNodeId) {
+                    var propertyName = property.Key;
                     var nodeId = propertyName.Split('#').Last();
                     var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
                     Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
@@ -218,26 +250,53 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 Assert.Empty(expectedNodes);
             }
 
-            //Call Unpublish direct method
-            response = await CallMethodAsync(
-                new MethodParameterModel {
-                    Name = TestConstants.DirectMethodNames.UnPublishNodes,
-                    JsonPayload = _serializer.SerializeToString(request0)
-                },
-                cts.Token
-            ).ConfigureAwait(false);
+            //Unpublish all nodes for endpoint 0
+            if (useAddOrUpdate) {
+                //Call AddOrUpdateEndpoints direct method
+                request0.OpcNodes?.Clear();
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
+                        JsonPayload = _serializer.SerializeToString(new List<PublishNodesEndpointApiModel> { request0 })
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
+            else {
+                //Call UnpublishNodes direct method
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.UnPublishNodes,
+                        JsonPayload = _serializer.SerializeToString(request0)
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
-            //Call UnpublishAll direct method
+            //Unpublish all nodes for endpoint 1
             request1.OpcNodes?.Clear();
-            response = await CallMethodAsync(
-                new MethodParameterModel {
-                    Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
-                    JsonPayload = _serializer.SerializeToString(request1)
-                },
-                cts.Token
-            ).ConfigureAwait(false);
+            if (useAddOrUpdate) {
+                //Call AddOrUpdateEndpoints direct method
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
+                        JsonPayload = _serializer.SerializeToString(new List<PublishNodesEndpointApiModel> { request1 })
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
+            else {
+                //Call UnpublishAllNodes direct method
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
+                        JsonPayload = _serializer.SerializeToString(request1)
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
@@ -265,8 +324,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Stop monitoring and get the result.
             var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True((int)unpublishingMonitoringResultJson.totalValueChangesCount == 0,
-                $"Messages received at IoT Hub: {(int)unpublishingMonitoringResultJson.totalValueChangesCount}");
+            Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
+                $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
         }
 
 
@@ -433,7 +492,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
-            Assert.True((int)publishingMonitoringResultJson.totalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
 
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null) {
@@ -444,8 +503,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                     }
                 }
 
-                foreach (dynamic property in publishingMonitoringResultJson.valueChangesByNodeId) {
-                    var propertyName = (string)property.Name;
+                foreach (var property in publishingMonitoringResultJson.ValueChangesByNodeId) {
+                    var propertyName = property.Key;
                     var nodeId = propertyName.Split('#').Last();
                     var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
                     Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
@@ -507,8 +566,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Stop monitoring and get the result.
             var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
-            Assert.True((int)unpublishingMonitoringResultJson.totalValueChangesCount == 0,
-                $"Messages received at IoT Hub: {(int)unpublishingMonitoringResultJson.totalValueChangesCount}");
+            Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
+                $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
         }
     }
 }

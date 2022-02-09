@@ -90,11 +90,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True((int)publishingMonitoringResultJson.totalValueChangesCount > 0, "No messages received at IoT Hub");
-            Assert.True((uint)publishingMonitoringResultJson.droppedValueCount == 0,
-                $"Dropped messages detected: {(uint)publishingMonitoringResultJson.droppedValueCount}");
-            Assert.True((uint)publishingMonitoringResultJson.duplicateValueCount == 0,
-                $"Duplicate values detected: {(uint)publishingMonitoringResultJson.duplicateValueCount}");
+            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
+                $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
+            Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
+                $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
 
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(
@@ -116,8 +116,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Stop monitoring and get the result.
             var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True((int)unpublishingMonitoringResultJson.totalValueChangesCount == 0,
-                $"Messages received at IoT Hub: {(int)unpublishingMonitoringResultJson.totalValueChangesCount}");
+            Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
+                $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
         }
     }
 }

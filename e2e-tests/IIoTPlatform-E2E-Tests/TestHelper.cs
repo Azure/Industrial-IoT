@@ -27,6 +27,7 @@ namespace IIoTPlatform_E2E_Tests {
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
+    using IIoTPlatform_E2E_Tests.TestEventProcessor;
 
     internal static partial class TestHelper {
 
@@ -462,7 +463,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async Task<dynamic> StopMonitoringIncomingMessagesAsync(
+        public static async Task<StopResult> StopMonitoringIncomingMessagesAsync(
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
@@ -484,11 +485,10 @@ namespace IIoTPlatform_E2E_Tests {
 
             var response = await client.ExecuteAsync(request, ct);
 
-            dynamic json = JsonConvert.DeserializeObject(response.Content);
-            Assert.NotNull(json);
-            Assert.NotEmpty(json);
+            var result = JsonConvert.DeserializeObject<StopResult>(response.Content);
+            Assert.NotNull(result);
 
-            return json;
+            return result;
         }
 
         /// <summary>

@@ -36,9 +36,14 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         ) : base(output, context) { }
 
         [Theory]
-        [InlineData(MessagingMode.Samples)]
-        [InlineData(MessagingMode.PubSub)]
-        async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode) {
+        [InlineData(MessagingMode.Samples, false)]
+        [InlineData(MessagingMode.Samples, true)]
+        [InlineData(MessagingMode.PubSub, false)]
+        [InlineData(MessagingMode.PubSub, true)]
+        async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode, bool useAddOrUpdate) {
+            // When useAddOrUpdate is true, all publishing and unpublishing operations
+            // will be performed through AddOrUpdateEndpoints direct method.
+
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
 
@@ -65,8 +70,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
-            var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token).ConfigureAwait(false);
-
             // We will wait for module to be deployed.
             var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
                 _context.DeviceConfig.DeviceId,
@@ -87,16 +90,31 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
             Assert.Equal(configuredEndpointsResponse.Count, 0);
 
+            var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token).ConfigureAwait(false);
             var request = nodesToPublish.ToApiModel();
+            MethodResultModel response = null;
 
-            //Call Publish direct method
-            var response = await CallMethodAsync(
-                new MethodParameterModel {
-                    Name = TestConstants.DirectMethodNames.PublishNodes,
-                    JsonPayload = _serializer.SerializeToString(request)
-                },
-                cts.Token
-            ).ConfigureAwait(false);
+            //Publish nodes for the endpoint
+            if (useAddOrUpdate) {
+                //Call AddOrUpdateEndpoints direct method
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
+                        JsonPayload = _serializer.SerializeToString(new List<PublishNodesEndpointApiModel> { request })
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
+            else {
+                //Call PublishNodes direct method
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.PublishNodes,
+                        JsonPayload = _serializer.SerializeToString(request)
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
@@ -140,17 +158,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
-            Assert.True((int)publishingMonitoringResultJson.totalValueChangesCount > 0, "No messages received at IoT Hub");
-            Assert.True((uint)publishingMonitoringResultJson.droppedValueCount == 0,
-                $"Dropped messages detected: {(uint)publishingMonitoringResultJson.droppedValueCount}");
-            Assert.True((uint)publishingMonitoringResultJson.duplicateValueCount == 0,
-                $"Duplicate values detected: {(uint)publishingMonitoringResultJson.duplicateValueCount}");
+            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.Equal(publishingMonitoringResultJson.ValueChangesByNodeId.Count, request.OpcNodes.Count);
+            Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
+                $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
+            Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
+                $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
 
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null) {
                 var expectedNodes = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id).ToList();
-                foreach (dynamic property in publishingMonitoringResultJson.valueChangesByNodeId) {
-                    var propertyName = (string)property.Name;
+                foreach (var property in publishingMonitoringResultJson.ValueChangesByNodeId) {
+                    var propertyName = property.Key;
                     var nodeId = propertyName.Split('#').Last();
                     var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
                     Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
@@ -161,14 +180,28 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 Assert.Empty(expectedNodes);
             }
 
-            //Call Unpublish direct method
-            response = await CallMethodAsync(
-                new MethodParameterModel {
-                    Name = TestConstants.DirectMethodNames.UnPublishNodes,
-                    JsonPayload = _serializer.SerializeToString(request)
-                },
-                cts.Token
-            ).ConfigureAwait(false);
+            //Unpublish all nodes for the endpoint
+            if (useAddOrUpdate) {
+                //Call AddOrUpdateEndpoints direct method
+                request.OpcNodes = null;
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
+                        JsonPayload = _serializer.SerializeToString(new List<PublishNodesEndpointApiModel> { request })
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
+            else {
+                //Call UnPublishNodes direct method
+                response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.UnPublishNodes,
+                        JsonPayload = _serializer.SerializeToString(request)
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+            }
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
@@ -184,10 +217,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Stop monitoring and get the result.
             var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True((int)unpublishingMonitoringResultJson.totalValueChangesCount == 0,
-                $"Messages received at IoT Hub: {(int)unpublishingMonitoringResultJson.totalValueChangesCount}");
+            Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
+                $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
         }
-
 
         [Fact]
         async Task SubscribeUnsubscribeDirectMethodLegacyPublisherTest() {
@@ -296,17 +328,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
-            Assert.True((int)publishingMonitoringResultJson.totalValueChangesCount > 0, "No messages received at IoT Hub");
-            Assert.True((uint)publishingMonitoringResultJson.droppedValueCount == 0,
-                $"Dropped messages detected: {(uint)publishingMonitoringResultJson.droppedValueCount}");
-            Assert.True((uint)publishingMonitoringResultJson.duplicateValueCount == 0,
-                $"Duplicate values detected: {(uint)publishingMonitoringResultJson.duplicateValueCount}");
+            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.Equal(publishingMonitoringResultJson.ValueChangesByNodeId.Count, request.OpcNodes.Count);
+            Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
+                $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
+            Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
+                $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
 
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null) {
                 var expectedNodes = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id).ToList();
-                foreach (dynamic property in publishingMonitoringResultJson.valueChangesByNodeId) {
-                    var propertyName = (string)property.Name;
+                foreach (var property in publishingMonitoringResultJson.ValueChangesByNodeId) {
+                    var propertyName = property.Key;
                     var nodeId = propertyName.Split('#').Last();
                     var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
                     Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
@@ -340,8 +373,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Stop monitoring and get the result.
             var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True((int)unpublishingMonitoringResultJson.totalValueChangesCount == 0,
-                $"Messages received at IoT Hub: {(int)unpublishingMonitoringResultJson.totalValueChangesCount}");
+            Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
+                $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
         }
     }
 }
