@@ -86,16 +86,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     });
                 }
 
-                var publishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await methodsController.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                publishNodesResult.Subject.StatusMessage.First()
-                    .Should()
-                    .Contain("succeeded");
-
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -110,16 +105,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .Be(2);
 
             foreach (var request in publishNodesRequest) {
-                var publishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await methodsController
                     .UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                publishNodesResult.Subject.StatusMessage.First()
-                    .Should()
-                    .Contain("succeeded");
             }
 
             tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -185,16 +176,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     });
                 }
 
-                var publishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await methodsController.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                publishNodesResult.Subject.StatusMessage.First()
-                    .Should()
-                    .Contain("succeeded");
-
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -213,16 +199,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             foreach (var request in unpublishAllNodesRequest) {
                 request.OpcNodes?.Clear();
-                var unpublishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await methodsController
                     .UnpublishAllNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                unpublishNodesResult.Subject.StatusMessage.First()
-                    .Should()
-                    .Contain("succeeded");
             }
 
             tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -275,16 +257,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             foreach (var request in publishNodesRequests) {
 
-                var publishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await methodsController
                     .PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                publishNodesResult.Subject.StatusMessage.First()
-                    .Should()
-                    .Contain("succeeded");
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -571,15 +549,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
-                var publishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await methodsController.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                publishNodesResult.Subject.StatusMessage.First()
-                    .Should()
-                    .Contain("succeeded");
             }
             return methodsController;
         }
@@ -634,17 +608,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Publish nodes
             foreach (var request in publishNodesRequests) {
-
-                var publishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await methodsController
                     .PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                publishNodesResult.Subject.StatusMessage.First()
-                    .Should()
-                    .Contain("succeeded");
             }
 
             // Check configured endpoints count
