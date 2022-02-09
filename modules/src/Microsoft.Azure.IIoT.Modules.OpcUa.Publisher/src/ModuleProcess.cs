@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
-            var legacyCliOptions = new LegacyCliOptions(configuration);
+            var standaloneCliOptions = new StandaloneCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -204,10 +204,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            if (legacyCliOptions.RunInLegacyMode) {
+            if (standaloneCliOptions.RunInStandaloneMode) {
                 builder.AddDiagnostics(config,
-                    legacyCliOptions.ToLoggerConfiguration());
-                builder.RegisterInstance(legacyCliOptions)
+                    standaloneCliOptions.ToLoggerConfiguration());
+                builder.RegisterInstance(standaloneCliOptions)
                     .AsImplementedInterfaces();
 
                 // we overwrite the ModuleHost registration from PerLifetimeScope
@@ -219,7 +219,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 builder.RegisterType<PublishedNodesProvider>()
                     .AsImplementedInterfaces().SingleInstance();
                 // Local orchestrator
-                builder.RegisterType<LegacyJobOrchestrator>()
+                builder.RegisterType<StandaloneJobOrchestrator>()
                     .AsImplementedInterfaces().SingleInstance();
                 // Create jobs from published nodes file
                 builder.RegisterType<PublishedNodesJobConverter>()

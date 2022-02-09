@@ -29,7 +29,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddCommandLine(args)
-                .AddLegacyPublisherCommandLine(args) // making sure the Legacy arguments are processed at last so they are not overriden
+                .AddStandalonePublisherCommandLine(args)
+                // making sure the standalone arguments are processed at last so they are not overriden
                 .Build();
 
 #if DEBUG
