@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System;
 
     /// <summary>
@@ -16,10 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Create subscription info model from message trigger configuration.
         /// </summary>
-        /// <param name="dataSetWriter"></param>
-        /// <returns></returns>
         public static SubscriptionModel ToSubscriptionModel(
-            this DataSetWriterModel dataSetWriter) {
+            this DataSetWriterModel dataSetWriter, IWriterGroupConfig groupConfig) {
             if (dataSetWriter == null) {
                 return null;
             }
@@ -40,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             if (monitoredItems.Count == 0) {
                 throw new ArgumentException(nameof(dataSetWriter.DataSet.DataSetSource));
             }
-            return new SubscriptionModel {
+            var model = new SubscriptionModel {
                 Connection = dataSetWriter.DataSet.DataSetSource.Connection.Clone(),
                 Id = dataSetWriter.DataSetWriterId,
                 MonitoredItems = monitoredItems,
@@ -48,6 +46,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 Configuration = dataSetWriter.DataSet.DataSetSource
                     .ToSubscriptionConfigurationModel()
             };
+
+            model.Connection.Group ??= groupConfig?.WriterGroup?.WriterGroupId;
+            return model;
         }
     }
 }

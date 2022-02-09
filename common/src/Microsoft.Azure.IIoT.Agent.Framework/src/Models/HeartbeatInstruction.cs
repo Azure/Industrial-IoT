@@ -22,6 +22,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// <summary>
         /// Cancel processing
         /// </summary>
-        CancelProcessing
+        CancelProcessing,
+
+        /// <summary>
+        /// Update configuration
+        /// </summary>
+        Update,
     }
 }
