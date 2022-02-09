@@ -45,23 +45,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         private readonly ILogger _logger;
 
-        /// <summary>
-        /// We have to lookup payload identifier per notitication, because we have to handle huge amount of
-        /// notifications a cache is useful
-        /// </summary>
-        /// <remarks>
-        /// Clearing the cache is not necessary in standalone mode, each modification to published_nodes.json
-        /// will create new instance of NetworkMessageEncoder.
-        ///
-        /// Currently orchestrated mode don't support PubSub format, therefor the cache don't need to be cleaned
-        /// This need to be rechecked, once orchestrated mode support PubSub
-        /// </remarks>
-        private readonly IDictionary<string, string> _knownPayloadIdentifiers;
-
         /// <inheritdoc/>
         public NetworkMessageEncoder(ILogger logger) {
             _logger = logger;
-            _knownPayloadIdentifiers = new Dictionary<string, string>(5000);
         }
 
         /// <inheritdoc/>
@@ -108,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
             var current = notifications.GetEnumerator();
@@ -193,7 +179,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
             var current = notifications.GetEnumerator();
@@ -263,7 +249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
             foreach (var networkMessage in notifications) {
@@ -313,7 +299,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
 
@@ -354,7 +340,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <returns></returns>
         private IEnumerable<NetworkMessage> GetNetworkMessages(
             IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (context?.NamespaceUris == null) {
                 // Declare all notifications in messages as dropped.
                 int totalNotifications = messages.Sum(m => m?.Notifications?.Count() ?? 0);
@@ -386,7 +372,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             .Select(q => q.Any() ? q.Dequeue() : null)
                             .Where(s => s != null)
                             .ToDictionary(
-                                s => GetPayloadIdentifier(s, message, context),
+                                //  Identifier to show for notification in payload of IoT Hub method
+                                //  Prio 1: DataSetFieldId (need to be read from message)
+                                //  Prio 2: DisplayName - nothing to do, because notification.Id already contains DisplayName
+                                //  Prio 3: NodeId as configured
+                                s => !string.IsNullOrEmpty(s.Id) ?
+                                        s.Id : 
+                                        !string.IsNullOrEmpty(s.DisplayName) ?
+                                            s.DisplayName :
+                                            s.NodeId,
                                 s => s.Value
                             );
 
@@ -411,63 +405,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     yield return networkMessage;
                 }
             }
-        }
-
-        /// <summary>
-        ///  Reads to identifier to show for notification in payload of IoT Hub method
-        ///  Prio 1: DataSetFieldId (need to be read from message)
-        ///  Prio 2: DisplayName - nothing to do, because notification.Id already contains DisplayName
-        ///  Prio 3: ExpandedNodeId
-        /// </summary>
-        /// <param name="notification">Notification, were ID need to be looked up for</param>
-        /// <param name="message">subscription notification message, containing notifications</param>
-        /// <param name="context">service context</param>
-        /// <returns>identifier of payload element</returns>
-        private string GetPayloadIdentifier(MonitoredItemNotificationModel notification, DataSetMessageModel message, ServiceMessageContext context) {
-            if (notification is null) {
-                throw new ArgumentNullException(nameof(notification));
-            }
-
-            if (message is null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            if (context is null) {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            var notificationNodeId = notification.NodeId.ToString();
-            var notificationExpandedNodeId = notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context);
-
-            if (_knownPayloadIdentifiers.TryGetValue(notificationNodeId, out var knownPayloadIdentifier) && !string.IsNullOrEmpty(knownPayloadIdentifier)) {
-                return knownPayloadIdentifier;
-            }
-            else {
-                //do the long running lookup as less as possible
-                var dataSetWriter = message.Writer;
-                foreach (var publishedVariableData in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
-                    if (publishedVariableData.PublishedVariableNodeId == notification.NodeId
-                        || publishedVariableData.PublishedVariableNodeId.ToExpandedNodeId(context).AsString(context) == notificationExpandedNodeId) {
-                        if (publishedVariableData.Id != notification.NodeId) {
-                            _knownPayloadIdentifiers[notificationNodeId] = publishedVariableData.Id;
-                            return publishedVariableData.Id;
-                        } else {
-                            var notificationIdentifier = !string.IsNullOrEmpty(notification.Id)
-                                    ? notification.Id
-                                    : notificationExpandedNodeId;
-                            _knownPayloadIdentifiers[notificationNodeId] = notificationIdentifier;
-                            return notificationIdentifier;
-                        }
-                    }
-                }
-            }
-
-            // Fall back to id of the notification or expanded node id.
-            var knownIdentifier = !string.IsNullOrEmpty(notification.Id)
-                    ? notification.Id
-                    : notificationExpandedNodeId;
-            _knownPayloadIdentifiers[notification.NodeId.ToString()] = knownIdentifier;
-            return knownIdentifier;
         }
     }
 }

@@ -29,14 +29,22 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
             () => GetStringOrDefault(PcsVariable.PCS_WORKSPACE_KEY));
 
         /// <inheritdoc/>
-        public string IoTHubResourceId =>
-            "/subscriptions/" +
-            GetStringOrDefault(kSubscriptionId, () => GetStringOrDefault(PcsVariable.PCS_SUBSCRIPTION_ID)) +
-            "/resourceGroups/" +
-            GetStringOrDefault(kResourceGroupName, () => GetStringOrDefault(PcsVariable.PCS_RESOURCE_GROUP)) +
-            "/providers/Microsoft.Devices/IotHubs/" +
-            ConnectionString.Parse(GetStringOrDefault(kIoTHubConnectionString, () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_CONNSTRING))).HubName;
-
+        public string IoTHubResourceId 
+        {
+            get {
+                string subscriptionId = GetStringOrDefault(kSubscriptionId, () => GetStringOrDefault(PcsVariable.PCS_SUBSCRIPTION_ID));
+                string resourceGroup = GetStringOrDefault(kResourceGroupName, () => GetStringOrDefault(PcsVariable.PCS_RESOURCE_GROUP));
+                if (string.IsNullOrEmpty(resourceGroup) || string.IsNullOrEmpty(subscriptionId)) {
+                    return string.Empty;
+                } else {
+                    return "/subscriptions/" + subscriptionId + "/resourceGroups/" + resourceGroup +
+                            "/providers/Microsoft.Devices/IotHubs/" +
+                            ConnectionString.Parse(GetStringOrDefault(kIoTHubConnectionString,
+                                    () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_CONNSTRING))).HubName;
+                }
+            }
+        }
+            
         /// <summary>
         /// Configuration constructor
         /// </summary>

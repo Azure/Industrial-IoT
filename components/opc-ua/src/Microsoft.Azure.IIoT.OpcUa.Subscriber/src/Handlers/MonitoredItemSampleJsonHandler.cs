@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Subscriber;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Opc.Ua;
-    using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
     using Opc.Ua.Encoders;
     using Serilog;
@@ -58,14 +57,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                         DataSetWriterId = (message.ExtensionFields != null &&
                             message.ExtensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
                                 ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
-                        NodeId = message.NodeId.AsString(context),
+                        NodeId = message.NodeId,
                         DisplayName = message.DisplayName,
                         Timestamp = message.Timestamp,
                         SequenceNumber = message.SequenceNumber,
                         Value = message?.Value == null
-                                    ? null : codec.Encode(message.Value.WrappedValue, out type),
+                            ? null : codec.Encode(message.Value.WrappedValue, out type),
                         DataType = type == BuiltInType.Null
-                                    ? null : type.ToString(),
+                            ? null : type.ToString(),
                         Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
                             ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
                         SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)

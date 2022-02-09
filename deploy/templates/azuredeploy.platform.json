@@ -267,6 +267,10 @@
                         {
                             "name": "PCS_SERVICE_URL",
                             "value": "[if(empty(parameters('serviceSiteName')), '', concat('https://', variables('serviceSiteResourceName'), '.azurewebsites.net'))]"
+                        },
+                        {
+                            "name": "PCS_IMAGES_TAG",
+                            "value": "[parameters('imagesTag')]"
                         }
                     ]
                 }
@@ -289,7 +293,8 @@
                         "DOCKER_REGISTRY_SERVER_URL": "[if(parameters('deployFromSource'), '', concat('https://', parameters('dockerServer')))]",
                         "DOCKER_REGISTRY_SERVER_USERNAME": "[if(parameters('deployFromSource'), '', parameters('dockerUser'))]",
                         "DOCKER_REGISTRY_SERVER_PASSWORD": "[if(parameters('deployFromSource'), '', parameters('dockerPassword'))]",
-                        "WEBSITES_PORT": "9080"
+                        "WEBSITES_PORT": "9080",
+                        "PCS_IMAGES_TAG": "[parameters('imagesTag')]"
                     },
                     "dependsOn": [
                         "[variables('serviceSiteResourceId')]"
@@ -426,6 +431,10 @@
                         {
                             "name": "PCS_SERVICE_URL",
                             "value": "[if(empty(parameters('serviceSiteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]"
+                        },
+                        {
+                            "name": "PCS_IMAGES_TAG",
+                            "value": "[parameters('imagesTag')]"
                         }
                     ]
                 }

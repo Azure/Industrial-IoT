@@ -54,8 +54,8 @@ namespace Opc.Ua.Encoders {
                     new Variant(new long[] {1, 2, 3, 4, 5 }),
                     new Variant(new string[] {"1", "2", "3", "4", "5" })
                 },
-                LastMethodReturnStatus = new StatusResult(
-                    StatusCodes.BadAggregateConfigurationRejected),
+                LastMethodReturnStatus = 
+                    StatusCodes.BadAggregateConfigurationRejected,
                 LastMethodSessionId = new NodeId(
                     Utils.Nonce.CreateNonce(32)),
                 LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)

@@ -19,7 +19,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         public static XmlElement AsXmlElement(this IEncodeable encodeable,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
 #pragma warning disable IDE0067 // Dispose objects before losing scope
             var encoder = new XmlEncoder(context);
 #pragma warning restore IDE0067 // Dispose objects before losing scope
@@ -37,7 +37,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         public static byte[] AsBinary(this IEncodeable encodeable,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             using (var stream = new MemoryStream()) {
                 using (var encoder = new BinaryEncoder(stream, context)) {
                     encodeable.Encode(encoder);
@@ -54,7 +54,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         public static IEncodeable ToEncodeable(this XmlElement xmlElement,
-            ExpandedNodeId typeId, ServiceMessageContext context) {
+            ExpandedNodeId typeId, IServiceMessageContext context) {
             using (var decoder = new XmlDecoder(xmlElement, context)) {
                 var body = decoder.ReadExtensionObjectBody(typeId);
                 return body as IEncodeable;
@@ -69,7 +69,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         public static IEncodeable ToEncodeable(this byte[] buffer,
-            ExpandedNodeId typeId, ServiceMessageContext context) {
+            ExpandedNodeId typeId, IServiceMessageContext context) {
             var systemType = TypeInfo.GetSystemType(typeId.ToNodeId(context.NamespaceUris),
                 context.Factory);
             if (systemType == null) {

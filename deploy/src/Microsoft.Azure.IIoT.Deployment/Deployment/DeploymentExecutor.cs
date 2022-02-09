@@ -74,7 +74,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         // Resource names
         private string _keyVaultName;
         private string _storageAccountGen2Name;
-        private string _storageAccountGen2HNSName;
         private string _iotHubName;
         private string _cosmosDBAccountName;
         private string _serviceBusNamespaceName;
@@ -237,21 +236,26 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         /// </summary>
         /// <param name="owner"></param>
         protected void InitializeDefaultTags(string owner = null) {
+            var helmSettings = _configurationProvider.GetHelmSettings();
+            var versionIIoT = string.IsNullOrEmpty(helmSettings?.ImageTag)
+                    ? HelmSettings._defaultImageTag
+                    : helmSettings?.ImageTag;
+
             var valueIotSuiteType =
                 $"{Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT}-" +
-                $"{Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT}-" +
+                $"{versionIIoT}-" +
                 $"{Resources.IIoTDeploymentTags.VALUE_IOT_SUITE_TYPE_SUF}";
 
             _defaultTagsList = new List<string> {
                 Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT,
-                Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT,
+                versionIIoT,
                 Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT,
                 valueIotSuiteType
             };
 
             _defaultTagsDict = new Dictionary<string, string> {
                 { Resources.IIoTDeploymentTags.KEY_APPLICATION, Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT },
-                { Resources.IIoTDeploymentTags.KEY_VERSION, Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT},
+                { Resources.IIoTDeploymentTags.KEY_VERSION, versionIIoT},
                 { Resources.IIoTDeploymentTags.KEY_MANAGED_BY, Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT},
                 { Resources.IIoTDeploymentTags.KEY_IOT_SUITE_TYPE, valueIotSuiteType}
             };
@@ -473,15 +477,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                             _applicationsManager.GetAKSApplicationSP(),
                             cancellationToken
                         );
-
-                    // ToDo: Remove role assignment after telemetryCdmProcessor uses connection string.
-                    // Assign Service Principal of Service Application
-                    // "Storage Blob Data Contributor" IAM role for Subscription.
-                    await _authorizationManagementClient
-                        .AssignStorageBlobDataContributorRoleForSubscriptionAsync(
-                            _applicationsManager.GetServiceApplicationSP(),
-                            cancellationToken
-                        );
                 }
             }
             else if (RunMode.ResourceDeployment == runMode) {
@@ -624,16 +619,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             catch (Microsoft.Rest.Azure.CloudException) {
                 Log.Warning(notAvailableApiFormat, "Storage Account");
                 _storageAccountGen2Name = StorageMgmtClient.GenerateStorageAccountName();
-            }
-
-            // Storage Account Gen2 name
-            try {
-                _storageAccountGen2HNSName = await _storageManagementClient
-                    .GenerateAvailableNameAsync(cancellationToken);
-            }
-            catch (Microsoft.Rest.Azure.CloudException) {
-                Log.Warning(notAvailableApiFormat, "Storage Account");
-                _storageAccountGen2HNSName = StorageMgmtClient.GenerateStorageAccountName();
             }
 
             // IoT hub names
@@ -894,50 +879,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            // Create Storage Account Gen2 with hierarchical namespace enabled.
-            StorageAccountInner storageAccountGen2HNS;
-            StorageAccountKey storageAccountGen2HNSKey;
-            string storageAccountGen2HNSEndpointSuffix;
-            string storageAccountGen2HNSConectionString;
-            BlobContainerInner powerbiContainer;
-
-            storageAccountGen2HNS = await _storageManagementClient
-                .CreateStorageAccountGen2Async(
-                    _resourceGroup,
-                    _storageAccountGen2HNSName,
-                    true,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
-            // NOTE: storageAccountGen2HNSKey and storageAccountGen2HNSEndpointSuffix are required for
-            // <2.8.5 version of components as processing of storageAccountGen2HNSConectionString is not
-            // present there.
-            storageAccountGen2HNSKey = await _storageManagementClient
-                .GetStorageAccountKeyAsync(
-                    _resourceGroup,
-                    storageAccountGen2HNS,
-                    cancellationToken
-                );
-            storageAccountGen2HNSEndpointSuffix = _storageManagementClient.GetDataLakeEndpointSuffix();
-            storageAccountGen2HNSConectionString = await _storageManagementClient
-                .GetStorageAccountDataLakeConectionStringAsync(
-                    _resourceGroup,
-                    storageAccountGen2HNS,
-                    cancellationToken
-                );
-
-            // Create Blob container for PowerBI storage.
-            powerbiContainer = await _storageManagementClient
-                .CreateBlobContainerAsync(
-                    _resourceGroup,
-                    storageAccountGen2HNS,
-                    StorageMgmtClient.STORAGE_ACCOUNT_POWERBI_CONTAINER_NAME,
-                    PublicAccess.None,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
             // Create IoT Hub
             IotHubDescription iotHub;
 
@@ -973,16 +914,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            // Create "tunnel" consumer group.
-            var iotHubEventHubCGTunnel = await _iotHubManagementClient
-                .CreateEventHubConsumerGroupAsync(
-                    _resourceGroup,
-                    iotHub,
-                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
-                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TUNNEL_NAME,
-                    cancellationToken
-                );
-
             // Create "onboarding" consumer group.
             var iotHubEventHubCGOnboarding = await _iotHubManagementClient
                 .CreateEventHubConsumerGroupAsync(
@@ -1014,7 +945,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // Create Azure Event Hub Namespace and Azure Event Hub
             EHNamespaceInner eventHubNamespace;
             EventhubInner eventHub;
-            ConsumerGroupInner telemetryCdm;
             ConsumerGroupInner telemetryUx;
 
             // Create Azure Event Hub Namespace
@@ -1035,16 +965,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     EventHubMgmtClient.DEFAULT_MESSAGE_RETENTION_IN_DAYS,
                     EventHubMgmtClient.DEFUALT_PARTITION_COUNT,
                     _defaultTagsDict,
-                    cancellationToken
-                );
-
-            // Create "telemetry_cdm" consumer group.
-            telemetryCdm = await _eventHubManagementClient
-                .CreateConsumerGroupAsync(
-                    _resourceGroup,
-                    eventHubNamespace,
-                    eventHub,
-                    EventHubMgmtClient.EVENT_HUB_CONSUMER_GROUP_TELEMETRY_CDM,
                     cancellationToken
                 );
 
@@ -1133,30 +1053,23 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var iiotEnvironment = new IIoTEnvironment(
                 _authConf.AzureEnvironment,
                 _authConf.TenantId,
+                _subscription.SubscriptionId,
+                _resourceGroup.Name,
                 // IoT Hub
                 iotHub,
                 iotHubOwnerConnectionString,
                 IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
                 iotHubEventHubCGEvents,
                 iotHubEventHubCGTelemetry,
-                iotHubEventHubCGTunnel,
                 iotHubEventHubCGOnboarding,
                 // Cosmos DB
                 cosmosDBAccountConnectionString,
                 // Storage Account
                 storageAccountGen2ConectionString,
                 dataprotectionBlobContainer.Name,
-                // ADLS Gen2 Storage Account with enabled HNS
-                storageAccountGen2HNS.Name,
-                storageAccountGen2HNSKey.Value,
-                storageAccountGen2HNSEndpointSuffix,
-                storageAccountGen2HNSConectionString,
-                powerbiContainer.Name,
-                StorageMgmtClient.POWERBI_ROOT_FOLDER,
                 // Event Hub Namespace
                 eventHub,
                 eventHubNamespaceConnectionString,
-                telemetryCdm,
                 telemetryUx,
                 // Service Bus
                 serviceBusNamespaceConnectionString,
@@ -1519,7 +1432,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(blobContent));
             await blobClient.UploadAsync(memoryStream, cancellationToken);
 
-            Log.Debug("Uploadede data to Azure Blob.");
+            Log.Debug("Uploaded data to Azure Blob.");
             return blobClient.Uri.ToString();
         }
 

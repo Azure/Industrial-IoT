@@ -36,7 +36,7 @@ namespace HistoricalEvents {
     public class HistoricalEventsServer : INodeManagerFactory {
 
         /// <inheritdoc/>
-        public INodeManager CreateNodeManager(IServerInternal server,
+        public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
             return new HistoricalEventsNodeManager(server, configuration);
         }

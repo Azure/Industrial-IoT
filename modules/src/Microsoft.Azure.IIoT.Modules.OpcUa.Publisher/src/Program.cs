@@ -28,8 +28,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AddJsonFile("appsettings.json", true)
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddLegacyPublisherCommandLine(args)
                 .AddCommandLine(args)
+                .AddLegacyPublisherCommandLine(args) // making sure the Legacy arguments are processed at last so they are not overriden
                 .Build();
 
 #if DEBUG

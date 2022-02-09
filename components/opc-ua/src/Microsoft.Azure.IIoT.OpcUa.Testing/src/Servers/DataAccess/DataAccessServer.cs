@@ -36,7 +36,7 @@ namespace DataAccess {
     public class DataAccessServer : INodeManagerFactory {
 
         /// <inheritdoc/>
-        public INodeManager CreateNodeManager(IServerInternal server,
+        public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
             return new DataAccessNodeManager(server, configuration);
         }

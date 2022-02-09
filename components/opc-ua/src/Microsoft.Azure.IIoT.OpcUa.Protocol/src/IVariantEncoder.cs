@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Get context
         /// </summary>
-        ServiceMessageContext Context { get; }
+        IServiceMessageContext Context { get; }
 
         /// <summary>
         /// Format variant as string

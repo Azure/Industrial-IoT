@@ -21,10 +21,6 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         /// <inheritdoc/>
         public string Resource { get; }
 
-        /// <inheritdoc/>
-        public Uri EndpointUrl => _serviceManager == null ? null :
-            new Uri(_serviceManager.GetClientEndpoint(Resource));
-
         /// <summary>
         /// Create signalR event bus
         /// </summary>
@@ -32,31 +28,46 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         public SignalRServiceEndpoint(ISignalRServiceConfig config) {
             Resource = NameAttribute.GetName(typeof(THub));
             if (!string.IsNullOrEmpty(config?.SignalRConnString) && config.SignalRServerLess) {
-                _serviceManager = new ServiceManagerBuilder().WithOptions(option => {
-                    option.ConnectionString = config.SignalRConnString;
-                    option.ServiceTransportType = ServiceTransportType.Persistent;
-                }).Build();
+                _serviceManager = new ServiceManagerBuilder()
+                    .WithOptions(option => {
+                        option.ConnectionString = config.SignalRConnString;
+                        option.ServiceTransportType = ServiceTransportType.Persistent;
+                    })
+                    .BuildServiceManager();
             }
         }
 
         /// <inheritdoc/>
-        public IdentityTokenModel GenerateIdentityToken(string userId,
-            IList<Claim> claims, TimeSpan? lifeTime) {
+        public IdentityTokenModel GenerateIdentityToken(
+            string userId,
+            IList<Claim> claims,
+            TimeSpan? lifeTime
+        ) {
             if (_serviceManager == null) {
                 return null;
             }
-            if (lifeTime == null) {
+            if (lifeTime == null || !lifeTime.HasValue) {
                 lifeTime = TimeSpan.FromMinutes(5);
             }
+
+            var serviceHubContext = _serviceManager.CreateHubContextAsync(Resource, default)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var negotiationResponse = serviceHubContext.NegotiateAsync(
+                new NegotiationOptions() {
+                    UserId = userId,
+                    Claims = claims,
+                    TokenLifetime = lifeTime.Value,
+                })
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
             return new IdentityTokenModel {
                 Identity = userId,
-                Key = _serviceManager.GenerateClientAccessToken(
-                    Resource, userId, claims, lifeTime),
+                Key = negotiationResponse.AccessToken,
                 Expires = DateTime.UtcNow + lifeTime.Value
             };
         }
 
         /// <summary> Service manager </summary>
-        protected readonly IServiceManager _serviceManager;
+        protected readonly ServiceManager _serviceManager;
     }
 }

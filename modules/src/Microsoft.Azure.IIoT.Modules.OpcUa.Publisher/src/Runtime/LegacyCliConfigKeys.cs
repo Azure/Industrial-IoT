@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for default published nodes schema file.
         /// </summary>
-        public const string DefaultPublishedNodesSchemaFilename = "schemas/publishednodesschema.json";
+        public const string DefaultPublishedNodesSchemaFilename = "";
 
         /// <summary>
         /// Key for the publisher site.
@@ -36,11 +36,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the specified published nodes schema filename.
         /// </summary>
         public const string PublishedNodesConfigurationSchemaFilename = "PublishedNodesSchemaFile";
-
-        /// <summary>
-        /// Key for the session connect time in seconds.
-        /// </summary>
-        public const string SessionConnectWaitSec = "SessionConnectWait";
 
         /// <summary>
         /// Key for the default heartbeat interval in seconds.
@@ -148,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string OpcMaxStringLength = TransportQuotaConfig.MaxStringLengthKey;
 
         /// <summary>
-        /// Key for the OPC Session creation timeout in seconds.
+        /// Key for the default OPC Session timeout in seconds - to request from the OPC server at session creation.
         /// </summary>
         public const string OpcSessionCreationTimeout = ClientServicesConfig.DefaultSessionTimeoutKey;
 

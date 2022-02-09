@@ -1,0 +1,36 @@
+#
+# Triggering the following E2E pipelines in iotcat:
+# - Azure.Industrial-IoT-E2ETesting-Orchestrated
+# - Azure.Industrial-IoT-E2ETesting-Standalone
+#
+
+parameters:
+  e2eOrchestratedPipelineId: 20
+  e2eStandalonePipelineId: 21
+  branchName: main
+
+jobs:
+- job: buildprep
+  displayName: Triggering E2E tests
+  pool: server
+  steps:
+  - task: InvokeRESTAPI@1
+    displayName: 'Trigger Azure.Industrial-IoT-E2ETesting-Orchestrated'
+    inputs:
+      connectionType: 'connectedServiceName'
+      serviceConnection: iotcat-Azure.Industrial-IoT-E2ETesting
+      method: 'POST'
+      urlSuffix: ${{ parameters.e2eOrchestratedPipelineId }}/runs?api-version=6.0-preview.1
+      headers: '{ "Content-Type": "application/json" }'
+      body: '{ "resources": { "repositories": { "self": { "refName": "${{ parameters.branchName }}" }}}}'
+      waitForCompletion: 'false'
+  - task: InvokeRESTAPI@1
+    displayName: 'Trigger Azure.Industrial-IoT-E2ETesting-Standalone'
+    inputs:
+      connectionType: 'connectedServiceName'
+      serviceConnection: iotcat-Azure.Industrial-IoT-E2ETesting
+      method: 'POST'
+      urlSuffix: ${{ parameters.e2eStandalonePipelineId }}/runs?api-version=6.0-preview.1
+      headers: '{ "Content-Type": "application/json" }'
+      body: '{ "resources": { "repositories": { "self": { "refName": "${{ parameters.branchName }}" }}}}'
+      waitForCompletion: 'false'

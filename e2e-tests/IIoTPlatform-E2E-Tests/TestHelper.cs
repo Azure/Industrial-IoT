@@ -75,7 +75,7 @@ namespace IIoTPlatform_E2E_Tests {
             var request = new RestRequest(Method.POST);
             request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
             request.AddParameter("grant_type", "client_credentials");
-            request.AddParameter("scope", $"https://{tenantId}/{applicationName}-service/.default");
+            request.AddParameter("scope", $"api://{tenantId}/{applicationName}-service/.default");
 
             var response = await client.ExecuteAsync(request, ct);
             Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
@@ -208,10 +208,9 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="entries">Entries for published_nodes.json</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
-        public static async Task SwitchToStandaloneModeAndPublishNodesAsync(
+        public static async Task PublishNodesAsync(
             IEnumerable<PublishedNodesEntryModel> entries,
-            IIoTPlatformTestContext context,
-            CancellationToken ct = default
+            IIoTPlatformTestContext context
         ) {
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
@@ -228,14 +227,12 @@ namespace IIoTPlatform_E2E_Tests {
                         // Copy file to the edge vm
                         var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
                         sshCient.RunCommand(command);
-                        // Move file to the target folder with sudo permissions 
+                        // Move file to the target folder with sudo permissions
                         command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
                         sshCient.RunCommand(command);
-                    }                 
-                }             
+                    }
+                }
             }
-            
-            await SwitchToStandaloneModeAsync(context, ct);
         }
 
         /// <summary>
@@ -244,7 +241,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        private static async Task SwitchToStandaloneModeAsync(
+        public static async Task SwitchToStandaloneModeAsync(
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
@@ -420,7 +417,7 @@ namespace IIoTPlatform_E2E_Tests {
                     StorageConnectionString = context.IoTHubConfig.CheckpointStorageConnectionString,
                     ExpectedValueChangesPerTimestamp = expectedValuesChangesPerTimestamp,
                     ExpectedIntervalOfValueChanges = expectedIntervalOfValueChanges,
-                    ExpectedMaximalDuration = expectedMaximalDuration
+                    ExpectedMaximalDuration = expectedMaximalDuration,
                 }
             };
 

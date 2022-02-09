@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// Service message context
         /// </summary>
-        public ServiceMessageContext ServiceMessageContext { get; set; }
+        public IServiceMessageContext ServiceMessageContext { get; set; }
 
         /// <summary>
         /// Monitored Item Notification received from the subscription.

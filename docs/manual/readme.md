@@ -217,7 +217,7 @@ OPC Publisher Module checks on a regular basis if there is a `publishednodes.jso
 
 ### OPC UA stack
 
-The OPC UA .NET Standard reference stack of the OPC Foundation (contributed by Microsoft) is used for OPC UA secure communications by the Industrial IoT platform. Modules and services consume the NuGet package redistributable licensed by the OPC Foundation. The open source for the reference implementation is provided by the OPC Foundation on GitHub in [this public repository](https://github.com/OPCFoundation/UA-.NETStandard-Samples/tree/master/ComIOP).
+The OPC UA .NET Standard reference stack of the OPC Foundation (contributed by Microsoft) is used for OPC UA secure communications by the Industrial IoT platform. Modules and services consume the NuGet package redistributable licensed by the OPC Foundation. The open source for the reference implementation is provided by the OPC Foundation on GitHub in [this public repository](https://github.com/OPCFoundation/UA-.NETStandard).
 
 ### Cloud Microservices
 
@@ -271,15 +271,15 @@ The OPC Twin microservice exposes a REST API to call the following OPC UA servic
 
 - Read and write a "value" on a variable node. Write is also exposed as desired/reported property on the endpoint identity.
 
-- Call a "Method Node".
-
 - Read and write node "Attributes".
+
+- Call a "Method".
 
 - History read and update service calls to interact with historians.
 
 - Batching of any of the above calls.
 
-- Browse first / next (with and without reading the browsed target nodes)
+- Browse / browse next (with and without reading the browsed target nodes)
 
 - Get meta data of methods (to display input arguments to a user)
 
@@ -293,7 +293,7 @@ It configures the OPC Publisher and manages job that an OPC Publisher module can
 
 ##### Jobs
 
-The Jobs-API provides functionality to List, Query, Get, Cancel, Restart and Delete jobs. The creation of jobs in handled automatically by using the Publish-API.  The Jobs API is internal and subject to change in future releases.  You should not take a dependency on it.
+The Jobs-API provides functionality to List, Query, Get, Cancel, Restart and Delete jobs. The creation of jobs in handled automatically by using the Publish-API. The Jobs API is internal and subject to change in future releases.  You should not take a dependency on it.
 
 ##### Publish
 
@@ -301,7 +301,7 @@ The Publish-API provides functionality to start the publishing of values of an e
 
 ##### Workers
 
-The Worker REST API can be used to Get/List the active workers and to remove a worker from the list.  Like the Jobs API it is internal and subject to change in future releases.  You should likewise not take a dependency on it.
+The Worker REST API can be used to Get/List the active workers and to remove a worker from the list.  Like the Jobs API it is internal and subject to change in future releases. You should likewise not take a dependency on it.
 
 #### Publisher Job Orchestrator Microservice
 
@@ -313,11 +313,11 @@ The telemetry processor processes all edge telemetry by
 
 - Filtering out edge events. Those are processed by the Edge Event processor.
 
-- Decoding binary PubSub (UADP) network messages
+- Decoding both Json and binary encoded OPC UA PubSub network messages
 
 - Converting PubSub Network messages into simple messages
 
-- Forwarding these and other telemetry to a secondary Event Hub. From there telemetry events are forwarded to applications, processed through TSI and/or stored in Azure Data Lake Storage.
+- Forwarding these and other telemetry to a secondary Event Hub. From there telemetry events may be forwarded to applications, processed through TSI and/or stored in Azure Data Lake Storage.
 
 The edge telemetry processor is an event processor host and can be scaled out to handle the configured number of partitions. It connects to the configured telemetry consumer group on IoT Hub, defaults to "telemetry".
 
@@ -353,13 +353,13 @@ Reference: [Deploying Azure Industrial IoT Platform](../deploy/readme.md)
 
 First, an Azure Account with an active Subscription is needed. The subscription is going to host all Azure resources necessary for the platform.
 
-Reference: [Subscriptions, licenses, accounts, and tenants for Microsoft's cloud offerings](https://docs.microsoft.com/en-us/office365/enterprise/subscriptions-licenses-accounts-and-tenants-for-microsoft-cloud-offerings)
+Reference: [Subscriptions, licenses, accounts, and tenants for Microsoft's cloud offerings](https://docs.microsoft.com/en-us/microsoft-365/enterprise/subscriptions-licenses-accounts-and-tenants-for-microsoft-cloud-offerings?view=o365-worldwide)
 
 #### Azure Active Directory
 
 Azure Active Directory (Azure AD or AAD) is Microsoft’s cloud-based identity and access management service, which helps your employees sign in and access resources in:
 
-- External resources, such as Microsoft Office 365, the Azure portal, and thousands of other SaaS applications.
+- External resources, such as Microsoft 365, the Azure portal, and thousands of other SaaS applications.
 
 - Internal resources, such as apps on your corporate network and intranet, along with any cloud apps developed by your own organization.
 
@@ -373,7 +373,7 @@ Reference: [Azure Active Directory overview](https://docs.microsoft.com/en-us/az
 
 An Azure AD tenant is a specific instance of Azure AD containing accounts and groups. Paid or trial subscriptions of Microsoft 365 or Dynamics 365 include a free Azure AD tenant. This Azure AD tenant does not include other Azure services and is not the same as an Azure trial or paid subscription.
 
-Reference: [Subscriptions, licenses, accounts, and tenants for Microsoft's cloud offerings](https://docs.microsoft.com/en-us/office365/enterprise/subscriptions-licenses-accounts-and-tenants-for-microsoft-cloud-offerings)
+Reference: [Subscriptions, licenses, accounts, and tenants for Microsoft's cloud offerings](https://docs.microsoft.com/en-us/microsoft-365/enterprise/subscriptions-licenses-accounts-and-tenants-for-microsoft-cloud-offerings?view=o365-worldwide)
 
 #### Azure IoT Hub
 
@@ -405,9 +405,7 @@ We use Azure Event Hub (separate instance from Azure IoT Hub built-in one) to se
 
 - as source for Azure Time Series Insights (TSI).
 
-- as source for CDM Telemetry Exporter which writes it to Data Lake.
-
-- as source for SignalR Event Service to be delivered to SignalR clients, such as Engineering Tool.
+- as source for SignalR Event Service to be delivered to SignalR clients, such as Industrial IoT Engineering Tool.
 
 References:
 
@@ -424,8 +422,6 @@ Cloud microservices of Azure Industrial IoT use Cosmos DB for storing:
 - List of publisher workers agents and their state.
 
 - List of publisher jobs and their state.
-
-- Certificate requests, lifetime management events and index of certificates for the OPC Vault Microservice.
 
 References:
 
@@ -569,7 +565,7 @@ References:
 
 - [About Azure Kubernetes Service (AKS)](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
 
-- azure-industrial-iot Helm chart (0.3.2)
+- azure-industrial-iot Helm chart (0.4.0)
 
 #### Azure Monitor
 
@@ -667,7 +663,7 @@ The following information about components and installation types covers only th
 
 - Supported operating systems for deployment are Windows, Linux and Mac
 
-- IoT Edge supports Windows 10 IoT Enterprise LTSC and Ubuntu Linux 16.08/18.04 LTS Linux, see [here](https://docs.microsoft.com/en-us/azure/iot-edge/support)
+- IoT Edge (1.1 LTS) supports Windows 10 IoT Enterprise LTSC and Ubuntu Linux 18.04 LTS Linux, see [here](https://docs.microsoft.com/en-us/azure/iot-edge/support)
 
 - Git: <https://git-scm.com/downloads>
 
@@ -721,7 +717,7 @@ For production deployments that require staging, rollback, scaling and resilienc
 
 References:
 
-- [Deploying Azure Industrial IoT Platform](https://github.com/Azure/Industrial-IoT/tree/master/docs/deploy)
+- [Deploying Azure Industrial IoT Platform](https://github.com/Azure/Industrial-IoT/tree/main/docs/deploy)
 
 - [How to deploy all-in-one](../deploy/howto-deploy-all-in-one.md)
 
@@ -732,7 +728,7 @@ References:
 
 [Helm](https://helm.sh/docs/) is a [Kubernetes](https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/) package and operations manager, analogous to yum and apt. Application packages themselves are called Helm Charts and can be installed using the Helm tool. Helm allows users to easily templatize their Kubernetes manifests and provide a set of configuration parameters that allows users to customize their deployment.
 
-For the deployment of cloud microservices of Azure Industrial IoT platform into a Kubernetes cluster we provide **azure-industrial-iot** Helm chart. Version **0.3.2** of azure-industrial-iot Helm char should be used for deployment of **2.8** versions of Azure Industrial IoT microservices.
+For the deployment of cloud microservices of Azure Industrial IoT platform into a Kubernetes cluster we provide **azure-industrial-iot** Helm chart. Version **0.4.0** of azure-industrial-iot Helm char should be used for deployment of **2.8.x** versions of Azure Industrial IoT microservices.
 
 #### Prerequisites
 
@@ -754,7 +750,7 @@ Please note that we require Helm **3+**, and suggest **3.2+**, so be sure to set
 
 Helm chart is responsible only for the deployment of microservices into a Kubernetes cluster. It is not intended for and cannot create any Azure resources. So the installation of the chart requires one to already have Azure resources that are described in Azure Resources part of previous section. Detail of those Azure resources are provided to the chart as configuration parameters and are passed down to microservices as environment variables.
 
-Documentation of the chart lists all required Azure resources and provides steps for manually creating them if needed. It also described details of Azure resources that are required for installation of the chart. It can be found [here](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/README.md).
+Documentation of the chart lists all required Azure resources and provides steps for manually creating them if needed. It also described details of Azure resources that are required for installation of the chart. It can be found [here](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.0/deploy/helm/azure-industrial-iot/README.md).
 
 #### Installing the Chart
 
@@ -762,21 +758,35 @@ Documentation of the chart lists all required Azure resources and provides steps
 
 To install the chart first ensure that you have added either one of two Helm repositories where we publish azure-industrial-iot Helm chart. It can be found in:
 
-- <https://microsoft.github.io/charts/repo>
+- <https://azure.github.io/Industrial-IoT/helm>
 
-    To add the repository run the following command:
+  > NOTE: This is the recommended Helm chart repository to use.
 
-    ```bash
-    helm repo add microsoft <https://microsoft.github.io/charts/repo>
-    ```
+  To add the repository run the following command:
+
+  ```bash
+  helm repo add industrial-iot https://azure.github.io/Industrial-IoT/helm
+  ```
 
 - <https://azureiiot.blob.core.windows.net/helm>
 
-    To add the repository run the following command:
+  > NOTE: This is a legacy Helm chart repository. We will keep updating it, but we recommend using `https://azure.github.io/Industrial-IoT/helm`.
 
-    ```bash
-    helm repo add azure-iiot <https://azureiiot.blob.core.windows.net/helm>
-    ```
+  To add the repository run the following command:
+
+  ```bash
+  helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
+  ```
+
+- <https://microsoft.github.io/charts/repo>
+
+  > NOTE: This is a legacy Helm chart repository. We will keep updating it, but we recommend using `https://azure.github.io/Industrial-IoT/helm`.
+
+  To add the repository run the following command:
+
+  ```bash
+  helm repo add microsoft https://microsoft.github.io/charts/repo
+  ```
 
 We will use first repository for the installation of the chart.
 
@@ -790,7 +800,7 @@ kubectl create namespace azure-iiot-ns
 
 ##### Install azure-industrial-iot Helm chart
 
-To install the chart with a specific release name, **azure-iiot** for example, one would run the following command changing all values in &lt;&gt; with the ones specific to their deployment and Azure resources. For command on how to manually obtain those for an existing deployment of Azure resources please check [Prerequisites](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/README.md#prerequisites) of the Helm documentation.
+To install the chart with a specific release name, **azure-iiot** for example, one would run the following command changing all values in &lt;&gt; with the ones specific to their deployment and Azure resources. For command on how to manually obtain those for an existing deployment of Azure resources please check [Prerequisites](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.0/deploy/helm/azure-industrial-iot/README.md#prerequisites) of the Helm documentation.
 
 ```bash
 helm install azure-iiot microsoft/azure-industrial-iot --namespace azure-iiot-ns \
@@ -798,14 +808,12 @@ helm install azure-iiot microsoft/azure-industrial-iot --namespace azure-iiot-ns
     --set azure.iotHub.eventHub.endpoint=<IoTHubEventHubEndpoint> \
     --set azure.iotHub.eventHub.consumerGroup.events=<IoTHubEventHubEventsConsumerGroup> \
     --set azure.iotHub.eventHub.consumerGroup.telemetry=<IoTHubEventHubTelemetryConsumerGroup> \
-    --set azure.iotHub.eventHub.consumerGroup.tunnel=<IoTHubEventHubTunnelConsumerGroup> \
     --set azure.iotHub.eventHub.consumerGroup.onboarding=<IoTHubEventHubOnboardingConsumerGroup> \
     --set azure.iotHub.sharedAccessPolicies.iothubowner.connectionString=<IoTHubConnectionString> \
     --set azure.cosmosDB.connectionString=<CosmosDBConnectionString> \
     --set azure.storageAccount.connectionString=<StorageAccountConnectionString> \
     --set azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<EventHubNamespaceConnectionString> \
     --set azure.eventHubNamespace.eventHub.name=<EventHubName> \
-    --set azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm=<EventHubTelemetryCdmConsumerGroup> \
     --set azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx=<EventHubTelemetryUxConsumerGroup> \
     --set azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<ServiceBusNamespaceConnectionString> \
     --set azure.keyVault.uri=<KeyVaultURI> \
@@ -833,7 +841,6 @@ iotHub:
     consumerGroup:
       events: <IoTHubEventHubEventsConsumerGroup>
       telemetry: <IoTHubEventHubTelemetryConsumerGroup>
-      tunnel: <IoTHubEventHubTunnelConsumerGroup>
       onboarding: <IoTHubEventHubOnboardingConsumerGroup>
   sharedAccessPolicies:
     iothubowner:
@@ -849,7 +856,6 @@ eventHubNamespace:
   eventHub:
     name: <EventHubName>
     consumerGroup:
-      telemetryCdm: <EventHubTelemetryCdmConsumerGroup>
       telemetryUx: <EventHubTelemetryUxConsumerGroup>
   serviceBusNamespace:
     sharedAccessPolicies:
@@ -867,15 +873,15 @@ auth:
     secret: <ClientsAppSecret>
 ```
 
-As an alternative to specifying all details of Azure resources through command line (or the YAML file), we support loading them from Azure Key Vault. In this case, only minimal configuration is required to enable microservices to fetch configuration secrets from Azure Key Vault. This option can be used in cases where Azure resources have been bootstrapped using a scripts that also pushed Azure resource details as secrets into Azure Key Vault, such as our deploy.ps1 PowerShell script. For more details about this option please check [Load Configuration From Azure Key Vault](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/README.md#load-configuration-from-azure-key-vault).
+As an alternative to specifying all details of Azure resources through command line (or the YAML file), we support loading them from Azure Key Vault. In this case, only minimal configuration is required to enable microservices to fetch configuration secrets from Azure Key Vault. This option can be used in cases where Azure resources have been bootstrapped using a scripts that also pushed Azure resource details as secrets into Azure Key Vault, such as our deploy.ps1 PowerShell script. For more details about this option please check [Load Configuration From Azure Key Vault](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.0/deploy/helm/azure-industrial-iot/README.md#load-configuration-from-azure-key-vault).
 
-For all configuration options that are available for azure-industrial-iot Helm chart please check its [documentation](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/README.md) and [values.yaml](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/values.yaml) file of the chart itself.
+For all configuration options that are available for azure-industrial-iot Helm chart please check its [documentation](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.0/deploy/helm/azure-industrial-iot/README.md) and [values.yaml](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.0/deploy/helm/azure-industrial-iot/values.yaml) file of the chart itself.
 
 References:
 
 - [Helm documentation](https://helm.sh/docs/)
 
-- azure-industrial-iot Helm chart, version 0.3.2
+- azure-industrial-iot Helm chart, version 0.4.0
 
 - [Compatibility matrix of Helm chart versions and Azure Industrial IoT components](../deploy/howto-deploy-helm.md)
 
@@ -1317,12 +1323,6 @@ Our testing has shown that there are only a handful of components that require h
 
   - up to 1,000 millicores of CPU
 
-- **CDM Telemetry Processor**: This is a preview microservice which is **disabled** in the Helm chart by default. It exports telemetry messages from Event Hub into Azure Data Lake Storage using CDM format. In cases with a very large number of published nodes and high frequency of publishing we have seen it consume:
-
-  - up to 3 GBs of memory
-
-  - up to 1,000 millicores of CPU
-
 In our tests, all other components of Azure Industrial IoT platform nominally consume between 100 and 300 MBs of memory and up to 150 millicores of CPU. So, these usually did not require us to set any specific resource requests or limits.
 
 A sample configuration for setting a resource requests and limits using `values.yaml` file for the Helm chart would look like this:
@@ -1342,7 +1342,7 @@ deployment:
 
 Please be sure to monitor both memory and CPU consumption of those microservices and update their limits accordingly considering as-deployed behavior.
 
-More details about configuration of components when deploying them using azure-industrial-iot Helm chart can be found in the [chart documentation](https://github.com/Azure/Industrial-IoT/blob/helm/0.3.1/deploy/helm/azure-industrial-iot/README.md).
+More details about configuration of components when deploying them using azure-industrial-iot Helm chart can be found in the [chart documentation](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.0/deploy/helm/azure-industrial-iot/README.md).
 
 References:
 
@@ -1478,7 +1478,7 @@ Metrics can be added using any of the two formats. However, for production envir
 kubectl apply -f <oms_agent_config_file>.yaml
 ```
 
-- One should also make sure that scraping of Prometheus metrics is enabled from **azure-industrial-iot** Helm chart itself. The configuration parameter for that is **prometheus.scrape** and is set to **true** by default. More details on this can be found [here](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.2/deploy/helm/azure-industrial-iot/README.md#prometheus).
+- One should also make sure that scraping of Prometheus metrics is enabled from **azure-industrial-iot** Helm chart itself. The configuration parameter for that is **prometheus.scrape** and is set to **true** by default. More details on this can be found [here](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.0/deploy/helm/azure-industrial-iot/README.md#prometheus).
 
 One can find the metrics in the Log Analytics workspace in the Azure Portal:
 
@@ -1545,6 +1545,9 @@ Several metrics are provided by default to give an overview of the health of the
 | iiot_edge_publisher_encoded_message_size_average      | deviceid, module, triggerid                      | Encoded IoT message body size average                                                   | gauge     |
 | iiot_edge_publisher_chunk_size_average                 | deviceid, module, triggerid                      | IoT Hub chunk size average                                                              | gauge     |
 | iiot_edge_publisher_estimated_message_chunks_per_day | deviceid, module, triggerid                      | Estimated IoT Hub chunks charged per day                                                | gauge     |
+| iiot_edge_publisher_is_connection_ok                 | deviceid, module, triggerid                      | Is the endpoint connection ok?                                                          | gauge     |
+| iiot_edge_publisher_good_nodes                       | deviceid, module, triggerid                      | How many nodes are receiving data for this endpoint?                                    | gauge     |
+| iiot_edge_publisher_bad_nodes                        | deviceid, module, triggerid                      | How many nodes are misconfigured for this endpoint?                                     | gauge     |
 
 Cloud Microservices Metrics are described below:
 
@@ -2194,7 +2197,7 @@ Swagger UI that one should see will look like this:
 
 <img src="media/image50.png" style="width:6.3in;height:4.28472in" />
 
-More information about external service URL can be found in the [documentation](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/README.md) of azure-industrial-iot Helm chart.
+More information about external service URL can be found in the [documentation](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.0/deploy/helm/azure-industrial-iot/README.md) of azure-industrial-iot Helm chart.
 
 ## SLA, Disaster Recovery, Backup/Restore
 
@@ -2271,9 +2274,9 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    `helm get values azure-industrial-iot --namespace azure-industrial-iot > values.yaml`
 
-3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from 2.7.206 version to 2.8.0.
+3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from 2.7.206 version to 2.8.1.
 
-   Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to 2.8.0 from 2.7.206. If there isn’t one, please add it.
+   Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to 2.8.1 from 2.7.206. If there isn’t one, please add it.
 
 4. After that we can update the existing release with new images. For that we will use `values.yaml` that we modified previously:
 
@@ -2281,7 +2284,7 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    This command will keep existing setup unchanged, except for the version of docker images that are deployed.
 
-It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is 0.3.2 which by default deploys 2.7.199 version of the components. The same version can be used for deployment of 2.8.0 and higher 2.8.x versions. For the version compatibility matrix, please check out [how to deplyo using Helm](../deploy/howto-deploy-helm.md).
+It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is 0.4.0 which by default deploys 2.8.0 version of the components. The same version can be used for deployment of 2.8.0 and higher 2.8.x versions. For the version compatibility matrix, please check out [how to deplyo using Helm](../deploy/howto-deploy-helm.md).
 
 #### IoT Edge Modules
 
@@ -2293,7 +2296,7 @@ Please note that it usually takes several minutes (up to 10 minutes) before the 
 
 Please note that deployment via scripts is recommended only for demos/POC case as all-in-one service cannot scale to handle data throughput levels required for production deployments.
 
-When components of the Azure Industrial IoT platform are deployed using [deploy.cmd](https://github.com/Azure/Industrial-IoT/blob/master/deploy.cmd) or [these](https://github.com/Azure/Industrial-IoT/blob/master/deploy.sh) scripts, back-end microservices are hosted in two instances of App Service. Those two App Service instances will be hosting the following components:
+When components of the Azure Industrial IoT platform are deployed using [deploy.cmd](https://github.com/Azure/Industrial-IoT/blob/main/deploy.cmd) or [these](https://github.com/Azure/Industrial-IoT/blob/main/deploy.sh) scripts, back-end microservices are hosted in two instances of App Service. Those two App Service instances will be hosting the following components:
 
 - All-in-one service: The all-in-one service host combines all micro services and agents into a single process that hosts each individual web API on its named resource endpoint. It is an easy way to host the entire platform in a single container or on a single web application instance in the cloud. Docker container for this is `mcr.microsoft.com/iot/industrial-iot-services-all`.
 

@@ -104,19 +104,6 @@ if (![string]::IsNullOrEmpty($script:BuildSubscription)) {
     }
 }
 
-# get build registry credentials
-$argumentList = @("acr", "credential", "show", 
-    "--name", $script:BuildRegistry, "-ojson", 
-    "--subscription", $script:BuildSubscription)
-$result = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" })
-if ($LastExitCode -ne 0) {
-    throw "az $($argumentList) failed with $($LastExitCode)."
-}
-$sourceCredentials = $result | ConvertFrom-Json
-$sourceUser = $sourceCredentials.username
-$sourcePassword = $sourceCredentials.passwords[0].value
-Write-Host "Using Source Registry User name $($sourceUser) and password ****"
-
 # Get build repositories 
 $argumentList = @("acr", "repository", "list",
     "--name", $script:BuildRegistry, "-ojson", 
@@ -175,18 +162,19 @@ foreach ($Repository in $BuildRepositories) {
 
     # Create acr command line 
     # --force is needed to replace existing tags like "latest" with new images
-    $FullImageName = "$($script:BuildRegistry).azurecr.io/$($BuildTag)" 
     $argumentList = @("acr", "import", "-ojson", "--force",
         "--name", $script:ReleaseRegistry,
-        "--source", $FullImageName, 
-        "--subscription", $script:BuildSubscription,
-        "--username", $sourceUser,
-        "--password", $sourcePassword
+        "--source", $BuildTag, 
+        "--registry", $script:BuildRegistry
     )
     # set release subscription
     if (![string]::IsNullOrEmpty($script:ReleaseSubscription)) {
         $argumentList += "--subscription"
         $argumentList += $script:ReleaseSubscription
+    }
+    else {
+        $argumentList += "--subscription"
+        $argumentList += $script:BuildSubscription
     }
 
     # add the output / release image tags
@@ -203,6 +191,7 @@ foreach ($Repository in $BuildRepositories) {
         $argumentList += "$($TargetRepository):$($ReleaseTag)"
     }
     
+    $FullImageName = "$($script:BuildRegistry).azurecr.io/$($BuildTag)" 
     $ConsoleOutput = "Copying $FullImageName $($Image.digest) with tags '$($ReleaseTags -join ", ")' to release $script:ReleaseRegistry"
     Write-Host "Starting Job $ConsoleOutput..."
     $jobs += Start-Job -Name $FullImageName -ArgumentList @($argumentList, $ConsoleOutput) -ScriptBlock {

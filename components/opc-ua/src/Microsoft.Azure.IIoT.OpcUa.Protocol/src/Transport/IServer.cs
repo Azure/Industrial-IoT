@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         /// <summary>
         /// Returns the servers message context
         /// </summary>
-        ServiceMessageContext MessageContext { get; }
+        IServiceMessageContext MessageContext { get; }
 
         /// <summary>
         /// Returns the servers certificate validator instance

@@ -24,7 +24,7 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
           "edgeAgent": {
             "type": "docker",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-agent:1.0",
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.1",
               "createOptions": ""
             }
           },
@@ -33,8 +33,13 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-hub:1.0",
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.1",
               "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}], \"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
+            },
+            "env": {
+              "SslProtocols": {
+                "value": "tls1.2"
+              }
             }
           }
         },
@@ -46,7 +51,7 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
             "restartPolicy": "always",
             "settings": {
               "image": "mcr.microsoft.com/iotedge/discovery:latest",
-              "createOptions": "{\"Hostname\":\"discovery\",\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"]}}"
+              "createOptions": "{\"Hostname\":\"discovery\",\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"],\"CapDrop\":[\"CHOWN\",\"SETUID\"]}}"
             }
           },
           "twin": {
@@ -55,7 +60,8 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mcr.microsoft.com/iotedge/opc-twin:latest"
+              "image": "mcr.microsoft.com/iotedge/opc-twin:latest",
+              "createOptions": "{\"HostConfig\":{\"CapDrop\":[\"CHOWN\",\"SETUID\"]}}"
             }
           },
           "publisher": {
@@ -64,7 +70,8 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mcr.microsoft.com/iotedge/opc-publisher:latest"
+              "image": "mcr.microsoft.com/iotedge/opc-publisher:latest",
+              "createOptions": "{\"HostConfig\":{\"CapDrop\":[\"CHOWN\",\"SETUID\"]}}"
             }
           }
         }
@@ -108,7 +115,7 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
           "edgeAgent": {
             "type": "docker",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-agent:1.0",
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.1",
               "createOptions": ""
             }
           },
@@ -117,8 +124,13 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-hub:1.0",
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.1",
               "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}], \"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
+            },
+            "env": {
+              "SslProtocols": {
+                "value": "tls1.2"
+              }
             }
           }
         },

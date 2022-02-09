@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Encoders;
@@ -73,10 +74,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             if (notification == null || monitoredItem == null) {
                 return null;
             }
+            var handleId = monitoredItem.Handle as SubscriptionServices.MonitoredItemWrapper;
             return new MonitoredItemNotificationModel {
-                Id = monitoredItem.DisplayName,
+                Id = handleId?.Template?.Id,
                 DisplayName = monitoredItem.DisplayName,
-                NodeId = monitoredItem.StartNodeId,
+                NodeId = handleId?.Template?.StartNodeId,
                 AttributeId = monitoredItem.AttributeId,
                 ClientHandle = notification.ClientHandle,
                 Value = notification.Value,
@@ -109,10 +111,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             if (eventFieldList == null || monitoredItem == null) {
                 return null;
             }
+
+            var handleId = monitoredItem.Handle as SubscriptionServices.MonitoredItemWrapper;
             return new MonitoredItemNotificationModel {
-                Id = monitoredItem.DisplayName,
+                Id = handleId?.Template?.Id,
                 DisplayName = monitoredItem.DisplayName,
-                NodeId = monitoredItem.StartNodeId,
+                NodeId = handleId?.Template?.StartNodeId,
                 AttributeId = monitoredItem.AttributeId,
                 ClientHandle = eventFieldList.ClientHandle,
                 Value = ToDataValue(eventFieldList, monitoredItem),

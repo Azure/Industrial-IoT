@@ -56,7 +56,7 @@ jobs:
       outputfile: thirdpartynotices.txt
     continueOnError: true
   - task: BinSkim@3
-    displayName: 'BinSkim '
+    displayName: 'BinSkim'
     inputs:
       InputType: Basic
       AnalyzeTarget: '*.IIoT.*.dll;*.IIoT.*.exe'
@@ -98,7 +98,7 @@ jobs:
       RoslynAnalyzers: true
   - script: |
       if not "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]develop
-          if "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]master
+          if "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]main
   - task: TSAUpload@1
     displayName: 'Upload to Stamp'
     inputs:
@@ -109,6 +109,8 @@ jobs:
       codeBaseName: 'Industrial_IoT_$(MY_BRANCH)'
       instanceUrlForTsaV2: MSAZURE
       projectNameMSAZURE: One
+      areaPath: 'One\IoT\Platform and Devices\IoT Devices\Industrial\Community'
+      iterationPath: 'One\Custom\IoT\Industrial\Backlog'
       uploadAPIScan: true
       uploadBinSkim: true
       uploadCredScan: true

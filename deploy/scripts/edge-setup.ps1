@@ -84,4 +84,8 @@ else {
     . { Invoke-WebRequest -useb https://aka.ms/iotedge-win } | Invoke-Expression; `
         Install-IoTEdge -Dps -ScopeId $idScope -ContainerOs Windows -RegistrationId `
             $enrollment.registrationId -SymmetricKey $enrollment.primaryKey
+    Write-Host "Updating TLS Settings in Windows VM. Rebooting if required"
+    $tlsScriptPath = join-path $path TLSSettings.ps1
+    & $tlsScriptPath
+
 }

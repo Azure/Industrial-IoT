@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     // Publisher configuration options
                     { "pf|publishfile=", "The filename to configure the nodes to publish.",
                         s => this[LegacyCliConfigKeys.PublishedNodesConfigurationFilename] = s },
-                    { "pfs|publishfileschema=", "The validation schema filename for publish file.",
+                    { "pfs|publishfileschema=", "The validation schema filename for publish file. Disabled by default.",
                         s => this[LegacyCliConfigKeys.PublishedNodesConfigurationSchemaFilename] = s },
                     { "s|site=", "The site OPC Publisher is working in.",
                         s => this[LegacyCliConfigKeys.PublisherSite] = s },
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[LegacyCliConfigKeys.SkipFirstDefault] = b.ToString() },
 
                     { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." +
-                        "Default is 'true', for legacy compatibility use 'false'",
+                        "Default is 'false' for legacy compatibility.",
                         (bool b) => this[LegacyCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
                     // Client settings
@@ -95,21 +95,20 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         "sample values.",
                         (int i) => this[LegacyCliConfigKeys.OpcSamplingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
                     { "op|opcpublishinginterval=", "Default value in milliseconds for the publishing interval " +
-                            "setting of the subscriptions against the OPC UA server.",
+                        "setting of the subscriptions against the OPC UA server.",
                         (int i) => this[LegacyCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
-                    { "ct|createsessiontimeout=", "The timeout in seconds used when creating a session to an endpoint.",
+                    { "ct|createsessiontimeout=", "Maximum amount of time in seconds that a session should " +
+                        "remain open by the OPC server without any activity (session timeout) " +
+                        "- to request from the OPC server at session creation.",
                         (uint u) => this[LegacyCliConfigKeys.OpcSessionCreationTimeout] = TimeSpan.FromSeconds(u).ToString() },
                     { "ki|keepaliveinterval=", "The interval in seconds the publisher is sending keep alive messages " +
-                            "to the OPC servers on the endpoints it is connected to.",
+                        "to the OPC servers on the endpoints it is connected to.",
                         (int i) => this[LegacyCliConfigKeys.OpcKeepAliveIntervalInSec] = TimeSpan.FromSeconds(i).ToString() },
                     { "kt|keepalivethreshold=", "Specify the number of keep alive packets a server can miss, " +
                         "before the session is disconneced.",
                         (uint u) => this[LegacyCliConfigKeys.OpcKeepAliveDisconnectThreshold] = u.ToString() },
                     { "fd|fetchdisplayname=", "Fetches the displayname for the monitored items subscribed.",
                         (bool b) => this[LegacyCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
-                    { "sw|sessionconnectwait=", "Wait time in seconds publisher is trying to connect " +
-                        "to disconnected endpoints and starts monitoring unmonitored items.",
-                        (int s) => this[LegacyCliConfigKeys.SessionConnectWaitSec] = TimeSpan.FromSeconds(s).ToString() },
                     { "mq|monitoreditemqueuecapacity=", "Default queue size for monitored items.",
                         (uint u) => this[LegacyCliConfigKeys.DefaultQueueSize] = u.ToString() },
 
@@ -192,6 +191,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "vc|verboseconsole=", "Legacy - do not use.", _ => {} },
                     { "as|autotrustservercerts=", "Legacy - do not use.", _ => {} }
                 };
+            
             options.Parse(args);
 
             Config = ToAgentConfigModel();
@@ -274,7 +274,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 Site = GetValueOrDefault(LegacyCliConfigKeys.PublisherSite, string.Empty),
                 PublishedNodesFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename),
                 PublishedNodesSchemaFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationSchemaFilename, LegacyCliConfigKeys.DefaultPublishedNodesSchemaFilename),
-                SessionConnectWait = GetValueOrDefault(LegacyCliConfigKeys.SessionConnectWaitSec, TimeSpan.FromSeconds(15)),
                 DefaultHeartbeatInterval = GetValueOrDefault(LegacyCliConfigKeys.HeartbeatIntervalDefault, TimeSpan.Zero),
                 DefaultSkipFirst = GetValueOrDefault(LegacyCliConfigKeys.SkipFirstDefault, false),
                 DefaultSamplingInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcSamplingInterval, TimeSpan.FromSeconds(1)),
@@ -311,7 +310,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             };
         }
 
-        private AgentConfigModel ToAgentConfigModel() {
+        private static AgentConfigModel ToAgentConfigModel() {
             return new AgentConfigModel {
                 AgentId = "StandalonePublisher",
                 Capabilities = new Dictionary<string, string>(),
@@ -330,6 +329,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             return (T)converter.ConvertFrom(this[key]);
         }
 
-        private LegacyCliModel _legacyCliModel = null;
+        private LegacyCliModel _legacyCliModel;
     }
 }

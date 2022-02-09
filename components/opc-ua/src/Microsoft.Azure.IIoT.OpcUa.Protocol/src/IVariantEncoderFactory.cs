@@ -21,6 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        IVariantEncoder Create(ServiceMessageContext context);
+        IVariantEncoder Create(IServiceMessageContext context);
     }
 }
