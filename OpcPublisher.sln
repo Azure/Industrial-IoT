@@ -78,8 +78,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Serializers.NewtonSoft", "common\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft.csproj", "{3E8DCA50-F1BC-45F4-A9E5-67F6BB55DA33}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Serializers.MessagePack", "common\src\Microsoft.Azure.IIoT.Serializers.MessagePack\src\Microsoft.Azure.IIoT.Serializers.MessagePack.csproj", "{9149229F-437C-42BD-AF2E-0BF73DCB5992}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Http.HealthChecks", "common\src\Microsoft.Azure.IIoT.Http.HealthChecks\Microsoft.Azure.IIoT.Http.HealthChecks.csproj", "{91F5C596-42AE-4F8B-B460-CBD0D203D665}"
 EndProject
 Global
@@ -282,14 +280,6 @@ Global
 		{3E8DCA50-F1BC-45F4-A9E5-67F6BB55DA33}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3E8DCA50-F1BC-45F4-A9E5-67F6BB55DA33}.Release|x64.ActiveCfg = Release|Any CPU
 		{3E8DCA50-F1BC-45F4-A9E5-67F6BB55DA33}.Release|x64.Build.0 = Release|Any CPU
-		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Debug|x64.Build.0 = Debug|Any CPU
-		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Release|x64.ActiveCfg = Release|Any CPU
-		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Release|x64.Build.0 = Release|Any CPU
 		{91F5C596-42AE-4F8B-B460-CBD0D203D665}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{91F5C596-42AE-4F8B-B460-CBD0D203D665}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91F5C596-42AE-4F8B-B460-CBD0D203D665}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -334,7 +324,6 @@ Global
 		{1054012B-E4A3-4144-98E1-F6E2CBE5D83F} = {1266F300-8BD2-4F1E-BA88-911F5F3AC36C}
 		{141AE617-037F-43FF-A7C9-B3E01160B9E3} = {AFBD4A17-2EB1-421C-BB0C-407C875F3F50}
 		{3E8DCA50-F1BC-45F4-A9E5-67F6BB55DA33} = {FEE95825-2E34-45AF-BDED-52F9C7412BF5}
-		{9149229F-437C-42BD-AF2E-0BF73DCB5992} = {FEE95825-2E34-45AF-BDED-52F9C7412BF5}
 		{91F5C596-42AE-4F8B-B460-CBD0D203D665} = {FEE95825-2E34-45AF-BDED-52F9C7412BF5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
