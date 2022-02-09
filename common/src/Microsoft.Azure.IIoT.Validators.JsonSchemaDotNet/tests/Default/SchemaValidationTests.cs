@@ -56,6 +56,21 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
         }
 
         [Fact]
+        public void EnsureTestConfigurationWithBOMHeaderPassesSchemaValidation() {
+            using var ms = new MemoryStream();
+            using var writer = new StreamWriter(ms, new UTF8Encoding(true)); // Write with BOM header.
+            writer.Write(testConfiguration);
+            writer.Flush();
+            ms.Seek(0, SeekOrigin.Begin);
+            var testConfigurationBytes = ms.ReadAsBuffer().ToArray();
+
+            using var schemaReader = new StreamReader("Default/publishednodesschema.json");
+            var validator = new JsonSchemaDotNetSchemaValidator();
+            var results = validator.Validate(testConfigurationBytes, schemaReader);
+            Assert.True(results.All(r => r.IsValid));
+        }
+
+        [Fact]
         public void EnsureTestConfigurationPassesSchemaValidation() {
             using var schemaReader = new StreamReader(PublishedNodesSchema);
             var validator = new JsonSchemaDotNetSchemaValidator();
