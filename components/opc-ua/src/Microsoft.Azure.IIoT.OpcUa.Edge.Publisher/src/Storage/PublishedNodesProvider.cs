@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
             _fileSystemWatcher.Changed -= FileSystemWatcher_Changed;
             _fileSystemWatcher.Renamed -= FileSystemWatcher_Renamed;
 
-            _fileSystemWatcher?.Dispose();
+            _fileSystemWatcher.Dispose();
         }
 
         private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
