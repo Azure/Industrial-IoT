@@ -149,7 +149,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             //Call Unpublish direct method
             response = await CallMethodAsync(
                 new MethodParameterModel {
-                    Name = TestConstants.DirectMethodNames.UnPublishNodes,
+                    Name = TestConstants.DirectMethodNames.UnpublishNodes,
                     JsonPayload = _serializer.SerializeToString(request)
                 },
                 cts.Token
@@ -294,7 +294,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             //Call Unpublish direct method
             response = await CallMethodAsync(
                 new MethodParameterModel {
-                    Name = TestConstants.DirectMethodLegacyNames.UnPublishNodes,
+                    Name = TestConstants.DirectMethodLegacyNames.UnpublishNodes,
                     JsonPayload = _serializer.SerializeToString(request)
                 },
                 cts.Token
