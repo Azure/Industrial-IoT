@@ -61,20 +61,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         }
 
         /// <summary>
-        /// Create an api model from service model
-        /// </summary>
-        public static PublishedNodesResponseApiModel ToApiModel(
-            this List<string> model) {
-            if (model == null) {
-                return null;
-            }
-
-            return new PublishedNodesResponseApiModel {
-                StatusMessage = model
-            };
-        }
-
-        /// <summary>
         /// Create an api model from service model ignoring the password
         /// </summary>
         public static List<PublishNodesEndpointApiModel> ToApiModel(

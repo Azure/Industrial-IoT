@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
@@ -12,10 +13,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using System;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using System.Net;
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using System.Linq;
+    using System.Net;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher direct  method controller
@@ -36,55 +36,51 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> PublishNodesAsync(
             PublishNodesEndpointApiModel request) {
-            var response = await _configServices.PublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return response.ToApiModel();
+            await _configServices.PublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
+            return new PublishedNodesResponseApiModel();
         }
 
         /// <summary>
-        /// Handler for UnpublishNodes DM
+        /// Handler for UnpublishNodes direct method
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> UnpublishNodesAsync(
             PublishNodesEndpointApiModel request) {
-            var response = await _configServices.UnpublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return response.ToApiModel();
+            await _configServices.UnpublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
+            return new PublishedNodesResponseApiModel();
         }
 
         /// <summary>
-        /// Handler for UnpublishAllNodes DM
+        /// Handler for UnpublishAllNodes direct method
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> UnpublishAllNodesAsync(
             PublishNodesEndpointApiModel request) {
             if (request.OpcNodes != null && request.OpcNodes.Count > 0) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "OpcNodes is set.");
             }
-            var response = await _configServices.UnpublishAllNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return response.ToApiModel();
+            await _configServices.UnpublishAllNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
+            return new PublishedNodesResponseApiModel();
         }
 
         /// <summary>
-        /// Handler for AddOrUpdateEndpoints direct method.
+        /// Handler for AddOrUpdateEndpoints direct method
         /// </summary>
         public async Task<PublishedNodesResponseApiModel> AddOrUpdateEndpointsAsync(
-            List<PublishNodesEndpointApiModel> request
-        ) {
+            List<PublishNodesEndpointApiModel> request) {
             var endpoints = request?.Select(e => e.ToServiceModel()).ToList();
-            var response = await _configServices
-                .AddOrUpdateEndpointsAsync(endpoints)
-                .ConfigureAwait(false);
-            return response.ToApiModel();
+            await _configServices.AddOrUpdateEndpointsAsync(endpoints).ConfigureAwait(false);
+            return new PublishedNodesResponseApiModel();
         }
 
         /// <summary>
-        /// Handler for GetConfiguredEndpoints DM
+        /// Handler for GetConfiguredEndpoints direct method
         /// </summary>
         public async Task<List<PublishNodesEndpointApiModel>> GetConfiguredEndpointsAsync() {
-
             var response = await _configServices.GetConfiguredEndpointsAsync().ConfigureAwait(false);
             return response.ToApiModel();
         }
 
         /// <summary>
-        /// Handler for GetConfiguredNodesOnEndpoint DM
+        /// Handler for GetConfiguredNodesOnEndpoint direct method
         /// </summary>
         public async Task<List<PublishedNodeApiModel>> GetConfiguredNodesOnEndpointAsync(PublishNodesEndpointApiModel request) {
             var response = await _configServices.GetConfiguredNodesOnEndpointAsync(request.ToServiceModel()).ConfigureAwait(false);
@@ -92,7 +88,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         }
 
         /// <summary>
-        /// Handler for GetDiagnosticInfo DM
+        /// Handler for GetDiagnosticInfo direct method
         /// </summary>
         public async Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync() {
             var response = await _configServices.GetDiagnosticInfoAsync().ConfigureAwait(false);
@@ -100,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         }
 
         /// <summary>
-        /// Handler for GetInfo DM
+        /// Handler for GetInfo direct method
         /// </summary>
         public async Task GetInfoAsync() {
             await Task.Delay(0).ConfigureAwait(false);
@@ -108,7 +104,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         }
 
         /// <summary>
-        /// Handler for GetDiagnosticLog DM - Discontinued
+        /// Handler for GetDiagnosticLog direct method - Discontinued
         /// </summary>
         public async Task GetDiagnosticLogAsync() {
             await Task.Delay(0).ConfigureAwait(false);
@@ -116,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         }
 
         /// <summary>
-        /// Handler for GetDiagnosticStartupLog DM - Discontinued
+        /// Handler for GetDiagnosticStartupLog direct method - Discontinued
         /// </summary>
         public async Task GetDiagnosticStartupLogAsync() {
             await Task.Delay(0).ConfigureAwait(false);
@@ -124,7 +120,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         }
 
         /// <summary>
-        /// Handler for ExitApplication DM - Discontinued
+        /// Handler for ExitApplication direct method - Discontinued
         /// </summary>
         public async Task ExitApplicationAsync() {
             await Task.Delay(0).ConfigureAwait(false);

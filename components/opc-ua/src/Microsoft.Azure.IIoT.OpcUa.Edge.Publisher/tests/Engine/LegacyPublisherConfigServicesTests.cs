@@ -70,15 +70,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in publishNodesRequest) {
-                var publishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await orchestrator.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                publishNodesResult.Subject.First()
-                    .Should()
-                    .Contain("succeeded");
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -137,15 +133,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in publishNodesRequest) {
-                var publishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await orchestrator.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                publishNodesResult.Subject.First()
-                    .Should()
-                    .Contain("succeeded");
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -205,15 +197,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in publishNodesRequest) {
-                var publishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await orchestrator.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                publishNodesResult.Subject.First()
-                    .Should()
-                    .Contain("succeeded");
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -272,15 +260,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var unpublishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in unpublishNodesRequest) {
-                var unpublishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
-
-                unpublishNodesResult.Subject.First()
-                    .Should()
-                    .Contain("succeeded");
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -331,7 +315,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var unpublishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in unpublishNodesRequest) {
-                var unpublishNodesResult = await FluentActions
+                await FluentActions
                     .Invoking(async () => await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .ThrowAsync<MethodCallStatusException>()
@@ -411,10 +395,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Publish all nodes.
             foreach (var request in payload) {
-                var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.First()
+                await FluentActions
+                    .Invoking(async () => await orchestrator.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
-                    .Contain("succeeded");
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
             }
 
             async Task CheckEndpointsAndNodes(
@@ -471,10 +456,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             }
 
             foreach (var request in payloadDiff) {
-                var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.First()
+                await FluentActions
+                    .Invoking(async () => await orchestrator.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
-                    .Contain("succeeded");
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
             }
 
             // Check
@@ -482,10 +468,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Unpublish new nodes for each endpoint.
             foreach (var request in payloadDiff) {
-                var publishNodesResult = await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.First()
+                await FluentActions
+                    .Invoking(async () => await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
-                    .Contain("succeeded");
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
             }
 
             // Check
