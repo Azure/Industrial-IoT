@@ -157,7 +157,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         };
                     }
                 }
-                else {                    // usecase when called from Timer of Worker instead of JobProcess
+                else {
+                    // usecase when called from Timer of Worker instead of JobProcess
                     heartbeatResultModel = new HeartbeatResultModel {
                         HeartbeatInstruction = HeartbeatInstruction.Keep,
                         LastActiveHeartbeat = DateTime.UtcNow,
