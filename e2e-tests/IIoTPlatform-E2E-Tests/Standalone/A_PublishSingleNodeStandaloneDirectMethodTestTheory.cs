@@ -172,6 +172,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
 
+            //Call GetDiagnosticInfo direct method
+            responseGetDiagnosticInfo = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo,
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
+            jsonResponseGetDiagnosticInfo = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(jsonResponseGetDiagnosticInfo.Count, 0);
+
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).ConfigureAwait(false);
@@ -304,8 +316,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            var jsonResponseGetDiagnosticInfo = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(jsonResponseGetDiagnosticInfo.Count, 1);
+            var jsonResponseGetDiagnosticInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(jsonResponseGetDiagnosticInfo.NumberOfOpcSessionsConfigured, 1);
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
@@ -328,6 +340,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
+
+            //Call GetDiagnosticInfo direct method
+            responseGetDiagnosticInfo = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodLegacyNames.GetDiagnosticInfo,
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
+            jsonResponseGetDiagnosticInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(jsonResponseGetDiagnosticInfo.NumberOfOpcSessionsConfigured, 0);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
