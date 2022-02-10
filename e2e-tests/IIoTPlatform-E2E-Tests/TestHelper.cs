@@ -248,6 +248,14 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context"></param>
         /// <returns></returns>
         public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context) {
+            // Make sure directories exist.
+            using (var sshCient = CreateSshClientAndConnect(context)) {
+                sshCient.RunCommand($"[ ! -d { TestConstants.PublishedNodesFolder} ]" +
+                    $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
+                sshCient.RunCommand($"[ ! -d { TestConstants.PublishedNodesFolderLegacy} ]" +
+                    $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolderLegacy}");
+            }
+
             await PublishNodesAsync(
                 context,
                 TestConstants.PublishedNodesFullName,

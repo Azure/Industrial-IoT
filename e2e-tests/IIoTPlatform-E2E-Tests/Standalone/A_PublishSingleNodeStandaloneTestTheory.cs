@@ -68,7 +68,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 new[] { model }
             ).ConfigureAwait(false);
 
-            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
+            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // Wait some time till the updated pn.json is reflected.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
@@ -102,7 +102,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 TestConstants.PublishedNodesFullName,
                 Array.Empty<PublishedNodesEntryModel>()
             ).ConfigureAwait(false);
-            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);

@@ -44,7 +44,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
             },
                 HostConfig = new {
                     Binds = new[] {
-                    TestConstants.PublishedNodesFolderLegacy + "/:" + TestConstants.PublishedNodesFolderLegacy
+                        TestConstants.PublishedNodesFolderLegacy + "/:" + TestConstants.PublishedNodesFolderLegacy
                     }
                 }
             }).Replace("\"", "\\\"");
