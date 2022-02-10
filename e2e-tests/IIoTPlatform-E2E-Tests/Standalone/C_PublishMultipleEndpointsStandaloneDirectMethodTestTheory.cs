@@ -482,6 +482,105 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
                 $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
             Assert.Equal(publishingMonitoringResultJson.ValueChangesByNodeId.Count, endpointsCount * endpointsCount);
+
+            //Call GetDiagnosticInfo direct method and validate that we have data for all endpoints.
+            var diagInfoListResponse = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, diagInfoListResponse.Status);
+            var diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Equal(diagInfoList.Count, endpointsCount);
+
+            foreach(var diagInfo in diagInfoList) {
+                Assert.True(diagInfo.IngressValueChanges > 0);
+                Assert.True(diagInfo.IngressDataChanges > 0);
+                Assert.Equal(0, diagInfo.MonitoredOpcNodesFailedCount);
+                Assert.Equal(10, diagInfo.MonitoredOpcNodesSucceededCount);
+                Assert.True(diagInfo.OpcEndpointConnected);
+                Assert.True(diagInfo.OutgressIoTMessageCount > 0);
+
+                // Check that we are not dropping anything.
+                Assert.Equal((uint)0, diagInfo.EncoderNotificationsDropped);
+                Assert.Equal((ulong)0, diagInfo.OutgressInputBufferDropped);
+            }
+
+            // Now let's unpublish nodes on all endpoints.
+            for (int index = 0; index < endpointsCount; ++index) {
+                switch(index % 3) {
+                    case 0:
+                        // Let's unpublish using UnpublishNodes
+                        var unpublishNodesResponse = await CallMethodAsync(
+                            new MethodParameterModel {
+                                Name = TestConstants.DirectMethodNames.UnpublishNodes,
+                                JsonPayload = _serializer.SerializeToString(fullNodes[index].ToApiModel())
+                            },
+                            cts.Token
+                        ).ConfigureAwait(false);
+
+                        Assert.Equal((int)HttpStatusCode.OK, unpublishNodesResponse.Status);
+
+                        break;
+                    case 1:
+                        // Let's unpublish using UnpublishAllNodes
+                        var unpublishAllNodesResponse = await CallMethodAsync(
+                            new MethodParameterModel {
+                                Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
+                                JsonPayload = _serializer.SerializeToString(currentNodes[index].ToApiModel())
+                            },
+                            cts.Token
+                        ).ConfigureAwait(false);
+
+                        Assert.Equal((int)HttpStatusCode.OK, unpublishAllNodesResponse.Status);
+
+                        break;
+                    case 2:
+                        // Let's unpublish using AddOrUpdateEndpoints
+                        var addOrUpdateEndpointsResponse = await CallMethodAsync(
+                            new MethodParameterModel {
+                                Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
+                                JsonPayload = _serializer.SerializeToString(
+                                    new List<PublishNodesEndpointApiModel> { currentNodes[index].ToApiModel() })
+                            },
+                            cts.Token
+                        ).ConfigureAwait(false);
+
+                        Assert.Equal((int)HttpStatusCode.OK, addOrUpdateEndpointsResponse.Status);
+
+                        break;
+                }
+
+                // Check that there is one less entry in diagnostic info
+                diagInfoListResponse = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+
+                Assert.Equal((int)HttpStatusCode.OK, diagInfoListResponse.Status);
+                diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetConfiguredEndpoints.JsonPayload);
+                Assert.Equal(diagInfoList.Count, endpointsCount - 1 - index);
+
+                // Check that there is one less entry in endpoints list
+                responseGetConfiguredEndpoints = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+
+                Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
+                configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(
+                    responseGetConfiguredEndpoints.JsonPayload);
+                Assert.Equal(configuredEndpointsResponse.Count, endpointsCount - 1 - index);
+
+                var removedEndpointUrl = currentNodes[index].EndpointUrl.TrimEnd('/');
+                Assert.Null(configuredEndpointsResponse.Find(endpoint => endpoint.EndpointUrl.TrimEnd('/').Equals(removedEndpointUrl)));
+            }
         }
 
         [Fact]
