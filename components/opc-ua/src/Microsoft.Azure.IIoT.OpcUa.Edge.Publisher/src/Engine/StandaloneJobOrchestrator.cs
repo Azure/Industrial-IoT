@@ -746,7 +746,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         foreach (var assignedJob in _assignedJobs) {
                             if (entryJobId == assignedJob.Value.Job.Id) {
                                 found = _assignedJobs.Remove(assignedJob.Key, out _);
-                                _publisherDiagnosticInfo.Remove(assignedJob.Key, out _);
+                                _publisherDiagnosticInfo.Remove(assignedJob.Value.Job.Id, out _);
                                 break;
                             }
                         }
@@ -846,6 +846,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         foreach (var assignedJob in _assignedJobs) {
                             if (entryJobId == assignedJob.Value.Job.Id) {
                                 found = _assignedJobs.Remove(assignedJob.Key, out _);
+                                _publisherDiagnosticInfo.Remove(assignedJob.Value.Job.Id, out _);
                                 break;
                             }
                         }
