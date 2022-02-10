@@ -330,6 +330,157 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
         }
 
+        [Theory]
+        [InlineData(MessagingMode.Samples)]
+        [InlineData(MessagingMode.PubSub)]
+        async Task AddOrUpdateEndpointsTest(MessagingMode messagingMode) {
+            var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
+            var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
+
+            _iotHubPublisherModuleName = ioTHubPublisherDeployment.ModuleName;
+
+            // Clear context.
+            _context.Reset();
+
+            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+
+            // Make sure that there is no active monitoring.
+            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
+
+            // Clean publishednodes.json.
+            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context).ConfigureAwait(false);
+
+            // Create base edge deployment.
+            var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token).ConfigureAwait(false);
+            Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
+            _output.WriteLine("Created/Updated new edge base deployment.");
+
+            // Create layered edge deployment.
+            var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token).ConfigureAwait(false);
+            Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
+            _output.WriteLine("Created/Updated layered deployment for publisher module.");
+
+            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
+
+            // We will wait for module to be deployed.
+            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+                _context.DeviceConfig.DeviceId,
+                cts.Token,
+                new string[] { ioTHubPublisherDeployment.ModuleName }
+            ).GetAwaiter().GetResult());
+            Assert.Null(exception);
+
+            //Call GetConfiguredEndpoints direct method, initially there should be no endpoints
+            var responseGetConfiguredEndpoints = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
+            var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Equal(configuredEndpointsResponse.Count, 0);
+
+            // Use test event processor to verify data send to IoT Hub (expected* set to zero
+            // as data gap analysis is not part of this test case)
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 500, 10_000, 90_000_000, cts.Token).ConfigureAwait(false);
+
+            var endpointsCount = _context.SimulatedPublishedNodes?.Count
+                ?? _context.OpcPlcConfig.Urls
+                    .Split(TestConstants.SimulationUrlsSeparator)
+                    .Where(e => !string.IsNullOrWhiteSpace(e))
+                    .Count();
+            Assert.True(endpointsCount > 0, "no endpoints found to generate requests");
+
+            var fullNodes = new List<PublishedNodesEntryModel>();
+            for (int index = 0; index < endpointsCount; ++index) {
+                var node = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, index, 250).ConfigureAwait(false);
+                node.OpcNodes = node.OpcNodes
+                    .Where(node => node.Id.Contains("slow", StringComparison.OrdinalIgnoreCase))
+                    .Skip(index * endpointsCount)
+                    .Take(endpointsCount)
+                    .ToArray();
+
+                fullNodes.Add(node);
+            }
+
+            var currentNodes = new List<PublishedNodesEntryModel>();
+            for (int index = 0; index < endpointsCount; ++index) {
+                var node = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, index, 0).ConfigureAwait(false);
+                currentNodes.Add(node);
+            }
+
+            for (int index = 0; index < endpointsCount; ++index) {
+                var request = new List<PublishNodesEndpointApiModel>();
+                for (int i = 0; i <= index; ++i) {
+                    currentNodes[i].OpcNodes = fullNodes[i].OpcNodes.Take(index + 1).ToArray();
+                    request.Add(currentNodes[i].ToApiModel());
+                }
+
+                //Call AddOrUpdateEndpoints direct method
+                var response = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
+                        JsonPayload = _serializer.SerializeToString(request)
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+
+                Assert.Equal((int)HttpStatusCode.OK, response.Status);
+            }
+
+            //Call GetConfiguredEndpoints direct method
+            responseGetConfiguredEndpoints = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
+            configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Equal(configuredEndpointsResponse.Count, endpointsCount);
+
+            // Check that all endpoints are present.
+            for (int index = 0; index < endpointsCount; ++index) {
+                var receivedEndpointUrl = configuredEndpointsResponse[index].EndpointUrl.TrimEnd('/');
+                Assert.NotNull(currentNodes.Find(endpoint => endpoint.EndpointUrl.TrimEnd('/').Equals(receivedEndpointUrl)));
+            }
+
+            // Check that all expected nodes on endpoints are present.
+            for (int index = 0; index < endpointsCount; ++index) {
+                currentNodes[index].OpcNodes = new OpcUaNodesModel[0];
+
+                //Call GetConfiguredNodesOnEndpoint direct method for endpoint 0
+                var responseGetConfiguredNodesOnEndpoint = await CallMethodAsync(
+                    new MethodParameterModel {
+                        Name = TestConstants.DirectMethodNames.GetConfiguredNodesOnEndpoint,
+                        JsonPayload = _serializer.SerializeToString(currentNodes[index].ToApiModel())
+                    },
+                    cts.Token
+                ).ConfigureAwait(false);
+
+                Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint.Status);
+                var receivedNodes = _serializer.Deserialize<List<PublishedNodeApiModel>>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
+                Assert.Equal(fullNodes[index].OpcNodes.Length, receivedNodes.Count);
+                Assert.Equal(fullNodes[index].OpcNodes[0].Id, receivedNodes[0].Id);
+                Assert.Equal(fullNodes[index].OpcNodes[endpointsCount - 1].Id, receivedNodes[endpointsCount - 1].Id);
+            }
+
+            // Wait some time to generate events to process.
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
+
+            // Stop monitoring and get the result.
+            var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+
+            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
+                $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
+            Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
+                $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
+            Assert.Equal(publishingMonitoringResultJson.ValueChangesByNodeId.Count, endpointsCount * endpointsCount);
+        }
 
         [Fact]
         async Task SubscribeUnsubscribeDirectMethodLegacyPublisherTest() {

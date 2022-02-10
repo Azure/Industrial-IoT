@@ -664,7 +664,7 @@ namespace IIoTPlatform_E2E_Tests {
                     })
                     .ToArray();
 
-                context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, nodesToPublish);
+                context.ConsumedOpcUaNodes.AddOrUpdate(testPlc.EndpointUrl, nodesToPublish);
             }
             else {
                 var opcPlcIp = context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[endpointIndex];
