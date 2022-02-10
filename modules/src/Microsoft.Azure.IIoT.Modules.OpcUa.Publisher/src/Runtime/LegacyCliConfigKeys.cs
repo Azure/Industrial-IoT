@@ -123,6 +123,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string LogFileName = "LogFileName";
 
         /// <summary>
+        /// Key for the Legacy (2.5.x) compatibility mode.
+        /// </summary>
+        public const string LegacyCompatibility = "LegacyCompatibility";
+
+        /// <summary>
         /// Key for the transport mode to IoT Hub.
         /// </summary>
         public const string HubTransport = ModuleConfig.kTransportKey;

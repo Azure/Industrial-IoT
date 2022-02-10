@@ -195,5 +195,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// force mass monitored item clones
         /// </summary>
         public int? ScaleTestCount { get; set; }
+
+        /// <summary>
+        /// Run in legacy compatibility mode
+        /// </summary>
+        public bool LegacyCompatibility { get; set; }
     }
 }

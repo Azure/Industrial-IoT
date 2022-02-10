@@ -160,6 +160,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "me|messageencoding=", "The message encoding for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessageEncoding)))}).",
                         (MessageEncoding m) => this[LegacyCliConfigKeys.MessageEncoding] = m.ToString() },
+                    { "lc|legacycompatibility=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
+                        "Default is 'false'.",
+                        (bool b) => this[LegacyCliConfigKeys.LegacyCompatibility] = b.ToString() },
 
                     // Legacy unsupported
                     { "tc|telemetryconfigfile=", "Legacy - do not use.", _ => {} },
@@ -191,7 +194,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "vc|verboseconsole=", "Legacy - do not use.", _ => {} },
                     { "as|autotrustservercerts=", "Legacy - do not use.", _ => {} }
                 };
-            
+
             options.Parse(args);
 
             Config = ToAgentConfigModel();
@@ -306,7 +309,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
                 MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.IoTHubMaxMessageSize, 0),
                 ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1),
-                MaxOutgressMessages = GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, 4096)
+                MaxOutgressMessages = GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, 4096),
+                LegacyCompatibility = GetValueOrDefault(LegacyCliConfigKeys.LegacyCompatibility, false)
             };
         }
 
