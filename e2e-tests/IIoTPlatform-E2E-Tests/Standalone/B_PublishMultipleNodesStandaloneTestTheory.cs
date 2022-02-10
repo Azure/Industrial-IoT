@@ -71,6 +71,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 new[] { nodesToPublish }
             ).ConfigureAwait(false);
 
+            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
+
             // We will wait for module to be deployed.
             var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
                 _context.DeviceConfig.DeviceId,
@@ -118,7 +120,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 TestConstants.PublishedNodesFullName,
                 Array.Empty<PublishedNodesEntryModel>()
             ).ConfigureAwait(false);
-            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
