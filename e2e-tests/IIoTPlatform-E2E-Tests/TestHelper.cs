@@ -451,6 +451,7 @@ namespace IIoTPlatform_E2E_Tests {
                     StorageConnectionString = context.IoTHubConfig.CheckpointStorageConnectionString,
                     ExpectedValueChangesPerTimestamp = expectedValuesChangesPerTimestamp,
                     ExpectedIntervalOfValueChanges = expectedIntervalOfValueChanges,
+                    ThresholdValue = expectedIntervalOfValueChanges / 10,
                     ExpectedMaximalDuration = expectedMaximalDuration,
                 }
             };

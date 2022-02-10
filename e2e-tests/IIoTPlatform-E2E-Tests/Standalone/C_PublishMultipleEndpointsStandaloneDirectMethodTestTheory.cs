@@ -384,7 +384,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 500, 10_000, 90_000_000, cts.Token).ConfigureAwait(false);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 10_000, 20_000, cts.Token).ConfigureAwait(false);
 
             var endpointsCount = _context.SimulatedPublishedNodes?.Count
                 ?? _context.OpcPlcConfig.Urls
@@ -428,6 +428,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
 
                 Assert.Equal((int)HttpStatusCode.OK, response.Status);
+
+                await Task.Delay(2_000).ConfigureAwait(false);
             }
 
             //Call GetConfiguredEndpoints direct method
@@ -469,7 +471,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             }
 
             // Wait some time to generate events to process.
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
+            await Task.Delay(2 * TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);

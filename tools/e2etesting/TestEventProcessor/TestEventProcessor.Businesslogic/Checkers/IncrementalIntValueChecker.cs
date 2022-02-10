@@ -68,7 +68,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
 
                 if (curValue == _latestValuePerNodeId[nodeId]) {
                     _duplicateValues++;
-                    _logger.LogWarning("Duplicate value detected for {nodeId}", nodeId);
+                    _logger.LogWarning("Duplicate value detected for {nodeId}: {value}", nodeId, curValue);
                 } else {
                     _droppedValues++;
                     _logger.LogWarning("Dropped value detected for {nodeId}, previous value is {prevValue} " +
