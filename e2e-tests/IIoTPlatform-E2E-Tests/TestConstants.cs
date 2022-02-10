@@ -23,7 +23,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Default timeout of web calls
         /// </summary>
-        public const int DefaultTimeoutInMilliseconds = 90 * 1000;
+        //public const int DefaultTimeoutInMilliseconds = 90 * 1000;
+        public const int DefaultTimeoutInMilliseconds = 9000;
 
         /// <summary>
         /// Default delay interval in milliseconds

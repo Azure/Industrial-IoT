@@ -138,6 +138,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal(jsonResponse.Count, 1);
             Assert.Equal(jsonResponse[0].Id, "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1");
 
+            //Call GetDiagnosticInfo direct method
+            var responseGetDiagnosticInfo = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo,
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
+            var jsonResponseGetDiagnosticInfo = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(jsonResponseGetDiagnosticInfo.Count, 1);
+
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
             Assert.True((int)publishingMonitoringResultJson.totalValueChangesCount > 0, "No messages received at IoT Hub");
@@ -282,6 +294,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var jsonResponse = _serializer.Deserialize<List<PublishedNodeApiModel>>(opcNodes);
             Assert.Equal(jsonResponse.Count, 1);
             Assert.Equal(jsonResponse[0].Id, "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1");
+
+            //Call GetDiagnosticInfo direct method
+            var responseGetDiagnosticInfo = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodLegacyNames.GetDiagnosticInfo,
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
+            var jsonResponseGetDiagnosticInfo = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(jsonResponseGetDiagnosticInfo.Count, 1);
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);

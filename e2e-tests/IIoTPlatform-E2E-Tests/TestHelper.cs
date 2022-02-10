@@ -220,6 +220,7 @@ namespace IIoTPlatform_E2E_Tests {
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
             context.OutputHelper?.WriteLine(json);
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
+            CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolderLegacy, context);
             using var scpClient = CreateScpClientAndConnect(context);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
