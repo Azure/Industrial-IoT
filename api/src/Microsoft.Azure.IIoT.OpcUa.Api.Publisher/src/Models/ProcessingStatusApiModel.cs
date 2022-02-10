@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Microsoft.Azure.IIoT.Serializers;
     using System.Runtime.Serialization;
     using System;
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
 
     /// <summary>
     /// processing status
