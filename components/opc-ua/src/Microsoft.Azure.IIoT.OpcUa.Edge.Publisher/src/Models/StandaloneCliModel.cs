@@ -9,9 +9,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
 
     /// <summary>
     /// Model that represents the command line arguments in the format of the
-    /// legacy OPC Publisher.
+    /// standalone publisher mode.
     /// </summary>
-    public class LegacyCliModel {
+    public class StandaloneCliModel {
 
         /// <summary>
         /// The published nodes file.

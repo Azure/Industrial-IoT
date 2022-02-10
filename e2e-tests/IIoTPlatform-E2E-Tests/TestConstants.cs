@@ -44,12 +44,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Folder to store published_nodes.json file
         /// </summary>
-        public const string PublishedNodesFolder = "/mount";
+        public const string PublishedNodesFolder = "/mount/opc_publisher";
 
         /// <summary>
         /// Folder to store published_nodes.json file for legacy publisher
         /// </summary>
-        public const string PublishedNodesFolderLegacy = "/mountLegacy";
+        public const string PublishedNodesFolderLegacy = "/mount/opc_publisher_2.5";
 
         /// <summary>
         /// The full name of the publishednodes.json on the Edge

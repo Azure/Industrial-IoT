@@ -4,23 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-    using System.Runtime.Serialization;
-    
 
     /// <summary>
     /// PublishNodes direct method response
     /// </summary>
-    [DataContract]
     public class PublishedNodesResponseApiModel {
-
-        /// <summary>
-        /// Status messages
-        /// </summary>
-        [DataMember(Name = "statusMessage", Order = 0)]
-        [Required]
-        public List<string> StatusMessage { get; set; }
 
     }
 }

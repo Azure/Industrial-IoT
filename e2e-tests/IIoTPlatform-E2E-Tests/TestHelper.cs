@@ -27,6 +27,7 @@ namespace IIoTPlatform_E2E_Tests {
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
+    using Renci.SshNet.Common;
 
     internal static partial class TestHelper {
 
@@ -248,6 +249,26 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context"></param>
         /// <returns></returns>
         public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context) {
+            // Make sure directories exist.
+            var privateKeyFile = GetPrivateSshKey(context);
+            var sftpClient = new SftpClient(context.SshConfig.Host,
+                context.SshConfig.Username,
+                privateKeyFile
+            );
+            sftpClient.Connect();
+
+            void CreateDirectory(SftpClient sftpClient, string directoryPath) {
+                try {
+                    sftpClient.GetAttributes(directoryPath);
+                }
+                catch (SftpPathNotFoundException) {
+                    sftpClient.CreateDirectory(directoryPath);
+                }
+            }
+
+            CreateDirectory(sftpClient, TestConstants.PublishedNodesFolder);
+            CreateDirectory(sftpClient, TestConstants.PublishedNodesFolderLegacy);
+
             await PublishNodesAsync(
                 context,
                 TestConstants.PublishedNodesFullName,

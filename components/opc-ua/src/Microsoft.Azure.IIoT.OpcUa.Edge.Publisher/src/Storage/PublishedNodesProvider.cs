@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
     /// </summary>
     public class PublishedNodesProvider: IPublishedNodesProvider, IDisposable {
 
-        private readonly LegacyCliModel _legacyCliModel;
+        private readonly StandaloneCliModel _standaloneCliModel;
         private readonly ILogger _logger;
         private readonly SemaphoreSlim _lock;
         private readonly FileSystemWatcher _fileSystemWatcher;
@@ -43,21 +43,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
         /// <summary>
         /// Provider of utilities for published nodes file.
         /// </summary>
-        /// <param name="legacyCliModelProvider"> legacyCliModelProvider that will define location of published nodes file. </param>
+        /// <param name="standaloneCliModelProvider"> standaloneCliModelProvider that will define location of published nodes file. </param>
         /// <param name="logger"> Logger </param>
-        public PublishedNodesProvider(ILegacyCliModelProvider legacyCliModelProvider, ILogger logger) {
+        public PublishedNodesProvider(IStandaloneCliModelProvider standaloneCliModelProvider, ILogger logger) {
 
-            _legacyCliModel = legacyCliModelProvider?.LegacyCliModel ??
-                throw new ArgumentNullException(nameof(legacyCliModelProvider));
+            _standaloneCliModel = standaloneCliModelProvider?.StandaloneCliModel ??
+                throw new ArgumentNullException(nameof(standaloneCliModelProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            var directory = Path.GetDirectoryName(_legacyCliModel.PublishedNodesFile);
+            var directory = Path.GetDirectoryName(_standaloneCliModel.PublishedNodesFile);
 
             if (string.IsNullOrWhiteSpace(directory)) {
                 directory = Environment.CurrentDirectory;
             }
 
-            var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
+            var file = Path.GetFileName(_standaloneCliModel.PublishedNodesFile);
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
             _fileSystemWatcher.Deleted += FileSystemWatcher_Deleted;
             _fileSystemWatcher.Created += FileSystemWatcher_Created;
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
         public DateTime GetLastWriteTime() {
             _lock.Wait();
             try {
-                return File.GetLastWriteTime(_legacyCliModel.PublishedNodesFile);
+                return File.GetLastWriteTime(_standaloneCliModel.PublishedNodesFile);
             }
             finally {
                 _lock.Release();
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
             _lock.Wait();
             try {
                 using (var fileStream = new FileStream(
-                    _legacyCliModel.PublishedNodesFile,
+                    _standaloneCliModel.PublishedNodesFile,
                     FileMode.Open,
                     FileAccess.Read,
                     FileShare.Read
@@ -94,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
             }
             catch (Exception e) {
                 _logger.Error(e, "Failed to read content of published nodes file from \"{path}\"",
-                    _legacyCliModel.PublishedNodesFile);
+                    _standaloneCliModel.PublishedNodesFile);
                 throw;
             }
             finally {
@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
 
                 try {
                     using (var fileStream = new FileStream(
-                        _legacyCliModel.PublishedNodesFile,
+                        _standaloneCliModel.PublishedNodesFile,
                         FileMode.Open,
                         FileAccess.Write,
                         // We will require that there is no other process using the file.
@@ -130,12 +130,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
                     _logger.Warning("Failed to update published nodes file at \"{path}\" with restricted share policies. " +
                         "Please close any other application that uses this file. " +
                         "Falling back to opening it with more relaxed share policies.",
-                        _legacyCliModel.PublishedNodesFile);
+                        _standaloneCliModel.PublishedNodesFile);
 
                     // We will fall back to writing with ReadWrite access.
                     try {
                         using (var fileStream = new FileStream(
-                            _legacyCliModel.PublishedNodesFile,
+                            _standaloneCliModel.PublishedNodesFile,
                             FileMode.Open,
                             FileAccess.Write,
                             // Relaxing requirements.
@@ -147,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
                     catch (Exception) {
                         // Report and raise original exception if fallback also failed.
                         _logger.Error(e, "Failed to update published nodes file at \"{path}\"",
-                            _legacyCliModel.PublishedNodesFile);
+                            _standaloneCliModel.PublishedNodesFile);
 
                         throw e;
                     }
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
             _fileSystemWatcher.Changed -= FileSystemWatcher_Changed;
             _fileSystemWatcher.Renamed -= FileSystemWatcher_Renamed;
 
-            _fileSystemWatcher?.Dispose();
+            _fileSystemWatcher.Dispose();
         }
 
         private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
