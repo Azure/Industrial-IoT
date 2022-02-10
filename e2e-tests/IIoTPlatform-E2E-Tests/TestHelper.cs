@@ -250,24 +250,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns></returns>
         public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context) {
             // Make sure directories exist.
-            var privateKeyFile = GetPrivateSshKey(context);
-            var sftpClient = new SftpClient(context.SshConfig.Host,
-                context.SshConfig.Username,
-                privateKeyFile
-            );
-            sftpClient.Connect();
-
-            void CreateDirectory(SftpClient sftpClient, string directoryPath) {
-                try {
-                    sftpClient.GetAttributes(directoryPath);
-                }
-                catch (SftpPathNotFoundException) {
-                    sftpClient.CreateDirectory(directoryPath);
-                }
+            using (var sshCient = CreateSshClientAndConnect(context)) {
+                sshCient.RunCommand($"[ ! -d { TestConstants.PublishedNodesFolder} ]" +
+                    $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
+                sshCient.RunCommand($"[ ! -d { TestConstants.PublishedNodesFolderLegacy} ]" +
+                    $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolderLegacy}");
             }
-
-            CreateDirectory(sftpClient, TestConstants.PublishedNodesFolder);
-            CreateDirectory(sftpClient, TestConstants.PublishedNodesFolderLegacy);
 
             await PublishNodesAsync(
                 context,
