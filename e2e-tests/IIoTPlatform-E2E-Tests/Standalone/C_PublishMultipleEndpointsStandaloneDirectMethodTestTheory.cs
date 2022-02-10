@@ -279,6 +279,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             _iotHubPublisherModuleName = ioTHubLegacyPublisherDeployment.ModuleName;
 
+            // Clear context.
+            _context.Reset();
+
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // Make sure that there is no active monitoring.
