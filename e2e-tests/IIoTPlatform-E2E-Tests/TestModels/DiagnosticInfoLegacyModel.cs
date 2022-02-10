@@ -10,8 +10,6 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
     /// Model for a diagnostic info response.
     /// </summary>
     public class DiagnosticInfoLegacyModel {
-        public DiagnosticInfoLegacyModel() {
-        }
 
         public DateTime PublisherStartTime { get; set; }
 
