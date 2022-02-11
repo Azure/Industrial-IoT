@@ -199,9 +199,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
-
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
 
             //Call GetDiagnosticInfo direct method
             responseGetDiagnosticInfo = await CallMethodAsync(
@@ -347,6 +344,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             var diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 1);
+            Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 1);
+            Assert.Equal(diagInfo.NumberOfOpcSessionsConnected, 1);
+            Assert.Equal(diagInfo.NumberOfOpcMonitoredItemsConfigured, 250);
+            Assert.Equal(diagInfo.NumberOfOpcMonitoredItemsMonitored, 250);
+            Assert.True(diagInfo.SentMessages > 0);
+            Assert.Equal(diagInfo.FailedMessages, 0);
+            Assert.Equal(diagInfo.TooLargeCount, 0);
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);

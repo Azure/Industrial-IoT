@@ -329,6 +329,12 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             var diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 1);
+            Assert.Equal(diagInfo.NumberOfOpcSessionsConnected, 1);
+            Assert.Equal(diagInfo.NumberOfOpcMonitoredItemsConfigured, 1);
+            Assert.Equal(diagInfo.NumberOfOpcMonitoredItemsMonitored, 1);
+            Assert.True(diagInfo.SentMessages > 0);
+            Assert.Equal(diagInfo.FailedMessages, 0);
+            Assert.Equal(diagInfo.TooLargeCount, 0);
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
