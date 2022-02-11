@@ -128,5 +128,3 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
         public int MonitoredOpcNodesFailedCount { get; set; }
     }
 }
-
-
