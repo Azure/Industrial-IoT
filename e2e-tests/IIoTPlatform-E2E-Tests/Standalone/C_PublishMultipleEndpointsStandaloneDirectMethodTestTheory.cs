@@ -491,6 +491,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // updates to the subscriptions which should also not yield dropped or duplicated messages.
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 10_000, 20_000, cts.Token).ConfigureAwait(false);
 
+            // Wait some time before running unpublishing to allow test event processor to start.
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
+
             //Call GetDiagnosticInfo direct method and validate that we have data for all endpoints.
             var diagInfoListResponse = await CallMethodAsync(
                 new MethodParameterModel {
