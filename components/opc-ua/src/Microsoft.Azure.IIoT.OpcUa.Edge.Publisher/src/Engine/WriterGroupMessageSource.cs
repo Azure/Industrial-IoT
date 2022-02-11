@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
@@ -24,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// </summary>
     public class WriterGroupMessageTrigger : IMessageTrigger, IDisposable {
         /// <inheritdoc/>
-        public string Id => _writerGroup.WriterGroupId;
+        public string Id => _subscriptions?.First()?.Subscription?.Connection?.CreateConnectionId() ?? _writerGroup.WriterGroupId;
 
         /// <inheritdoc/>
         public int NumberOfConnectionRetries => _subscriptions?.Sum(x => x.Subscription?.NumberOfConnectionRetries) ?? 0;
@@ -146,26 +147,50 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _writerGroup = writerGroupConfig?.WriterGroup?.Clone() ??
                 throw new ArgumentNullException(nameof(writerGroupConfig.WriterGroup));
             _subscriptions = _writerGroup.DataSetWriters?
-                .Select(g => new DataSetWriterSubscription(this, g))
+                .Select(g => new DataSetWriterSubscription(this, g, writerGroupConfig))
                 .ToList();
             _publisherId = writerGroupConfig.PublisherId ?? Guid.NewGuid().ToString();
+            _subscriptions.ForEach(async sc => await sc.OpenAsync().ConfigureAwait(false));
         }
 
         /// <inheritdoc/>
         public async Task RunAsync(CancellationToken ct) {
+            _subscriptions.ForEach(async sc => await sc.ActivateAsync().ConfigureAwait(false));
+            await Task.Delay(-1, ct).ConfigureAwait(false);
+        }
 
-            _subscriptions.ForEach(sc => sc.OpenAsync().Wait());
-            _subscriptions.ForEach(sc => sc.ActivateAsync(ct).Wait());
-            try {
-                await Task.Delay(-1, ct).ConfigureAwait(false);
-            }
-            finally {
-                _subscriptions.ForEach(sc => sc.DeactivateAsync().Wait());
-            }
+        /// <inheritdoc/>
+        public void Reconfigure(object config) {
+
+            var jobConfig = config as WriterGroupJobModel ?? throw new ArgumentNullException(nameof(config)); ;
+
+            var writerGroupConfig = jobConfig?.ToWriterGroupJobConfiguration(_publisherId);
+            _writerGroup = writerGroupConfig?.WriterGroup?.Clone();
+            var newSubscriptions = jobConfig?.WriterGroup?.DataSetWriters?
+                .Select(g => new DataSetWriterSubscription(this, g, writerGroupConfig))
+                .ToList();
+            _publisherId = writerGroupConfig?.PublisherId ?? Guid.NewGuid().ToString();
+            var toAdd = newSubscriptions.Except(_subscriptions).ToList();
+            var toUpdate = _subscriptions.Intersect(newSubscriptions).ToList();
+            var toRemove = _subscriptions.Except(newSubscriptions).ToList();
+
+            _subscriptions.Clear();
+            _subscriptions.AddRange(toUpdate);
+            _subscriptions.AddRange(toAdd);
+
+            toRemove.ForEach(sc => sc.Dispose());
+
+            toAdd.ForEach(async sc => await sc.OpenAsync().ConfigureAwait(false) );
+            toUpdate.ForEach(async sc => {
+                    var newSc = newSubscriptions.Find(s => s.Equals(sc));
+                    await sc.UpdateAsync(newSc);
+                }
+            );
         }
 
         /// <inheritdoc/>
         public void Dispose() {
+            _subscriptions.ForEach(async sc => await sc.DeactivateAsync().ConfigureAwait(false));
             _subscriptions.ForEach(sc => sc.Dispose());
             _subscriptions.Clear();
         }
@@ -181,43 +206,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             public ISubscription Subscription { get; set; }
 
             /// <summary>
-            /// Create subscription from template
+            /// Create subscription from a DataSetWriterModel template
             /// </summary>
-            /// <param name="outer"></param>
-            /// <param name="dataSetWriter"></param>
             public DataSetWriterSubscription(WriterGroupMessageTrigger outer,
-                DataSetWriterModel dataSetWriter) {
+                DataSetWriterModel dataSetWriter, IWriterGroupConfig writerGroup) {
 
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
-                _dataSetWriter = dataSetWriter.Clone() ??
+                _dataSetWriter = dataSetWriter?.Clone() ??
                     throw new ArgumentNullException(nameof(dataSetWriter));
-                _subscriptionInfo = _dataSetWriter.ToSubscriptionModel();
-
-                if (dataSetWriter.KeyFrameInterval.HasValue &&
-                   dataSetWriter.KeyFrameInterval.Value > TimeSpan.Zero) {
-                    _keyframeTimer = new Timer(
-                        dataSetWriter.KeyFrameInterval.Value.TotalMilliseconds);
-                    _keyframeTimer.Elapsed += KeyframeTimerElapsedAsync;
-                }
-                else {
-                    _keyFrameCount = dataSetWriter.KeyFrameCount;
-                }
-
-                if (dataSetWriter.DataSetMetaDataSendInterval.HasValue &&
-                    dataSetWriter.DataSetMetaDataSendInterval.Value > TimeSpan.Zero) {
-                    _metaData = dataSetWriter.DataSet?.DataSetMetaData ??
-                        throw new ArgumentNullException(nameof(dataSetWriter.DataSet));
-
-                    _metadataTimer = new Timer(
-                        dataSetWriter.DataSetMetaDataSendInterval.Value.TotalMilliseconds);
-                    _metadataTimer.Elapsed += MetadataTimerElapsed;
-                }
+                _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(writerGroup);
+                InitializeKeyframeTrigger(dataSetWriter);
+                InitializeMetaDataTrigger(dataSetWriter);
             }
 
             /// <summary>
             /// Open subscription
             /// </summary>
-            /// <returns></returns>
             public async Task OpenAsync() {
                 if (Subscription != null) {
                     _outer._logger.Warning("Subscription already exists");
@@ -233,11 +237,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             /// <summary>
-            /// activate a subscription
+            /// Update subscription content
             /// </summary>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            public async Task ActivateAsync(CancellationToken ct) {
+            public async Task UpdateAsync(DataSetWriterSubscription newInfo) {
+                if (Subscription == null) {
+                    _outer._logger.Warning("Subscription does not exist");
+                    return;
+                }
+
+                _dataSetWriter = newInfo._dataSetWriter.Clone();
+                _subscriptionInfo = newInfo._subscriptionInfo.Clone();
+
+                InitializeKeyframeTrigger(newInfo._dataSetWriter);
+                InitializeMetaDataTrigger(newInfo._dataSetWriter);
+
+                await Subscription.ApplyAsync(_subscriptionInfo.MonitoredItems,
+                    _subscriptionInfo.Configuration).ConfigureAwait(false);
+            }
+
+            /// <summary>
+            /// Activate a subscription
+            /// </summary>
+            public async Task ActivateAsync() {
                 if (Subscription == null) {
                     _outer._logger.Warning("Subscription not registered");
                     return;
@@ -249,28 +270,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 if (_keyframeTimer != null) {
-                    ct.Register(() => _keyframeTimer.Stop());
                     _keyframeTimer.Start();
                 }
 
                 if (_metadataTimer != null) {
-                    ct.Register(() => _metadataTimer.Stop());
                     _metadataTimer.Start();
                 }
             }
 
             /// <summary>
-            /// deactivate a subscription
+            /// Deactivate a subscription
             /// </summary>
-            /// <returns></returns>
             public async Task DeactivateAsync() {
-
                 if (Subscription == null) {
                     _outer._logger.Warning("Subscription not registered");
                     return;
                 }
 
-                await Subscription.CloseAsync().ConfigureAwait(false);
+                await Subscription.DeactivateAsync(null).ConfigureAwait(false);
 
                 if (_keyframeTimer != null) {
                     _keyframeTimer.Stop();
@@ -281,12 +298,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
 
+            /// <inheritdoc/>
+            public async Task CloseAsync() {
+                if (Subscription == null) {
+                    _outer._logger.Warning("Subscription not registered");
+                    return;
+                }
+                await Subscription.CloseAsync().ConfigureAwait(false);
+                Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
+                Subscription.Dispose();
+                Subscription = null;
+
+            }
 
             /// <inheritdoc/>
             public void Dispose() {
                 if (Subscription != null) {
-                    Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
-                    Subscription.Dispose();
+                    DeactivateAsync().GetAwaiter().GetResult();
+                    CloseAsync().GetAwaiter().GetResult();
                 }
                 _keyframeTimer?.Dispose();
                 _metadataTimer?.Dispose();
@@ -294,10 +323,65 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             /// <summary>
+            /// Initializes the key frame triggering mechanism from the cconfiguration model
+            /// </summary>
+            private void InitializeKeyframeTrigger(DataSetWriterModel dataSetWriter) {
+
+                var keyframeTriggerInterval = dataSetWriter.KeyFrameInterval
+                    .GetValueOrDefault(TimeSpan.Zero)
+                    .TotalMilliseconds;
+
+                if (keyframeTriggerInterval > 0) {
+                    if (_keyframeTimer == null) {
+                        _keyframeTimer = new Timer(keyframeTriggerInterval);
+                        _keyframeTimer.Elapsed += KeyframeTimerElapsedAsync;
+                    }
+                    else {
+                        _keyframeTimer.Interval = keyframeTriggerInterval;
+                    }
+                }
+                else {
+                    if (_keyframeTimer != null) {
+                        _keyframeTimer.Stop();
+                        _keyframeTimer.Dispose();
+                        _keyframeTimer = null;
+                    }
+                    _keyFrameCount = dataSetWriter.KeyFrameCount;
+                }
+            }
+
+            /// <summary>
+            /// /// Initializes the Metadata triggering mechanism from the cconfiguration model
+            /// </summary>
+            private void InitializeMetaDataTrigger(DataSetWriterModel dataSetWriter) {
+
+                var metaDataSendInterval = dataSetWriter.DataSetMetaDataSendInterval
+                    .GetValueOrDefault(TimeSpan.Zero)
+                    .TotalMilliseconds;
+
+                if (metaDataSendInterval > 0) {
+                    _metaData = dataSetWriter.DataSet?.DataSetMetaData ??
+                        throw new ArgumentNullException(nameof(dataSetWriter.DataSet));
+                    if (_metadataTimer == null) {
+                        _metadataTimer = new Timer(metaDataSendInterval);
+                        _metadataTimer.Elapsed += MetadataTimerElapsed;
+                    }
+                    else {
+                        _metadataTimer.Interval = metaDataSendInterval;
+                    }
+                }
+                else {
+                    if (_metadataTimer != null) {
+                        _metadataTimer.Stop();
+                        _metadataTimer.Dispose();
+                        _metadataTimer = null;
+                    }
+                }
+            }
+
+            /// <summary>
             /// Fire when keyframe timer elapsed to send keyframe message
             /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="e"></param>
             private async void KeyframeTimerElapsedAsync(object sender, ElapsedEventArgs e) {
                 try {
                     _keyframeTimer.Enabled = false;
@@ -320,8 +404,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Fired when metadata time elapsed
             /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="e"></param>
             private void MetadataTimerElapsed(object sender, ElapsedEventArgs e) {
                 // Send(_metaData)
             }
@@ -329,8 +411,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Handle subscription change messages
             /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="notification"></param>
             private async void OnSubscriptionChangedAsync(object sender,
                 SubscriptionNotificationModel notification) {
                 var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
@@ -389,32 +469,60 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
 
-            private readonly Timer _keyframeTimer;
-            private readonly Timer _metadataTimer;
-            private readonly DataSetMetaDataModel _metaData;
-            private readonly uint? _keyFrameCount;
-            private long _currentSequenceNumber;
+            /// <inheritdoc/>
+            public override bool Equals(object obj) {
+                if (!(obj is DataSetWriterSubscription that)) {
+                    return false;
+                }
+                return _subscriptionInfo.Connection.IsSameAs(that._subscriptionInfo.Connection) && 
+                    _subscriptionInfo.Id == that._subscriptionInfo.Id;
+            }
+
+            /// <inheritdoc/>
+            public static bool operator == (DataSetWriterSubscription objA, DataSetWriterSubscription objB) =>
+                EqualityComparer<DataSetWriterSubscription>.Default.Equals(objA, objB);
+
+            /// <inheritdoc/>
+            public static bool operator != (DataSetWriterSubscription objA, DataSetWriterSubscription objB) =>
+                !(objA == objB);
+
+            /// <inheritdoc/>
+            public override int GetHashCode() {
+                var hashCode = 2082053542;
+                hashCode = (hashCode * -1521134295) + 
+                    _subscriptionInfo.Connection.CreateConsistentHash();
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<string>.Default.GetHashCode(_subscriptionInfo.Id);
+                return hashCode;
+            }
+
             private readonly WriterGroupMessageTrigger _outer;
-            private readonly DataSetWriterModel _dataSetWriter;
-            private readonly SubscriptionModel _subscriptionInfo;
             private readonly object _lock = new object();
+            private DataSetWriterModel _dataSetWriter;
+            private SubscriptionModel _subscriptionInfo;
+            private Timer _keyframeTimer;
+            private Timer _metadataTimer;
+            private DataSetMetaDataModel _metaData;
+            private uint? _keyFrameCount;
+            private long _currentSequenceNumber;
         }
 
-        private readonly ILogger _logger;
-        private readonly string _publisherId;
-        private readonly List<DataSetWriterSubscription> _subscriptions;
-        private readonly WriterGroupModel _writerGroup;
-        private readonly ISubscriptionManager _subscriptionManager;
         private const ulong kNumberOfInvokedMessagesResetThreshold = ulong.MaxValue - 10000;
         private const int _bucketWidth = 60;
+
+        private readonly ILogger _logger;
+        private readonly List<DataSetWriterSubscription> _subscriptions;
+        private readonly ISubscriptionManager _subscriptionManager;
         private readonly ulong[] _valueChangesBuffer = new ulong[_bucketWidth];
+        private readonly ulong[] _dataChangesBuffer = new ulong[_bucketWidth];
+
+        private WriterGroupModel _writerGroup;
+        private string _publisherId;
         private int _lastPointerValueChanges;
         private ulong _valueChangesCount;
-        private readonly ulong[] _dataChangesBuffer = new ulong[_bucketWidth];
         private int _lastPointerDataChanges;
         private ulong _dataChangesCount;
         private DateTime _lastWriteTimeValueChange = DateTime.MinValue;
         private DateTime _lastWriteTimeDataChange = DateTime.MinValue;
-
     }
 }

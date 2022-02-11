@@ -50,6 +50,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Filters {
                 case UnauthorizedAccessException ue:
                     status = (int)HttpStatusCode.Unauthorized;
                     break;
+                case MethodCallStatusException mcse:
+                    status = mcse.Result;
+                    break;
                 case SerializerException sre:
                 case MethodCallException mce:
                 case BadRequestException br:

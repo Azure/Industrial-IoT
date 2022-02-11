@@ -50,10 +50,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Create instance of MonitoredItemMessageEncoder.
         /// </summary>
         /// <param name="logger"> Logger to be used for reporting. </param>
-        /// <param name="legacyConfig"> injected configuration. </param>
-        public MonitoredItemMessageEncoder(ILogger logger, ILegacyCliModelProvider legacyConfig) {
+        /// <param name="standaloneConfig"> injected configuration. </param>
+        public MonitoredItemMessageEncoder(ILogger logger, IStandaloneCliModelProvider standaloneConfig) {
             _logger = logger;
-            _jsonContentType = legacyConfig.LegacyCliModel.LegacyCompatibility
+            _jsonContentType = standaloneConfig.StandaloneCliModel.LegacyCompatibility
                 ? ContentMimeType.UaLegacyPublisher
                 : ContentMimeType.Json;
         }

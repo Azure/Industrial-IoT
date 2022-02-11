@@ -8,10 +8,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
 
     /// <summary>
-    /// Static class that contains the default keys for the legacy command line arguments how they will be represented in
-    /// the IConfiguration-instance.
+    /// Static class that contains the default keys for the standalone command line arguments how they
+    /// will be represented in the IConfiguration-instance.
     /// </summary>
-    public static class LegacyCliConfigKeys {
+    public static class StandaloneCliConfigKeys {
         /// <summary>
         /// Key for default published nodes file.
         /// </summary>
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the publisher site.
         /// </summary>
-        public const string PublisherSite = "Site";
+        public const string PublisherSite = "site";
 
         /// <summary>
         /// Key for the specified published nodes filename.
@@ -107,6 +107,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         public const string MaxOutgressMessages = "MaxOutgressMessages";
 
+        /// <summary>
+        /// Key for the maximum number of nodes per DataSet/Subscription
+        /// </summary>
+        public const string DefaultMaxNodesPerDataSet = "DefaultMaxNodesPerDataSet";
         /// <summary>
         /// Key for the scale test monitored items clones count .
         /// </summary>

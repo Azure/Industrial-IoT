@@ -59,6 +59,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
 
             public event ConfigUpdatedEventHandler OnConfigUpdated;
 
+            /// <inheritdoc/>
+            public void TriggerConfigUpdate(object sender, EventArgs eventArgs) {
+                OnConfigUpdated?.Invoke(sender, eventArgs);
+            }
+
             public void SetMaxWorker(int numberOfWorker) {
 
                 Config.MaxWorkers = numberOfWorker;
