@@ -312,11 +312,11 @@ namespace TestEventProcessor.BusinessLogic {
         /// <summary>
         /// Feed the checkers for the Data Change within the reveived event
         /// </summary>
-        /// <param name="nodeId">Identifeir of the data source</param>
-        /// <param name="sourceTimestamp">Timestamp at the Data Source </param>
+        /// <param name="nodeId">Identifeir of the data source.</param>
+        /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
         /// <param name="enqueuedTimestamp">IoT Hub message enqueue timestamp.</param>
         /// <param name="receivedTimestamp">Timestamp of arrival in the telemetry processor.</param>
-        /// <param name="value">the actual value of the data change</param>
+        /// <param name="value">The actual value of the data change.</param>
         private void FeedDataCheckers(string nodeId, DateTime sourceTimestamp, DateTime enqueuedTimestamp, DateTime receivedTimestamp, object value) {
 
             // OPC PLC contains bad fast and slow nodes that drop messages by design.
@@ -327,8 +327,8 @@ namespace TestEventProcessor.BusinessLogic {
 
             // Feed data to checkers.
             _missingTimestampsChecker.ProcessEvent(nodeId, sourceTimestamp, value);
-            _messageProcessingDelayChecker.ProcessEvent(sourceTimestamp, receivedTimestamp);
-            _messageDeliveryDelayChecker.ProcessEvent(sourceTimestamp, enqueuedTimestamp);
+            _messageProcessingDelayChecker.ProcessEvent(nodeId, sourceTimestamp, receivedTimestamp);
+            _messageDeliveryDelayChecker.ProcessEvent(nodeId, sourceTimestamp, enqueuedTimestamp);
             _valueChangeCounterPerNodeId.ProcessEvent(nodeId, sourceTimestamp, value);
             _missingValueChangesChecker.ProcessEvent(sourceTimestamp);
             _incrementalIntValueChecker.ProcessEvent(nodeId, value);
