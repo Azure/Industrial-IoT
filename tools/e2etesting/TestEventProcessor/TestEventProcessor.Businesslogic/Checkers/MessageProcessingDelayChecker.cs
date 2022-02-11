@@ -6,6 +6,7 @@
 namespace TestEventProcessor.BusinessLogic.Checkers {
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Collections.Generic;
     using System.Threading;
 
     /// <summary>
@@ -18,7 +19,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         private readonly ILogger _logger;
 
         private readonly SemaphoreSlim _lock;
-        private TimeSpan _lastOpcDiffToNow = TimeSpan.Zero;
+        private readonly Dictionary<string, TimeSpan> _lastOpcDiffToNow = new Dictionary<string, TimeSpan>();
         private TimeSpan _maxOpcDiffToNow = TimeSpan.Zero;
 
         /// <summary>
@@ -43,9 +44,11 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <summary>
         /// Method that should be called for processing of events.
         /// </summary>
-        /// <param name="sourceTimestamp"></param>
-        /// <param name="receivedTimestamp"></param>
+        /// <param name="nodeId">Identifeir of the data source.</param>
+        /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
+        /// <param name="receivedTimestamp">Timestamp of arrival in the telemetry processor.</param>
         public void ProcessEvent(
+            string nodeId,
             DateTime sourceTimestamp,
             DateTime receivedTimestamp
         ) {
@@ -53,13 +56,18 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             try {
                 // Check and report if processing delay has changed considerably, meaning more that the threshold.
                 var newOpcDiffToNow = receivedTimestamp - sourceTimestamp;
-                var diffDelta = newOpcDiffToNow - _lastOpcDiffToNow;
+                if (!_lastOpcDiffToNow.ContainsKey(nodeId)) {
+                    _lastOpcDiffToNow[nodeId] = TimeSpan.Zero;
+                }
+                var diffDelta = newOpcDiffToNow - _lastOpcDiffToNow[nodeId];
 
                 if (diffDelta.Duration() > _threshold) {
-                    _logger.LogWarning("The different between UtcNow and Opc Source Timestamp has changed by {diff}", diffDelta);
+                    _logger.LogWarning("The different between time of arrival to the telemetry processor " +
+                        "and Opc Source Timestamp for {nodeId} node has changed by {diff}",
+                        nodeId, diffDelta);
                 }
 
-                _lastOpcDiffToNow = newOpcDiffToNow;
+                _lastOpcDiffToNow[nodeId] = newOpcDiffToNow;
 
                 // Check if we need to update _maxOpcDiffToNow
                 if (newOpcDiffToNow > _maxOpcDiffToNow) {

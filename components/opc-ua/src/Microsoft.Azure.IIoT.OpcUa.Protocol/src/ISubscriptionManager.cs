@@ -13,11 +13,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface ISubscriptionManager {
 
         /// <summary>
-        /// Total subscriptions
-        /// </summary>
-        int TotalSubscriptionCount { get; }
-
-        /// <summary>
         /// Get or create new subscription
         /// </summary>
         /// <param name="subscriptionModel"></param>

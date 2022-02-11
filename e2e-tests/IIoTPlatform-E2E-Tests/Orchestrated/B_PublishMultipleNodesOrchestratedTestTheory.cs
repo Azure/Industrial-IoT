@@ -152,16 +152,16 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var delay = TestConstants.DefaultTimeoutInMilliseconds * 2;
             Task.Delay(delay, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
-            Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
-            Assert.True((uint)json.droppedValueCount == 0, "Dropped messages detected");
-            Assert.True((uint)json.duplicateValueCount == 0, "Duplicate values detected");
+            Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
+            Assert.True(json.DuplicateValueCount == 0, "Duplicate values detected");
 
             var unexpectedNodesThatPublish = new List<string>();
             // Check that every published node is sending data
             if (_context.ConsumedOpcUaNodes != null) {
                 var expectedNodes = new List<string>(_context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id));
-                foreach(dynamic property in json.valueChangesByNodeId) {
-                    var propertyName = (string)property.Name;
+                foreach(var property in json.ValueChangesByNodeId) {
+                    var propertyName = property.Key;
                     var nodeId = propertyName.Split('#').Last();
                     var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
                     if (expected != null) {
@@ -217,7 +217,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             // Wait some time to generate events to process
             Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
-            Assert.True((int)json.totalValueChangesCount == 0, "Unexpected Messages received at IoT Hub");
+            Assert.True(json.TotalValueChangesCount == 0, "Unexpected Messages received at IoT Hub");
         }
 
 
