@@ -202,8 +202,21 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            var jsonResponseGetDiagnosticInfo = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(jsonResponseGetDiagnosticInfo.Count, 2);
+            var diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(diagInfoList.Count, 2);
+
+            foreach (var diagInfo in diagInfoList) {
+                Assert.True(diagInfo.IngressValueChanges > 0);
+                Assert.True(diagInfo.IngressDataChanges > 0);
+                Assert.Equal(0, diagInfo.MonitoredOpcNodesFailedCount);
+                Assert.Equal(10, diagInfo.MonitoredOpcNodesSucceededCount);
+                Assert.True(diagInfo.OpcEndpointConnected);
+                Assert.True(diagInfo.OutgressIoTMessageCount > 0);
+
+                // Check that we are not dropping anything.
+                Assert.Equal((uint)0, diagInfo.EncoderNotificationsDropped);
+                Assert.Equal((ulong)0, diagInfo.OutgressInputBufferDropped);
+            }
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
@@ -252,8 +265,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            jsonResponseGetDiagnosticInfo = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(jsonResponseGetDiagnosticInfo.Count, 1);
+            diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(diagInfoList.Count, 1);
 
             //Call UnpublishAll direct method
             request1.OpcNodes?.Clear();
@@ -288,8 +301,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            jsonResponseGetDiagnosticInfo = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(jsonResponseGetDiagnosticInfo.Count, 1);
+            diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(diagInfoList.Count, 1);
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
@@ -481,8 +494,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            var jsonResponseGetDiagnosticInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(jsonResponseGetDiagnosticInfo.NumberOfOpcSessionsConfigured, 2);
+            var diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 2);
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
@@ -531,8 +544,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            jsonResponseGetDiagnosticInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(jsonResponseGetDiagnosticInfo.NumberOfOpcSessionsConfigured, 1);
+            diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 1);
 
             //Call UnpublishAll direct method
             request1.OpcNodes?.Clear();
@@ -572,8 +585,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            jsonResponseGetDiagnosticInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(jsonResponseGetDiagnosticInfo.NumberOfOpcSessionsConfigured, 0);
+            diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 0);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
