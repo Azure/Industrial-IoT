@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -451,7 +451,9 @@ namespace IIoTPlatform_E2E_Tests {
                     StorageConnectionString = context.IoTHubConfig.CheckpointStorageConnectionString,
                     ExpectedValueChangesPerTimestamp = expectedValuesChangesPerTimestamp,
                     ExpectedIntervalOfValueChanges = expectedIntervalOfValueChanges,
-                    ThresholdValue = expectedIntervalOfValueChanges / 10,
+                    ThresholdValue = expectedIntervalOfValueChanges > 0
+                        ? expectedIntervalOfValueChanges / 10
+                        : 100,
                     ExpectedMaximalDuration = expectedMaximalDuration,
                 }
             };
