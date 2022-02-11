@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Encoders;
-    using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
     using System;
     using System.Collections.Generic;
@@ -149,7 +148,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Body = Encoding.UTF8.GetBytes(writer.ToString()),
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
-                        ContentType = ContentMimeType.UaJson,
+                        ContentType = ContentMimeType.Json,
                         MessageSchema = MessageSchemaTypes.NetworkMessageJson
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
@@ -377,7 +376,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 //  Prio 2: DisplayName - nothing to do, because notification.Id already contains DisplayName
                                 //  Prio 3: NodeId as configured
                                 s => !string.IsNullOrEmpty(s.Id) ?
-                                        s.Id : 
+                                        s.Id :
                                         !string.IsNullOrEmpty(s.DisplayName) ?
                                             s.DisplayName :
                                             s.NodeId,
