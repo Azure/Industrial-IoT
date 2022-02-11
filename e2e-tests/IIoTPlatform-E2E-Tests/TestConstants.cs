@@ -43,13 +43,24 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Folder to store published_nodes.json file
         /// </summary>
-        public const string PublishedNodesFolder = "/mount";
+        public const string PublishedNodesFolder = "/mount/opc_publisher";
+
+        /// <summary>
+        /// Folder to store published_nodes.json file for legacy publisher
+        /// </summary>
+        public const string PublishedNodesFolderLegacy = "/mount/opc_publisher_2.5";
 
         /// <summary>
         /// The full name of the publishednodes.json on the Edge
         /// </summary>
         public static readonly string PublishedNodesFullName =
             PublishedNodesFolder.TrimEnd('/') + "/" + PublishedNodesFilename;
+
+        /// <summary>
+        /// The full name of the publishednodes.json on the Edge
+        /// </summary>
+        public static readonly string PublishedNodesFullNameLegacy =
+            PublishedNodesFolderLegacy.TrimEnd('/') + "/" + PublishedNodesFilename;
 
         /// <summary>
         /// Default Microsoft Container Registry
@@ -345,7 +356,81 @@ namespace IIoTPlatform_E2E_Tests {
             /// Endpoint state Disconnected
             /// </summary>
             public const string Disconnected = "Disconnected";
+        }
 
+        /// <summary>
+        /// Direct Method names
+        /// </summary>
+        internal static class DirectMethodNames {
+            /// <summary>
+            /// Publish Nodes
+            /// </summary>
+            public const string PublishNodes = "PublishNodes_V1";
+
+            /// <summary>
+            /// Unpublish Nodes
+            /// </summary>
+            public const string UnpublishNodes = "UnpublishNodes_V1";
+
+            /// <summary>
+            /// GetConfiguredNodesOnEndpoint
+            /// </summary>
+            public const string GetConfiguredNodesOnEndpoint = "GetConfiguredNodesOnEndpoint_V1";
+
+            /// <summary>
+            /// GetConfiguredEndpoints
+            /// </summary>
+            public const string GetConfiguredEndpoints = "GetConfiguredEndpoints_V1";
+
+            /// <summary>
+            /// UnpublishAllNodes
+            /// </summary>
+            public const string UnpublishAllNodes = "UnpublishAllNodes_V1";
+
+            /// <summary>
+            /// GetDiagnosticInfo
+            /// </summary>
+            public const string GetDiagnosticInfo = "GetDiagnosticInfo_V1";
+
+            /// <summary>
+            /// AddOrUpdateEndpoints
+            /// </summary>
+            public const string AddOrUpdateEndpoints = "AddOrUpdateEndpoints_V1";
+        }
+
+        /// <summary>
+        /// Direct Method legacy names
+        /// </summary>
+        internal static class DirectMethodLegacyNames {
+            /// <summary>
+            /// Publish Node
+            /// </summary>
+            public const string PublishNodes = "PublishNodes";
+
+            /// <summary>
+            /// Unpublish Nodes
+            /// </summary>
+            public const string UnpublishNodes = "UnpublishNodes";
+
+            /// <summary>
+            /// GetConfiguredNodesOnEndpoint
+            /// </summary>
+            public const string GetConfiguredNodesOnEndpoint = "GetConfiguredNodesOnEndpoint";
+
+            /// <summary>
+            /// GetConfiguredEndpoints
+            /// </summary>
+            public const string GetConfiguredEndpoints = "GetConfiguredEndpoints";
+
+            /// <summary>
+            /// UnpublishAllNodes
+            /// </summary>
+            public const string UnpublishAllNodes = "UnpublishAllNodes";
+
+            /// <summary>
+            /// GetDiagnosticInfo
+            /// </summary>
+            public const string GetDiagnosticInfo = "GetDiagnosticInfo";
         }
     }
 }

@@ -74,8 +74,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Run the group triggering
         /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
         Task RunAsync(CancellationToken ct);
+
+        /// <summary>
+        /// Allow takeover of newly configured subscriptions
+        /// </summary>
+        void Reconfigure(object config);
     }
 }

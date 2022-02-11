@@ -10,6 +10,21 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
     /// Model with nodes to publish per Endpoint
     /// </summary>
     public class PublishedNodesEntryModel {
+
+        /// <summary> 
+        /// Id Identifier of the DataFlow - DataSetWriterId. 
+        /// </summary>
+        public string DataSetWriterId { get; set; }
+
+        /// <summary> 
+        /// The Group the stream belongs to - DataSetWriterGroup. 
+        /// </summary>
+        public string DataSetWriterGroup { get; set; }
+
+        /// <summary> 
+        /// The Publishing interval for a dataset writer 
+        /// </summary>
+        public int? DataSetPublishingInterval { get; set; }
         /// <summary>
         /// The endpoint URL of the OPC UA server.
         /// </summary>

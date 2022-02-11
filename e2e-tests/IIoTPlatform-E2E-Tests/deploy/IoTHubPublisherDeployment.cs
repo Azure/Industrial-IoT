@@ -9,7 +9,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
     using Newtonsoft.Json;
     using TestExtensions;
 
-    public sealed class IoTHubPublisherDeployment : DeploymentConfiguration {
+    public sealed class IoTHubPublisherDeployment : ModuleDeploymentConfiguration {
 
         /// <summary>
         /// MessagingMode that will be used for configuration of OPC Publisher.
@@ -28,9 +28,12 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         protected override int Priority => 1;
 
         /// <inheritdoc />
-        protected override string DeploymentName => kDeploymentName + $"{DateTime.UtcNow.Ticks}";
+        protected override string DeploymentName => kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd")}";
 
         protected override string TargetCondition => kTargetCondition;
+
+        /// <inheritdoc />
+        public override string ModuleName => kModuleName;
 
         /// <inheritdoc />
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
@@ -53,16 +56,17 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
 
             // Configure create options per os specified
             var createOptions = JsonConvert.SerializeObject(new {
-                Hostname = kModuleName,
+                Hostname = ModuleName,
                 Cmd = new[] {
                 "PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
                 "--aa",
                 "--pf=" + TestConstants.PublishedNodesFullName,
-                "--mm=" + MessagingMode.ToString()
+                "--mm=" + MessagingMode.ToString(),
+                "--fm=true",
             },
                 HostConfig = new {
                     Binds = new[] {
-                    TestConstants.PublishedNodesFolder + "/:" + TestConstants.PublishedNodesFolder
+                        TestConstants.PublishedNodesFolder + "/:" + TestConstants.PublishedNodesFolder
                     },
                     CapDrop = new[] {
                         "CHOWN",
@@ -83,7 +87,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
             {
                 ""$edgeAgent"": {
                     " + registryCredentials + @"
-                    ""properties.desired.modules." + kModuleName + @""": {
+                    ""properties.desired.modules." + ModuleName + @""": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""
@@ -95,7 +99,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                     }
                 },
                 ""$edgeHub"": {
-                    ""properties.desired.routes." + kModuleName + @"ToUpstream"": ""FROM /messages/modules/" + kModuleName + @"/* INTO $upstream"",
+                    ""properties.desired.routes." + ModuleName + @"ToUpstream"": ""FROM /messages/modules/" + ModuleName + @"/* INTO $upstream"",
                     ""properties.desired.routes.leafToUpstream"": ""FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream""
                 }
             }";

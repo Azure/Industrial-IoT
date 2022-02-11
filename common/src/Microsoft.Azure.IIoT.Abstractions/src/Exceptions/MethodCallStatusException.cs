@@ -28,6 +28,7 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// <param name="errorMessage"></param>
         public MethodCallStatusException(int result, string errorMessage = null) :
             this("{}", result, errorMessage) {
+            ResponsePayload = $"\"{errorMessage}\"";
         }
 
         /// <summary>

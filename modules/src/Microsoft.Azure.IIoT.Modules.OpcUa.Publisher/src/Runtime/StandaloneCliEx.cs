@@ -7,16 +7,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
-    /// Extensions for the Legacy Command Line
+    /// Extensions for the standalone command line
     /// </summary>
-    public static class LegacyCliEx {
+    public static class StandaloneCliEx {
         /// <summary>
         /// Add options
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="args"></param>
-        public static IConfigurationBuilder AddLegacyPublisherCommandLine(this IConfigurationBuilder builder, string[] args) {
-            return builder.AddInMemoryCollection(new LegacyCliOptions(args));
+        public static IConfigurationBuilder AddStandalonePublisherCommandLine(this IConfigurationBuilder builder, string[] args) {
+            return builder.AddInMemoryCollection(new StandaloneCliOptions(args));
         }
     }
 }

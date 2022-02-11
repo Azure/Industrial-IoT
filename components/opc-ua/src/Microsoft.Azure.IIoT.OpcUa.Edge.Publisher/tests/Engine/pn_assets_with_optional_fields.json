@@ -2,19 +2,21 @@
   {
     "DataSetWriterId": "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
     "DataSetWriterGroup": "Leaf0",
-    "DataSetPublishingInterval": 10000,
     "EndpointUrl": "opc.tcp://opcplc:50000",
     "UseSecurity": false,
     "OpcAuthenticationMode": "Anonymous",
     "OpcAuthenticationUsername": "",
     "OpcAuthenticationPassword": "",
     "OpcNodes": [
-      {
-        "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
-        "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
-        "OpcSamplingInterval": 2000,
-        "OpcPublishingInterval": 2000
-      }
+        {
+            "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+            "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+            "OpcSamplingIntervalTimespan": "00:00:01.500",
+            "OpcPublishingIntervalTimespan": "00:00:01.500",
+            "HeartbeatIntervalTimespan": "00:00:01.500",
+            "SkipFirst": true,
+            "QueueSize": 10
+        }
     ]
   },
   {
@@ -23,16 +25,19 @@
     "DataSetPublishingInterval": 10000,
     "EndpointUrl": "opc.tcp://opcplc:50000",
     "UseSecurity": false,
-    "OpcAuthenticationMode": "Anonymous",
-    "OpcAuthenticationUsername": "",
-    "OpcAuthenticationPassword": "",
+    "OpcAuthenticationMode": "UsernamePassword",
+    "OpcAuthenticationUsername": "usr",
+    "OpcAuthenticationPassword": "pwd",
     "OpcNodes": [
-      {
-        "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
-        "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
-        "OpcSamplingInterval": 2000,
-        "OpcPublishingInterval": 2000
-      }
+        {
+            "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
+            "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
+            "OpcSamplingInterval": 2000,
+            "OpcPublishingInterval": 2000,
+            "HeartbeatInterval": 2,
+            "SkipFirst": true,
+            "QueueSize": 10
+        }
     ]
   }
 ]
