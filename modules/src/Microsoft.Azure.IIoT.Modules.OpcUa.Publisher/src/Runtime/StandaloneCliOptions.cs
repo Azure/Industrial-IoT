@@ -152,6 +152,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "me|messageencoding=", "The message encoding for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessageEncoding)))}).",
                         (MessageEncoding m) => this[StandaloneCliConfigKeys.MessageEncoding] = m.ToString() },
+                    { "lc|legacycompatibility=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
+                        "Default is 'false'.",
+                        (bool b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b.ToString() },
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
@@ -187,6 +190,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "vc|verboseconsole=", "Legacy - do not use.", _ => {} },
                     { "as|autotrustservercerts=", "Legacy - do not use.", _ => {} }
                 };
+
             options.Parse(args);
 
             Config = ToAgentConfigModel();
@@ -294,6 +298,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.ScaleTestCount = GetValueOrDefault(StandaloneCliConfigKeys.ScaleTestCount, model.ScaleTestCount);
             model.MaxOutgressMessages = GetValueOrDefault(StandaloneCliConfigKeys.MaxOutgressMessages, model.MaxOutgressMessages);
             model.DefaultMaxNodesPerDataSet = GetValueOrDefault(StandaloneCliConfigKeys.DefaultMaxNodesPerDataSet, model.DefaultMaxNodesPerDataSet);
+            model.LegacyCompatibility = GetValueOrDefault(StandaloneCliConfigKeys.LegacyCompatibility, model.LegacyCompatibility);
             return model;
         }
 
