@@ -368,9 +368,9 @@ namespace IIoTPlatform_E2E_Tests {
             public const string PublishNodes = "PublishNodes_V1";
 
             /// <summary>
-            /// UnPublish Nodes
+            /// Unpublish Nodes
             /// </summary>
-            public const string UnPublishNodes = "UnPublishNodes_V1";
+            public const string UnpublishNodes = "UnpublishNodes_V1";
 
             /// <summary>
             /// GetConfiguredNodesOnEndpoint
@@ -391,6 +391,11 @@ namespace IIoTPlatform_E2E_Tests {
             /// GetDiagnosticInfo
             /// </summary>
             public const string GetDiagnosticInfo = "GetDiagnosticInfo_V1";
+
+            /// <summary>
+            /// AddOrUpdateEndpoints
+            /// </summary>
+            public const string AddOrUpdateEndpoints = "AddOrUpdateEndpoints_V1";
         }
 
         /// <summary>
@@ -403,9 +408,9 @@ namespace IIoTPlatform_E2E_Tests {
             public const string PublishNodes = "PublishNodes";
 
             /// <summary>
-            /// UnPublish Nodes
+            /// Unpublish Nodes
             /// </summary>
-            public const string UnPublishNodes = "UnpublishNodes";
+            public const string UnpublishNodes = "UnpublishNodes";
 
             /// <summary>
             /// GetConfiguredNodesOnEndpoint

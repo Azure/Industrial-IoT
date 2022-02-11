@@ -206,9 +206,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             // Wait some time to generate events to process
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
-            Assert.True((uint)json.droppedValueCount == 0, "Dropped messages detected");
-            Assert.True((uint)json.duplicateValueCount == 0, "Duplicate values detected");
+            Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
+            Assert.True(json.DuplicateValueCount == 0, "Duplicate values detected");
         }
 
         [Fact, PriorityOrder(11)]
@@ -240,7 +240,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             // Wait some time to generate events to process
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True((int)json.totalValueChangesCount == 0, "Messages received at IoT Hub");
+            Assert.True(json.TotalValueChangesCount == 0, "Messages received at IoT Hub");
         }
 
         [Fact, PriorityOrder(13)]
