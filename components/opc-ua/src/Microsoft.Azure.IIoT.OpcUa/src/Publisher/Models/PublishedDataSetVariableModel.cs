@@ -103,5 +103,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// (Publisher extension)
         /// </summary>
         public TimeSpan? HeartbeatInterval { get; set; }
+
+        /// <summary>
+        /// Instruct the monitored item to skip the first received value
+        /// </summary>
+        public bool? SkipFirst { get; set; }
     }
 }

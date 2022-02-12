@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using System;
 
     /// <summary>
     /// Provides configuration
@@ -23,8 +24,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         public AgentConfigModel Config { get; }
 
         /// <inheritdoc/>
-#pragma warning disable 0067
         public event ConfigUpdatedEventHandler OnConfigUpdated;
-#pragma warning restore 0067
+
+        /// <inheritdoc/>
+        public void TriggerConfigUpdate(object sender, EventArgs eventArgs) {
+            OnConfigUpdated?.Invoke(sender, eventArgs);
+        }
     }
 }
