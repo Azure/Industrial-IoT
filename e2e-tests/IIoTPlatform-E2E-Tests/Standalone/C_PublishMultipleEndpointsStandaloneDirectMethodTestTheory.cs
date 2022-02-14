@@ -241,7 +241,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 Assert.True(diagInfo.IngressValueChanges > 0);
                 Assert.True(diagInfo.IngressDataChanges > 0);
                 Assert.Equal(0, diagInfo.MonitoredOpcNodesFailedCount);
-                Assert.Equal(10, diagInfo.MonitoredOpcNodesSucceededCount);
+                Assert.Equal(125, diagInfo.MonitoredOpcNodesSucceededCount);
                 Assert.True(diagInfo.OpcEndpointConnected);
                 Assert.True(diagInfo.OutgressIoTMessageCount > 0);
 
