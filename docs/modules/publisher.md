@@ -442,7 +442,13 @@ Returns a list of actual metrics for every endpoint (Dataset) .
   >    "payload":
   >    [
   >       {
-  >          "Id":"opc.tcp://192.168.1.70:50000_-1841390920",
+  >          "EndpointInfo": 
+  >          {
+  >             "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >             "DataSetWriterGroup": "Server0",
+  >             "DataSetWriterId": "Device0",
+  >             "DataSetPublishingInterval": 5000
+  >          },
   >          "SentMessagesPerSec":"2.6",
   >          "IngestionDuration":"{00:00:25.5491702}", 
   >          "IngressDataChanges":"25", 

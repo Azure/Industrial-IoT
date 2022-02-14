@@ -503,7 +503,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, diagInfoListResponse.Status);
-            var diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(diagInfoListResponse.JsonPayload);
+            var diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(diagInfoListResponse.JsonPayload);
             Assert.Equal(endpointsCount, diagInfoList.Count);
 
             foreach (var diagInfo in diagInfoList) {
@@ -593,7 +593,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
 
                 Assert.Equal((int)HttpStatusCode.OK, diagInfoListResponse.Status);
-                diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(diagInfoListResponse.JsonPayload);
+                diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(diagInfoListResponse.JsonPayload);
                 Assert.Equal(endpointsCount - 1 - index, diagInfoList.Count);
 
                 // Check that there is one less entry in endpoints list

@@ -170,6 +170,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                         if (diagInfo.Id == assignedJob.Value.Job.Id) {
                             _publisherDiagnosticInfo.AddOrUpdate(assignedJob.Value.Job.Id, diagInfo);
+
+                            foreach (var entry in _publishedNodesEntries) {
+                                var id = _publishedNodesJobConverter.
+                                    ToConnectionModel(entry, _standaloneCliModel).CreateConnectionId();
+
+                                if (_publisherDiagnosticInfo[diagInfo.Id].Id == id) {
+                                    _publisherDiagnosticInfo[id].EndpointInfo = new PublishedNodesEntryModel {
+                                        EndpointUrl = entry.EndpointUrl,
+                                        UseSecurity = entry.UseSecurity,
+                                        OpcAuthenticationMode = entry.OpcAuthenticationMode,
+                                        OpcAuthenticationUsername = entry.OpcAuthenticationUsername,
+                                        DataSetWriterGroup = entry.DataSetWriterGroup,
+                                        DataSetWriterId = entry.DataSetWriterId,
+                                        DataSetPublishingInterval = entry.DataSetPublishingInterval
+                                    };
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -1137,7 +1155,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public async Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
+            
             var sw = Stopwatch.StartNew();
+
             await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
                 return _publisherDiagnosticInfo.Values.ToList();

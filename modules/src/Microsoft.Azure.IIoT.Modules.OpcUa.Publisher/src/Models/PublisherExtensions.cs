@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using System;
@@ -111,6 +112,42 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
             };
+        }
+
+        /// <summary>
+        /// Create an api model from service model ignoring the password
+        /// </summary>
+        public static List<DiagnosticInfoApiModel> ToApiModel(
+            this List<JobDiagnosticInfoModel> model) {
+            if (model == null) {
+                return null;
+            }
+
+            return model.Select(e => new DiagnosticInfoApiModel {
+                EndpointInfo = e.EndpointInfo,
+                SentMessagesPerSec = e.SentMessagesPerSec,
+                IngestionDuration = e.IngestionDuration,
+                IngressDataChanges = e.IngressDataChanges,
+                IngressValueChanges = e.IngressValueChanges,
+                IngressBatchBlockBufferSize = e.IngressBatchBlockBufferSize,
+                EncodingBlockInputSize = e.EncodingBlockInputSize,
+                EncodingBlockOutputSize = e.EncodingBlockOutputSize,
+                EncoderNotificationsProcessed = e.EncoderNotificationsProcessed,
+                EncoderNotificationsDropped = e.EncoderNotificationsDropped,
+                EncoderIoTMessagesProcessed = e.EncoderIoTMessagesProcessed,
+                EncoderAvgNotificationsMessage = e.EncoderAvgNotificationsMessage,
+                EncoderAvgIoTMessageBodySize = e.EncoderAvgIoTMessageBodySize,
+                EncoderAvgIoTChunkUsage = e.EncoderAvgIoTChunkUsage,
+                EstimatedIoTChunksPerDay = e.EstimatedIoTChunksPerDay,
+                OutgressBatchBlockBufferSize = e.OutgressBatchBlockBufferSize,
+                OutgressInputBufferCount = e.OutgressInputBufferCount,
+                OutgressInputBufferDropped = e.OutgressInputBufferDropped,
+                OutgressIoTMessageCount = e.OutgressIoTMessageCount,
+                ConnectionRetries = e.ConnectionRetries,
+                OpcEndpointConnected = e.OpcEndpointConnected,
+                MonitoredOpcNodesSucceededCount = e.MonitoredOpcNodesSucceededCount,
+                MonitoredOpcNodesFailedCount = e.MonitoredOpcNodesFailedCount,
+            }).ToList();
         }
     }
 }

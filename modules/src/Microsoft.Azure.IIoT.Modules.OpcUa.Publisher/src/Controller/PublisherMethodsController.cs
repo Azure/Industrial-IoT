@@ -90,9 +90,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for GetDiagnosticInfo direct method
         /// </summary>
-        public async Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync() {
+        public async Task<List<DiagnosticInfoApiModel>> GetDiagnosticInfoAsync() {
             var response = await _configServices.GetDiagnosticInfoAsync().ConfigureAwait(false);
-            return response;
+            return response.ToApiModel();
         }
 
         /// <summary>
