@@ -40,5 +40,16 @@ namespace DataAccess {
             ApplicationConfiguration configuration) {
             return new DataAccessNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.DataAccess
+                };
+                return nameSpaces;
+            }
+        }
+
     }
 }

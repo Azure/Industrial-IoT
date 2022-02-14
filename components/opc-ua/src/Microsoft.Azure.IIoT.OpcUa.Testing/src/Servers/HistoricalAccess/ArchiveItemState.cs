@@ -103,7 +103,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Loads the configuration.
         /// </summary>
-        public void LoadConfiguration(SystemContext context) {
+        public void LoadConfiguration(ISystemContext context) {
             var reader = new DataFileReader();
 
             if (reader.LoadConfiguration(context, ArchiveItem)) {
@@ -126,7 +126,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Loads the data.
         /// </summary>
-        public void ReloadFromSource(SystemContext context) {
+        public void ReloadFromSource(ISystemContext context) {
             LoadConfiguration(context);
 
             if (ArchiveItem.LastLoadTime == DateTime.MinValue || (ArchiveItem.Persistent && ArchiveItem.LastLoadTime.AddSeconds(10) < DateTime.UtcNow)) {
@@ -163,7 +163,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Creates a new sample.
         /// </summary>
-        public List<DataValue> NewSamples(SystemContext context)
+        public List<DataValue> NewSamples(ISystemContext context)
 #pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RECS0154 // Parameter is never used
         {

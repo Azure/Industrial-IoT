@@ -54,4 +54,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Protocol\src\Microsoft.Azure.IIoT.OpcUa.Protocol.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Servers\Common\" />
+  </ItemGroup>
 </Project>

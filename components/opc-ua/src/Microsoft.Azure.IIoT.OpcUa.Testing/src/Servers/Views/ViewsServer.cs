@@ -40,5 +40,18 @@ namespace Views {
             ApplicationConfiguration configuration) {
             return new ViewsNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Model.Namespaces.Engineering,
+                    Model.Namespaces.Views,
+                    Model.Namespaces.Operations,
+                };
+                return nameSpaces;
+            }
+        }
+
     }
 }
