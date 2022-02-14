@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Extensions.Configuration {
-    using Microsoft.Extensions.Configuration.Memory;
     using System.IO;
     using System;
     using System.Collections.Generic;
@@ -60,9 +59,7 @@ namespace Microsoft.Extensions.Configuration {
                         key = key.Replace("__", ConfigurationPath.KeyDelimiter);
                         values.AddOrUpdate(key, line.Substring(offset + 1));
                     }
-                    var memorySource = new MemoryConfigurationSource();
-                    memorySource.InitialData = values;
-                    builder.Add(memorySource);
+                    builder.AddInMemoryCollection(values);
                 }
                 catch (IOException) { }
             }
