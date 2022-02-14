@@ -2,7 +2,7 @@
 
 ### OPC Publisher parametrization command line interface options & environment variables
 
-The following list of module parametrization settings can be provided either as CLI options or as  environment variables. The alternative field, where present, refers to the CLI argument applicable in standalone mode mode. When both environment variable and cli argument is provided,the latest will overrule the env variable.
+The following list of module parametrization settings can be provided either as CLI options or as  environment variables. The alternative field, where present, refers to the CLI argument applicable in **standalone mode only**. When both environment variable and cli argument is provided, the latest will overrule the env variable.
 
             PublishedNodesFile=VALUE
                                       The file used to store the configuration of the nodes to be publish 
@@ -182,6 +182,15 @@ The following list of module parametrization settings can be provided either as 
                                       Mode: Standalone only
                                       Type: integer
                                       Default: 1
+
+            LegacyCompatibility=VALUE
+                                      Forces the Publisher to format the telemetry in Legacy mode, using 
+                                      `"application/opcua+uajson"` for `ContentType` on the IoT Hub 
+                                      Telemetry message.
+                                      Alternative: --lc, --legacycompatibility
+                                      Mode: Standalone only
+                                      Type: boolean
+                                      Default: false
 
             PublishedNodesSchemaFile=VALUE
                                       The validation schema filename for publish file.
