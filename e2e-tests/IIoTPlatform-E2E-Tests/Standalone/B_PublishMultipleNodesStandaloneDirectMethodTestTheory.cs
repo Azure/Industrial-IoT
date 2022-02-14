@@ -167,7 +167,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            var diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            var diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(diagInfoList.Count, 1);
 
             Assert.True(diagInfoList[0].IngressValueChanges > 0);
@@ -242,7 +242,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(diagInfoList.Count, 0);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
