@@ -61,8 +61,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
-            var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token).ConfigureAwait(false);
-
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
@@ -85,6 +83,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
             Assert.Equal(0, configuredEndpointsResponse.Count);
 
+            var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token).ConfigureAwait(false);
             var request = model.ToApiModel();
 
             //Call Publish direct method
@@ -138,6 +137,29 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal(jsonResponse.Count, 1);
             Assert.Equal(jsonResponse[0].Id, "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1");
 
+            //Call GetDiagnosticInfo direct method
+            var responseGetDiagnosticInfo = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo,
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
+            var diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(diagInfoList.Count, 1);
+
+            Assert.True(diagInfoList[0].IngressValueChanges > 0);
+            Assert.True(diagInfoList[0].IngressDataChanges > 0);
+            Assert.Equal(0, diagInfoList[0].MonitoredOpcNodesFailedCount);
+            Assert.Equal(1, diagInfoList[0].MonitoredOpcNodesSucceededCount);
+            Assert.True(diagInfoList[0].OpcEndpointConnected);
+            Assert.True(diagInfoList[0].OutgressIoTMessageCount > 0);
+
+            // Check that we are not dropping anything.
+            Assert.Equal((uint)0, diagInfoList[0].EncoderNotificationsDropped);
+            Assert.Equal((ulong)0, diagInfoList[0].OutgressInputBufferDropped);
+
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
             Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
@@ -159,6 +181,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
+
+            //Call GetDiagnosticInfo direct method
+            responseGetDiagnosticInfo = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo,
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
+            diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(diagInfoList.Count, 0);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
@@ -283,6 +317,24 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal(jsonResponse.Count, 1);
             Assert.Equal(jsonResponse[0].Id, "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1");
 
+            //Call GetDiagnosticInfo direct method
+            var responseGetDiagnosticInfo = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodLegacyNames.GetDiagnosticInfo,
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
+            var diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 1);
+            Assert.Equal(diagInfo.NumberOfOpcSessionsConnected, 1);
+            Assert.Equal(diagInfo.NumberOfOpcMonitoredItemsConfigured, 1);
+            Assert.Equal(diagInfo.NumberOfOpcMonitoredItemsMonitored, 1);
+            Assert.True(diagInfo.SentMessages > 0);
+            Assert.Equal(diagInfo.FailedMessages, 0);
+            Assert.Equal(diagInfo.TooLargeCount, 0);
+
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
             Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
@@ -304,6 +356,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
+
+            //Call GetDiagnosticInfo direct method
+            responseGetDiagnosticInfo = await CallMethodAsync(
+                new MethodParameterModel {
+                    Name = TestConstants.DirectMethodLegacyNames.GetDiagnosticInfo,
+                },
+                cts.Token
+            ).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
+            diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
+            Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 0);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).

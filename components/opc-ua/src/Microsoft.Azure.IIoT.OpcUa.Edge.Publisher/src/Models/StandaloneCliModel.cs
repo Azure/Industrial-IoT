@@ -120,5 +120,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// for a dataSetWriter, they will be added in a different DataSet/Subscription.
         /// </summary>
         public int? DefaultMaxNodesPerDataSet { get; set; } = 1000;
+
+        /// <summary>
+        /// Run in legacy compatibility mode
+        /// </summary>
+        public bool LegacyCompatibility { get; set; } = false;
     }
 }
