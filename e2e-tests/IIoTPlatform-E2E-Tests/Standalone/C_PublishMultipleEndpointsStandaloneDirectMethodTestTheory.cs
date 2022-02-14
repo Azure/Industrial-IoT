@@ -234,7 +234,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            var diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            var diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(diagInfoList.Count, 2);
 
             foreach (var diagInfo in diagInfoList) {
@@ -311,7 +311,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(1, diagInfoList.Count);
 
             //Unpublish all nodes for endpoint 1
@@ -360,7 +360,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+            diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(0, diagInfoList.Count);
 
             // Wait till the publishing has stopped.
