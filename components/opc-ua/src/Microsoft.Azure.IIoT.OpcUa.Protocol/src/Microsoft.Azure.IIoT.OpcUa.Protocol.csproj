@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT OPC UA Protocol and Stack services</Description>
+    <NoWarn>CS8032</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Stack\Design\BuiltIn\BuiltInTypes.xml" />
