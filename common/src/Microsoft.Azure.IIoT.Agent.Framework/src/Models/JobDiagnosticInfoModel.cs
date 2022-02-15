@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using System;
 
     /// <summary>
@@ -16,11 +15,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// Id
         /// </summary>
         public string Id { get; set; }
-
-        /// <summary>
-        /// EndpointInfo
-        /// </summary>
-        public PublishedNodesEntryModel EndpointInfo { get; set; }
 
         /// <summary>
         /// SentMessagesPerSec

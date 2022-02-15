@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class DiagnosticInfoApiModel {
  
         /// <summary> EndpointInfo /// </summary>
-        [DataMember(Name = "PublishedNodesEntryModel", Order = 0,
+        [DataMember(Name = "EndpointInfo", Order = 0,
             EmitDefaultValue = false)]
         public PublishNodesEndpointApiModel EndpointInfo { get; set; }
 

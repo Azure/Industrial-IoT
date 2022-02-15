@@ -148,7 +148,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             var diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(diagInfoList.Count, 1);
-
+            
+            TestHelper.Publisher.AssertEndpointModel(diagInfoList[0].EndpointInfo, request);
             Assert.True(diagInfoList[0].IngressValueChanges > 0);
             Assert.True(diagInfoList[0].IngressDataChanges > 0);
             Assert.Equal(0, diagInfoList[0].MonitoredOpcNodesFailedCount);
