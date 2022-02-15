@@ -175,7 +175,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 var id = _publishedNodesJobConverter.
                                     ToConnectionModel(entry, _standaloneCliModel).CreateConnectionId();
 
-                                if (_publisherDiagnosticInfo[diagInfo.Id].Id == id) {
+                                if (diagInfo.Id == id) {
                                     _publisherDiagnosticInfo[id].EndpointInfo = new PublishedNodesEntryModel {
                                         EndpointUrl = entry.EndpointUrl,
                                         UseSecurity = entry.UseSecurity,

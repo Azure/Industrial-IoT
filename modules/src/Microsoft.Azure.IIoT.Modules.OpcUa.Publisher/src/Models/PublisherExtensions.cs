@@ -69,16 +69,27 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             if (endpoints == null) {
                 return null;
             }
+            return endpoints.Select(e => e.ToApiModel()).ToList();
+        }
 
-            return endpoints.Select(e => new PublishNodesEndpointApiModel {
-                EndpointUrl = e.EndpointUrl.AbsoluteUri,
-                UseSecurity = e.UseSecurity.GetValueOrDefault(false),
-                OpcAuthenticationMode = (AuthenticationMode)e.OpcAuthenticationMode,
-                UserName = e.OpcAuthenticationUsername,
-                DataSetWriterGroup = e.DataSetWriterGroup,
-                DataSetWriterId = e.DataSetWriterId,
-                DataSetPublishingInterval = e.DataSetPublishingInterval
-            }).ToList();
+        /// <summary>
+        /// Create an api model from service model ignoring the password
+        /// </summary>
+        public static PublishNodesEndpointApiModel ToApiModel(
+            this PublishedNodesEntryModel endpoint) {
+            if (endpoint == null) {
+                return null;
+            }
+
+            return new PublishNodesEndpointApiModel {
+                EndpointUrl = endpoint.EndpointUrl.AbsoluteUri,
+                UseSecurity = endpoint.UseSecurity.GetValueOrDefault(false),
+                OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
+                UserName = endpoint.OpcAuthenticationUsername,
+                DataSetWriterGroup = endpoint.DataSetWriterGroup,
+                DataSetWriterId = endpoint.DataSetWriterId,
+                DataSetPublishingInterval = endpoint.DataSetPublishingInterval
+            };
         }
 
         /// <summary>
@@ -124,7 +135,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
 
             return model.Select(e => new DiagnosticInfoApiModel {
-                EndpointInfo = e.EndpointInfo,
+                EndpointInfo = e.EndpointInfo.ToApiModel(),
                 SentMessagesPerSec = e.SentMessagesPerSec,
                 IngestionDuration = e.IngestionDuration,
                 IngressDataChanges = e.IngressDataChanges,

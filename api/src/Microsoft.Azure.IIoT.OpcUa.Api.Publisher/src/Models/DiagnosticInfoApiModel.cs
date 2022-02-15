@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using System.Runtime.Serialization;
     using System;
 
@@ -17,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary> EndpointInfo /// </summary>
         [DataMember(Name = "PublishedNodesEntryModel", Order = 0,
             EmitDefaultValue = false)]
-        public PublishedNodesEntryModel EndpointInfo { get; set; }
+        public PublishNodesEndpointApiModel EndpointInfo { get; set; }
 
         /// <summary> SentMessagesPerSec </summary>
         [DataMember(Name = "SentMessagesPerSec", Order = 1,
