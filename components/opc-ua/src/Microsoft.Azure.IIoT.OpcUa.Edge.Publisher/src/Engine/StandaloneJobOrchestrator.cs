@@ -1155,9 +1155,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public async Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
-            
             var sw = Stopwatch.StartNew();
-
             await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
                 return _publisherDiagnosticInfo.Values.ToList();
