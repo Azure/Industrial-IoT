@@ -3,7 +3,7 @@
     <Product>Azure Industrial IoT Platform</Product>
     <RepositoryUrl>https://github.com/Azure/Industrial-IoT</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <NoWarn>NU5125;RS1022;AD0001</NoWarn>
+    <NoWarn>NU5125;RS1022;AD0001;CS8032</NoWarn>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
@@ -29,8 +29,8 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
   <ItemGroup Condition="$(NO_GIT) == ''">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.194" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.0" PrivateAssets="All"/>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.255" PrivateAssets="All"/>
   </ItemGroup>
   <ItemGroup Condition="'$(FX_COP)' != ''">
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.3" />
