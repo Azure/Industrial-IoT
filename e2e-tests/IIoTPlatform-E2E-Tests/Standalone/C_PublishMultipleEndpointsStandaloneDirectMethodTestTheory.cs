@@ -915,6 +915,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
+            // Cleanup of sessions is an operation that happens in parallel to unpublishing. So getting diagnostic info immediately
+            // after unpublishing might not yet show the cleaned up state. So we will wait for some time to allow for that to happen.
+            await Task.Delay(TestConstants.DefaultDelayMilliseconds, cts.Token).ConfigureAwait(false);
+
             //Call GetDiagnosticInfo direct method
             responseGetDiagnosticInfo = await CallMethodAsync(
                 new MethodParameterModel {
