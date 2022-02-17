@@ -237,8 +237,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(diagInfoList.Count, 2);
 
-            TestHelper.Publisher.AssertEndpointModel(diagInfoList[0].EndpointInfo, request0);
-            TestHelper.Publisher.AssertEndpointModel(diagInfoList[1].EndpointInfo, request1);
+            TestHelper.Publisher.AssertEndpointInfoModel(diagInfoList[0].EndpointInfo, request0);
+            TestHelper.Publisher.AssertEndpointInfoModel(diagInfoList[1].EndpointInfo, request1);
             foreach (var diagInfo in diagInfoList) {
                 Assert.True(diagInfo.IngressValueChanges > 0);
                 Assert.True(diagInfo.IngressDataChanges > 0);

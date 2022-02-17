@@ -25,6 +25,17 @@ namespace IIoTPlatform_E2E_Tests {
                 Assert.Equal(expected.UserName, actual.UserName);
                 Assert.Equal(expected.UseSecurity, actual.UseSecurity);
             }
+
+            /// <summary>
+            /// Compare PublishNodesEndpointApiModel with PublishedNodeApiModel returned from diagnosticInfo
+            /// </summary>
+            public static void AssertEndpointInfoModel(PublishNodesEndpointApiModel expected, PublishNodesEndpointApiModel actual) {
+                Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
+                Assert.Equal(expected.EndpointUrl.TrimEnd('/'), actual.EndpointUrl.TrimEnd('/'));
+                Assert.Equal(expected.OpcAuthenticationMode, actual.OpcAuthenticationMode);
+                Assert.Equal(expected.UserName, actual.UserName);
+                Assert.Equal(expected.UseSecurity, actual.UseSecurity);
+            }
         }
     }
 }

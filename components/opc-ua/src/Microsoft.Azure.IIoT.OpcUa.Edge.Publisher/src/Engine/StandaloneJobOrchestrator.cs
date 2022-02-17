@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _lockJobs = new SemaphoreSlim(1, 1);
 
             _publishedNodesEntries = new List<PublishedNodesEntryModel>();
-            _publisherDiagnosticInfo = new Dictionary<string, Tuple<JobDiagnosticInfoModel, PublishedNodesEntryModel>>();
+            _publisherDiagnosticInfo = new Dictionary<string, JobDiagnosticInfoModel>();
 
             RefreshJobFromFile();
             _publishedNodesProvider.Changed += _fileSystemWatcher_Changed;
@@ -169,24 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     foreach (var assignedJob in _assignedJobs) {
 
                         if (diagInfo.Id == assignedJob.Value.Job.Id) {
-                            foreach (var entry in _publishedNodesEntries) {
-                                var id = _publishedNodesJobConverter.
-                                    ToConnectionModel(entry, _standaloneCliModel).CreateConnectionId();
-
-                                if (diagInfo.Id == id) {
-                                    var endpointInfo = new PublishedNodesEntryModel {
-                                        EndpointUrl = entry.EndpointUrl,
-                                        UseSecurity = entry.UseSecurity,
-                                        OpcAuthenticationMode = entry.OpcAuthenticationMode,
-                                        OpcAuthenticationUsername = entry.OpcAuthenticationUsername,
-                                        DataSetWriterGroup = entry.DataSetWriterGroup,
-                                        DataSetWriterId = entry.DataSetWriterId,
-                                        DataSetPublishingInterval = entry.DataSetPublishingInterval
-                                    };
-                                    _publisherDiagnosticInfo.AddOrUpdate(assignedJob.Value.Job.Id, Tuple.Create(diagInfo, endpointInfo));
-                                    break;
-                                }
-                            }
+                            _publisherDiagnosticInfo.AddOrUpdate(assignedJob.Value.Job.Id, diagInfo);
                         }
                     }
                 }
@@ -301,7 +284,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void RefreshJobs(IEnumerable<PublishedNodesEntryModel> entries) {
             var availableJobs = new Dictionary<string, JobProcessingInstructionModel>();
             var assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
-            var publisherDiagnosticInfo = new Dictionary<string, Tuple<JobDiagnosticInfoModel, PublishedNodesEntryModel>>();
+            var publisherDiagnosticInfo = new Dictionary<string, JobDiagnosticInfoModel>();
 
             var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _standaloneCliModel);
 
@@ -1151,7 +1134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<List<Tuple<JobDiagnosticInfoModel, PublishedNodesEntryModel>>> GetDiagnosticInfoAsync(
+        public async Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
             var sw = Stopwatch.StartNew();
@@ -1189,6 +1172,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private Dictionary<string, JobProcessingInstructionModel> _availableJobs;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
-        private Dictionary<string, Tuple<JobDiagnosticInfoModel, PublishedNodesEntryModel>> _publisherDiagnosticInfo;
+        private Dictionary<string, JobDiagnosticInfoModel> _publisherDiagnosticInfo;
     }
 }

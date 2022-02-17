@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Prometheus;
     using Serilog;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -164,6 +163,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             double estimatedMsgChunksPerDay = Math.Ceiling(chunkSizeAverage) * sentMessagesPerSec * 60 * 60 * 24;
             var diagnosticInfo = new JobDiagnosticInfoModel();
 
+            diagnosticInfo.EndpointInfo.EndpointUrl = _messageTrigger.EndpointUrl;
+            diagnosticInfo.EndpointInfo.DataSetWriterGroup = _messageTrigger.DataSetWriterGroup;
+            diagnosticInfo.EndpointInfo.UseSecurity = _messageTrigger.UseSecurity;
+            diagnosticInfo.EndpointInfo.OpcAuthenticationMode = (AuthMode)_messageTrigger.AuthenticationMode;
+            diagnosticInfo.EndpointInfo.OpcAuthenticationUsername = _messageTrigger.AuthenticationUsername;
             diagnosticInfo.Id = Name;
             diagnosticInfo.SentMessagesPerSec = sentMessagesPerSec;
             diagnosticInfo.IngestionDuration = TimeSpan.FromSeconds(totalDuration);

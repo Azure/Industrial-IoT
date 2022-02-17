@@ -444,10 +444,11 @@ Returns a list of actual metrics for every endpoint (Dataset) .
   >       {
   >          "EndpointInfo": 
   >          {
-  >             "EndpointUrl": "opc.tcp://opcplc:50000/",
-  >             "DataSetWriterGroup": "Server0",
-  >             "DataSetWriterId": "Device0",
-  >             "DataSetPublishingInterval": 5000
+  >             "EndpointUrl":"opc.tcp://opcplc:50000/",
+  >             "DataSetWriterGroup":"Server0",
+  >             "UseSecurity":"false",
+  >             "OpcAuthenticationMode":"UsernamePassword",
+  >             "OpcAuthenticationUsername":"Usr",
   >          },
   >          "SentMessagesPerSec":"2.6",
   >          "IngestionDuration":"{00:00:25.5491702}", 

@@ -9,7 +9,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Serilog;
     using System;
@@ -39,6 +41,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public int NumberOfBadNodes => _subscriptions?.Sum(x => x.Subscription?.NumberOfBadNodes) ?? 0;
+
+        /// <inheritdoc/>
+        public Uri EndpointUrl => new Uri(_subscriptions?.First()?.Subscription?.Connection.Endpoint.Url);
+
+        /// <inheritdoc/>
+        public string DataSetWriterGroup => _subscriptions?.First()?.Subscription?.Connection.Group;
+
+        /// <inheritdoc/>
+        public bool? UseSecurity =>
+            _subscriptions?.First()?.Subscription?.Connection.Endpoint.SecurityMode != SecurityMode.None ?
+                true : false;
+
+        /// <inheritdoc/>
+        public OpcAuthenticationMode AuthenticationMode =>_subscriptions?.First()?.Subscription?.Connection.User != null ?
+                OpcAuthenticationMode.UsernamePassword : OpcAuthenticationMode.Anonymous;
+
+        /// <inheritdoc/>
+        public string AuthenticationUsername =>_subscriptions?.First()?.Subscription?.Connection.User != null ?
+                _serializer.Deserialize<cred>(_subscriptions?
+                    .First()?
+                    .Subscription?
+                    .Connection
+                    .User
+                    .Value
+                    .ToJson())
+                    .user : null;
 
         /// <inheritdoc/>
         public ulong ValueChangesCountLastMinute {
@@ -139,7 +167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Create trigger from writer group
         /// </summary>
         public WriterGroupMessageTrigger(IWriterGroupConfig writerGroupConfig,
-            ISubscriptionManager subscriptionManager, ILogger logger) {
+            ISubscriptionManager subscriptionManager, ILogger logger, IJsonSerializer serializer) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subscriptionManager = subscriptionManager ??
@@ -151,6 +179,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 .ToList();
             _publisherId = writerGroupConfig.PublisherId ?? Guid.NewGuid().ToString();
             _subscriptions.ForEach(async sc => await sc.OpenAsync().ConfigureAwait(false));
+            _serializer = serializer ??
+                throw new ArgumentNullException(nameof(serializer));
         }
 
         /// <inheritdoc/>
@@ -507,6 +537,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             private long _currentSequenceNumber;
         }
 
+        /// <summary>
+        /// Helper to deserialize credential info
+        /// </summary>
+        private class cred {
+            public string user { get; set; }
+            public string password { get; set; }
+        }
+
         private const ulong kNumberOfInvokedMessagesResetThreshold = ulong.MaxValue - 10000;
         private const int _bucketWidth = 60;
 
@@ -524,5 +562,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private ulong _dataChangesCount;
         private DateTime _lastWriteTimeValueChange = DateTime.MinValue;
         private DateTime _lastWriteTimeDataChange = DateTime.MinValue;
+        private readonly IJsonSerializer _serializer;
     }
 }
