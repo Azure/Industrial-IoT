@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Opc.Ua;
     using Serilog;
     using Serilog.Events;
+    using Serilog.Extensions.Logging;
     using System;
 
     /// <summary>
@@ -35,15 +36,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Utils.SetTraceMask(0);
             Utils.SetTraceOutput(Utils.TraceOutput.Off);
 
-            // Register callback
-            Utils.Tracing.TraceEventHandler += Tracing_TraceEventHandler;
+            // Set ILogger
+            var microsoftLogger = new SerilogLoggerFactory(Logger)
+                .CreateLogger("OpcUa");
+            Utils.SetLogger(microsoftLogger);
         }
 
         /// <inheritdoc/>
         public void Dispose() {
 
-            // Unregister callback
-            Utils.Tracing.TraceEventHandler -= Tracing_TraceEventHandler;
         }
 
         /// <summary>
