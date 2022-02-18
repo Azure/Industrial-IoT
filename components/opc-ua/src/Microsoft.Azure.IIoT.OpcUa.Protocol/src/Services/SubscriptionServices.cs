@@ -1008,8 +1008,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public override string ToString() {
-                return $"Item {Template.Id ?? Template.StartNodeId}_{ServerId}: '{Template.StartNodeId}'" +
-                    $" - {(Item?.Status?.Created == true ? "" : "not ")}created";
+                return $"Item '{Template.StartNodeId}' with server id {ServerId} - " +
+                    $"{(Item?.Status?.Created == true ? "" : "not ")} created";
             }
 
             /// <summary>
