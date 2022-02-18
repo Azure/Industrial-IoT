@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public int NumberOfConnectionRetries => _subscriptions?.Sum(x => x.Subscription?.NumberOfConnectionRetries) ?? 0;
 
         /// <inheritdoc/>
-        public bool IsConnectionOk => (_subscriptions?.Count == 0 || 
+        public bool IsConnectionOk => (_subscriptions?.Count == 0 ||
             _subscriptions?.Where(x => x.Subscription?.IsConnectionOk == true).Count() < _subscriptions?.Count) ? false : true;
 
         /// <inheritdoc/>
@@ -504,7 +504,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (!(obj is DataSetWriterSubscription that)) {
                     return false;
                 }
-                return _subscriptionInfo.Connection.IsSameAs(that._subscriptionInfo.Connection) && 
+                return _subscriptionInfo.Connection.IsSameAs(that._subscriptionInfo.Connection) &&
                     _subscriptionInfo.Id == that._subscriptionInfo.Id;
             }
 
@@ -519,7 +519,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <inheritdoc/>
             public override int GetHashCode() {
                 var hashCode = 2082053542;
-                hashCode = (hashCode * -1521134295) + 
+                hashCode = (hashCode * -1521134295) +
                     _subscriptionInfo.Connection.CreateConsistentHash();
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(_subscriptionInfo.Id);
