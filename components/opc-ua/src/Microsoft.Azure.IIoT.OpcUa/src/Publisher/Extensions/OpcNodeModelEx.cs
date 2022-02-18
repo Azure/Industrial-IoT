@@ -62,6 +62,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
+            if (model.SkipFirst != that.SkipFirst) {
+                return false;
+            }
+
+            if (model.QueueSize != that.QueueSize) {
+                return false;
+            }
+
             return true;
         }
 
@@ -69,18 +77,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// Returns the hashcode for a node
         /// </summary>
         public static int GetHashCode(this OpcNodeModel model, int? defaultPublishing = null) {
-
-            return HashCode.Combine(
-                model.Id,
-                model.DisplayName,
-                model.DataSetFieldId,
-                model.ExpandedNodeId,
-                defaultPublishing.HasValue ?
-                    model.OpcPublishingInterval.GetValueOrDefault(defaultPublishing.Value) :
-                    model.OpcPublishingInterval,
-                model.OpcSamplingInterval,
-                model.HeartbeatInterval
-            ) ;
+            var hash = new HashCode();
+            hash.Add(model.Id);
+            hash.Add(model.DisplayName);
+            hash.Add(model.DataSetFieldId);
+            hash.Add(model.ExpandedNodeId);
+            hash.Add(defaultPublishing.HasValue
+                ? model.OpcPublishingInterval.GetValueOrDefault(defaultPublishing.Value)
+                : model.OpcPublishingInterval);
+            hash.Add(model.OpcSamplingInterval);
+            hash.Add(model.HeartbeatInterval);
+            hash.Add(model.SkipFirst);
+            hash.Add(model.QueueSize);
+            return hash.ToHashCode();
         }
 
         /// <summary>
