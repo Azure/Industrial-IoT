@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -80,5 +81,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Allow takeover of newly configured subscriptions
         /// </summary>
         void Reconfigure(object config);
+
+        /// <summary>
+        /// EndpointUrl
+        /// </summary>
+        Uri EndpointUrl { get; }
+
+        /// <summary>
+        /// DataSetWriterGroup
+        /// </summary>
+        string DataSetWriterGroup { get; }
+
+        /// <summary>
+        /// UseSecurity
+        /// </summary>
+        bool? UseSecurity { get; }
+
+        /// <summary>
+        /// AuthenticationMode
+        /// </summary>
+        OpcAuthenticationMode AuthenticationMode { get; }
+
+        /// <summary>
+        /// AuthenticationUsername
+        /// </summary>
+        string AuthenticationUsername { get; }
     }
 }
