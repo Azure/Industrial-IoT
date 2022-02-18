@@ -15,60 +15,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     /// </summary>
     public static class SecurityConfigEx {
 
-        /// <summary>
-        /// Convert to security configuration
-        /// </summary>
-        /// <param name="securityConfig"></param>
-        /// <param name="hostname"></param>
-        /// <returns></returns>
-        public static SecurityConfiguration ToSecurityConfiguration(
-            this ISecurityConfig securityConfig, string hostname) {
-            if (securityConfig == null) {
-                throw new ArgumentNullException(nameof(securityConfig));
-            }
-
-            if (securityConfig.TrustedIssuerCertificates == null) {
-                throw new ArgumentNullException(
-                    $"{nameof(securityConfig)}.{nameof(SecurityConfig.TrustedIssuerCertificates)}");
-            }
-
-            if (securityConfig.TrustedPeerCertificates == null) {
-                throw new ArgumentNullException(
-                    $"{nameof(securityConfig)}.{nameof(SecurityConfig.TrustedPeerCertificates)}");
-            }
-
-            if (securityConfig.RejectedCertificateStore == null) {
-                throw new ArgumentNullException(
-                    $"{nameof(securityConfig)}.{nameof(SecurityConfig.RejectedCertificateStore)}");
-            }
-
-            if (securityConfig.ApplicationCertificate == null) {
-                throw new ArgumentNullException(
-                    $"{nameof(securityConfig)}.{nameof(SecurityConfig.ApplicationCertificate)}");
-            }
-
-            var securityConfiguration = new SecurityConfiguration {
-                TrustedIssuerCertificates = securityConfig.TrustedIssuerCertificates.ToCertificateTrustList(),
-                TrustedPeerCertificates = securityConfig.TrustedPeerCertificates.ToCertificateTrustList(),
-                RejectedCertificateStore = securityConfig.RejectedCertificateStore.ToCertificateTrustList(),
-                AutoAcceptUntrustedCertificates = securityConfig.AutoAcceptUntrustedCertificates,
-                RejectSHA1SignedCertificates = securityConfig.RejectSha1SignedCertificates,
-                MinimumCertificateKeySize = securityConfig.MinimumCertificateKeySize,
-                ApplicationCertificate = securityConfig.ApplicationCertificate.ToCertificateIdentifier(hostname),
-                AddAppCertToTrustedStore = securityConfig.AddAppCertToTrustedStore
-            };
-
-            return securityConfiguration;
-        }
 
         /// <summary>
-        /// Convert to security configuration
+        /// Build the security configuration
         /// </summary>
-        /// <param name="securityConfig"></param>
-        /// <param name="applicationConfigurationBuilder"></param>
-        /// <param name="applicationConfiguration"></param>
-        /// <param name="hostname"></param>
-        /// <returns></returns>
         public static async Task<ApplicationConfiguration> BuildSecurityConfiguration(
             this ISecurityConfig securityConfig,
             IApplicationConfigurationBuilderClientSelected applicationConfigurationBuilder,
@@ -98,7 +48,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     $"{nameof(securityConfig)}.{nameof(SecurityConfig.ApplicationCertificate)}");
             }
 
-            var options = applicationConfigurationBuilder.AddSecurityConfiguration(
+            var options = applicationConfigurationBuilder
+                .AddSecurityConfiguration(
                     securityConfig.ApplicationCertificate.SubjectName.Replace("localhost", hostname),
                     securityConfig.PkiRootPath)
                 .SetAutoAcceptUntrustedCertificates(securityConfig.AutoAcceptUntrustedCertificates)

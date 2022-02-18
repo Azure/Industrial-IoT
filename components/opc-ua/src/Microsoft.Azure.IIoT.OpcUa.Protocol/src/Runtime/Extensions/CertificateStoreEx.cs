@@ -13,47 +13,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     /// </summary>
     public static class CertificateStoreEx {
 
-        /// <summary>
-        /// Create trust list
-        /// </summary>
-        /// <param name="certificateStore"></param>
-        /// <returns></returns>
-        public static CertificateTrustList ToCertificateTrustList(this CertificateStore certificateStore) {
-            var certificateTrustList = new CertificateTrustList {
-                StoreType = certificateStore.StoreType,
-                StorePath = certificateStore.StorePath
-            };
-
-            return certificateTrustList;
-        }
 
         /// <summary>
-        /// Create identifier
+        /// Build the certificates trust list
         /// </summary>
-        /// <param name="certificateInfo"></param>
-        /// <param name="hostname"></param>
-        /// <returns></returns>
-        public static CertificateIdentifier ToCertificateIdentifier(
-            this CertificateInfo certificateInfo, string hostname) {
-            var certificateIdentifier = new CertificateIdentifier {
-                StoreType = certificateInfo.StoreType,
-                StorePath = certificateInfo.StorePath,
-                SubjectName = certificateInfo.SubjectName.Replace("DC=localhost", $"DC={hostname}")
-            };
-
-            return certificateIdentifier;
-        }
-
-        /// <summary>
-        /// Create trust list
-        /// </summary>
-        /// <param name="certificateStore"></param>
-        /// <param name="certificateTrustList"></param>
-        /// <returns></returns>
         public static CertificateTrustList BuildCertificateTrustList(
             this CertificateStore certificateStore,
             CertificateTrustList certificateTrustList) {
-
             if (certificateStore == null) {
                 throw new ArgumentNullException(nameof(certificateStore));
             }
@@ -71,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
-        /// Create trust list
+        /// Build the certificate identifier for the own app
         /// </summary>
         /// <param name="certificateStore"></param>
         /// <param name="certificateIdentifier"></param>
@@ -79,7 +45,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         public static CertificateIdentifier BuildCertificateIdentifier(
             this CertificateInfo certificateStore,
             CertificateIdentifier certificateIdentifier) {
-
             if (certificateStore == null) {
                 throw new ArgumentNullException(nameof(certificateStore));
             }
@@ -97,15 +62,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
-        /// Create trust list
+        /// Build a certificate identifier store. Particularily for rejected certificates
         /// </summary>
-        /// <param name="certificateStore"></param>
-        /// <param name="certificateStoreIdentifier"></param>
-        /// <returns></returns>
         public static CertificateStoreIdentifier BuildCertificateIdentifierStore(
             this CertificateStore certificateStore,
             CertificateStoreIdentifier certificateStoreIdentifier) {
-
             if (certificateStore == null) {
                 throw new ArgumentNullException(nameof(certificateStore));
             }
