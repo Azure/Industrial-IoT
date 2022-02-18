@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 get {
                     return (IsConnectionOk && _currentlyMonitored != null) ?
                         _currentlyMonitored
-                            .Where(x => x.Item.Status.MonitoringMode != Opc.Ua.MonitoringMode.Disabled)
+                            .Where(x => x.Item.Status.MonitoringMode == x.Item.MonitoringMode)
                             .Count() : 0;
                 }
             }
@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 get {
                     return (IsConnectionOk && _currentlyMonitored != null) ?
                         _currentlyMonitored
-                            .Where(x => x.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
+                            .Where(x => x.Item.Status.MonitoringMode != x.Item.MonitoringMode)
                             .Count() : 0;
                 }
             }
