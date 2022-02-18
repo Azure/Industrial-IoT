@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 get {
                     return (IsConnectionOk && _currentlyMonitored != null) ?
                         _currentlyMonitored
-                            .Where(x => x.Template.MonitoringMode != Publisher.Models.MonitoringMode.Disabled)
+                            .Where(x => x.Item.Status.MonitoringMode == x.Item.MonitoringMode)
                             .Count() : 0;
                 }
             }
@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 get {
                     return (IsConnectionOk && _currentlyMonitored != null) ?
                         _currentlyMonitored
-                            .Where(x => x.Template.MonitoringMode == Publisher.Models.MonitoringMode.Disabled)
+                            .Where(x => x.Item.Status.MonitoringMode != x.Item.MonitoringMode)
                             .Count() : 0;
                 }
             }
@@ -540,8 +540,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 else {
                     // do a sanity check
                     foreach (var monitoredItem in _currentlyMonitored) {
-                        if (monitoredItem.Item.Status.Error != null &&
-                            StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode)) {
+                        if (monitoredItem.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled ||
+                            (monitoredItem.Item.Status.Error != null &&
+                            StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode))) {
+
                             monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
                             noErrorFound = false;
                             applyChanges = true;
@@ -553,12 +555,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 if (activate) {
-                    // Change monitoring mode of all valid items if necessary
-                    var validItems = _currentlyMonitored.Where(v => v.Item.Status.Error == null);
+                    // Change monitoring mode of all valid items if needed
+                    var validItems = _currentlyMonitored.Where(v => v.Item.Created);
                     foreach (var change in validItems.GroupBy(i => i.GetMonitoringModeChange())) {
                         if (change.Key == null) {
                             continue;
                         }
+                        var changeList = change.ToList();
                         _logger.Information("Set monitoring to {value} for {count} items in subscription "
                             + "'{subscription}'/'{sessionId}'.",
                             change.Key.Value,
@@ -566,7 +569,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             Id,
                             Connection.CreateConnectionId());
 
-                        var itemsToChange = change.Select(t => t.Item).ToList();
+                        var itemsToChange = changeList.Select(t => t.Item).ToList();
                         var results = rawSubscription.SetMonitoringMode(change.Key.Value, itemsToChange);
                         if (results != null) {
                             var erroneousResultsCount = results
@@ -584,12 +587,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     if (StatusCode.IsNotGood(results[i].StatusCode)){
                                         _logger.Warning("Set monitoring for item '{item}' in subscription "
                                             + "'{subscription}'/'{sessionId}' failed with '{status}'.",
-                                            itemsToChange[i].StartNodeId, 
+                                            itemsToChange[i].StartNodeId,
                                             Id,
                                             Connection.CreateConnectionId(),
                                             results[i].StatusCode);
+                                        changeList[i].Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                                        changeList[i].Item.MonitoringMode = Opc.Ua.MonitoringMode.Disabled;
                                     }
                                 }
+                                noErrorFound = false;
                             }
                         }
                     }
@@ -1002,8 +1008,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public override string ToString() {
-                return $"Item {Template.Id ?? "<unknown>"}{ServerId}: '{Template.StartNodeId}'" +
-                    $" - {(Item?.Status?.Created == true ? "" : "not ")}created";
+                return $"Item '{Template.StartNodeId}' with server id {ServerId} - " +
+                    $"{(Item?.Status?.Created == true ? "" : "not ")}created";
             }
 
             /// <summary>

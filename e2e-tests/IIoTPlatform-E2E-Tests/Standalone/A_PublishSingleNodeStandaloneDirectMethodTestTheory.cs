@@ -61,8 +61,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
-            var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token).ConfigureAwait(false);
-
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
@@ -85,6 +83,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
             Assert.Equal(0, configuredEndpointsResponse.Count);
 
+            var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token).ConfigureAwait(false);
             var request = model.ToApiModel();
 
             //Call Publish direct method
@@ -153,7 +152,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(diagInfoList[0].IngressValueChanges > 0);
             Assert.True(diagInfoList[0].IngressDataChanges > 0);
             Assert.Equal(0, diagInfoList[0].MonitoredOpcNodesFailedCount);
-            Assert.Equal(10, diagInfoList[0].MonitoredOpcNodesSucceededCount);
+            Assert.Equal(1, diagInfoList[0].MonitoredOpcNodesSucceededCount);
             Assert.True(diagInfoList[0].OpcEndpointConnected);
             Assert.True(diagInfoList[0].OutgressIoTMessageCount > 0);
 

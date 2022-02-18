@@ -90,7 +90,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(configuredEndpointsResponse.Count, 0);
+            Assert.Equal(0, configuredEndpointsResponse.Count);
 
             var nodesToPublish0 = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, 2, 250).ConfigureAwait(false);
             var fastNodes0 = nodesToPublish0.OpcNodes.Where(node => node.Id.Contains("fast", StringComparison.OrdinalIgnoreCase)).ToList();
@@ -179,7 +179,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(configuredEndpointsResponse.Count, 2);
+            Assert.Equal(2, configuredEndpointsResponse.Count);
             TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse[0], request0);
             TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse[1], request1);
 
@@ -200,9 +200,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint0.Status);
             var jsonResponse0 = _serializer.Deserialize<List<PublishedNodeApiModel>>(responseGetConfiguredNodesOnEndpoint0.JsonPayload);
-            Assert.Equal(jsonResponse0.Count, 125);
-            Assert.Equal(jsonResponse0[0].Id, nodes0[0].Id);
-            Assert.Equal(jsonResponse0[25].Id, nodes0[25].Id);
+            Assert.Equal(125, jsonResponse0.Count);
+            Assert.Equal(nodes0[0].Id, jsonResponse0[0].Id);
+            Assert.Equal(nodes0[25].Id, jsonResponse0[25].Id);
 
             //Create request for GetConfiguredNodesOnEndpoint method call for endpoint 1
             var nodesOnEndpoint1 = new PublishedNodesEntryModel {
@@ -221,9 +221,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint1.Status);
             var jsonResponse1 = _serializer.Deserialize<List<PublishedNodeApiModel>>(responseGetConfiguredNodesOnEndpoint1.JsonPayload);
-            Assert.Equal(jsonResponse1.Count, 125);
-            Assert.Equal(jsonResponse1[0].Id, nodes1[0].Id);
-            Assert.Equal(jsonResponse1[25].Id, nodes1[25].Id);
+            Assert.Equal(125, jsonResponse1.Count);
+            Assert.Equal(nodes1[0].Id, jsonResponse1[0].Id);
+            Assert.Equal(nodes1[25].Id, jsonResponse1[25].Id);
 
             //Call GetDiagnosticInfo direct method
             var responseGetDiagnosticInfo = await CallMethodAsync(
@@ -241,7 +241,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 Assert.True(diagInfo.IngressValueChanges > 0);
                 Assert.True(diagInfo.IngressDataChanges > 0);
                 Assert.Equal(0, diagInfo.MonitoredOpcNodesFailedCount);
-                Assert.Equal(10, diagInfo.MonitoredOpcNodesSucceededCount);
+                Assert.Equal(125, diagInfo.MonitoredOpcNodesSucceededCount);
                 Assert.True(diagInfo.OpcEndpointConnected);
                 Assert.True(diagInfo.OutgressIoTMessageCount > 0);
 
@@ -312,9 +312,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(diagInfoList.Count, 1);
+            Assert.Equal(1, diagInfoList.Count);
 
-            //Call UnpublishAll direct method
+            //Unpublish all nodes for endpoint 1
             request1.OpcNodes?.Clear();
             if (useAddOrUpdate) {
                 //Call AddOrUpdateEndpoints direct method
@@ -349,7 +349,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(configuredEndpointsResponse.Count, 0);
+            Assert.Equal(0, configuredEndpointsResponse.Count);
 
             //Call GetDiagnosticInfo direct method
             responseGetDiagnosticInfo = await CallMethodAsync(
@@ -361,7 +361,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             diagInfoList = _serializer.Deserialize<List<JobDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(diagInfoList.Count, 1);
+            Assert.Equal(0, diagInfoList.Count);
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
@@ -741,7 +741,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
             var endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
             var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
-            Assert.Equal(configuredEndpointsResponse.Count, 0);
+            Assert.Equal(0, configuredEndpointsResponse.Count);
 
             var nodesToPublish0 = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, 2, 250).ConfigureAwait(false);
             var fastNodes0 = nodesToPublish0.OpcNodes.Where(node => node.Id.Contains("fast", StringComparison.OrdinalIgnoreCase)).ToList();
@@ -829,9 +829,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var obj0 = JObject.Parse(responseGetConfiguredNodesOnEndpoint0.JsonPayload);
             var opcNodes0 = _serializer.SerializeToString(obj0["OpcNodes"]);
             var jsonResponse0 = _serializer.Deserialize<List<PublishedNodeApiModel>>(opcNodes0);
-            Assert.Equal(jsonResponse0.Count, 125);
-            Assert.Equal(jsonResponse0[0].Id, nodes0[0].Id);
-            Assert.Equal(jsonResponse0[25].Id, nodes0[25].Id);
+            Assert.Equal(125, jsonResponse0.Count);
+            Assert.Equal(nodes0[0].Id, jsonResponse0[0].Id);
+            Assert.Equal(nodes0[25].Id, jsonResponse0[25].Id);
 
             //Create request for GetConfiguredNodesOnEndpoint method call for endpoint 1
             var nodesOnEndpoint1 = new PublishedNodesEntryModel {
@@ -853,9 +853,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var obj1 = JObject.Parse(responseGetConfiguredNodesOnEndpoint1.JsonPayload);
             var opcNodes1 = _serializer.SerializeToString(obj1["OpcNodes"]);
             var jsonResponse1 = _serializer.Deserialize<List<PublishedNodeApiModel>>(opcNodes1);
-            Assert.Equal(jsonResponse1.Count, 125);
-            Assert.Equal(jsonResponse1[0].Id, nodes1[0].Id);
-            Assert.Equal(jsonResponse1[25].Id, nodes1[25].Id);
+            Assert.Equal(125, jsonResponse1.Count);
+            Assert.Equal(nodes1[0].Id, jsonResponse1[0].Id);
+            Assert.Equal(nodes1[25].Id, jsonResponse1[25].Id);
 
             //Call GetDiagnosticInfo direct method
             var responseGetDiagnosticInfo = await CallMethodAsync(
@@ -867,13 +867,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             var diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 2);
-            Assert.Equal(diagInfo.NumberOfOpcSessionsConnected, 2);
-            Assert.Equal(diagInfo.NumberOfOpcMonitoredItemsConfigured, 250);
-            Assert.Equal(diagInfo.NumberOfOpcMonitoredItemsMonitored, 250);
+            Assert.Equal(2, diagInfo.NumberOfOpcSessionsConfigured);
+            Assert.Equal(2, diagInfo.NumberOfOpcSessionsConnected);
+            Assert.Equal(250, diagInfo.NumberOfOpcMonitoredItemsConfigured);
+            Assert.Equal(250, diagInfo.NumberOfOpcMonitoredItemsMonitored);
             Assert.True(diagInfo.SentMessages > 0);
-            Assert.Equal(diagInfo.FailedMessages, 0);
-            Assert.Equal(diagInfo.TooLargeCount, 0);
+            Assert.Equal(0, diagInfo.FailedMessages);
+            Assert.Equal(0, diagInfo.TooLargeCount);
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
@@ -913,6 +913,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
+            // Cleanup of sessions is an operation that happens in parallel to unpublishing. So getting diagnostic info immediately
+            // after unpublishing might not yet show the cleaned up state. So we will wait for some time to allow for that to happen.
+            await Task.Delay(TestConstants.DefaultDelayMilliseconds, cts.Token).ConfigureAwait(false);
+
             //Call GetDiagnosticInfo direct method
             responseGetDiagnosticInfo = await CallMethodAsync(
                 new MethodParameterModel {
@@ -923,7 +927,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 1);
+            Assert.Equal(1, diagInfo.NumberOfOpcSessionsConfigured);
 
             //Call UnpublishAll direct method
             request1.OpcNodes?.Clear();
@@ -964,7 +968,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(diagInfo.NumberOfOpcSessionsConfigured, 0);
+            Assert.Equal(0, diagInfo.NumberOfOpcSessionsConfigured);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
