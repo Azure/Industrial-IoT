@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;

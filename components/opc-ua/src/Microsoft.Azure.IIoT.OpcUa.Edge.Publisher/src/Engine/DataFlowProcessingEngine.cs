@@ -162,12 +162,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             double sentMessagesPerSec = totalDuration > 0 ? _messageSink.SentMessagesCount / totalDuration : 0;
             double estimatedMsgChunksPerDay = Math.Ceiling(chunkSizeAverage) * sentMessagesPerSec * 60 * 60 * 24;
             var diagnosticInfo = new JobDiagnosticInfoModel();
+            var endpointDiagnosticInfo = new EndpointDiagnosticModel();
 
-            diagnosticInfo.EndpointInfo.EndpointUrl = _messageTrigger.EndpointUrl;
-            diagnosticInfo.EndpointInfo.DataSetWriterGroup = _messageTrigger.DataSetWriterGroup;
-            diagnosticInfo.EndpointInfo.UseSecurity = _messageTrigger.UseSecurity;
-            diagnosticInfo.EndpointInfo.OpcAuthenticationMode = (AuthMode)_messageTrigger.AuthenticationMode;
-            diagnosticInfo.EndpointInfo.OpcAuthenticationUsername = _messageTrigger.AuthenticationUsername;
+            endpointDiagnosticInfo.EndpointUrl = _messageTrigger.EndpointUrl;
+            endpointDiagnosticInfo.DataSetWriterGroup = _messageTrigger.DataSetWriterGroup;
+            endpointDiagnosticInfo.UseSecurity = _messageTrigger.UseSecurity;
+            endpointDiagnosticInfo.OpcAuthenticationMode = (AuthMode)_messageTrigger.AuthenticationMode;
+            endpointDiagnosticInfo.OpcAuthenticationUsername = _messageTrigger.AuthenticationUsername;
+            diagnosticInfo.EndpointInfo = endpointDiagnosticInfo;
             diagnosticInfo.Id = Name;
             diagnosticInfo.SentMessagesPerSec = sentMessagesPerSec;
             diagnosticInfo.IngestionDuration = TimeSpan.FromSeconds(totalDuration);

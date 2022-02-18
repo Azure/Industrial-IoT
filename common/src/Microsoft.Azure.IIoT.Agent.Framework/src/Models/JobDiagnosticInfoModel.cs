@@ -12,13 +12,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
     public class JobDiagnosticInfoModel {
 
         /// <summary>
-        /// Constructor
-        /// </summary>
-        public JobDiagnosticInfoModel() {
-            EndpointInfo = new EndpointDiagnosticModel();
-        }
-
-        /// <summary>
         /// Id
         /// </summary>
         public string Id { get; set; }
