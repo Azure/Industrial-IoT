@@ -58,7 +58,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if (model.HeartbeatInterval != that.HeartbeatInterval) {
+            if (model.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(model.HeartbeatInterval) !=
+                that.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(that.HeartbeatInterval)) {
                 return false;
             }
 
@@ -76,20 +77,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary>
         /// Returns the hashcode for a node
         /// </summary>
-        public static int GetHashCode(this OpcNodeModel model, int? defaultPublishing = null) {
+        public static int GetHashCode(this OpcNodeModel model) {
             var hash = new HashCode();
             hash.Add(model.Id);
             hash.Add(model.DisplayName);
             hash.Add(model.DataSetFieldId);
             hash.Add(model.ExpandedNodeId);
-            hash.Add(defaultPublishing.HasValue
-                ? model.OpcPublishingInterval.GetValueOrDefault(defaultPublishing.Value)
-                : model.OpcPublishingInterval);
+            hash.Add(model.OpcPublishingInterval);
             hash.Add(model.OpcSamplingInterval);
-            hash.Add(model.HeartbeatInterval);
+            hash.Add(model.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(model.HeartbeatInterval));
             hash.Add(model.SkipFirst);
             hash.Add(model.QueueSize);
             return hash.ToHashCode();
+        }
+
+        /// <summary>
+        /// Returns a the timespan value from the timespan repsecively integer rperesenting seconds
+        /// The Timespan value wins when provided
+        /// </summary>
+        public static TimeSpan?  GetTimeSpanFromSeconds(this TimeSpan? timespan, int? seconds) {
+
+            return timespan.HasValue
+                ? timespan
+                : seconds.HasValue
+                    ? TimeSpan.FromSeconds(seconds.Value)
+                    : (TimeSpan?)null;
         }
 
         /// <summary>
