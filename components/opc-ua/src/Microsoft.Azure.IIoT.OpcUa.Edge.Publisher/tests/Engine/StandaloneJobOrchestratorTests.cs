@@ -277,7 +277,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             bool useDataSetSpecificEndpoints,
             bool enableAvailableJobQuerying
         ) {
-            _standaloneCliModel.DefaultMaxNodesPerDataSet = 2;
+            _standaloneCliModel.MaxNodesPerDataSet = 2;
 
             InitStandaloneJobOrchestrator();
 
@@ -404,7 +404,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_AddOrUpdateEndpoints_AddAndRemove() {
-            _standaloneCliModel.DefaultMaxNodesPerDataSet = 2;
+            _standaloneCliModel.MaxNodesPerDataSet = 2;
 
             InitStandaloneJobOrchestrator();
 

@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary>
         /// Check if nodes are equal
         /// </summary>
-        public static bool IsSame(this OpcNodeModel model, OpcNodeModel that, int? defaultPublishing = null) {
+        public static bool IsSame(this OpcNodeModel model, OpcNodeModel that) {
 
             if (model == that) {
                 return true;
@@ -33,28 +33,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             if (string.Compare(model.Id, that.Id, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
+
             if (string.Compare(model.DisplayName, that.DisplayName, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
+
             if (string.Compare(model.DataSetFieldId, that.DataSetFieldId, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
+
             if (string.Compare(model.ExpandedNodeId, that.ExpandedNodeId, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
-            if (defaultPublishing.HasValue) {
-                if (model.OpcPublishingInterval.GetValueOrDefault(defaultPublishing.Value) !=
-                    that.OpcPublishingInterval.GetValueOrDefault(defaultPublishing.Value)) {
-                    return false;
-                }
-            }
-            else {
-                if (model.OpcPublishingInterval != that.OpcPublishingInterval) {
-                    return false;
-                }
+
+            if (model.OpcPublishingIntervalTimespan.GetTimeSpanFromMiliseconds(model.OpcPublishingInterval) !=
+                that.OpcPublishingIntervalTimespan.GetTimeSpanFromMiliseconds(that.OpcPublishingInterval)){
+                return false;
             }
 
-            if (model.OpcSamplingInterval != that.OpcSamplingInterval) {
+            if (model.OpcSamplingIntervalTimespan.GetTimeSpanFromMiliseconds(model.OpcSamplingInterval) !=
+                that.OpcSamplingIntervalTimespan.GetTimeSpanFromMiliseconds(that.OpcSamplingInterval)) {
                 return false;
             }
 
@@ -83,8 +81,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.DisplayName);
             hash.Add(model.DataSetFieldId);
             hash.Add(model.ExpandedNodeId);
-            hash.Add(model.OpcPublishingInterval);
-            hash.Add(model.OpcSamplingInterval);
+            hash.Add(model.OpcPublishingIntervalTimespan.GetTimeSpanFromMiliseconds(model.OpcPublishingInterval));
+            hash.Add(model.OpcSamplingIntervalTimespan.GetTimeSpanFromMiliseconds(model.OpcSamplingInterval));
             hash.Add(model.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(model.HeartbeatInterval));
             hash.Add(model.SkipFirst);
             hash.Add(model.QueueSize);
@@ -95,13 +93,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// Returns a the timespan value from the timespan repsecively integer rperesenting seconds
         /// The Timespan value wins when provided
         /// </summary>
-        public static TimeSpan?  GetTimeSpanFromSeconds(this TimeSpan? timespan, int? seconds) {
+        public static TimeSpan?  GetTimeSpanFromSeconds(
+            this TimeSpan? timespan,
+            int? seconds,
+            TimeSpan? defaultTimespan = null) {
 
             return timespan.HasValue
                 ? timespan
                 : seconds.HasValue
                     ? TimeSpan.FromSeconds(seconds.Value)
-                    : (TimeSpan?)null;
+                    : defaultTimespan;
+        }
+
+        /// <summary>
+        /// Returns a the timespan value from the timespan repsecively integer rperesenting seconds
+        /// The Timespan value wins when provided
+        /// </summary>
+        public static TimeSpan? GetTimeSpanFromMiliseconds(
+            this TimeSpan? timespan,
+            int? miliseconds,
+            TimeSpan? defaultTimespan = null) {
+
+            return timespan.HasValue
+                ? timespan
+                : miliseconds.HasValue
+                    ? TimeSpan.FromMilliseconds(miliseconds.Value)
+                    : defaultTimespan;
         }
 
         /// <summary>
