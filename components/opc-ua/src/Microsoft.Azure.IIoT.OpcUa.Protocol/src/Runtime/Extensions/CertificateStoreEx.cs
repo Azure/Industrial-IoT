@@ -13,60 +13,53 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     /// </summary>
     public static class CertificateStoreEx {
 
-
         /// <summary>
-        /// Build the certificates trust list
+        /// Apply the configured settings provided via a CertificateStore to a CertificateTrustList.
         /// </summary>
-        public static CertificateTrustList BuildCertificateTrustList(
-            this CertificateStore certificateStore,
-            CertificateTrustList certificateTrustList) {
-            if (certificateStore == null) {
-                throw new ArgumentNullException(nameof(certificateStore));
-            }
-
+        public static void ApplyLocalConfig(
+            this CertificateTrustList certificateTrustList,
+            CertificateStore certificateStore) {
             if (certificateTrustList == null) {
                 throw new ArgumentNullException(nameof(certificateTrustList));
+            }
+
+            if (certificateStore == null) {
+                throw new ArgumentNullException(nameof(certificateStore));
             }
 
             if (certificateTrustList.StorePath != certificateStore.StorePath) {
                 certificateTrustList.StoreType = certificateStore.StoreType;
                 certificateTrustList.StorePath = certificateStore.StorePath;
             }
-
-            return certificateTrustList;
         }
 
         /// <summary>
-        /// Build the certificate identifier for the own app
+        /// Applies the configuration settings to the own app certificate.
         /// </summary>
-        /// <param name="certificateStore"></param>
-        /// <param name="certificateIdentifier"></param>
-        /// <returns></returns>
-        public static CertificateIdentifier BuildCertificateIdentifier(
-            this CertificateInfo certificateStore,
-            CertificateIdentifier certificateIdentifier) {
-            if (certificateStore == null) {
-                throw new ArgumentNullException(nameof(certificateStore));
-            }
-
+        public static void ApplyLocalConfig(
+            this CertificateIdentifier certificateIdentifier,
+            CertificateInfo certificateStore) {
             if (certificateIdentifier == null) {
                 throw new ArgumentNullException(nameof(certificateIdentifier));
+            }
+
+            if (certificateStore == null) {
+                throw new ArgumentNullException(nameof(certificateStore));
             }
 
             if (certificateIdentifier.StorePath != certificateStore.StorePath) {
                 certificateIdentifier.StoreType = certificateStore.StoreType;
                 certificateIdentifier.StorePath = certificateStore.StorePath;
             }
-
-            return certificateIdentifier;
         }
 
         /// <summary>
-        /// Build a certificate identifier store. Particularily for rejected certificates
+        /// Apply the configured settings provided via a CertificateStore to a CertificateStoreIdentifier
+        /// Particularily used for for rejected certificates store.
         /// </summary>
-        public static CertificateStoreIdentifier BuildCertificateIdentifierStore(
-            this CertificateStore certificateStore,
-            CertificateStoreIdentifier certificateStoreIdentifier) {
+        public static void ApplyLocalConfig(
+            this CertificateStoreIdentifier certificateStoreIdentifier,
+            CertificateStore certificateStore) {
             if (certificateStore == null) {
                 throw new ArgumentNullException(nameof(certificateStore));
             }
@@ -79,8 +72,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 certificateStoreIdentifier.StoreType = certificateStore.StoreType;
                 certificateStoreIdentifier.StorePath = certificateStore.StorePath;
             }
-
-            return certificateStoreIdentifier;
         }
     }
 }

@@ -15,10 +15,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     /// </summary>
     public static class SecurityConfigEx {
 
-
         /// <summary>
-        /// Build the security configuration
+        /// Builds and applies the the security configuration according to the local settings. Returns a the
+        /// configuration application ready to use for initialization of the OPC UA SDK client object.
         /// </summary>
+        ///<remarks>
+        /// Please note the input argument <cref>applicationConfiguration</cref> will be altered during execution
+        /// with the locally provided security configuration and shall not be used after calling this method.
+        /// </remarks>
         public static async Task<ApplicationConfiguration> BuildSecurityConfiguration(
             this ISecurityConfig securityConfig,
             IApplicationConfigurationBuilderClientSelected applicationConfigurationBuilder,
@@ -57,17 +61,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 .SetMinimumCertificateKeySize(securityConfig.MinimumCertificateKeySize)
                 .SetAddAppCertToTrustedStore(securityConfig.AddAppCertToTrustedStore);
 
-            securityConfig.ApplicationCertificate.BuildCertificateIdentifier(
-                applicationConfiguration.SecurityConfiguration.ApplicationCertificate);
-
-            securityConfig.TrustedPeerCertificates.BuildCertificateTrustList(
-                applicationConfiguration.SecurityConfiguration.TrustedPeerCertificates);
-
-            securityConfig.TrustedIssuerCertificates.BuildCertificateTrustList(
-                applicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates);
-
-            securityConfig.RejectedCertificateStore.BuildCertificateIdentifierStore(
-                applicationConfiguration.SecurityConfiguration.RejectedCertificateStore);
+            applicationConfiguration.SecurityConfiguration.ApplicationCertificate
+                .ApplyLocalConfig(securityConfig.ApplicationCertificate);
+            applicationConfiguration.SecurityConfiguration.TrustedPeerCertificates
+                .ApplyLocalConfig(securityConfig.TrustedPeerCertificates);
+            applicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates
+                .ApplyLocalConfig(securityConfig.TrustedIssuerCertificates);
+            applicationConfiguration.SecurityConfiguration.RejectedCertificateStore
+                .ApplyLocalConfig(securityConfig.RejectedCertificateStore);
 
             return await options.Create().ConfigureAwait(false);
         }
