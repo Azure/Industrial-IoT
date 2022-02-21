@@ -58,7 +58,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if (model.HeartbeatInterval != that.HeartbeatInterval) {
+            var modelHeartbeatInterval = model.HeartbeatIntervalTimespan.HasValue
+                ? model.HeartbeatIntervalTimespan
+                : model.HeartbeatInterval.HasValue
+                    ? TimeSpan.FromSeconds(model.HeartbeatInterval.Value)
+                    : (TimeSpan?)null;
+
+            var thatHeartbeatInterval = that.HeartbeatIntervalTimespan.HasValue
+                ? that.HeartbeatIntervalTimespan
+                : that.HeartbeatInterval.HasValue
+                    ? TimeSpan.FromSeconds(that.HeartbeatInterval.Value)
+                    : (TimeSpan?)null;
+
+            if (modelHeartbeatInterval != thatHeartbeatInterval) {
                 return false;
             }
 
@@ -76,17 +88,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary>
         /// Returns the hashcode for a node
         /// </summary>
-        public static int GetHashCode(this OpcNodeModel model, int? defaultPublishing = null) {
+        public static int GetHashCode(this OpcNodeModel model) {
             var hash = new HashCode();
             hash.Add(model.Id);
             hash.Add(model.DisplayName);
             hash.Add(model.DataSetFieldId);
             hash.Add(model.ExpandedNodeId);
-            hash.Add(defaultPublishing.HasValue
-                ? model.OpcPublishingInterval.GetValueOrDefault(defaultPublishing.Value)
-                : model.OpcPublishingInterval);
+            hash.Add(model.OpcPublishingInterval);
             hash.Add(model.OpcSamplingInterval);
-            hash.Add(model.HeartbeatInterval);
+            var heartbeatInterval = model.HeartbeatIntervalTimespan.HasValue
+                ? model.HeartbeatIntervalTimespan
+                : model.HeartbeatInterval.HasValue
+                    ? TimeSpan.FromSeconds(model.HeartbeatInterval.Value)
+                    : (TimeSpan?)null;
+            hash.Add(heartbeatInterval);
             hash.Add(model.SkipFirst);
             hash.Add(model.QueueSize);
             return hash.ToHashCode();

@@ -128,9 +128,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     PublishedVariableDisplayName = node.Item2.DisplayName,
                                     SamplingInterval = node.Item2.OpcSamplingIntervalTimespan ??
                                         standaloneCliModel.DefaultSamplingInterval,
-                                    HeartbeatInterval = node.Item2.HeartbeatIntervalTimespan.HasValue ?
-                                        node.Item2.HeartbeatIntervalTimespan.Value :
-                                        standaloneCliModel.DefaultHeartbeatInterval,
+                                    HeartbeatInterval = node.Item2.HeartbeatIntervalTimespan.HasValue
+                                        ? node.Item2.HeartbeatIntervalTimespan.Value
+                                        : node.Item2.HeartbeatInterval.HasValue
+                                            ? TimeSpan.FromSeconds(node.Item2.HeartbeatInterval.Value)
+                                            : standaloneCliModel.DefaultHeartbeatInterval,
                                     QueueSize = node.Item2.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                                     SkipFirst = node.Item2.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                                 }).ToList()
@@ -306,6 +308,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             DataSetFieldId = node.DataSetFieldId,
                             ExpandedNodeId = node.ExpandedNodeId,
                             HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
+                            HeartbeatInterval = node.HeartbeatInterval,
                             OpcPublishingInterval = item.DataSetPublishingInterval.GetValueOrDefault(
                                      node.OpcPublishingInterval.GetValueOrDefault(
                                          (int)standaloneCliModel.DefaultPublishingInterval.GetValueOrDefault().TotalMilliseconds)),
@@ -326,6 +329,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
                                 HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
+                                HeartbeatInterval = node.HeartbeatInterval,
                                 OpcPublishingInterval = item.DataSetPublishingInterval.GetValueOrDefault(
                                     node.OpcPublishingInterval.GetValueOrDefault(
                                         (int)standaloneCliModel.DefaultPublishingInterval.GetValueOrDefault().TotalMilliseconds)),
