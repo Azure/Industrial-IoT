@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 _cts = new CancellationTokenSource();
                 _heartbeatTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
 
-                _logger.Information("Worker {WorkerId}: {@Capabilities}",
+                _logger.Information("Starting worker {WorkerId}: {@Capabilities}",
                     WorkerId, _agentConfigProvider.Config.Capabilities);
                 _worker = Task.Run(() => RunAsync(_cts.Token));
             }
