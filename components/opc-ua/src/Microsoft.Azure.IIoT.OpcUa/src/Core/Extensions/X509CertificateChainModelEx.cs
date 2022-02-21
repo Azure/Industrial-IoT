@@ -75,7 +75,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 validator.ChainPolicy.RevocationFlag =
                     X509RevocationFlag.EntireChain;
                 validator.ChainPolicy.RevocationMode =
-                    X509RevocationMode.NoCheck;
+                    X509RevocationMode.Offline;
+                validator.ChainPolicy.VerificationFlags =
+                    X509VerificationFlags.IgnoreEndRevocationUnknown |
+                    X509VerificationFlags.IgnoreCertificateAuthorityRevocationUnknown |
+                    X509VerificationFlags.IgnoreRootRevocationUnknown;
                 validator.ChainPolicy.ExtraStore.AddRange(
                      new X509Certificate2Collection(chain.SkipLast(1).ToArray()));
                 validator.Build(chain.Last());
