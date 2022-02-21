@@ -39,8 +39,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _clientConfig = clientConfig;
             _logger = logger;
             _identity = identity;
-            _applicationConfiguration = _clientConfig.
-                ToApplicationConfigurationAsync(_identity, true, OnValidate).Result;
+            _applicationConfiguration = _clientConfig
+                .BuildApplicationConfigurationAsync(
+                    _identity,
+                    OnValidate,
+                    _logger)
+                .GetAwaiter()
+                .GetResult();
             _endpointConfiguration = _clientConfig.ToEndpointConfiguration();
 
             _lock = new SemaphoreSlim(1, 1);
