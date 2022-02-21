@@ -58,19 +58,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            var modelHeartbeatInterval = model.HeartbeatIntervalTimespan.HasValue
-                ? model.HeartbeatIntervalTimespan
-                : model.HeartbeatInterval.HasValue
-                    ? TimeSpan.FromSeconds(model.HeartbeatInterval.Value)
-                    : (TimeSpan?)null;
-
-            var thatHeartbeatInterval = that.HeartbeatIntervalTimespan.HasValue
-                ? that.HeartbeatIntervalTimespan
-                : that.HeartbeatInterval.HasValue
-                    ? TimeSpan.FromSeconds(that.HeartbeatInterval.Value)
-                    : (TimeSpan?)null;
-
-            if (modelHeartbeatInterval != thatHeartbeatInterval) {
+            if (model.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(model.HeartbeatInterval) !=
+                that.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(that.HeartbeatInterval)) {
                 return false;
             }
 
@@ -96,15 +85,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.ExpandedNodeId);
             hash.Add(model.OpcPublishingInterval);
             hash.Add(model.OpcSamplingInterval);
-            var heartbeatInterval = model.HeartbeatIntervalTimespan.HasValue
-                ? model.HeartbeatIntervalTimespan
-                : model.HeartbeatInterval.HasValue
-                    ? TimeSpan.FromSeconds(model.HeartbeatInterval.Value)
-                    : (TimeSpan?)null;
-            hash.Add(heartbeatInterval);
+            hash.Add(model.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(model.HeartbeatInterval));
             hash.Add(model.SkipFirst);
             hash.Add(model.QueueSize);
             return hash.ToHashCode();
+        }
+
+        /// <summary>
+        /// Returns a the timespan value from the timespan repsecively integer rperesenting seconds
+        /// The Timespan value wins when provided
+        /// </summary>
+        public static TimeSpan?  GetTimeSpanFromSeconds(this TimeSpan? timespan, int? seconds) {
+
+            return timespan.HasValue
+                ? timespan
+                : seconds.HasValue
+                    ? TimeSpan.FromSeconds(seconds.Value)
+                    : (TimeSpan?)null;
         }
 
         /// <summary>
