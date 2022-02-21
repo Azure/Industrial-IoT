@@ -318,7 +318,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     ?? standaloneCliModel.DefaultPublishingInterval,
                             OpcSamplingIntervalTimespan = node.OpcSamplingIntervalTimespan
                                 .GetTimeSpanFromMiliseconds(node.OpcSamplingInterval)
-                                ?? standaloneCliModel.DefaultHeartbeatInterval,
+                                ?? standaloneCliModel.DefaultSamplingInterval,
                             QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                             SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                         });
@@ -344,7 +344,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         ?? standaloneCliModel.DefaultPublishingInterval,
                                 OpcSamplingIntervalTimespan = node.OpcSamplingIntervalTimespan
                                     .GetTimeSpanFromMiliseconds(node.OpcSamplingInterval)
-                                    ?? standaloneCliModel.DefaultHeartbeatInterval,
+                                    ?? standaloneCliModel.DefaultSamplingInterval,
                                 QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                                 SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                             });
