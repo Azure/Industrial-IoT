@@ -61,14 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
 
         /// <summary> Heartbeat interval in seconds </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int? HeartbeatInterval {
-            get => HeartbeatIntervalTimespan.HasValue
-                ? (int)HeartbeatIntervalTimespan.Value.TotalSeconds
-                : default;
-            set => HeartbeatIntervalTimespan = value.HasValue
-                ? TimeSpan.FromSeconds(value.Value)
-                : default;
-        }
+        public int? HeartbeatInterval { get; set; }
 
         /// <summary> Heartbeat interval as TimeSpan. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]

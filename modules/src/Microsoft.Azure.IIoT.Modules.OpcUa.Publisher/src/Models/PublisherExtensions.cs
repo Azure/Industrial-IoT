@@ -56,6 +56,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 OpcPublishingInterval = model.OpcPublishingInterval,
                 OpcSamplingInterval = model.OpcSamplingInterval,
                 HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
+                // only fill the HeartbeatInterval if the HeartbeatIntervalTimespan
+                // was not provided.
+                HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
+                    ? model.HeartbeatInterval
+                    : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
             };
@@ -119,7 +124,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 OpcPublishingInterval = model.OpcPublishingInterval,
                 DataSetFieldId = model.DataSetFieldId,
                 DisplayName = model.DisplayName,
-                HeartbeatInterval = model.HeartbeatInterval,
+                HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
+                HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
+                    ? model.HeartbeatInterval
+                    : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
             };
