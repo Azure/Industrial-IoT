@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using System;
@@ -55,6 +56,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 OpcPublishingInterval = model.OpcPublishingInterval,
                 OpcSamplingInterval = model.OpcSamplingInterval,
                 HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
+                // only fill the HeartbeatInterval if the HeartbeatIntervalTimespan
+                // was not provided.
+                HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
+                    ? model.HeartbeatInterval
+                    : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
             };
@@ -68,16 +74,27 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             if (endpoints == null) {
                 return null;
             }
+            return endpoints.Select(e => e.ToApiModel()).ToList();
+        }
 
-            return endpoints.Select(e => new PublishNodesEndpointApiModel {
-                EndpointUrl = e.EndpointUrl.AbsoluteUri,
-                UseSecurity = e.UseSecurity.GetValueOrDefault(false),
-                OpcAuthenticationMode = (AuthenticationMode)e.OpcAuthenticationMode,
-                UserName = e.OpcAuthenticationUsername,
-                DataSetWriterGroup = e.DataSetWriterGroup,
-                DataSetWriterId = e.DataSetWriterId,
-                DataSetPublishingInterval = e.DataSetPublishingInterval
-            }).ToList();
+        /// <summary>
+        /// Create an api model from service model ignoring the password
+        /// </summary>
+        public static PublishNodesEndpointApiModel ToApiModel(
+            this PublishedNodesEntryModel endpoint) {
+            if (endpoint == null) {
+                return null;
+            }
+
+            return new PublishNodesEndpointApiModel {
+                EndpointUrl = endpoint.EndpointUrl.AbsoluteUri,
+                UseSecurity = endpoint.UseSecurity.GetValueOrDefault(false),
+                OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
+                UserName = endpoint.OpcAuthenticationUsername,
+                DataSetWriterGroup = endpoint.DataSetWriterGroup,
+                DataSetWriterId = endpoint.DataSetWriterId,
+                DataSetPublishingInterval = endpoint.DataSetPublishingInterval
+            };
         }
 
         /// <summary>
@@ -107,10 +124,67 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 OpcPublishingInterval = model.OpcPublishingInterval,
                 DataSetFieldId = model.DataSetFieldId,
                 DisplayName = model.DisplayName,
-                HeartbeatInterval = model.HeartbeatInterval,
+                HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
+                HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
+                    ? model.HeartbeatInterval
+                    : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
             };
+        }
+
+        /// <summary>
+        /// Create an api model from service model ignoring the password
+        /// </summary>
+        public static PublishNodesEndpointApiModel ToApiModel(
+            this EndpointDiagnosticModel endpoint) {
+            if (endpoint == null) {
+                return null;
+            }
+
+            return new PublishNodesEndpointApiModel {
+                EndpointUrl = endpoint.EndpointUrl.AbsoluteUri,
+                UseSecurity = endpoint.UseSecurity.GetValueOrDefault(false),
+                OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
+                UserName = endpoint.OpcAuthenticationUsername,
+                DataSetWriterGroup = endpoint.DataSetWriterGroup,
+            };
+        }
+
+        /// <summary>
+        /// Create an api model from service model ignoring the password
+        /// </summary>
+        public static List<DiagnosticInfoApiModel> ToApiModel(
+            this List<JobDiagnosticInfoModel> model) {
+            if (model == null) {
+                return null;
+            }
+
+            return model.Select(e => new DiagnosticInfoApiModel {
+                EndpointInfo = e.EndpointInfo.ToApiModel(),
+                SentMessagesPerSec = e.SentMessagesPerSec,
+                IngestionDuration = e.IngestionDuration,
+                IngressDataChanges = e.IngressDataChanges,
+                IngressValueChanges = e.IngressValueChanges,
+                IngressBatchBlockBufferSize = e.IngressBatchBlockBufferSize,
+                EncodingBlockInputSize = e.EncodingBlockInputSize,
+                EncodingBlockOutputSize = e.EncodingBlockOutputSize,
+                EncoderNotificationsProcessed = e.EncoderNotificationsProcessed,
+                EncoderNotificationsDropped = e.EncoderNotificationsDropped,
+                EncoderIoTMessagesProcessed = e.EncoderIoTMessagesProcessed,
+                EncoderAvgNotificationsMessage = e.EncoderAvgNotificationsMessage,
+                EncoderAvgIoTMessageBodySize = e.EncoderAvgIoTMessageBodySize,
+                EncoderAvgIoTChunkUsage = e.EncoderAvgIoTChunkUsage,
+                EstimatedIoTChunksPerDay = e.EstimatedIoTChunksPerDay,
+                OutgressBatchBlockBufferSize = e.OutgressBatchBlockBufferSize,
+                OutgressInputBufferCount = e.OutgressInputBufferCount,
+                OutgressInputBufferDropped = e.OutgressInputBufferDropped,
+                OutgressIoTMessageCount = e.OutgressIoTMessageCount,
+                ConnectionRetries = e.ConnectionRetries,
+                OpcEndpointConnected = e.OpcEndpointConnected,
+                MonitoredOpcNodesSucceededCount = e.MonitoredOpcNodesSucceededCount,
+                MonitoredOpcNodesFailedCount = e.MonitoredOpcNodesFailedCount,
+            }).ToList();
         }
     }
 }
