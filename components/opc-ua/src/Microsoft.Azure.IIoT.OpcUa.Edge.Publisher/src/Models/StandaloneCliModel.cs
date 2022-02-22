@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured
         /// for a dataSetWriter, they will be added in a different DataSet/Subscription.
         /// </summary>
-        public int? DefaultMaxNodesPerDataSet { get; set; } = 1000;
+        public int? MaxNodesPerDataSet { get; set; } = 1000;
 
         /// <summary>
         /// Run in legacy compatibility mode

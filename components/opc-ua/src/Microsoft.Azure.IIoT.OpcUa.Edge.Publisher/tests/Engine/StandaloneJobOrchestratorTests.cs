@@ -268,6 +268,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ConfigureAwait(false);
         }
 
+        [Fact]
+        public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries_Timesapn() {
+            InitStandaloneJobOrchestrator();
+
+            var numberOfEndpoints = 3;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                })
+                .ToList();
+
+            var endpoints = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => GenerateEndpoint(i, opcNodes, false))
+                .ToList();
+
+            endpoints.ForEach(e =>
+                e.DataSetPublishingIntervalTimespan =
+                TimeSpan.FromMilliseconds(e.DataSetPublishingInterval.GetValueOrDefault(1000)));
+
+            // Make endpoint at index 0 and 2 the same.
+            endpoints[2].DataSetWriterId = endpoints[0].DataSetWriterId;
+            endpoints[2].DataSetWriterGroup = endpoints[0].DataSetWriterGroup;
+            endpoints[2].DataSetPublishingIntervalTimespan = endpoints[0].DataSetPublishingIntervalTimespan;
+
+            // The call should throw an exception.
+            await FluentActions
+                .Invoking(async () => await _standaloneJobOrchestrator
+                    .AddOrUpdateEndpointsAsync(endpoints)
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage($"Response 400 Request contains two entries for the same endpoint at index 0 and 2: {{}}")
+                .ConfigureAwait(false);
+        }
+
         [Theory]
         [InlineData(false, false)]
         [InlineData(false, true)]
@@ -277,7 +312,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             bool useDataSetSpecificEndpoints,
             bool enableAvailableJobQuerying
         ) {
-            _standaloneCliModel.DefaultMaxNodesPerDataSet = 2;
+            _standaloneCliModel.MaxNodesPerDataSet = 2;
 
             InitStandaloneJobOrchestrator();
 
@@ -404,7 +439,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_AddOrUpdateEndpoints_AddAndRemove() {
-            _standaloneCliModel.DefaultMaxNodesPerDataSet = 2;
+            _standaloneCliModel.MaxNodesPerDataSet = 2;
 
             InitStandaloneJobOrchestrator();
 

@@ -310,7 +310,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -339,7 +339,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -368,7 +368,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -400,7 +400,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -432,11 +432,138 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
+        public async Task PnPlcPubSubDataSetPublishingIntervalTimespan1Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(1000, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubDataSetPublishingIntervalTimespan2Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""OpcPublishingIntervalTimespan"": ""00:00:02""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(1000, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubDataSetPublishingIntervalTimespan3Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258""
+            },
+            {
+                ""Id"": ""i=2259""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(1000, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubDataSetPublishingIntervalTimespan4Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""OpcPublishingIntervalTimspan"": ""00:00:02""
+            },
+            {
+                ""Id"": ""i=2259"",
+                ""OpcPublishingInterval"": 3000
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var standaloneCli = new StandaloneCliModel() {
+                DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
+            };
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(1000, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+        }
+
+
+        [Fact]
         public async Task PnPlcPubSubDisplayName1Test() {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -467,7 +594,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -497,7 +624,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -529,7 +656,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -560,7 +687,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -591,7 +718,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -621,7 +748,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -653,7 +780,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {

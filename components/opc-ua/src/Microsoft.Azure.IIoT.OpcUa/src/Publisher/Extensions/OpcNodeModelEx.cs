@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary>
         /// Check if nodes are equal
         /// </summary>
-        public static bool IsSame(this OpcNodeModel model, OpcNodeModel that, int? defaultPublishing = null) {
+        public static bool IsSame(this OpcNodeModel model, OpcNodeModel that) {
 
             if (model == that) {
                 return true;
@@ -33,33 +33,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             if (string.Compare(model.Id, that.Id, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
+
             if (string.Compare(model.DisplayName, that.DisplayName, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
+
             if (string.Compare(model.DataSetFieldId, that.DataSetFieldId, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
+
             if (string.Compare(model.ExpandedNodeId, that.ExpandedNodeId, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
-            if (defaultPublishing.HasValue) {
-                if (model.OpcPublishingInterval.GetValueOrDefault(defaultPublishing.Value) !=
-                    that.OpcPublishingInterval.GetValueOrDefault(defaultPublishing.Value)) {
-                    return false;
-                }
-            }
-            else {
-                if (model.OpcPublishingInterval != that.OpcPublishingInterval) {
-                    return false;
-                }
-            }
 
-            if (model.OpcSamplingInterval != that.OpcSamplingInterval) {
+            if (model.GetNormalizedPublishingInterval() != that.GetNormalizedPublishingInterval()) {
                 return false;
             }
 
-            if (model.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(model.HeartbeatInterval) !=
-                that.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(that.HeartbeatInterval)) {
+            if (model.GetNormalizedSamplingInterval() != that.GetNormalizedSamplingInterval()) {
+                return false;
+            }
+
+            if (model.GetNormalizedHeartbeatInterval() != that.GetNormalizedHeartbeatInterval()) {
                 return false;
             }
 
@@ -83,25 +78,72 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.DisplayName);
             hash.Add(model.DataSetFieldId);
             hash.Add(model.ExpandedNodeId);
-            hash.Add(model.OpcPublishingInterval);
-            hash.Add(model.OpcSamplingInterval);
-            hash.Add(model.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(model.HeartbeatInterval));
+            hash.Add(model.GetNormalizedPublishingInterval());
+            hash.Add(model.GetNormalizedSamplingInterval());
+            hash.Add(model.GetNormalizedHeartbeatInterval());
             hash.Add(model.SkipFirst);
             hash.Add(model.QueueSize);
             return hash.ToHashCode();
         }
 
         /// <summary>
-        /// Returns a the timespan value from the timespan repsecively integer rperesenting seconds
-        /// The Timespan value wins when provided
+        /// Retrieves the timespan flavor of a node's HeartbeatInterval
         /// </summary>
-        public static TimeSpan?  GetTimeSpanFromSeconds(this TimeSpan? timespan, int? seconds) {
+        /// <returns></returns>
+        public static TimeSpan? GetNormalizedHeartbeatInterval(
+            this OpcNodeModel model, TimeSpan? defaultHeatbeatTimespan = null) {
+            return model.HeartbeatIntervalTimespan
+                .GetTimeSpanFromSeconds(model.HeartbeatInterval, defaultHeatbeatTimespan);
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a node's PublishingInterval
+        /// </summary>
+        public static TimeSpan? GetNormalizedPublishingInterval(
+            this OpcNodeModel model, TimeSpan? defaultPublishingTimespan = null) {
+            return model.OpcPublishingIntervalTimespan
+                .GetTimeSpanFromMiliseconds(model.OpcPublishingInterval, defaultPublishingTimespan);
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a node's SamplingInterval
+        /// </summary>
+        public static TimeSpan? GetNormalizedSamplingInterval(
+            this OpcNodeModel model, TimeSpan? defaultSamplingTimespan = null) {
+            return model.OpcSamplingIntervalTimespan
+                .GetTimeSpanFromMiliseconds(model.OpcSamplingInterval, defaultSamplingTimespan);
+        }
+
+        /// <summary>
+        /// Returns a the timespan value from the timespan when defined, respectively from
+        /// the seconds representing integer. The Timespan value wins when provided
+        /// </summary>
+        public static TimeSpan? GetTimeSpanFromSeconds(
+            this TimeSpan? timespan,
+            int? seconds,
+            TimeSpan? defaultTimespan = null) {
 
             return timespan.HasValue
                 ? timespan
                 : seconds.HasValue
                     ? TimeSpan.FromSeconds(seconds.Value)
-                    : (TimeSpan?)null;
+                    : defaultTimespan;
+        }
+
+        /// <summary>
+        /// Returns a the timespan value from the timespan when defined, respectively from
+        /// the miliseconds representing integer. The Timespan value wins when provided
+        /// </summary>
+        public static TimeSpan? GetTimeSpanFromMiliseconds(
+            this TimeSpan? timespan,
+            int? miliseconds,
+            TimeSpan? defaultTimespan = null) {
+
+            return timespan.HasValue
+                ? timespan
+                : miliseconds.HasValue
+                    ? TimeSpan.FromMilliseconds(miliseconds.Value)
+                    : defaultTimespan;
         }
 
         /// <summary>

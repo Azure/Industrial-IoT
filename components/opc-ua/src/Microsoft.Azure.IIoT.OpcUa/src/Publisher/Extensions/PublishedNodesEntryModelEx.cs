@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         public static bool HasSameDataSet(this PublishedNodesEntryModel model, PublishedNodesEntryModel that) {
             return model.HasSameGroup(that)
                 && string.Equals(model.DataSetWriterId, that.DataSetWriterId, StringComparison.InvariantCulture)
-                && model.DataSetPublishingInterval == that.DataSetPublishingInterval;
+                && model.GetNormalizedDataSetPublishingInterval() == that.GetNormalizedDataSetPublishingInterval();
         }
 
         /// <summary>
@@ -93,6 +93,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 model.OpcAuthenticationPassword,
                 model.EncryptedAuthUsername,
                 model.EncryptedAuthPassword);
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a PublishedNodesEntryModel's DataSetPublishingInterval
+        /// </summary>
+        public static TimeSpan? GetNormalizedDataSetPublishingInterval(
+            this PublishedNodesEntryModel model, TimeSpan? defaultPublishingTimespan = null) {
+            return model.DataSetPublishingIntervalTimespan
+                .GetTimeSpanFromMiliseconds(model.DataSetPublishingInterval, defaultPublishingTimespan);
         }
     }
 }
