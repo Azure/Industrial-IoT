@@ -22,19 +22,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DataSetWriterGroup { get; set; }
 
-        /// <summary> The Publishing interval for a dataset writer </summary>
+        /// <summary> The Publishing interval for a dataset writer in miliseconds.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? DataSetPublishingInterval { get; set; }
 
-        /// <summary> The Publishing interval for a dataset writer in timespan format </summary>
+        /// <summary> The Publishing interval for a dataset writer in timespan format.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public TimeSpan? DataSetPublishingIntervalTimespan { get; set; }
 
-        /// <summary> The endpoint URL of the OPC UA server. </summary>
+        /// <summary> The endpoint URL of the OPC UA server.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = true)]
         public Uri EndpointUrl { get; set; }
 
-        /// <summary> Secure transport should be used to </summary>
+        /// <summary> Secure transport should be used to connect to the opc server.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public bool? UseSecurity { get; set; }
 
