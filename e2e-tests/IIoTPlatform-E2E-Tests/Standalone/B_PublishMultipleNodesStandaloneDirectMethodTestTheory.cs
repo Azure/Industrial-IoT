@@ -170,17 +170,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(diagInfoList.Count, 1);
 
-            TestHelper.Publisher.AssertEndpointInfoModel(diagInfoList[0].EndpointInfo, request);
-            Assert.True(diagInfoList[0].IngressValueChanges > 0);
-            Assert.True(diagInfoList[0].IngressDataChanges > 0);
-            Assert.Equal(0, diagInfoList[0].MonitoredOpcNodesFailedCount);
-            Assert.Equal(250, diagInfoList[0].MonitoredOpcNodesSucceededCount);
-            Assert.True(diagInfoList[0].OpcEndpointConnected);
-            Assert.True(diagInfoList[0].OutgressIoTMessageCount > 0);
-
-            // Check that we are not dropping anything.
-            Assert.Equal((uint)0, diagInfoList[0].EncoderNotificationsDropped);
-            Assert.Equal((ulong)0, diagInfoList[0].OutgressInputBufferDropped);
+            TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request, diagInfoList[0]);
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
