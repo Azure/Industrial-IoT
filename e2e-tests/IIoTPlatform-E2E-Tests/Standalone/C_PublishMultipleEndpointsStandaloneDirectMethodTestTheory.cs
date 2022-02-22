@@ -235,22 +235,20 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
             var diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Equal(diagInfoList.Count, 2);
+            Assert.Equal(2, diagInfoList.Count);
 
-            TestHelper.Publisher.AssertEndpointInfoModel(diagInfoList[0].EndpointInfo, request0);
-            TestHelper.Publisher.AssertEndpointInfoModel(diagInfoList[1].EndpointInfo, request1);
-            foreach (var diagInfo in diagInfoList) {
-                Assert.True(diagInfo.IngressValueChanges > 0);
-                Assert.True(diagInfo.IngressDataChanges > 0);
-                Assert.Equal(0, diagInfo.MonitoredOpcNodesFailedCount);
-                Assert.Equal(125, diagInfo.MonitoredOpcNodesSucceededCount);
-                Assert.True(diagInfo.OpcEndpointConnected);
-                Assert.True(diagInfo.OutgressIoTMessageCount > 0);
+            // Accounting for the fact that order of diagnostic info items might not be the same as request order.
+            var request0Index = diagInfoList.FindIndex(info =>
+                info.EndpointInfo.EndpointUrl.TrimEnd('/') == request0.EndpointUrl.TrimEnd('/'));
+            var request1Index = diagInfoList.FindIndex(info =>
+                info.EndpointInfo.EndpointUrl.TrimEnd('/') == request1.EndpointUrl.TrimEnd('/'));
 
-                // Check that we are not dropping anything.
-                Assert.Equal((uint)0, diagInfo.EncoderNotificationsDropped);
-                Assert.Equal((ulong)0, diagInfo.OutgressInputBufferDropped);
-            }
+            Assert.NotEqual(-1, request0Index);
+            Assert.NotEqual(-1, request1Index);
+            Assert.True(request0Index != request1Index);
+
+            TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request0, diagInfoList[request0Index]);
+            TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request1, diagInfoList[request1Index]);
 
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
@@ -556,6 +554,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal((int)HttpStatusCode.OK, diagInfoListResponse.Status);
             var diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(diagInfoListResponse.JsonPayload);
             Assert.Equal(endpointsCount, diagInfoList.Count);
+
+            foreach (var endpointDefinition in fullNodes) {
+                var endpointDiagInfoIndex = diagInfoList.FindIndex(info =>
+                    info.EndpointInfo.EndpointUrl.TrimEnd('/') == endpointDefinition.EndpointUrl.TrimEnd('/'));
+
+                Assert.NotEqual(-1, endpointDiagInfoIndex);
+
+                TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(
+                    endpointDefinition.ToApiModel(),
+                    diagInfoList[endpointDiagInfoIndex]
+                );
+            }
 
             foreach (var diagInfo in diagInfoList) {
                 Assert.True(diagInfo.IngressValueChanges > 0);
