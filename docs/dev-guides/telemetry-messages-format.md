@@ -346,7 +346,7 @@ Message example with batching/bulk mode enabled  Publisher to be started in stan
 
 Legacy compatibibility mode (reduced) message sample
 
-Compatible with the Legacy IIoT Platform respective Connected Factory 1.0.Publisher to be started in standalone mode with *--fm=false* argument
+Compatible with IIoT Platform and Connected Factory 1.0. Publisher to be started in standalone mode with *--fm=false* argument
 
 ```json
 {
