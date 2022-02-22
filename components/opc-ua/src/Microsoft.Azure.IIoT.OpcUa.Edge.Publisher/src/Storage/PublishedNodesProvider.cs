@@ -117,11 +117,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
                 try {
                     using (var fileStream = new FileStream(
                         _standaloneCliModel.PublishedNodesFile,
-                        FileMode.Open,
+                        FileMode.OpenOrCreate,
                         FileAccess.Write,
                         // We will require that there is no other process using the file.
                         FileShare.None
                      )) {
+                        fileStream.SetLength(0);
                         fileStream.Write(Encoding.UTF8.GetBytes(content));
                     }
                 }
@@ -136,11 +137,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
                     try {
                         using (var fileStream = new FileStream(
                             _standaloneCliModel.PublishedNodesFile,
-                            FileMode.Open,
+                            FileMode.OpenOrCreate,
                             FileAccess.Write,
                             // Relaxing requirements.
                             FileShare.ReadWrite
                          )) {
+                            fileStream.SetLength(0);
                             fileStream.Write(Encoding.UTF8.GetBytes(content));
                         }
                     }
