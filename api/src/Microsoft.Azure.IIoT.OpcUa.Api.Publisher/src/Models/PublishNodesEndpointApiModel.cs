@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public string DataSetWriterId { get; set; }
 
-        /// <summary> The Publishing interval for a dataset writer.</summary>
+        /// <summary> The Publishing interval for a dataset writer in miliseconds.</summary>
         [DataMember(Name = "dataSetPublishingInterval", Order = 2,
             EmitDefaultValue = false)]
         public int? DataSetPublishingInterval { get; set; }
