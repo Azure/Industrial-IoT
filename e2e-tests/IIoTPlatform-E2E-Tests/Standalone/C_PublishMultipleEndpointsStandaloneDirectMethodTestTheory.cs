@@ -965,7 +965,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
             endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
             configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
-            Assert.Equal(configuredEndpointsResponse.Count, 0);
+            Assert.Equal(0, configuredEndpointsResponse.Count);
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
