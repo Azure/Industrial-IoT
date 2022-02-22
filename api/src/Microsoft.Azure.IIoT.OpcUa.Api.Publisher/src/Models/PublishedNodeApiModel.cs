@@ -34,12 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "opcSamplingIntervalTimespan", Order = 3,
             EmitDefaultValue = false)]
-        public TimeSpan? OpcSamplingIntervalTimespan {
-            get => OpcSamplingInterval.HasValue ?
-                TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
-            set => OpcSamplingInterval = value != null ?
-                (int)value.Value.TotalMilliseconds : (int?)null;
-        }
+        public TimeSpan? OpcSamplingIntervalTimespan { get; set; }
 
         /// <summary> Publishing interval </summary>
         [DataMember(Name = "opcPublishingInterval", Order = 4,
@@ -51,12 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "opcPublishingIntervalTimespan", Order = 5,
             EmitDefaultValue = false)]
-        public TimeSpan? OpcPublishingIntervalTimespan {
-            get => OpcPublishingInterval.HasValue ?
-                TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
-            set => OpcPublishingInterval = value != null ?
-                (int)value.Value.TotalMilliseconds : (int?)null;
-        }
+        public TimeSpan? OpcPublishingIntervalTimespan { get; set; }
 
         /// <summary> DataSetFieldId </summary>
         [DataMember(Name = "dataSetFieldId", Order = 6,

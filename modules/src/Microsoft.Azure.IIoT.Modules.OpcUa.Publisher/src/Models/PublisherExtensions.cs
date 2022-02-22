@@ -36,7 +36,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 DataSetWriterGroup = model.DataSetWriterGroup,
                 DataSetWriterId = model.DataSetWriterId,
-                DataSetPublishingInterval = model.DataSetPublishingInterval,
+
+                DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
+                // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
+                // was not provided.
+                DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue
+                    ? model.DataSetPublishingInterval
+                    : null,
             };
         }
 
@@ -53,8 +59,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataSetFieldId = model.DataSetFieldId,
                 DisplayName = model.DisplayName,
                 ExpandedNodeId = model.ExpandedNodeId,
-                OpcPublishingInterval = model.OpcPublishingInterval,
-                OpcSamplingInterval = model.OpcSamplingInterval,
+
+                OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
+                // only fill the OpcPublishingInterval if the OpcPublishingIntervalTimespan
+                // was not provided.
+                OpcPublishingInterval = !model.OpcPublishingIntervalTimespan.HasValue
+                    ? model.OpcPublishingInterval
+                    : null,
+
+                OpcSamplingIntervalTimespan = model.OpcSamplingIntervalTimespan,
+                // only fill the OpcSamplingInterval if the OpcSamplingIntervalTimespan
+                // was not provided.
+                OpcSamplingInterval = !model.OpcSamplingIntervalTimespan.HasValue
+                    ? model.OpcSamplingInterval
+                    : null,
+
                 HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
                 // only fill the HeartbeatInterval if the HeartbeatIntervalTimespan
                 // was not provided.
@@ -93,7 +112,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 UserName = endpoint.OpcAuthenticationUsername,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
                 DataSetWriterId = endpoint.DataSetWriterId,
-                DataSetPublishingInterval = endpoint.DataSetPublishingInterval
+                DataSetPublishingIntervalTimespan = endpoint.DataSetPublishingIntervalTimespan,
+                // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
+                // was not provided.
+                DataSetPublishingInterval = !endpoint.DataSetPublishingIntervalTimespan.HasValue
+                    ? endpoint.DataSetPublishingInterval
+                    : null,
             };
         }
 
@@ -120,10 +144,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             return new PublishedNodeApiModel {
                 Id = model.Id,
                 ExpandedNodeId = model.ExpandedNodeId,
-                OpcSamplingInterval = model.OpcSamplingInterval,
-                OpcPublishingInterval = model.OpcPublishingInterval,
                 DataSetFieldId = model.DataSetFieldId,
                 DisplayName = model.DisplayName,
+                OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
+                OpcPublishingInterval = !model.OpcPublishingIntervalTimespan.HasValue
+                    ? model.OpcPublishingInterval
+                    : null,
+                OpcSamplingIntervalTimespan = model.OpcSamplingIntervalTimespan,
+                OpcSamplingInterval = !model.OpcSamplingIntervalTimespan.HasValue
+                    ? model.OpcSamplingInterval
+                    : null,
                 HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
                 HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
                     ? model.HeartbeatInterval

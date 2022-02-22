@@ -199,7 +199,7 @@ The following list of module parametrization settings can be provided either as 
                                       Type: string
                                       Default: <not set>
 
-            DefaultMaxNodesPerDataSet=VALUE
+            MaxNodesPerDataSet=VALUE
                                       Maximum number of nodes within a DataSet/Subscription. 
                                       When more nodes than this value are configured for a 
                                       dataSetWriter, they will be added in a separate DataSet/Subscription.
