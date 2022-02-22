@@ -308,17 +308,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             DisplayName = node.DisplayName,
                             DataSetFieldId = node.DataSetFieldId,
                             ExpandedNodeId = node.ExpandedNodeId,
-                            HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan
-                                .GetTimeSpanFromSeconds(node.HeartbeatInterval)
-                                ?? standaloneCliModel.DefaultHeartbeatInterval,
-                            OpcPublishingIntervalTimespan = item.DataSetPublishingIntervalTimespan
-                                .GetTimeSpanFromMiliseconds(item.DataSetPublishingInterval)
-                                ?? node.OpcPublishingIntervalTimespan
-                                    .GetTimeSpanFromMiliseconds(node.OpcPublishingInterval)
-                                    ?? standaloneCliModel.DefaultPublishingInterval,
-                            OpcSamplingIntervalTimespan = node.OpcSamplingIntervalTimespan
-                                .GetTimeSpanFromMiliseconds(node.OpcSamplingInterval)
-                                ?? standaloneCliModel.DefaultSamplingInterval,
+                            HeartbeatIntervalTimespan = node
+                                .GetNormalizedHeartbeatInterval(standaloneCliModel.DefaultHeartbeatInterval),
+                            //  the publishing interval at the level of DataSet prevales when set
+                            OpcPublishingIntervalTimespan = item.GetNormalizedDataSetPublishingInterval()
+                                ?? node.GetNormalizedPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
+                            OpcSamplingIntervalTimespan = node
+                                .GetNormalizedSamplingInterval(standaloneCliModel.DefaultSamplingInterval),
                             QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                             SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                         });
@@ -334,17 +330,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         $"{node.ExpandedNodeId}_{i}",
                                 DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
-                                HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan
-                                    .GetTimeSpanFromSeconds(node.HeartbeatInterval)
-                                    ?? standaloneCliModel.DefaultHeartbeatInterval,
-                                OpcPublishingIntervalTimespan = item.DataSetPublishingIntervalTimespan
-                                    .GetTimeSpanFromMiliseconds(item.DataSetPublishingInterval)
-                                    ?? node.OpcPublishingIntervalTimespan
-                                        .GetTimeSpanFromMiliseconds(node.OpcPublishingInterval)
-                                        ?? standaloneCliModel.DefaultPublishingInterval,
-                                OpcSamplingIntervalTimespan = node.OpcSamplingIntervalTimespan
-                                    .GetTimeSpanFromMiliseconds(node.OpcSamplingInterval)
-                                    ?? standaloneCliModel.DefaultSamplingInterval,
+                                HeartbeatIntervalTimespan = node
+                                    .GetNormalizedHeartbeatInterval(standaloneCliModel.DefaultHeartbeatInterval),
+                                //  the publishing interval at the level of DataSet prevales when set
+                                OpcPublishingIntervalTimespan = item.GetNormalizedDataSetPublishingInterval()
+                                    ?? node.GetNormalizedPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
+                                OpcSamplingIntervalTimespan = node
+                                    .GetNormalizedSamplingInterval(standaloneCliModel.DefaultSamplingInterval),
                                 QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                                 SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                             });
@@ -356,9 +348,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 yield return (item.DataSetWriterId, new OpcNodeModel {
                     Id = item.NodeId.Identifier,
                     HeartbeatIntervalTimespan = standaloneCliModel.DefaultHeartbeatInterval,
-                    OpcPublishingIntervalTimespan = item.DataSetPublishingIntervalTimespan
-                        .GetTimeSpanFromMiliseconds(item.DataSetPublishingInterval)
-                        ?? standaloneCliModel.DefaultPublishingInterval,
+                    OpcPublishingIntervalTimespan = item
+                        .GetNormalizedDataSetPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
                     OpcSamplingIntervalTimespan = standaloneCliModel.DefaultSamplingInterval,
                     QueueSize = standaloneCliModel.DefaultQueueSize,
                     SkipFirst = standaloneCliModel.DefaultSkipFirst,

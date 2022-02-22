@@ -46,18 +46,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if (model.OpcPublishingIntervalTimespan.GetTimeSpanFromMiliseconds(model.OpcPublishingInterval) !=
-                that.OpcPublishingIntervalTimespan.GetTimeSpanFromMiliseconds(that.OpcPublishingInterval)){
+            if (model.GetNormalizedPublishingInterval() != that.GetNormalizedPublishingInterval()) {
                 return false;
             }
 
-            if (model.OpcSamplingIntervalTimespan.GetTimeSpanFromMiliseconds(model.OpcSamplingInterval) !=
-                that.OpcSamplingIntervalTimespan.GetTimeSpanFromMiliseconds(that.OpcSamplingInterval)) {
+            if (model.GetNormalizedSamplingInterval() != that.GetNormalizedSamplingInterval()) {
                 return false;
             }
 
-            if (model.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(model.HeartbeatInterval) !=
-                that.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(that.HeartbeatInterval)) {
+            if (model.GetNormalizedHeartbeatInterval() != that.GetNormalizedHeartbeatInterval()) {
                 return false;
             }
 
@@ -81,19 +78,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.DisplayName);
             hash.Add(model.DataSetFieldId);
             hash.Add(model.ExpandedNodeId);
-            hash.Add(model.OpcPublishingIntervalTimespan.GetTimeSpanFromMiliseconds(model.OpcPublishingInterval));
-            hash.Add(model.OpcSamplingIntervalTimespan.GetTimeSpanFromMiliseconds(model.OpcSamplingInterval));
-            hash.Add(model.HeartbeatIntervalTimespan.GetTimeSpanFromSeconds(model.HeartbeatInterval));
+            hash.Add(model.GetNormalizedPublishingInterval());
+            hash.Add(model.GetNormalizedSamplingInterval());
+            hash.Add(model.GetNormalizedHeartbeatInterval());
             hash.Add(model.SkipFirst);
             hash.Add(model.QueueSize);
             return hash.ToHashCode();
         }
 
         /// <summary>
-        /// Returns a the timespan value from the timespan repsecively integer rperesenting seconds
-        /// The Timespan value wins when provided
+        /// Retrieves the timespan flavor of a node's HeartbeatInterval
         /// </summary>
-        public static TimeSpan?  GetTimeSpanFromSeconds(
+        /// <returns></returns>
+        public static TimeSpan? GetNormalizedHeartbeatInterval(
+            this OpcNodeModel model, TimeSpan? defaultHeatbeatTimespan = null) {
+            return model.HeartbeatIntervalTimespan
+                .GetTimeSpanFromSeconds(model.HeartbeatInterval, defaultHeatbeatTimespan);
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a node's PublishingInterval
+        /// </summary>
+        public static TimeSpan? GetNormalizedPublishingInterval(
+            this OpcNodeModel model, TimeSpan? defaultPublishingTimespan = null) {
+            return model.OpcPublishingIntervalTimespan
+                .GetTimeSpanFromMiliseconds(model.OpcPublishingInterval, defaultPublishingTimespan);
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a node's SamplingInterval
+        /// </summary>
+        public static TimeSpan? GetNormalizedSamplingInterval(
+            this OpcNodeModel model, TimeSpan? defaultSamplingTimespan = null) {
+            return model.OpcSamplingIntervalTimespan
+                .GetTimeSpanFromMiliseconds(model.OpcSamplingInterval, defaultSamplingTimespan);
+        }
+
+        /// <summary>
+        /// Returns a the timespan value from the timespan when defined, respectively from
+        /// the seconds representing integer. The Timespan value wins when provided
+        /// </summary>
+        public static TimeSpan? GetTimeSpanFromSeconds(
             this TimeSpan? timespan,
             int? seconds,
             TimeSpan? defaultTimespan = null) {
@@ -106,8 +131,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         }
 
         /// <summary>
-        /// Returns a the timespan value from the timespan repsecively integer rperesenting seconds
-        /// The Timespan value wins when provided
+        /// Returns a the timespan value from the timespan when defined, respectively from
+        /// the miliseconds representing integer. The Timespan value wins when provided
         /// </summary>
         public static TimeSpan? GetTimeSpanFromMiliseconds(
             this TimeSpan? timespan,
