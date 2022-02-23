@@ -15,8 +15,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Controllers {
     /// <summary>
     /// Discovery method controller
     /// </summary>
-    [Version(1)]
-    [Version(2)]
+    [Version("_V1")]
+    [Version("_V2")]
     [ExceptionsFilter]
     public class DiscoveryMethodsController : IMethodController {
 
