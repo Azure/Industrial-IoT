@@ -27,7 +27,7 @@ The definitions of the important terms used are described below:
 
 - __DataSet__ is a group of NodeIds within an OPC UA Server to be published with the same publishing interval.
 - __DataSetWriter__ has one DataSet and contains the elements required to successfully establish a connection to the OPC UA Server.
-- __DatSetGroup__ is used to group several DataSetWriters for a specific OPC UA server.
+- __DatSetWriterGroup__ is used to group several DataSetWriters for a specific OPC UA server.
 
 ## Payload Schema
 
