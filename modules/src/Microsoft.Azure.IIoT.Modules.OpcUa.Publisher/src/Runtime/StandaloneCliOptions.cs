@@ -241,12 +241,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public int? MaxOutgressMessages => StandaloneCliModel.MaxOutgressMessages;
 
         /// <summary>
-        /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured
-        /// for a dataSetWriter, they will be added in a different DataSet/Subscription.
-        /// </summary>
-        public int? MaxNodesPerDataSet => StandaloneCliModel.DefaultMaxNodesPerDataSet;
-
-        /// <summary>
         /// The model of the CLI arguments.
         /// </summary>
         public StandaloneCliModel StandaloneCliModel {
@@ -297,7 +291,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.MaxMessageSize = GetValueOrDefault(StandaloneCliConfigKeys.IoTHubMaxMessageSize, model.MaxMessageSize);
             model.ScaleTestCount = GetValueOrDefault(StandaloneCliConfigKeys.ScaleTestCount, model.ScaleTestCount);
             model.MaxOutgressMessages = GetValueOrDefault(StandaloneCliConfigKeys.MaxOutgressMessages, model.MaxOutgressMessages);
-            model.DefaultMaxNodesPerDataSet = GetValueOrDefault(StandaloneCliConfigKeys.DefaultMaxNodesPerDataSet, model.DefaultMaxNodesPerDataSet);
+            model.MaxNodesPerDataSet = GetValueOrDefault(StandaloneCliConfigKeys.MaxNodesPerDataSet, model.MaxNodesPerDataSet);
             model.LegacyCompatibility = GetValueOrDefault(StandaloneCliConfigKeys.LegacyCompatibility, model.LegacyCompatibility);
             return model;
         }

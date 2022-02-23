@@ -110,7 +110,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the maximum number of nodes per DataSet/Subscription
         /// </summary>
-        public const string DefaultMaxNodesPerDataSet = "DefaultMaxNodesPerDataSet";
+        public const string MaxNodesPerDataSet = "MaxNodesPerDataSet";
         /// <summary>
         /// Key for the scale test monitored items clones count .
         /// </summary>
