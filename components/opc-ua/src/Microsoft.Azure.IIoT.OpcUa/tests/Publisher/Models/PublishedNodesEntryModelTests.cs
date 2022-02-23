@@ -6,11 +6,11 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
 
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Serializers;
-    using Xunit;
-    using System.Collections.Generic;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
+    using System.Collections.Generic;
+    using Xunit;
 
     public class PublishedNodesEntryModelTests {
 
@@ -21,9 +21,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             var modelJson = @"
 {
     ""EndpointUrl"": ""opc.tcp://localhost:50002"",
-    ""NodeId"": {
-        ""Identifier"": ""ns=0;i=2261""
-    }
+    ""OpcNodes"": [
+        { ""Identifier"": ""ns=0;i=2261"" }
+    ]
 }
 ";
 
@@ -34,9 +34,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
 {
     ""EndpointUrl"": ""opc.tcp://localhost:50002"",
     ""UseSecurity"": false,
-    ""NodeId"": {
-        ""Identifier"": ""ns=0;i=2261""
-    }
+    ""OpcNodes"": [
+        { ""Identifier"": ""ns=0;i=2261"" }
+    ]
 }
 ";
 
@@ -47,9 +47,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
 {
     ""EndpointUrl"": ""opc.tcp://localhost:50002"",
     ""UseSecurity"": true,
-    ""NodeId"": {
-        ""Identifier"": ""ns=0;i=2261""
-    }
+    ""OpcNodes"": [
+        { ""Identifier"": ""ns=0;i=2261"" }
+    ]
 }
 ";
 
@@ -107,9 +107,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             var modelJson = @"
 {
     ""EndpointUrl"": ""opc.tcp://localhost:50002"",
-    ""NodeId"": {
-        ""Identifier"": ""ns=0;i=2261""
-    }
+    ""OpcNodes"": [
+        { ""Identifier"": ""ns=0;i=2261"" }
+    ]
 }
 ";
 
@@ -120,9 +120,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
 {
     ""EndpointUrl"": ""opc.tcp://localhost:50002"",
     ""OpcAuthenticationMode"": ""anonymous"",
-    ""NodeId"": {
-        ""Identifier"": ""ns=0;i=2261""
-    }
+    ""OpcNodes"": [
+        { ""Identifier"": ""ns=0;i=2261"" }
+    ]
 }
 ";
 
@@ -133,9 +133,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
 {
     ""EndpointUrl"": ""opc.tcp://localhost:50002"",
     ""OpcAuthenticationMode"": ""usernamePassword"",
-    ""NodeId"": {
-        ""Identifier"": ""ns=0;i=2261""
-    }
+    ""OpcNodes"": [
+        { ""Identifier"": ""ns=0;i=2261"" }
+    ]
 }
 ";
 
