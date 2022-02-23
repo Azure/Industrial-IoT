@@ -40,6 +40,7 @@ namespace TestEventProcessor.BusinessLogic {
         private ValueChangeCounterPerNodeId _valueChangeCounterPerNodeId;
         private MissingValueChangesChecker _missingValueChangesChecker;
         private IncrementalIntValueChecker _incrementalIntValueChecker;
+        private SequenceNumberChecker _incrementalSequenceChecker;
 
         /// <summary>
         /// Instance to write logs
@@ -159,6 +160,8 @@ namespace TestEventProcessor.BusinessLogic {
 
             _incrementalIntValueChecker = new IncrementalIntValueChecker(_logger);
 
+            _incrementalSequenceChecker = new SequenceNumberChecker(_logger);
+
             return new StartResult();
         }
 
@@ -207,6 +210,8 @@ namespace TestEventProcessor.BusinessLogic {
 
             var incrCheckerResult = _incrementalIntValueChecker.Stop();
 
+            var incrSequenceResult = _incrementalSequenceChecker.Stop();
+
             var stopResult =  new StopResult() {
                 ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
                 AllExpectedValueChanges = allExpectedValueChanges,
@@ -218,6 +223,9 @@ namespace TestEventProcessor.BusinessLogic {
                 MaxDeliveyDuration = maxMessageDeliveryDelay.ToString(),
                 DroppedValueCount = incrCheckerResult.DroppedValueCount,
                 DuplicateValueCount = incrCheckerResult.DuplicateValueCount,
+                DroppedSequenceCount = incrSequenceResult.DroppedValueCount,
+                DuplicateSequenceCount = incrSequenceResult.DuplicateValueCount,
+                ResetSequenceCount = incrSequenceResult.ResetsValueCount,
             };
 
             return Task.FromResult(stopResult);
@@ -282,16 +290,29 @@ namespace TestEventProcessor.BusinessLogic {
                         }
 
                         foreach (dynamic message in entry.Messages) {
+                            var sequenceNumber = message.SequenceNumber as uint?;
+                            FeedDataChangeCheckers(sequenceNumber);
+
                             var payload = message.Payload as JObject;
                             foreach (JProperty property in payload.Properties()) {
                                 dynamic propertyValue = property.Value.ToObject<dynamic>();
-                                FeedDataCheckers((string)property.Name, (DateTime)propertyValue.SourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime, eventReceivedTimestamp, propertyValue.Value);
+                                FeedDataCheckers(
+                                    (string)property.Name,
+                                    (DateTime)propertyValue.SourceTimestamp,
+                                    arg.Data.EnqueuedTime.UtcDateTime,
+                                    eventReceivedTimestamp,
+                                    propertyValue.Value);
                                 valueChangesCount++;
                             }
                         }
                     }
                     else {
-                        FeedDataCheckers((string)entry.NodeId, (DateTime)entry.Value.SourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime, eventReceivedTimestamp, entry.Value.Value);
+                        FeedDataCheckers(
+                            (string)entry.NodeId,
+                            (DateTime)entry.Value.SourceTimestamp,
+                            arg.Data.EnqueuedTime.UtcDateTime,
+                            eventReceivedTimestamp,
+                            entry.Value.Value);
                         valueChangesCount++;
                     }
                 }
@@ -310,14 +331,19 @@ namespace TestEventProcessor.BusinessLogic {
 
 
         /// <summary>
-        /// Feed the checkers for the Data Change within the reveived event
+        /// Feed the checkers for the Value Change (single Node value) within the reveived event
         /// </summary>
         /// <param name="nodeId">Identifeir of the data source.</param>
         /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
         /// <param name="enqueuedTimestamp">IoT Hub message enqueue timestamp.</param>
         /// <param name="receivedTimestamp">Timestamp of arrival in the telemetry processor.</param>
         /// <param name="value">The actual value of the data change.</param>
-        private void FeedDataCheckers(string nodeId, DateTime sourceTimestamp, DateTime enqueuedTimestamp, DateTime receivedTimestamp, object value) {
+        private void FeedDataCheckers(
+            string nodeId,
+            DateTime sourceTimestamp,
+            DateTime enqueuedTimestamp,
+            DateTime receivedTimestamp,
+            object value) {
 
             // OPC PLC contains bad fast and slow nodes that drop messages by design.
             // We will ignore entries that do not have a value.
@@ -334,6 +360,19 @@ namespace TestEventProcessor.BusinessLogic {
             _incrementalIntValueChecker.ProcessEvent(nodeId, value);
 
             Interlocked.Increment(ref _totalValueChangesCount);
+        }
+
+        /// <summary>
+        /// Feed the checkers for the Data Change (one or more groupped node values) within the reveived event
+        /// </summary>
+        /// <param name="sequenceNumber">The actual sequence number of the data change</param>
+        private void FeedDataChangeCheckers(uint? sequenceNumber) {
+
+            if (!sequenceNumber.HasValue) {
+                _logger.LogWarning("Sequance number is null");
+                return;
+            }
+            _incrementalSequenceChecker.ProcessEvent(sequenceNumber);
         }
 
         /// <summary>
@@ -360,6 +399,5 @@ namespace TestEventProcessor.BusinessLogic {
                 "{PartitionId}, operation {Operation}", arg.PartitionId, arg.Operation);
             return Task.CompletedTask;
         }
-
     }
 }
