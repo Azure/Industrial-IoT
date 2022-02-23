@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
@@ -20,7 +19,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     /// <summary>
     /// Publisher direct  method controller
     /// </summary>
-    [Version(1)]
+    [Version("_V1")]
+    [Version("")]
     [ExceptionsFilter]
     public class PublisherMethodsController : IMethodController {
 
