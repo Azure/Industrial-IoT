@@ -57,7 +57,7 @@ The direct methods definitions of version 2.8.2 are provided in [this](publisher
 
 In this section let's see the request and response payloads for the direct methods of version 2.5.x and 2.8.2
 
-## PublishNodes
+## PublishNodes_V1
 
 `Request`:
 
@@ -102,7 +102,7 @@ In this section let's see the request and response payloads for the direct metho
 }
 ```
 
-## GetConfiguredEndpoints
+## GetConfiguredEndpoints_V1
 
 `Request`: {}
 
@@ -162,7 +162,7 @@ When there are configured endpoints:
 }
 ```
 
-## GetConfiguredNodesOnEndpoint
+## GetConfiguredNodesOnEndpoint_V1
 
 `Request`:
 
@@ -235,7 +235,7 @@ If the endpoint is not configured or `UnpublishAllNodes` is called on that endpo
 }
 ```
 
-## GetDiagnosticInfo
+## GetDiagnosticInfo_V1
 
 `Request`: {}
 
@@ -288,7 +288,7 @@ If the endpoint is not configured or `UnpublishAllNodes` is called on that endpo
 }
 ```
 
-## UnpublishNodes
+## UnpublishNodes_V1
 
 **Important**:  _OpcNodes_ is mandatory in 2.8.2 for this method.
 In v2.5.x if _OpcNodes_ is not provided then all nodes are unpublished and endpoint is removed, while in 2.8.2 , it will throw an exception `{"status":400,"payload":"null or empty OpcNodes is provided in request"}`
@@ -327,7 +327,7 @@ In v2.5.x if _OpcNodes_ is not provided then all nodes are unpublished and endpo
 }
 ```
 
-## UnpublishAllNodes
+## UnpublishAllNodes_V1
 
 `Request`:
 

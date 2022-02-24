@@ -19,8 +19,6 @@ New direct methods:
 
 - AddOrUpdateEndpoints_V1
 
-Please note that the recommended way of using the direct methods is with `_V1` suffix however, direct method without `_V1` suffix is also supported.
-
 ## Terminologies
 
 The definitions of the important terms used are described below:
@@ -102,6 +100,8 @@ OpcNode attributes are as follows:
 _Note_: __Id__ field may be omitted when ExpandedNodeIdId is present.
 
 Now let's dive into each direct method request and response payloads with examples.
+
+**TODO**: Update the responses in 2.8.2 after backwards compatibility fixes.
 
 ## PublishNodes_V1
 
