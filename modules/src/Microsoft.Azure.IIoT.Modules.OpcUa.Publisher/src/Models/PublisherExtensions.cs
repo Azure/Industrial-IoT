@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
 
             return new PublishNodesEndpointApiModel {
                 EndpointUrl = endpoint.EndpointUrl.OriginalString,
-                UseSecurity = endpoint.UseSecurity.GetValueOrDefault(false),
+                UseSecurity = endpoint.UseSecurity,
                 OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
                 UserName = endpoint.OpcAuthenticationUsername,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
