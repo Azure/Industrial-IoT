@@ -40,7 +40,7 @@ Inherited direct methods from 2.5.x:
 - UnpublishNodes_V1
 - UnpublishAllNodes_V1
 - GetConfiguredEndpoints_V1
-- GetConfiguredNodesOnEndpoints_V1
+- GetConfiguredNodesOnEndpoint_V1
 - GetDiagnosticInfo_V1
 
 New direct methods:
@@ -134,7 +134,7 @@ When there are configured endpoints:
 }
 ```
 
-`Response`in **2.8.2**:
+`Response` in **2.8.2**:
 
 When there are no configured endpoints:
 
