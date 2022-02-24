@@ -18,6 +18,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// </summary>
             public static void AssertEndpointModel(PublishNodesEndpointApiModel expected, PublishNodesEndpointApiModel actual) {
                 Assert.Equal(expected.DataSetPublishingInterval, actual.DataSetPublishingInterval);
+                Assert.Equal(expected.DataSetPublishingIntervalTimespan, actual.DataSetPublishingIntervalTimespan);
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
                 Assert.Equal(expected.DataSetWriterId, actual.DataSetWriterId);
                 Assert.Equal(expected.EndpointUrl.TrimEnd('/'), actual.EndpointUrl.TrimEnd('/'));
