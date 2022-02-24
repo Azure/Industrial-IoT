@@ -53,6 +53,8 @@ The direct methods definitions of version 2.8.2 are provided in [this](publisher
 
 # Direct methods of version 2.5.x vs 2.8.2
 
+**TODO**: Update the responses in 2.8.2 after backwards compatibility fixes.
+
 In this section let's see the request and response payloads for the direct methods of version 2.5.x and 2.8.2
 
 ## PublishNodes
