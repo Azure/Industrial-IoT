@@ -414,7 +414,6 @@ previously configured nodes for a specific endpoint (DataSet).
   >          "MonitoredOpcNodesFailedCount":"0"
   >       }
   >    ]
-  >    }
   >    ```
   >
   > _Response_:
