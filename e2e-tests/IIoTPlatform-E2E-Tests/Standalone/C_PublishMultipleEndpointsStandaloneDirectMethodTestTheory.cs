@@ -4,23 +4,22 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.Standalone {
-
     using IIoTPlatform_E2E_Tests.Deploy;
     using IIoTPlatform_E2E_Tests.TestModels;
+    using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Newtonsoft.Json.Linq;
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using TestExtensions;
     using Xunit;
     using Xunit.Abstractions;
-    using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
-    using System.Net;
-    using System.Linq;
-    using System.Collections.Generic;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -80,7 +79,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
-            //Call GetConfiguredEndpoints direct method, initially there should be no endpoints
+            // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
@@ -89,8 +88,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(0, configuredEndpointsResponse.Count);
+            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
 
             var nodesToPublish0 = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, 2, 250).ConfigureAwait(false);
             var fastNodes0 = nodesToPublish0.OpcNodes.Where(node => node.Id.Contains("fast", StringComparison.OrdinalIgnoreCase)).ToList();
@@ -103,9 +102,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var request0 = nodesToPublish0.ToApiModel();
             MethodResultModel response = null;
 
-            //Publish nodes for endpoint 0
+            // Publish nodes for endpoint 0
             if (useAddOrUpdate) {
-                //Call AddOrUpdateEndpoints direct method
+                // Call AddOrUpdateEndpoints direct method
                 response = await CallMethodAsync(
                     new MethodParameterModel {
                         Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
@@ -115,7 +114,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
             }
             else {
-                //Call PublishNodes direct method
+                // Call PublishNodes direct method
                 response = await CallMethodAsync(
                     new MethodParameterModel {
                         Name = TestConstants.DirectMethodNames.PublishNodes,
@@ -127,7 +126,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
-            //publish nodes on a different enpoint
+            // Publish nodes on a different enpoint
             var nodesToPublish1 = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, 5, 250).ConfigureAwait(false);
             var fastNodes1 = nodesToPublish1.OpcNodes.Where(node => node.Id.Contains("fast", StringComparison.OrdinalIgnoreCase)).ToList();
             var slowNodes1 = nodesToPublish1.OpcNodes.Where(node => node.Id.Contains("slow", StringComparison.OrdinalIgnoreCase)).ToList();
@@ -138,9 +137,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             var request1 = nodesToPublish1.ToApiModel();
 
-            //Publish nodes for endpoint 1
+            // Publish nodes for endpoint 1
             if (useAddOrUpdate) {
-                //Call AddOrUpdateEndpoints direct method
+                // Call AddOrUpdateEndpoints direct method
                 response = await CallMethodAsync(
                     new MethodParameterModel {
                         Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
@@ -150,7 +149,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
             }
             else {
-                //Call PublishNodes direct method
+                // Call PublishNodes direct method
                 response = await CallMethodAsync(
                     new MethodParameterModel {
                         Name = TestConstants.DirectMethodNames.PublishNodes,
@@ -169,7 +168,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Wait some time to generate events to process.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
 
-            //Call GetConfiguredEndpoints direct method
+            // Call GetConfiguredEndpoints direct method
             responseGetConfiguredEndpoints = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
@@ -178,18 +177,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(2, configuredEndpointsResponse.Count);
-            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse[0], request0);
-            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse[1], request1);
+            configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Equal(2, configuredEndpointsResponse.Endpoints.Count);
+            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[0], request0);
+            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[1], request1);
 
-            //Create request for GetConfiguredNodesOnEndpoint method call for endpoint 0
+            // Create request for GetConfiguredNodesOnEndpoint method call for endpoint 0
             var nodesOnEndpoint0 = new PublishedNodesEntryModel {
                 EndpointUrl = request0.EndpointUrl,
             };
             var requestGetConfiguredNodesOnEndpoint0 = nodesOnEndpoint0.ToApiModel();
 
-            //Call GetConfiguredNodesOnEndpoint direct method for endpoint 0
+            // Call GetConfiguredNodesOnEndpoint direct method for endpoint 0
             var responseGetConfiguredNodesOnEndpoint0 = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetConfiguredNodesOnEndpoint,
@@ -199,18 +198,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint0.Status);
-            var jsonResponse0 = _serializer.Deserialize<List<PublishedNodeApiModel>>(responseGetConfiguredNodesOnEndpoint0.JsonPayload);
-            Assert.Equal(125, jsonResponse0.Count);
-            Assert.Equal(nodes0[0].Id, jsonResponse0[0].Id);
-            Assert.Equal(nodes0[25].Id, jsonResponse0[25].Id);
+            var jsonResponse0 = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseApiModel>(responseGetConfiguredNodesOnEndpoint0.JsonPayload);
+            Assert.Equal(125, jsonResponse0.OpcNodes.Count);
+            Assert.Equal(nodes0[0].Id, jsonResponse0.OpcNodes[0].Id);
+            Assert.Equal(nodes0[25].Id, jsonResponse0.OpcNodes[25].Id);
 
-            //Create request for GetConfiguredNodesOnEndpoint method call for endpoint 1
+            // Create request for GetConfiguredNodesOnEndpoint method call for endpoint 1
             var nodesOnEndpoint1 = new PublishedNodesEntryModel {
                 EndpointUrl = request1.EndpointUrl,
             };
             var requestGetConfiguredNodesOnEndpoint1 = nodesOnEndpoint1.ToApiModel();
 
-            //Call GetConfiguredNodesOnEndpoint direct method for endpoint 1
+            // Call GetConfiguredNodesOnEndpoint direct method for endpoint 1
             var responseGetConfiguredNodesOnEndpoint1 = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetConfiguredNodesOnEndpoint,
@@ -220,12 +219,12 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint1.Status);
-            var jsonResponse1 = _serializer.Deserialize<List<PublishedNodeApiModel>>(responseGetConfiguredNodesOnEndpoint1.JsonPayload);
-            Assert.Equal(125, jsonResponse1.Count);
-            Assert.Equal(nodes1[0].Id, jsonResponse1[0].Id);
-            Assert.Equal(nodes1[25].Id, jsonResponse1[25].Id);
+            var jsonResponse1 = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseApiModel>(responseGetConfiguredNodesOnEndpoint1.JsonPayload);
+            Assert.Equal(125, jsonResponse1.OpcNodes.Count);
+            Assert.Equal(nodes1[0].Id, jsonResponse1.OpcNodes[0].Id);
+            Assert.Equal(nodes1[25].Id, jsonResponse1.OpcNodes[25].Id);
 
-            //Call GetDiagnosticInfo direct method
+            // Call GetDiagnosticInfo direct method
             var responseGetDiagnosticInfo = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetDiagnosticInfo,
@@ -239,9 +238,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Accounting for the fact that order of diagnostic info items might not be the same as request order.
             var request0Index = diagInfoList.FindIndex(info =>
-                info.EndpointInfo.EndpointUrl.TrimEnd('/') == request0.EndpointUrl.TrimEnd('/'));
+                info.EndpointInfo.EndpointUrl == request0.EndpointUrl);
             var request1Index = diagInfoList.FindIndex(info =>
-                info.EndpointInfo.EndpointUrl.TrimEnd('/') == request1.EndpointUrl.TrimEnd('/'));
+                info.EndpointInfo.EndpointUrl == request1.EndpointUrl);
 
             Assert.NotEqual(-1, request0Index);
             Assert.NotEqual(-1, request1Index);
@@ -277,9 +276,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 Assert.Empty(expectedNodes);
             }
 
-            //Unpublish all nodes for endpoint 0
+            // Unpublish all nodes for endpoint 0
             if (useAddOrUpdate) {
-                //Call AddOrUpdateEndpoints direct method
+                // Call AddOrUpdateEndpoints direct method
                 request0.OpcNodes?.Clear();
                 response = await CallMethodAsync(
                     new MethodParameterModel {
@@ -290,7 +289,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
             }
             else {
-                //Call UnpublishNodes direct method
+                // Call UnpublishNodes direct method
                 response = await CallMethodAsync(
                     new MethodParameterModel {
                         Name = TestConstants.DirectMethodNames.UnpublishNodes,
@@ -302,7 +301,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
-            //Call GetDiagnosticInfo direct method
+            // Call GetDiagnosticInfo direct method
             responseGetDiagnosticInfo = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetDiagnosticInfo,
@@ -314,10 +313,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(1, diagInfoList.Count);
 
-            //Unpublish all nodes for endpoint 1
+            // Unpublish all nodes for endpoint 1
             request1.OpcNodes?.Clear();
             if (useAddOrUpdate) {
-                //Call AddOrUpdateEndpoints direct method
+                // Call AddOrUpdateEndpoints direct method
                 response = await CallMethodAsync(
                     new MethodParameterModel {
                         Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
@@ -327,7 +326,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
             }
             else {
-                //Call UnpublishAllNodes direct method
+                // Call UnpublishAllNodes direct method
                 response = await CallMethodAsync(
                     new MethodParameterModel {
                         Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
@@ -339,7 +338,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
-            //Call GetConfiguredEndpoints direct method
+            // Call GetConfiguredEndpoints direct method
             responseGetConfiguredEndpoints = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
@@ -348,10 +347,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(0, configuredEndpointsResponse.Count);
+            configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
 
-            //Call GetDiagnosticInfo direct method
+            // Call GetDiagnosticInfo direct method
             responseGetDiagnosticInfo = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetDiagnosticInfo,
@@ -419,7 +418,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
-            //Call GetConfiguredEndpoints direct method, initially there should be no endpoints
+            // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
@@ -428,8 +427,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(0, configuredEndpointsResponse.Count);
+            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
@@ -467,7 +466,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                     request.Add(currentNodes[i].ToApiModel());
                 }
 
-                //Call AddOrUpdateEndpoints direct method
+                // Call AddOrUpdateEndpoints direct method
                 //This will exercise incremental updates to the subscriptions.
                 var response = await CallMethodAsync(
                     new MethodParameterModel {
@@ -482,7 +481,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 await Task.Delay(2_000).ConfigureAwait(false);
             }
 
-            //Call GetConfiguredEndpoints direct method
+            // Call GetConfiguredEndpoints direct method
             responseGetConfiguredEndpoints = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
@@ -491,20 +490,20 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(endpointsCount, configuredEndpointsResponse.Count);
+            configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Equal(endpointsCount, configuredEndpointsResponse.Endpoints.Count);
 
             // Check that all endpoints are present.
             for (int index = 0; index < endpointsCount; ++index) {
-                var receivedEndpointUrl = configuredEndpointsResponse[index].EndpointUrl.TrimEnd('/');
-                Assert.NotNull(currentNodes.Find(endpoint => endpoint.EndpointUrl.TrimEnd('/').Equals(receivedEndpointUrl)));
+                var receivedEndpointUrl = configuredEndpointsResponse.Endpoints[index].EndpointUrl;
+                Assert.NotNull(currentNodes.Find(endpoint => endpoint.EndpointUrl.Equals(receivedEndpointUrl)));
             }
 
             // Check that all expected nodes on endpoints are present.
             for (int index = 0; index < endpointsCount; ++index) {
                 currentNodes[index].OpcNodes = Array.Empty<OpcUaNodesModel>();
 
-                //Call GetConfiguredNodesOnEndpoint direct method for endpoint 0
+                // Call GetConfiguredNodesOnEndpoint direct method for endpoint 0
                 var responseGetConfiguredNodesOnEndpoint = await CallMethodAsync(
                     new MethodParameterModel {
                         Name = TestConstants.DirectMethodNames.GetConfiguredNodesOnEndpoint,
@@ -514,10 +513,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
 
                 Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint.Status);
-                var receivedNodes = _serializer.Deserialize<List<PublishedNodeApiModel>>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
-                Assert.Equal(fullNodes[index].OpcNodes.Length, receivedNodes.Count);
-                Assert.Equal(fullNodes[index].OpcNodes[0].Id, receivedNodes[0].Id);
-                Assert.Equal(fullNodes[index].OpcNodes[endpointsCount - 1].Id, receivedNodes[endpointsCount - 1].Id);
+                var receivedNodes = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseApiModel>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
+                Assert.Equal(fullNodes[index].OpcNodes.Length, receivedNodes.OpcNodes.Count);
+                Assert.Equal(fullNodes[index].OpcNodes[0].Id, receivedNodes.OpcNodes[0].Id);
+                Assert.Equal(fullNodes[index].OpcNodes[endpointsCount - 1].Id, receivedNodes.OpcNodes[endpointsCount - 1].Id);
             }
 
             // Wait some time to generate events to process.
@@ -543,7 +542,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Wait some time before running unpublishing to allow test event processor to start.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
 
-            //Call GetDiagnosticInfo direct method and validate that we have data for all endpoints.
+            // Call GetDiagnosticInfo direct method and validate that we have data for all endpoints.
             var diagInfoListResponse = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
@@ -557,7 +556,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             foreach (var endpointDefinition in fullNodes) {
                 var endpointDiagInfoIndex = diagInfoList.FindIndex(info =>
-                    info.EndpointInfo.EndpointUrl.TrimEnd('/') == endpointDefinition.EndpointUrl.TrimEnd('/'));
+                    info.EndpointInfo.EndpointUrl == endpointDefinition.EndpointUrl);
 
                 Assert.NotEqual(-1, endpointDiagInfoIndex);
 
@@ -666,12 +665,12 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
 
                 Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-                configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(
+                configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(
                     responseGetConfiguredEndpoints.JsonPayload);
-                Assert.Equal(endpointsCount - 1 - index, configuredEndpointsResponse.Count);
+                Assert.Equal(endpointsCount - 1 - index, configuredEndpointsResponse.Endpoints.Count);
 
-                var removedEndpointUrl = currentNodes[index].EndpointUrl.TrimEnd('/');
-                Assert.Null(configuredEndpointsResponse.Find(endpoint => endpoint.EndpointUrl.TrimEnd('/').Equals(removedEndpointUrl)));
+                var removedEndpointUrl = currentNodes[index].EndpointUrl;
+                Assert.Null(configuredEndpointsResponse.Endpoints.Find(endpoint => endpoint.EndpointUrl.Equals(removedEndpointUrl)));
 
                 await Task.Delay(2_000).ConfigureAwait(false);
             }
@@ -741,7 +740,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
-            //Call GetConfiguredEndpoints direct method, initially there should be no endpoints
+            // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.GetConfiguredEndpoints
@@ -752,8 +751,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             var epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
             var endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
-            var configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
-            Assert.Equal(0, configuredEndpointsResponse.Count);
+            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(endpoints);
+            Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
 
             var nodesToPublish0 = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, 2, 250).ConfigureAwait(false);
             var fastNodes0 = nodesToPublish0.OpcNodes.Where(node => node.Id.Contains("fast", StringComparison.OrdinalIgnoreCase)).ToList();
@@ -765,7 +764,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             var request0 = nodesToPublish0.ToApiModel();
 
-            //Call Publish direct method
+            // Call Publish direct method
             var response = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.PublishNodes,
@@ -776,7 +775,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
-            //publish nodes on a different enpoint
+            // Publish nodes on a different enpoint
             var nodesToPublish1 = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, 5, 250).ConfigureAwait(false);
             var fastNodes1 = nodesToPublish1.OpcNodes.Where(node => node.Id.Contains("fast", StringComparison.OrdinalIgnoreCase)).ToList();
             var slowNodes1 = nodesToPublish1.OpcNodes.Where(node => node.Id.Contains("slow", StringComparison.OrdinalIgnoreCase)).ToList();
@@ -787,7 +786,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             var request1 = nodesToPublish1.ToApiModel();
 
-            //Call Publish direct method
+            // Call Publish direct method
             response = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.PublishNodes,
@@ -805,7 +804,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Wait some time to generate events to process.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
 
-            //Call GetConfiguredEndpoints direct method
+            // Call GetConfiguredEndpoints direct method
             responseGetConfiguredEndpoints = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.GetConfiguredEndpoints
@@ -816,18 +815,18 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
             endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
-            configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
-            Assert.Equal(2, configuredEndpointsResponse.Count);
-            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse[0], request0);
-            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse[1], request1);
+            configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(endpoints);
+            Assert.Equal(2, configuredEndpointsResponse.Endpoints.Count);
+            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[0], request0);
+            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[1], request1);
 
-            //Create request for GetConfiguredNodesOnEndpoint method call for endpoint 0
+            // Create request for GetConfiguredNodesOnEndpoint method call for endpoint 0
             var nodesOnEndpoint0 = new PublishedNodesEntryModel {
                 EndpointUrl = request0.EndpointUrl,
             };
             var requestGetConfiguredNodesOnEndpoint0 = nodesOnEndpoint0.ToApiModel();
 
-            //Call GetConfiguredNodesOnEndpoint direct method for endpoint 0
+            // Call GetConfiguredNodesOnEndpoint direct method for endpoint 0
             var responseGetConfiguredNodesOnEndpoint0 = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.GetConfiguredNodesOnEndpoint,
@@ -845,13 +844,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal(nodes0[0].Id, jsonResponse0[0].Id);
             Assert.Equal(nodes0[25].Id, jsonResponse0[25].Id);
 
-            //Create request for GetConfiguredNodesOnEndpoint method call for endpoint 1
+            // Create request for GetConfiguredNodesOnEndpoint method call for endpoint 1
             var nodesOnEndpoint1 = new PublishedNodesEntryModel {
                 EndpointUrl = request1.EndpointUrl,
             };
             var requestGetConfiguredNodesOnEndpoint1 = nodesOnEndpoint1.ToApiModel();
 
-            //Call GetConfiguredNodesOnEndpoint direct method for endpoint 1
+            // Call GetConfiguredNodesOnEndpoint direct method for endpoint 1
             var responseGetConfiguredNodesOnEndpoint1 = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.GetConfiguredNodesOnEndpoint,
@@ -869,7 +868,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal(nodes1[0].Id, jsonResponse1[0].Id);
             Assert.Equal(nodes1[25].Id, jsonResponse1[25].Id);
 
-            //Call GetDiagnosticInfo direct method
+            // Call GetDiagnosticInfo direct method
             var responseGetDiagnosticInfo = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.GetDiagnosticInfo,
@@ -914,7 +913,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 Assert.Empty(expectedNodes);
             }
 
-            //Call Unpublish direct method
+            // Call Unpublish direct method
             response = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.UnpublishNodes,
@@ -929,7 +928,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // after unpublishing might not yet show the cleaned up state. So we will wait for some time to allow for that to happen.
             await Task.Delay(TestConstants.DefaultDelayMilliseconds, cts.Token).ConfigureAwait(false);
 
-            //Call GetDiagnosticInfo direct method
+            // Call GetDiagnosticInfo direct method
             responseGetDiagnosticInfo = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.GetDiagnosticInfo,
@@ -941,7 +940,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             diagInfo = _serializer.Deserialize<DiagnosticInfoLegacyModel>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(1, diagInfo.NumberOfOpcSessionsConfigured);
 
-            //Call UnpublishAll direct method
+            // Call UnpublishAll direct method
             request1.OpcNodes?.Clear();
             response = await CallMethodAsync(
                 new MethodParameterModel {
@@ -953,7 +952,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
-            //Call GetConfiguredEndpoints direct method
+            // Call GetConfiguredEndpoints direct method
             responseGetConfiguredEndpoints = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.GetConfiguredEndpoints
@@ -964,13 +963,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
             endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
-            configuredEndpointsResponse = _serializer.Deserialize<List<PublishNodesEndpointApiModel>>(endpoints);
-            Assert.Equal(0, configuredEndpointsResponse.Count);
+            configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(endpoints);
+            Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
 
-            //Call GetDiagnosticInfo direct method
+            // Call GetDiagnosticInfo direct method
             responseGetDiagnosticInfo = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodLegacyNames.GetDiagnosticInfo,
@@ -996,4 +995,3 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
     }
 }
-
