@@ -65,18 +65,19 @@ The `_V1` direct methods  uses the  payload schema as described below:
 
 Method call's request attributes are as follows:
 
-| Attribute                   | Mandatory | Type    | Default                   | Description                                                  |
-| --------------------------- | --------- | ------- | ------------------------- | ------------------------------------------------------------ |
-| `EndpointUrl`               | yes       | String  | N/A                       | The OPC UA Server’s endpoint URL                             |
-| `UseSecurity`               | no        | Boolean | false                     | Desired opc session security mode                            |
-| `OpcAuthenticationMode`     | no        | Enum    | Anonymous                 | Enum to specify the session authentication.<br>Options: Anonymous, UserName |
-| `UserName`                  | no        | String  | null                      | The username for the session authentication<br>Mandatory if OpcAuthentication mode is UserName |
-| `Password`                  | no        | String  | null                      | The password for the session authentication<br>Mandatory if OpcAuthentication mode is UserName |
-| `DataSetWriterGroup`        | no        | String  | EndpointUrl               | The writer group collecting datasets defined for a certain <br>endpoint uniquely identified by the above attributes. <br>This is used to identify the session opened into the <br>server. The default value consists of the EndpointUrl string, <br>followed by a deterministic hash composed of the <br>EndpointUrl, security and authentication attributes. |
-| `DataSetWriterId`           | no        | String  | DataSetPublishingInterval | The unique identifier for a data set writer used to collect <br>opc nodes to be semantically grouped and published with <br>a same publishing interval. <br>When not specified a string representing the common <br>publishing interval of the nodes in the data set collection. <br>This the DataSetWriterId  uniquely identifies a data set <br>within a DataSetGroup. The unicity is determined <br>using the provided DataSetWriterId and the publishing <br>interval of the grouped OpcNodes.  An individual <br>subscription is created for each DataSetWriterId |
-| `DataSetPublishingInterval` | no        | Integer | false                     | The publishing interval used for a grouped set of nodes <br>under a certain DataSetWriter. When defined it <br>overrides the OpcPublishingInterval value in the OpcNodes <br>if grouped underneath a DataSetWriter. |
-| `Tag`                       | no        | String  | empty                     | TODO                                                         |
-| `OpcNodes`                  | yes       | OpcNode | empty                     | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
+| Attribute                           | Mandatory | Type    | Default                   | Description                                                  |
+| ----------------------------------- | --------- | ------- | ------------------------- | ------------------------------------------------------------ |
+| `EndpointUrl`                       | yes       | String  | N/A                       | The OPC UA Server’s endpoint URL                             |
+| `UseSecurity`                       | no        | Boolean | false                     | Desired opc session security mode                            |
+| `OpcAuthenticationMode`             | no        | Enum    | Anonymous                 | Enum to specify the session authentication.<br>Options: Anonymous, UserName |
+| `UserName`                          | no        | String  | null                      | The username for the session authentication<br>Mandatory if OpcAuthentication mode is UserName |
+| `Password`                          | no        | String  | null                      | The password for the session authentication<br>Mandatory if OpcAuthentication mode is UserName |
+| `DataSetWriterGroup`                | no        | String  | EndpointUrl               | The writer group collecting datasets defined for a certain <br>endpoint uniquely identified by the above attributes. <br>This is used to identify the session opened into the <br>server. The default value consists of the EndpointUrl string, <br>followed by a deterministic hash composed of the <br>EndpointUrl, security and authentication attributes. |
+| `DataSetWriterId`                   | no        | String  | DataSetPublishingInterval | The unique identifier for a data set writer used to collect <br>opc nodes to be semantically grouped and published with <br>a same publishing interval. <br>When not specified a string representing the common <br>publishing interval of the nodes in the data set collection. <br>This the DataSetWriterId  uniquely identifies a data set <br>within a DataSetGroup. The unicity is determined <br>using the provided DataSetWriterId and the publishing <br>interval of the grouped OpcNodes.  An individual <br>subscription is created for each DataSetWriterId |
+| `DataSetPublishingInterval`         | no        | Integer | null                      | The publishing interval used for a grouped set of nodes <br>under a certain DataSetWriter. When defined it <br>overrides the OpcPublishingInterval value in the OpcNodes <br>if grouped underneath a DataSetWriter. <br>_Note:_ the DataSetPublishingInterval is overwritten if an<br> OpcPublishingInterval is set at the node level |
+| `DataSetPublishingIntervalTimespan` | no        | Integer | null                      | The publishing interval used for a grouped set of nodes <br> expressed as a Timespan string ({d.hh:mm:dd.fff}).<br>When both Intervals are specified, the <br> Timespan will win and be used for the configuration. <br>_Note:_ the DataSetPublishingInterval is overwritten if an<br> OpcPublishingInterval is set at the node level |
+| `Tag`                               | no        | String  | empty                     | TODO                                                         |
+| `OpcNodes`                          | yes       | OpcNode | empty                     | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
 
 _Note_: __OpcNodes__ field is mandatory for PublishNodes_V1, UnpublishNodes_V1 and AddOrUpdateEndpoints_V1. It should not be specified for the rest of the direct methods.
 
@@ -101,8 +102,6 @@ _Note_: __Id__ field may be omitted when ExpandedNodeIdId is present.
 
 Now let's dive into each direct method request and response payloads with examples.
 
-**TODO**: Update the responses in 2.8.2 after backwards compatibility fixes.
-
 ## PublishNodes_V1
 
 PublishNodes enables a client to add a set of nodes to be published for a specific [`DataSetWriter`](publisher-directmethods.md#terminologies). When a `DataSetWriter` already exists, the nodes are incrementally added to the very same [`dataset`](publisher-directmethods.md#terminologies). When it does not already exist, a new `DataSetWriter` is created with the initial set of nodes contained in the request.
@@ -121,13 +120,13 @@ PublishNodes enables a client to add a set of nodes to be published for a specif
   >
   > ```json
   > {
-  >    "EndpointUrl":"opc.tcp://opcplc:50000/",
-  >    "DataSetWriterGroup":"Asset0",
-  >    "DataSetWriterId":"DataFlow0",
-  >    "DataSetPublishingInterval":5000,
-  >    "OpcNodes":[
+  >    "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >    "DataSetWriterGroup": "Asset0",
+  >    "DataSetWriterId": "DataFlow0",
+  >    "DataSetPublishingInterval": 5000,
+  >    "OpcNodes": [
   >       {
-  >          "Id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0"
+  >          "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0"
   >       }
   >    ]
   > }
@@ -137,10 +136,9 @@ PublishNodes enables a client to add a set of nodes to be published for a specif
   >
   > ```json
   > {
-  >    "status":200,
-  >      "payload":{
-  >      }    
-  >    }
+  >    "status": 200,
+  >    "payload": {}
+  > }
   > ```
 
 ## UnpublishNodes_V1
@@ -167,33 +165,34 @@ _Note_: If all the nodes from a DataSet are to be unpublished, the DataSetWriter
   >
   > ```json
   > {
-  >      "EndpointUrl":"opc.tcp://opcplc:50000/",
-  >      "DataSetWriterGroup":"Asset0",
-  >      "DataSetWriterId":"DataFlow0",
-  >      "DataSetPublishingInterval":5000,
-  >      "OpcNodes":[
-  >         {
-  >             "Id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0"
-  >          }
-  >       ]
-  >   }
+  >    "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >    "DataSetWriterGroup": "Asset0",
+  >    "DataSetWriterId": "DataFlow0",
+  >    "DataSetPublishingInterval": 5000,
+  >    "OpcNodes": [
+  >       {
+  >          "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0"
+  >       }
+  >    ]
+  > }
   > ```
   >
   >_Response_:
   >
   >```json
   > {
-  >    "status":200,
-  >      "payload":{
-  >      }    
-  >    }
+  >    "status": 200,
+  >    "payload": {}
+  > }
   > ```
 
 ## UnpublishAllNodes_V1
 
-UnpublishAllNodes method enables a client to remove all the nodes from a previously configured DataSetWriter. The DataSetWriter entity will be completely removed from the configuration storage.
+UnpublishAllNodes method enables a client to remove all the nodes from a previously configured DataSetWriter.
+The DataSetWriter entity will be completely removed from the configuration storage.
+When an empty payload is set or the endpoint in payload is null, the complete configuration of the publisher will be purged.
 
-  _Request_: follows strictly the request payload schema, the OpcNodes attribute should be excluded.
+  _Request_: follows strictly the request payload schema, the OpcNodes attribute should be excluded.  
 
   _Response_: when successful - Status 200 and an empty json (`{}`) as Payload
 
@@ -211,10 +210,10 @@ UnpublishAllNodes method enables a client to remove all the nodes from a previou
   >
   > ```json
   > {
-  >   "EndpointUrl":"opc.tcp://opcplc:50000",
-  >   "DataSetWriterGroup":"Server0",
-  >   "DataSetWriterId":"Device0",
-  >   "DataSetPublishingInterval":5000
+  >    "EndpointUrl": "opc.tcp://opcplc:50000",
+  >    "DataSetWriterGroup": "Asset1",
+  >    "DataSetWriterId": "DataFlow1",
+  >    "DataSetPublishingInterval": 5000
   > }
   > ```
   >
@@ -222,9 +221,8 @@ UnpublishAllNodes method enables a client to remove all the nodes from a previou
   >
   > ```json
   > {
-  >    "status":200,
-  >    "payload":{
-  >    }
+  >    "status": 200,
+  >    "payload": {}
   > }
   > ```
 
@@ -232,7 +230,7 @@ UnpublishAllNodes method enables a client to remove all the nodes from a previou
 
 Returns the configured endpoints (Datasets)
 
-  _Request_: {}
+  _Request_: empty json (`{}`)
 
   _Response_: list of Endpoints configured (and optional parameters).
 
@@ -246,19 +244,21 @@ Returns the configured endpoints (Datasets)
   >
   > ```json
   > {
-  >      "status":200,
-  >      "payload":[
-  >         {
-  >             "EndpointUrl":"opc.tcp://opcplc:50000/",
-  >             "DataSetWriterGroup":"Server0",
-  >             "DataSetWriterId":"Device0",
-  >             "DataSetPublishingInterval":5000
-  >          },
+  >    "status": 200,
+  >    "payload": [
+  >       "endpoints": [
   >          {
-  >             "EndpointUrl":"opc.tcp://opcplc:50001/"
-  >          }
-  >       ]
-  >   }
+  >             "endpointUrl": "opc.tcp://opcplc:50000",
+  >             "dataSetWriterGroup": "Asset1",
+  >             "dataSetWriterId": "DataFlow1",
+  >             "dataSetPublishingInterval": 5000
+  >           },
+  >           {
+  >              "endpointUrl": "opc.tcp://opcplc:50001"
+  >           }
+  >       ]  
+  >    ]
+  > }
   > ```
 
 ## GetConfiguredNodesOnEndpoint_V1
@@ -279,7 +279,7 @@ Returns the nodes configured for one Endpoint (Dataset)
   >
   > ```json
   > {
-  >      "EndpointUrl":"opc.tcp://192.168.100.20:50000"
+  >    "EndpointUrl": "opc.tcp://192.168.100.20:50000"
   > }
   > ```
   >
@@ -287,28 +287,30 @@ Returns the nodes configured for one Endpoint (Dataset)
   >
   > ```json
   > {
-  >      "status":200,
-  >      "payload":[
-  >         {
-  >             "id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
-  >             "opcSamplingInterval":3000,
-  >             "opcSamplingIntervalTimespan":"00:00:03",
-  >             "heartbeatInterval":0,
-  >             "heartbeatIntervalTimespan":"00:00:00"
-  >          }
+  >    "status": 200,
+  >    "payload": [
+  >       "opcNodes": [
+  >          {
+  >             "id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
+  >             "opcSamplingIntervalTimespan": "00:00:10",
+  >             "heartbeatIntervalTimespan": "00:00:50"
+  >           }
   >       ]
-  >   }
+  >    ]
+  > }
   > ```
 
 ## GetDiagnosticInfo_V1
 
 Returns a list of actual metrics for every endpoint (Dataset) .
 
-  _Request_: none
+  _Request_: empty json (`{}`)
 
   _Response_: list of actual metrics for every endpoint (Dataset).
 
   _Exceptions_: an exception is thrown when method call returns status other than 200
+
+  _Note_: passwords are not being part of the response .
 
   _Example_:
 
@@ -321,39 +323,39 @@ Returns a list of actual metrics for every endpoint (Dataset) .
   >    "status":200,
   >    "payload":[
   >       {
-  >             "EndpointInfo":{
-  >                "EndpointUrl":"opc.tcp://opcplc:50000/",
-  >                "DataSetWriterGroup":"Server0",
-  >                "UseSecurity":"false",
-  >                "OpcAuthenticationMode":"UsernamePassword",
-  >                "OpcAuthenticationUsername":"Usr"
-  >             },
-  >             "SentMessagesPerSec":"2.6",
-  >             "IngestionDuration":"{00:00:25.5491702}",
-  >             "IngressDataChanges":"25",
-  >             "IngressValueChanges":"103",
-  >             "IngressBatchBlockBufferSize":"0",
-  >             "EncodingBlockInputSize":"0",
-  >             "EncodingBlockOutputSize":"0",
-  >             "EncoderNotificationsProcessed":"83",
-  >             "EncoderNotificationsDropped":"0",
-  >             "EncoderIoTMessagesProcessed":"2",
-  >             "EncoderAvgNotificationsMessage":"41.5",
-  >             "EncoderAvgIoTMessageBodySize":"6128",
-  >             "EncoderAvgIoTChunkUsage":"1.158034",
-  >             "EstimatedIoTChunksPerDay":"13526.858105160689",
-  >             "OutgressBatchBlockBufferSize":"0",
-  >             "OutgressInputBufferCount":"0",
-  >             "OutgressInputBufferDropped":"0",
-  >             "OutgressIoTMessageCount":"0",
-  >             "ConnectionRetries":"0",
-  >             "OpcEndpointConnected":"true",
-  >             "MonitoredOpcNodesSucceededCount":"5",
-  >             "MonitoredOpcNodesFailedCount":"0"
-  >          }
-  >       ]
-  >    }
-  >   ```
+  >          "endpointInfo": {
+  >             "endpointUrl": "opc.tcp://opcplc:50000/",
+  >             "dataSetWriterGroup": "Asset1",
+  >             "useSecurity": false,
+  >             "opcAuthenticationMode": "UsernamePassword",
+  >             "opcAuthenticationUsername": "Usr"
+  >          },
+  >          "sentMessagesPerSec": 2.6,
+  >          "ingestionDuration": "{00:00:25.5491702}",
+  >          "ingressDataChanges": 25,
+  >          "ingressValueChanges": 103,
+  >          "ingressBatchBlockBufferSize": 0,
+  >          "encodingBlockInputSize": 0,
+  >          "encodingBlockOutputSize": 0,
+  >          "encoderNotificationsProcessed": 83,
+  >          "encoderNotificationsDropped": 0,
+  >          "encoderIoTMessagesProcessed": 2,
+  >          "encoderAvgNotificationsMessage": 41.5,
+  >          "encoderAvgIoTMessageBodySize": 6128,
+  >          "encoderAvgIoTChunkUsage": 1.158034,
+  >          "estimatedIoTChunksPerDay": 13526.858105160689,
+  >          "outgressBatchBlockBufferSize": 0,
+  >          "outgressInputBufferCount": 0,
+  >          "outgressInputBufferDropped": 0,
+  >          "outgressIoTMessageCount": 0,
+  >          "connectionRetries": 0,
+  >          "opcEndpointConnected": true,
+  >          "monitoredOpcNodesSucceededCount": 5,
+  >          "monitoredOpcNodesFailedCount": 0
+  >       }
+  >    ]
+  > }
+  > ```
 
 ## AddOrUpdateEndpoints_V1
 
@@ -382,45 +384,31 @@ previously configured nodes for a specific endpoint (DataSet).
   >
   > ```json
   > [
-  >       {
-  >          "EndpointInfo":{
-  >             "EndpointUrl":"opc.tcp://opcplc:50000/",
-  >             "DataSetWriterGroup":"Server0",
-  >             "UseSecurity":"false",
-  >             "OpcAuthenticationMode":"UsernamePassword",
-  >             "OpcAuthenticationUsername":"Usr"
-  >          },
-  >          "SentMessagesPerSec":"2.6",
-  >          "IngestionDuration":"{00:00:25.5491702}",
-  >          "IngressDataChanges":"25",
-  >          "IngressValueChanges":"103",
-  >          "IngressBatchBlockBufferSize":"0",
-  >          "EncodingBlockInputSize":"0",
-  >          "EncodingBlockOutputSize":"0",
-  >          "EncoderNotificationsProcessed":"83",
-  >          "EncoderNotificationsDropped":"0",
-  >          "EncoderIoTMessagesProcessed":"2",
-  >          "EncoderAvgNotificationsMessage":"41.5",
-  >          "EncoderAvgIoTMessageBodySize":"6128",
-  >          "EncoderAvgIoTChunkUsage":"1.158034",
-  >          "EstimatedIoTChunksPerDay":"13526.858105160689",
-  >          "OutgressBatchBlockBufferSize":"0",
-  >          "OutgressInputBufferCount":"0",
-  >          "OutgressInputBufferDropped":"0",
-  >          "OutgressIoTMessageCount":"0",
-  >          "ConnectionRetries":"0",
-  >          "OpcEndpointConnected":"true",
-  >          "MonitoredOpcNodesSucceededCount":"5",
-  >          "MonitoredOpcNodesFailedCount":"0"
-  >       }
-  >    ]
-  >    ```
+  >    {
+  >       "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >       "DataSetWriterGroup": "Asset1",
+  >       "DataSetWriterId": "DataFlow1",
+  >       "DataSetPublishingInterval": 5000,
+  >       "OpcNodes": [
+  >          {
+  >             "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
+  >          }
+  >       ]
+  >    },
+  >    {
+  >       "EndpointUrl": "opc.tcp://opcplc:50001/",
+  >       "DataSetWriterGroup": "Asset2",
+  >       "DataSetWriterId": "DataFlow2",
+  >       "OpcNodes": []
+  >    }
+  > ]
+  > ```
   >
   > _Response_:
   >
   > ```json
-  >{
-  > "status": 200,
-  > "payload": {}
+  > {
+  >    "status": 200,
+  >    "payload": {}
   > }
   > ```
