@@ -251,8 +251,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 // Exclude the DataSetWriterId since it is not part of the connection model
                 Endpoint = new EndpointModel {
                     Url = model.EndpointUrl.OriginalString,
-                    SecurityMode = model.UseSecurity.GetValueOrDefault(false) ?
-                                 SecurityMode.Best : SecurityMode.None,
+                    SecurityMode = model.UseSecurity
+                        ? SecurityMode.Best
+                        : SecurityMode.None,
                 },
                 User = model.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
                             null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult(),

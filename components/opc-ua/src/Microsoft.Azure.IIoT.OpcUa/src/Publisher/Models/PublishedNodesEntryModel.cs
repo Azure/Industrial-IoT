@@ -35,15 +35,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         public Uri EndpointUrl { get; set; }
 
         /// <summary> Secure transport should be used to connect to the opc server.</summary>
-        [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public bool? UseSecurity { get; set; }
+        [DataMember(EmitDefaultValue = true, IsRequired = false)]
+        public bool UseSecurity { get; set; }
 
         /// <summary> The node to monitor in "ns=" syntax. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public NodeIdModel NodeId { get; set; }
 
         /// <summary> authentication mode </summary>
-        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        [DataMember(EmitDefaultValue = true, IsRequired = false)]
         public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
 
         /// <summary> encrypted username </summary>
