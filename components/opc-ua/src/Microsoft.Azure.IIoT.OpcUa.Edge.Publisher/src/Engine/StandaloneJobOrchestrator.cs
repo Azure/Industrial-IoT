@@ -1088,7 +1088,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     DataSetWriterGroup = model.DataSetWriterGroup,
                     DataSetWriterId = model.DataSetWriterId,
                     DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
-                    DataSetPublishingInterval = model.DataSetPublishingIntervalTimespan.HasValue
+                    DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue
                         ? model.DataSetPublishingInterval
                         :null,
                 }).ToList();
