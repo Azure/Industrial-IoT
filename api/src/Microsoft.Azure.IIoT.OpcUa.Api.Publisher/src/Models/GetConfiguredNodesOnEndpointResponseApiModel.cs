@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class GetConfiguredNodesOnEndpointResponseApiModel {
 
         /// <summary>
-        /// Service result in case of error
+        /// Collection of Nodes configured for a particular endpoint
         /// </summary>
         [DataMember(Name = "opcNodes", Order = 0,
             EmitDefaultValue = false)]

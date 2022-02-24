@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class GetConfiguredEndpointsResponseApiModel {
 
         /// <summary>
-        /// Service result in case of error
+        /// Collection of Endpoints in the configuration
         /// </summary>
         [DataMember(Name = "endpoints", Order = 0,
             EmitDefaultValue = false)]
