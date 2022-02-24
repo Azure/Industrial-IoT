@@ -786,82 +786,100 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             CancellationToken ct) {
             _logger.Information("{nameof} method triggered", nameof(UnpublishAllNodesAsync));
             var sw = Stopwatch.StartNew();
+            // when no endpoint is specified remove all the configuration
+            var purge = null == request.EndpointUrl;
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
-
-                var found = false;
-                // Perform pass to determine existing groups
-                var matchingGroups = new List<PublishedNodesEntryModel>();
-                foreach (var entry in _publishedNodesEntries) {
-                    if (entry.HasSameGroup(request)) {
-                        // We may have several entries with the same DataSetGroup definition,
-                        // so we will remove nodes only if the whole DataSet definition matches.
-                        if (entry.HasSameDataSet(request)) {
-                            entry.OpcNodes.Clear();
-                            found = true;
-                        }
-                        matchingGroups.Add(entry);
-                    }
-                }
-
-                // Report error if there were entries that did not have any nodes
-                if (!found) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, $"Endpoint or node not found: {request.EndpointUrl}");
-                }
-
-                // Remove entries without nodes.
-                _publishedNodesEntries.RemoveAll(entry => (entry.OpcNodes == null || entry.OpcNodes.Count == 0));
-
-                PersistPublishedNodes();
-
-                found = false;
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(matchingGroups, _standaloneCliModel);
-
-                await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
-                try {
-                    if (jobs.Any()) {
-                        foreach (var job in jobs) {
-                            var newJob = ToJobProcessingInstructionModel(job);
-                            if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
-                                continue;
+                if (!purge) {
+                    var found = false;
+                    // Perform pass to determine existing groups
+                    var matchingGroups = new List<PublishedNodesEntryModel>();
+                    foreach (var entry in _publishedNodesEntries) {
+                        if (entry.HasSameGroup(request)) {
+                            // We may have several entries with the same DataSetGroup definition,
+                            // so we will remove nodes only if the whole DataSet definition matches.
+                            if (entry.HasSameDataSet(request)) {
+                                entry.OpcNodes.Clear();
+                                found = true;
                             }
+                            matchingGroups.Add(entry);
+                        }
+                    }
 
-                            foreach (var assignedJob in _assignedJobs) {
-                                if (newJob.Job.Id == assignedJob.Value.Job.Id) {
-                                    _assignedJobs[assignedJob.Key] = newJob;
+                    // Report error if there were entries that did not have any nodes
+                    if (!found) {
+                        throw new MethodCallStatusException((int)HttpStatusCode.NotFound, $"Endpoint or node not found: {request.EndpointUrl}");
+                    }
+
+                    // Remove entries without nodes.
+                    _publishedNodesEntries.RemoveAll(entry => (entry.OpcNodes == null || entry.OpcNodes.Count == 0));
+
+                    PersistPublishedNodes();
+
+                    found = false;
+                    var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(matchingGroups, _standaloneCliModel);
+
+                    await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
+                    try {
+                        if (jobs.Any()) {
+                            foreach (var job in jobs) {
+                                var newJob = ToJobProcessingInstructionModel(job);
+                                if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                                    continue;
+                                }
+
+                                foreach (var assignedJob in _assignedJobs) {
+                                    if (newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                        _assignedJobs[assignedJob.Key] = newJob;
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found && _availableJobs.ContainsKey(newJob.Job.Id)) {
+                                    _availableJobs[newJob.Job.Id] = newJob;
                                     found = true;
+                                }
+                            }
+                        }
+
+                        if (!found) {
+                            var entryJobId = _publishedNodesJobConverter.
+                                ToConnectionModel(request, _standaloneCliModel).CreateConnectionId();
+                            foreach (var assignedJob in _assignedJobs) {
+                                if (entryJobId == assignedJob.Value.Job.Id) {
+                                    found = _assignedJobs.Remove(assignedJob.Key, out _);
+                                    _publisherDiagnosticInfo.Remove(assignedJob.Value.Job.Id, out _);
                                     break;
                                 }
                             }
-                            if (!found && _availableJobs.ContainsKey(newJob.Job.Id)) {
-                                _availableJobs[newJob.Job.Id] = newJob;
-                                found = true;
+                            if (!found) {
+                                found = _availableJobs.Remove(entryJobId, out _);
                             }
                         }
+                    }
+                    finally {
+                        _lockJobs.Release();
                     }
 
                     if (!found) {
-                        var entryJobId = _publishedNodesJobConverter.
-                            ToConnectionModel(request, _standaloneCliModel).CreateConnectionId();
-                        foreach (var assignedJob in _assignedJobs) {
-                            if (entryJobId == assignedJob.Value.Job.Id) {
-                                found = _assignedJobs.Remove(assignedJob.Key, out _);
-                                _publisherDiagnosticInfo.Remove(assignedJob.Value.Job.Id, out _);
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            found = _availableJobs.Remove(entryJobId, out _);
-                        }
+                        throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                            $"Endpoint not found: {request.EndpointUrl}");
                     }
                 }
-                finally {
-                    _lockJobs.Release();
-                }
+                else {
 
-                if (!found) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
-                        $"Endpoint not found: {request.EndpointUrl}");
+                    // Remove all entries
+                    _publishedNodesEntries.Clear();
+                    PersistPublishedNodes();
+                    await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
+                    try {
+                        _assignedJobs.Clear();
+                        _availableJobs.Clear();
+                        _publisherDiagnosticInfo.Clear();
+                    }
+                    finally {
+                        _lockJobs.Release();
+                    }
                 }
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
@@ -1090,8 +1108,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public async Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request,
-            CancellationToken ct = default
-        ) {
+            CancellationToken ct = default) {
+
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredNodesOnEndpointAsync));
             var sw = Stopwatch.StartNew();
 
