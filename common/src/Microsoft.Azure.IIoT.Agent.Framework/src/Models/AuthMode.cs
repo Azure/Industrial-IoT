@@ -10,13 +10,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
     /// </summary>
     public enum AuthMode {
 
-        /// <summary> 
-        /// Anonymous authentication 
+        /// <summary>
+        /// Anonymous authentication
         /// </summary>
         Anonymous,
 
-        /// <summary> 
-        /// Username/Password authentication 
+        /// <summary>
+        /// Username/Password authentication
         /// </summary>
         UsernamePassword
     }
