@@ -17,9 +17,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// EndpointInfo
+        /// Endpoint
         /// </summary>
-        public EndpointDiagnosticModel EndpointInfo { get; set; }
+        public EndpointDiagnosticModel Endpoint { get; set; }
 
         /// <summary>
         /// SentMessagesPerSec

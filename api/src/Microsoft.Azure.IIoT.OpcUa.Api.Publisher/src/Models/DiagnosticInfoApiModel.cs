@@ -4,128 +4,128 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using System.Runtime.Serialization;
     using System;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Model for a diagnostic info response.
     /// </summary>
     [DataContract]
     public class DiagnosticInfoApiModel {
- 
+
         /// <summary> EndpointInfo /// </summary>
-        [DataMember(Name = "EndpointInfo", Order = 0,
-            EmitDefaultValue = false)]
-        public PublishNodesEndpointApiModel EndpointInfo { get; set; }
+        [DataMember(Name = "endpoint", Order = 0,
+            EmitDefaultValue = true)]
+        public PublishNodesEndpointApiModel Endpoint { get; set; }
 
         /// <summary> SentMessagesPerSec </summary>
-        [DataMember(Name = "SentMessagesPerSec", Order = 1,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "sentMessagesPerSec", Order = 1,
+            EmitDefaultValue = true)]
         public double SentMessagesPerSec { get; set; }
 
         /// <summary> IngestionDuration /// </summary>
-        [DataMember(Name = "IngestionDuration", Order = 2,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "ingestionDuration", Order = 2,
+            EmitDefaultValue = true)]
         public TimeSpan IngestionDuration { get; set; }
 
         /// <summary> IngressDataChanges </summary>
-        [DataMember(Name = "IngressDataChanges", Order = 3,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "ingressDataChanges", Order = 3,
+            EmitDefaultValue = true)]
         public ulong IngressDataChanges { get; set; }
 
         /// <summary> IngressValueChanges </summary>
-        [DataMember(Name = "IngressValueChanges", Order = 4,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "ingressValueChanges", Order = 4,
+            EmitDefaultValue = true)]
         public ulong IngressValueChanges { get; set; }
 
-        /// <summary> IngressBatchBlockBufferSize </summary> 
-        [DataMember(Name = "IngressBatchBlockBufferSize", Order = 5,
-            EmitDefaultValue = false)]
+        /// <summary> IngressBatchBlockBufferSize </summary>
+        [DataMember(Name = "ingressBatchBlockBufferSize", Order = 5,
+            EmitDefaultValue = true)]
         public int IngressBatchBlockBufferSize { get; set; }
 
         /// <summary> EncodingBlockInputSize </summary>
-        [DataMember(Name = "EncodingBlockInputSize", Order = 6,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "encodingBlockInputSize", Order = 6,
+            EmitDefaultValue = true)]
         public int EncodingBlockInputSize { get; set; }
 
         /// <summary> EncodingBlockOutputSize </summary>
-        [DataMember(Name = "EncodingBlockOutputSize", Order = 7,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "encodingBlockOutputSize", Order = 7,
+            EmitDefaultValue = true)]
         public int EncodingBlockOutputSize { get; set; }
 
         /// <summary> EncoderNotificationsProcessed </summary>
-        [DataMember(Name = "EncoderNotificationsProcessed", Order = 8,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "encoderNotificationsProcessed", Order = 8,
+            EmitDefaultValue = true)]
         public uint EncoderNotificationsProcessed { get; set; }
 
         /// <summary> EncoderNotificationsDropped </summary>
-        [DataMember(Name = "EncoderNotificationsDropped", Order = 9,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "encoderNotificationsDropped", Order = 9,
+            EmitDefaultValue = true)]
         public uint EncoderNotificationsDropped { get; set; }
 
         /// <summary> EncoderIoTMessagesProcessed </summary>
-        [DataMember(Name = "EncoderIoTMessagesProcessed", Order = 10,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "encoderIoTMessagesProcessed", Order = 10,
+            EmitDefaultValue = true)]
         public uint EncoderIoTMessagesProcessed { get; set; }
 
         /// <summary> EncoderAvgNotificationsMessage </summary>
-        [DataMember(Name = "EncoderAvgNotificationsMessage", Order = 11,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "encoderAvgNotificationsMessage", Order = 11,
+            EmitDefaultValue = true)]
         public double EncoderAvgNotificationsMessage { get; set; }
 
         /// <summary> EncoderAvgIoTMessageBodySize </summary>
-        [DataMember(Name = "EncoderAvgIoTMessageBodySize", Order = 12,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "encoderAvgIoTMessageBodySize", Order = 12,
+            EmitDefaultValue = true)]
         public double EncoderAvgIoTMessageBodySize { get; set; }
 
         /// <summary> EncoderAvgIoTChunkUsage </summary>
-        [DataMember(Name = "EncoderAvgIoTChunkUsage", Order = 13,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "encoderAvgIoTChunkUsage", Order = 13,
+            EmitDefaultValue = true)]
         public double EncoderAvgIoTChunkUsage { get; set; }
 
         /// <summary> EstimatedIoTChunksPerDay </summary>
-        [DataMember(Name = "EstimatedIoTChunksPerDay", Order = 14,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "estimatedIoTChunksPerDay", Order = 14,
+            EmitDefaultValue = true)]
         public double EstimatedIoTChunksPerDay { get; set; }
 
         /// <summary> OutgressBatchBlockBufferSize </summary>
-        [DataMember(Name = "OutgressBatchBlockBufferSize", Order = 15,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "outgressBatchBlockBufferSize", Order = 15,
+            EmitDefaultValue = true)]
         public int OutgressBatchBlockBufferSize { get; set; }
 
         /// <summary> OutgressInputBufferCount </summary>
-        [DataMember(Name = "OutgressInputBufferCount", Order = 16,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "outgressInputBufferCount", Order = 16,
+            EmitDefaultValue = true)]
         public int OutgressInputBufferCount { get; set; }
 
         /// <summary> OutgressInputBufferDropped </summary>
-        [DataMember(Name = "OutgressInputBufferDropped", Order = 17,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "outgressInputBufferDropped", Order = 17,
+            EmitDefaultValue = true)]
         public ulong OutgressInputBufferDropped { get; set; }
 
         /// <summary> OutgressIoTMessageCount </summary>
-        [DataMember(Name = "OutgressIoTMessageCount", Order = 18,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "outgressIoTMessageCount", Order = 18,
+            EmitDefaultValue = true)]
         public long OutgressIoTMessageCount { get; set; }
 
         /// <summary> ConnectionRetries </summary>
-        [DataMember(Name = "ConnectionRetries", Order = 19,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "connectionRetries", Order = 19,
+            EmitDefaultValue = true)]
         public int ConnectionRetries { get; set; }
 
         /// <summary> OpcEndpointConnected </summary>
-        [DataMember(Name = "OpcEndpointConnected", Order = 20,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "opcEndpointConnected", Order = 20,
+            EmitDefaultValue = true)]
         public bool OpcEndpointConnected { get; set; }
 
         /// <summary> MonitoredOpcNodesSucceededCount </summary>
-        [DataMember(Name = "MonitoredOpcNodesSucceededCount", Order = 21,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "monitoredOpcNodesSucceededCount", Order = 21,
+            EmitDefaultValue = true)]
         public int MonitoredOpcNodesSucceededCount { get; set; }
 
         /// <summary> MonitoredOpcNodesFailedCount </summary>
-        [DataMember(Name = "MonitoredOpcNodesFailedCount", Order = 22,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "monitoredOpcNodesFailedCount", Order = 22,
+            EmitDefaultValue = true)]
         public int MonitoredOpcNodesFailedCount { get; set; }
     }
 }

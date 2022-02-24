@@ -34,7 +34,7 @@ namespace IIoTPlatform_E2E_Tests {
                 PublishNodesEndpointApiModel expected,
                 DiagnosticInfoApiModel diagnosticInfo) {
 
-                var actual = diagnosticInfo.EndpointInfo;
+                var actual = diagnosticInfo.Endpoint;
 
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
                 Assert.Equal(expected.EndpointUrl.TrimEnd('/'), actual.EndpointUrl.TrimEnd('/'));
