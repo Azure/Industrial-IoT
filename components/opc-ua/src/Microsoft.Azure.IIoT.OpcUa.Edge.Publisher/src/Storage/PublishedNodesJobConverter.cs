@@ -240,7 +240,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         }
 
         /// <summary>
-        /// transforms a published nodes model connection header to a Connection Model object
+        /// Transforms a published nodes model connection header to a Connection Model object
         /// </summary>
         public ConnectionModel ToConnectionModel(PublishedNodesEntryModel model,
             StandaloneCliModel standaloneCliModel) {
@@ -250,7 +250,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 Group = model.DataSetWriterGroup,
                 // Exclude the DataSetWriterId since it is not part of the connection model
                 Endpoint = new EndpointModel {
-                    Url = model.EndpointUrl.OriginalString,
+                    Url = model.EndpointUrl?.OriginalString,
                     SecurityMode = model.UseSecurity.GetValueOrDefault(false) ?
                                  SecurityMode.Best : SecurityMode.None,
                 },

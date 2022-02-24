@@ -26,7 +26,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
 
             return new PublishedNodesEntryModel {
-                EndpointUrl = new Uri(model.EndpointUrl),
+                EndpointUrl = !string.IsNullOrEmpty(model.EndpointUrl)
+                    ? new Uri(model.EndpointUrl)
+                    : null,
                 UseSecurity = model.UseSecurity,
                 OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
                 OpcAuthenticationPassword = model.Password,
@@ -106,7 +108,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
 
             return new PublishNodesEndpointApiModel {
-                EndpointUrl = endpoint.EndpointUrl.AbsoluteUri,
+                EndpointUrl = endpoint.EndpointUrl.OriginalString,
                 UseSecurity = endpoint.UseSecurity.GetValueOrDefault(false),
                 OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
                 UserName = endpoint.OpcAuthenticationUsername,
@@ -173,7 +175,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
 
             return new PublishNodesEndpointApiModel {
-                EndpointUrl = endpoint.EndpointUrl.AbsoluteUri,
+                EndpointUrl = endpoint.EndpointUrl.OriginalString,
                 UseSecurity = endpoint.UseSecurity.GetValueOrDefault(false),
                 OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
                 UserName = endpoint.OpcAuthenticationUsername,
