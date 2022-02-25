@@ -12,7 +12,7 @@
 
 # Migration path for publisher version 2.5.x to 2.8.2 - Direct Methods API
 
-The latest version 2.8.2 adds support for configuration via IoT Hub direct methods. OPC Publisher implements multiple [IoT Hub Direct Methods](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods) which can be called from an application leveraging the [IoT Hub Device SDK](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks). This document provides the migration path from 2.5.x to 2.8.2.
+The latest version 2.8.2 adds support for configuration via IoT Hub direct methods. OPC Publisher implements multiple [IoT Hub Direct Methods](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-direct-methods) which can be called from an application leveraging the [IoT Hub Device SDK](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks). This document provides the migration path from 2.5.x to 2.8.2.
 
 The direct methods' request payload of version 2.8.2 is backwards compatible with the 2.5.x direct methods. The payload schema allows configuration of additional extensions introduced in the `pn.json` in the publisher 2.6.x and newer e.g. DataSetWriterGroup, DataSetWriterId, QueueSize per node, etc.
 
@@ -29,12 +29,12 @@ The following  table describes the direct methods which were available in OPC Pu
 | **UnpublishNodes**               | EndpointUrl, List\<OpcNodes\>                                   | Status, List\<StatusResponse\>                               | Yes          |
 | **UnpublishAllNodes**            | EndpointUrl                                                     | Status, List\<StatusResponse\>                               | Yes          |
 | **GetConfiguredEndpoints**       | -                                                               | List\<EndpointUrl\>                                          | Yes          |
-| **GetConfiguredNodesOnEndpoint** | EndpointUrl                                                     | EndpointUrl, List< OpcNodeOnEndpointModel >    where OpcNodeOnEndpointModel contains:    Id ExpandedNodeId OpcSamplingInterval OpcPublishingInterval DisplayName HeartbeatInterval SkipFirst | Yes          |
+| **GetConfiguredNodesOnEndpoint** | EndpointUrl                                                     | EndpointUrl, List< OpcNodeOnEndpointModel >    where OpcNodeOnEndpointModel contains: Id ExpandedNodeId OpcSamplingInterval OpcPublishingInterval DisplayName HeartbeatInterval SkipFirst | Yes          |
 | **GetDiagnosticInfo**            | -                                                               | DiagnosticInfoMethodResponseModel                            | Yes          |
 | **GetDiagnosticLog**             | -                                                               | MissedMessageCount, LogMessageCount, List\<Log\>             | No*          |
 | **GetDiagnosticStartupLog**      | -                                                               | MissedMessageCount, LogMessageCount, List\<Log\>             | No*          |
 | **ExitApplication**              | SecondsTillExit (optional)                                      | StatusCode, List\<StatusResponse\>                           | No*          |
-| **GetInfo**                      | -                                                               | GetInfoMethodResponseModel >>    VersionMajor  VersionMinor  VersionPatch  SemanticVersion  InformationalVersion OS  OSArchitecture  FrameworkDescription | No*          |
+| **GetInfo**                      | -                                                               | GetInfoMethodResponseModel which contains VersionMajor, VersionMinor, VersionPatch, SemanticVersion, InformationalVersion, OS, OSArchitecture, FrameworkDescription | No*          |
 
 *This functionality is provided by the IoT Edge `edgeAgent` module via its own direct methods, see [this page](https://docs.microsoft.com/azure/iot-edge/how-to-edgeagent-direct-method) for more information.
 

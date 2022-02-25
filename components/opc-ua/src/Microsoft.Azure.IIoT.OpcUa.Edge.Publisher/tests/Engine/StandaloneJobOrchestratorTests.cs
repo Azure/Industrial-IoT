@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         }
 
         [Fact]
-        public async Task Test_UnpublishNodes_NullOrEmpty() {
+        public async Task Test_UnpublishNodes_NullRequest() {
             InitStandaloneJobOrchestrator();
 
             // Check null request.
@@ -178,33 +178,55 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ThrowAsync<MethodCallStatusException>()
                 .WithMessage($"Response 400 null request is provided: {{}}")
                 .ConfigureAwait(false);
+        }
 
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task Test_UnpublishNodes_NullOrEmptyOpcNodes(
+            bool useEmptyOpcNodes,
+            bool customEndpoint) {
 
-            var request = new PublishedNodesEntryModel {
-                EndpointUrl = new Uri("opc.tcp://opcplc:50000"),
-            };
+            InitStandaloneJobOrchestrator();
 
-            // Check null OpcNodes in request.
+            var numberOfEndpoints = 3;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                })
+                .ToList();
+
+            var endpoints = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => GenerateEndpoint(i, opcNodes, customEndpoint))
+                .ToList();
+
+            await _standaloneJobOrchestrator.PublishNodesAsync(endpoints[0]).ConfigureAwait(false);
+            await _standaloneJobOrchestrator.PublishNodesAsync(endpoints[1]).ConfigureAwait(false);
+            await _standaloneJobOrchestrator.PublishNodesAsync(endpoints[2]).ConfigureAwait(false);
+
+            endpoints[1] = GenerateEndpoint(1, opcNodes, customEndpoint);
+            endpoints[1].OpcNodes = useEmptyOpcNodes
+                ? new List<OpcNodeModel>()
+                : null;
+
+            // Check null or empty OpcNodes in request.
             await FluentActions
                 .Invoking(async () => await _standaloneJobOrchestrator
-                    .UnpublishNodesAsync(request)
+                    .UnpublishNodesAsync(endpoints[1])
                     .ConfigureAwait(false))
                 .Should()
-                .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null or empty OpcNodes is provided in request: {{}}")
+                .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            request.OpcNodes = new List<OpcNodeModel>();
+            var configuredEndpoints = await _standaloneJobOrchestrator
+                .GetConfiguredEndpointsAsync().ConfigureAwait(false);
 
-            // Check empty OpcNodes in request.
-            await FluentActions
-                .Invoking(async () => await _standaloneJobOrchestrator
-                    .UnpublishNodesAsync(request)
-                    .ConfigureAwait(false))
-                .Should()
-                .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null or empty OpcNodes is provided in request: {{}}")
-                .ConfigureAwait(false);
+            Assert.Equal(2, configuredEndpoints.Count);
+
+            Assert.True(endpoints[0].HasSameDataSet(configuredEndpoints[0]));
+            Assert.True(endpoints[2].HasSameDataSet(configuredEndpoints[1]));
         }
 
         [Fact]
