@@ -568,7 +568,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             public byte[] Test { get; set; }
         }
 
-        [Version(1)]
+        [Version("_V1")]
         public class TestControllerV1 : IMethodController {
 
             public Task<TestModel> Test1Async(TestModel request) {
@@ -599,7 +599,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             public bool _noparamcalled;
         }
 
-        [Version(2)]
+        [Version("_V2")]
         public class TestControllerV2 : IMethodController {
 
             public Task<byte[]> Test2Async(byte[] request) {
@@ -618,8 +618,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
         }
 
-        [Version(1)]
-        [Version(2)]
+        [Version("_V1")]
+        [Version("_V2")]
         public class TestControllerV1And2 : IMethodController {
 
             public Task<byte[]> Test8Async(byte[] request) {

@@ -169,7 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             endpointDiagnosticInfo.UseSecurity = _messageTrigger.UseSecurity;
             endpointDiagnosticInfo.OpcAuthenticationMode = (AuthMode)_messageTrigger.AuthenticationMode;
             endpointDiagnosticInfo.OpcAuthenticationUsername = _messageTrigger.AuthenticationUsername;
-            diagnosticInfo.EndpointInfo = endpointDiagnosticInfo;
+            diagnosticInfo.Endpoint = endpointDiagnosticInfo;
             diagnosticInfo.Id = Name;
             diagnosticInfo.SentMessagesPerSec = sentMessagesPerSec;
             diagnosticInfo.IngestionDuration = TimeSpan.FromSeconds(totalDuration);

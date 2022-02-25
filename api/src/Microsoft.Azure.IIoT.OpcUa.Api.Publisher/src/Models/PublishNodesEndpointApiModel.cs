@@ -42,12 +42,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
 
         /// <summary> Use a secured channel for the opc ua communication </summary>
         [DataMember(Name = "useSecurity", Order = 5,
-            EmitDefaultValue = false)]
+            EmitDefaultValue = true)]
         public bool UseSecurity { get; set; }
 
         /// <summary> endpoint authentication mode </summary>
         [DataMember(Name = "opcAuthenticationMode", Order = 6,
-            EmitDefaultValue = false)]
+            EmitDefaultValue = true)]
         public AuthenticationMode OpcAuthenticationMode { get; set; }
 
         /// <summary> Endpoint's username </summary>

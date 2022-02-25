@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public string DataSetWriterGroup => _subscriptions?.First()?.Subscription?.Connection.Group;
 
         /// <inheritdoc/>
-        public bool? UseSecurity =>
+        public bool UseSecurity =>
             _subscriptions?.First()?.Subscription?.Connection.Endpoint.SecurityMode != SecurityMode.None ?
                 true : false;
 

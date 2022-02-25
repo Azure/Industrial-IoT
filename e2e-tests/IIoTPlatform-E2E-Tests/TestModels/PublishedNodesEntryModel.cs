@@ -11,18 +11,18 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
     /// </summary>
     public class PublishedNodesEntryModel {
 
-        /// <summary> 
-        /// Id Identifier of the DataFlow - DataSetWriterId. 
+        /// <summary>
+        /// Id Identifier of the DataFlow - DataSetWriterId.
         /// </summary>
         public string DataSetWriterId { get; set; }
 
-        /// <summary> 
-        /// The Group the stream belongs to - DataSetWriterGroup. 
+        /// <summary>
+        /// The Group the stream belongs to - DataSetWriterGroup.
         /// </summary>
         public string DataSetWriterGroup { get; set; }
 
-        /// <summary> 
-        /// The Publishing interval for a dataset writer 
+        /// <summary>
+        /// The Publishing interval for a dataset writer
         /// </summary>
         public int? DataSetPublishingInterval { get; set; }
         /// <summary>

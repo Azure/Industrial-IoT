@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="target"></param>
         private void AddToCallTable(object target) {
             var versions = target.GetType().GetCustomAttributes<VersionAttribute>(true)
-                .Select(v => "_v" + v.Value)
+                .Select(v => v.Value)
                 .ToList();
             if (versions.Count == 0) {
                 versions.Add(string.Empty);
