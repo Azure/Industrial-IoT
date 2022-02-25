@@ -120,7 +120,7 @@ PublishNodes enables a client to add a set of nodes to be published for a specif
   >
   > ```json
   > {
-  >    "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >    "EndpointUrl": "opc.tcp://opcplc:50000",
   >    "DataSetWriterGroup": "Asset0",
   >    "DataSetWriterId": "DataFlow0",
   >    "DataSetPublishingInterval": 5000,
@@ -165,7 +165,7 @@ _Note_: If all the nodes from a DataSet are to be unpublished, the DataSetWriter
   >
   > ```json
   > {
-  >    "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >    "EndpointUrl": "opc.tcp://opcplc:50000",
   >    "DataSetWriterGroup": "Asset0",
   >    "DataSetWriterId": "DataFlow0",
   >    "DataSetPublishingInterval": 5000,
@@ -323,8 +323,8 @@ Returns a list of actual metrics for every endpoint (Dataset) .
   >    "status":200,
   >    "payload":[
   >       {
-  >          "endpointInfo": {
-  >             "endpointUrl": "opc.tcp://opcplc:50000/",
+  >          "endpoint": {
+  >             "endpointUrl": "opc.tcp://opcplc:50000",
   >             "dataSetWriterGroup": "Asset1",
   >             "useSecurity": false,
   >             "opcAuthenticationMode": "UsernamePassword",
@@ -385,7 +385,7 @@ previously configured nodes for a specific endpoint (DataSet).
   > ```json
   > [
   >    {
-  >       "EndpointUrl": "opc.tcp://opcplc:50000/",
+  >       "EndpointUrl": "opc.tcp://opcplc:50000",
   >       "DataSetWriterGroup": "Asset1",
   >       "DataSetWriterId": "DataFlow1",
   >       "DataSetPublishingInterval": 5000,
@@ -396,7 +396,7 @@ previously configured nodes for a specific endpoint (DataSet).
   >       ]
   >    },
   >    {
-  >       "EndpointUrl": "opc.tcp://opcplc:50001/",
+  >       "EndpointUrl": "opc.tcp://opcplc:50001",
   >       "DataSetWriterGroup": "Asset2",
   >       "DataSetWriterId": "DataFlow2",
   >       "OpcNodes": []

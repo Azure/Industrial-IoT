@@ -36,7 +36,7 @@ The following  table describes the direct methods which were available in OPC Pu
 | **ExitApplication**              | SecondsTillExit (optional)                                      | StatusCode, List\<StatusResponse\>                           | No*          |
 | **GetInfo**                      | -                                                               | GetInfoMethodResponseModel >>    VersionMajor  VersionMinor  VersionPatch  SemanticVersion  InformationalVersion OS  OSArchitecture  FrameworkDescription | No*          |
 
-*This functionality is provided by the IoT Edge `edgeAget` module via its own direct methods, see [this page](https://docs.microsoft.com/azure/iot-edge/how-to-edgeagent-direct-method) for more information.
+*This functionality is provided by the IoT Edge `edgeAgent` module via its own direct methods, see [this page](https://docs.microsoft.com/azure/iot-edge/how-to-edgeagent-direct-method) for more information.
 
 A [sample configuration application](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration) as well as an [sample application for reading diagnostic information](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics) are provided from OPC Publisher leveraging this interface.
 
@@ -53,7 +53,7 @@ The following set of direct method api is inherited from 2.5.x API set.
 - GetDiagnosticInfo_V1
 
 Please note that in 2.8.2 the recommended way of using the direct methods is with `_V1` suffix however.
-Direct method name without `_V1` suffix is also supported but is subject of deprication.
+Direct method name without `_V1` suffix is also supported but is subject of deprecation.
 
 The direct methods definitions of version 2.8.2 are provided in [this](publisher-directmethods.md) document in detail.
 
@@ -162,7 +162,7 @@ When there are configured endpoints:
    {
       "endpoints": [
          {
-            "endpointUrl":"opc.tcp://sandboxhost-637811493394507132:50000/"
+            "endpointUrl":"opc.tcp://sandboxhost-637811493394507132:50000"
          }
       ]
    ]
@@ -288,7 +288,7 @@ If the endpoint is not configured or `UnpublishAllNodes` is called on that endpo
    "status": 200,
    "payload": [
       {
-         "endpointInfo": {
+         "endpoint": {
             "endpointUrl": "opc.tcp://sandboxhost-637811493394507132:50000",
             "dataSetWriterGroup": "Asset1",
             "useSecurity": false,
