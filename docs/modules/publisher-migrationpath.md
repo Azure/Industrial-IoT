@@ -1,16 +1,23 @@
 [Home](../../readme.md)
 
-# Migration path for publisher version 2.5.x to 2.8.2 - configuration file structure (pn.json)
+# Migration path for publisher version 2.5.x to 2.8.2
+
 **TODO**
 2.8.2 must work in standalone mode for backwards compatibility with 2.5.x functionality
 
-# Migration path for publisher version 2.5.x to 2.8.2 - CLI arguments
+## Configuration file (pn.json)
+
 **TODO**
 
-# Migration path for publisher version 2.5.x to 2.8.2 - OPC UA Certificates management
+## Command Line Arguments
+
 **TODO**
 
-# Migration path for publisher version 2.5.x to 2.8.2 - Direct Methods API
+## OPC UA Certificates management
+
+**TODO**
+
+## Direct Methods API
 
 The latest version 2.8.2 adds support for configuration via IoT Hub direct methods. OPC Publisher implements multiple [IoT Hub Direct Methods](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-direct-methods) which can be called from an application leveraging the [IoT Hub Device SDK](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks). This document provides the migration path from 2.5.x to 2.8.2.
 
@@ -18,7 +25,10 @@ The direct methods' request payload of version 2.8.2 is backwards compatible wit
 
 For this set of methods, the encoding is JSON and no compression or payload chunking mechanism is applied in order to ensure the backwards compatibility with the 2.5.x version of OPC Publisher module.
 
-## Direct Methods of version 2.5.x
+**Limitations:**
+ - Continuation points for GetConfiguredEndpoints and GetConfiguredNodesOnEndpoint are not available in 2.8.2
+
+### Direct Methods of version 2.5.x
 
 The following  table describes the direct methods which were available in OPC Publisher 2.5.x with request and response.
 
@@ -42,7 +52,7 @@ A [sample configuration application](https://github.com/Azure-Samples/iot-edge-o
 
 _Please note that the samples applications are not actively maintained and may be outdated._
 
-## Direct Methods of version 2.8.2
+### Direct Methods of version 2.8.2
 
 The following set of direct method api is inherited from 2.5.x API set.
 - PublishNodes_V1
@@ -57,11 +67,11 @@ Direct method name without `_V1` suffix is also supported but is subject of depr
 
 The direct methods definitions of version 2.8.2 are provided in [this](publisher-directmethods.md) document in detail.
 
-# Direct methods of version 2.5.x vs 2.8.2
+## Direct methods of version 2.5.x vs 2.8.2
 
 In this section let's see the request and response payloads for the direct methods of version 2.5.x and 2.8.2
 
-## PublishNodes_V1
+### PublishNodes_V1
 
 `Request`:
 
@@ -105,7 +115,7 @@ In this section let's see the request and response payloads for the direct metho
 }
 ```
 
-## GetConfiguredEndpoints_V1
+### GetConfiguredEndpoints_V1
 
 `Request`: {}
 
@@ -169,7 +179,7 @@ When there are configured endpoints:
 }
 ```
 
-## GetConfiguredNodesOnEndpoint_V1
+### GetConfiguredNodesOnEndpoint_V1
 
 `Request`:
 
@@ -244,7 +254,7 @@ If the endpoint is not configured or `UnpublishAllNodes` is called on that endpo
 }
 ```
 
-## GetDiagnosticInfo_V1
+### GetDiagnosticInfo_V1
 
 `Request`: {}
 
@@ -322,7 +332,7 @@ If the endpoint is not configured or `UnpublishAllNodes` is called on that endpo
 }
 ```
 
-## UnpublishNodes_V1
+### UnpublishNodes_V1
 
 If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is removed.
 
@@ -359,7 +369,7 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 }
 ```
 
-## UnpublishAllNodes_V1
+### UnpublishAllNodes_V1
 
 `Request`:
 
@@ -392,18 +402,18 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 The following direct methods present in 2.5.x were discontinued. 
 The alternatives to these actions are detailed below:
 
-## GetDiagnosticLog
+### GetDiagnosticLog
 
 **TODO**
 
-## GetDiagnosticStartupLog
+### GetDiagnosticStartupLog
 
 **TODO**
 
-## ExitApplication
+### ExitApplication
 
 **TODO**
 
-## GetInfo
+### GetInfo
 
 **TODO**
