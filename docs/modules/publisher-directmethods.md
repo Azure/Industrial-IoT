@@ -246,7 +246,7 @@ Returns the configured endpoints (Datasets)
   > ```json
   > {
   >    "status": 200,
-  >    "payload": [
+  >    "payload": {
   >       "endpoints": [
   >          {
   >             "endpointUrl": "opc.tcp://opcplc:50000",
@@ -258,7 +258,7 @@ Returns the configured endpoints (Datasets)
   >              "endpointUrl": "opc.tcp://opcplc:50001"
   >           }
   >       ]  
-  >    ]
+  >    }
   > }
   > ```
 
@@ -289,7 +289,7 @@ Returns the nodes configured for one Endpoint (Dataset)
   > ```json
   > {
   >    "status": 200,
-  >    "payload": [
+  >    "payload": {
   >       "opcNodes": [
   >          {
   >             "id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
@@ -297,7 +297,7 @@ Returns the nodes configured for one Endpoint (Dataset)
   >             "heartbeatIntervalTimespan": "00:00:50"
   >           }
   >       ]
-  >    ]
+  >    }
   > }
   > ```
 
