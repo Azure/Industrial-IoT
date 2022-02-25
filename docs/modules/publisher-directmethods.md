@@ -2,7 +2,7 @@
 
 # Configuration via IoT Hub Direct methods
 
-OPC Publisher version 2.8.2 implements the following [IoT Hub Direct Methods](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods) which can be called from an application (anywhere in the world) leveraging the [IoT Hub Device SDK](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks).
+OPC Publisher version 2.8.2 implements the following [IoT Hub Direct Methods](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-direct-methods) which can be called from an application (anywhere in the world) leveraging the [IoT Hub Device SDK](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks).
 
 There are some direct methods which are inherited from 2.5.x in addition to new ones.
 
@@ -32,18 +32,18 @@ The definitions of the important terms used are described below:
 The `_V1` direct methods  uses the  payload schema as described below:
 
 ```json
-{ 
+{
   "EndpointUrl": "string",
   "UseSecurity": "boolean",
   "OpcAuthenticationMode": "string",
-  "UserName": "string", 
+  "UserName": "string",
   "Password": "string",
   "DataSetWriterGroup": "string",
   "DataSetWriterId": "string",
   "DataSetPublishingInterval": "integer",
   "DataSetPublishingIntervalTimespan": "string",
   "Tag": "string",
-  "OpcNodes": 
+  "OpcNodes":
   [
     {
       "Id": "string",
@@ -121,15 +121,15 @@ PublishNodes enables a client to add a set of nodes to be published for a specif
   >
   > ```json
   > {
-  >    "EndpointUrl":"opc.tcp://opcplc:50000/",
-  >    "DataSetWriterGroup":"Asset0",
-  >    "DataSetWriterId":"DataFlow0",
-  >    "DataSetPublishingInterval":5000,
-  >    "OpcNodes":[
-  >       {
-  >          "Id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0"
-  >       }
-  >    ]
+  >   "EndpointUrl":"opc.tcp://opcplc:50000/",
+  >   "DataSetWriterGroup":"Asset0",
+  >   "DataSetWriterId":"DataFlow0",
+  >   "DataSetPublishingInterval":5000,
+  >   "OpcNodes":[
+  >     {
+  >       "Id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0"
+  >     }
+  >   ]
   > }
   > ```
   >
@@ -137,10 +137,10 @@ PublishNodes enables a client to add a set of nodes to be published for a specif
   >
   > ```json
   > {
-  >    "status":200,
-  >      "payload":{
-  >      }    
-  >    }
+  >   "status":200,
+  >   "payload":{
+  >   }
+  > }
   > ```
 
 ## UnpublishNodes_V1
@@ -167,26 +167,26 @@ _Note_: If all the nodes from a DataSet are to be unpublished, the DataSetWriter
   >
   > ```json
   > {
-  >      "EndpointUrl":"opc.tcp://opcplc:50000/",
-  >      "DataSetWriterGroup":"Asset0",
-  >      "DataSetWriterId":"DataFlow0",
-  >      "DataSetPublishingInterval":5000,
-  >      "OpcNodes":[
-  >         {
-  >             "Id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0"
-  >          }
-  >       ]
-  >   }
+  >   "EndpointUrl":"opc.tcp://opcplc:50000/",
+  >   "DataSetWriterGroup":"Asset0",
+  >   "DataSetWriterId":"DataFlow0",
+  >   "DataSetPublishingInterval":5000,
+  >   "OpcNodes":[
+  >     {
+  >       "Id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0"
+  >     }
+  >   ]
+  > }
   > ```
   >
-  >_Response_:
+  > _Response_:
   >
-  >```json
+  > ```json
   > {
-  >    "status":200,
-  >      "payload":{
-  >      }    
-  >    }
+  >   "status":200,
+  >   "payload":{
+  >   }
+  > }
   > ```
 
 ## UnpublishAllNodes_V1
@@ -222,9 +222,9 @@ UnpublishAllNodes method enables a client to remove all the nodes from a previou
   >
   > ```json
   > {
-  >    "status":200,
-  >    "payload":{
-  >    }
+  >   "status":200,
+  >   "payload":{
+  >   }
   > }
   > ```
 
@@ -246,19 +246,19 @@ Returns the configured endpoints (Datasets)
   >
   > ```json
   > {
-  >      "status":200,
-  >      "payload":[
-  >         {
-  >             "EndpointUrl":"opc.tcp://opcplc:50000/",
-  >             "DataSetWriterGroup":"Server0",
-  >             "DataSetWriterId":"Device0",
-  >             "DataSetPublishingInterval":5000
-  >          },
-  >          {
-  >             "EndpointUrl":"opc.tcp://opcplc:50001/"
-  >          }
-  >       ]
-  >   }
+  >   "status":200,
+  >   "payload":[
+  >     {
+  >       "EndpointUrl":"opc.tcp://opcplc:50000/",
+  >       "DataSetWriterGroup":"Server0",
+  >       "DataSetWriterId":"Device0",
+  >       "DataSetPublishingInterval":5000
+  >     },
+  >     {
+  >       "EndpointUrl":"opc.tcp://opcplc:50001/"
+  >     }
+  >   ]
+  > }
   > ```
 
 ## GetConfiguredNodesOnEndpoint_V1
@@ -279,7 +279,7 @@ Returns the nodes configured for one Endpoint (Dataset)
   >
   > ```json
   > {
-  >      "EndpointUrl":"opc.tcp://192.168.100.20:50000"
+  >   "EndpointUrl":"opc.tcp://192.168.100.20:50000"
   > }
   > ```
   >
@@ -287,17 +287,17 @@ Returns the nodes configured for one Endpoint (Dataset)
   >
   > ```json
   > {
-  >      "status":200,
-  >      "payload":[
-  >         {
-  >             "id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
-  >             "opcSamplingInterval":3000,
-  >             "opcSamplingIntervalTimespan":"00:00:03",
-  >             "heartbeatInterval":0,
-  >             "heartbeatIntervalTimespan":"00:00:00"
-  >          }
-  >       ]
-  >   }
+  >   "status":200,
+  >   "payload":[
+  >     {
+  >       "id":"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
+  >       "opcSamplingInterval":3000,
+  >       "opcSamplingIntervalTimespan":"00:00:03",
+  >       "heartbeatInterval":0,
+  >       "heartbeatIntervalTimespan":"00:00:00"
+  >     }
+  >   ]
+  > }
   > ```
 
 ## GetDiagnosticInfo_V1
@@ -318,42 +318,42 @@ Returns a list of actual metrics for every endpoint (Dataset) .
   >
   > ```json
   > {
-  >    "status":200,
-  >    "payload":[
-  >       {
-  >             "EndpointInfo":{
-  >                "EndpointUrl":"opc.tcp://opcplc:50000/",
-  >                "DataSetWriterGroup":"Server0",
-  >                "UseSecurity":"false",
-  >                "OpcAuthenticationMode":"UsernamePassword",
-  >                "OpcAuthenticationUsername":"Usr"
-  >             },
-  >             "SentMessagesPerSec":"2.6",
-  >             "IngestionDuration":"{00:00:25.5491702}",
-  >             "IngressDataChanges":"25",
-  >             "IngressValueChanges":"103",
-  >             "IngressBatchBlockBufferSize":"0",
-  >             "EncodingBlockInputSize":"0",
-  >             "EncodingBlockOutputSize":"0",
-  >             "EncoderNotificationsProcessed":"83",
-  >             "EncoderNotificationsDropped":"0",
-  >             "EncoderIoTMessagesProcessed":"2",
-  >             "EncoderAvgNotificationsMessage":"41.5",
-  >             "EncoderAvgIoTMessageBodySize":"6128",
-  >             "EncoderAvgIoTChunkUsage":"1.158034",
-  >             "EstimatedIoTChunksPerDay":"13526.858105160689",
-  >             "OutgressBatchBlockBufferSize":"0",
-  >             "OutgressInputBufferCount":"0",
-  >             "OutgressInputBufferDropped":"0",
-  >             "OutgressIoTMessageCount":"0",
-  >             "ConnectionRetries":"0",
-  >             "OpcEndpointConnected":"true",
-  >             "MonitoredOpcNodesSucceededCount":"5",
-  >             "MonitoredOpcNodesFailedCount":"0"
-  >          }
-  >       ]
-  >    }
-  >   ```
+  >   "status":200,
+  >   "payload":[
+  >     {
+  >       "EndpointInfo":{
+  >         "EndpointUrl":"opc.tcp://opcplc:50000/",
+  >         "DataSetWriterGroup":"Server0",
+  >         "UseSecurity":"false",
+  >         "OpcAuthenticationMode":"UsernamePassword",
+  >         "OpcAuthenticationUsername":"Usr"
+  >       },
+  >       "SentMessagesPerSec":"2.6",
+  >       "IngestionDuration":"{00:00:25.5491702}",
+  >       "IngressDataChanges":"25",
+  >       "IngressValueChanges":"103",
+  >       "IngressBatchBlockBufferSize":"0",
+  >       "EncodingBlockInputSize":"0",
+  >       "EncodingBlockOutputSize":"0",
+  >       "EncoderNotificationsProcessed":"83",
+  >       "EncoderNotificationsDropped":"0",
+  >       "EncoderIoTMessagesProcessed":"2",
+  >       "EncoderAvgNotificationsMessage":"41.5",
+  >       "EncoderAvgIoTMessageBodySize":"6128",
+  >       "EncoderAvgIoTChunkUsage":"1.158034",
+  >       "EstimatedIoTChunksPerDay":"13526.858105160689",
+  >       "OutgressBatchBlockBufferSize":"0",
+  >       "OutgressInputBufferCount":"0",
+  >       "OutgressInputBufferDropped":"0",
+  >       "OutgressIoTMessageCount":"0",
+  >       "ConnectionRetries":"0",
+  >       "OpcEndpointConnected":"true",
+  >       "MonitoredOpcNodesSucceededCount":"5",
+  >       "MonitoredOpcNodesFailedCount":"0"
+  >     }
+  >   ]
+  > }
+  > ```
 
 ## AddOrUpdateEndpoints_V1
 
@@ -372,7 +372,7 @@ previously configured nodes for a specific endpoint (DataSet).
   _Exceptions_: a response corresponding to an exception will be returned if:
 
   - request payload contains deletion request for an endpoint (DataSet) that is not present in publisher configuration
-  
+
   - request payload contains two or more entries for the same endpoint (DataSet)
 
   _Example_:
@@ -382,45 +382,45 @@ previously configured nodes for a specific endpoint (DataSet).
   >
   > ```json
   > [
-  >       {
-  >          "EndpointInfo":{
-  >             "EndpointUrl":"opc.tcp://opcplc:50000/",
-  >             "DataSetWriterGroup":"Server0",
-  >             "UseSecurity":"false",
-  >             "OpcAuthenticationMode":"UsernamePassword",
-  >             "OpcAuthenticationUsername":"Usr"
-  >          },
-  >          "SentMessagesPerSec":"2.6",
-  >          "IngestionDuration":"{00:00:25.5491702}",
-  >          "IngressDataChanges":"25",
-  >          "IngressValueChanges":"103",
-  >          "IngressBatchBlockBufferSize":"0",
-  >          "EncodingBlockInputSize":"0",
-  >          "EncodingBlockOutputSize":"0",
-  >          "EncoderNotificationsProcessed":"83",
-  >          "EncoderNotificationsDropped":"0",
-  >          "EncoderIoTMessagesProcessed":"2",
-  >          "EncoderAvgNotificationsMessage":"41.5",
-  >          "EncoderAvgIoTMessageBodySize":"6128",
-  >          "EncoderAvgIoTChunkUsage":"1.158034",
-  >          "EstimatedIoTChunksPerDay":"13526.858105160689",
-  >          "OutgressBatchBlockBufferSize":"0",
-  >          "OutgressInputBufferCount":"0",
-  >          "OutgressInputBufferDropped":"0",
-  >          "OutgressIoTMessageCount":"0",
-  >          "ConnectionRetries":"0",
-  >          "OpcEndpointConnected":"true",
-  >          "MonitoredOpcNodesSucceededCount":"5",
-  >          "MonitoredOpcNodesFailedCount":"0"
-  >       }
-  >    ]
-  >    ```
+  >   {
+  >     "EndpointInfo":{
+  >       "EndpointUrl":"opc.tcp://opcplc:50000/",
+  >       "DataSetWriterGroup":"Server0",
+  >       "UseSecurity":"false",
+  >       "OpcAuthenticationMode":"UsernamePassword",
+  >       "OpcAuthenticationUsername":"Usr"
+  >     },
+  >     "SentMessagesPerSec":"2.6",
+  >     "IngestionDuration":"{00:00:25.5491702}",
+  >     "IngressDataChanges":"25",
+  >     "IngressValueChanges":"103",
+  >     "IngressBatchBlockBufferSize":"0",
+  >     "EncodingBlockInputSize":"0",
+  >     "EncodingBlockOutputSize":"0",
+  >     "EncoderNotificationsProcessed":"83",
+  >     "EncoderNotificationsDropped":"0",
+  >     "EncoderIoTMessagesProcessed":"2",
+  >     "EncoderAvgNotificationsMessage":"41.5",
+  >     "EncoderAvgIoTMessageBodySize":"6128",
+  >     "EncoderAvgIoTChunkUsage":"1.158034",
+  >     "EstimatedIoTChunksPerDay":"13526.858105160689",
+  >     "OutgressBatchBlockBufferSize":"0",
+  >     "OutgressInputBufferCount":"0",
+  >     "OutgressInputBufferDropped":"0",
+  >     "OutgressIoTMessageCount":"0",
+  >     "ConnectionRetries":"0",
+  >     "OpcEndpointConnected":"true",
+  >     "MonitoredOpcNodesSucceededCount":"5",
+  >     "MonitoredOpcNodesFailedCount":"0"
+  >   }
+  > ]
+  > ```
   >
   > _Response_:
   >
   > ```json
-  >{
-  > "status": 200,
-  > "payload": {}
+  > {
+  >   "status": 200,
+  >   "payload": {}
   > }
   > ```
