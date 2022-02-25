@@ -118,10 +118,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             if (_ensureWorkerRunningTimer != null) {
                 _ensureWorkerRunningTimer.Enabled = false;
                 _ensureWorkerRunningTimer.Elapsed -= EnsureWorkerRunningTimer_ElapsedAsync;
+                _ensureWorkerRunningTimer.Dispose();
+                _ensureWorkerRunningTimer = null;
             }
             Try.Async(StopAsync).GetAwaiter().GetResult();
-            _ensureWorkerRunningTimer.Dispose();
-            _ensureWorkerRunningTimer = null;
         }
 
         /// <summary>
