@@ -311,9 +311,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             ExpandedNodeId = node.ExpandedNodeId,
                             HeartbeatIntervalTimespan = node
                                 .GetNormalizedHeartbeatInterval(standaloneCliModel.DefaultHeartbeatInterval),
-                            //  the publishing interval at the level of DataSet prevales when set
-                            OpcPublishingIntervalTimespan = item.GetNormalizedDataSetPublishingInterval()
-                                ?? node.GetNormalizedPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
+                            // The publishing interval item wins over dataset over global default
+                            OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
+                                ?? item.GetNormalizedDataSetPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
                             OpcSamplingIntervalTimespan = node
                                 .GetNormalizedSamplingInterval(standaloneCliModel.DefaultSamplingInterval),
                             QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
@@ -333,9 +333,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 ExpandedNodeId = node.ExpandedNodeId,
                                 HeartbeatIntervalTimespan = node
                                     .GetNormalizedHeartbeatInterval(standaloneCliModel.DefaultHeartbeatInterval),
-                                //  the publishing interval at the level of DataSet prevales when set
-                                OpcPublishingIntervalTimespan = item.GetNormalizedDataSetPublishingInterval()
-                                    ?? node.GetNormalizedPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
+                                // The publishing interval item wins over dataset over global default
+                                OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
+                                    ?? item.GetNormalizedDataSetPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
                                 OpcSamplingIntervalTimespan = node
                                     .GetNormalizedSamplingInterval(standaloneCliModel.DefaultSamplingInterval),
                                 QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,

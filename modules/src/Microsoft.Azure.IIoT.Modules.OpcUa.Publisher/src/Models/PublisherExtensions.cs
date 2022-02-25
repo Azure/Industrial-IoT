@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
 
             return new PublishNodesEndpointApiModel {
                 EndpointUrl = endpoint.EndpointUrl.OriginalString,
-                UseSecurity = endpoint.UseSecurity.GetValueOrDefault(false),
+                UseSecurity = endpoint.UseSecurity,
                 OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
                 UserName = endpoint.OpcAuthenticationUsername,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
@@ -193,7 +193,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
 
             return model.Select(e => new DiagnosticInfoApiModel {
-                EndpointInfo = e.EndpointInfo.ToApiModel(),
+                Endpoint = e.Endpoint.ToApiModel(),
                 SentMessagesPerSec = e.SentMessagesPerSec,
                 IngestionDuration = e.IngestionDuration,
                 IngressDataChanges = e.IngressDataChanges,

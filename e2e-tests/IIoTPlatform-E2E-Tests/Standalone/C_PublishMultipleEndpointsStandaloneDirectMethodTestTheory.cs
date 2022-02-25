@@ -238,9 +238,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Accounting for the fact that order of diagnostic info items might not be the same as request order.
             var request0Index = diagInfoList.FindIndex(info =>
-                info.EndpointInfo.EndpointUrl == request0.EndpointUrl);
+                info.Endpoint.EndpointUrl == request0.EndpointUrl);
             var request1Index = diagInfoList.FindIndex(info =>
-                info.EndpointInfo.EndpointUrl == request1.EndpointUrl);
+                info.Endpoint.EndpointUrl == request1.EndpointUrl);
 
             Assert.NotEqual(-1, request0Index);
             Assert.NotEqual(-1, request1Index);
@@ -556,7 +556,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             foreach (var endpointDefinition in fullNodes) {
                 var endpointDiagInfoIndex = diagInfoList.FindIndex(info =>
-                    info.EndpointInfo.EndpointUrl == endpointDefinition.EndpointUrl);
+                    info.Endpoint.EndpointUrl == endpointDefinition.EndpointUrl);
 
                 Assert.NotEqual(-1, endpointDiagInfoIndex);
 

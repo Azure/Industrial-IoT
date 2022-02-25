@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// UseSecurity
         /// </summary>
-        bool? UseSecurity { get; }
+        bool UseSecurity { get; }
 
         /// <summary>
         /// AuthenticationMode
