@@ -101,7 +101,7 @@ _Note_: __Id__ field may be omitted when ExpandedNodeIdId is present.
 
 Now let's dive into each direct method request and response payloads with examples.
 
-**TODO**: Update the responses in 2.8.2 after backwards compatibility fixes.
+__TODO__: Update the responses in 2.8.2 after backwards compatibility fixes.
 
 ## PublishNodes_V1
 
@@ -146,6 +146,7 @@ PublishNodes enables a client to add a set of nodes to be published for a specif
 ## UnpublishNodes_V1
 
 UnpublishNodes method enables a client to remove nodes from a previously configured DataSetWriter.
+If value of OpcNodes attribute is `null` or empty list then the whole DataSetWriter entity is completely removed.
 
 _Note_: If all the nodes from a DataSet are to be unpublished, the DataSetWriter entity is completely removed from the configuration storage.
 
@@ -155,7 +156,7 @@ _Note_: If all the nodes from a DataSet are to be unpublished, the DataSetWriter
 
   _Exceptions_: a response corresponding to an exception will be returned if:
 
-  -  request payload contains an endpoint (DataSet) that is not present in publisher configuration
+  - request payload contains an endpoint (DataSet) that is not present in publisher configuration
 
   - request payload contains a node that is not present in publisher configuration
 
@@ -367,7 +368,7 @@ previously configured nodes for a specific endpoint (DataSet).
   described above. The `OpcNodes` attribute being empty list or `null` will be interpreted as a removal
   request for that endpoint (DataSet).
 
-  _Response_: when successful -  Status 200 and an empty json (`{}`) as payload
+  _Response_: when successful - Status 200 and an empty json (`{}`) as payload
 
   _Exceptions_: a response corresponding to an exception will be returned if:
 
