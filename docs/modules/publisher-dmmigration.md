@@ -12,19 +12,18 @@ For this set of methods, the encoding is JSON and no compression or payload chun
 
 The following  table describes the direct methods which were available in OPC Publisher 2.5.x with request and response.
 
-| 2.5.x                            |                                                              |                                                              |              |
-| -------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------ |
-| **MethodName**                   | **Request**                                                  | **Response**                                                 | **in 2.8.2** |
-| **PublishNodes**                 | EndpointUrl, List\<OpcNodes\>,  UseSecurity, UserName, Password | Status, List\<StatusResponse\>                               | Yes          |
-| **UnpublishNodes**               | EndpointUrl, List\<OpcNodes\>                                | Status, List\<StatusResponse\>                               | Yes          |
-| **UnpublishAllNodes**            | EndpointUrl                                                  | Status, List\<StatusResponse\>                               | Yes          |
-| **GetConfiguredEndpoints**       | -                                                            | List\<EndpointUrl\>                                          | Yes          |
-| **GetConfiguredNodesOnEndpoint** | EndpointUrl                                                  | EndpointUrl, List< OpcNodeOnEndpointModel >    where OpcNodeOnEndpointModel contains:    Id ExpandedNodeId OpcSamplingInterval OpcPublishingInterval DisplayName HeartbeatInterval SkipFirst | Yes          |
-| **GetDiagnosticInfo**            | -                                                            | DiagnosticInfoMethodResponseModel                            | Yes          |
-| **GetDiagnosticLog**             | -                                                            | MissedMessageCount, LogMessageCount, List\<Log\>             | No*          |
-| **GetDiagnosticStartupLog**      | -                                                            | MissedMessageCount, LogMessageCount, List\<Log\>             | No*          |
-| **ExitApplication**              | SecondsTillExit (optional)                                   | StatusCode, List\<StatusResponse\>                           | No*          |
-| **GetInfo**                      | -                                                            | GetInfoMethodResponseModel >>    VersionMajor  VersionMinor  VersionPatch  SemanticVersion  InformationalVersion OS  OSArchitecture  FrameworkDescription | No*          |
+| **MethodName**                   | **Request**                                                    | **Response**                                                 | **in 2.8.2** |
+| -------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------ | ------------ |
+| **PublishNodes**                 | EndpointUrl, List\<OpcNodes\>, UseSecurity, UserName, Password | Status, List\<StatusResponse\>                               | Yes          |
+| **UnpublishNodes**               | EndpointUrl, List\<OpcNodes\>                                  | Status, List\<StatusResponse\>                               | Yes          |
+| **UnpublishAllNodes**            | EndpointUrl                                                    | Status, List\<StatusResponse\>                               | Yes          |
+| **GetConfiguredEndpoints**       | -                                                              | List\<EndpointUrl\>                                          | Yes          |
+| **GetConfiguredNodesOnEndpoint** | EndpointUrl                                                    | EndpointUrl, List\<OpcNodeOnEndpointModel\> where OpcNodeOnEndpointModel contains: Id, ExpandedNodeId, OpcSamplingInterval, OpcPublishingInterval, DisplayName, HeartbeatInterval, SkipFirst | Yes          |
+| **GetDiagnosticInfo**            | -                                                              | DiagnosticInfoMethodResponseModel                            | Yes          |
+| **GetDiagnosticLog**             | -                                                              | MissedMessageCount, LogMessageCount, List\<Log\>             | No*          |
+| **GetDiagnosticStartupLog**      | -                                                              | MissedMessageCount, LogMessageCount, List\<Log\>             | No*          |
+| **ExitApplication**              | SecondsTillExit (optional)                                     | StatusCode, List\<StatusResponse\>                           | No*          |
+| **GetInfo**                      | -                                                              | GetInfoMethodResponseModel which contains VersionMajor, VersionMinor, VersionPatch, SemanticVersion, InformationalVersion, OS, OSArchitecture, FrameworkDescription | No*          |
 
 *This functionality is provided by the IoT Edge `edgeAget` module via its own direct methods, see [this page](https://docs.microsoft.com/azure/iot-edge/how-to-edgeagent-direct-method) for more information.
 

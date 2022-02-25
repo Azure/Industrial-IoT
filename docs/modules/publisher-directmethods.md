@@ -78,7 +78,7 @@ Method call's request attributes are as follows:
 | `Tag`                       | no        | String  | empty                     | TODO                                                         |
 | `OpcNodes`                  | yes       | OpcNode | empty                     | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
 
-_Note_: __OpcNodes__ field is mandatory for PublishNodes_V1, UnpublishNodes_V1 and AddOrUpdateEndpoints_V1. It should not be specified for the rest of the direct methods.
+_Note_: `OpcNodes` field is mandatory for PublishNodes_V1, UnpublishNodes_V1 and AddOrUpdateEndpoints_V1. It should not be specified for the rest of the direct methods.
 
 OpcNode attributes are as follows:
 
@@ -107,7 +107,7 @@ __TODO__: Update the responses in 2.8.2 after backwards compatibility fixes.
 
 PublishNodes enables a client to add a set of nodes to be published for a specific [`DataSetWriter`](publisher-directmethods.md#terminologies). When a `DataSetWriter` already exists, the nodes are incrementally added to the very same [`dataset`](publisher-directmethods.md#terminologies). When it does not already exist, a new `DataSetWriter` is created with the initial set of nodes contained in the request.
 
-  _Request_: follows strictly the request [payload schema](publisher-directmethods.md#payload-schema), the OpcNodes attribute being mandatory.
+  _Request_: follows strictly the request [payload schema](publisher-directmethods.md#payload-schema), the `OpcNodes` attribute being mandatory.
 
   _Response_: when successful Status 200 and an empty json (`{}`) as payload
 
@@ -146,11 +146,11 @@ PublishNodes enables a client to add a set of nodes to be published for a specif
 ## UnpublishNodes_V1
 
 UnpublishNodes method enables a client to remove nodes from a previously configured DataSetWriter.
-If value of OpcNodes attribute is `null` or empty list then the whole DataSetWriter entity is completely removed.
+If value of `OpcNodes` attribute is `null` or empty list then the whole DataSetWriter entity is completely removed.
 
 _Note_: If all the nodes from a DataSet are to be unpublished, the DataSetWriter entity is completely removed from the configuration storage.
 
-  _Request_:  follows strictly the request payload schema, the OpcNodes attribute being mandatory.
+  _Request_:  follows strictly the request payload schema, the `OpcNodes` attribute being mandatory.
 
   _Response_: when successful - Status 200 and an empty json (`{}`) as Payload
 
@@ -194,7 +194,7 @@ _Note_: If all the nodes from a DataSet are to be unpublished, the DataSetWriter
 
 UnpublishAllNodes method enables a client to remove all the nodes from a previously configured DataSetWriter. The DataSetWriter entity will be completely removed from the configuration storage.
 
-  _Request_: follows strictly the request payload schema, the OpcNodes attribute should be excluded.
+  _Request_: follows strictly the request payload schema, the `OpcNodes` attribute should be excluded.
 
   _Response_: when successful - Status 200 and an empty json (`{}`) as Payload
 
@@ -202,7 +202,7 @@ UnpublishAllNodes method enables a client to remove all the nodes from a previou
 
   - request payload contains an endpoint (DataSet) that is not present in publisher configuration
 
-  - request payload contains OpcNodes
+  - request payload contains `OpcNodes`
 
   _Example_:
 
@@ -268,7 +268,7 @@ Returns the nodes configured for one Endpoint (Dataset)
 
   _Request_: contains the elements necessary to uniquely identify a Dataset. The EndpointUrl is mandatory in the request, the other attributes are optional and can be used to refine your result.
 
-  _Response_: list of OpcNodes configured for the selected Endpoint (and optional parameters).
+  _Response_: list of `OpcNodes` configured for the selected Endpoint (and optional parameters).
 
   _Exceptions_: an exception is thrown when method call returns status other than 200
 
