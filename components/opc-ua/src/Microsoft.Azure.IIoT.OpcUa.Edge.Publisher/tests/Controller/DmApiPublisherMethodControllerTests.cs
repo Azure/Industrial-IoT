@@ -322,13 +322,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject.OpcNodes.Count()
                 .Should()
                 .Be(2);
-            response.Subject.First().Id
+            response.Subject.OpcNodes.First().Id
                 .Should()
                 .Be("ns=2;s=FastUInt1");
-            response.Subject[1].Id
+            response.Subject.OpcNodes[1].Id
                 .Should()
                 .Be("ns=2;s=FastUInt2");
         }
@@ -361,10 +361,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject.OpcNodes.Count()
                 .Should()
                 .Be(1);
-            response.Subject.First().Id
+            response.Subject.OpcNodes.First().Id
                 .Should()
                 .Be("ns=2;s=SlowUInt1");
         }
@@ -404,10 +404,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         .NotThrowAsync()
                         .ConfigureAwait(false);
 
-                response.Subject.Count
+                response.Subject.OpcNodes.Count
                     .Should()
                     .Be(i + 1);
-                response.Subject.Last().Id
+                response.Subject.OpcNodes.Last().Id
                     .Should()
                     .Be($"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}");
             }
@@ -433,10 +433,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject.OpcNodes.Count()
                 .Should()
                 .Be(1);
-            response.Subject.First().Id
+            response.Subject.OpcNodes.First().Id
                 .Should()
                 .Be("ns=2;s=SlowUInt3");
         }
@@ -467,10 +467,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject.OpcNodes.Count()
                 .Should()
                 .Be(1);
-            response.Subject.First().Id
+            response.Subject.OpcNodes.First().Id
                 .Should()
                 .Be("ns=2;s=SlowUInt2");
         }
@@ -499,13 +499,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject.OpcNodes.Count()
                 .Should()
                 .Be(2);
-            response.Subject.First().Id
+            response.Subject.OpcNodes.First().Id
                 .Should()
                 .Be("ns=2;s=FastUInt3");
-            response.Subject[1].Id
+            response.Subject.OpcNodes[1].Id
                 .Should()
                 .Be("ns=2;s=FastUInt4");
         }
@@ -604,7 +604,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            endpoints.Subject.Count.Should().Be(0);
+            endpoints.Subject.Endpoints.Count.Should().Be(0);
 
             // Publish nodes
             foreach (var request in publishNodesRequests) {
@@ -624,8 +624,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            endpoints.Subject.Count.Should().Be(5);
-            var endpointsHash = endpoints.Subject.Select(e => e.GetHashCode()).ToList();
+            endpoints.Subject.Endpoints.Count.Should().Be(5);
+            var endpointsHash = endpoints.Subject.Endpoints.Select(e => e.GetHashCode()).ToList();
             Assert.True(endpointsHash.Distinct().Count() == endpointsHash.Count());
         }
 

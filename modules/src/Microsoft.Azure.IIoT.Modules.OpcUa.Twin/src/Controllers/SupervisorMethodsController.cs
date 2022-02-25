@@ -23,8 +23,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
     /// <summary>
     /// Supervisor method controller
     /// </summary>
-    [Version(1)]
-    [Version(2)]
+    [Version("_V1")]
+    [Version("_V2")]
     [ExceptionsFilter]
     public class SupervisorMethodsController : IMethodController {
 

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
@@ -20,7 +19,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     /// <summary>
     /// Publisher direct  method controller
     /// </summary>
-    [Version(1)]
+    [Version("_V1")]
+    [Version("")]
     [ExceptionsFilter]
     public class PublisherMethodsController : IMethodController {
 
@@ -74,17 +74,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for GetConfiguredEndpoints direct method
         /// </summary>
-        public async Task<List<PublishNodesEndpointApiModel>> GetConfiguredEndpointsAsync() {
+        public async Task<GetConfiguredEndpointsResponseApiModel> GetConfiguredEndpointsAsync() {
             var response = await _configServices.GetConfiguredEndpointsAsync().ConfigureAwait(false);
-            return response.ToApiModel();
+            return new GetConfiguredEndpointsResponseApiModel() {
+                Endpoints = response.ToApiModel(),
+            };
         }
 
         /// <summary>
         /// Handler for GetConfiguredNodesOnEndpoint direct method
         /// </summary>
-        public async Task<List<PublishedNodeApiModel>> GetConfiguredNodesOnEndpointAsync(PublishNodesEndpointApiModel request) {
+        public async Task<GetConfiguredNodesOnEndpointResponseApiModel> GetConfiguredNodesOnEndpointAsync(PublishNodesEndpointApiModel request) {
             var response = await _configServices.GetConfiguredNodesOnEndpointAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return response.ToApiModel();
+            return new GetConfiguredNodesOnEndpointResponseApiModel() {
+                OpcNodes = response.ToApiModel(),
+            };
         }
 
         /// <summary>
