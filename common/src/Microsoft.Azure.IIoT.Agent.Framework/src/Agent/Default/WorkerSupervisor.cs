@@ -49,8 +49,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <inheritdoc/>
         public async Task StartAsync() {
             await EnsureWorkersAsync();
-            _healthCheckManager.IsReady =
-                _instances.Count >= (_agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers);
             _ensureWorkerRunningTimer.Enabled = true;
             _agentConfigProvider.OnConfigUpdated += ConfigUpdate_Triggered;
         }
@@ -129,8 +127,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <summary>
         /// Monitoring timer elapsed
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private async void EnsureWorkerRunningTimer_ElapsedAsync(object sender, ElapsedEventArgs e) {
             try {
                 if (_ensureWorkerRunningTimer != null) {
@@ -145,7 +141,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
             }
             finally {
-                _ensureWorkerRunningTimer.Enabled = true;
+                if (_ensureWorkerRunningTimer != null) {
+                    _ensureWorkerRunningTimer.Enabled = true;
+                }
             }
         }
 
