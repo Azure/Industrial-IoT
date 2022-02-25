@@ -1089,7 +1089,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     OpcAuthenticationUsername = model.OpcAuthenticationUsername,
                     DataSetWriterGroup = model.DataSetWriterGroup,
                     DataSetWriterId = model.DataSetWriterId,
-                    DataSetPublishingInterval = model.DataSetPublishingInterval,
+                    DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
+                    DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue
+                        ? model.DataSetPublishingInterval
+                        :null,
                 }).ToList();
             }
             catch (MethodCallStatusException) {

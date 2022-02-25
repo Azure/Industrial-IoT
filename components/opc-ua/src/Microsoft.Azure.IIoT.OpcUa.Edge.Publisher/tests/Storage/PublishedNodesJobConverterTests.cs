@@ -274,35 +274,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal(2, jobs
+            Assert.Equal(1, jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
+                .First().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
             Assert.Equal("testfieldid1", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+                .First().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
             Assert.Equal("i=2258", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().PublishedVariableNodeId);
+                .First().DataSet.DataSetSource.PublishedVariables.PublishedData.First().PublishedVariableNodeId);
             Assert.Equal(null, jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+                .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
             Assert.Equal("i=2259", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableNodeId);
+                .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableNodeId);
             Assert.Equal("testgroup", jobs
                 .Single().WriterGroup.WriterGroupId);
             Assert.Equal("testgroup", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.Connection.Group);
-            Assert.Equal("testwriterid", jobs
+                .First().DataSet.DataSetSource.Connection.Group);
+            Assert.Equal("testwriterid_2000", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSetWriterId);
-            Assert.Equal("testwriterid", jobs
+                .First().DataSetWriterId);
+            Assert.Equal("testwriterid_2000", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.Connection.Id);
+                .First().DataSet.DataSetSource.Connection.Id);
+            Assert.Equal(2000, jobs
+                .Single().WriterGroup.DataSetWriters
+                .First().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
             Assert.Equal(1000, jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+                .Last().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+
         }
 
         [Fact]
@@ -358,7 +362,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal(1000, jobs
+            Assert.Equal(2000, jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
@@ -408,8 +412,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 ""OpcPublishingInterval"": 2000
             },
             {
-                ""Id"": ""i=2259"",
-                ""OpcPublishingInterval"": 3000
+                ""Id"": ""i=2259""
             }
         ]
     }
@@ -426,9 +429,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal(1000, jobs
-                .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+            Assert.Equal(2000, jobs
+                .First().WriterGroup.DataSetWriters
+                .First().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
         [Fact]
@@ -484,7 +487,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal(1000, jobs
+            Assert.Equal(2000, jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
@@ -531,7 +534,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         ""OpcNodes"": [
             {
                 ""Id"": ""i=2258"",
-                ""OpcPublishingIntervalTimspan"": ""00:00:02""
             },
             {
                 ""Id"": ""i=2259"",
@@ -554,7 +556,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Single(jobs);
             Assert.Equal(1000, jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+                .First().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
 
