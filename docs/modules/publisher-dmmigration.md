@@ -165,7 +165,7 @@ When there are configured endpoints:
             "endpointUrl":"opc.tcp://sandboxhost-637811493394507132:50000"
          }
       ]
-   ]
+   }
 }
 ```
 
@@ -343,8 +343,8 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 
 ```json
 {
-   "status":200,
-   "payload":[
+   "status": 200,
+   "payload": [
       "Id 'nsu=http://microsoft.com/Opc/OpcPlc/;s=65e451f1-56f1-ce84-a44f-6addf176beaf': tagged for removal"
    ]
 }
@@ -354,9 +354,8 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 
 ```json
 {
-   "status":200,
-   "payload":{
-   }
+   "status": 200,
+   "payload": {}
 }
 ```
 
@@ -366,7 +365,7 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 
 ```json
 {
-   "EndpointUrl":"opc.tcp://sandboxhost-637811493394507132:50000"
+   "EndpointUrl": "opc.tcp://sandboxhost-637811493394507132:50000"
 }
 ```
 
@@ -374,8 +373,8 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 
 ```json
 {
-   "status":200,
-   "payload":[
+   "status": 200,
+   "payload": [
       "All monitored items in all subscriptions on endpoint 'opc.tcp://sandboxhost-637811493394507132:50000' tagged for removal"
    ]
 }
@@ -385,9 +384,8 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 
 ```json
 {
-   "status":200,
-   "payload":{
-   }
+   "status": 200,
+   "payload": {}
 }
 ```
 
