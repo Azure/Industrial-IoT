@@ -52,7 +52,7 @@ The following set of direct method api is inherited from 2.5.x API set.
 - GetConfiguredNodesOnEndpoint_V1
 - GetDiagnosticInfo_V1
 
-Please note that in 2.8.2 the recommended way of using the direct methods is with `_V1` suffix however.
+Please note that in 2.8.2 the recommended way of using the direct methods is with `_V1` suffix.
 Direct method name without `_V1` suffix is also supported but is subject of deprecation.
 
 The direct methods definitions of version 2.8.2 are provided in [this](publisher-directmethods.md) document in detail.
