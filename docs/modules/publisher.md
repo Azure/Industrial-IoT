@@ -147,7 +147,7 @@ There are several command line arguments that can be used to set global settings
 
 There are multiple IoT Hub direct methods which could be used to configure OPC Publisher. Please refer to [this](publisher-directmethods.md) document for additional details.
 
-To learn how to migrate from version 2.5.x to version 2.8.2 for the direct methods, please check this [migration path](publisher-dmmigration.md).
+To learn how to migrate from version 2.5.x to version 2.8.2 for the direct methods, please check this [migration path](publisher-migrationpath.md).
 
 
 ### Configuration via the built-in OPC UA Server Interface
