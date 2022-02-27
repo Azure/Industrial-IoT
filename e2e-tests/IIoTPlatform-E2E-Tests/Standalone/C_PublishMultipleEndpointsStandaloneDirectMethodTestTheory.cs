@@ -749,9 +749,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            var epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
-            var endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
-            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(endpoints);
+            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
             Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
 
             var nodesToPublish0 = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token, 2, 250).ConfigureAwait(false);
@@ -813,9 +811,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
-            endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
-            configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(endpoints);
+            configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
             Assert.Equal(2, configuredEndpointsResponse.Endpoints.Count);
             TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[0], request0);
             TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[1], request1);
@@ -837,12 +833,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint0.Status);
 
-            var obj0 = JObject.Parse(responseGetConfiguredNodesOnEndpoint0.JsonPayload);
-            var opcNodes0 = _serializer.SerializeToString(obj0["OpcNodes"]);
-            var jsonResponse0 = _serializer.Deserialize<List<PublishedNodeApiModel>>(opcNodes0);
-            Assert.Equal(125, jsonResponse0.Count);
-            Assert.Equal(nodes0[0].Id, jsonResponse0[0].Id);
-            Assert.Equal(nodes0[25].Id, jsonResponse0[25].Id);
+            var jsonResponse0 = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseApiModel>(
+                responseGetConfiguredNodesOnEndpoint0.JsonPayload);
+            Assert.Equal(125, jsonResponse0.OpcNodes.Count);
+            Assert.Equal(nodes0[0].Id, jsonResponse0.OpcNodes[0].Id);
+            Assert.Equal(nodes0[25].Id, jsonResponse0.OpcNodes[25].Id);
 
             // Create request for GetConfiguredNodesOnEndpoint method call for endpoint 1
             var nodesOnEndpoint1 = new PublishedNodesEntryModel {
@@ -861,12 +856,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint1.Status);
 
-            var obj1 = JObject.Parse(responseGetConfiguredNodesOnEndpoint1.JsonPayload);
-            var opcNodes1 = _serializer.SerializeToString(obj1["OpcNodes"]);
-            var jsonResponse1 = _serializer.Deserialize<List<PublishedNodeApiModel>>(opcNodes1);
-            Assert.Equal(125, jsonResponse1.Count);
-            Assert.Equal(nodes1[0].Id, jsonResponse1[0].Id);
-            Assert.Equal(nodes1[25].Id, jsonResponse1[25].Id);
+            var jsonResponse1 = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseApiModel>(
+                responseGetConfiguredNodesOnEndpoint1.JsonPayload);
+            Assert.Equal(125, jsonResponse1.OpcNodes.Count);
+            Assert.Equal(nodes1[0].Id, jsonResponse1.OpcNodes[0].Id);
+            Assert.Equal(nodes1[25].Id, jsonResponse1.OpcNodes[25].Id);
 
             // Call GetDiagnosticInfo direct method
             var responseGetDiagnosticInfo = await CallMethodAsync(
@@ -961,9 +955,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            epObj = JObject.Parse(responseGetConfiguredEndpoints.JsonPayload);
-            endpoints = _serializer.SerializeToString(epObj["Endpoints"]);
-            configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(endpoints);
+            configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
             Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
 
             // Wait till the publishing has stopped.
