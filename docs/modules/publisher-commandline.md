@@ -1,8 +1,8 @@
 [Home](../../readme.md)
 
-### OPC Publisher parametrization command line interface options & environment variables
+### OPC Publisher parameterization command line interface options & environment variables
 
-The following list of module parametrization settings can be provided either as CLI options or as  environment variables. The alternative field, where present, refers to the CLI argument applicable in **standalone mode only**. When both environment variable and cli argument is provided, the latest will overrule the env variable.
+The following list of module parameterization settings can be provided either as CLI options or as  environment variables. The alternative field, where present, refers to the CLI argument applicable in **standalone mode only**. When both environment variable and CLI argument are provided, the latest will overrule the env variable.
 
             PublishedNodesFile=VALUE
                                       The file used to store the configuration of the nodes to be publish 
