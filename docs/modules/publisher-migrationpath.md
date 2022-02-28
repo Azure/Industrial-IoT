@@ -1,9 +1,8 @@
 [Home](../../readme.md)
 
-# Migration path for publisher version 2.5.x to 2.8.2
+# Migration path for OPC Publisher version 2.5.x to 2.8.2
 
-**TODO**
-2.8.2 must work in standalone mode for backwards compatibility with 2.5.x functionality
+Migration of OPC Publisher version 2.5.x to 2.8.2 should work in standalone mode for backwards compatibility with 2.5.x functionality.
 
 ## Configuration file (pn.json)
 
