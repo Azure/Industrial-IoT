@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.Hub.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
@@ -300,8 +301,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                         _logger.Verbose(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
+
                         if (ex is MethodCallStatusException) {
-                            throw ex;
+                            var exceptionResponse = CreateExceptionResponse(ex);
+                            throw new MethodCallStatusException(exceptionResponse != null ?
+                                _serializer.SerializeToString(exceptionResponse) : null, status);
                         }
                         throw new MethodCallStatusException(ex != null ?
                            _serializer.SerializeToString(ex) : null, status);
@@ -325,14 +329,33 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                         _logger.Verbose(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
+                        
                         if (ex is MethodCallStatusException) {
-                            throw ex;
+                            var exceptionResponse = CreateExceptionResponse(ex);
+                            throw new MethodCallStatusException(exceptionResponse != null ?
+                                _serializer.SerializeToString(exceptionResponse) : null, status);
                         }
                         throw new MethodCallStatusException(ex != null ?
                             _serializer.SerializeToString(ex) : null, status);
                     }
                     return new byte[0];
                 });
+            }
+
+            /// <summary>
+            /// Helper to convert an exception to a serializable response
+            /// exception as continuation.
+            /// </summary>
+            /// <param name="ex"></param>
+            private MethodCallStatusExceptionModel CreateExceptionResponse(Exception ex) {
+                MethodCallStatusExceptionModel exceptionResponse = null;
+                if (!string.IsNullOrEmpty(ex.Message)) {
+                    exceptionResponse = new MethodCallStatusExceptionModel {
+                        Message = ex.Message.Split(":").First(),
+                        Description = ex.Message.Split(":", 2).Last(),
+                    };
+                }
+                return exceptionResponse;
             }
 
             private static readonly MethodInfo _methodResponseAsContinuation =
