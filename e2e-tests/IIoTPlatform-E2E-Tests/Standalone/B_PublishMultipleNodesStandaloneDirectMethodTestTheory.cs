@@ -178,6 +178,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
             Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
                 $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
+            Assert.Equal(0U, publishingMonitoringResultJson.DroppedSequenceCount);
+            Assert.Equal(0U, publishingMonitoringResultJson.DuplicateSequenceCount);
+            Assert.Equal(0U, publishingMonitoringResultJson.ResetSequenceCount);
 
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null) {
@@ -376,6 +379,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
             Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
                 $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
+            Assert.Equal(0U, publishingMonitoringResultJson.DroppedSequenceCount);
+            Assert.Equal(0U, publishingMonitoringResultJson.DuplicateSequenceCount);
+            Assert.Equal(0U, publishingMonitoringResultJson.ResetSequenceCount);
 
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null) {

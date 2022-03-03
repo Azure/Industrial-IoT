@@ -290,7 +290,7 @@ namespace TestEventProcessor.BusinessLogic {
                         }
 
                         foreach (dynamic message in entry.Messages) {
-                            var sequenceNumber = message.SequenceNumber as uint?;
+                            var sequenceNumber = message.SequenceNumber.ToObject<uint?>();
                             FeedDataChangeCheckers(sequenceNumber);
 
                             var payload = message.Payload as JObject;
