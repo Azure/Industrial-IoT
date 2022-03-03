@@ -10,7 +10,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
-    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -154,7 +153,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint.Status);
             var jsonResponse = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseApiModel>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
-            Assert.Equal(jsonResponse.OpcNodes.Count, 250);
+            Assert.Equal(250, jsonResponse.OpcNodes.Count);
 
             // Call GetDiagnosticInfo direct method
             var responseGetDiagnosticInfo = await CallMethodAsync(
