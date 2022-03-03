@@ -319,9 +319,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .Invoking(async () => await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .ThrowAsync<MethodCallStatusException>()
-                    .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}*")
+                    .WithMessage($" {{ \"Message\":\"Response 404 Endpoint not found: {request.EndpointUrl}\",\"Description\": {{}} }}")
                     .ConfigureAwait(false);
             }
+            
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
             for (var i = 0; i < 10; i++) {

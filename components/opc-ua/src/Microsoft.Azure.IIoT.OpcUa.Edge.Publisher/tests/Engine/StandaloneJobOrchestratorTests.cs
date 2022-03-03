@@ -134,7 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null request is provided: {{}}")
+                .WithMessage($" {{ \"Message\":\"Response 400 null request is provided\",\"Description\": {{}} }}")
                 .ConfigureAwait(false);
 
 
@@ -149,7 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null or empty OpcNodes is provided in request: {{}}")
+                .WithMessage($" {{ \"Message\":\"Response 400 null or empty OpcNodes is provided in request\",\"Description\": {{}} }}")
                 .ConfigureAwait(false);
 
             request.OpcNodes = new List<OpcNodeModel>();
@@ -161,7 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null or empty OpcNodes is provided in request: {{}}")
+                .WithMessage($" {{ \"Message\":\"Response 400 null or empty OpcNodes is provided in request\",\"Description\": {{}} }}")
                 .ConfigureAwait(false);
         }
 
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null request is provided: {{}}")
+                .WithMessage($" {{ \"Message\":\"Response 400 null request is provided\",\"Description\": {{}} }}")
                 .ConfigureAwait(false);
         }
 
@@ -240,7 +240,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null request is provided: {{}}")
+                .WithMessage($" {{ \"Message\":\"Response 400 null request is provided\",\"Description\": {{}} }}")
                 .ConfigureAwait(false);
         }
 
@@ -255,7 +255,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null request is provided: {{}}")
+                .WithMessage($" {{ \"Message\":\"Response 400 null request is provided\",\"Description\": {{}} }}")
                 .ConfigureAwait(false);
         }
 
@@ -286,7 +286,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 Request contains two entries for the same endpoint at index 0 and 2: {{}}")
+                .WithMessage($" {{ \"Message\":\"Response 400 Request contains two entries for the same endpoint at index 0 and 2\",\"Description\": {{}} }}")
                 .ConfigureAwait(false);
         }
 
@@ -321,7 +321,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 Request contains two entries for the same endpoint at index 0 and 2: {{}}")
+                .WithMessage($" {{ \"Message\":\"Response 400 Request contains two entries for the same endpoint at index 0 and 2\",\"Description\": {{}} }}")
                 .ConfigureAwait(false);
         }
 
@@ -437,7 +437,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                             .ConfigureAwait(false))
                         .Should()
                         .ThrowAsync<MethodCallStatusException>()
-                        .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}: {{}}")
+                        .WithMessage($" {{ \"Message\":\"Response 404 Endpoint not found: {request.EndpointUrl}\",\"Description\": {{}} }}")
                         .ConfigureAwait(false);
                 }
                 else {
@@ -485,7 +485,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         .ConfigureAwait(false))
                     .Should()
                     .ThrowAsync<MethodCallStatusException>()
-                    .WithMessage($"Response 404 Endpoint not found: {endpoint.EndpointUrl}: {{}}")
+                    .WithMessage($" {{ \"Message\":\"Response 404 Endpoint not found: {endpoint.EndpointUrl}\",\"Description\": {{}} }}")
                     .ConfigureAwait(false);
             }
 
@@ -529,7 +529,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 404 Endpoint not found: {updateRequest[3].EndpointUrl}: {{}}")
+                .WithMessage($" {{ \"Message\":\"Response 404 Endpoint not found: {updateRequest[3].EndpointUrl}\",\"Description\": {{}} }}")
                 .ConfigureAwait(false);
 
             updateRequest.RemoveAt(3);
