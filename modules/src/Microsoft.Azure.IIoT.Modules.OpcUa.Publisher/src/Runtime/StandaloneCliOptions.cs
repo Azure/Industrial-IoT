@@ -44,6 +44,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <param name="args">The specified command line arguments.</param>
         public StandaloneCliOptions(string[] args) {
 
+            bool showHelp = false;
+            bool isLegacyOption = false;
+            var logger = ConsoleLogger.Create(LogEventLevel.Warning);
+
             // command line options
             var options = new Mono.Options.OptionSet {
                     // Publisher configuration options
@@ -160,39 +164,56 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
                         (int i) => this[StandaloneCliConfigKeys.ScaleTestCount] = i.ToString() },
 
+                    // show help
+                    { "h|help", "show this message and exit.",
+                        b => showHelp = true },
+
                     // Legacy: unsupported
-                    { "tc|telemetryconfigfile=", "Legacy - do not use.", _ => {} },
-                    { "ic|iotcentral=", "Legacy - do not use.", _ => {} },
-                    { "ns|noshutdown=", "Legacy - do not use.", _ => {} },
-                    { "rf|runforever", "Legacy - do not use.", _ => {} },
-                    { "pn|portnum=", "Legacy - do not use.", _ => {} },
-                    { "pa|path=", "Legacy - do not use.", _ => {} },
-                    { "lr|ldsreginterval=", "Legacy - do not use.", _ => {} },
-                    { "ss|suppressedopcstatuscodes=", "Legacy - do not use.", _ => {} },
-                    { "csr", "Legacy - do not use.", _ => {} },
-                    { "ab|applicationcertbase64=", "Legacy - do not use.", _ => {} },
-                    { "af|applicationcertfile=", "Legacy - do not use.", _ => {} },
-                    { "pk|privatekeyfile=", "Legacy - do not use.", _ => {} },
-                    { "pb|privatekeybase64=", "Legacy - do not use.", _ => {} },
-                    { "cp|certpassword=", "Legacy - do not use.", _ => {} },
-                    { "tb|addtrustedcertbase64=", "Legacy - do not use.", _ => {} },
-                    { "tf|addtrustedcertfile=", "Legacy - do not use.", _ => {} },
-                    { "ib|addissuercertbase64=", "Legacy - do not use.", _ => {} },
-                    { "if|addissuercertfile=", "Legacy - do not use.", _ => {} },
-                    { "rb|updatecrlbase64=", "Legacy - do not use.", _ => {} },
-                    { "uc|updatecrlfile=", "Legacy - do not use.", _ => {} },
-                    { "rc|removecert=", "Legacy - do not use.", _ => {} },
-                    { "dt|devicecertstoretype=", "Legacy - do not use.", _ => {} },
-                    { "dp|devicecertstorepath=", "Legacy - do not use.", _ => {} },
-                    { "i|install", "Legacy - do not use.", _ => {} },
-                    { "st|opcstacktracemask=", "Legacy - do not use.", _ => {} },
-                    { "sd|shopfloordomain=", "Legacy - do not use.", _ => {} },
-                    { "vc|verboseconsole=", "Legacy - do not use.", _ => {} },
-                    { "as|autotrustservercerts=", "Legacy - do not use.", _ => {} }
+                    { "tc|telemetryconfigfile=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "ic|iotcentral=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "ns|noshutdown=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "rf|runforever", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "pn|portnum=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "pa|path=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "lr|ldsreginterval=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "ss|suppressedopcstatuscodes=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "csr", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "ab|applicationcertbase64=", "Legacy - do not use.",b => isLegacyOption = true },
+                    { "af|applicationcertfile=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "pk|privatekeyfile=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "pb|privatekeybase64=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "cp|certpassword=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "tb|addtrustedcertbase64=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "tf|addtrustedcertfile=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "ib|addissuercertbase64=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "if|addissuercertfile=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "rb|updatecrlbase64=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "uc|updatecrlfile=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "rc|removecert=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "dt|devicecertstoretype=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "dp|devicecertstorepath=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "i|install", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "st|opcstacktracemask=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "sd|shopfloordomain=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "vc|verboseconsole=", "Legacy - do not use.", b => isLegacyOption = true },
+                    { "as|autotrustservercerts=", "Legacy - do not use.",b => isLegacyOption = true }
                 };
 
-            options.Parse(args);
+            try {
+                options.Parse(args);
+            }
+            catch (Exception e) {
+                logger.Warning("Parse args exception: " + e.Message);
+            }
 
+            if (isLegacyOption) {
+                logger.Warning("Legacy option not supported, please use -h option to get all the supported options.");
+            }
+
+            if (showHelp) {
+                options.WriteOptionDescriptions(Console.Out);
+                Environment.Exit(0);
+            }
             Config = ToAgentConfigModel();
         }
 
@@ -254,7 +275,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         /// <summary>
-        /// Gets the additiona loggerConfiguration that represents the command line arguments.
+        /// Gets the additional loggerConfiguration that represents the command line arguments.
         /// </summary>
         /// <returns></returns>
         public LoggerConfiguration ToLoggerConfiguration() {
@@ -320,3 +341,4 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         private StandaloneCliModel _standaloneCliModel;
     }
 }
+
