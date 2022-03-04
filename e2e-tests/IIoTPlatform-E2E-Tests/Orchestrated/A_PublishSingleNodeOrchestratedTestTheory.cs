@@ -209,6 +209,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
             Assert.True(json.DuplicateValueCount == 0, "Duplicate values detected");
+            Assert.Equal(0U, json.DroppedSequenceCount);
+            Assert.Equal(0U, json.DuplicateSequenceCount);
+            Assert.Equal(0U, json.ResetSequenceCount);
         }
 
         [Fact, PriorityOrder(11)]
