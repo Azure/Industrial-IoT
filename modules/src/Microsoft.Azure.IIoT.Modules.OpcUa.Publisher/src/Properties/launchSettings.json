@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher": {
-      "commandName": "Project",
-      "commandLineArgs": "-pf publishednodes.json -aa -dc HostName=e2etesting-iotHub-47473.azure-devices.net;DeviceId=e2etestdevice_47473;SharedAccessKey=cZ+Htxfv6EtVrJoMAj7bQbskqY67RPxiu3qdciLjyZI="
-    }
-  }
-}
