@@ -290,8 +290,9 @@ namespace TestEventProcessor.BusinessLogic {
                         }
 
                         foreach (dynamic message in entry.Messages) {
-                            var sequenceNumber = message.SequenceNumber as uint?;
-                            FeedDataChangeCheckers(sequenceNumber);
+                            var dataSetWriterId = message.DataSetWriterId.ToObject<string>();
+                            var sequenceNumber = message.SequenceNumber.ToObject<uint?>();
+                            FeedDataChangeCheckers(dataSetWriterId, sequenceNumber);
 
                             var payload = message.Payload as JObject;
                             foreach (JProperty property in payload.Properties()) {
@@ -366,13 +367,13 @@ namespace TestEventProcessor.BusinessLogic {
         /// Feed the checkers for the Data Change (one or more groupped node values) within the reveived event
         /// </summary>
         /// <param name="sequenceNumber">The actual sequence number of the data change</param>
-        private void FeedDataChangeCheckers(uint? sequenceNumber) {
+        private void FeedDataChangeCheckers(string dataSetWriterId, uint? sequenceNumber) {
 
             if (!sequenceNumber.HasValue) {
                 _logger.LogWarning("Sequance number is null");
                 return;
             }
-            _incrementalSequenceChecker.ProcessEvent(sequenceNumber);
+            _incrementalSequenceChecker.ProcessEvent(dataSetWriterId, sequenceNumber);
         }
 
         /// <summary>
