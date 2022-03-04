@@ -52,8 +52,8 @@ namespace IIoTPlatform_E2E_Tests {
                 Assert.True(diagnosticInfo.OutgressIoTMessageCount > 0);
 
                 // Check that we are not dropping anything.
-                Assert.Equal((uint)0, diagnosticInfo.EncoderNotificationsDropped);
-                Assert.Equal((ulong)0, diagnosticInfo.OutgressInputBufferDropped);
+                Assert.Equal(0U, diagnosticInfo.EncoderNotificationsDropped);
+                Assert.Equal(0UL, diagnosticInfo.OutgressInputBufferDropped);
             }
         }
     }
