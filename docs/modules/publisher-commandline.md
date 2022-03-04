@@ -445,7 +445,7 @@ The following list of module parametrization settings can be provided either as 
                      IoTHub device registry.
 
     iothubconnectionstring: the IoTHub owner connectionstring, optional. Typically you specify the IoTHub owner connectionstring only on the first start of the application. The connection string is encrypted and stored in the platforms certificiate store.
-	On subsequent calls it is read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry is removed and recreated each time.
+    On subsequent calls it is read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry is removed and recreated each time.
 
     There are a couple of environment variables which can be used to control the application:
     _HUB_CS: sets the IoTHub owner connectionstring
