@@ -95,6 +95,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
             Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
                 $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
+            Assert.Equal(0U, publishingMonitoringResultJson.DroppedSequenceCount);
+            Assert.Equal(0U, publishingMonitoringResultJson.DuplicateSequenceCount);
+            Assert.Equal(0U, publishingMonitoringResultJson.ResetSequenceCount);
 
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(

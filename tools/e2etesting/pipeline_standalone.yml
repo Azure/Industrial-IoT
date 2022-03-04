@@ -78,7 +78,7 @@ stages:
   condition: and(not(canceled()), or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped')))
   jobs:
   - job: runtests
-    timeoutInMinutes: 150
+    timeoutInMinutes: 180
     displayName: 'Run End 2 End Tests'
     steps:
     - template: steps/runtests.yml

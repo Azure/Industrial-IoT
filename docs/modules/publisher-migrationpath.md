@@ -2,8 +2,7 @@
 
 # Application migration from OPC Publisher 2.5.x direct methods to 2.8.2 direct methods
 
-**TODO**
-OPC Publisher 2.8.2 and above must work in standalone mode for backwards compatibility with 2.5.x direct methods.
+Migration of OPC Publisher version 2.5.x to 2.8.2 should work in standalone mode for backwards compatibility with 2.5.x functionality.
 
 ## Configuration file (pn.json)
 
