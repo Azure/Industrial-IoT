@@ -424,7 +424,17 @@ The following list of module parametrization settings can be provided either as 
                                       Mode: Standalone and Orchestrated
                                       Type: integer
                                       Default: 130,816 (128KB - 256)
+<!---
 
+            DefaultSkipFirst=VALUE
+                                      Default for Skip First published node setting. When set to true the 
+                                      publisher will not send as telemetry the initial datachange event received
+                                      from the OPC UA server for a particular monitored node.
+                                      Alternative: --sf, --skipfirstevent
+                                      Mode: Standalone only
+                                      Type: boolean
+                                      Default: false
+--->
 
 ### OPC Publisher Command Line Arguments for Version 2.5 and below
 
