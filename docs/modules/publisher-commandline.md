@@ -103,15 +103,6 @@ The following list of module parametrization settings can be provided either as 
                                       Alternative argument type: integer in seconds
                                       Default: {00:00:00} meaning heartbeat is disabled
 
-            DefaultSkipFirst=VALUE
-                                      Default for Skip First published node setting. When set to true the 
-                                      publisher will not send as telemetry the initial datachange event received
-                                      from the OPC UA server for a particular monitored node.
-                                      Alternative: --sf, --skipfirstevent
-                                      Mode: Standalone only
-                                      Type: boolean
-                                      Default: false
-
             MessagingEncoding=VALUE
                                       The messaging encoding for outgoing telemetry.
                                       Alternative: --me, --messageencoding
