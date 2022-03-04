@@ -28,18 +28,18 @@ The direct method request payload of OPC Publisher 2.8.2 and above is backwards 
 
 The following table describes the direct methods, which were available in OPC Publisher 2.5.x with their request and response payloads.
 
-| **MethodName**                   | **Request**                                                     | **Response**                                                                                                                                                                                   | **in 2.8.2 and above** |
-| -------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| **PublishNodes**                 | EndpointUrl, List\<OpcNodes\>,  UseSecurity, UserName, Password | Status, List\<StatusResponse\>                                                                                                                                                                 | Yes          |
-| **UnpublishNodes**               | EndpointUrl, List\<OpcNodes\>                                   | Status, List\<StatusResponse\>                                                                                                                                                                 | Yes          |
-| **UnpublishAllNodes**            | EndpointUrl                                                     | Status, List\<StatusResponse\>                                                                                                                                                                 | Yes          |
-| **GetConfiguredEndpoints**       | -                                                               | List\<EndpointUrl\>                                                                                                                                                                            | Yes          |
-| **GetConfiguredNodesOnEndpoint** | EndpointUrl                                                     | EndpointUrl, List< OpcNodeOnEndpointModel > where OpcNodeOnEndpointModel contains: Id ExpandedNodeId OpcSamplingInterval OpcPublishingInterval DisplayName HeartbeatInterval SkipFirst | Yes          |
-| **GetDiagnosticInfo**            | -                                                               | DiagnosticInfoMethodResponseModel                                                                                                                                                              | Yes          |
-| **GetDiagnosticLog**             | -                                                               | MissedMessageCount, LogMessageCount, List\<Log\>                                                                                                                                               | No*          |
-| **GetDiagnosticStartupLog**      | -                                                               | MissedMessageCount, LogMessageCount, List\<Log\>                                                                                                                                               | No*          |
-| **ExitApplication**              | SecondsTillExit (optional)                                      | StatusCode, List\<StatusResponse\>                                                                                                                                                             | No*          |
-| **GetInfo**                      | -                                                               | GetInfoMethodResponseModel                        | No*          |
+| **MethodName**                   | **Request**                                                     | **Response**                                                                                                                                                                           | **in 2.8.2 and above** |
+|----------------------------------|-----------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------|
+| **PublishNodes**                 | EndpointUrl, List\<OpcNodes\>,  UseSecurity, UserName, Password | Status, List\<StatusResponse\>                                                                                                                                                         | Yes                    |
+| **UnpublishNodes**               | EndpointUrl, List\<OpcNodes\>                                   | Status, List\<StatusResponse\>                                                                                                                                                         | Yes                    |
+| **UnpublishAllNodes**            | EndpointUrl                                                     | Status, List\<StatusResponse\>                                                                                                                                                         | Yes                    |
+| **GetConfiguredEndpoints**       | -                                                               | List\<EndpointUrl\>                                                                                                                                                                    | Yes                    |
+| **GetConfiguredNodesOnEndpoint** | EndpointUrl                                                     | EndpointUrl, List< OpcNodeOnEndpointModel > where OpcNodeOnEndpointModel contains: Id ExpandedNodeId OpcSamplingInterval OpcPublishingInterval DisplayName HeartbeatInterval SkipFirst | Yes                    |
+| **GetDiagnosticInfo**            | -                                                               | DiagnosticInfoMethodResponseModel                                                                                                                                                      | Yes                    |
+| **GetDiagnosticLog**             | -                                                               | MissedMessageCount, LogMessageCount, List\<Log\>                                                                                                                                       | No*                    |
+| **GetDiagnosticStartupLog**      | -                                                               | MissedMessageCount, LogMessageCount, List\<Log\>                                                                                                                                       | No*                    |
+| **ExitApplication**              | SecondsTillExit (optional)                                      | StatusCode, List\<StatusResponse\>                                                                                                                                                     | No*                    |
+| **GetInfo**                      | -                                                               | GetInfoMethodResponseModel                                                                                                                                                             | No*                    |
 
 *This functionality is provided by direct methods of the IoT Edge `edgeAgent` module. For more information, see ["Communicate with edgeAgent using built-in direct methods"](https://docs.microsoft.com/azure/iot-edge/how-to-edgeagent-direct-method).
 
@@ -48,7 +48,6 @@ An outdated, archived [sample application](https://github.com/Azure-Samples/iot-
 ### Direct Methods use in applications
 
 For new applications, direct method names with a `_V1` suffix should be used. For backward compatibility of older applications direct method names without the `_V1` suffix are supported, but are subject of deprecation.
-
 
 ### PublishNodes (PublishNodes_V1)
 
@@ -107,7 +106,7 @@ Without any configured endpoints:
 ```json
 {
    "status": 200,
-   "payload": 
+   "payload":
    {
       "Endpoints": []
    }
@@ -119,7 +118,7 @@ With configured endpoints:
 ```json
 {
    "status": 200,
-   "payload": 
+   "payload":
    {
       "Endpoints": [
          {
@@ -137,10 +136,10 @@ Without configured endpoints:
 ```json
 {
    "status": 200,
-   "payload": 
+   "payload":
    {
       "endpoints": []
-   }   
+   }
 }
 ```
 
@@ -149,7 +148,7 @@ With configured endpoints:
 ```json
 {
    "status": 200,
-   "payload": 
+   "payload":
    {
       "endpoints": [
          {
@@ -209,7 +208,7 @@ If `UnpublishAllNodes` is called on that endpoint, then the response will be:
 ```json
 {
    "status":200,
-   "payload": 
+   "payload":
    {
       "opcNodes": [
          {
