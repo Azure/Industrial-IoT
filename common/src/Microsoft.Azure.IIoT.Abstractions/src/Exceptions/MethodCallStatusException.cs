@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Exceptions {
         /// <param name="errorMessage"></param>
         public MethodCallStatusException(string responsePayload, int result,
             string errorMessage = null) :
-            base($"{{\"Message\":\"Response {result} {errorMessage ?? ""}\",\"Description\":{responsePayload}}}") {
+            base($"{{\"Message\":\"Response {result} {errorMessage ?? ""}\",\"Description\":{responsePayload ?? "null"}}}") {
             Result = result;
             ResponsePayload = responsePayload;
         }

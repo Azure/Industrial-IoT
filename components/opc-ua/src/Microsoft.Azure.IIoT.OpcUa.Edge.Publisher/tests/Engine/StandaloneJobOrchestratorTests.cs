@@ -198,13 +198,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             };
             serializeExceptionModel = _newtonSoftJsonSerializer.SerializeToString(exceptionModel);
             serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
+
+            // test for null payload
+            exceptionResponse = $"{{\"Message\":\"Response 400 \",\"Description\":null}}";
+            FluentActions.Invoking(
+                    () => throw new MethodCallStatusException(null, 400))
+                    .Should()
+                    .Throw<MethodCallStatusException>()
+                    .WithMessage(exceptionResponse);
+
+            exceptionModel = new MethodCallStatusExceptionModel {
+                Message = "Response 400 "
+            };
+            serializeExceptionModel = _newtonSoftJsonSerializer.SerializeToString(exceptionModel);
+            serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
         }
 
-            [Fact]
+        [Fact]
         public async Task Test_PublishNodes_NullOrEmpty() {
             InitStandaloneJobOrchestrator();
 
-            var exceptionResponse = $"{{\"Message\":\"Response 400 null request is provided\",\"Description\":{{}}}}";
             // Check null request.
             await FluentActions
                 .Invoking(async () => await _standaloneJobOrchestrator
