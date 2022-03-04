@@ -263,11 +263,11 @@ The `mq/om` parameter controls the upper limit of the capacity of the internal m
   * Use PubSub format (`--mm=PubSub`)
   * When Samples format (`--mm=Samples`) is required
     * Don't use FullFeaturesMessage (`--fm=false`)
-	* Use batching (--bs=600) in combination with batch interval (--si=20)
-		* Batching is also useable with PubSub but current implementation of PubSub batches automatically based on Publishing Interval of OPC UA nodes, when most nodes using same publishing interval it isn't necessary
-	* Increase Monitored Items Queue capacity (`--mq=25000`)
-	* Don't use "fetch display name" (`--fd=false`)
-* General recommendations	
+  * Use batching (--bs=600) in combination with batch interval (--si=20)
+    * Batching is also useable with PubSub but current implementation of PubSub batches automatically based on Publishing Interval of OPC UA nodes, when most nodes using same publishing interval it isn't necessary
+  * Increase Monitored Items Queue capacity (`--mq=25000`)
+  * Don't use "fetch display name" (`--fd=false`)
+* General recommendations
   * Try to use less different publishing intervals
   * Experiment with the numbers, depending on the IoT Hub connectivity it seems to be better to have fewer messages with more OPC UA value changes in it (check OPC Publisher logs) but it could also be better to have more messages with fewer OPC UA value changes, this is specific to every factory
 

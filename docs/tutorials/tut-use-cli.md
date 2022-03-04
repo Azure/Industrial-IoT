@@ -24,7 +24,7 @@ You should have already successfully deployed all Microservices and at least one
 
 ## Start the demo OPC UA server
 
-To make the demo deterministic we also start a demo OPC UA server.  
+To make the demo deterministic we also start a demo OPC UA server.
 
 1. Open a terminal or command prompt and run
 
@@ -32,7 +32,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    hostname
    ```
 
-   Remember the return host name of your development PC.  You will need it later when you specify the discovery URL of the server.  
+   Remember the return host name of your development PC.  You will need it later when you specify the discovery URL of the server.
 
 2. Now run
 
@@ -40,7 +40,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    docker run -it -p 50000:50000 mcr.microsoft.com/iotedge/opc-plc -aa
    ```
 
-   to start PLC demo server.  For simplicity we instruct the demo server to accept our certificate.  
+   to start PLC demo server.  For simplicity we instruct the demo server to accept our certificate.
 
 ## Build and run the Azure IoT Industrial IoT API CLI console
 
@@ -224,7 +224,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    > nodes publish -n i=2258
    ```
 
-​		to publish the system time changes to Azure.
+​   to publish the system time changes to Azure.
 
 3. Run
 
