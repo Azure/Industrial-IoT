@@ -24,9 +24,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         /// <summary>
         /// Description.
         /// </summary>
-        [DataMember(Name = "Description", Order = 1,
+        [DataMember(Name = "Details", Order = 1,
             EmitDefaultValue = true)]
         [JsonConverter(typeof(RawJsonConverter))]
-        public string Description { get; set; }
+        public string Details { get; set; }
     }
 }

@@ -302,7 +302,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         ex = _ef.Filter(ex, out var status);
 
                         if (ex is MethodCallStatusException) {
-                            throw new MethodCallStatusException(ex.Message, status);
+                            throw ex;
                         }
                         throw new MethodCallStatusException(ex != null ?
                            _serializer.SerializeToString(ex) : null, status);
@@ -328,7 +328,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         ex = _ef.Filter(ex, out var status);
                         
                         if (ex is MethodCallStatusException) {
-                            throw new MethodCallStatusException(ex.Message, status);
+                            throw ex;
                         }
                         throw new MethodCallStatusException(ex != null ?
                             _serializer.SerializeToString(ex) : null, status);
