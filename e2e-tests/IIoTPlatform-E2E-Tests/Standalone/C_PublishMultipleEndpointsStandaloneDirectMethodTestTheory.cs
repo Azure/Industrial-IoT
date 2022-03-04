@@ -252,6 +252,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
             Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            // We cannot perform sequence number checks in multi-endpoint tests as we the values will be unique only per endpoint.
+            // ToDo: Add sequence number checks once we support multi-endpoint validation.
 
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null) {
@@ -532,6 +534,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             //Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
             //    $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
             Assert.Equal(endpointsCount * endpointsCount, publishingMonitoringResultJson.ValueChangesByNodeId.Count);
+            // We cannot perform sequence number checks in multi-endpoint tests as we the values will be unique only per endpoint.
+            // ToDo: Add sequence number checks once we support multi-endpoint validation.
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
@@ -575,8 +579,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 Assert.True(diagInfo.OutgressIoTMessageCount > 0);
 
                 // Check that we are not dropping anything.
-                Assert.Equal((uint)0, diagInfo.EncoderNotificationsDropped);
-                Assert.Equal((ulong)0, diagInfo.OutgressInputBufferDropped);
+                Assert.Equal(0U, diagInfo.EncoderNotificationsDropped);
+                Assert.Equal(0UL, diagInfo.OutgressInputBufferDropped);
             }
 
             // This will keep track of currently published nodes.
@@ -685,6 +689,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             //Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
             //    $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
             Assert.True(publishingMonitoringResultJson.ValueChangesByNodeId.Count > 0, "No messages received at IoT Hub");
+            // We cannot perform sequence number checks in multi-endpoint tests as we the values will be unique only per endpoint.
+            // ToDo: Add sequence number checks once we support multi-endpoint validation.
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).ConfigureAwait(false);
@@ -883,6 +889,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Stop monitoring and get the result.
             var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
             Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            // We cannot perform sequence number checks in multi-endpoint tests as we the values will be unique only per endpoint.
+            // ToDo: Add sequence number checks once we support multi-endpoint validation.
 
             // Check that every published node is sending data.
             if (_context.ConsumedOpcUaNodes != null) {
