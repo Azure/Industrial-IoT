@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public string Message { get; set; }
 
         /// <summary>
-        /// Description.
+        /// Details of the exception.
         /// </summary>
         [DataMember(Name = "Details", Order = 1,
             EmitDefaultValue = true)]
