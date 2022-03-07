@@ -135,6 +135,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     SamplingInterval = node.Item2.OpcSamplingIntervalTimespan,
                                     HeartbeatInterval = node.Item2.HeartbeatIntervalTimespan,
                                     QueueSize = node.Item2.QueueSize,
+                                    // ToDo: Implement mechanism for SkipFirst.
                                     SkipFirst = node.Item2.SkipFirst,
                                 }).ToList()
                             }
@@ -317,6 +318,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             OpcSamplingIntervalTimespan = node
                                 .GetNormalizedSamplingInterval(standaloneCliModel.DefaultSamplingInterval),
                             QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
+                            // ToDo: Implement mechanism for SkipFirst.
                             SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                         });
                     }
@@ -339,6 +341,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 OpcSamplingIntervalTimespan = node
                                     .GetNormalizedSamplingInterval(standaloneCliModel.DefaultSamplingInterval),
                                 QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
+                                // ToDo: Implement mechanism for SkipFirst.
                                 SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                             });
                         }
@@ -353,6 +356,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         .GetNormalizedDataSetPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
                     OpcSamplingIntervalTimespan = standaloneCliModel.DefaultSamplingInterval,
                     QueueSize = standaloneCliModel.DefaultQueueSize,
+                    // ToDo: Implement mechanism for SkipFirst.
                     SkipFirst = standaloneCliModel.DefaultSkipFirst,
                 });
             }

@@ -8,13 +8,13 @@ The following OPC Publisher configuration can be applied by Command Line Interfa
 The `Alternative` field, where present, refers to the CLI argument applicable in **standalone mode only**. When both environment variable and CLI argument are provided, the latest will overrule the env variable.
 
             PublishedNodesFile=VALUE
-                                      The file used to store the configuration of the nodes to be publish 
+                                      The file used to store the configuration of the nodes to be publish
                                       along with the information to connect to the OPC UA server sources
                                       When this file is specified, or the default file is accessible by
                                       the module, OPC Publisher will start in standalone mode
                                       Alternative: --pf, --publishfile
                                       Mode: Standalone only
-                                      Type: string - file name, optionally prefixed with the path 
+                                      Type: string - file name, optionally prefixed with the path
                                       Default: publishednodes.json
 
              site=VALUE
@@ -72,7 +72,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: false
 
             EnableMetrics=VALUE
-                                      Enables/disables upstream metrics propagation 
+                                      Enables/disables upstream metrics propagation
                                       Alternative: N/A
                                       Mode: Standalone and Orchestrated
                                       Type: boolean
@@ -85,7 +85,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Alternative: --op, --opcpublishinginterval
                                       Mode: Standalone only
                                       Environment variable type: time span string {[d.]hh:mm:ss[.fffffff]}
-                                      Alternative argument type: integer in milliseconds 
+                                      Alternative argument type: integer in milliseconds
                                       Default: {00:00:01} (1000)
 
             DefaultSamplingInterval=VALUE
@@ -94,7 +94,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Alternative: --oi, --opcsamplinginterval
                                       Mode: Standalone only
                                       Environment variable type: time span string {[d.]hh:mm:ss[.fffffff]}
-                                      Alternative argument type: integer in milliseconds 
+                                      Alternative argument type: integer in milliseconds
                                       Default: {00:00:01} (1000)
 
             DefaultHeartbeatInterval=VALUE
@@ -105,15 +105,6 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Environment variable type: time span string {[d.]hh:mm:ss[.fffffff]}
                                       Alternative argument type: integer in seconds
                                       Default: {00:00:00} meaning heartbeat is disabled
-
-            DefaultSkipFirst=VALUE
-                                      Default for SkipFirst published node setting. When set to true OPC Publisher 
-                                      will not send as telemetry the initial datachange event received
-                                      from the OPC UA server for a particular monitored node.
-                                      Alternative: --sf, --skipfirstevent
-                                      Mode: Standalone only
-                                      Type: boolean
-                                      Default: false
 
             MessagingEncoding=VALUE
                                       The messaging encoding for outgoing telemetry.
@@ -130,7 +121,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: Samples
 
             FetchOpcNodeDisplayName=VALUE
-                                      Fetches the DisplayName for the nodes to be published from 
+                                      Fetches the DisplayName for the nodes to be published from
                                       the OPC UA Server when not explicitly set in the configuration.
                                       Note: This has high impact on OPC Publisher startup performance.
                                       Alternative: --fd, --fetchdisplayname
@@ -188,8 +179,8 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: 1
 
             LegacyCompatibility=VALUE
-                                      Forces the Publisher to format the telemetry in Legacy mode, using 
-                                      `"application/opcua+uajson"` for `ContentType` on the IoT Hub 
+                                      Forces the Publisher to format the telemetry in Legacy mode, using
+                                      `"application/opcua+uajson"` for `ContentType` on the IoT Hub
                                       Telemetry message.
                                       Alternative: --lc, --legacycompatibility
                                       Mode: Standalone only
@@ -204,8 +195,8 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: <not set>
 
             MaxNodesPerDataSet=VALUE
-                                      Maximum number of nodes within a DataSet/Subscription. 
-                                      When more nodes than this value are configured for a 
+                                      Maximum number of nodes within a DataSet/Subscription.
+                                      When more nodes than this value are configured for a
                                       DataSetWriter, they will be added in a separate DataSet/Subscription.
                                       Alternative: N/A
                                       Mode: Standalone only
@@ -349,7 +340,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: Directory
 
             AutoAcceptUntrustedCertificates=VALUE
-                                      OPC UA Client Security Config - auto accept untrusted 
+                                      OPC UA Client Security Config - auto accept untrusted
                                       peer certificates
                                       Alternative: --aa, --autoaccept
                                       Mode: Standalone and Orchestrated
@@ -357,7 +348,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: false
 
             RejectSha1SignedCertificates=VALUE
-                                      OPC UA Client Security Config - reject deprecated Sha1 
+                                      OPC UA Client Security Config - reject deprecated Sha1
                                       signed certificates
                                       Alternative: N/A
                                       Mode: Standalone and Orchestrated
@@ -373,7 +364,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: 1024
 
             AddAppCertToTrustedStore=VALUE
-                                      OPC UA Client Security Config - automatically copy own 
+                                      OPC UA Client Security Config - automatically copy own
                                       certificate's public key to the trusted certificate store
                                       Alternative: --tm, --trustmyself
                                       Mode: Standalone and Orchestrated
@@ -437,7 +428,17 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Mode: Standalone and Orchestrated
                                       Type: integer
                                       Default: 130,816 (128KB - 256)
+<!---
 
+            DefaultSkipFirst=VALUE
+                                      Default for SkipFirst published node setting. When set to true OPC Publisher
+                                      will not send as telemetry the initial datachange event received
+                                      from the OPC UA server for a particular monitored node.
+                                      Alternative: --sf, --skipfirstevent
+                                      Mode: Standalone only
+                                      Type: boolean
+                                      Default: false
+--->
 
 ### OPC Publisher 2.5.x and below
 
@@ -448,7 +449,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                      IoTHub device registry.
 
     iothubconnectionstring: the IoTHub owner connectionstring, optional. Typically you specify the IoTHub owner connectionstring only on the first start of the application. The connection string is encrypted and stored in the platforms certificiate store.
-	On subsequent calls it is read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry is removed and recreated each time.
+    On subsequent calls it is read from there and reused. If you specify the connectionstring on each start, the device which is created for the application in the IoTHub device registry is removed and recreated each time.
 
     There are a couple of environment variables which can be used to control the application:
     _HUB_CS: sets the IoTHub owner connectionstring

@@ -129,11 +129,15 @@ OPC UA optimizes network bandwidth by only sending changes to OPC Publisher when
  "HeartbeatInterval": 3600,
 ```
 
+<!--- ToDo: Bring back once SkipFirst mechanism is implemented.
+
 OPC UA sends the current data value when OPC Publisher connects to the OPC UA server. To prevent publishing this telemetry on startup to IoT Hub, the `SkipFirst` key can be additionally specified in the data item's configuration:
 
 ``` json
  "SkipFirst": true,
 ```
+
+-->
 
 ### Configuration via Command Line Arguments
 

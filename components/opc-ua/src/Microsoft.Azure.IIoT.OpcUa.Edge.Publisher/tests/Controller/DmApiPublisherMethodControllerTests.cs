@@ -82,6 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         OpcPublishingInterval = initialNode.OpcPublishingInterval,
                         OpcSamplingInterval = initialNode.OpcSamplingInterval,
                         QueueSize = initialNode.QueueSize,
+                        // ToDo: Implement mechanism for SkipFirst.
                         SkipFirst = initialNode.SkipFirst,
                     });
                 }
@@ -172,6 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         OpcPublishingInterval = initialNode.OpcPublishingInterval,
                         OpcSamplingInterval = initialNode.OpcSamplingInterval,
                         QueueSize = initialNode.QueueSize,
+                        // ToDo: Implement mechanism for SkipFirst.
                         SkipFirst = initialNode.SkipFirst,
                     });
                 }
