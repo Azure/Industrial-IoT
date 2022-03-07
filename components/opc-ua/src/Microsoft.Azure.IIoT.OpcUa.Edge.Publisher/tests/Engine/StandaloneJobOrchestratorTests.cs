@@ -34,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         private readonly AgentConfigModel _agentConfigModel;
         private readonly Mock<IAgentConfigProvider> _agentConfigProviderMock;
         private readonly NewtonSoftJsonSerializer _newtonSoftJsonSerializer;
+        private readonly NewtonSoftJsonSerializerRaw _newtonSoftJsonSerializerRaw;
         private readonly PublisherJobSerializer _publisherJobSerializer;
         private readonly ILogger _logger;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
@@ -51,6 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             _agentConfigProviderMock.Setup(p => p.Config).Returns(_agentConfigModel);
 
             _newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            _newtonSoftJsonSerializerRaw = new NewtonSoftJsonSerializerRaw();
             _publisherJobSerializer = new PublisherJobSerializer(_newtonSoftJsonSerializer);
             _logger = TraceLogger.Create();
             _publishedNodesJobConverter = new PublishedNodesJobConverter(_logger, _newtonSoftJsonSerializer);
@@ -144,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 Message = "Response 400 null request is provided",
                 Details = "{}",
             };
-            var serializeExceptionModel = _newtonSoftJsonSerializer.SerializeToString(exceptionModel);
+            var serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
             serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
 
             var numberOfEndpoints = 1;
@@ -196,7 +198,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     $"\"UseSecurity\":false,\"OpcAuthenticationMode\":\"anonymous\"," +
                     $"\"OpcNodes\":[{{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\"}}]}}",
             };
-            serializeExceptionModel = _newtonSoftJsonSerializer.SerializeToString(exceptionModel);
+            serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
             serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
 
             // test for null payload
@@ -210,7 +212,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             exceptionModel = new MethodCallStatusExceptionModel {
                 Message = "Response 400 "
             };
-            serializeExceptionModel = _newtonSoftJsonSerializer.SerializeToString(exceptionModel);
+            serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
             serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
         }
 

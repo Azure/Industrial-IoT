@@ -300,7 +300,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                         _logger.Verbose(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
-
                         if (ex is MethodCallStatusException) {
                             throw ex;
                         }
@@ -326,7 +325,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                         _logger.Verbose(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
-                        
                         if (ex is MethodCallStatusException) {
                             throw ex;
                         }
