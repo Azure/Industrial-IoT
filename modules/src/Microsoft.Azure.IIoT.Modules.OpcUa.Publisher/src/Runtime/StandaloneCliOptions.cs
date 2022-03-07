@@ -204,6 +204,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             }
             catch (Exception e) {
                 logger.Warning("Parse args exception: " + e.Message);
+                Environment.Exit(0);
             }
 
             if (isLegacyOption) {
