@@ -1,8 +1,8 @@
 [Home](../../readme.md)
 
-## OPC Publisher configuration via command line options and environment variables
+# OPC Publisher configuration via command line options and environment variables
 
-### OPC Publisher 2.8.2 and above
+## OPC Publisher 2.8.2 and above
 
 The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings.
 The `Alternative` field, where present, refers to the CLI argument applicable in **standalone mode only**. When both environment variable and CLI argument are provided, the latest will overrule the env variable.
@@ -440,7 +440,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: false
 --->
 
-### OPC Publisher 2.5.x and below
+## OPC Publisher 2.5.x and below
 
     Usage: opcpublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
 
