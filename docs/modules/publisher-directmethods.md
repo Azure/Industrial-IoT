@@ -20,9 +20,11 @@ If you need to migrate your application from OPC Publisher 2.5.x to OPC Publishe
 
 The definitions of the important terms used are described below:
 
-- __DataSet__ is a group of nodes within one OPC UA Server publishing of data value changes of those nodes is done with the same publishing interval.
-- __DataSetWriter__ has one DataSet and contains all information to establish a connection to an OPC UA Server.
+- __DataSet__ is a group of nodes within one OPC UA server, publishing of data value changes of those nodes is done with the same publishing interval.
+- __DataSetWriter__ has one DataSet and contains all information to establish a connection to an OPC UA server.
 - __DatSetWriterGroup__ is used to group several DataSetWriter's for a specific OPC UA server.
+
+Below we will dicuss which attributes of payload schema will define a DatSetWriterGroup and DataSetWriter.
 
 ## Payload Schema
 
@@ -92,6 +94,14 @@ OpcNode attributes are as follows:
 | `HeartbeatInterval`             | No        | Integer | 0       | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been <br>changed at the source. This value is represented in seconds. <br>0 means the heartbeat mechanism is disabled. <br>This value is ignored when HeartbeatIntervalTimespan is present                                         |
 | `HeartbeatIntervalTimespan`     | No        | String  | null    | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been <br>changed at the source. This value is represented in seconds. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}).                                                                                                    |
 | `QueueSize`                     | No        | Integer | 1       | The desired QueueSize for the monitored item to be published.                                                                                                                                                                                                                                                                              |
+
+In the implementation of OPC Publisher, DatSetWriterGroup is defined by combination of `DataSetWriterGroup` attribute and details of OPC UA server endpoint (`EndpointUrl` and connection details).
+Each unique DatSetWriterGroup will result in one session to OPC UA server. This session will contain several subscriptions within it for each DataSetWriter of DatSetWriterGroup.
+Where DataSetWriter is defined by `DataSetWriterId` and effective `DataSetPublishingInterval` attributes.
+
+Note that you can have several entries in OPC Publisher configuration for the same OPC UA server endpoint with the same `DataSetWriterGroup` atributes if you need to introduce semantic grouping of DataSetWriters.
+You can also have entries for the same OPC UA server endpoint with different `DataSetWriterGroup` atributes if you need to separate DataSetWriters into several groups. For example, this can be used to have one DataSetWriterGroup per assets in OPC UA server.
+The one consideration to keep in mind here is that each unique DataSetWriterGroup will define a separate session to an OPC UA server which can incur a small computational overhead.
 
 Now let's dive into each direct method request and response payloads with examples.
 
