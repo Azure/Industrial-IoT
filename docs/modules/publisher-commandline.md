@@ -8,7 +8,7 @@ The following OPC Publisher configuration can be applied by Command Line Interfa
 The `Alternative` field, where present, refers to the CLI argument applicable in **standalone mode only**. When both environment variable and CLI argument are provided, the latest will overrule the env variable.
 
             PublishedNodesFile=VALUE
-                                      The file used to store the configuration of the nodes to be publish
+                                      The file used to store the configuration of the nodes to be published
                                       along with the information to connect to the OPC UA server sources
                                       When this file is specified, or the default file is accessible by
                                       the module, OPC Publisher will start in standalone mode
@@ -180,7 +180,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: 1
 --->
             LegacyCompatibility=VALUE
-                                      Forces the Publisher to format the telemetry in Legacy mode, using
+                                      Forces the Publisher to operate in 2.5 legacy mode, using
                                       `"application/opcua+uajson"` for `ContentType` on the IoT Hub
                                       Telemetry message.
                                       Alternative: --lc, --legacycompatibility
@@ -189,7 +189,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: false
 
             PublishedNodesSchemaFile=VALUE
-                                      The validation schema filename for publish file.
+                                      The validation schema filename for published nodes file.
                                       Alternative: --pfs, --publishfileschema
                                       Mode: Standalone only
                                       Type: string

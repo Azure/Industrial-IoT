@@ -270,7 +270,7 @@ The `mq/om` parameter controls the upper limit of the capacity of the internal m
 - Use OPC Publisher > 2.6 in standalone mode
   - Use PubSub format (`--mm=PubSub`)
   - When Samples format (`--mm=Samples`) is required
-    - Don't use FullFeaturesMessage (`--fm=false`)
+    - Don't use FullFeaturedMessage (`--fm=false`). You can find a sample of full featured telemetry message [here](../dev-guides/telemetry-messages-format.md).
   - Use batching (`--bs=600`) in combination with batch interval (`--si=20`)
     - Batching is also useable with PubSub but current implementation of PubSub batches automatically based on Publishing Interval of OPC UA nodes. When most nodes are using the same publishing interval it isn't necessary.
   - Increase Monitored Items Queue capacity (`--mq=25000`)
