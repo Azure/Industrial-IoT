@@ -56,7 +56,6 @@ The `_V1` direct methods  uses the  payload schema as described below:
       "DisplayName": "string",
       "HeartbeatInterval": "integer",
       "HeartbeatIntervalTimespan": "string",
-      "SkipFirst": "boolean",
       "QueueSize": "integer"
     }
   ]
@@ -95,7 +94,6 @@ OpcNode attributes are as follows:
 | `DisplayName`                   | No        | String  | null    | A user defined tag to be added to the telemetry message <br>when publisher runs in Samples message mode. |
 | `HeartbeatInterval`             | No        | Integer | 0       | The interval used for the node to publish a value (a publisher <br>cached one) even if the value has not been <br>changed at the source. This value is represented in seconds. <br>0 means the heartbeat mechanism is disabled. <br>This value is ignored when HeartbeatIntervalTimespan is present |
 | `HeartbeatIntervalTimespan`     | No        | String  | null    | The interval used for the node to publish a value (a publisher <br>cached one) even if the value has not been <br>changed at the source. This value is represented in seconds. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). |
-| `SkipFirst`                     | No        | Boolean | false   | Instructs the publisher not to add to telemetry the<br> Initial DataChange (after subscription activation) for this OpcNode. |
 | `QueueSize`                     | No        | Integer | 1       | The desired QueueSize for the monitored item to be published. |
 
 _Note_: __Id__ field may be omitted when ExpandedNodeIdId is present.
