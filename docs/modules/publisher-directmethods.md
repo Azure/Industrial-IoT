@@ -261,7 +261,7 @@ Returns the configured endpoints (Datasets)
 
 Returns the nodes configured for one Endpoint (Dataset)
 
-  _Request_: contains the elements necessary to uniquely identify a Dataset. The EndpointUrl is mandatory in the request, the other attributes are optional and can be used to refine your result.
+  _Request_: contains the elements defining the Dataset. Please note that the Dataset definition should fully match the one that is present in OPC Publisher configuration.
 
   _Response_: list of `OpcNodes` configured for the selected Endpoint (and optional parameters).
 
@@ -275,7 +275,10 @@ Returns the nodes configured for one Endpoint (Dataset)
   >
   > ```json
   > {
-  >    "EndpointUrl": "opc.tcp://192.168.100.20:50000"
+  >    "EndpointUrl": "opc.tcp://192.168.100.20:50000",
+  >    "DataSetWriterGroup": "Asset0",
+  >    "DataSetWriterId": "DataFlow0",
+  >    "DataSetPublishingInterval": 5000
   > }
   > ```
   >
