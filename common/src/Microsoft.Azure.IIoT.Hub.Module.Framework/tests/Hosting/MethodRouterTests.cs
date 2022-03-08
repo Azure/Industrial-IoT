@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Autofac;
     using System.Linq;
     using System.Threading;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine;
 
     public class MethodRouterTests {
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
@@ -501,8 +502,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _serializer.SerializeToBytes(buffer).ToArray())).Result;
 
             Assert.Equal(400, response.Status);
-            var ex = _serializer.Deserialize<ArgumentNullException>(
+            var deserializedResponse = _serializer.Deserialize<MethodCallStatusExceptionModel>(
                 response.ResultAsJson);
+            var ex = _serializer.Deserialize<ArgumentNullException>(
+                deserializedResponse.Details);
             Assert.Equal("request", ex.ParamName);
         }
 
