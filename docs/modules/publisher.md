@@ -166,7 +166,7 @@ This interface can be accessed using an OPC UA client application, for example [
 
 ### Configuration via Cloud-based, Companion REST Microservice
 
-**Please note: This feature is not available in version 2.5 or below.**
+**Please note: This feature is not available in version 2.5.x.**
 
 A cloud-based, companion microservice with a REST interface is described and available [here](https://github.com/Azure/Industrial-IoT/blob/main/docs/services/publisher.md). It can be used to configure OPC Publisher via an OpenAPI-compatible interface, for example through Swagger.
 

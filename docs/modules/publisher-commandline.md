@@ -170,6 +170,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Environment variable type: time span string {[d.]hh:mm:ss[.fffffff]}
                                       Alternative argument type: integer in seconds
                                       Default: {00:00:60}
+<!---
 
             ScaleTestCount=VALUE
                                       The number of monitored item clones in scale tests.
@@ -177,7 +178,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Mode: Standalone only
                                       Type: integer
                                       Default: 1
-
+--->
             LegacyCompatibility=VALUE
                                       Forces the Publisher to format the telemetry in Legacy mode, using
                                       `"application/opcua+uajson"` for `ContentType` on the IoT Hub
@@ -440,7 +441,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: false
 --->
 
-## OPC Publisher 2.5.x and below
+## OPC Publisher 2.5.x
 
     Usage: opcpublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
 
@@ -556,11 +557,13 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                    nodes without
                                    a heartbeat interval setting.
                                    Default: 0
+<!---
           --sf, --skipfirstevent=VALUE
                                    the publisher is using this as default value for
                                    the skip first event setting of nodes without
                                    a skip first event setting.
                                    Default: False
+--->                                   
           --pn, --portnum=VALUE
                                    the server port of the publisher OPC server
                                    endpoint.
