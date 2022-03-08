@@ -138,7 +138,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: false
 
             BatchSize=VALUE
-                                      The number of ingressed OPC UA data-change messages to be cached for batching.
+                                      The number of incoming OPC UA data change messages to be cached for batching.
                                       When BatchSize is 1 or TriggerInterval is set to 0 batching is disabled.
                                       Alternative: --bs, --batchsize
                                       Mode: Standalone and Orchestrated
@@ -432,7 +432,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
 
             DefaultSkipFirst=VALUE
                                       Default for SkipFirst published node setting. When set to true OPC Publisher
-                                      will not send as telemetry the initial datachange event received
+                                      will not send as telemetry the initial data change event received
                                       from the OPC UA server for a particular monitored node.
                                       Alternative: --sf, --skipfirstevent
                                       Mode: Standalone only
