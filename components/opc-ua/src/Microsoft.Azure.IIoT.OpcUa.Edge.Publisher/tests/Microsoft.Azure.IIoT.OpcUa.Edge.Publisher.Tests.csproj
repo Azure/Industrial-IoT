@@ -44,6 +44,9 @@
     <None Update="Controller\DmApiPayloadCollection.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Engine\pn_2.5_legacy_error.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Engine\pn_opc_nodes_empty_and_null.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

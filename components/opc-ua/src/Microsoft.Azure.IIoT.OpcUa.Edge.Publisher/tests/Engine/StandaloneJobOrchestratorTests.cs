@@ -92,12 +92,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitStandaloneJobOrchestrator();
 
-            var endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync();
-
+            var endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
             Assert.Equal(1, endpoints.Count);
 
             var endpoint = endpoints[0];
-
             Assert.Equal(endpoint.DataSetWriterGroup, "DataSetWriterGroup0");
             Assert.Equal(endpoint.EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
             Assert.Equal(endpoint.UseSecurity, false);
@@ -109,10 +107,69 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             endpoint.OpcAuthenticationPassword = "password";
 
-            var nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoint);
-
+            var nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoint).ConfigureAwait(false);
             Assert.Equal(1, nodes.Count);
             Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1", nodes[0].Id);
+
+            endpoint.OpcNodes = new List<OpcNodeModel>();
+            endpoint.OpcNodes.Add(new OpcNodeModel {
+                Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2",
+            });
+
+            await _standaloneJobOrchestrator.PublishNodesAsync(endpoint).ConfigureAwait(false);
+
+            endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            Assert.Equal(1, endpoints.Count);
+
+            endpoint.OpcNodes = null;
+            nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoint).ConfigureAwait(false);
+            Assert.Equal(2, nodes.Count);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1", nodes[0].Id);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2", nodes[1].Id);
+
+            // Simulate restart.
+            _standaloneJobOrchestrator.Dispose();
+            _standaloneJobOrchestrator = null;
+            InitStandaloneJobOrchestrator();
+
+            // We should get the same endpoint and nodes after restart.
+            endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            Assert.Equal(1, endpoints.Count);
+
+            endpoint = endpoints[0];
+            Assert.Equal(endpoint.DataSetWriterGroup, "DataSetWriterGroup0");
+            Assert.Equal(endpoint.EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoint.UseSecurity, false);
+            Assert.Equal(endpoint.OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
+            Assert.Equal(endpoint.OpcAuthenticationUsername, "username");
+            Assert.Equal(endpoint.OpcAuthenticationPassword, null);
+            Assert.Equal(endpoint.DataSetWriterId, "DataSetWriterId0");
+            Assert.Equal(endpoint.DataSetPublishingInterval, 10000);
+
+            endpoint.OpcAuthenticationPassword = "password";
+
+            nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoint).ConfigureAwait(false);
+            Assert.Equal(2, nodes.Count);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1", nodes[0].Id);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2", nodes[1].Id);
+        }
+
+        [Theory]
+        [InlineData("Engine/pn_2.5_legacy_error.json", false)]
+        [InlineData("Engine/pn_2.5_legacy_error.json", true)]
+        public async Task Leacy25PublishedNodesFileError(string publishedNodesFile, bool useSchemaValidation) {
+            if (!useSchemaValidation) {
+                _standaloneCliModel.PublishedNodesSchemaFile = null;
+            }
+
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            InitStandaloneJobOrchestrator();
+
+            // Transformation of published nodes entries should throw a serialization error since
+            // Engine/pn_2.5_legacy_error.json contains both NodeId and OpcNodes.
+            // So as a result, we should end up with zero endpoints.
+            var endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            Assert.Equal(0, endpoints.Count);
         }
 
         [Theory]

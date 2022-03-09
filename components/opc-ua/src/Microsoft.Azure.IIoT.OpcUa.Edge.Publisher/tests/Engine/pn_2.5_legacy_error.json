@@ -10,6 +10,11 @@
     "DataSetPublishingInterval": 10000,
     "NodeId": {
       "Identifier": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"
-    }
+    },
+    "OpcNodes": [
+      {
+        "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"
+      }
+    ]
   }
 ]
