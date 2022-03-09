@@ -87,6 +87,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         }
 
         [Theory]
+        [InlineData("Engine/pn_2.5_legacy.json")]
+        public async Task Leacy25PublishedNodesFile(string publishedNodesFile) {
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            InitStandaloneJobOrchestrator();
+
+            var endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync();
+
+            Assert.Equal(1, endpoints.Count);
+
+            var endpoint = endpoints[0];
+
+            Assert.Equal(endpoint.DataSetWriterGroup, "DataSetWriterGroup0");
+            Assert.Equal(endpoint.EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoint.UseSecurity, false);
+            Assert.Equal(endpoint.OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
+            Assert.Equal(endpoint.OpcAuthenticationUsername, "username");
+            Assert.Equal(endpoint.OpcAuthenticationPassword, null);
+            Assert.Equal(endpoint.DataSetWriterId, "DataSetWriterId0");
+            Assert.Equal(endpoint.DataSetPublishingInterval, 10000);
+
+            endpoint.OpcAuthenticationPassword = "password";
+
+            var nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoint);
+
+            Assert.Equal(1, nodes.Count);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1", nodes[0].Id);
+        }
+
+        [Theory]
         [InlineData("Engine/publishednodes.json")]
         [InlineData("Engine/publishednodeswithoptionalfields.json")]
         public async Task GetAvailableJobAsyncMulithreading(string publishedNodesFile) {
@@ -130,7 +159,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             InitStandaloneJobOrchestrator();
 
             var exceptionResponse = $"{{\"Message\":\"Response 400 null request is provided\",\"Details\":{{}}}}";
-            
+
             // Check null request.
             await FluentActions
                 .Invoking(async () => await _standaloneJobOrchestrator
@@ -140,7 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ThrowAsync<MethodCallStatusException>()
                 .WithMessage(exceptionResponse)
                 .ConfigureAwait(false);
-            
+
             // empty description
             var exceptionModel = new MethodCallStatusExceptionModel {
                 Message = "Response 400 null request is provided",

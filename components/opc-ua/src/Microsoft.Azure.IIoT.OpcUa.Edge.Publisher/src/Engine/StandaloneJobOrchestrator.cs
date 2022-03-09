@@ -327,6 +327,52 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
         }
 
+        /// <summary>
+        /// Remove entries from list of PublishedNodesEntryModel objects that do not contain any node definition.
+        /// </summary>
+        /// <remarks>
+        /// Note that the method does not do any locking.
+        /// </remarks>
+        /// <param name="entries"></param>
+        private static void RemoveEntriesWithoutNodes(List<PublishedNodesEntryModel> entries) {
+            if (entries == null) {
+                return;
+            }
+
+            entries.RemoveAll(entry => (entry.OpcNodes == null || entry.OpcNodes.Count == 0)
+                && (entry.NodeId == null || string.IsNullOrEmpty(entry.NodeId.Identifier)));
+        }
+
+        /// <summary>
+        /// Transforms legacy entries that use NodeId into ones using OpcNodes.
+        /// </summary>
+        /// <param name="entries"></param>
+        private static void TransformFromLegacyNodeId(List<PublishedNodesEntryModel> entries) {
+            if (entries == null) {
+                return;
+            }
+
+            foreach (var entry in entries) {
+                if (!string.IsNullOrEmpty(entry.NodeId?.Identifier)) {
+                    if (entry.OpcNodes == null) {
+                        entry.OpcNodes = new List<OpcNodeModel>();
+                    }
+
+                    if (entry.OpcNodes.Count != 0) {
+                        throw new SerializerException($"Published nodes file contains DataSetWriter entry which " +
+                            $"defines both {nameof(entry.OpcNodes)} and {nameof(entry.NodeId)}." +
+                            $"This is not supported. Please fix published nodes file.");
+                    }
+
+                    entry.OpcNodes.Add(new OpcNodeModel {
+                        Id = entry.NodeId.Identifier,
+                    });
+
+                    entry.NodeId = null;
+                }
+            }
+        }
+
         private void RefreshJobFromFile() {
             var retryCount = 3;
             var lastWriteTime = _publishedNodesProvider.GetLastWriteTime();
@@ -349,6 +395,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                             try {
                                 entries = DeserializePublishedNodes(content).ToList();
+                                TransformFromLegacyNodeId(entries);
                             }
                             catch (IOException) {
                                 throw; //pass it thru, to handle retries
@@ -360,11 +407,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 break;
                             }
 
-                            // Remove entries with null or empty OpcNodes.
-                            entries.RemoveAll(entry => entry.OpcNodes == null || entry.OpcNodes.Count == 0);
+                            // Remove entries without node definitions.
+                            RemoveEntriesWithoutNodes(entries);
 
                             _publishedNodesEntries.Clear();
-                            _publishedNodesEntries.AddRange(entries);
+                            if (entries != null) {
+                                _publishedNodesEntries.AddRange(entries);
+                            }
 
                             RefreshJobs(entries);
                         }
@@ -716,8 +765,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                 }
 
-                // Remove entries without nodes.
-                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes == null || entry.OpcNodes.Count == 0);
+                // Remove entries without node definitions.
+                RemoveEntriesWithoutNodes(_publishedNodesEntries);
 
                 PersistPublishedNodes();
 
@@ -823,8 +872,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         throw new MethodCallStatusException((int)HttpStatusCode.NotFound, $"Endpoint or node not found: {request.EndpointUrl}");
                     }
 
-                    // Remove entries without nodes.
-                    _publishedNodesEntries.RemoveAll(entry => (entry.OpcNodes == null || entry.OpcNodes.Count == 0));
+                    // Remove entries without node definitions.
+                    RemoveEntriesWithoutNodes(_publishedNodesEntries);
 
                     PersistPublishedNodes();
 
@@ -1002,8 +1051,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                 }
 
-                // Remove entries without nodes.
-                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes == null || entry.OpcNodes.Count == 0);
+                // Remove entries without node definitions.
+                RemoveEntriesWithoutNodes(_publishedNodesEntries);
 
                 PersistPublishedNodes();
 
@@ -1143,7 +1192,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 foreach (var entry in _publishedNodesEntries) {
                     if (entry.HasSameDataSet(request)) {
                         endpointFound = true;
-                        response.AddRange(entry.OpcNodes);
+                        if (entry.OpcNodes != null) {
+                            response.AddRange(entry.OpcNodes);
+                        }
                     }
                 }
 
