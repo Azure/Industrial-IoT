@@ -557,13 +557,11 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                    nodes without
                                    a heartbeat interval setting.
                                    Default: 0
-<!---
           --sf, --skipfirstevent=VALUE
                                    the publisher is using this as default value for
                                    the skip first event setting of nodes without
                                    a skip first event setting.
                                    Default: False
---->                                   
           --pn, --portnum=VALUE
                                    the server port of the publisher OPC server
                                    endpoint.
