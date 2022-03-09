@@ -339,12 +339,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 return;
             }
 
-            entries.RemoveAll(entry => (entry.OpcNodes == null || entry.OpcNodes.Count == 0)
-                && (entry.NodeId == null || string.IsNullOrEmpty(entry.NodeId.Identifier)));
+            entries.RemoveAll(entry => entry.OpcNodes == null || entry.OpcNodes.Count == 0);
         }
 
         /// <summary>
         /// Transforms legacy entries that use NodeId into ones using OpcNodes.
+        /// The transformation will happen in-place.
         /// </summary>
         /// <param name="entries"></param>
         private static void TransformFromLegacyNodeId(List<PublishedNodesEntryModel> entries) {
