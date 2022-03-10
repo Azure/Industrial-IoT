@@ -1,0 +1,15 @@
+﻿[
+  {
+    "EndpointUrl": "opc.tcp://opcplc:50000",
+    "UseSecurity": false,
+    "OpcAuthenticationMode": "UsernamePassword",
+    "OpcAuthenticationUsername": "username",
+    "OpcAuthenticationPassword": "password",
+    "DataSetWriterGroup": "DataSetWriterGroup0",
+    "DataSetWriterId": "DataSetWriterId0",
+    "DataSetPublishingInterval": 10000,
+    "NodeId": {
+      "Identifier": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"
+    }
+  }
+]
