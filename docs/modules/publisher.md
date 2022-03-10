@@ -291,3 +291,5 @@ To learn more about how to create a local metrics dashboard for OPC Publisher V2
 
 * [Learn how to deploy OPC Publisher and Twin Modules](../deploy/howto-install-iot-edge.md)
 * [Learn about the OPC Publisher Microservice](../services/publisher.md)
+* [Learn how to configure the OPC Publisher in EFLOW (Azure IoT Edge for Linux on Windows)](https://github.com/Azure/iotedge-eflow/blob/main/samples/networking/multiple-nics/README.md)
+
