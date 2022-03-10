@@ -34,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         private readonly AgentConfigModel _agentConfigModel;
         private readonly Mock<IAgentConfigProvider> _agentConfigProviderMock;
         private readonly NewtonSoftJsonSerializer _newtonSoftJsonSerializer;
+        private readonly NewtonSoftJsonSerializerRaw _newtonSoftJsonSerializerRaw;
         private readonly PublisherJobSerializer _publisherJobSerializer;
         private readonly ILogger _logger;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
@@ -51,6 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             _agentConfigProviderMock.Setup(p => p.Config).Returns(_agentConfigModel);
 
             _newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            _newtonSoftJsonSerializerRaw = new NewtonSoftJsonSerializerRaw();
             _publisherJobSerializer = new PublisherJobSerializer(_newtonSoftJsonSerializer);
             _logger = TraceLogger.Create();
             _publishedNodesJobConverter = new PublishedNodesJobConverter(_logger, _newtonSoftJsonSerializer);
@@ -82,6 +84,92 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 _publishedNodesProvider,
                 _newtonSoftJsonSerializer
             );
+        }
+
+        [Theory]
+        [InlineData("Engine/pn_2.5_legacy.json")]
+        public async Task Leacy25PublishedNodesFile(string publishedNodesFile) {
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            InitStandaloneJobOrchestrator();
+
+            var endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            Assert.Equal(1, endpoints.Count);
+
+            var endpoint = endpoints[0];
+            Assert.Equal(endpoint.DataSetWriterGroup, "DataSetWriterGroup0");
+            Assert.Equal(endpoint.EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoint.UseSecurity, false);
+            Assert.Equal(endpoint.OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
+            Assert.Equal(endpoint.OpcAuthenticationUsername, "username");
+            Assert.Equal(endpoint.OpcAuthenticationPassword, null);
+            Assert.Equal(endpoint.DataSetWriterId, "DataSetWriterId0");
+            Assert.Equal(endpoint.DataSetPublishingInterval, 10000);
+
+            endpoint.OpcAuthenticationPassword = "password";
+
+            var nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoint).ConfigureAwait(false);
+            Assert.Equal(1, nodes.Count);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1", nodes[0].Id);
+
+            endpoint.OpcNodes = new List<OpcNodeModel>();
+            endpoint.OpcNodes.Add(new OpcNodeModel {
+                Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2",
+            });
+
+            await _standaloneJobOrchestrator.PublishNodesAsync(endpoint).ConfigureAwait(false);
+
+            endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            Assert.Equal(1, endpoints.Count);
+
+            endpoint.OpcNodes = null;
+            nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoint).ConfigureAwait(false);
+            Assert.Equal(2, nodes.Count);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1", nodes[0].Id);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2", nodes[1].Id);
+
+            // Simulate restart.
+            _standaloneJobOrchestrator.Dispose();
+            _standaloneJobOrchestrator = null;
+            InitStandaloneJobOrchestrator();
+
+            // We should get the same endpoint and nodes after restart.
+            endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            Assert.Equal(1, endpoints.Count);
+
+            endpoint = endpoints[0];
+            Assert.Equal(endpoint.DataSetWriterGroup, "DataSetWriterGroup0");
+            Assert.Equal(endpoint.EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoint.UseSecurity, false);
+            Assert.Equal(endpoint.OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
+            Assert.Equal(endpoint.OpcAuthenticationUsername, "username");
+            Assert.Equal(endpoint.OpcAuthenticationPassword, null);
+            Assert.Equal(endpoint.DataSetWriterId, "DataSetWriterId0");
+            Assert.Equal(endpoint.DataSetPublishingInterval, 10000);
+
+            endpoint.OpcAuthenticationPassword = "password";
+
+            nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoint).ConfigureAwait(false);
+            Assert.Equal(2, nodes.Count);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1", nodes[0].Id);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2", nodes[1].Id);
+        }
+
+        [Theory]
+        [InlineData("Engine/pn_2.5_legacy_error.json", false)]
+        [InlineData("Engine/pn_2.5_legacy_error.json", true)]
+        public async Task Leacy25PublishedNodesFileError(string publishedNodesFile, bool useSchemaValidation) {
+            if (!useSchemaValidation) {
+                _standaloneCliModel.PublishedNodesSchemaFile = null;
+            }
+
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            InitStandaloneJobOrchestrator();
+
+            // Transformation of published nodes entries should throw a serialization error since
+            // Engine/pn_2.5_legacy_error.json contains both NodeId and OpcNodes.
+            // So as a result, we should end up with zero endpoints.
+            var endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            Assert.Equal(0, endpoints.Count);
         }
 
         [Theory]
@@ -124,6 +212,97 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         }
 
         [Fact]
+        public async Task Test_SerializableExceptionResponse() {
+            InitStandaloneJobOrchestrator();
+
+            var exceptionResponse = $"{{\"Message\":\"Response 400 null request is provided\",\"Details\":{{}}}}";
+
+            // Check null request.
+            await FluentActions
+                .Invoking(async () => await _standaloneJobOrchestrator
+                    .PublishNodesAsync(null)
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage(exceptionResponse)
+                .ConfigureAwait(false);
+
+            // empty description
+            var exceptionModel = new MethodCallStatusExceptionModel {
+                Message = "Response 400 null request is provided",
+                Details = "{}",
+            };
+            var serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
+            serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
+
+            var numberOfEndpoints = 1;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                })
+                .ToList();
+
+            var endpoints = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => GenerateEndpoint(i, opcNodes, false))
+                .ToList();
+
+            await _standaloneJobOrchestrator.PublishNodesAsync(endpoints[0]).ConfigureAwait(false);
+
+            exceptionResponse = $"{{\"Message\":\"Response 404 Nodes not found\"," +
+                $"\"Details\":{{\"DataSetWriterId\":\"DataSetWriterId0\"," +
+                $"\"DataSetWriterGroup\":\"DataSetWriterGroup\"," +
+                $"\"DataSetPublishingInterval\":1000," +
+                $"\"EndpointUrl\":\"opc.tcp://opcplc:50000\"," +
+                $"\"UseSecurity\":false,\"OpcAuthenticationMode\":\"anonymous\"," +
+                $"\"OpcNodes\":[{{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\"}}]}}}}";
+
+            var opcNodes1 = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt{i}",
+                })
+                .ToList();
+            var endpointsToDelete = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => GenerateEndpoint(i, opcNodes1, false))
+                .ToList();
+
+            // try to unpublish a not published nodes.
+            await FluentActions
+                .Invoking(async () => await _standaloneJobOrchestrator
+                    .UnpublishNodesAsync(endpointsToDelete[0])
+                    .ConfigureAwait(false))
+                .Should()
+                .ThrowAsync<MethodCallStatusException>()
+                .WithMessage(exceptionResponse)
+                .ConfigureAwait(false);
+
+            // Details equal to a json string
+            exceptionModel = new MethodCallStatusExceptionModel {
+                Message = "Response 404 Nodes not found",
+                Details = $"{{\"DataSetWriterId\":\"DataSetWriterId0\"," +
+                    $"\"DataSetWriterGroup\":\"DataSetWriterGroup\"," +
+                    $"\"DataSetPublishingInterval\":1000,\"EndpointUrl\":\"opc.tcp://opcplc:50000\"," +
+                    $"\"UseSecurity\":false,\"OpcAuthenticationMode\":\"anonymous\"," +
+                    $"\"OpcNodes\":[{{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\"}}]}}",
+            };
+            serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
+            serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
+
+            // test for null payload
+            exceptionResponse = $"{{\"Message\":\"Response 400 \",\"Details\":null}}";
+            FluentActions.Invoking(
+                    () => throw new MethodCallStatusException(null, 400))
+                    .Should()
+                    .Throw<MethodCallStatusException>()
+                    .WithMessage(exceptionResponse);
+
+            exceptionModel = new MethodCallStatusExceptionModel {
+                Message = "Response 400 "
+            };
+            serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
+            serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
+        }
+
+        [Fact]
         public async Task Test_PublishNodes_NullOrEmpty() {
             InitStandaloneJobOrchestrator();
 
@@ -134,9 +313,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null request is provided: {{}}")
+                .WithMessage($"{{\"Message\":\"Response 400 null request is provided\",\"Details\":{{}}}}")
                 .ConfigureAwait(false);
-
 
             var request = new PublishedNodesEntryModel {
                 EndpointUrl = new Uri("opc.tcp://opcplc:50000"),
@@ -149,7 +327,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null or empty OpcNodes is provided in request: {{}}")
+                .WithMessage($"{{\"Message\":\"Response 400 null or empty OpcNodes is provided in request\",\"Details\":{{}}}}")
                 .ConfigureAwait(false);
 
             request.OpcNodes = new List<OpcNodeModel>();
@@ -161,7 +339,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null or empty OpcNodes is provided in request: {{}}")
+                .WithMessage($"{{\"Message\":\"Response 400 null or empty OpcNodes is provided in request\",\"Details\":{{}}}}")
                 .ConfigureAwait(false);
         }
 
@@ -176,7 +354,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null request is provided: {{}}")
+                .WithMessage($"{{\"Message\":\"Response 400 null request is provided\",\"Details\":{{}}}}")
                 .ConfigureAwait(false);
         }
 
@@ -240,7 +418,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null request is provided: {{}}")
+                .WithMessage($"{{\"Message\":\"Response 400 null request is provided\",\"Details\":{{}}}}")
                 .ConfigureAwait(false);
         }
 
@@ -255,7 +433,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 null request is provided: {{}}")
+                .WithMessage($"{{\"Message\":\"Response 400 null request is provided\",\"Details\":{{}}}}")
                 .ConfigureAwait(false);
         }
 
@@ -286,7 +464,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 Request contains two entries for the same endpoint at index 0 and 2: {{}}")
+                .WithMessage($"{{\"Message\":\"Response 400 Request contains two entries for the same endpoint at index 0 and 2\",\"Details\":{{}}}}")
                 .ConfigureAwait(false);
         }
 
@@ -321,7 +499,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 400 Request contains two entries for the same endpoint at index 0 and 2: {{}}")
+                .WithMessage($"{{\"Message\":\"Response 400 Request contains two entries for the same endpoint at index 0 and 2\",\"Details\":{{}}}}")
                 .ConfigureAwait(false);
         }
 
@@ -437,7 +615,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                             .ConfigureAwait(false))
                         .Should()
                         .ThrowAsync<MethodCallStatusException>()
-                        .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}: {{}}")
+                        .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {request.EndpointUrl}\",\"Details\":{{}}}}")
                         .ConfigureAwait(false);
                 }
                 else {
@@ -485,7 +663,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         .ConfigureAwait(false))
                     .Should()
                     .ThrowAsync<MethodCallStatusException>()
-                    .WithMessage($"Response 404 Endpoint not found: {endpoint.EndpointUrl}: {{}}")
+                    .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {endpoint.EndpointUrl}\",\"Details\":{{}}}}")
                     .ConfigureAwait(false);
             }
 
@@ -529,7 +707,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 404 Endpoint not found: {updateRequest[3].EndpointUrl}: {{}}")
+                .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {updateRequest[3].EndpointUrl}\",\"Details\":{{}}}}")
                 .ConfigureAwait(false);
 
             updateRequest.RemoveAt(3);
