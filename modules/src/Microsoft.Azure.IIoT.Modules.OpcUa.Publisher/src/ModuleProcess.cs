@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.State;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
@@ -120,6 +121,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await workerSupervisor.StartAsync().ConfigureAwait(false);
+
+                        // Reporting runtime state on restart.
+                        // Reporting will happen only in stadalone mode.
+                        var standaloneCliOptions = new StandaloneCliOptions(_config);
+                        if (standaloneCliOptions.RunInStandaloneMode) {
+                            var runtimeStateReporter = hostScope.Resolve<IRuntimeStateReporter>();
+                            // Needs to be called only after module.StartAsync() so that IClient is initialized.
+                            await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false);
+                        }
+
                         sessionManager = hostScope.Resolve<ISessionManager>();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task).ConfigureAwait(false);
@@ -226,6 +237,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     .SingleInstance();
                 builder.RegisterType<PublisherMethodsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
+                // Runtime state reporter.
+                builder.RegisterType<RuntimeStateReporter>()
+                    .AsImplementedInterfaces().SingleInstance();
             }
             else {
                 builder.AddDiagnostics(config);

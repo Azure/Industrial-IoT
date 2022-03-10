@@ -300,6 +300,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
+            public async Task SendEventAsync(string outputName, Message message) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.SendEventAsync(outputName, message);
+            }
+
+            /// <inheritdoc />
             public async Task SendEventBatchAsync(IEnumerable<Message> messages) {
                 if (IsClosed) {
                     return;
@@ -500,6 +508,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     return;
                 }
                 await _client.SendEventAsync(message);
+            }
+
+            /// <inheritdoc />
+            public Task SendEventAsync(string outputName, Message message) {
+                throw new InvalidOperationException(
+                    "DeviceClient does not support specifying output target.");
             }
 
             /// <inheritdoc />
