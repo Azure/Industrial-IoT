@@ -28,10 +28,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create subscription manager
         /// </summary>
-        public SubscriptionServices(ISessionManager sessionManager, IVariantEncoderFactory codec,
+        public SubscriptionServices(ISessionManager sessionManager,
+            IVariantEncoderFactory codec,
+            IClientServicesConfig clientConfig,
             ILogger logger) {
             _sessionManager = sessionManager ?? throw new ArgumentNullException(nameof(sessionManager));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
+            _clientConfig = clientConfig ?? throw new ArgumentNullException(nameof(codec)); ;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -612,6 +615,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <summary>
+            /// Resets the operation timeout on the session accrding to the publishing intervals on all subscriptions
+            /// </summary>
+            private void ReapplySessionOperationTimeout(Session session, Subscription newSubscription) {
+                if (session == null) {
+                    return;
+                }
+
+                var currentOperationTimeout = _outer._clientConfig.OperationTimeout;
+                var localMaxOperationTimeout =
+                    newSubscription.PublishingInterval * (int)newSubscription.KeepAliveCount;
+                if (currentOperationTimeout < localMaxOperationTimeout) {
+                    currentOperationTimeout = localMaxOperationTimeout;
+                }
+
+                foreach (var subscription in session.Subscriptions) {
+                    localMaxOperationTimeout =
+                        (int)subscription.CurrentPublishingInterval * (int)subscription.CurrentKeepAliveCount;
+                    if (currentOperationTimeout < localMaxOperationTimeout) {
+                        currentOperationTimeout = localMaxOperationTimeout;
+                    }
+                }
+                if (session.OperationTimeout != currentOperationTimeout) {
+                    session.OperationTimeout = currentOperationTimeout;
+                }
+            }
+
+
+            /// <summary>
             /// Retrieve a raw subscription with all settings applied (no lock)
             /// </summary>
             private Subscription GetSubscription(Session session,
@@ -658,6 +689,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Priority = _subscription.Configuration.Priority
                             .GetValueOrDefault(session.DefaultSubscription.Priority)
                     };
+                    ReapplySessionOperationTimeout(session, subscription);
+
                     var result = session.AddSubscription(subscription);
                     if (!result) {
                         _logger.Error("Failed to add subscription '{name}' to session '{session}'",
@@ -694,7 +727,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             configuration?.PublishingInterval ?? TimeSpan.Zero);
                         subscription.PublishingInterval = (int)_subscription.Configuration.PublishingInterval
                             .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
-
+                        ReapplySessionOperationTimeout(session, subscription);
                         modifySubscription = true;
                     }
                     if (subscription.MaxNotificationsPerPublish !=
@@ -1148,5 +1181,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ILogger _logger;
         private readonly ISessionManager _sessionManager;
         private readonly IVariantEncoderFactory _codec;
+        private readonly IClientServicesConfig _clientConfig;
     }
 }

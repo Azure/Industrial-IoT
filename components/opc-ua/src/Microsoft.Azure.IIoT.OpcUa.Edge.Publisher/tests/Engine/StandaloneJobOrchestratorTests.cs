@@ -4,25 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Agent.Framework;
     using Agent.Framework.Models;
     using Diagnostics;
     using FluentAssertions;
-    using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Microsoft.Azure.IIoT.Serializers;
     using Models;
     using Moq;
     using Publisher.Engine;
     using Serializers.NewtonSoft;
     using Serilog;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Xunit;
     using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
 
@@ -40,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private readonly StandaloneCliModel _standaloneCliModel;
         private readonly Mock<IStandaloneCliModelProvider> _standaloneCliModelProviderMock;
-        StandaloneJobOrchestrator _standaloneJobOrchestrator;
+        private StandaloneJobOrchestrator _standaloneJobOrchestrator;
         private readonly PublishedNodesProvider _publishedNodesProvider;
 
         /// <summary>
@@ -55,7 +57,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             _newtonSoftJsonSerializerRaw = new NewtonSoftJsonSerializerRaw();
             _publisherJobSerializer = new PublisherJobSerializer(_newtonSoftJsonSerializer);
             _logger = TraceLogger.Create();
-            _publishedNodesJobConverter = new PublishedNodesJobConverter(_logger, _newtonSoftJsonSerializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+
+            _publishedNodesJobConverter = new PublishedNodesJobConverter(_logger, _newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             // Note that each test is responsible for setting content of _tempFile;
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
@@ -130,7 +137,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             InitStandaloneJobOrchestrator();
 
             var exceptionResponse = $"{{\"Message\":\"Response 400 null request is provided\",\"Details\":{{}}}}";
-            
+
             // Check null request.
             await FluentActions
                 .Invoking(async () => await _standaloneJobOrchestrator
@@ -140,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ThrowAsync<MethodCallStatusException>()
                 .WithMessage(exceptionResponse)
                 .ConfigureAwait(false);
-            
+
             // empty description
             var exceptionModel = new MethodCallStatusExceptionModel {
                 Message = "Response 400 null request is provided",
