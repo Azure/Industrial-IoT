@@ -2,7 +2,7 @@
 
 # Application migration from OPC Publisher 2.5.x direct methods to 2.8.2 direct methods
 
-Migration of OPC Publisher version 2.5.x to 2.8.2 should work in standalone mode for backwards compatibility with 2.5.x functionality.
+Migration of OPC Publisher(standalone mode) version 2.5.x to 2.8.2 works for backwards compatibility with 2.5.x functionality.
 
 ## Configuration file (pn.json)
 
@@ -10,7 +10,7 @@ Migration of OPC Publisher version 2.5.x to 2.8.2 should work in standalone mode
 
 ## Command Line Arguments
 
-**TODO**
+To learn more about how to use comman-line arguments to configure OPC Publisher, please refer to [this](publisher-commandline.md) doc.
 
 ## OPC UA Certificates management
 
@@ -386,16 +386,16 @@ The direct methods not available in OPC Publisher 2.8.2, there are changes requi
 
 ### GetDiagnosticLog
 
-**TODO**
+To retrieve the logs of an IoT Edge module, please check the built-in direct methods provided by IoT Edge `edgeAgent` module [here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-retrieve-iot-edge-logs?view=iotedge-2020-11#retrieve-module-logs).
 
 ### GetDiagnosticStartupLog
 
-**TODO**
+To get diagnostic info of OPC Publisher, please refer to this [link](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-edgeagent-direct-method?view=iotedge-2020-11#diagnostic-direct-methods).
 
 ### ExitApplication
 
-**TODO**
+If OPC Publisher is in failed state or other unhealthy behavior, you could trigger `RestartModule` direct method to stop and then restart the module. To learn more about this direct method, please have a look at [this]([https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub?view=iotedge-2020-11) in-built direct method provided by IoT Edge.
 
 ### GetInfo
 
-**TODO**
+To get the info like version, OS, etc., please refer to the properties provided by IoT Edge which is documented [here](https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub?view=iotedge-2020-11).
