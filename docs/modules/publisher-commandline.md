@@ -1,17 +1,20 @@
 [Home](../../readme.md)
 
-### OPC Publisher parametrization command line interface options & environment variables
+# OPC Publisher configuration via command line options and environment variables
 
-The following list of module parametrization settings can be provided either as CLI options or as  environment variables. The alternative field, where present, refers to the CLI argument applicable in **standalone mode only**. When both environment variable and cli argument is provided, the latest will overrule the env variable.
+## OPC Publisher 2.8.2 and above
+
+The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings.
+The `Alternative` field, where present, refers to the CLI argument applicable in **standalone mode only**. When both environment variable and CLI argument are provided, the latest will overrule the env variable.
 
             PublishedNodesFile=VALUE
-                                      The file used to store the configuration of the nodes to be publish 
+                                      The file used to store the configuration of the nodes to be published
                                       along with the information to connect to the OPC UA server sources
                                       When this file is specified, or the default file is accessible by
-                                      the module, the publisher will start in standalone mode
+                                      the module, OPC Publisher will start in standalone mode
                                       Alternative: --pf, --publishfile
                                       Mode: Standalone only
-                                      Type: string - file name, optionally prefixed with the path 
+                                      Type: string - file name, optionally prefixed with the path
                                       Default: publishednodes.json
 
              site=VALUE
@@ -44,8 +47,8 @@ The following list of module parametrization settings can be provided either as 
                                       Default: info
 
             EdgeHubConnectionString=VALUE
-                                      An IoT Edge Device or IoT Edge module connection string to use
-                                      When deployed in the iotedge module context, the environment variable
+                                      An IoT Edge Device or IoT Edge module connection string to use,
+                                      when deployed as module in IoT Edge, the environment variable
                                       is already set as part of the container deployment
                                       Alternative: --dc, --deviceconnectionstring
                                                    --ec, --edgehubconnectionstring
@@ -54,7 +57,7 @@ The following list of module parametrization settings can be provided either as 
                                       Default: <not set> <set by iotedge runtime>
 
             Transport=VALUE
-                                      Upstream communication setting for edgeHub respectively IoTHub protocol
+                                      Protocol to use for upstream communication to edgeHub or IoTHub
                                       Alternative: --ih, --iothubprotocol
                                       Mode: Standalone and Orchestrated
                                       Type: string enum: Any, Amqp, Mqtt, AmqpOverTcp, AmqpOverWebsocket,
@@ -62,36 +65,36 @@ The following list of module parametrization settings can be provided either as 
                                       Default: MqttOverTcp
 
             BypassCertVerification=VALUE
-                                      Upstream communication setting for bypassing certificate verification
+                                      Enables/disables bypass of certificate verification for upstream communication to edgeHub
                                       Alternative: N/A
                                       Mode: Standalone and Orchestrated
                                       Type: boolean
                                       Default: false
 
             EnableMetrics=VALUE
-                                      Enable/Disable upstream metrics propagation 
+                                      Enables/disables upstream metrics propagation
                                       Alternative: N/A
                                       Mode: Standalone and Orchestrated
                                       Type: boolean
                                       Default: true
 
             DefaultPublishingInterval=VALUE
-                                      Default value for the publishing interval setting of the subscriptions
-                                      created in the OPC UA server. This value is used when no explicit setting
+                                      Default value for the OPC UA publishing interval of OPC UA subscriptions
+                                      created to an OPC UA server. This value is used when no explicit setting
                                       is configured.
                                       Alternative: --op, --opcpublishinginterval
                                       Mode: Standalone only
                                       Environment variable type: time span string {[d.]hh:mm:ss[.fffffff]}
-                                      Alternative argument type: integer in milliseconds 
+                                      Alternative argument type: integer in milliseconds
                                       Default: {00:00:01} (1000)
 
             DefaultSamplingInterval=VALUE
-                                      Default setting for published nodes for requesting servers to sample values.
+                                      Default value for the OPC UA sampling interval of nodes to publish.
                                       This value is used when no explicit setting is configured.
                                       Alternative: --oi, --opcsamplinginterval
                                       Mode: Standalone only
                                       Environment variable type: time span string {[d.]hh:mm:ss[.fffffff]}
-                                      Alternative argument type: integer in milliseconds 
+                                      Alternative argument type: integer in milliseconds
                                       Default: {00:00:01} (1000)
 
             DefaultQueueSize=VALUE
@@ -126,8 +129,9 @@ The following list of module parametrization settings can be provided either as 
                                       Default: Samples
 
             FetchOpcNodeDisplayName=VALUE
-                                      Fetches the Display Name for the nodes to be published from 
+                                      Fetches the DisplayName for the nodes to be published from
                                       the OPC UA Server when not explicitly set in the configuration.
+                                      Note: This has high impact on OPC Publisher startup performance.
                                       Alternative: --fd, --fetchdisplayname
                                       Mode: Standalone only
                                       Type: boolean
@@ -142,7 +146,7 @@ The following list of module parametrization settings can be provided either as 
                                       Default: false
 
             BatchSize=VALUE
-                                      The number of ingressed OPC UA data-change messages to be cached for batching.
+                                      The number of incoming OPC UA data change messages to be cached for batching.
                                       When BatchSize is 1 or TriggerInterval is set to 0 batching is disabled.
                                       Alternative: --bs, --batchsize
                                       Mode: Standalone and Orchestrated
@@ -174,6 +178,7 @@ The following list of module parametrization settings can be provided either as 
                                       Environment variable type: time span string {[d.]hh:mm:ss[.fffffff]}
                                       Alternative argument type: integer in seconds
                                       Default: {00:00:60}
+<!---
 
             ScaleTestCount=VALUE
                                       The number of monitored item clones in scale tests.
@@ -181,10 +186,10 @@ The following list of module parametrization settings can be provided either as 
                                       Mode: Standalone only
                                       Type: integer
                                       Default: 1
-
+--->
             LegacyCompatibility=VALUE
-                                      Forces the Publisher to format the telemetry in Legacy mode, using 
-                                      `"application/opcua+uajson"` for `ContentType` on the IoT Hub 
+                                      Forces the Publisher to operate in 2.5 legacy mode, using
+                                      `"application/opcua+uajson"` for `ContentType` on the IoT Hub
                                       Telemetry message.
                                       Alternative: --lc, --legacycompatibility
                                       Mode: Standalone only
@@ -192,16 +197,16 @@ The following list of module parametrization settings can be provided either as 
                                       Default: false
 
             PublishedNodesSchemaFile=VALUE
-                                      The validation schema filename for publish file.
+                                      The validation schema filename for published nodes file.
                                       Alternative: --pfs, --publishfileschema
                                       Mode: Standalone only
                                       Type: string
                                       Default: <not set>
 
             MaxNodesPerDataSet=VALUE
-                                      Maximum number of nodes within a DataSet/Subscription. 
-                                      When more nodes than this value are configured for a 
-                                      dataSetWriter, they will be added in a separate DataSet/Subscription.
+                                      Maximum number of nodes within a DataSet/Subscription.
+                                      When more nodes than this value are configured for a
+                                      DataSetWriter, they will be added in a separate DataSet/Subscription.
                                       Alternative: N/A
                                       Mode: Standalone only
                                       Type: integer
@@ -344,7 +349,7 @@ The following list of module parametrization settings can be provided either as 
                                       Default: Directory
 
             AutoAcceptUntrustedCertificates=VALUE
-                                      OPC UA Client Security Config - auto accept untrusted 
+                                      OPC UA Client Security Config - auto accept untrusted
                                       peer certificates
                                       Alternative: --aa, --autoaccept
                                       Mode: Standalone and Orchestrated
@@ -352,7 +357,7 @@ The following list of module parametrization settings can be provided either as 
                                       Default: false
 
             RejectSha1SignedCertificates=VALUE
-                                      OPC UA Client Security Config - reject deprecated Sha1 
+                                      OPC UA Client Security Config - reject deprecated Sha1
                                       signed certificates
                                       Alternative: N/A
                                       Mode: Standalone and Orchestrated
@@ -368,7 +373,7 @@ The following list of module parametrization settings can be provided either as 
                                       Default: 1024
 
             AddAppCertToTrustedStore=VALUE
-                                      OPC UA Client Security Config - automatically copy own 
+                                      OPC UA Client Security Config - automatically copy own
                                       certificate's public key to the trusted certificate store
                                       Alternative: --tm, --trustmyself
                                       Mode: Standalone and Orchestrated
@@ -435,8 +440,8 @@ The following list of module parametrization settings can be provided either as 
 <!---
 
             DefaultSkipFirst=VALUE
-                                      Default for Skip First published node setting. When set to true the 
-                                      publisher will not send as telemetry the initial datachange event received
+                                      Default for SkipFirst published node setting. When set to true OPC Publisher
+                                      will not send as telemetry the initial data change event received
                                       from the OPC UA server for a particular monitored node.
                                       Alternative: --sf, --skipfirstevent
                                       Mode: Standalone only
@@ -444,7 +449,7 @@ The following list of module parametrization settings can be provided either as 
                                       Default: false
 --->
 
-### OPC Publisher Command Line Arguments for Version 2.5 and below
+## OPC Publisher 2.5.x
 
     Usage: opcpublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
 
