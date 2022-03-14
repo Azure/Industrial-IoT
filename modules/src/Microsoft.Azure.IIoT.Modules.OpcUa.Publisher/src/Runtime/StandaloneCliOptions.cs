@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.State;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 
@@ -26,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
     /// </summary>
     public class StandaloneCliOptions : Dictionary<string, string>, IAgentConfigProvider,
-        ISettingsController, IEngineConfiguration, IStandaloneCliModelProvider {
+        ISettingsController, IEngineConfiguration, IStandaloneCliModelProvider, IRuntimeStateReporterConfiguration {
         /// <summary>
         /// Creates a new instance of the the standalone cli options based on existing configuration values.
         /// </summary>
@@ -156,6 +157,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "lc|legacycompatibility=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
                         "Default is 'false'.",
                         (bool b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b.ToString() },
+                    { "rs|runtimestatereporting=", "Report restart of OPC Publisher. Default is 'false'.",
+                        (bool b) => this[StandaloneCliConfigKeys.RuntimeStateReporting] = b.ToString()},
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
@@ -241,6 +244,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         public int? MaxOutgressMessages => StandaloneCliModel.MaxOutgressMessages;
 
+        /// <inheritdoc/>
+        public bool EnableRuntimeStateReporting { get => StandaloneCliModel.EnableRuntimeStateReporting; }
+
         /// <summary>
         /// The model of the CLI arguments.
         /// </summary>
@@ -294,6 +300,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.MaxOutgressMessages = GetValueOrDefault(StandaloneCliConfigKeys.MaxOutgressMessages, model.MaxOutgressMessages);
             model.MaxNodesPerDataSet = GetValueOrDefault(StandaloneCliConfigKeys.MaxNodesPerDataSet, model.MaxNodesPerDataSet);
             model.LegacyCompatibility = GetValueOrDefault(StandaloneCliConfigKeys.LegacyCompatibility, model.LegacyCompatibility);
+            model.EnableRuntimeStateReporting = GetValueOrDefault(StandaloneCliConfigKeys.RuntimeStateReporting, model.EnableRuntimeStateReporting);
             return model;
         }
 

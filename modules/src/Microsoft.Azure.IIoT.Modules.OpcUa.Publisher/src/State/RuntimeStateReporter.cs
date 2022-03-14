@@ -23,21 +23,29 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.State {
 
         private readonly IClientAccessor _clientAccessor;
         private readonly IJsonSerializer _jsonSerializer;
+        private readonly IRuntimeStateReporterConfiguration _config;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Constructor for runtime state reporter.
         /// </summary>
         public RuntimeStateReporter(IClientAccessor clientAccessor,
-            IJsonSerializer jsonSerializer, ILogger logger) {
+            IJsonSerializer jsonSerializer,
+            IRuntimeStateReporterConfiguration config,
+            ILogger logger) {
 
             _clientAccessor = clientAccessor ?? throw new ArgumentNullException(nameof(clientAccessor));
             _jsonSerializer = jsonSerializer ?? throw new ArgumentNullException(nameof(jsonSerializer));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public async Task SendRestartAnnouncement() {
+            if (!_config.EnableRuntimeStateReporting) {
+                return;
+            }
+
             if (_clientAccessor.Client is null) {
                 _logger.Warning("Hub client is not initialized yet. Unable to send restart announcement.");
                 return;
