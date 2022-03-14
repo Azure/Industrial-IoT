@@ -541,64 +541,66 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
                 else {
-                    // do a sanity check
-                    foreach (var monitoredItem in _currentlyMonitored) {
-                        if (monitoredItem.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled ||
-                            (monitoredItem.Item.Status.Error != null &&
-                            StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode))) {
+                    if (_currentlyMonitored != null) {
+                        // do a sanity check
+                        foreach (var monitoredItem in _currentlyMonitored) {
+                            if (monitoredItem.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled ||
+                                (monitoredItem.Item.Status.Error != null &&
+                                StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode))) {
 
-                            monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
-                            noErrorFound = false;
-                            applyChanges = true;
-                        }
-                    }
-                    if (applyChanges) {
-                        rawSubscription.ApplyChanges();
-                    }
-                }
-
-                if (activate) {
-                    // Change monitoring mode of all valid items if needed
-                    var validItems = _currentlyMonitored.Where(v => v.Item.Created);
-                    foreach (var change in validItems.GroupBy(i => i.GetMonitoringModeChange())) {
-                        if (change.Key == null) {
-                            continue;
-                        }
-                        var changeList = change.ToList();
-                        _logger.Information("Set monitoring to {value} for {count} items in subscription "
-                            + "'{subscription}'/'{sessionId}'.",
-                            change.Key.Value,
-                            change.Count(),
-                            Id,
-                            Connection.CreateConnectionId());
-
-                        var itemsToChange = changeList.Select(t => t.Item).ToList();
-                        var results = rawSubscription.SetMonitoringMode(change.Key.Value, itemsToChange);
-                        if (results != null) {
-                            var erroneousResultsCount = results
-                                .Count(r => (r == null) ? false : StatusCode.IsNotGood(r.StatusCode));
-
-                            // Check the number of erroneous results and log.
-                            if (erroneousResultsCount > 0) {
-                                _logger.Warning("Failed to set monitoring for {count} items in subscription "
-                                    + "'{subscription}'/'{sessionId}'.",
-                                    erroneousResultsCount,
-                                    Id,
-                                    Connection.CreateConnectionId());
-
-                                for (int i = 0; i < results.Count && i < itemsToChange.Count; ++ i) {
-                                    if (StatusCode.IsNotGood(results[i].StatusCode)){
-                                        _logger.Warning("Set monitoring for item '{item}' in subscription "
-                                            + "'{subscription}'/'{sessionId}' failed with '{status}'.",
-                                            itemsToChange[i].StartNodeId,
-                                            Id,
-                                            Connection.CreateConnectionId(),
-                                            results[i].StatusCode);
-                                        changeList[i].Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
-                                        changeList[i].Item.MonitoringMode = Opc.Ua.MonitoringMode.Disabled;
-                                    }
-                                }
+                                monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
                                 noErrorFound = false;
+                                applyChanges = true;
+                            }
+                        }
+                        if (applyChanges) {
+                            rawSubscription.ApplyChanges();
+                        }
+                    }
+
+                    if (activate) {
+                        // Change monitoring mode of all valid items if needed
+                        var validItems = _currentlyMonitored.Where(v => v.Item.Created);
+                        foreach (var change in validItems.GroupBy(i => i.GetMonitoringModeChange())) {
+                            if (change.Key == null) {
+                                continue;
+                            }
+                            var changeList = change.ToList();
+                            _logger.Information("Set monitoring to {value} for {count} items in subscription "
+                                + "'{subscription}'/'{sessionId}'.",
+                                change.Key.Value,
+                                change.Count(),
+                                Id,
+                                Connection.CreateConnectionId());
+
+                            var itemsToChange = changeList.Select(t => t.Item).ToList();
+                            var results = rawSubscription.SetMonitoringMode(change.Key.Value, itemsToChange);
+                            if (results != null) {
+                                var erroneousResultsCount = results
+                                    .Count(r => (r == null) ? false : StatusCode.IsNotGood(r.StatusCode));
+
+                                // Check the number of erroneous results and log.
+                                if (erroneousResultsCount > 0) {
+                                    _logger.Warning("Failed to set monitoring for {count} items in subscription "
+                                        + "'{subscription}'/'{sessionId}'.",
+                                        erroneousResultsCount,
+                                        Id,
+                                        Connection.CreateConnectionId());
+
+                                    for (int i = 0; i < results.Count && i < itemsToChange.Count; ++i) {
+                                        if (StatusCode.IsNotGood(results[i].StatusCode)) {
+                                            _logger.Warning("Set monitoring for item '{item}' in subscription "
+                                                + "'{subscription}'/'{sessionId}' failed with '{status}'.",
+                                                itemsToChange[i].StartNodeId,
+                                                Id,
+                                                Connection.CreateConnectionId(),
+                                                results[i].StatusCode);
+                                            changeList[i].Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                                            changeList[i].Item.MonitoringMode = Opc.Ua.MonitoringMode.Disabled;
+                                        }
+                                    }
+                                    noErrorFound = false;
+                                }
                             }
                         }
                     }
@@ -698,10 +700,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         subscription = null;
                     }
                     else {
-                        subscription.Create();
-                        //TODO - add logs for the revised values
                         _logger.Debug("Added subscription '{name}' to session '{session}'",
                              Id, session.SessionName);
+                        subscription.Create();
+                        // TODO - add logs for the revised values
                     }
                 }
                 else {
