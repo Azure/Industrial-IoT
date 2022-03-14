@@ -43,7 +43,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       The level for logs to pe persisted in the logfile
                                       Alternative: --ll --loglevel
                                       Mode: Standalone only
-                                      Type: string enum - fatal, error, warn, info, debug, verbose
+                                      Type: string enum - Fatal, Error, Warning, Information, Debug, Verbose
                                       Default: info
 
             EdgeHubConnectionString=VALUE
