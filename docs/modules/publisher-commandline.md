@@ -43,7 +43,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       The level for logs to pe persisted in the logfile
                                       Alternative: --ll --loglevel
                                       Mode: Standalone only
-                                      Type: string enum - fatal, error, warn, info, debug, verbose
+                                      Type: string enum - Fatal, Error, Warning, Information, Debug, Verbose
                                       Default: info
 
             EdgeHubConnectionString=VALUE
@@ -96,6 +96,14 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Environment variable type: time span string {[d.]hh:mm:ss[.fffffff]}
                                       Alternative argument type: integer in milliseconds
                                       Default: {00:00:01} (1000)
+
+            DefaultQueueSize=VALUE
+                                      Default setting value for the monitored item's queue size to be used when
+                                      not explicitly specified in pn.json file
+                                      Alternative: --mq, --monitoreditemqueuecapacity
+                                      Mode: Standalone only
+                                      Type: integer
+                                      Default: 1
 
             DefaultHeartbeatInterval=VALUE
                                       Default value for the heartbeat interval setting of published nodes
@@ -219,7 +227,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Alternative: N/A
                                       Mode: Standalone and Orchestrated
                                       Type: string
-                                      Default: $"urn:localhost:{ApplicationName}:microsoft:")
+                                      Default: $"urn:localhost:{ApplicationName}:microsoft:"
 
             ProductUri=VALUE
                                       OPC UA Client Application Config - Product URI as per
