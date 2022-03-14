@@ -1,8 +1,8 @@
 [Home](../../readme.md)
 
-# Migration path for OPC Publisher version 2.5.x to 2.8.2
+# Application migration from OPC Publisher 2.5.x direct methods to 2.8.2 direct methods
 
-Migration of OPC Publisher version 2.5.x to 2.8.2 should work in standalone mode for backwards compatibility with 2.5.x functionality.
+Migration of OPC Publisher(standalone mode) version 2.5.x to 2.8.2 works for backwards compatibility with 2.5.x functionality.
 
 ## Configuration file (pn.json)
 
@@ -10,69 +10,48 @@ Migration of OPC Publisher version 2.5.x to 2.8.2 should work in standalone mode
 
 ## Command Line Arguments
 
-**TODO**
+To learn more about how to use comman-line arguments to configure OPC Publisher, please refer to [this](publisher-commandline.md) doc.
 
 ## OPC UA Certificates management
 
 **TODO**
 
-## Direct Methods API
+## Direct Method compatibility
 
-The latest version 2.8.2 adds support for configuration via IoT Hub direct methods. OPC Publisher implements multiple [IoT Hub Direct Methods](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-direct-methods) which can be called from an application leveraging the [IoT Hub Device SDK](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks). This document provides the migration path from 2.5.x to 2.8.2.
+OPC Publisher version 2.8.2 and above implements [IoT Hub Direct Methods](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-direct-methods), which can be called from applications using the [IoT Hub Device SDK](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks).
 
-The direct methods' request payload of version 2.8.2 is backwards compatible with the 2.5.x direct methods. The payload schema allows configuration of additional extensions introduced in the `pn.json` in the publisher 2.6.x and newer e.g. DataSetWriterGroup, DataSetWriterId, QueueSize per node, etc.
+The direct method request payload of OPC Publisher 2.8.2 and above is backwards compatible with OPC Publisher 2.5.x direct methods. The payload schema allows also configuration of attributes introduced in `pn.json` in OPC Publisher 2.6.x and above (for example: DataSetWriterGroup, DataSetWriterId, QueueSize per node, ...)
 
-For this set of methods, the encoding is JSON and no compression or payload chunking mechanism is applied in order to ensure the backwards compatibility with the 2.5.x version of OPC Publisher module.
+**Limitations:** Continuation points for GetConfiguredEndpoints and GetConfiguredNodesOnEndpoint aren't available in 2.8.2
 
-**Limitations:**
- - Continuation points for GetConfiguredEndpoints and GetConfiguredNodesOnEndpoint are not available in 2.8.2
+## OPC Publisher 2.5.x direct methods supported in 2.8.2
 
-### Direct Methods of version 2.5.x
+The following table describes the direct methods, which were available in OPC Publisher 2.5.x with their request and response payloads.
 
-The following  table describes the direct methods which were available in OPC Publisher 2.5.x with request and response.
+| **MethodName**                   | **Request**                                                     | **Response**                                                                                                                                                                 | **in 2.8.2 and above** |
+|----------------------------------|-----------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------|
+| **PublishNodes**                 | EndpointUrl, List\<OpcNodes\>,  UseSecurity, UserName, Password | Status, List\<StatusResponse\>                                                                                                                                               | Yes                    |
+| **UnpublishNodes**               | EndpointUrl, List\<OpcNodes\>                                   | Status, List\<StatusResponse\>                                                                                                                                               | Yes                    |
+| **UnpublishAllNodes**            | EndpointUrl                                                     | Status, List\<StatusResponse\>                                                                                                                                               | Yes                    |
+| **GetConfiguredEndpoints**       | -                                                               | List\<EndpointUrl\>                                                                                                                                                          | Yes                    |
+| **GetConfiguredNodesOnEndpoint** | EndpointUrl                                                     | EndpointUrl, List< OpcNodeOnEndpointModel > where OpcNodeOnEndpointModel contains: Id ExpandedNodeId OpcSamplingInterval OpcPublishingInterval DisplayName HeartbeatInterval | Yes                    |
+| **GetDiagnosticInfo**            | -                                                               | DiagnosticInfoMethodResponseModel                                                                                                                                            | Yes                    |
+| **GetDiagnosticLog**             | -                                                               | MissedMessageCount, LogMessageCount, List\<Log\>                                                                                                                             | No*                    |
+| **GetDiagnosticStartupLog**      | -                                                               | MissedMessageCount, LogMessageCount, List\<Log\>                                                                                                                             | No*                    |
+| **ExitApplication**              | SecondsTillExit (optional)                                      | StatusCode, List\<StatusResponse\>                                                                                                                                           | No*                    |
+| **GetInfo**                      | -                                                               | GetInfoMethodResponseModel                                                                                                                                                   | No*                    |
 
-| 2.5.x                            |                                                                 |                                                              |              |
-| -------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------ | ------------ |
-| **MethodName**                   | **Request**                                                     | **Response**                                                 | **in 2.8.2** |
-| **PublishNodes**                 | EndpointUrl, List\<OpcNodes\>,  UseSecurity, UserName, Password | Status, List\<StatusResponse\>                               | Yes          |
-| **UnpublishNodes**               | EndpointUrl, List\<OpcNodes\>                                   | Status, List\<StatusResponse\>                               | Yes          |
-| **UnpublishAllNodes**            | EndpointUrl                                                     | Status, List\<StatusResponse\>                               | Yes          |
-| **GetConfiguredEndpoints**       | -                                                               | List\<EndpointUrl\>                                          | Yes          |
-| **GetConfiguredNodesOnEndpoint** | EndpointUrl                                                     | EndpointUrl, List< OpcNodeOnEndpointModel >    where OpcNodeOnEndpointModel contains: Id ExpandedNodeId OpcSamplingInterval OpcPublishingInterval DisplayName HeartbeatInterval SkipFirst | Yes          |
-| **GetDiagnosticInfo**            | -                                                               | DiagnosticInfoMethodResponseModel                            | Yes          |
-| **GetDiagnosticLog**             | -                                                               | MissedMessageCount, LogMessageCount, List\<Log\>             | No*          |
-| **GetDiagnosticStartupLog**      | -                                                               | MissedMessageCount, LogMessageCount, List\<Log\>             | No*          |
-| **ExitApplication**              | SecondsTillExit (optional)                                      | StatusCode, List\<StatusResponse\>                           | No*          |
-| **GetInfo**                      | -                                                               | GetInfoMethodResponseModel which contains VersionMajor, VersionMinor, VersionPatch, SemanticVersion, InformationalVersion, OS, OSArchitecture, FrameworkDescription | No*          |
+*This functionality is provided by direct methods of the IoT Edge `edgeAgent` module. For more information, see ["Communicate with edgeAgent using built-in direct methods"](https://docs.microsoft.com/azure/iot-edge/how-to-edgeagent-direct-method).
 
-*This functionality is provided by the IoT Edge `edgeAgent` module via its own direct methods, see [this page](https://docs.microsoft.com/azure/iot-edge/how-to-edgeagent-direct-method) for more information.
+An outdated, archived [sample application](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration) used to configure OPC Publisher 2.5.x can be used to configure OPC Publisher 2.8.2.
 
-A [sample configuration application](https://github.com/Azure-Samples/iot-edge-opc-publisher-nodeconfiguration) as well as an [sample application for reading diagnostic information](https://github.com/Azure-Samples/iot-edge-opc-publisher-diagnostics) are provided from OPC Publisher leveraging this interface.
+### Direct Methods use in applications
 
-_Please note that the samples applications are not actively maintained and may be outdated._
+For new applications, direct method names with a `_V1` suffix should be used. For backward compatibility of older applications direct method names without the `_V1` suffix are supported, but are subject of deprecation.
 
-### Direct Methods of version 2.8.2
+### PublishNodes (PublishNodes_V1)
 
-The following set of direct method api is inherited from 2.5.x API set.
-- PublishNodes_V1
-- UnpublishNodes_V1
-- UnpublishAllNodes_V1
-- GetConfiguredEndpoints_V1
-- GetConfiguredNodesOnEndpoint_V1
-- GetDiagnosticInfo_V1
-
-Please note that in 2.8.2 the recommended way of using the direct methods is with `_V1` suffix.
-Direct method name without `_V1` suffix is also supported but is subject of deprecation.
-
-The direct methods definitions of version 2.8.2 are provided in [this](publisher-directmethods.md) document in detail.
-
-## Direct methods of version 2.5.x vs 2.8.2
-
-In this section let's see the request and response payloads for the direct methods of version 2.5.x and 2.8.2
-
-### PublishNodes_V1
-
-`Request`:
+`Request`
 
 ```json
 {
@@ -92,7 +71,7 @@ In this section let's see the request and response payloads for the direct metho
 }
 ```
 
-`Response` in **2.5.x**:
+`Response` (2.5.x)
 
 ```json
 {
@@ -105,7 +84,7 @@ In this section let's see the request and response payloads for the direct metho
 }
 ```
 
-`Response` in **2.8.2**:
+`Response` (2.8.2)
 
 ```json
 {
@@ -114,30 +93,32 @@ In this section let's see the request and response payloads for the direct metho
 }
 ```
 
-### GetConfiguredEndpoints_V1
+### GetConfiguredEndpoints (GetConfiguredEndpoints_V1)
 
-`Request`: {}
+`Request`
 
-`Response` in **2.5.x**:
+ {}
 
-When there are no configured endpoints:
+`Response` (2.5.x)
+
+Without any configured endpoints:
 
 ```json
 {
    "status": 200,
-   "payload": 
+   "payload":
    {
       "Endpoints": []
    }
 }
 ```
 
-When there are configured endpoints:
+With configured endpoints:
 
 ```json
 {
    "status": 200,
-   "payload": 
+   "payload":
    {
       "Endpoints": [
          {
@@ -148,26 +129,26 @@ When there are configured endpoints:
 }
 ```
 
-`Response` in **2.8.2**:
+`Response` (2.8.2)
 
-When there are no configured endpoints:
+Without configured endpoints:
 
 ```json
 {
    "status": 200,
-   "payload": 
+   "payload":
    {
       "endpoints": []
-   }   
+   }
 }
 ```
 
-When there are configured endpoints:
+With configured endpoints:
 
 ```json
 {
    "status": 200,
-   "payload": 
+   "payload":
    {
       "endpoints": [
          {
@@ -178,9 +159,9 @@ When there are configured endpoints:
 }
 ```
 
-### GetConfiguredNodesOnEndpoint_V1
+### GetConfiguredNodesOnEndpoint (GetConfiguredNodesOnEndpoint_V1)
 
-`Request`:
+`Request`
 
 ```json
 {
@@ -188,7 +169,7 @@ When there are configured endpoints:
 }
 ```
 
-`Response` in **2.5.x**:
+`Response` (2.5.x)
 
 ```json
 {
@@ -222,12 +203,12 @@ If `UnpublishAllNodes` is called on that endpoint, then the response will be:
 }
 ```
 
-`Response` in **2.8.2**:
+`Response` (2.8.2)
 
 ```json
 {
    "status":200,
-   "payload": 
+   "payload":
    {
       "opcNodes": [
          {
@@ -244,7 +225,7 @@ If `UnpublishAllNodes` is called on that endpoint, then the response will be:
 }
 ```
 
-If the endpoint is not configured or `UnpublishAllNodes` is called on that endpoint, then the response will be:
+If the endpoint isn't configured or `UnpublishAllNodes` is called on that endpoint, then the response will be:
 
 ```json
 {
@@ -253,11 +234,12 @@ If the endpoint is not configured or `UnpublishAllNodes` is called on that endpo
 }
 ```
 
-### GetDiagnosticInfo_V1
+### GetDiagnosticInfo (GetDiagnosticInfo_V1)
 
-`Request`: {}
+`Request`
+{}
 
-`Response`  in **2.5.x**:
+`Response`  (2.5.x)
 
 ```json
 {
@@ -290,7 +272,7 @@ If the endpoint is not configured or `UnpublishAllNodes` is called on that endpo
 }
 ```
 
-`Response` in **2.8.2**:
+`Response` (2.8.2)
 
 ```json
 {
@@ -331,11 +313,11 @@ If the endpoint is not configured or `UnpublishAllNodes` is called on that endpo
 }
 ```
 
-### UnpublishNodes_V1
+### UnpublishNodes (UnpublishNodes_V1)
 
-If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is removed.
+If _OpcNodes_ is omitted, then all nodes are unpublished and the endpoint is removed.
 
-`Request`:
+`Request`
 
 ```json
 {
@@ -348,7 +330,7 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 }
 ```
 
-`Response` in **2.5.x**:
+`Response` (2.5.x)
 
 ```json
 {
@@ -359,7 +341,7 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 }
 ```
 
-`Response` in **2.8.2**:
+`Response` (2.8.2)
 
 ```json
 {
@@ -368,9 +350,9 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 }
 ```
 
-### UnpublishAllNodes_V1
+### UnpublishAllNodes (UnpublishAllNodes_V1)
 
-`Request`:
+`Request`
 
 ```json
 {
@@ -378,7 +360,7 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 }
 ```
 
-`Response` in **2.5.x**:
+`Response` (2.5.x)
 
 ```json
 {
@@ -389,7 +371,7 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 }
 ```
 
-`Response` in **2.8.2**:
+`Response` (2.8.2)
 
 ```json
 {
@@ -398,21 +380,22 @@ If _OpcNodes_ is not provided then all nodes are unpublished and endpoint is rem
 }
 ```
 
-The following direct methods present in 2.5.x were discontinued. 
-The alternatives to these actions are detailed below:
+## OPC Publisher 2.5.x direct methods not supported in 2.8.2
+
+The direct methods not available in OPC Publisher 2.8.2, there are changes required to apply to the applications, which do use them.
 
 ### GetDiagnosticLog
 
-**TODO**
+To retrieve the logs of an IoT Edge module, please check the built-in direct methods provided by IoT Edge `edgeAgent` module [here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-retrieve-iot-edge-logs?view=iotedge-2020-11#retrieve-module-logs).
 
 ### GetDiagnosticStartupLog
 
-**TODO**
+To get diagnostic info of OPC Publisher, please refer to this [link](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-edgeagent-direct-method?view=iotedge-2020-11#diagnostic-direct-methods).
 
 ### ExitApplication
 
-**TODO**
+If OPC Publisher is in failed state or other unhealthy behavior, you could trigger `RestartModule` direct method to stop and then restart the module. To learn more about this direct method, please have a look at [this]([https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub?view=iotedge-2020-11) in-built direct method provided by IoT Edge.
 
 ### GetInfo
 
-**TODO**
+To get the info like version, OS, etc., please refer to the properties provided by IoT Edge which is documented [here](https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub?view=iotedge-2020-11).

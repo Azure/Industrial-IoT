@@ -136,8 +136,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                             : node.Item2.DisplayName,
                                     PublishedVariableNodeId = node.Item2.Id,
 
-                                    // At this point in time the next values are esnured to be filled in with
-                                    // the apprpriate value: configured or default
+                                    // At this point in time the next values are ensured to be filled in with
+                                    // the appropriate value: configured or default
                                     PublishedVariableDisplayName = node.Item2.DisplayName,
                                     SamplingInterval = node.Item2.OpcSamplingIntervalTimespan,
                                     HeartbeatInterval = node.Item2.HeartbeatIntervalTimespan,
