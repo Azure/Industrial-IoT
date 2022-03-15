@@ -3,25 +3,26 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.Agent.Framework;
-using Microsoft.Azure.IIoT.Agent.Framework.Models;
-using Microsoft.Azure.IIoT.Diagnostics;
-using Microsoft.Azure.IIoT.Module.Framework;
-using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-using Microsoft.Azure.IIoT.OpcUa.Publisher;
-using Microsoft.Extensions.Configuration;
-using Mono.Options;
-using Opc.Ua;
-using Serilog;
-using Serilog.Events;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.State;
+
+    using Microsoft.Azure.IIoT.Agent.Framework;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Extensions.Configuration;
+    using Mono.Options;
+    using Opc.Ua;
+    using Serilog;
+    using Serilog.Events;
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher

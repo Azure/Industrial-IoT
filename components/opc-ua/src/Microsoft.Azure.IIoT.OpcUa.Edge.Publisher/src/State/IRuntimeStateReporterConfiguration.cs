@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.State {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State {
 
     /// <summary>
     /// Configuration of RuntimeStateReporter.

@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.State {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State {
 
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.State.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
