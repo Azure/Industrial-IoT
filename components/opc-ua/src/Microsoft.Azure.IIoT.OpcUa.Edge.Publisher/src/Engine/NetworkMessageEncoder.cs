@@ -363,8 +363,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         DataSetWriterGroup = message.WriterGroup.WriterGroupId,
                         MessageId = message.SequenceNumber.ToString()
                     };
-                    var notificationQueues = message.Notifications.GroupBy(m => m.NodeId)
-                        .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray())).ToArray();
+                    var notificationQueues = message.Notifications
+                        .GroupBy(m => !string.IsNullOrEmpty(m.Id) ?m.Id : m.NodeId)
+                        .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
+                        .ToArray();
 
                     while (notificationQueues.Any(q => q.Any())) {
                         var payload = notificationQueues
@@ -372,14 +374,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             .Where(s => s != null)
                             .ToDictionary(
                                 //  Identifier to show for notification in payload of IoT Hub method
-                                //  Prio 1: DataSetFieldId (need to be read from message)
-                                //  Prio 2: DisplayName - nothing to do, because notification.Id already contains DisplayName
+                                //  Prio 1: Id = DataSetFieldId - if already configured
+                                //  Prio 2: Id = DisplayName - if already configured
                                 //  Prio 3: NodeId as configured
-                                s => !string.IsNullOrEmpty(s.Id) ?
-                                        s.Id :
-                                        !string.IsNullOrEmpty(s.DisplayName) ?
-                                            s.DisplayName :
-                                            s.NodeId,
+                                s => !string.IsNullOrEmpty(s.Id) ? s.Id : s.NodeId,
                                 s => s.Value
                             );
 
