@@ -612,7 +612,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             var diagInfo = new StringBuilder();
                             diagInfo.Append("Revised monitored item '{item}' in '{subscription}" +
                                 "'/'{sessionId}' has actual/desired states: ");
-                            diagInfo.Append("SamplingInterval {currentSamplingInterval}/{samplingInterval} ");
+                            diagInfo.Append("SamplingInterval {currentSamplingInterval}/{samplingInterval}, ");
                             diagInfo.Append("QueueSize {currentQueueSize}/{queueSize}");
 
                             _logger.Warning(diagInfo.ToString(),
@@ -808,9 +808,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (logRevisedValues && activate) {
                     var diagInfo = new StringBuilder();
                     diagInfo.Append("Subscription '{subscription}'/'{sessionId}' state actual(revised)/desired: ");
-                    diagInfo.Append("PublishingEnabled {currentPublishingEnabled}/{publishingEnabled} ");
-                    diagInfo.Append("PublishingInterval {currentPublishingInterval}/{publishingInterval} ");
-                    diagInfo.Append("KeepAliveCount {currentKeepAliveCount}/{keepAliveCount} ");
+                    diagInfo.Append("PublishingEnabled {currentPublishingEnabled}/{publishingEnabled}, ");
+                    diagInfo.Append("PublishingInterval {currentPublishingInterval}/{publishingInterval}, ");
+                    diagInfo.Append("KeepAliveCount {currentKeepAliveCount}/{keepAliveCount}, ");
                     diagInfo.Append("LifetimeCount {currentLifetimeCount}/{lifetimeCount}");
 
                     _logger.Information(diagInfo.ToString(),
@@ -857,19 +857,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var publishTime = (notification?.MonitoredItems?.First().Message?.PublishTime).
                         GetValueOrDefault(DateTime.UtcNow);
 
-                    if (_currentSequenceNumber == sequenceNumber) {
-                        _logger.Debug("DataChange for subscription '{subscription}'/'{sessionId}', sequence#: "
-                            + "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
+                    if (_expectedSequenceNumber == sequenceNumber) {
+                        _logger.Debug("DataChange for subscription '{subscription}'/'{sessionId}' with sequenceNumber "
+                            + "{sequenceNumber}, isKeepAlive {isKeepAlive}, publishTime {PublishTime}",
                             Id, Connection.CreateConnectionId(),
                             sequenceNumber, isKeepAlive, publishTime);
                     }
                     else {
-                        _logger.Warning("DataChange for subscription '{subscription}'/'{sessionId}' has unexpected sequence#: "
-                            + "{sequenceNumber} vs expected {actualSequenceNuymber}. IsKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
+                        _logger.Warning("DataChange for subscription '{subscription}'/'{sessionId}' has unexpected sequenceNumber "
+                            + "{sequenceNumber} vs expected {expectedSequenceNumber}, isKeepAlive {isKeepAlive}, publishTime {PublishTime}",
                             Id, Connection.CreateConnectionId(),
-                            sequenceNumber, _currentSequenceNumber, isKeepAlive, publishTime);
+                            sequenceNumber, _expectedSequenceNumber, isKeepAlive, publishTime);
                     }
-                    _currentSequenceNumber = sequenceNumber + 1;
+                    _expectedSequenceNumber = sequenceNumber + 1;
 
                    var message = new SubscriptionNotificationModel {
                         ServiceMessageContext = subscription?.Session?.MessageContext,
@@ -998,7 +998,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private readonly ILogger _logger;
             private readonly SemaphoreSlim _lock;
             private List<MonitoredItemWrapper> _currentlyMonitored;
-            private uint _currentSequenceNumber = 1;
+            private uint _expectedSequenceNumber = 1;
             private static readonly Gauge kMonitoredItems = Metrics.CreateGauge(
                 "iiot_edge_publisher_monitored_items", "monitored items count",
                 new GaugeConfiguration {
