@@ -493,8 +493,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     rawSubscription.ApplyChanges();
                     _currentlyMonitored = nowMonitored;
 
-                    var map = _currentlyMonitored.ToDictionary(
-                        k => k.Template.Id ?? k.Template.StartNodeId, v => v);
+                    var map = _currentlyMonitored.ToDictionary(k => k.Template.StartNodeId, v => v);
                     foreach (var item in _currentlyMonitored.ToList()) {
                         if (item.Template.TriggerId != null &&
                             map.TryGetValue(item.Template.TriggerId, out var trigger)) {

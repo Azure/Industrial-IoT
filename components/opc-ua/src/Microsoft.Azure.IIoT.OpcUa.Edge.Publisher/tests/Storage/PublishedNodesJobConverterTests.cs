@@ -294,6 +294,144 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
+        public async Task PnPlcPubSubDataSetFieldIdDuplicateTest() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DataSetFieldId"": ""testfieldid""
+            },
+            {
+                ""Id"": ""i=2259"",
+                ""DataSetFieldId"": ""testfieldid""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(2, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
+            Assert.Equal("testfieldid", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+            Assert.Equal("testfieldid", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubDisplayNameDuplicateTest() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DisplayName"": ""testdisplayname""
+            },
+            {
+                ""Id"": ""i=2259"",
+                ""DisplayName"": ""testdisplayname""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(2, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
+            Assert.Equal("testdisplayname", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+            Assert.Equal("testdisplayname", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubFullDuplicateTest() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DisplayName"": ""testdisplayname"",
+                ""DataSetFieldId"": ""testfieldid""
+            },
+            {
+                ""Id"": ""i=2259"",
+                ""DisplayName"": ""testdisplayname"",
+                ""DataSetFieldId"": ""testfieldid""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(2, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
+            Assert.Equal("testfieldid", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+            Assert.Equal("testfieldid", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+        }
+
+
+        [Fact]
         public async Task PnPlcPubSubFullTest() {
             var pn = @"
 [
