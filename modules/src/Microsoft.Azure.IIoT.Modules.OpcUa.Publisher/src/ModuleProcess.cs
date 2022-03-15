@@ -64,6 +64,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// </summary>
         public int OpcStackTraceMask { get; set; }
 
+        /// <summary>
+        /// Shows if we're running in standalone mode or not.
+        /// </summary>
+        public bool RunInStandaloneMode { get; set; }
+
         /// <inheritdoc />
         public void Reset() {
             _reset.TrySetResult(true);
@@ -124,8 +129,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
                         // Reporting runtime state on restart.
                         // Reporting will happen only in stadalone mode.
-                        var standaloneCliOptions = new StandaloneCliOptions(_config);
-                        if (standaloneCliOptions.RunInStandaloneMode) {
+                        if (RunInStandaloneMode) {
                             var runtimeStateReporter = hostScope.Resolve<IRuntimeStateReporter>();
                             // Needs to be called only after module.StartAsync() so that IClient is initialized.
                             await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false);
@@ -200,6 +204,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             var builder = new ContainerBuilder();
             var standaloneCliOptions = new StandaloneCliOptions(configuration);
 
+            RunInStandaloneMode = standaloneCliOptions.RunInStandaloneMode;
+
             // Register configuration interfaces
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces();
@@ -215,7 +221,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            if (standaloneCliOptions.RunInStandaloneMode) {
+            if (RunInStandaloneMode) {
                 builder.AddDiagnostics(config,
                     standaloneCliOptions.ToLoggerConfiguration());
                 builder.RegisterInstance(standaloneCliOptions)
