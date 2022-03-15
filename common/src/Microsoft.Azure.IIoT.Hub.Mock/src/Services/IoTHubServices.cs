@@ -374,7 +374,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     Blob = blob,
                     EnqueuedTimeUtc = DateTime.UtcNow
                 })) {
-                    throw new CommunicationException("Failed to upload blob");
+                    throw new CommunicationException("Failed to upload blob.");
                 }
             }
 
@@ -386,7 +386,20 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     Message = message,
                     EnqueuedTimeUtc = DateTime.UtcNow
                 })) {
-                    throw new CommunicationException("Failed to upload blob");
+                    throw new CommunicationException("Failed to send event.");
+                }
+            }
+
+            /// <inheritdoc/>
+            public void SendEvent(string outputName, Message message) {
+                if (!_outer.Events.TryAdd(new EventMessage {
+                    DeviceId = Device.Id,
+                    ModuleId = Device.ModuleId,
+                    Message = message,
+                    EnqueuedTimeUtc = DateTime.UtcNow,
+                    OutputName = outputName
+                })) {
+                    throw new CommunicationException("Failed to send event.");
                 }
             }
 
@@ -520,6 +533,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             public DateTime EnqueuedTimeUtc { get; set; }
             /// <summary/>
             public Message Message { get; set; }
+            /// <summary> The output target for sending the given message. </summary>
+            public string OutputName { get; set; }
         }
 
         private readonly SqlQuery _query;

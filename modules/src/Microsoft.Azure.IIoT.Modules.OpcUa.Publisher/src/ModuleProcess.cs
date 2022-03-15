@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
+    using Autofac;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.HealthChecks;
@@ -14,18 +15,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using Autofac;
     using Opc.Ua;
     using Prometheus;
     using Serilog;
@@ -62,6 +63,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// Opc stack trace mask
         /// </summary>
         public int OpcStackTraceMask { get; set; }
+
+        /// <summary>
+        /// Shows if we're running in standalone mode or not.
+        /// </summary>
+        public bool RunInStandaloneMode { get; set; }
 
         /// <inheritdoc />
         public void Reset() {
@@ -120,6 +126,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await workerSupervisor.StartAsync().ConfigureAwait(false);
+
+                        // Reporting runtime state on restart.
+                        // Reporting will happen only in stadalone mode.
+                        if (RunInStandaloneMode) {
+                            var runtimeStateReporter = hostScope.Resolve<IRuntimeStateReporter>();
+                            // Needs to be called only after module.StartAsync() so that IClient is initialized.
+                            await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false);
+                        }
+
                         sessionManager = hostScope.Resolve<ISessionManager>();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task).ConfigureAwait(false);
@@ -189,6 +204,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             var builder = new ContainerBuilder();
             var standaloneCliOptions = new StandaloneCliOptions(configuration);
 
+            RunInStandaloneMode = standaloneCliOptions.RunInStandaloneMode;
+
             // Register configuration interfaces
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces();
@@ -204,7 +221,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            if (standaloneCliOptions.RunInStandaloneMode) {
+            if (RunInStandaloneMode) {
                 builder.AddDiagnostics(config,
                     standaloneCliOptions.ToLoggerConfiguration());
                 builder.RegisterInstance(standaloneCliOptions)
@@ -226,6 +243,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     .SingleInstance();
                 builder.RegisterType<PublisherMethodsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
+                // Runtime state reporter.
+                builder.RegisterType<RuntimeStateReporter>()
+                    .AsImplementedInterfaces().SingleInstance();
             }
             else {
                 builder.AddDiagnostics(config);
