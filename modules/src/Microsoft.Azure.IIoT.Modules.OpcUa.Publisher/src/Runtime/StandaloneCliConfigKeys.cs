@@ -210,5 +210,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the trusted issuer certificates.
         /// </summary>
         public const string OpcIssuerCertStorePath = SecurityConfig.TrustedIssuerCertificatesPathKey;
+
+        /// <summary>
+        /// Key for configuring reporting of OPC Publisher restarts.
+        /// </summary>
+        public const string RuntimeStateReporting = "RuntimeStateReporting";
     }
 }
