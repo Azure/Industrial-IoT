@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
                     // cert store option
                     { "aa|autoaccept", "The publisher trusts all servers it is establishing a connection to.",
-                          b => this[StandaloneCliConfigKeys.AutoAcceptCerts] = (b != null).ToString() },
+                        b => this[StandaloneCliConfigKeys.AutoAcceptCerts] = (b != null).ToString() },
                     { "tm|trustmyself", "The publisher certificate is put into the trusted store automatically.",
                         t => this[StandaloneCliConfigKeys.TrustMyself] = (t != null).ToString() },
                     { "at|appcertstoretype=", "The own application cert store type (allowed: Directory, X509Store).",
@@ -158,8 +158,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "lc|legacycompatibility=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
                         "Default is 'false'.",
                         (bool b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b.ToString() },
-                    { "rs|runtimestatereporting=", "Report restart of OPC Publisher. Default is 'false'.",
-                        (bool b) => this[StandaloneCliConfigKeys.RuntimeStateReporting] = b.ToString()},
+                    { "rs|runtimestatereporting", "Report restart of OPC Publisher.",
+                        b => this[StandaloneCliConfigKeys.RuntimeStateReporting] = (b != null).ToString()},
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",

@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State {
                 var bodyJson = _jsonSerializer.SerializeToString(body);
 
                 var message = new Message(Encoding.UTF8.GetBytes(bodyJson)) {
-                    ContentType = ContentMimeType.Json,
+                    ContentType = _jsonSerializer.MimeType,
                     ContentEncoding = Encoding.UTF8.WebName,
                 };
 
