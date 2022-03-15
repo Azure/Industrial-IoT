@@ -158,7 +158,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "lc|legacycompatibility=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
                         "Default is 'false'.",
                         (bool b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b.ToString() },
-                    { "rs|runtimestatereporting", "Report restart of OPC Publisher.",
+                    { "rs|runtimestatereporting", "The publisher reports its restarts. By default this is disabled.",
                         b => this[StandaloneCliConfigKeys.RuntimeStateReporting] = (b != null).ToString()},
 
                     // testing purposes
