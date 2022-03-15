@@ -28,10 +28,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create subscription manager
         /// </summary>
-        public SubscriptionServices(ISessionManager sessionManager, IVariantEncoderFactory codec,
+        public SubscriptionServices(ISessionManager sessionManager,
+            IVariantEncoderFactory codec,
+            IClientServicesConfig clientConfig,
             ILogger logger) {
             _sessionManager = sessionManager ?? throw new ArgumentNullException(nameof(sessionManager));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
+            _clientConfig = clientConfig ?? throw new ArgumentNullException(nameof(codec)); ;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -538,23 +541,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
                 else {
-                    // do a sanity check
-                    foreach (var monitoredItem in _currentlyMonitored) {
-                        if (monitoredItem.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled ||
-                            (monitoredItem.Item.Status.Error != null &&
-                            StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode))) {
+                    if (_currentlyMonitored != null) {
+                        // do a sanity check
+                        foreach (var monitoredItem in _currentlyMonitored) {
+                            if (monitoredItem.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled ||
+                                (monitoredItem.Item.Status.Error != null &&
+                                StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode))) {
 
-                            monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
-                            noErrorFound = false;
-                            applyChanges = true;
+                                monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                                noErrorFound = false;
+                                applyChanges = true;
+                            }
                         }
-                    }
-                    if (applyChanges) {
-                        rawSubscription.ApplyChanges();
+                        if (applyChanges) {
+                            rawSubscription.ApplyChanges();
+                        }
                     }
                 }
 
-                if (activate) {
+                if (activate && _currentlyMonitored != null) {
                     // Change monitoring mode of all valid items if needed
                     var validItems = _currentlyMonitored.Where(v => v.Item.Created);
                     foreach (var change in validItems.GroupBy(i => i.GetMonitoringModeChange())) {
@@ -583,8 +588,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     Id,
                                     Connection.CreateConnectionId());
 
-                                for (int i = 0; i < results.Count && i < itemsToChange.Count; ++ i) {
-                                    if (StatusCode.IsNotGood(results[i].StatusCode)){
+                                for (int i = 0; i < results.Count && i < itemsToChange.Count; ++i) {
+                                    if (StatusCode.IsNotGood(results[i].StatusCode)) {
                                         _logger.Warning("Set monitoring for item '{item}' in subscription "
                                             + "'{subscription}'/'{sessionId}' failed with '{status}'.",
                                             itemsToChange[i].StartNodeId,
@@ -610,6 +615,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private static uint GreatCommonDivisor(uint a, uint b) {
                 return b == 0 ? a : GreatCommonDivisor(b, a % b);
             }
+
+            /// <summary>
+            /// Resets the operation timeout on the session accrding to the publishing intervals on all subscriptions
+            /// </summary>
+            private void ReapplySessionOperationTimeout(Session session, Subscription newSubscription) {
+                if (session == null) {
+                    return;
+                }
+
+                var currentOperationTimeout = _outer._clientConfig.OperationTimeout;
+                var localMaxOperationTimeout =
+                    newSubscription.PublishingInterval * (int)newSubscription.KeepAliveCount;
+                if (currentOperationTimeout < localMaxOperationTimeout) {
+                    currentOperationTimeout = localMaxOperationTimeout;
+                }
+
+                foreach (var subscription in session.Subscriptions) {
+                    localMaxOperationTimeout =
+                        (int)subscription.CurrentPublishingInterval * (int)subscription.CurrentKeepAliveCount;
+                    if (currentOperationTimeout < localMaxOperationTimeout) {
+                        currentOperationTimeout = localMaxOperationTimeout;
+                    }
+                }
+                if (session.OperationTimeout != currentOperationTimeout) {
+                    session.OperationTimeout = currentOperationTimeout;
+                }
+            }
+
 
             /// <summary>
             /// Retrieve a raw subscription with all settings applied (no lock)
@@ -658,6 +691,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Priority = _subscription.Configuration.Priority
                             .GetValueOrDefault(session.DefaultSubscription.Priority)
                     };
+                    ReapplySessionOperationTimeout(session, subscription);
+
                     var result = session.AddSubscription(subscription);
                     if (!result) {
                         _logger.Error("Failed to add subscription '{name}' to session '{session}'",
@@ -665,10 +700,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         subscription = null;
                     }
                     else {
-                        subscription.Create();
-                        //TODO - add logs for the revised values
                         _logger.Debug("Added subscription '{name}' to session '{session}'",
                              Id, session.SessionName);
+                        subscription.Create();
+                        // TODO - add logs for the revised values
                     }
                 }
                 else {
@@ -694,7 +729,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             configuration?.PublishingInterval ?? TimeSpan.Zero);
                         subscription.PublishingInterval = (int)_subscription.Configuration.PublishingInterval
                             .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
-
+                        ReapplySessionOperationTimeout(session, subscription);
                         modifySubscription = true;
                     }
                     if (subscription.MaxNotificationsPerPublish !=
@@ -1148,5 +1183,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ILogger _logger;
         private readonly ISessionManager _sessionManager;
         private readonly IVariantEncoderFactory _codec;
+        private readonly IClientServicesConfig _clientConfig;
     }
 }
