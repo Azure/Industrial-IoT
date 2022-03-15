@@ -99,6 +99,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     wrapper = new SessionWrapper() {
                         Id = id.ToString(),
                         MissedKeepAlives = 0,
+                        // TODO this seem not to be the appropriate configuration argument
                         MaxKeepAlives = (int)_clientConfig.MaxKeepAliveCount,
                         State = SessionState.Init,
                         Session = null,
@@ -157,6 +158,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     wrapper = new SessionWrapper() {
                         Id = id.ToString(),
                         MissedKeepAlives = 0,
+                        // TODO this seem not to be the appropriate configuration argument
                         MaxKeepAlives = (int)_clientConfig.MaxKeepAliveCount,
                         State = SessionState.Init,
                         Session = null,
@@ -164,6 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     };
                     _sessions.AddOrUpdate(id, wrapper);
                 }
+
                 wrapper._subscriptions.AddOrUpdate(subscription.Id, subscription);
                 _logger.Information("Subscription '{subscriptionId}' registered/updated in session '{id}' in state {state}",
                     subscription.Id, id, wrapper.State);
@@ -239,9 +242,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         private async Task RunAsync(CancellationToken ct) {
 
-            var keepAliveCheckInterval = _clientConfig.KeepAliveInterval > 0 ?
-                _clientConfig.KeepAliveInterval : kDefaultOperationTimeout;
-
             while (!ct.IsCancellationRequested) {
                 _triggerKeepAlive = new TaskCompletionSource<bool>();
                 foreach (var sessionWrapper in _sessions.ToList()) {
@@ -288,7 +288,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
 
-                var delay = Task.Delay(keepAliveCheckInterval, ct);
+                var delay = Task.Delay(_clientConfig.KeepAliveInterval, ct);
                 await Task.WhenAny(delay, _triggerKeepAlive.Task).ConfigureAwait(false);
                 _logger.Debug("Runner Keepalive reset due to {delay} {trigger}",
                     delay.IsCompleted ? "checkAlive" : String.Empty,
@@ -630,11 +630,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             SessionWrapper wrapper) {
             var sessionName = $"Azure IIoT {id}";
 
-            var endpointDescription = SelectEndpoint(endpointUrl,
-                id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy,
-                (int)(id.Connection.OperationTimeout.HasValue ?
-                    id.Connection.OperationTimeout.Value.TotalMilliseconds :
-                    kDefaultOperationTimeout));
+            var endpointDescription = SelectEndpoint(
+                endpointUrl,
+                id.Connection.Endpoint.SecurityMode,
+                id.Connection.Endpoint.SecurityPolicy,
+                _clientConfig.OperationTimeout);
 
             if (endpointDescription == null) {
                 throw new EndpointNotAvailableException(endpointUrl,
@@ -663,13 +663,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     userIdentity, null).ConfigureAwait(false);
                 session.Handle = wrapper;
                 wrapper.Session = session;
-
-                session.KeepAliveInterval = _clientConfig.KeepAliveInterval > 0 ?
-                    _clientConfig.KeepAliveInterval : kDefaultOperationTimeout;
+                session.OperationTimeout = _clientConfig.OperationTimeout;
+                session.KeepAliveInterval = _clientConfig.KeepAliveInterval;
 
                 session.KeepAlive += Session_KeepAlive;
                 session.Notification += Session_Notification;
-
 
                 // TODO - store the created session id (node id)?
                 if (sessionName != session.SessionName) {
@@ -822,10 +820,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             // security enabled endpoint is available.
             if ((!securityMode.HasValue && string.IsNullOrWhiteSpace(securityPolicyUri)) ||
                 securityMode == SecurityMode.Best) {
-                return CoreClientUtils.SelectEndpoint(discoveryUrl, true, operationTimeout);
+                return CoreClientUtils.SelectEndpoint(discoveryUrl, true, discoverTimeout: operationTimeout);
             }
             else if (securityMode == SecurityMode.None || securityPolicyUri == SecurityPolicies.None) {
-                return CoreClientUtils.SelectEndpoint(discoveryUrl, false, operationTimeout);
+                return CoreClientUtils.SelectEndpoint(discoveryUrl, false, discoverTimeout: operationTimeout);
             }
             else {
                 return SelectEndpoint(discoveryUrl, ToMessageSecurityMode(securityMode),
@@ -989,8 +987,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ConcurrentDictionary<ConnectionIdentifier, SessionWrapper> _sessions =
             new ConcurrentDictionary<ConnectionIdentifier, SessionWrapper>();
         private readonly SemaphoreSlim _lock;
-        private const int kDefaultOperationTimeout = 15000;
-
 
         private readonly Task _runner;
         private readonly CancellationTokenSource _cts;
