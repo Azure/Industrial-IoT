@@ -20,8 +20,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <summary>
         /// Sends an event to device hub
         /// </summary>
-        /// <returns>The message containing the event</returns>
+        /// <param name="message">The message containing the event.</param>
         Task SendEventAsync(Message message);
+
+        /// <summary>
+        /// Sends an event to device hub
+        /// </summary>
+        /// <param name="outputName">The output target for sending the given message.</param>
+        /// <param name="message">The message containing the event.</param>
+        /// <returns></returns>
+        Task SendEventAsync(string outputName, Message message);
 
         /// <summary>
         /// Sends a batch of events to device hub
