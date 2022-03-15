@@ -35,10 +35,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// Diagnostics
         /// </summary>
         public DiagnosticsModel Diagnostics { get; set; }
-
-        /// <summary>
-        /// The operation timeout to create sessions.
-        /// </summary>
-        public TimeSpan? OperationTimeout { get; set; }
     }
 }
