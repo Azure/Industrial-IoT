@@ -364,7 +364,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         MessageId = message.SequenceNumber.ToString()
                     };
                     var notificationQueues = message.Notifications
-                        .GroupBy(m => !string.IsNullOrEmpty(m.Id) ?m.Id : m.NodeId)
+                        .GroupBy(m => !string.IsNullOrEmpty(m.Id) ?
+                                        m.Id :
+                                        !string.IsNullOrEmpty(m.DisplayName) ?
+                                            m.DisplayName :
+                                            m.NodeId)
                         .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
                         .ToArray();
 
@@ -377,9 +381,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 //  Prio 1: Id = DataSetFieldId - if already configured
                                 //  Prio 2: Id = DisplayName - if already configured
                                 //  Prio 3: NodeId as configured
-                                s => !string.IsNullOrEmpty(s.Id) ? s.Id : s.NodeId,
-                                s => s.Value
-                            );
+                                s => !string.IsNullOrEmpty(s.Id) ?
+                                        s.Id :
+                                        !string.IsNullOrEmpty(s.DisplayName) ?
+                                            s.DisplayName :
+                                            s.NodeId,
+                                s => s.Value);
 
                         var dataSetMessage = new DataSetMessage() {
                             DataSetWriterId = message.Writer.DataSetWriterId,
