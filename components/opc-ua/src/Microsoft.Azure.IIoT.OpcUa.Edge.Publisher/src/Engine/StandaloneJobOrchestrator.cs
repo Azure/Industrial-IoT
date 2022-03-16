@@ -595,6 +595,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 }
                             }
 
+                            // refresh the Tag if a new one is provided
+                            entry.Tag = request.Tag;
+
                             dataSetFound = true;
                         }
 
@@ -753,6 +756,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 }
 
                                 entry.OpcNodes = updatedNodes;
+
+                                // refresh the Tag if a new one is provided
+                                entry.Tag = request.Tag;
                             }
                             else {
                                 entry.OpcNodes.Clear();
@@ -1031,6 +1037,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                                 // We do not need to look for another matching data set in request.
                                 requestDataSetsFound[k] = true;
+
+                                // refresh the Tag if a new one is provided
+                                entry.Tag = dataSetToUpdate.Tag;
                                 break;
                             }
                         }
@@ -1148,6 +1157,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     OpcAuthenticationUsername = model.OpcAuthenticationUsername,
                     DataSetWriterGroup = model.DataSetWriterGroup,
                     DataSetWriterId = model.DataSetWriterId,
+                    Tag = model.Tag,
                     DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
                     DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue
                         ? model.DataSetPublishingInterval

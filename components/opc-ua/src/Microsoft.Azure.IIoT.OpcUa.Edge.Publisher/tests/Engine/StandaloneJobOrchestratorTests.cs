@@ -103,14 +103,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal(1, endpoints.Count);
 
             var endpoint = endpoints[0];
-            Assert.Equal(endpoint.DataSetWriterGroup, "DataSetWriterGroup0");
             Assert.Equal(endpoint.EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
             Assert.Equal(endpoint.UseSecurity, false);
             Assert.Equal(endpoint.OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
             Assert.Equal(endpoint.OpcAuthenticationUsername, "username");
             Assert.Equal(endpoint.OpcAuthenticationPassword, null);
-            Assert.Equal(endpoint.DataSetWriterId, "DataSetWriterId0");
-            Assert.Equal(endpoint.DataSetPublishingInterval, 10000);
 
             endpoint.OpcAuthenticationPassword = "password";
 
@@ -144,14 +141,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal(1, endpoints.Count);
 
             endpoint = endpoints[0];
-            Assert.Equal(endpoint.DataSetWriterGroup, "DataSetWriterGroup0");
             Assert.Equal(endpoint.EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
             Assert.Equal(endpoint.UseSecurity, false);
             Assert.Equal(endpoint.OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
             Assert.Equal(endpoint.OpcAuthenticationUsername, "username");
             Assert.Equal(endpoint.OpcAuthenticationPassword, null);
-            Assert.Equal(endpoint.DataSetWriterId, "DataSetWriterId0");
-            Assert.Equal(endpoint.DataSetPublishingInterval, 10000);
 
             endpoint.OpcAuthenticationPassword = "password";
 
@@ -766,6 +760,72 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var jobModel = await _standaloneJobOrchestrator.GetAvailableJobAsync("0", new JobRequestModel());
             Assert.Null(jobModel);
         }
+
+        [Theory]
+        [InlineData("Engine/pn_assets_with_optional_fields.json")]
+        public async Task OptionalFieldsPublishedNodesFile(string publishedNodesFile) {
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            InitStandaloneJobOrchestrator();
+
+            var endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            Assert.Equal(2, endpoints.Count);
+
+            Assert.Equal(endpoints[0].DataSetWriterGroup, "Leaf0");
+            Assert.Equal(endpoints[0].EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoints[0].UseSecurity, false);
+            Assert.Equal(endpoints[0].OpcAuthenticationMode, OpcAuthenticationMode.Anonymous);
+            Assert.Equal(endpoints[0].DataSetWriterId, "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
+            Assert.Equal(endpoints[0].Tag, "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
+
+            Assert.Equal(endpoints[1].DataSetWriterGroup, "Leaf1");
+            Assert.Equal(endpoints[1].EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoints[1].UseSecurity, false);
+            Assert.Equal(endpoints[1].OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
+            Assert.Equal(endpoints[1].DataSetWriterId, "Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
+            Assert.Equal(endpoints[1].Tag, "Tag_Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
+            endpoints[0].OpcNodes = null;
+            var nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoints[0]).ConfigureAwait(false);
+            Assert.Equal(1, nodes.Count);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp", nodes[0].Id);
+
+            endpoints[0].OpcNodes = new List<OpcNodeModel>();
+            endpoints[0].OpcNodes.Add(new OpcNodeModel {
+                Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2",
+            });
+
+            await _standaloneJobOrchestrator.PublishNodesAsync(endpoints[0]).ConfigureAwait(false);
+
+            endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            Assert.Equal(2, endpoints.Count);
+
+            endpoints[0].OpcNodes = null;
+            nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoints[0]).ConfigureAwait(false);
+            Assert.Equal(2, nodes.Count);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp", nodes[0].Id);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2", nodes[1].Id);
+
+            // Simulate restart.
+            _standaloneJobOrchestrator.Dispose();
+            _standaloneJobOrchestrator = null;
+            InitStandaloneJobOrchestrator();
+
+            // We should get the same endpoint and nodes after restart.
+            endpoints = await _standaloneJobOrchestrator.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            Assert.Equal(2, endpoints.Count);
+
+            Assert.Equal(endpoints[0].DataSetWriterGroup, "Leaf0");
+            Assert.Equal(endpoints[0].EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoints[0].UseSecurity, false);
+            Assert.Equal(endpoints[0].OpcAuthenticationMode, OpcAuthenticationMode.Anonymous);
+            Assert.Equal(endpoints[0].DataSetWriterId, "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
+            Assert.Equal(endpoints[0].Tag, "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
+
+            nodes = await _standaloneJobOrchestrator.GetConfiguredNodesOnEndpointAsync(endpoints[0]).ConfigureAwait(false);
+            Assert.Equal(2, nodes.Count);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp", nodes[0].Id);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2", nodes[1].Id);
+        }
+
 
         private static PublishedNodesEntryModel GenerateEndpoint(
             int dataSetIndex,

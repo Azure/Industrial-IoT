@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 DataSetWriterGroup = model.DataSetWriterGroup,
                 DataSetWriterId = model.DataSetWriterId,
-
+                Tag = model.Tag,
                 DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
                 // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
                 // was not provided.
@@ -114,6 +114,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 UserName = endpoint.OpcAuthenticationUsername,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
                 DataSetWriterId = endpoint.DataSetWriterId,
+                Tag = endpoint.Tag,
                 DataSetPublishingIntervalTimespan = endpoint.DataSetPublishingIntervalTimespan,
                 // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
                 // was not provided.
