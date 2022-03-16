@@ -74,7 +74,7 @@ Method call's request attributes are as follows:
 | `DataSetWriterId`                   | No        | String          | `DataSetPublishingInterval` | The unique identifier for a data set writer used to collect <br>OPC UA nodes to be semantically grouped and published with <br>the same publishing interval. <br>When not specified a string representing the common <br>publishing interval of the nodes in the data set collection. <br>This attribute uniquely identifies a data set <br>within a DataSetWriterGroup. The uniqueness is determined <br>using the provided DataSetWriterId and the publishing <br>interval of the grouped OpcNodes.  An individual <br>subscription is created for each DataSetWriterId. |
 | `DataSetPublishingInterval`         | No        | Integer         | `null`                      | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed in milliseconds. <br>Ignored when `DataSetPublishingIntervalTimespan` is present. <br> _Note_: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node.                                                                                                                                                                                            |
 | `DataSetPublishingIntervalTimespan` | No        | String          | `null`                      | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed as a Timespan string ({d.hh:mm:dd.fff}). <br>When both Intervals are specified, the Timespan will win and be used for the configuration. <br> _Note_: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node.                                                                                                                                     |
-| `Tag`                               | No        | String          | empty                       | TODO                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `Tag`                               | No        | String          | empty                       | User defined information stored in the configuration as a tag string.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `OpcNodes`                          | No        | List\<OpcNode\> | empty                       | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 _Note_: `OpcNodes` field is mandatory for `PublishNodes_V1`. It is optional for `UnpublishNodes_V1` and `AddOrUpdateEndpoints_V1`. And `OpcNodes` field shouldn't be specified for the rest of the direct methods.
@@ -129,6 +129,7 @@ PublishNodes enables a client to add a set of nodes to be published for a specif
   >    "DataSetWriterGroup": "Asset0",
   >    "DataSetWriterId": "DataFlow0",
   >    "DataSetPublishingInterval": 5000,
+  >    "Tag": "MyTag0",
   >    "OpcNodes": [
   >       {
   >          "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0"
@@ -174,6 +175,7 @@ _Note_: If all the nodes from a DataSet are to be unpublished, the DataSetWriter
   >    "EndpointUrl": "opc.tcp://opcplc:50000",
   >    "DataSetWriterGroup": "Asset0",
   >    "DataSetWriterId": "DataFlow0",
+  >    "Tag": "MyTag1",
   >    "DataSetPublishingInterval": 5000,
   >    "OpcNodes": [
   >       {
@@ -257,7 +259,8 @@ Returns the configured endpoints (Datasets)
   >             "endpointUrl": "opc.tcp://opcplc:50000",
   >             "dataSetWriterGroup": "Asset1",
   >             "dataSetWriterId": "DataFlow1",
-  >             "dataSetPublishingInterval": 5000
+  >             "dataSetPublishingInterval": 5000,
+  >             "tag": "MyTag1"
   >           },
   >           {
   >              "endpointUrl": "opc.tcp://opcplc:50001"
@@ -408,6 +411,7 @@ previously configured nodes for a specific endpoint (DataSet).
   >       "EndpointUrl": "opc.tcp://opcplc:50001",
   >       "DataSetWriterGroup": "Asset2",
   >       "DataSetWriterId": "DataFlow2",
+  >       "Tag": "MyTag2",
   >       "OpcNodes": []
   >    }
   > ]
