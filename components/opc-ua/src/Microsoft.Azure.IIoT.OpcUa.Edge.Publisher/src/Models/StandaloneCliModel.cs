@@ -125,5 +125,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Run in legacy compatibility mode
         /// </summary>
         public bool LegacyCompatibility { get; set; } = false;
+
+        /// <summary>
+        /// Configuration flag for enabling/disabling runtime state reporting.
+        /// </summary>
+        public bool EnableRuntimeStateReporting { get; set; } = false;
     }
 }
