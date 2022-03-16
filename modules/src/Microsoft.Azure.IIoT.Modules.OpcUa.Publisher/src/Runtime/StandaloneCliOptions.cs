@@ -47,7 +47,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public StandaloneCliOptions(string[] args) {
 
             bool showHelp = false;
-            bool isLegacyOption = false;
             List<string> unsupportedOptions = new List<string>();
             List<string> legacyOptions = new List<string>();
             var logger = ConsoleLogger.Create(LogEventLevel.Warning);
@@ -140,13 +139,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         s => this[StandaloneCliConfigKeys.OpcApplicationCertificateSubjectName] = s },
                     { "an|appname=", "The name for the app (used during OPC UA authentication).",
                         s => this[StandaloneCliConfigKeys.OpcApplicationName] = s },
-                    { "tt|trustedcertstoretype=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("tt|trustedcertstoretype"); } },
+                    { "tt|trustedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("tt|trustedcertstoretype"); } },
                     { "rp|rejectedcertstorepath=", "The path of the rejected cert store.",
                         s => this[StandaloneCliConfigKeys.OpcRejectedCertStorePath] = s },
-                    { "rt|rejectedcertstoretype=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("rt|rejectedcertstoretype"); } },
+                    { "rt|rejectedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("rt|rejectedcertstoretype"); } },
                     { "ip|issuercertstorepath=", "The path of the trusted issuer cert store.",
                         s => this[StandaloneCliConfigKeys.OpcIssuerCertStorePath] = s },
-                    { "it|issuercertstoretype=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("it|issuercertstoretype"); } },
+                    { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); } },
                     { "bs|batchsize=", "The size of message batching buffer.",
                         (int i) => this[StandaloneCliConfigKeys.BatchSize] = i.ToString() },
                     { "si|iothubsendinterval=", "The trigger batching interval in seconds.",
@@ -176,34 +175,34 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         b => showHelp = true },
 
                     // Legacy: unsupported
-                    { "tc|telemetryconfigfile=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("tc|telemetryconfigfile"); } },
-                    { "ic|iotcentral=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("ic|iotcentral"); } },
-                    { "ns|noshutdown=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("ns|noshutdown"); } },
-                    { "rf|runforever", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("rf|runforever"); } },
-                    { "pn|portnum=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("pn|portnum"); } },
-                    { "pa|path=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("pa|path"); } },
-                    { "lr|ldsreginterval=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("lr|ldsreginterval"); } },
-                    { "ss|suppressedopcstatuscodes=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("ss|suppressedopcstatuscodes"); } },
-                    { "csr", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("csr"); } },
-                    { "ab|applicationcertbase64=", "Legacy - do not use.",b => {isLegacyOption = true; legacyOptions.Add("ab|applicationcertbase64"); } },
-                    { "af|applicationcertfile=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("af|applicationcertfile"); } },
-                    { "pk|privatekeyfile=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("pk|privatekeyfile"); } },
-                    { "pb|privatekeybase64=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("pb|privatekeybase64"); } },
-                    { "cp|certpassword=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("cp|certpassword"); } },
-                    { "tb|addtrustedcertbase64=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("tb|addtrustedcertbase64"); } },
-                    { "tf|addtrustedcertfile=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("tf|addtrustedcertfile"); } },
-                    { "ib|addissuercertbase64=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("ib|addissuercertbase64"); } },
-                    { "if|addissuercertfile=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("if|addissuercertfile"); } },
-                    { "rb|updatecrlbase64=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("rb|updatecrlbase64"); } },
-                    { "uc|updatecrlfile=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("uc|updatecrlfile"); } },
-                    { "rc|removecert=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("rc|removecert"); } },
-                    { "dt|devicecertstoretype=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("dt|devicecertstoretype"); } },
-                    { "dp|devicecertstorepath=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("dp|devicecertstorepath"); } },
-                    { "i|install", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("i|install"); } },
-                    { "st|opcstacktracemask=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("st|opcstacktracemask"); } },
-                    { "sd|shopfloordomain=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("sd|shopfloordomain"); } },
-                    { "vc|verboseconsole=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("vc|verboseconsole"); } },
-                    { "as|autotrustservercerts=", "Legacy - do not use.", b => {isLegacyOption = true; legacyOptions.Add("as|autotrustservercerts"); } },
+                    { "tc|telemetryconfigfile=", "Legacy - do not use.", b => {legacyOptions.Add("tc|telemetryconfigfile"); } },
+                    { "ic|iotcentral=", "Legacy - do not use.", b => {legacyOptions.Add("ic|iotcentral"); } },
+                    { "ns|noshutdown=", "Legacy - do not use.", b => {legacyOptions.Add("ns|noshutdown"); } },
+                    { "rf|runforever", "Legacy - do not use.", b => {legacyOptions.Add("rf|runforever"); } },
+                    { "pn|portnum=", "Legacy - do not use.", b => {legacyOptions.Add("pn|portnum"); } },
+                    { "pa|path=", "Legacy - do not use.", b => {legacyOptions.Add("pa|path"); } },
+                    { "lr|ldsreginterval=", "Legacy - do not use.", b => {legacyOptions.Add("lr|ldsreginterval"); } },
+                    { "ss|suppressedopcstatuscodes=", "Legacy - do not use.", b => {legacyOptions.Add("ss|suppressedopcstatuscodes"); } },
+                    { "csr", "Legacy - do not use.", b => {legacyOptions.Add("csr"); } },
+                    { "ab|applicationcertbase64=", "Legacy - do not use.",b => {legacyOptions.Add("ab|applicationcertbase64"); } },
+                    { "af|applicationcertfile=", "Legacy - do not use.", b => {legacyOptions.Add("af|applicationcertfile"); } },
+                    { "pk|privatekeyfile=", "Legacy - do not use.", b => {legacyOptions.Add("pk|privatekeyfile"); } },
+                    { "pb|privatekeybase64=", "Legacy - do not use.", b => {legacyOptions.Add("pb|privatekeybase64"); } },
+                    { "cp|certpassword=", "Legacy - do not use.", b => {legacyOptions.Add("cp|certpassword"); } },
+                    { "tb|addtrustedcertbase64=", "Legacy - do not use.", b => {legacyOptions.Add("tb|addtrustedcertbase64"); } },
+                    { "tf|addtrustedcertfile=", "Legacy - do not use.", b => {legacyOptions.Add("tf|addtrustedcertfile"); } },
+                    { "ib|addissuercertbase64=", "Legacy - do not use.", b => {legacyOptions.Add("ib|addissuercertbase64"); } },
+                    { "if|addissuercertfile=", "Legacy - do not use.", b => {legacyOptions.Add("if|addissuercertfile"); } },
+                    { "rb|updatecrlbase64=", "Legacy - do not use.", b => {legacyOptions.Add("rb|updatecrlbase64"); } },
+                    { "uc|updatecrlfile=", "Legacy - do not use.", b => {legacyOptions.Add("uc|updatecrlfile"); } },
+                    { "rc|removecert=", "Legacy - do not use.", b => {legacyOptions.Add("rc|removecert"); } },
+                    { "dt|devicecertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("dt|devicecertstoretype"); } },
+                    { "dp|devicecertstorepath=", "Legacy - do not use.", b => {legacyOptions.Add("dp|devicecertstorepath"); } },
+                    { "i|install", "Legacy - do not use.", b => {legacyOptions.Add("i|install"); } },
+                    { "st|opcstacktracemask=", "Legacy - do not use.", b => {legacyOptions.Add("st|opcstacktracemask"); } },
+                    { "sd|shopfloordomain=", "Legacy - do not use.", b => {legacyOptions.Add("sd|shopfloordomain"); } },
+                    { "vc|verboseconsole=", "Legacy - do not use.", b => {legacyOptions.Add("vc|verboseconsole"); } },
+                    { "as|autotrustservercerts=", "Legacy - do not use.", b => {legacyOptions.Add("as|autotrustservercerts"); } },
                 };
 
             try {
@@ -220,7 +219,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 }
             }
 
-            if (isLegacyOption) {
+            if (legacyOptions.Any()) {
                 foreach (var option in legacyOptions) {
                     logger.Warning("Legacy option {option} not supported, please use -h option to get all the supported options.", option);
                 }

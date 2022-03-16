@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Modules.Publisher.Tests {
         /// <summary>
         /// Exit code
         /// </summary>
-        public int ExitCode { get; set; }
+        public int ExitCode { get; set; } = -1;
 
         public StandaloneCliOptionsTest(string[] args) : base(args) {
         }
