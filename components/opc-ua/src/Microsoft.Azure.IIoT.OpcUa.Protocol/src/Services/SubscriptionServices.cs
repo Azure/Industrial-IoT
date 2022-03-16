@@ -20,7 +20,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Threading;
     using System.Threading.Tasks;
 
-
     /// <summary>
     /// Subscription services implementation
     /// </summary>
@@ -287,7 +286,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Reads the display name of the nodes to be monitored
             /// </summary>
             private void ResolveDisplayNames(Session session) {
-                if (!(_subscription?.Configuration?.ResolveDisplayName ?? false)) {
+                if (!(_subscription.Configuration?.ResolveDisplayName ?? false)) {
                     return;
                 }
 
@@ -682,34 +681,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
 
+                // TODO propagate the default PublishingInterval currently only avaliable for standalone mode
+                var configuredPublishingInterval = (int)(_subscription.Configuration?.PublishingInterval)
+                    .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
+                var normedPublishingInterval = (uint)(configuredPublishingInterval > 0 ? configuredPublishingInterval : 1);
+
                 // calculate the KeepAliveCount no matter what, perhaps monitored items were changed
-                var revisedKeepAliveCount = _subscription.Configuration.KeepAliveCount
-                    .GetValueOrDefault(session.DefaultSubscription.KeepAliveCount);
-                var publishInterval = (uint)(_subscription.Configuration.PublishingInterval == TimeSpan.Zero ?
-                                      TimeSpan.FromSeconds(1) : _subscription.Configuration.PublishingInterval).Value.TotalMilliseconds;
+                var revisedKeepAliveCount = (_subscription.Configuration?.KeepAliveCount)
+                    .GetValueOrDefault(_outer._clientConfig.MaxKeepAliveCount);
+
                 _subscription.MonitoredItems?.ForEach(m => {
-                    if (m.HeartbeatInterval != null && m.HeartbeatInterval != TimeSpan.Zero) {
-                        var itemKeepAliveCount = (uint)m.HeartbeatInterval.Value.TotalMilliseconds / publishInterval;
+                    var heartbeat = (uint)(m?.HeartbeatInterval).GetValueOrDefault(TimeSpan.Zero).TotalMilliseconds;
+                    if (heartbeat != 0) {
+                        var itemKeepAliveCount = heartbeat / normedPublishingInterval;
                         revisedKeepAliveCount = GreatCommonDivisor(revisedKeepAliveCount, itemKeepAliveCount);
                     }
                 });
+
+                // TODO propagate the default values currently only available for standalone mode
+                var configuredMaxNotificationsPerPublish = (_subscription.Configuration?.MaxNotificationsPerPublish)
+                    .GetValueOrDefault(session.DefaultSubscription.MaxNotificationsPerPublish);
+
+                var configuredLifetimeCount = (_subscription.Configuration?.LifetimeCount)
+                    .GetValueOrDefault(session.DefaultSubscription.LifetimeCount);
+
+                var configuredPriority = (_subscription.Configuration?.Priority)
+                    .GetValueOrDefault(session.DefaultSubscription.Priority);
 
                 var subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
                 if (subscription == null) {
                     subscription = new Subscription(session.DefaultSubscription) {
                         Handle = this,
+                        FastDataChangeCallback = OnSubscriptionDataChanged,
                         DisplayName = Id,
                         PublishingEnabled = activate, // false on initialization
                         KeepAliveCount = revisedKeepAliveCount,
-                        FastDataChangeCallback = OnSubscriptionDataChanged,
-                        PublishingInterval = (int)_subscription.Configuration.PublishingInterval
-                            .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
-                        MaxNotificationsPerPublish = _subscription.Configuration.MaxNotificationsPerPublish
-                            .GetValueOrDefault(0),
-                        LifetimeCount = _subscription.Configuration.LifetimeCount
-                            .GetValueOrDefault(session.DefaultSubscription.LifetimeCount),
-                        Priority = _subscription.Configuration.Priority
-                            .GetValueOrDefault(session.DefaultSubscription.Priority)
+                        PublishingInterval = configuredPublishingInterval,
+                        MaxNotificationsPerPublish = configuredMaxNotificationsPerPublish,
+                        LifetimeCount = configuredLifetimeCount,
+                        Priority = configuredPriority
                     };
                     ReapplySessionOperationTimeout(session, subscription);
 
@@ -748,48 +758,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             subscription.KeepAliveCount = revisedKeepAliveCount;
                             modifySubscription = true;
                         }
-                        if (subscription.PublishingInterval != (int)_subscription.Configuration.PublishingInterval
-                                .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds) {
+                        if (subscription.PublishingInterval != configuredPublishingInterval) {
                             _logger.Debug(
                                 "Subscription '{subscription}'/'{sessionId}' change publishing interval to {new}",
                                 _subscription.Id,
                                 _subscription.Connection.CreateConnectionId(),
-                                configuration?.PublishingInterval ?? TimeSpan.Zero);
-                            subscription.PublishingInterval = (int)_subscription.Configuration.PublishingInterval
-                                .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
-
+                                configuredPublishingInterval);
+                            subscription.PublishingInterval = configuredPublishingInterval;
                             modifySubscription = true;
                         }
-                        if (subscription.MaxNotificationsPerPublish !=
-                                _subscription.Configuration.MaxNotificationsPerPublish.GetValueOrDefault(0)) {
+
+                        if (subscription.MaxNotificationsPerPublish != configuredMaxNotificationsPerPublish) {
                             _logger.Debug(
                                 "Subscription '{subscription}'/'{sessionId}' change MaxNotificationsPerPublish to {new}",
                                 _subscription.Id,
                                 _subscription.Connection.CreateConnectionId(),
-                                configuration?.MaxNotificationsPerPublish ?? 0);
-                            subscription.MaxNotificationsPerPublish =
-                                _subscription.Configuration.MaxNotificationsPerPublish.GetValueOrDefault(0);
+                                configuredMaxNotificationsPerPublish);
+                            subscription.MaxNotificationsPerPublish = configuredMaxNotificationsPerPublish;
                             modifySubscription = true;
                         }
-                        if (subscription.LifetimeCount != _subscription.Configuration.LifetimeCount
-                                .GetValueOrDefault(session.DefaultSubscription.LifetimeCount)) {
+
+                        if (subscription.LifetimeCount != configuredLifetimeCount) {
                             _logger.Debug(
                                 "Subscription '{subscription}'/'{sessionId}' change LifetimeCount to {new}",
                                 _subscription.Id,
                                 _subscription.Connection.CreateConnectionId(),
-                                configuration?.LifetimeCount ?? 0);
-                            subscription.LifetimeCount = _subscription.Configuration.LifetimeCount
-                                .GetValueOrDefault(session.DefaultSubscription.LifetimeCount);
+                                configuredLifetimeCount);
+                            subscription.LifetimeCount = configuredLifetimeCount;
                             modifySubscription = true;
                         }
-                        if (subscription.Priority != _subscription.Configuration.Priority
-                                .GetValueOrDefault(session.DefaultSubscription.Priority)) {
+                        if (subscription.Priority != configuredPriority) {
                             _logger.Debug("Subscription '{subscription}'/'{sessionId}' change Priority to {new}",
                                 _subscription.Id,
                                 _subscription.Connection.CreateConnectionId(),
-                                configuration?.Priority ?? 0);
-                            subscription.Priority = _subscription.Configuration.Priority
-                                .GetValueOrDefault(session.DefaultSubscription.Priority);
+                                configuredPriority);
+                            subscription.Priority = configuredPriority;
                             modifySubscription = true;
                         }
                         if (modifySubscription) {
@@ -1118,6 +1121,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             GetValueOrDefault(Opc.Ua.MonitoringMode.Reporting)
                         : Opc.Ua.MonitoringMode.Disabled,
                     StartNodeId = Template.StartNodeId.ToNodeId(session.MessageContext),
+                    // TODO apply & propagate the default values configured, available for standalone only
                     QueueSize = Template.QueueSize.GetValueOrDefault(1),
                     SamplingInterval = (int)Template.SamplingInterval.
                         GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
