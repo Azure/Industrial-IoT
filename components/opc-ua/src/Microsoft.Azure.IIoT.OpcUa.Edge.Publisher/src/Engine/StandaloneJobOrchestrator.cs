@@ -1040,10 +1040,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 requestDataSetsFound[k] = true;
 
                                 // refresh the Tag if a new one is provided
-                                if (!string.IsNullOrEmpty(dataSetToUpdate.Tag)) {
-                                    entry.Tag = dataSetToUpdate.Tag;
-                                }
-
+                                entry.Tag = dataSetToUpdate.Tag;
                                 break;
                             }
                         }
