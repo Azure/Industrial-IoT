@@ -21,6 +21,7 @@ using System.ComponentModel;
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Linq;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
@@ -46,6 +47,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
             bool showHelp = false;
             bool isLegacyOption = false;
+            List<string> unsupportedOptions = new List<string>();
             List<string> legacyOptions = new List<string>();
             var logger = ConsoleLogger.Create(LogEventLevel.Warning);
 
@@ -202,11 +204,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 };
 
             try {
-                options.Parse(args);
+                unsupportedOptions = options.Parse(args);
             }
             catch (Exception e) {
                 logger.Warning("Parse args exception: " + e.Message);
-                Environment.Exit(160);
+                Exit(160);
+            }
+
+            if (unsupportedOptions.Any()) {
+                foreach (var option in unsupportedOptions) {
+                    logger.Warning("Option {option} wrong or not supported, please use -h option to get all the supported options.", option);
+                }
             }
 
             if (isLegacyOption) {
@@ -217,7 +225,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
             if (showHelp) {
                 options.WriteOptionDescriptions(Console.Out);
-                Environment.Exit(0);
+                Exit(0);
             }
             Config = ToAgentConfigModel();
         }
@@ -293,6 +301,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             }
 
             return loggerConfiguration;
+        }
+
+        /// <summary>
+        /// Call exit with exit code
+        /// </summary>
+        public virtual void Exit(int exitCode) {
+            Environment.Exit(exitCode);
         }
 
         private StandaloneCliModel ToStandaloneCliModel() {
