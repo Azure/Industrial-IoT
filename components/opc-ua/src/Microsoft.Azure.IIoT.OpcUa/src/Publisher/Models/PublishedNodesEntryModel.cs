@@ -69,6 +69,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> Nodes defined in the collection. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public List<OpcNodeModel> OpcNodes { get; set; }
-
     }
 }

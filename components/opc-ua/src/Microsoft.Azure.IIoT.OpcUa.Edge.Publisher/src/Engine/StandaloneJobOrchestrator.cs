@@ -595,10 +595,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 }
                             }
 
-                            //  refresh the Tag if a new one is provided
-                            if (!string.IsNullOrEmpty(request.Tag)) {
-                                entry.Tag = request.Tag;
-                            }
+                            // refresh the Tag if a new one is provided
+                            entry.Tag = request.Tag;
 
                             dataSetFound = true;
                         }
@@ -714,11 +712,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
 
                             matchingGroups.Add(entry);
-
-                            //  refresh the Tag if a new one is provided
-                            if (!string.IsNullOrEmpty(request.Tag)) {
-                                entry.Tag = request.Tag;
-                            }
                         }
                     }
                 }
@@ -763,6 +756,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 }
 
                                 entry.OpcNodes = updatedNodes;
+
+                                // refresh the Tag if a new one is provided
+                                entry.Tag = request.Tag;
                             }
                             else {
                                 entry.OpcNodes.Clear();
@@ -875,10 +871,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
                             matchingGroups.Add(entry);
 
-                            // refresh the Tag if a new one is provided (not exactly necessary, but might be useful for debugging)
-                            if (!string.IsNullOrEmpty(request.Tag)) {
-                                entry.Tag = request.Tag;
-                            }
                         }
                     }
 
@@ -1047,7 +1039,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 // We do not need to look for another matching data set in request.
                                 requestDataSetsFound[k] = true;
 
-                                //  refresh the Tag if a new one is provided
+                                // refresh the Tag if a new one is provided
                                 if (!string.IsNullOrEmpty(dataSetToUpdate.Tag)) {
                                     entry.Tag = dataSetToUpdate.Tag;
                                 }
