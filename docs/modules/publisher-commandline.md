@@ -437,6 +437,13 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Mode: Standalone and Orchestrated
                                       Type: integer
                                       Default: 130,816 (128KB - 256)
+
+            RuntimeStateReporting=VALUE
+                                      Enables reporting of OPC Publisher restarts.
+                                      Alternative: --rs, --runtimestatereporting
+                                      Mode: Standalone
+                                      Type: boolean
+                                      Default: false
 <!---
 
             DefaultSkipFirst=VALUE
