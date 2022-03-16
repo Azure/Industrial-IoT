@@ -870,7 +870,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 found = true;
                             }
                             matchingGroups.Add(entry);
-
                         }
                     }
 
