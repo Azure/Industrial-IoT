@@ -111,6 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal(endpoint.OpcAuthenticationPassword, null);
             Assert.Equal(endpoint.DataSetWriterId, "DataSetWriterId0");
             Assert.Equal(endpoint.DataSetPublishingInterval, 10000);
+            Assert.Equal(endpoint.Tag, "Tag0");
 
             endpoint.OpcAuthenticationPassword = "password";
 
@@ -152,6 +153,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal(endpoint.OpcAuthenticationPassword, null);
             Assert.Equal(endpoint.DataSetWriterId, "DataSetWriterId0");
             Assert.Equal(endpoint.DataSetPublishingInterval, 10000);
+            Assert.Equal(endpoint.Tag, "Tag0");
 
             endpoint.OpcAuthenticationPassword = "password";
 

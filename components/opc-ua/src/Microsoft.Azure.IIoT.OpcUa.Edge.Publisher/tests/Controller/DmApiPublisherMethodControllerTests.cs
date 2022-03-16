@@ -649,6 +649,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ConfigureAwait(false);
 
             endpoints.Subject.Endpoints.Count.Should().Be(5);
+            endpoints.Subject.Endpoints.First().Tag.Should().Be("Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
             var endpointsHash = endpoints.Subject.Endpoints.Select(e => e.GetHashCode()).ToList();
             Assert.True(endpointsHash.Distinct().Count() == endpointsHash.Count());
         }
