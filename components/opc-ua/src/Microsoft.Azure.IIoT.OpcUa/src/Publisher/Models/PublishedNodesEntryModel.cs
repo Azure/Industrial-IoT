@@ -62,12 +62,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string OpcAuthenticationPassword { get; set; }
 
+        /// <summary> User assigned tag. </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public string Tag { get; set; }
+
         /// <summary> Nodes defined in the collection. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public List<OpcNodeModel> OpcNodes { get; set; }
 
-        /// <summary> Tag. </summary>
-        [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public string Tag { get; set; }
     }
 }

@@ -595,6 +595,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 }
                             }
 
+                            //  refresh the Tag if a new one is provided
+                            if (!string.IsNullOrEmpty(request.Tag)) {
+                                entry.Tag = request.Tag;
+                            }
+
                             dataSetFound = true;
                         }
 
@@ -709,6 +714,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
 
                             matchingGroups.Add(entry);
+
+                            //  refresh the Tag if a new one is provided
+                            if (!string.IsNullOrEmpty(request.Tag)) {
+                                entry.Tag = request.Tag;
+                            }
                         }
                     }
                 }
@@ -864,6 +874,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 found = true;
                             }
                             matchingGroups.Add(entry);
+
+                            // refresh the Tag if a new one is provided (not exactly necessary, but might be useful for debugging)
+                            if (!string.IsNullOrEmpty(request.Tag)) {
+                                entry.Tag = request.Tag;
+                            }
                         }
                     }
 
@@ -1031,6 +1046,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                                 // We do not need to look for another matching data set in request.
                                 requestDataSetsFound[k] = true;
+
+                                //  refresh the Tag if a new one is provided
+                                if (!string.IsNullOrEmpty(dataSetToUpdate.Tag)) {
+                                    entry.Tag = dataSetToUpdate.Tag;
+                                }
+
                                 break;
                             }
                         }
