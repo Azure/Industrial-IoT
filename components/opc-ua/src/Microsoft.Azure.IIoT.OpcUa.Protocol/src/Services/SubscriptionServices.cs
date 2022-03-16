@@ -286,7 +286,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Reads the display name of the nodes to be monitored
             /// </summary>
             private void ResolveDisplayNames(Session session) {
-                if (!(_subscription?.Configuration?.ResolveDisplayName ?? false)) {
+                if (!(_subscription.Configuration?.ResolveDisplayName ?? false)) {
                     return;
                 }
 
@@ -682,12 +682,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 // TODO propagate the default PublishingInterval currently only avaliable for standalone mode
-                var configuredPublishingInterval = (int)(_subscription?.Configuration?.PublishingInterval)
+                var configuredPublishingInterval = (int)(_subscription.Configuration?.PublishingInterval)
                     .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
                 var normedPublishingInterval = (uint)(configuredPublishingInterval > 0 ? configuredPublishingInterval : 1);
 
                 // calculate the KeepAliveCount no matter what, perhaps monitored items were changed
-                var revisedKeepAliveCount = (_subscription?.Configuration?.KeepAliveCount)
+                var revisedKeepAliveCount = (_subscription.Configuration?.KeepAliveCount)
                     .GetValueOrDefault(_outer._clientConfig.MaxKeepAliveCount);
 
                 _subscription.MonitoredItems?.ForEach(m => {
@@ -699,13 +699,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 });
 
                 // TODO propagate the default values currently only available for standalone mode
-                var configuredMaxNotificationsPerPublish = (_subscription?.Configuration?.MaxNotificationsPerPublish)
+                var configuredMaxNotificationsPerPublish = (_subscription.Configuration?.MaxNotificationsPerPublish)
                     .GetValueOrDefault(session.DefaultSubscription.MaxNotificationsPerPublish);
 
-                var configuredLifetimeCount = (_subscription?.Configuration?.LifetimeCount)
+                var configuredLifetimeCount = (_subscription.Configuration?.LifetimeCount)
                     .GetValueOrDefault(session.DefaultSubscription.LifetimeCount);
 
-                var configuredPriority = (_subscription?.Configuration?.Priority)
+                var configuredPriority = (_subscription.Configuration?.Priority)
                     .GetValueOrDefault(session.DefaultSubscription.Priority);
 
                 var subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
