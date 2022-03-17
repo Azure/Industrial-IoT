@@ -6,7 +6,50 @@ Migration of OPC Publisher(standalone mode) version 2.5.x to 2.8.2 works for bac
 
 ## Configuration file (pn.json)
 
-**TODO**
+OPC Publisher 2.8.2 in standalone mode can consume published nodes JSON files of 2.5.x version without any modifications.
+OPC Publisher 2.8.2 adds several new fields for configuring publishing. The full schema looks like this:
+
+```json
+[
+  {
+    "EndpointUrl": "string",
+    "UseSecurity": "boolean",
+    "OpcAuthenticationMode": "string",
+    "OpcAuthenticationUsername": "string",
+    "OpcAuthenticationPassword": "string",
+    "DataSetWriterGroup": "string",
+    "DataSetWriterId": "string",
+    "DataSetPublishingInterval": "integer",
+    "DataSetPublishingIntervalTimespan": "string",
+    "Tag": "string",
+    "OpcNodes": [
+      {
+        "Id": "string",
+        "ExpandedNodeId": "string",
+        "DataSetFieldId ": "string",
+        "DisplayName": "string",
+        "OpcSamplingInterval": "integer",
+        "OpcSamplingIntervalTimespan": "string",
+        "OpcPublishingInterval": "integer",
+        "OpcPublishingIntervalTimespan": "string",
+        "HeartbeatInterval": "integer",
+        "HeartbeatIntervalTimespan": "string",
+        "QueueSize": "integer"
+      }
+    ]
+  }
+]
+```
+
+For details of each field you can consult our [direct methods API documentation](publisher-directmethods.md)
+as the fields of published nodes JSON schema map directly to that of direct method API calls.
+The only difference is that `OpcAuthenticationUsername` and `OpcAuthenticationPassword` are refereed to as
+`UserName` and `Password` in direct method API calls.
+
+Please note that OPC Publisher 2.8.2 can still consume legacy `NodeId`-based node definitions
+(as can be found in [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1)),
+but we strongly recommend to use `OpcNodes`-based definitions instead.
+Please consider migrating your old published nodes JSON files that use `NodeId` to the newer schema.
 
 ## Command Line Arguments
 
@@ -386,16 +429,16 @@ The direct methods not available in OPC Publisher 2.8.2, there are changes requi
 
 ### GetDiagnosticLog
 
-To retrieve the logs of an IoT Edge module, please check the built-in direct methods provided by IoT Edge `edgeAgent` module [here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-retrieve-iot-edge-logs?view=iotedge-2020-11#retrieve-module-logs).
+To retrieve the logs of an IoT Edge module, please check the built-in direct methods provided by IoT Edge `edgeAgent` module [here](https://docs.microsoft.com/azure/iot-edge/how-to-retrieve-iot-edge-logs?view=iotedge-2020-11#retrieve-module-logs).
 
 ### GetDiagnosticStartupLog
 
-To get diagnostic info of OPC Publisher, please refer to this [link](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-edgeagent-direct-method?view=iotedge-2020-11#diagnostic-direct-methods).
+To get diagnostic info of OPC Publisher, please refer to this [link](https://docs.microsoft.com/azure/iot-edge/how-to-edgeagent-direct-method?view=iotedge-2020-11#diagnostic-direct-methods).
 
 ### ExitApplication
 
-If OPC Publisher is in failed state or other unhealthy behavior, you could trigger `RestartModule` direct method to stop and then restart the module. To learn more about this direct method, please have a look at [this]([https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub?view=iotedge-2020-11) in-built direct method provided by IoT Edge.
+If OPC Publisher is in failed state or other unhealthy behavior, you could trigger `RestartModule` direct method to stop and then restart the module. To learn more about this direct method, please have a look at [this](https://docs.microsoft.com/azure/iot-edge/how-to-edgeagent-direct-method?view=iotedge-2020-11) in-built direct method provided by IoT Edge.
 
 ### GetInfo
 
-To get the info like version, OS, etc., please refer to the properties provided by IoT Edge which is documented [here](https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub?view=iotedge-2020-11).
+To get the info like version, OS, etc., please refer to the properties provided by IoT Edge which is documented [here](https://docs.microsoft.com/azure/iot-edge/module-edgeagent-edgehub?view=iotedge-2020-11).
