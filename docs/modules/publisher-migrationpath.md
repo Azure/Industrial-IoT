@@ -92,9 +92,9 @@ The following table describes the command line arguments, which were available i
 | --kt, --keepalivethreshold=VALUE        |  yes                     |                 |
 | --aa, --autoaccept                      |  yes                     |                 |
 | --tm, --trustmyself=VALUE               |  yes                     |                 |
-| --to, --trustowncert                    |  no                      | same as trustmyself                |
+| --to, --trustowncert                    |  no                      | same as --tm, --trustmyself                |
 | --fd, --fetchdisplayname=VALUE          |  yes                     |                 |
-| --fn, --fetchname                       |  no                      | same as fetchdisplayname              |
+| --fn, --fetchname                       |  no                      | same as --fd, --fetchdisplayname              |
 | --ss, --suppressedopcstatuscodes=VALUE  |  no                      |                 |
 | --at, --appcertstoretype=VALUE          |  yes                     |                 |
 | --ap, --appcertstorepath=VALUE          |  yes                     |                 |
@@ -119,9 +119,9 @@ The following table describes the command line arguments, which were available i
 | -i, --install                           |  no                      |                 |
 | -h, --help                              |  yes                     |                 |
 | --st, --opcstacktracemask=VALUE         |  no                      |                 |
-| --sd, --shopfloordomain=VALUE           |  no                      |  same as site option               |
+| --sd, --shopfloordomain=VALUE           |  no                      |  same as --s, --site option               |
 | --vc, --verboseconsole=VALUE            |  no                      |                 |
-| --as, --autotrustservercerts=VALUE      |  no                      |  same as autoaccept               |
+| --as, --autotrustservercerts=VALUE      |  no                      |  same as --aa, --autoaccept               |
 | --tt, --trustedcertstoretype=VALUE      |  no                      |  env variable TrustedPeerCertificatesType=VALUE  |
 | --rt, --rejectedcertstoretype=VALUE     |  no                      |  env variable RejectedCertificateStoreType=VALUE   |
 | --it, --issuercertstoretype=VALUE       |  no                      |  env variable TrustedIssuerCertificatesType=VALUE  |
