@@ -55,6 +55,78 @@ Please consider migrating your old published nodes JSON files that use `NodeId` 
 
 To learn more about how to use comman-line arguments to configure OPC Publisher, please refer to [this](publisher-commandline.md) doc.
 
+## OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2
+
+The following table describes the command line arguments, which were available in OPC Publisher 2.5.x and their compatibility in OPC Publisher 2.8.2.
+
+| **Command Line Options**                |  **in 2.8.2 and above**  | **Alternative** |
+|--------------------------------------   |--------------------------|-----------------|
+| --pf, --publishfile=VALUE               |  yes                     |                 |
+| --tc, --telemetryconfigfile=VALUE       |  no                      |                 |
+| --s, --site=VALUE                       |  yes                     |                 |
+| --ic, --iotcentral                      |  no                      |                 |
+| --sw, --sessionconnectwait=VALUE        |  no                      |                 |
+| --mq, --monitoreditemqueuecapacity=VALUE|  yes                     |                 |
+| --di, --diagnosticsinterval=VALUE       |  yes                     |                 |
+| --ns, --noshutdown=VALUE                |  no                      |                 |
+| --rf, --runforever                      |  no                      |                 |
+| --lf, --logfile=VALUE                   |  yes                     |                 |
+| --lt, --logflushtimespan=VALUE          |  yes                     |                 |
+| --ll, --loglevel=VALUE                  |  yes                     |                 |
+| --ih, --iothubprotocol=VALUE            |  yes                     |                 |
+| --ms, --iothubmessagesize=VALUE         |  yes                     |                 |
+| --si, --iothubsendinterval=VALUE        |  yes                     |                 |
+| --dc, --deviceconnectionstring=VALUE    |  yes                     |                 |
+| --c, --connectionstring=VALUE           |  no                      |  use --dc, --deviceconnectionstring=VALUE               |
+| --hb, --heartbeatinterval=VALUE         |  yes                     |                 |
+| --sf, --skipfirstevent=VALUE            |  no                      |                 |
+| --pn, --portnum=VALUE                   |  no                      |                 |
+| --pa, --path=VALUE                      |  no                      |                 |
+| --lr, --ldsreginterval=VALUE            |  no                      |                 |
+| --ol, --opcmaxstringlen=VALUE           |  yes                     |                 |
+| --ot, --operationtimeout=VALUE          |  yes                     |                 |
+| --oi, --opcsamplinginterval=VALUE       |  yes                     |                 |
+| --op, --opcpublishinginterval=VALUE     |  yes                     |                 |
+| --ct, --createsessiontimeout=VALUE      |  yes                     |                 |
+| --ki, --keepaliveinterval=VALUE         |  yes                     |                 |
+| --kt, --keepalivethreshold=VALUE        |  yes                     |                 |
+| --aa, --autoaccept                      |  yes                     |                 |
+| --tm, --trustmyself=VALUE               |  yes                     |                 |
+| --to, --trustowncert                    |  no                      | same as --tm, --trustmyself                |
+| --fd, --fetchdisplayname=VALUE          |  yes                     |                 |
+| --fn, --fetchname                       |  no                      | same as --fd, --fetchdisplayname              |
+| --ss, --suppressedopcstatuscodes=VALUE  |  no                      |                 |
+| --at, --appcertstoretype=VALUE          |  yes                     |                 |
+| --ap, --appcertstorepath=VALUE          |  yes                     |                 |
+| --tp, --trustedcertstorepath=VALUE      |  yes                     |                 |
+| --rp, --rejectedcertstorepath=VALUE     |  yes                     |                 |
+| --ip, --issuercertstorepath=VALUE       |  yes                     |                 |
+| --csr                                   |  no                      |                 |
+| --ab, --applicationcertbase64=VALUE     |  no                      |                 |
+| --af, --applicationcertfile=VALUE       |  no                      |                 |
+| --pb, --privatekeybase64=VALUE          |  no                      |                 |
+| --pk, --privatekeyfile=VALUE            |  no                      |                 |
+| --cp, --certpassword=VALUE              |  no                      |                 |
+| --tb, --addtrustedcertbase64=VALUE      |  no                      |                 |
+| --tf, --addtrustedcertfile=VALUE        |  no                      |                 |
+| --ib, --addissuercertbase64=VALUE       |  no                      |                 |
+| --if, --addissuercertfile=VALUE         |  no                      |                 |
+| --rb, --updatecrlbase64=VALUE           |  no                      |                 |
+| --uc, --updatecrlfile=VALUE             |  no                      |                 |
+| --rc, --removecert=VALUE                |  no                      |                 |
+| --dt, --devicecertstoretype=VALUE       |  no                      |                 |
+| --dp, --devicecertstorepath=VALUE       |  no                      |                 |
+| -i, --install                           |  no                      |                 |
+| -h, --help                              |  yes                     |                 |
+| --st, --opcstacktracemask=VALUE         |  no                      |                 |
+| --sd, --shopfloordomain=VALUE           |  no                      |  same as --s, --site option               |
+| --vc, --verboseconsole=VALUE            |  no                      |                 |
+| --as, --autotrustservercerts=VALUE      |  no                      |  same as --aa, --autoaccept               |
+| --tt, --trustedcertstoretype=VALUE      |  no                      |  env variable TrustedPeerCertificatesType=VALUE  |
+| --rt, --rejectedcertstoretype=VALUE     |  no                      |  env variable RejectedCertificateStoreType=VALUE   |
+| --it, --issuercertstoretype=VALUE       |  no                      |  env variable TrustedIssuerCertificatesType=VALUE  |
+
+
 ## OPC UA Certificates management
 
 **TODO**
