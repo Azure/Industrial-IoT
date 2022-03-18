@@ -565,7 +565,7 @@ References:
 
 - [About Azure Kubernetes Service (AKS)](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
 
-- azure-industrial-iot Helm chart (0.4.0)
+- azure-industrial-iot Helm chart (0.4.1)
 
 #### Azure Monitor
 
@@ -728,7 +728,7 @@ References:
 
 [Helm](https://helm.sh/docs/) is a [Kubernetes](https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/) package and operations manager, analogous to yum and apt. Application packages themselves are called Helm Charts and can be installed using the Helm tool. Helm allows users to easily templatize their Kubernetes manifests and provide a set of configuration parameters that allows users to customize their deployment.
 
-For the deployment of cloud microservices of Azure Industrial IoT platform into a Kubernetes cluster we provide **azure-industrial-iot** Helm chart. Version **0.4.0** of azure-industrial-iot Helm char should be used for deployment of **2.8.x** versions of Azure Industrial IoT microservices.
+For the deployment of cloud microservices of Azure Industrial IoT platform into a Kubernetes cluster we provide **azure-industrial-iot** Helm chart. Version **0.4.1** of azure-industrial-iot Helm char should be used for deployment of **2.8.x** versions of Azure Industrial IoT microservices.
 
 #### Prerequisites
 
@@ -750,7 +750,7 @@ Please note that we require Helm **3+**, and suggest **3.2+**, so be sure to set
 
 Helm chart is responsible only for the deployment of microservices into a Kubernetes cluster. It is not intended for and cannot create any Azure resources. So the installation of the chart requires one to already have Azure resources that are described in Azure Resources part of previous section. Detail of those Azure resources are provided to the chart as configuration parameters and are passed down to microservices as environment variables.
 
-Documentation of the chart lists all required Azure resources and provides steps for manually creating them if needed. It also described details of Azure resources that are required for installation of the chart. It can be found [here](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.0/deploy/helm/azure-industrial-iot/README.md).
+Documentation of the chart lists all required Azure resources and provides steps for manually creating them if needed. It also described details of Azure resources that are required for installation of the chart. It can be found [here](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.1/deploy/helm/azure-industrial-iot/README.md).
 
 #### Installing the Chart
 
@@ -800,7 +800,7 @@ kubectl create namespace azure-iiot-ns
 
 ##### Install azure-industrial-iot Helm chart
 
-To install the chart with a specific release name, **azure-iiot** for example, one would run the following command changing all values in &lt;&gt; with the ones specific to their deployment and Azure resources. For command on how to manually obtain those for an existing deployment of Azure resources please check [Prerequisites](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.0/deploy/helm/azure-industrial-iot/README.md#prerequisites) of the Helm documentation.
+To install the chart with a specific release name, **azure-iiot** for example, one would run the following command changing all values in &lt;&gt; with the ones specific to their deployment and Azure resources. For command on how to manually obtain those for an existing deployment of Azure resources please check [Prerequisites](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.1/deploy/helm/azure-industrial-iot/README.md#prerequisites) of the Helm documentation.
 
 ```bash
 helm install azure-iiot microsoft/azure-industrial-iot --namespace azure-iiot-ns \
@@ -881,7 +881,7 @@ References:
 
 - [Helm documentation](https://helm.sh/docs/)
 
-- azure-industrial-iot Helm chart, version 0.4.0
+- azure-industrial-iot Helm chart, version 0.4.1
 
 - [Compatibility matrix of Helm chart versions and Azure Industrial IoT components](../deploy/howto-deploy-helm.md)
 
@@ -1342,7 +1342,7 @@ deployment:
 
 Please be sure to monitor both memory and CPU consumption of those microservices and update their limits accordingly considering as-deployed behavior.
 
-More details about configuration of components when deploying them using azure-industrial-iot Helm chart can be found in the [chart documentation](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.0/deploy/helm/azure-industrial-iot/README.md).
+More details about configuration of components when deploying them using azure-industrial-iot Helm chart can be found in the [chart documentation](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.1/deploy/helm/azure-industrial-iot/README.md).
 
 References:
 
@@ -2274,9 +2274,9 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    `helm get values azure-industrial-iot --namespace azure-industrial-iot > values.yaml`
 
-3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from 2.7.206 version to 2.8.1.
+3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from 2.7.206 version to 2.8.2.
 
-   Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to 2.8.1 from 2.7.206. If there isn’t one, please add it.
+   Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to 2.8.2 from 2.7.206. If there isn’t one, please add it.
 
 4. After that we can update the existing release with new images. For that we will use `values.yaml` that we modified previously:
 
@@ -2284,7 +2284,7 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    This command will keep existing setup unchanged, except for the version of docker images that are deployed.
 
-It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is 0.4.0 which by default deploys 2.8.0 version of the components. The same version can be used for deployment of 2.8.0 and higher 2.8.x versions. For the version compatibility matrix, please check out [how to deplyo using Helm](../deploy/howto-deploy-helm.md).
+It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is 0.4.1 which by default deploys 2.8.0 version of the components. The same version can be used for deployment of 2.8.0 and higher 2.8.x versions. For the version compatibility matrix, please check out [how to deplyo using Helm](../deploy/howto-deploy-helm.md).
 
 #### IoT Edge Modules
 
