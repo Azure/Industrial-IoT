@@ -311,7 +311,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
             TrustedIssuerCertificatesType=VALUE
                                       OPC UA Client Security Config - trusted issuer certificates
                                       store type
-                                      Alternative: --it, --issuercertstoretype
+                                      Alternative: N/A
                                       Mode: Standalone and Orchestrated
                                       Type: enum string : Directory, X509Store
                                       Default: Directory
@@ -327,7 +327,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
             TrustedPeerCertificatesType=VALUE
                                       OPC UA Client Security Config - trusted peer certificates
                                       store type
-                                      Alternative: --tt, --trustedcertstoretype
+                                      Alternative: N/A
                                       Mode: Standalone and Orchestrated
                                       Type: enum string : Directory, X509Store
                                       Default: Directory
@@ -343,7 +343,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
             RejectedCertificateStoreType=VALUE
                                       OPC UA Client Security Config - rejected certificates
                                       store type
-                                      Alternative: --rt, --rejectedcertstoretype
+                                      Alternative: N/A
                                       Mode: Standalone and Orchestrated
                                       Type: enum string : Directory, X509Store
                                       Default: Directory
