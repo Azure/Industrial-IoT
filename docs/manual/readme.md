@@ -195,7 +195,7 @@ In this mode the OPC Publisher module runs a configurable number of workers (whi
 
 ##### Overview of how Standalone Mode Works
 
-OPC Publisher Module checks on a regular basis if there is a `publishednodes.json` file in its application directory. If there is one, the file is parsed and the OPC Publisher Module creates a new OPC UA subscription for each OPC UA server endpoint specified in the file and starts monitoring for data changes from this OPC UA server. Additionally, we support json schema validation of `publishednodes.json` file if a schema file is available to the OPC Publisher. Default location for schema file is `schemas/publishednodesschema.json` in its application directory. Default location of schema file can be changed via cli options [here](../modules/publisher-commandline.md), if a schema file is not found by OPC Publisher, a warning message is logged and module continues to load.
+OPC Publisher Module checks on a regular basis if there is a `publishednodes.json` file in its application directory. If there is one, the file is parsed and the OPC Publisher Module creates a new OPC UA subscription for each OPC UA server endpoint specified in the file and starts monitoring for data changes from this OPC UA server.
 
 ##### Overview of how Orchestrated Mode Works
 
@@ -565,7 +565,7 @@ References:
 
 - [About Azure Kubernetes Service (AKS)](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
 
-- azure-industrial-iot Helm chart (0.4.0)
+- azure-industrial-iot Helm chart (0.4.1)
 
 #### Azure Monitor
 
@@ -728,7 +728,7 @@ References:
 
 [Helm](https://helm.sh/docs/) is a [Kubernetes](https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/) package and operations manager, analogous to yum and apt. Application packages themselves are called Helm Charts and can be installed using the Helm tool. Helm allows users to easily templatize their Kubernetes manifests and provide a set of configuration parameters that allows users to customize their deployment.
 
-For the deployment of cloud microservices of Azure Industrial IoT platform into a Kubernetes cluster we provide **azure-industrial-iot** Helm chart. Version **0.4.0** of azure-industrial-iot Helm char should be used for deployment of **2.8.x** versions of Azure Industrial IoT microservices.
+For the deployment of cloud microservices of Azure Industrial IoT platform into a Kubernetes cluster we provide **azure-industrial-iot** Helm chart. Version **0.4.1** of azure-industrial-iot Helm char should be used for deployment of **2.8.x** versions of Azure Industrial IoT microservices.
 
 #### Prerequisites
 
@@ -750,7 +750,7 @@ Please note that we require Helm **3+**, and suggest **3.2+**, so be sure to set
 
 Helm chart is responsible only for the deployment of microservices into a Kubernetes cluster. It is not intended for and cannot create any Azure resources. So the installation of the chart requires one to already have Azure resources that are described in Azure Resources part of previous section. Detail of those Azure resources are provided to the chart as configuration parameters and are passed down to microservices as environment variables.
 
-Documentation of the chart lists all required Azure resources and provides steps for manually creating them if needed. It also described details of Azure resources that are required for installation of the chart. It can be found [here](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.0/deploy/helm/azure-industrial-iot/README.md).
+Documentation of the chart lists all required Azure resources and provides steps for manually creating them if needed. It also described details of Azure resources that are required for installation of the chart. It can be found [here](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.1/deploy/helm/azure-industrial-iot/README.md).
 
 #### Installing the Chart
 
@@ -758,35 +758,21 @@ Documentation of the chart lists all required Azure resources and provides steps
 
 To install the chart first ensure that you have added either one of two Helm repositories where we publish azure-industrial-iot Helm chart. It can be found in:
 
-- <https://azure.github.io/Industrial-IoT/helm>
+- <https://microsoft.github.io/charts/repo>
 
-  > NOTE: This is the recommended Helm chart repository to use.
+    To add the repository run the following command:
 
-  To add the repository run the following command:
-
-  ```bash
-  helm repo add industrial-iot https://azure.github.io/Industrial-IoT/helm
-  ```
+    ```bash
+    helm repo add microsoft <https://microsoft.github.io/charts/repo>
+    ```
 
 - <https://azureiiot.blob.core.windows.net/helm>
 
-  > NOTE: This is a legacy Helm chart repository. We will keep updating it, but we recommend using `https://azure.github.io/Industrial-IoT/helm`.
+    To add the repository run the following command:
 
-  To add the repository run the following command:
-
-  ```bash
-  helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
-  ```
-
-- <https://microsoft.github.io/charts/repo>
-
-  > NOTE: This is a legacy Helm chart repository. We will keep updating it, but we recommend using `https://azure.github.io/Industrial-IoT/helm`.
-
-  To add the repository run the following command:
-
-  ```bash
-  helm repo add microsoft https://microsoft.github.io/charts/repo
-  ```
+    ```bash
+    helm repo add azure-iiot <https://azureiiot.blob.core.windows.net/helm>
+    ```
 
 We will use first repository for the installation of the chart.
 
@@ -800,7 +786,7 @@ kubectl create namespace azure-iiot-ns
 
 ##### Install azure-industrial-iot Helm chart
 
-To install the chart with a specific release name, **azure-iiot** for example, one would run the following command changing all values in &lt;&gt; with the ones specific to their deployment and Azure resources. For command on how to manually obtain those for an existing deployment of Azure resources please check [Prerequisites](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.0/deploy/helm/azure-industrial-iot/README.md#prerequisites) of the Helm documentation.
+To install the chart with a specific release name, **azure-iiot** for example, one would run the following command changing all values in &lt;&gt; with the ones specific to their deployment and Azure resources. For command on how to manually obtain those for an existing deployment of Azure resources please check [Prerequisites](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.1/deploy/helm/azure-industrial-iot/README.md#prerequisites) of the Helm documentation.
 
 ```bash
 helm install azure-iiot microsoft/azure-industrial-iot --namespace azure-iiot-ns \
@@ -881,7 +867,7 @@ References:
 
 - [Helm documentation](https://helm.sh/docs/)
 
-- azure-industrial-iot Helm chart, version 0.4.0
+- azure-industrial-iot Helm chart, version 0.4.1
 
 - [Compatibility matrix of Helm chart versions and Azure Industrial IoT components](../deploy/howto-deploy-helm.md)
 
@@ -930,8 +916,8 @@ The deployment script automatically configures all components to work with each 
 - `IoT Hub -> IoT Edge -> <DEVICE> -> Set Modules -> OpcPublisher` (for standalone OPC Publisher operation only)
 
 <table><thead><tr class="header"><th>Configuration Option<br />
-(shorthand|full name)</th><th>Description</th></tr></thead><tbody><tr class="odd"><td>pf|publishfile</td><td>the filename to configure the nodes to publish. If this Option is specified it puts OPC Publisher into standalone mode.</td></tr><tr class="even"><td>pfs|publishfileschema</td><td>the filename for json schema, to validate the published nodes file. If this option is specified it validates published nodes file against json schema specified here otherwise default location is used.</td></tr><tr class="odd"><td>lf|logfile</td><td>the filename of the logfile to use.</td></tr><tr class="even"><td>ll|loglevel</td><td>the log level to use (allowed: Fatal, Error, Warning, Information, Debug, Verbose).</td></tr><tr class="odd"><td>me|messageencoding</td><td>The messaging encoding for outgoing messages allowed values: Json, Uadp</td></tr><tr class="even"><td>mm|messagingmode</td><td>The messaging mode for outgoing messages allowed values: PubSub, Samples</td></tr><tr class="odd"><td>fm|fullfeaturedmessage</td><td>The full featured mode for messages (all fields filled in). Default is 'true', for legacy compatibility use 'false'</td></tr><tr class="even"><td>aa|autoaccept</td><td>The publisher trusted all servers it is establishing a connection to</td></tr><tr class="odd"><td>bs|batchsize</td><td>The number of OPC UA data-change messages to be cached for batching.</td></tr><tr class="even"><td>si|iothubsendinterval</td><td>The trigger batching interval in seconds.</td></tr><tr class="odd"><td>ms|iothubmessagesize</td><td>The maximum size of the (IoT D2C) message.</td></tr><tr class="even"><td>om|maxoutgressmessages</td><td>The maximum size of the (IoT D2C) message egress buffer.</td></tr><tr class="odd"><td>di|diagnosticsinterval</td><td>Shows publisher diagnostic info at the specified interval in seconds (need log level info).<br />
--1 disables remote diagnostic log and diagnostic output</td></tr><tr class="even"><td>lt|logflugtimespan</td><td>The timespan in seconds when the logfile should be flushed.</td></tr><tr class="odd"><td>ih|iothubprotocol</td><td>Protocol to use for communication with the hub. Allowed values: AmqpOverTcp, AmqpOverWebsocket, MqttOverTcp, MqttOverWebsocket, Amqp, Mqtt, Tcp, Websocket, Any</td></tr><tr class="even"><td>hb|heartbeatinterval</td><td>The publisher is using this as default value in seconds for the heartbeat interval setting of nodes without a heartbeat interval setting.</td></tr><tr class="odd"><td>ot|operationtimeout</td><td>The operation timeout of the publisher OPC UA client in ms.</td></tr><tr class="even"><td>ol|opcmaxstringlen</td><td>The max length of a string opc can transmit/receive.</td></tr><tr class="odd"><td>oi|opcsamplinginterval</td><td>Default value in milliseconds to request the servers to sample values</td></tr><tr class="even"><td>op|opcpublishinginterval</td><td>Default value in milliseconds for the publishing interval setting of the subscriptions against the OPC UA server.</td></tr><tr class="odd"><td>ct|createsessiontimeout</td><td>The interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.</td></tr><tr class="even"><td>kt|keepalivethresholt</td><td>Specify the number of keep alive packets a server can miss, before the session is disconnected.</td></tr><tr class="odd"><td>tm|trustmyself</td><td>The publisher certificate is put into the trusted store automatically.</td></tr><tr class="even"><td>at|appcertstoretype</td><td>The own application cert store type (allowed: Directory, X509Store).</td></tr></tbody></table>
+(shorthand|full name)</th><th>Description</th></tr></thead><tbody><tr class="odd"><td>pf|publishfile</td><td>the filename to configure the nodes to publish. If this Option is specified it puts OPC Publisher into standalone mode.</td></tr><tr class="even"><td>lf|logfile</td><td>the filename of the logfile to use.</td></tr><tr class="odd"><td>ll|loglevel</td><td>the log level to use (allowed: fatal, error, warn, info, debug, verbose).</td></tr><tr class="even"><td>me|messageencoding</td><td>The messaging encoding for outgoing messages allowed values: Json, Uadp</td></tr><tr class="odd"><td>mm|messagingmode</td><td>The messaging mode for outgoing messages allowed values: PubSub, Samples</td></tr><tr class="even"><td>fm|fullfeaturedmessage</td><td>The full featured mode for messages (all fields filled in). Default is 'true', for legacy compatibility use 'false'</td></tr><tr class="odd"><td>aa|autoaccept</td><td>The publisher trusted all servers it is establishing a connection to</td></tr><tr class="even"><td>bs|batchsize</td><td>The number of OPC UA data-change messages to be cached for batching.</td></tr><tr class="odd"><td>si|iothubsendinterval</td><td>The trigger batching interval in seconds.</td></tr><tr class="even"><td>ms|iothubmessagesize</td><td>The maximum size of the (IoT D2C) message.</td></tr><tr class="odd"><td>om|maxoutgressmessages</td><td>The maximum size of the (IoT D2C) message egress buffer.</td></tr><tr class="even"><td>di|diagnosticsinterval</td><td>Shows publisher diagnostic info at the specified interval in seconds (need log level info).<br />
+-1 disables remote diagnostic log and diagnostic output</td></tr><tr class="odd"><td>lt|logflugtimespan</td><td>The timespan in seconds when the logfile should be flushed.</td></tr><tr class="even"><td>ih|iothubprotocol</td><td>Protocol to use for communication with the hub. Allowed values: AmqpOverTcp, AmqpOverWebsocket, MqttOverTcp, MqttOverWebsocket, Amqp, Mqtt, Tcp, Websocket, Any</td></tr><tr class="odd"><td>hb|heartbeatinterval</td><td>The publisher is using this as default value in seconds for the heartbeat interval setting of nodes without a heartbeat interval setting.</td></tr><tr class="even"><td>ot|operationtimeout</td><td>The operation timeout of the publisher OPC UA client in ms.</td></tr><tr class="odd"><td>ol|opcmaxstringlen</td><td>The max length of a string opc can transmit/receive.</td></tr><tr class="even"><td>oi|opcsamplinginterval</td><td>Default value in milliseconds to request the servers to sample values</td></tr><tr class="odd"><td>op|opcpublishinginterval</td><td>Default value in milliseconds for the publishing interval setting of the subscriptions against the OPC UA server.</td></tr><tr class="even"><td>ct|createsessiontimeout</td><td>The interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.</td></tr><tr class="odd"><td>kt|keepalivethresholt</td><td>Specify the number of keep alive packets a server can miss, before the session is disconnected.</td></tr><tr class="even"><td>tm|trustmyself</td><td>The publisher certificate is put into the trusted store automatically.</td></tr><tr class="odd"><td>at|appcertstoretype</td><td>The own application cert store type (allowed: Directory, X509Store).</td></tr></tbody></table>
 
 Reference: [OPC Publisher Edge Module](../modules/publisher-commandline.md)
 
@@ -1342,7 +1328,7 @@ deployment:
 
 Please be sure to monitor both memory and CPU consumption of those microservices and update their limits accordingly considering as-deployed behavior.
 
-More details about configuration of components when deploying them using azure-industrial-iot Helm chart can be found in the [chart documentation](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.0/deploy/helm/azure-industrial-iot/README.md).
+More details about configuration of components when deploying them using azure-industrial-iot Helm chart can be found in the [chart documentation](https://github.com/Azure/Industrial-IoT/blob/helm/0.4.1/deploy/helm/azure-industrial-iot/README.md).
 
 References:
 
@@ -1545,9 +1531,6 @@ Several metrics are provided by default to give an overview of the health of the
 | iiot_edge_publisher_encoded_message_size_average      | deviceid, module, triggerid                      | Encoded IoT message body size average                                                   | gauge     |
 | iiot_edge_publisher_chunk_size_average                 | deviceid, module, triggerid                      | IoT Hub chunk size average                                                              | gauge     |
 | iiot_edge_publisher_estimated_message_chunks_per_day | deviceid, module, triggerid                      | Estimated IoT Hub chunks charged per day                                                | gauge     |
-| iiot_edge_publisher_is_connection_ok                 | deviceid, module, triggerid                      | Is the endpoint connection ok?                                                          | gauge     |
-| iiot_edge_publisher_good_nodes                       | deviceid, module, triggerid                      | How many nodes are receiving data for this endpoint?                                    | gauge     |
-| iiot_edge_publisher_bad_nodes                        | deviceid, module, triggerid                      | How many nodes are misconfigured for this endpoint?                                     | gauge     |
 
 Cloud Microservices Metrics are described below:
 
@@ -2268,15 +2251,15 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    <img src="media/image51.png" style="width:6.29166in;height:0.3641in" />
 
-​   We will need this `azure-industrial-iot` release name later to get the configuration values.
+   We will need this `azure-industrial-iot` release name later to get the configuration values.
 
 2. Get values that have been provided to this Helm release when it was deployed, save output in a file:
 
    `helm get values azure-industrial-iot --namespace azure-industrial-iot > values.yaml`
 
-3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from 2.7.206 version to 2.8.1.
+3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from 2.7.206 version to 2.8.2.
 
-   Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to 2.8.1 from 2.7.206. If there isn’t one, please add it.
+   Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to 2.8.2 from 2.7.206. If there isn’t one, please add it.
 
 4. After that we can update the existing release with new images. For that we will use `values.yaml` that we modified previously:
 
@@ -2284,7 +2267,7 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    This command will keep existing setup unchanged, except for the version of docker images that are deployed.
 
-It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is 0.4.0 which by default deploys 2.8.0 version of the components. The same version can be used for deployment of 2.8.0 and higher 2.8.x versions. For the version compatibility matrix, please check out [how to deplyo using Helm](../deploy/howto-deploy-helm.md).
+It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is 0.4.1 which by default deploys 2.8.0 version of the components. The same version can be used for deployment of 2.8.0 and higher 2.8.x versions. For the version compatibility matrix, please check out [how to deplyo using Helm](../deploy/howto-deploy-helm.md).
 
 #### IoT Edge Modules
 
