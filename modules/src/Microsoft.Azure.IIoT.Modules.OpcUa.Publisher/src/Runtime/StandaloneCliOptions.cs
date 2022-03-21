@@ -71,13 +71,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int i) => this[StandaloneCliConfigKeys.LogFileFlushTimeSpanSec] = TimeSpan.FromSeconds(i).ToString() },
                     { "ll|loglevel=", "The loglevel to use (allowed: fatal, error, warn, info, debug, verbose).",
                         (LogEventLevel l) => LogControl.Level.MinimumLevel = l },
-                    { "ih|iothubprotocol=", "Protocol to use for communication with the hub. " +
+                    { $"ih|iothubprotocol=|{StandaloneCliConfigKeys.HubTransport}=", "Protocol to use for communication with the hub. " +
                             $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(TransportOption)))}).",
                         (TransportOption p) => this[StandaloneCliConfigKeys.HubTransport] = p.ToString() },
                     { "dc|deviceconnectionstring=", "A device or edge module connection string to use.",
                         dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
                     { "ec|edgehubconnectionstring=", "An edge module connection string to use",
                         dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
+                    { $"{StandaloneCliConfigKeys.BypassCertVerificationKey}=", "Enables bypass of certificate verification for upstream communication to edgeHub.",
+                        (bool b) => this[StandaloneCliConfigKeys.BypassCertVerificationKey] = b.ToString() },
+                    { $"{StandaloneCliConfigKeys.EnableMetricsKey}=", "Enables upstream metrics propagation.",
+                        (bool b) => this[StandaloneCliConfigKeys.EnableMetricsKey] = b.ToString() },
 
                     { "hb|heartbeatinterval=", "The publisher is using this as default value in seconds " +
                         "for the heartbeat interval setting of nodes without a heartbeat interval setting.",
@@ -118,10 +122,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (uint u) => this[StandaloneCliConfigKeys.DefaultQueueSize] = u.ToString() },
 
                     // cert store option
-                    { $"aa|autoaccept|{StandaloneCliConfigKeys.AutoAcceptCerts}", "The publisher trusts all servers it is establishing a connection to.",
+                    { $"aa|autoaccept", "The publisher trusts all servers it is establishing a connection to.",
                         b => this[StandaloneCliConfigKeys.AutoAcceptCerts] = (b != null).ToString() },
-                    { $"tm|trustmyself|{StandaloneCliConfigKeys.TrustMyself}", "The publisher certificate is put into the trusted store automatically.",
-                        t => this[StandaloneCliConfigKeys.TrustMyself] = (t != null).ToString() },
+                    { $"{StandaloneCliConfigKeys.AutoAcceptCerts}=", "The publisher trusts all servers it is establishing a connection to.",
+                        (bool b) => this[StandaloneCliConfigKeys.AutoAcceptCerts] = b.ToString() },
+                    { $"tm|trustmyself", "The publisher certificate is put into the trusted store automatically.",
+                        b => this[StandaloneCliConfigKeys.TrustMyself] = (b != null).ToString() },
+                    { $"{StandaloneCliConfigKeys.TrustMyself}=", "The publisher certificate is put into the trusted store automatically.",
+                        (bool b) => this[StandaloneCliConfigKeys.TrustMyself] = b.ToString() },
                     { $"at|appcertstoretype=|{StandaloneCliConfigKeys.OpcOwnCertStoreType}=", "The own application cert store type (allowed: Directory, X509Store).",
                         s => {
                             if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||
@@ -154,8 +162,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         s => this[StandaloneCliConfigKeys.TrustedPeerCertificatesTypeKey] = s },
                     { $"{StandaloneCliConfigKeys.RejectedCertificateStoreTypeKey}=", "Rejected certificate types.",
                         s => this[StandaloneCliConfigKeys.RejectedCertificateStoreTypeKey] = s },
-                    { $"{StandaloneCliConfigKeys.RejectSha1SignedCertificatesKey}", "The publisher rejects deprecated SHA1 certificates.",
-                        b => this[StandaloneCliConfigKeys.RejectSha1SignedCertificatesKey] = (b != null).ToString() },
+                    { $"{StandaloneCliConfigKeys.RejectSha1SignedCertificatesKey}=", "The publisher rejects deprecated SHA1 certificates.",
+                        (bool b) => this[StandaloneCliConfigKeys.RejectSha1SignedCertificatesKey] = b.ToString() },
                     { $"{StandaloneCliConfigKeys.MinimumCertificateKeySizeKey}=", "Minimum accepted certificate size.",
                         s => this[StandaloneCliConfigKeys.MinimumCertificateKeySizeKey] = s },
                     { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); } },

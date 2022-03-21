@@ -142,6 +142,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string EdgeHubConnectionString = ModuleConfig.kEdgeHubConnectionStringKey;
 
         /// <summary>
+        /// Key for bypass cert validation flag.
+        /// </summary>
+        public const string BypassCertVerificationKey = ModuleConfig.kBypassCertVerificationKey;
+
+        /// <summary>
+        /// Key for enable metrics flag.
+        /// </summary>
+        public const string EnableMetricsKey = ModuleConfig.kEnableMetricsKey;
+
+        /// <summary>
         /// Key for the operation timeout in milliseconds.
         /// </summary>
         public const string OpcOperationTimeout = TransportQuotaConfig.OperationTimeoutKey;
