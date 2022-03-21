@@ -2,6 +2,7 @@
     {
         "DataSetWriterGroup": "Leaf0",
         "DataSetWriterId": "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "Tag": "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,
         "OpcAuthenticationMode": "UsernamePassword",
@@ -33,6 +34,7 @@
     {
         "DataSetWriterGroup": "Leaf0",
         "DataSetWriterId": "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "Tag": "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,
         "OpcAuthenticationMode": "UsernamePassword",
@@ -54,6 +56,7 @@
     {
         "DataSetWriterGroup": "Leaf0",
         "DataSetWriterId": "Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
+        "Tag": "Tag_Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,
         "OpcAuthenticationMode": "UsernamePassword",
@@ -74,6 +77,7 @@
     {
         "DataSetWriterGroup": "Leaf0",
         "DataSetWriterId": "Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "Tag": "Tag_Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952234",
         "DataSetPublishingIntervalTimespan": "00:00:02.500",
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,
@@ -96,6 +100,7 @@
     {
         "DataSetWriterGroup": "Leaf0",
         "DataSetWriterId": "Leaf3_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
+        "Tag": "Tag_Leaf3_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
         "DataSetPublishingInterval": 10000,
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,

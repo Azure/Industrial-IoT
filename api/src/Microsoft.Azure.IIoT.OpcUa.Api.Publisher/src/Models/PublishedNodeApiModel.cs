@@ -58,14 +58,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public string DisplayName { get; set; }
 
-        /// <summary>
-        /// Heartbeat interval as TimeSpan.
-        /// </summary>
+        /// <summary> Heartbeat interval in seconds. </summary>
         [DataMember(Name = "heartbeatInterval", Order = 8,
             EmitDefaultValue = false)]
         public int? HeartbeatInterval { get; set; }
 
-        /// <summary> Heartbeat </summary>
+        /// <summary> Heartbeat interval as TimeSpan. </summary>
         [DataMember(Name = "heartbeatIntervalTimespan", Order = 9,
             EmitDefaultValue = false)]
         public TimeSpan? HeartbeatIntervalTimespan { get; set; }

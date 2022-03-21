@@ -74,7 +74,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 Endpoint = model.Endpoint.Clone(),
                 User = model.User.Clone(),
                 Diagnostics = model.Diagnostics.Clone(),
-                OperationTimeout = model.OperationTimeout,
             };
         }
 

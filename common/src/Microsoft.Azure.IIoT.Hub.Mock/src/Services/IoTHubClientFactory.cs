@@ -102,6 +102,15 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
+            public Task SendEventAsync(string outputName, Message message) {
+                // Add event to telemetry list
+                if (!IsClosed) {
+                    Connection.SendEvent(outputName, message);
+                }
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc />
             public Task SendEventBatchAsync(IEnumerable<Message> messages) {
                 if (!IsClosed) {
                     foreach (var message in messages) {

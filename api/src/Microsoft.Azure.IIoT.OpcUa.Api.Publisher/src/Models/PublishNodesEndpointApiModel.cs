@@ -60,8 +60,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public string Password { get; set; }
 
+        /// <summary> User defined tag for this particular dataset </summary>
+        [DataMember(Name = "tag", Order = 9,
+            EmitDefaultValue = false)]
+        public string Tag { get; set; }
+
         /// <summary> List of the OpcNodes to be monitored </summary>
-        [DataMember(Name = "opcNodes", Order = 9,
+        [DataMember(Name = "opcNodes", Order = 10,
             EmitDefaultValue = false)]
         public List<PublishedNodeApiModel> OpcNodes { get; set; }
     }
