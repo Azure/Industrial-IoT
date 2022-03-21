@@ -212,6 +212,36 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string OpcIssuerCertStorePath = SecurityConfig.TrustedIssuerCertificatesPathKey;
 
         /// <summary>
+        /// Key for PkiRootPath.
+        /// </summary>
+        public const string PkiRootPathKey = SecurityConfig.PkiRootPathKey;
+
+        /// <summary>
+        /// Key for trusted issuer certificates type.
+        /// </summary>
+        public const string TrustedIssuerCertificatesTypeKey = SecurityConfig.TrustedIssuerCertificatesTypeKey;
+
+        /// <summary>
+        /// Key for trusted peer certificates type.
+        /// </summary>
+        public const string TrustedPeerCertificatesTypeKey = SecurityConfig.TrustedPeerCertificatesTypeKey;
+
+        /// <summary>
+        /// Key for rejected certificate store type.
+        /// </summary>
+        public const string RejectedCertificateStoreTypeKey = SecurityConfig.RejectedCertificateStoreTypeKey;
+
+        /// <summary>
+        /// Key for the reject unsecure signatures flag.
+        /// </summary>
+        public const string RejectSha1SignedCertificatesKey = SecurityConfig.RejectSha1SignedCertificatesKey;
+
+        /// <summary>
+        /// Key for minimum certificate size.
+        /// </summary>
+        public const string MinimumCertificateKeySizeKey = SecurityConfig.MinimumCertificateKeySizeKey;
+
+        /// <summary>
         /// Key for configuring reporting of OPC Publisher restarts.
         /// </summary>
         public const string RuntimeStateReporting = "RuntimeStateReporting";
