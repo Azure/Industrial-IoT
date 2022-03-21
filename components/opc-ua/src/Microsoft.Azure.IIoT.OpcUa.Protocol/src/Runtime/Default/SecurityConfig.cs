@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Security configuration
@@ -34,6 +35,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public const string MinimumCertificateKeySizeKey = "MinimumCertificateKeySize";
         public const string AddAppCertToTrustedStoreKey = "AddAppCertToTrustedStore";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+
+        /// <summary>
+        /// Security configuration keys.
+        /// </summary>
+        public static readonly HashSet<string> SecurityConfigKeys = new HashSet<string> {
+            PkiRootPathKey,
+            ApplicationCertificateStorePathKey,
+            ApplicationCertificateStoreTypeKey,
+            ApplicationCertificateSubjectNameKey,
+            ApplicationNameKey,
+            TrustedIssuerCertificatesPathKey,
+            TrustedIssuerCertificatesTypeKey,
+            TrustedPeerCertificatesPathKey,
+            TrustedPeerCertificatesTypeKey,
+            RejectedCertificateStorePathKey,
+            RejectedCertificateStoreTypeKey,
+            AutoAcceptUntrustedCertificatesKey,
+            RejectSha1SignedCertificatesKey,
+            MinimumCertificateKeySizeKey,
+            AddAppCertToTrustedStoreKey,
+        };
 
         /// <inheritdoc/>
         public string PkiRootPath =>

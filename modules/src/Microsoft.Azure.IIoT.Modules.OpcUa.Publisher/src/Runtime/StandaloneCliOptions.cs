@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Configuration;
@@ -47,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public StandaloneCliOptions(string[] args) {
 
             bool showHelp = false;
-            //List<string> unsupportedOptions = new List<string>();
+            List<string> unsupportedOptions = new List<string>();
             List<string> legacyOptions = new List<string>();
             var logger = ConsoleLogger.Create(LogEventLevel.Warning);
 
@@ -206,20 +207,24 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 };
 
             try {
-                //unsupportedOptions = options.Parse(args);
-                options.Parse(args);
+                unsupportedOptions = options.Parse(args);
             }
             catch (Exception e) {
                 logger.Warning("Parse args exception: " + e.Message);
                 Exit(160);
             }
 
-            // Commenting out as we need to add parsing and awareness of long-form parameter names.
-            //if (unsupportedOptions.Any()) {
-            //    foreach (var option in unsupportedOptions) {
-            //        logger.Warning("Option {option} wrong or not supported, please use -h option to get all the supported options.", option);
-            //    }
-            //}
+            if (unsupportedOptions.Count > 0) {
+                foreach (var option in unsupportedOptions) {
+                    // Report warning only if the key is not part of security
+                    // configuration keys which are processed separatelly.
+                    var processedOption = option.TrimStart('-').Split('=');
+                    if (!SecurityConfig.SecurityConfigKeys.Contains(processedOption[0])) {
+                        logger.Warning("Option {option} wrong or not supported, " +
+                            "please use -h option to get all the supported options.", option);
+                    }
+                }
+            }
 
             if (legacyOptions.Any()) {
                 foreach (var option in legacyOptions) {
