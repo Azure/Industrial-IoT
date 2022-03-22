@@ -213,11 +213,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 Exit(160);
             }
 
-            if (unsupportedOptions.Any()) {
-                foreach (var option in unsupportedOptions) {
-                    logger.Warning("Option {option} wrong or not supported, please use -h option to get all the supported options.", option);
-                }
-            }
+            // Commenting out as we need to add parsing and awareness of long-form parameter names.
+            //if (unsupportedOptions.Any()) {
+            //    foreach (var option in unsupportedOptions) {
+            //        logger.Warning("Option {option} wrong or not supported, please use -h option to get all the supported options.", option);
+            //    }
+            //}
 
             if (legacyOptions.Any()) {
                 foreach (var option in legacyOptions) {
