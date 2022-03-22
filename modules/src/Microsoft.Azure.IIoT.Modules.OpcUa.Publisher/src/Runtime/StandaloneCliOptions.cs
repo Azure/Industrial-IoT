@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public StandaloneCliOptions(string[] args) {
 
             bool showHelp = false;
-            List<string> unsupportedOptions = new List<string>();
+            //List<string> unsupportedOptions = new List<string>();
             List<string> legacyOptions = new List<string>();
             var logger = ConsoleLogger.Create(LogEventLevel.Warning);
 
@@ -206,7 +206,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 };
 
             try {
-                unsupportedOptions = options.Parse(args);
+                //unsupportedOptions = options.Parse(args);
+                options.Parse(args);
             }
             catch (Exception e) {
                 logger.Warning("Parse args exception: " + e.Message);
