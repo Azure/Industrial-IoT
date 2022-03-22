@@ -4,6 +4,8 @@
 
 OPC Publisher is a module that runs on [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) and bridges the gap between industrial assets and the Microsoft Azure cloud. It connects to OPC UA server systems and publishes telemetry data to [Azure IoT Hub](https://azure.microsoft.com/services/iot-hub/) in various formats, including IEC62541 OPC UA PubSub standard format (*not supported in versions < 2.7.x*).
 
+_To run OPC Publisher on a Windows device, we recommend using Azure IoT Edge for Linux on Windows (EFLOW). For more information about EFLOW, see [What is Azure IoT Edge for Linux on Windows?](https://aka.ms/AzEFLOW-Docs) For more information about OPC Publisher using EFLOW, see [EFLOW Multiple NIC and OPC Publisher](https://github.com/Azure/iotedge-eflow/tree/main/samples/networking/multiple-nics)._
+
 ## Getting Started
 
 Use our released containers for OPC Publisher available in the Microsoft Container Registry, rather than building from sources. The easiest way to deploy OPC Publisher is through the [Azure Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/microsoft_iot.iotedge-opc-publisher).
