@@ -290,7 +290,7 @@ we require two apps to be registered in your AAD:
 * One for web clients accessing web interfaces of Azure Industrial IoT components, we refer to this as
   **ClientsApp**.
 
-Here are the steps to [create AAD App Registrations](../../../docs/deploy/howto-register-aad-applications.md).
+Here are the steps to [create AAD App Registrations](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/deploy/howto-register-aad-applications.md).
 
 > **NOTE:** For any production deployment of Azure Industrial IoT solution it is required that those AAD
 App Registrations are created and details are provided to the chart. And we strongly recommend having those
@@ -613,7 +613,7 @@ This parameter is required so that Publisher Edge Module can communicate with jo
 Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within
 Kubernetes cluster. Format of Kubernetes internal URL is `http://<service_name>.<namespace>:<service_port>`.
 
-**Documentation**: [Publisher Edge Module](../../../docs/modules/publisher.md)
+**Documentation**: [Publisher Edge Module](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/modules/publisher.md)
 
 | Parameter            | Description                                                                | Default |
 |----------------------|----------------------------------------------------------------------------|---------|
@@ -671,7 +671,7 @@ following aspects of application runtime for microservices:
 
 ### Deployed Components
 
-**Documentation**: [Azure Industrial IoT Platform Components](../../../docs/services/readme.md)
+**Documentation**: [Azure Industrial IoT Platform Components](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/readme.md)
 
 Azure Industrial IoT comprises of fifteen micro-services that this chart will deploy as
 [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) resources. Eight of them
@@ -688,19 +688,19 @@ parameters.
 Here is the list of all Azure Industrial IoT components that are deployed by this chart. Currently only
 `engineeringTool` is disabled by default.
 
-| Name in `values.yaml`   | Description                                                                 | Enabled by Default |
-|-------------------------|-----------------------------------------------------------------------------|--------------------|
-| `registry`              | [Registry Microservice](../../../docs/services/registry.md)                 | `true`             |
-| `sync`                  | [Registry Synchronization Agent](../../../docs/services/registry-sync.md)   | `true`             |
-| `twin`                  | [OPC Twin Microservice](../../../docs/services/twin.md)                     | `true`             |
-| `history`               | [OPC Historian Access Microservice](../../../docs/services/twin-history.md) | `true`             |
-| `publisher`             | [OPC Publisher Service](../../../docs/services/publisher.md)                | `true`             |
-| `events`                | [Events Service](../../../docs/services/events.md)                          | `true`             |
-| `edgeJobs`              | [Publisher jobs orchestrator service](../../../docs/services/publisher.md)  | `true`             |
-| `onboarding`            | [Onboarding Processor](../../../docs/services/processor-onboarding.md)      | `true`             |
-| `eventsProcessor`       | [Edge Event Processor](../../../docs/services/processor-events.md)          | `true`             |
-| `telemetryProcessor`    | [Edge Telemetry processor](../../../docs/services/processor-telemetry.md)   | `true`             |
-| `engineeringTool`       | [Engineering Tool](../../../docs/services/engineeringtool.md)               | `false`            |
+| Name in `values.yaml` | Description                                                                                                                | Enabled by Default |
+|-----------------------|----------------------------------------------------------------------------------------------------------------------------|--------------------|
+| `registry`            | [Registry Microservice](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/registry.md)                 | `true`             |
+| `sync`                | [Registry Synchronization Agent](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/registry-sync.md)   | `true`             |
+| `twin`                | [OPC Twin Microservice](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/twin.md)                     | `true`             |
+| `history`             | [OPC Historian Access Microservice](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/twin-history.md) | `true`             |
+| `publisher`           | [OPC Publisher Service](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/publisher.md)                | `true`             |
+| `events`              | [Events Service](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/events.md)                          | `true`             |
+| `edgeJobs`            | [Publisher jobs orchestrator service](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/publisher.md)  | `true`             |
+| `onboarding`          | [Onboarding Processor](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/processor-onboarding.md)      | `true`             |
+| `eventsProcessor`     | [Edge Event Processor](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/processor-events.md)          | `true`             |
+| `telemetryProcessor`  | [Edge Telemetry processor](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/processor-telemetry.md)   | `true`             |
+| `engineeringTool`     | [Engineering Tool](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/docs/services/engineeringtool.md)               | `false`            |
 
 #### Deployment Resource Configuration
 
