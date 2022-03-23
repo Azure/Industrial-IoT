@@ -15,4 +15,4 @@ maintainers:
 - name: Karapet Kostandyan
   email: kakostan@microsoft.com
 icon: https://raw.githubusercontent.com/Azure/Industrial-IoT/main/docs/media/microsoft-symbol.png
-appVersion: 2.8.1
+appVersion: 2.8.2
