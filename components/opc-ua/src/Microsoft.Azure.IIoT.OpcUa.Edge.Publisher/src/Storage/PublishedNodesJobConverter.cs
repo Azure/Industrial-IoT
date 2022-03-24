@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
@@ -31,14 +32,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="serializer"></param>
-        /// <param name="config"></param>
+        /// <param name="engineConfig"></param>
+        /// <param name="clientConfig"></param>
         /// <param name="cryptoProvider"></param>
-        public PublishedNodesJobConverter(ILogger logger,
-            IJsonSerializer serializer, IEngineConfiguration config = null,
+        public PublishedNodesJobConverter(
+            ILogger logger,
+            IJsonSerializer serializer,
+            IEngineConfiguration engineConfig,
+            IClientServicesConfig clientConfig,
             ISecureElement cryptoProvider = null) {
-            _config = config;
+            _engineConfig = engineConfig ?? throw new ArgumentNullException(nameof(engineConfig));
+            _clientConfig = clientConfig ?? throw new ArgumentNullException(nameof(clientConfig));
             _cryptoProvider = cryptoProvider;
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(logger));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -96,11 +102,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     // Flatten all nodes for the same connection and group by publishing interval
                     // then batch in chunks for max 1000 nodes and create data sets from those.
                     .Flatten()
-                    .GroupBy(n => (n.Item1, n.Item2.OpcPublishingInterval))
+                    .GroupBy(n => (n.Item1, n.Item2.OpcPublishingIntervalTimespan))
                     .SelectMany(
                         n => n
                         .Distinct(opcNodeModelComparer)
-                        .Batch(standaloneCliModel.DefaultMaxNodesPerDataSet.GetValueOrDefault(1000))
+                        .Batch(standaloneCliModel.MaxNodesPerDataSet.GetValueOrDefault(1000))
                     ).ToList()
                     .Select(
                         opcNodes => new PublishedDataSetSourceModel {
@@ -111,28 +117,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 Group = group.Key.Group,
                                 // add DataSetWriterId for further use
                                 Id = opcNodes.First().Item1,
-                                OperationTimeout = group.Key.OperationTimeout,
                             },
                             SubscriptionSettings = new PublishedDataSetSettingsModel {
-                                PublishingInterval = GetPublishingIntervalFromNodes(opcNodes, standaloneCliModel),
+                                PublishingInterval = GetPublishingIntervalFromNodes(opcNodes),
                                 ResolveDisplayName = standaloneCliModel.FetchOpcNodeDisplayName,
+                                LifeTimeCount = (uint)_clientConfig.MinSubscriptionLifetime,
+                                MaxKeepAliveCount = _clientConfig.MaxKeepAliveCount
                             },
                             PublishedVariables = new PublishedDataItemsModel {
                                 PublishedData = opcNodes.Select(node => new PublishedDataSetVariableModel {
                                     //  Identifier to show for notification in payload of IoT Hub method
                                     //  Prio 1: DataSetFieldId (need to be read from message)
-                                    //  Prio 2: DisplayName - nothing to do, because notification.Id already contains DisplayName
+                                    //  Prio 2: DisplayName - nothing to do, because notification.Id
+                                    //                        already contains DisplayName
                                     //  Prio 3: NodeId as configured; Id remains null in this case
-                                    Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId) ? node.Item2.DataSetFieldId : node.Item2.DisplayName,
+                                    Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId)
+                                            ? node.Item2.DataSetFieldId
+                                            : node.Item2.DisplayName,
                                     PublishedVariableNodeId = node.Item2.Id,
+
+                                    // At this point in time the next values are ensured to be filled in with
+                                    // the appropriate value: configured or default
                                     PublishedVariableDisplayName = node.Item2.DisplayName,
-                                    SamplingInterval = node.Item2.OpcSamplingIntervalTimespan ??
-                                        standaloneCliModel.DefaultSamplingInterval,
-                                    HeartbeatInterval = node.Item2.HeartbeatIntervalTimespan.HasValue ?
-                                        node.Item2.HeartbeatIntervalTimespan.Value :
-                                        standaloneCliModel.DefaultHeartbeatInterval,
-                                    QueueSize = node.Item2.QueueSize ?? standaloneCliModel.DefaultQueueSize,
-                                    SkipFirst = node.Item2.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
+                                    SamplingInterval = node.Item2.OpcSamplingIntervalTimespan,
+                                    HeartbeatInterval = node.Item2.HeartbeatIntervalTimespan,
+                                    QueueSize = node.Item2.QueueSize,
+                                    // ToDo: Implement mechanism for SkipFirst.
+                                    SkipFirst = node.Item2.SkipFirst,
                                 }).ToList()
                             }
                         }
@@ -146,12 +157,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
 
                 var result = flattenedGroups.Select(dataSetSourceBatches => dataSetSourceBatches.Any() ? new WriterGroupJobModel {
                     MessagingMode = standaloneCliModel.MessagingMode,
-                    Engine = _config == null ? null : new EngineConfigurationModel {
-                        BatchSize = _config.BatchSize,
-                        BatchTriggerInterval = _config.BatchTriggerInterval,
-                        DiagnosticsInterval = _config.DiagnosticsInterval,
-                        MaxMessageSize = _config.MaxMessageSize,
-                        MaxOutgressMessages = _config.MaxOutgressMessages
+                    Engine = _engineConfig == null ? null : new EngineConfigurationModel {
+                        BatchSize = _engineConfig.BatchSize,
+                        BatchTriggerInterval = _engineConfig.BatchTriggerInterval,
+                        DiagnosticsInterval = _engineConfig.DiagnosticsInterval,
+                        MaxMessageSize = _engineConfig.MaxMessageSize,
+                        MaxOutgressMessages = _engineConfig.MaxOutgressMessages
                     },
                     WriterGroup = new WriterGroupModel {
                         MessageType = standaloneCliModel.MessageEncoding,
@@ -164,7 +175,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         Endpoint = dataSetSource.Connection.Endpoint.Clone(),
                                         User = dataSetSource.Connection.User.Clone(),
                                         Diagnostics = dataSetSource.Connection.Diagnostics.Clone(),
-                                        OperationTimeout = dataSetSource.Connection.OperationTimeout,
                                         Group = dataSetSource.Connection.Group,
                                         Id = GetUniqueWriterId(dataSetSourceBatches, dataSetSource),
                                     },
@@ -237,19 +247,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         }
 
         /// <summary>
-        /// transforms a published nodes model connection header to a Connection Model object
+        /// Transforms a published nodes model connection header to a Connection Model object
         /// </summary>
         public ConnectionModel ToConnectionModel(PublishedNodesEntryModel model,
             StandaloneCliModel standaloneCliModel) {
 
             return new ConnectionModel {
-                OperationTimeout = standaloneCliModel.OperationTimeout,
                 Group = model.DataSetWriterGroup,
                 // Exclude the DataSetWriterId since it is not part of the connection model
                 Endpoint = new EndpointModel {
-                    Url = model.EndpointUrl.OriginalString,
-                    SecurityMode = model.UseSecurity.GetValueOrDefault(false) ?
-                                 SecurityMode.Best : SecurityMode.None,
+                    Url = model.EndpointUrl?.OriginalString,
+                    SecurityMode = model.UseSecurity
+                        ? SecurityMode.Best
+                        : SecurityMode.None,
                 },
                 User = model.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
                             null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult(),
@@ -305,13 +315,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             DisplayName = node.DisplayName,
                             DataSetFieldId = node.DataSetFieldId,
                             ExpandedNodeId = node.ExpandedNodeId,
-                            HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
-                            OpcPublishingInterval = item.DataSetPublishingInterval.GetValueOrDefault(
-                                     node.OpcPublishingInterval.GetValueOrDefault(
-                                         (int)standaloneCliModel.DefaultPublishingInterval.GetValueOrDefault().TotalMilliseconds)),
-                            OpcSamplingInterval = node.OpcSamplingInterval,
-                            SkipFirst = node.SkipFirst,
-                            QueueSize = node.QueueSize,
+                            HeartbeatIntervalTimespan = node
+                                .GetNormalizedHeartbeatInterval(standaloneCliModel.DefaultHeartbeatInterval),
+                            // The publishing interval item wins over dataset over global default
+                            OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
+                                ?? item.GetNormalizedDataSetPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
+                            OpcSamplingIntervalTimespan = node
+                                .GetNormalizedSamplingInterval(standaloneCliModel.DefaultSamplingInterval),
+                            QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
+                            // ToDo: Implement mechanism for SkipFirst.
+                            SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                         });
                     }
                     else {
@@ -325,13 +338,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         $"{node.ExpandedNodeId}_{i}",
                                 DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
-                                HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
-                                OpcPublishingInterval = item.DataSetPublishingInterval.GetValueOrDefault(
-                                    node.OpcPublishingInterval.GetValueOrDefault(
-                                        (int)standaloneCliModel.DefaultPublishingInterval.GetValueOrDefault().TotalMilliseconds)),
-                                OpcSamplingInterval = node.OpcSamplingInterval,
-                                SkipFirst = node.SkipFirst,
-                                QueueSize = node.QueueSize,
+                                HeartbeatIntervalTimespan = node
+                                    .GetNormalizedHeartbeatInterval(standaloneCliModel.DefaultHeartbeatInterval),
+                                // The publishing interval item wins over dataset over global default
+                                OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
+                                    ?? item.GetNormalizedDataSetPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
+                                OpcSamplingIntervalTimespan = node
+                                    .GetNormalizedSamplingInterval(standaloneCliModel.DefaultSamplingInterval),
+                                QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
+                                // ToDo: Implement mechanism for SkipFirst.
+                                SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                             });
                         }
                     }
@@ -340,20 +356,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             if (item.NodeId?.Identifier != null) {
                 yield return (item.DataSetWriterId, new OpcNodeModel {
                     Id = item.NodeId.Identifier,
-                    OpcPublishingInterval = item.DataSetPublishingInterval.GetValueOrDefault(
-                                (int)standaloneCliModel.DefaultPublishingInterval.GetValueOrDefault().TotalMilliseconds),
+                    HeartbeatIntervalTimespan = standaloneCliModel.DefaultHeartbeatInterval,
+                    OpcPublishingIntervalTimespan = item
+                        .GetNormalizedDataSetPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
+                    OpcSamplingIntervalTimespan = standaloneCliModel.DefaultSamplingInterval,
+                    QueueSize = standaloneCliModel.DefaultQueueSize,
+                    // ToDo: Implement mechanism for SkipFirst.
+                    SkipFirst = standaloneCliModel.DefaultSkipFirst,
                 });
             }
         }
 
         /// <summary>
-        /// Extract publishing interval from nodes
+        /// Extract publishing interval from nodes. Ath this point in time, the OpcPublishingIntervalTimespan
+        /// must be filled in with the appropriate version
         /// </summary>
-        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<(string, OpcNodeModel)> opcNodes,
-            StandaloneCliModel standaloneCliModel) {
-            var interval = opcNodes
-                .FirstOrDefault(x => x.Item2.OpcPublishingInterval.HasValue).Item2.OpcPublishingIntervalTimespan;
-            return interval ?? standaloneCliModel.DefaultPublishingInterval;
+        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<(string, OpcNodeModel)> opcNodes) {
+            return opcNodes
+                .FirstOrDefault(x => x.Item2.OpcPublishingIntervalTimespan.HasValue)
+                .Item2.OpcPublishingIntervalTimespan;
         }
 
         /// <summary>
@@ -384,7 +405,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             };
         }
 
-        private readonly IEngineConfiguration _config;
+        private readonly IEngineConfiguration _engineConfig;
+        private readonly IClientServicesConfig _clientConfig;
         private readonly ISecureElement _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;

@@ -3,30 +3,32 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.Agent.Framework;
-using Microsoft.Azure.IIoT.Agent.Framework.Models;
-using Microsoft.Azure.IIoT.Diagnostics;
-using Microsoft.Azure.IIoT.Module.Framework;
-using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-using Microsoft.Azure.IIoT.OpcUa.Publisher;
-using Microsoft.Extensions.Configuration;
-using Mono.Options;
-using Opc.Ua;
-using Serilog;
-using Serilog.Events;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
+
+    using Microsoft.Azure.IIoT.Agent.Framework;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Extensions.Configuration;
+    using Mono.Options;
+    using Opc.Ua;
+    using Serilog;
+    using Serilog.Events;
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Linq;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
     /// </summary>
     public class StandaloneCliOptions : Dictionary<string, string>, IAgentConfigProvider,
-        ISettingsController, IEngineConfiguration, IStandaloneCliModelProvider {
+        ISettingsController, IEngineConfiguration, IStandaloneCliModelProvider, IRuntimeStateReporterConfiguration {
         /// <summary>
         /// Creates a new instance of the the standalone cli options based on existing configuration values.
         /// </summary>
@@ -43,6 +45,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         /// <param name="args">The specified command line arguments.</param>
         public StandaloneCliOptions(string[] args) {
+
+            bool showHelp = false;
+            //List<string> unsupportedOptions = new List<string>();
+            List<string> legacyOptions = new List<string>();
+            var logger = ConsoleLogger.Create(LogEventLevel.Warning);
 
             // command line options
             var options = new Mono.Options.OptionSet {
@@ -74,9 +81,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "hb|heartbeatinterval=", "The publisher is using this as default value in seconds " +
                         "for the heartbeat interval setting of nodes without a heartbeat interval setting.",
                         (int i) => this[StandaloneCliConfigKeys.HeartbeatIntervalDefault] = TimeSpan.FromSeconds(i).ToString() },
-                    { "sf|skipfirstevent=", "The publisher is using this as default value for the skip first " +
-                        "event setting of nodes without a skip first event setting.",
-                        (bool b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b.ToString() },
+                    // ToDo: Bring back once SkipFirst mechanism is implemented.
+                    //{ "sf|skipfirstevent=", "The publisher is using this as default value for the skip first " +
+                    //    "event setting of nodes without a skip first event setting.",
+                    //    (bool b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b.ToString() },
 
                     { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." +
                         "Default is 'false' for legacy compatibility.",
@@ -110,7 +118,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
                     // cert store option
                     { "aa|autoaccept", "The publisher trusts all servers it is establishing a connection to.",
-                          b => this[StandaloneCliConfigKeys.AutoAcceptCerts] = (b != null).ToString() },
+                        b => this[StandaloneCliConfigKeys.AutoAcceptCerts] = (b != null).ToString() },
                     { "tm|trustmyself", "The publisher certificate is put into the trusted store automatically.",
                         t => this[StandaloneCliConfigKeys.TrustMyself] = (t != null).ToString() },
                     { "at|appcertstoretype=", "The own application cert store type (allowed: Directory, X509Store).",
@@ -131,13 +139,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         s => this[StandaloneCliConfigKeys.OpcApplicationCertificateSubjectName] = s },
                     { "an|appname=", "The name for the app (used during OPC UA authentication).",
                         s => this[StandaloneCliConfigKeys.OpcApplicationName] = s },
-                    { "tt|trustedcertstoretype=", "Legacy - do not use.", _ => {} },
+                    { "tt|trustedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("tt|trustedcertstoretype"); } },
                     { "rp|rejectedcertstorepath=", "The path of the rejected cert store.",
                         s => this[StandaloneCliConfigKeys.OpcRejectedCertStorePath] = s },
-                    { "rt|rejectedcertstoretype=", "Legacy - do not use.", _ => {} },
+                    { "rt|rejectedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("rt|rejectedcertstoretype"); } },
                     { "ip|issuercertstorepath=", "The path of the trusted issuer cert store.",
                         s => this[StandaloneCliConfigKeys.OpcIssuerCertStorePath] = s },
-                    { "it|issuercertstoretype=", "Legacy - do not use.", _ => {} },
+                    { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); } },
                     { "bs|batchsize=", "The size of message batching buffer.",
                         (int i) => this[StandaloneCliConfigKeys.BatchSize] = i.ToString() },
                     { "si|iothubsendinterval=", "The trigger batching interval in seconds.",
@@ -155,44 +163,74 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "lc|legacycompatibility=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
                         "Default is 'false'.",
                         (bool b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b.ToString() },
+                    { "rs|runtimestatereporting", "The publisher reports its restarts. By default this is disabled.",
+                        b => this[StandaloneCliConfigKeys.RuntimeStateReporting] = (b != null).ToString()},
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
                         (int i) => this[StandaloneCliConfigKeys.ScaleTestCount] = i.ToString() },
 
+                    // show help
+                    { "h|help", "show this message and exit.",
+                        b => showHelp = true },
+
                     // Legacy: unsupported
-                    { "tc|telemetryconfigfile=", "Legacy - do not use.", _ => {} },
-                    { "ic|iotcentral=", "Legacy - do not use.", _ => {} },
-                    { "ns|noshutdown=", "Legacy - do not use.", _ => {} },
-                    { "rf|runforever", "Legacy - do not use.", _ => {} },
-                    { "pn|portnum=", "Legacy - do not use.", _ => {} },
-                    { "pa|path=", "Legacy - do not use.", _ => {} },
-                    { "lr|ldsreginterval=", "Legacy - do not use.", _ => {} },
-                    { "ss|suppressedopcstatuscodes=", "Legacy - do not use.", _ => {} },
-                    { "csr", "Legacy - do not use.", _ => {} },
-                    { "ab|applicationcertbase64=", "Legacy - do not use.", _ => {} },
-                    { "af|applicationcertfile=", "Legacy - do not use.", _ => {} },
-                    { "pk|privatekeyfile=", "Legacy - do not use.", _ => {} },
-                    { "pb|privatekeybase64=", "Legacy - do not use.", _ => {} },
-                    { "cp|certpassword=", "Legacy - do not use.", _ => {} },
-                    { "tb|addtrustedcertbase64=", "Legacy - do not use.", _ => {} },
-                    { "tf|addtrustedcertfile=", "Legacy - do not use.", _ => {} },
-                    { "ib|addissuercertbase64=", "Legacy - do not use.", _ => {} },
-                    { "if|addissuercertfile=", "Legacy - do not use.", _ => {} },
-                    { "rb|updatecrlbase64=", "Legacy - do not use.", _ => {} },
-                    { "uc|updatecrlfile=", "Legacy - do not use.", _ => {} },
-                    { "rc|removecert=", "Legacy - do not use.", _ => {} },
-                    { "dt|devicecertstoretype=", "Legacy - do not use.", _ => {} },
-                    { "dp|devicecertstorepath=", "Legacy - do not use.", _ => {} },
-                    { "i|install", "Legacy - do not use.", _ => {} },
-                    { "st|opcstacktracemask=", "Legacy - do not use.", _ => {} },
-                    { "sd|shopfloordomain=", "Legacy - do not use.", _ => {} },
-                    { "vc|verboseconsole=", "Legacy - do not use.", _ => {} },
-                    { "as|autotrustservercerts=", "Legacy - do not use.", _ => {} }
+                    { "tc|telemetryconfigfile=", "Legacy - do not use.", b => {legacyOptions.Add("tc|telemetryconfigfile"); } },
+                    { "ic|iotcentral=", "Legacy - do not use.", b => {legacyOptions.Add("ic|iotcentral"); } },
+                    { "ns|noshutdown=", "Legacy - do not use.", b => {legacyOptions.Add("ns|noshutdown"); } },
+                    { "rf|runforever", "Legacy - do not use.", b => {legacyOptions.Add("rf|runforever"); } },
+                    { "pn|portnum=", "Legacy - do not use.", b => {legacyOptions.Add("pn|portnum"); } },
+                    { "pa|path=", "Legacy - do not use.", b => {legacyOptions.Add("pa|path"); } },
+                    { "lr|ldsreginterval=", "Legacy - do not use.", b => {legacyOptions.Add("lr|ldsreginterval"); } },
+                    { "ss|suppressedopcstatuscodes=", "Legacy - do not use.", b => {legacyOptions.Add("ss|suppressedopcstatuscodes"); } },
+                    { "csr", "Legacy - do not use.", b => {legacyOptions.Add("csr"); } },
+                    { "ab|applicationcertbase64=", "Legacy - do not use.",b => {legacyOptions.Add("ab|applicationcertbase64"); } },
+                    { "af|applicationcertfile=", "Legacy - do not use.", b => {legacyOptions.Add("af|applicationcertfile"); } },
+                    { "pk|privatekeyfile=", "Legacy - do not use.", b => {legacyOptions.Add("pk|privatekeyfile"); } },
+                    { "pb|privatekeybase64=", "Legacy - do not use.", b => {legacyOptions.Add("pb|privatekeybase64"); } },
+                    { "cp|certpassword=", "Legacy - do not use.", b => {legacyOptions.Add("cp|certpassword"); } },
+                    { "tb|addtrustedcertbase64=", "Legacy - do not use.", b => {legacyOptions.Add("tb|addtrustedcertbase64"); } },
+                    { "tf|addtrustedcertfile=", "Legacy - do not use.", b => {legacyOptions.Add("tf|addtrustedcertfile"); } },
+                    { "ib|addissuercertbase64=", "Legacy - do not use.", b => {legacyOptions.Add("ib|addissuercertbase64"); } },
+                    { "if|addissuercertfile=", "Legacy - do not use.", b => {legacyOptions.Add("if|addissuercertfile"); } },
+                    { "rb|updatecrlbase64=", "Legacy - do not use.", b => {legacyOptions.Add("rb|updatecrlbase64"); } },
+                    { "uc|updatecrlfile=", "Legacy - do not use.", b => {legacyOptions.Add("uc|updatecrlfile"); } },
+                    { "rc|removecert=", "Legacy - do not use.", b => {legacyOptions.Add("rc|removecert"); } },
+                    { "dt|devicecertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("dt|devicecertstoretype"); } },
+                    { "dp|devicecertstorepath=", "Legacy - do not use.", b => {legacyOptions.Add("dp|devicecertstorepath"); } },
+                    { "i|install", "Legacy - do not use.", b => {legacyOptions.Add("i|install"); } },
+                    { "st|opcstacktracemask=", "Legacy - do not use.", b => {legacyOptions.Add("st|opcstacktracemask"); } },
+                    { "sd|shopfloordomain=", "Legacy - do not use.", b => {legacyOptions.Add("sd|shopfloordomain"); } },
+                    { "vc|verboseconsole=", "Legacy - do not use.", b => {legacyOptions.Add("vc|verboseconsole"); } },
+                    { "as|autotrustservercerts=", "Legacy - do not use.", b => {legacyOptions.Add("as|autotrustservercerts"); } },
                 };
 
-            options.Parse(args);
+            try {
+                //unsupportedOptions = options.Parse(args);
+                options.Parse(args);
+            }
+            catch (Exception e) {
+                logger.Warning("Parse args exception: " + e.Message);
+                Exit(160);
+            }
 
+            // Commenting out as we need to add parsing and awareness of long-form parameter names.
+            //if (unsupportedOptions.Any()) {
+            //    foreach (var option in unsupportedOptions) {
+            //        logger.Warning("Option {option} wrong or not supported, please use -h option to get all the supported options.", option);
+            //    }
+            //}
+
+            if (legacyOptions.Any()) {
+                foreach (var option in legacyOptions) {
+                    logger.Warning("Legacy option {option} not supported, please use -h option to get all the supported options.", option);
+                }
+            }
+
+            if (showHelp) {
+                options.WriteOptionDescriptions(Console.Out);
+                Exit(0);
+            }
             Config = ToAgentConfigModel();
         }
 
@@ -240,11 +278,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         public int? MaxOutgressMessages => StandaloneCliModel.MaxOutgressMessages;
 
-        /// <summary>
-        /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured
-        /// for a dataSetWriter, they will be added in a different DataSet/Subscription.
-        /// </summary>
-        public int? MaxNodesPerDataSet => StandaloneCliModel.DefaultMaxNodesPerDataSet;
+        /// <inheritdoc/>
+        public bool EnableRuntimeStateReporting { get => StandaloneCliModel.EnableRuntimeStateReporting; }
 
         /// <summary>
         /// The model of the CLI arguments.
@@ -260,7 +295,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         /// <summary>
-        /// Gets the additiona loggerConfiguration that represents the command line arguments.
+        /// Gets the additional loggerConfiguration that represents the command line arguments.
         /// </summary>
         /// <returns></returns>
         public LoggerConfiguration ToLoggerConfiguration() {
@@ -273,6 +308,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             }
 
             return loggerConfiguration;
+        }
+
+        /// <summary>
+        /// Call exit with exit code
+        /// </summary>
+        public virtual void Exit(int exitCode) {
+            Environment.Exit(exitCode);
         }
 
         private StandaloneCliModel ToStandaloneCliModel() {
@@ -297,8 +339,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.MaxMessageSize = GetValueOrDefault(StandaloneCliConfigKeys.IoTHubMaxMessageSize, model.MaxMessageSize);
             model.ScaleTestCount = GetValueOrDefault(StandaloneCliConfigKeys.ScaleTestCount, model.ScaleTestCount);
             model.MaxOutgressMessages = GetValueOrDefault(StandaloneCliConfigKeys.MaxOutgressMessages, model.MaxOutgressMessages);
-            model.DefaultMaxNodesPerDataSet = GetValueOrDefault(StandaloneCliConfigKeys.DefaultMaxNodesPerDataSet, model.DefaultMaxNodesPerDataSet);
+            model.MaxNodesPerDataSet = GetValueOrDefault(StandaloneCliConfigKeys.MaxNodesPerDataSet, model.MaxNodesPerDataSet);
             model.LegacyCompatibility = GetValueOrDefault(StandaloneCliConfigKeys.LegacyCompatibility, model.LegacyCompatibility);
+            model.EnableRuntimeStateReporting = GetValueOrDefault(StandaloneCliConfigKeys.RuntimeStateReporting, model.EnableRuntimeStateReporting);
             return model;
         }
 
@@ -326,3 +369,4 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         private StandaloneCliModel _standaloneCliModel;
     }
 }
+

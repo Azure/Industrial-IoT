@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         previousPage.Results.Add(new ListNode {
                             Id = nodeReference.Target.NodeId.ToString(),
                             NodeClass = nodeReference.Target.NodeClass ?? 0,
-                            NodeName = nodeReference.Target.DisplayName.ToString(),
+                            NodeName = nodeReference.Target.DisplayName?.ToString(),
                             Children = (bool)nodeReference.Target.Children,
                             ParentIdList = parentId,
                             DiscovererId = discovererId,

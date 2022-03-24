@@ -74,16 +74,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 Endpoint = model.Endpoint.Clone(),
                 User = model.User.Clone(),
                 Diagnostics = model.Diagnostics.Clone(),
-                OperationTimeout = model.OperationTimeout,
             };
         }
 
         /// <summary>
-        /// Returns a string that uniquiely identifies the connection based on 
+        /// Returns a string that uniquiely identifies the connection based on
         /// endpoint url, hash and associated group
         /// </summary>
         public static string CreateConnectionId(this ConnectionModel model) {
-            if (model == null) {
+            if (string.IsNullOrEmpty(model?.Endpoint?.Url)) {
                 return null;
             }
             return !string.IsNullOrEmpty(model.Group) ?

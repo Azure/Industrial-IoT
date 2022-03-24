@@ -22,24 +22,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DataSetWriterGroup { get; set; }
 
-        /// <summary> The Publishing interval for a dataset writer </summary>
+        /// <summary> The Publishing interval for a dataset writer in miliseconds.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? DataSetPublishingInterval { get; set; }
 
-        /// <summary> The endpoint URL of the OPC UA server. </summary>
+        /// <summary> The Publishing interval for a dataset writer in timespan format.</summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public TimeSpan? DataSetPublishingIntervalTimespan { get; set; }
+
+        /// <summary> The endpoint URL of the OPC UA server.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = true)]
         public Uri EndpointUrl { get; set; }
 
-        /// <summary> Secure transport should be used to </summary>
-        [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public bool? UseSecurity { get; set; }
+        /// <summary> Secure transport should be used to connect to the opc server.</summary>
+        [DataMember(EmitDefaultValue = true, IsRequired = false)]
+        public bool UseSecurity { get; set; }
 
         /// <summary> The node to monitor in "ns=" syntax. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public NodeIdModel NodeId { get; set; }
 
         /// <summary> authentication mode </summary>
-        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        [DataMember(EmitDefaultValue = true, IsRequired = false)]
         public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
 
         /// <summary> encrypted username </summary>
@@ -57,6 +61,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> plain password </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string OpcAuthenticationPassword { get; set; }
+
+        /// <summary> User assigned tag. </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public string Tag { get; set; }
 
         /// <summary> Nodes defined in the collection. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]

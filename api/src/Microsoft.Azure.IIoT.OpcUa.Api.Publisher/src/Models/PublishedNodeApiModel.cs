@@ -34,12 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "opcSamplingIntervalTimespan", Order = 3,
             EmitDefaultValue = false)]
-        public TimeSpan? OpcSamplingIntervalTimespan {
-            get => OpcSamplingInterval.HasValue ?
-                TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
-            set => OpcSamplingInterval = value != null ?
-                (int)value.Value.TotalMilliseconds : (int?)null;
-        }
+        public TimeSpan? OpcSamplingIntervalTimespan { get; set; }
 
         /// <summary> Publishing interval </summary>
         [DataMember(Name = "opcPublishingInterval", Order = 4,
@@ -51,12 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "opcPublishingIntervalTimespan", Order = 5,
             EmitDefaultValue = false)]
-        public TimeSpan? OpcPublishingIntervalTimespan {
-            get => OpcPublishingInterval.HasValue ?
-                TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
-            set => OpcPublishingInterval = value != null ?
-                (int)value.Value.TotalMilliseconds : (int?)null;
-        }
+        public TimeSpan? OpcPublishingIntervalTimespan { get; set; }
 
         /// <summary> DataSetFieldId </summary>
         [DataMember(Name = "dataSetFieldId", Order = 6,
@@ -68,19 +58,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public string DisplayName { get; set; }
 
-        /// <summary>
-        /// Heartbeat interval as TimeSpan.
-        /// </summary>
+        /// <summary> Heartbeat interval in seconds. </summary>
         [DataMember(Name = "heartbeatInterval", Order = 8,
             EmitDefaultValue = false)]
-        public int? HeartbeatInterval {
-            get => HeartbeatIntervalTimespan.HasValue ?
-                (int)HeartbeatIntervalTimespan.Value.TotalSeconds : (int?)null;
-            set => HeartbeatIntervalTimespan = value.HasValue ?
-                TimeSpan.FromSeconds(value.Value) : (TimeSpan?)null;
-        }
+        public int? HeartbeatInterval { get; set; }
 
-        /// <summary> Heartbeat </summary>
+        /// <summary> Heartbeat interval as TimeSpan. </summary>
         [DataMember(Name = "heartbeatIntervalTimespan", Order = 9,
             EmitDefaultValue = false)]
         public TimeSpan? HeartbeatIntervalTimespan { get; set; }

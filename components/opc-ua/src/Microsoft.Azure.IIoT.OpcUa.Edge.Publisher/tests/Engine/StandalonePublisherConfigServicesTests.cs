@@ -5,12 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.IO;
-    using System.Threading.Tasks;
     using Agent.Framework;
     using Agent.Framework.Models;
     using Diagnostics;
@@ -19,13 +20,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Moq;
     using Publisher.Engine;
     using Serializers.NewtonSoft;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.IO;
+    using System.Threading.Tasks;
     using Xunit;
     using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
+
     using System.Text;
     using System;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
 
     /// <summary>
     /// Tests the Direct methods configuration for the standaloneJobOrchestrator class
@@ -40,10 +43,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task PublishNodesOnEmptyConfiguration(string publishedNodesFile) {
             var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCliModel = new StandaloneCliModel {
@@ -104,10 +110,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task PublishNodesOnExistingConfiguration(string existingConfig, string newConfig) {
             var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             Utils.CopyContent(existingConfig, _tempFile);
             var standaloneCliModel = new StandaloneCliModel {
@@ -168,10 +177,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task PublishNodesOnNewConfiguration(string existingConfig, string newConfig) {
             var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             Utils.CopyContent(existingConfig, _tempFile);
             var standaloneCliModel = new StandaloneCliModel {
@@ -231,10 +243,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task UnpublishNodesOnExistingConfiguration(string publishedNodesFile) {
             var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             Utils.CopyContent(publishedNodesFile, _tempFile);
             var standaloneCliModel = new StandaloneCliModel {
@@ -286,10 +301,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task UnpublishNodesOnNonExistingConfiguration(string existingConfig, string newConfig) {
             var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             Utils.CopyContent(existingConfig, _tempFile);
             var standaloneCliModel = new StandaloneCliModel {
@@ -319,7 +337,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .Invoking(async () => await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .ThrowAsync<MethodCallStatusException>()
-                    .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}*")
+                    .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {request.EndpointUrl}\",\"Details\":{{}}}}")
                     .ConfigureAwait(false);
             }
 
@@ -346,10 +364,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task PublishNodesStressTest() {
             var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             using (var fileStream = new FileStream(_tempFile, FileMode.Open, FileAccess.Write)) {
                 fileStream.Write(Encoding.UTF8.GetBytes("[]"));

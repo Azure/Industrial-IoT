@@ -18,6 +18,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// </summary>
             public static void AssertEndpointModel(PublishNodesEndpointApiModel expected, PublishNodesEndpointApiModel actual) {
                 Assert.Equal(expected.DataSetPublishingInterval, actual.DataSetPublishingInterval);
+                Assert.Equal(expected.DataSetPublishingIntervalTimespan, actual.DataSetPublishingIntervalTimespan);
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
                 Assert.Equal(expected.DataSetWriterId, actual.DataSetWriterId);
                 Assert.Equal(expected.EndpointUrl.TrimEnd('/'), actual.EndpointUrl.TrimEnd('/'));
@@ -27,14 +28,32 @@ namespace IIoTPlatform_E2E_Tests {
             }
 
             /// <summary>
-            /// Compare PublishNodesEndpointApiModel with PublishedNodeApiModel returned from diagnosticInfo
+            /// Compare PublishNodesEndpointApiModel of requst with DiagnosticInfoApiModel returned
+            /// from GetDiagnosticInfo direct method call.
             /// </summary>
-            public static void AssertEndpointInfoModel(PublishNodesEndpointApiModel expected, PublishNodesEndpointApiModel actual) {
+            public static void AssertEndpointDiagnosticInfoModel(
+                PublishNodesEndpointApiModel expected,
+                DiagnosticInfoApiModel diagnosticInfo) {
+
+                var actual = diagnosticInfo.Endpoint;
+
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
                 Assert.Equal(expected.EndpointUrl.TrimEnd('/'), actual.EndpointUrl.TrimEnd('/'));
                 Assert.Equal(expected.OpcAuthenticationMode, actual.OpcAuthenticationMode);
                 Assert.Equal(expected.UserName, actual.UserName);
                 Assert.Equal(expected.UseSecurity, actual.UseSecurity);
+
+                // Check validity of diagnosticInfo
+                Assert.True(diagnosticInfo.IngressValueChanges > 0);
+                Assert.True(diagnosticInfo.IngressDataChanges > 0);
+                Assert.Equal(0, diagnosticInfo.MonitoredOpcNodesFailedCount);
+                Assert.Equal(expected.OpcNodes.Count, diagnosticInfo.MonitoredOpcNodesSucceededCount);
+                Assert.True(diagnosticInfo.OpcEndpointConnected);
+                Assert.True(diagnosticInfo.OutgressIoTMessageCount > 0);
+
+                // Check that we are not dropping anything.
+                Assert.Equal(0U, diagnosticInfo.EncoderNotificationsDropped);
+                Assert.Equal(0UL, diagnosticInfo.OutgressInputBufferDropped);
             }
         }
     }

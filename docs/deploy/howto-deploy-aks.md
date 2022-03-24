@@ -28,11 +28,11 @@
   * [User Interface](#user-interface)
 * [Resources](#resources)
 
-`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying the Azure Industrial IoT solution, 
+`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying the Azure Industrial IoT solution,
 which deploys the required Azure infrastructure resources and microservices required by the Azure Industrial IoT solution.
 By default, it deploys `2.8.1` version of Azure Industrial IoT microservices.
 
-The main difference between the [script based deployment](howto-deploy-all-in-one.md) option is that 
+The main difference between the [script based deployment](howto-deploy-all-in-one.md) option is that
 `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
 Kubernetes Service (AKS) cluster, while `deploy.ps1` runs the entire platform as a web application.
 
@@ -346,11 +346,11 @@ You will still need to run the application once before granting the consent and 
     [10:33:44 INF] Created Azure Public IP for AKS cluster.
     [10:33:44 INF] Pushing IIoT configuration parameters to Key Vault...
     [10:33:45 DBG] Uploading data to Azure Blob ...
-    [10:33:45 DBG] Uploadede data to Azure Blob.
+    [10:33:45 DBG] Uploaded data to Azure Blob.
     [10:33:45 DBG] Uploading data to Azure Blob ...
-    [10:33:45 DBG] Uploadede data to Azure Blob.
+    [10:33:45 DBG] Uploaded data to Azure Blob.
     [10:33:45 DBG] Uploading data to Azure Blob ...
-    [10:33:45 DBG] Uploadede data to Azure Blob.
+    [10:33:45 DBG] Uploaded data to Azure Blob.
     [10:46:13 INF] Pushed IIoT configuration parameters to Key Vault.
     Use the following credentials to login to jumpbox:
 
@@ -359,7 +359,7 @@ You will still need to run the application once before granting the consent and 
     ```
 
     Please save this username and password as you will need them to login to jumpbox VM from where Helm
-    charts have beed deployed. Note that VM is de-allocated after successful deployment, but you can easily
+    charts have been deployed. Note that VM is de-allocated after successful deployment, but you can easily
     start it.
 
 9. After that you would be provided with an option to save connection details of deployed resources to
@@ -609,7 +609,7 @@ The following Azure regions are supported by `Microsoft.Azure.IIoT.Deployment` f
 ### AKS
 
 All cloud microservices of Azure Industrial IoT solution are deployed to an AKS Kubernetes cluster.
-`Microsoft.Azure.IIoT.Deployment` deploys latest available patch version of `1.19` Kubernetes.
+`Microsoft.Azure.IIoT.Deployment` deploys latest available patch version of `1.21` Kubernetes.
 
 #### Kubernetes Dashboard
 

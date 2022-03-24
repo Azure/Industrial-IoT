@@ -3,20 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Serializers;
+    using Moq;
     using Opc.Ua;
     using System;
     using System.IO;
     using System.Linq;
     using System.Text;
-    using Xunit;
     using System.Threading.Tasks;
+    using Xunit;
 
     /// <summary>
     /// Test
@@ -52,7 +55,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             // Verify correct exception is thrown.
             var exception = await Assert.ThrowsAsync<IIoT.Exceptions.SerializerException>(async () =>
@@ -74,7 +83,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var jobs = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
 
             // No jobs
@@ -98,7 +114,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -129,7 +152,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -161,7 +191,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -192,7 +229,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -224,7 +268,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -241,6 +292,144 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
         }
+
+        [Fact]
+        public async Task PnPlcPubSubDataSetFieldIdDuplicateTest() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DataSetFieldId"": ""testfieldid""
+            },
+            {
+                ""Id"": ""i=2259"",
+                ""DataSetFieldId"": ""testfieldid""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(2, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
+            Assert.Equal("testfieldid", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+            Assert.Equal("testfieldid", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubDisplayNameDuplicateTest() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DisplayName"": ""testdisplayname""
+            },
+            {
+                ""Id"": ""i=2259"",
+                ""DisplayName"": ""testdisplayname""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(2, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
+            Assert.Equal("testdisplayname", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+            Assert.Equal("testdisplayname", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubFullDuplicateTest() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DisplayName"": ""testdisplayname"",
+                ""DataSetFieldId"": ""testfieldid""
+            },
+            {
+                ""Id"": ""i=2259"",
+                ""DisplayName"": ""testdisplayname"",
+                ""DataSetFieldId"": ""testfieldid""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(2, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
+            Assert.Equal("testfieldid", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+            Assert.Equal("testfieldid", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+        }
+
 
         [Fact]
         public async Task PnPlcPubSubFullTest() {
@@ -265,7 +454,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromSeconds(5)
             };
@@ -274,35 +470,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal(2, jobs
+            Assert.Equal(1, jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
+                .First().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
             Assert.Equal("testfieldid1", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
+                .First().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
             Assert.Equal("i=2258", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().PublishedVariableNodeId);
+                .First().DataSet.DataSetSource.PublishedVariables.PublishedData.First().PublishedVariableNodeId);
             Assert.Equal(null, jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
+                .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
             Assert.Equal("i=2259", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableNodeId);
+                .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableNodeId);
             Assert.Equal("testgroup", jobs
                 .Single().WriterGroup.WriterGroupId);
             Assert.Equal("testgroup", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.Connection.Group);
-            Assert.Equal("testwriterid", jobs
+                .First().DataSet.DataSetSource.Connection.Group);
+            Assert.Equal("testwriterid_2000", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSetWriterId);
-            Assert.Equal("testwriterid", jobs
+                .First().DataSetWriterId);
+            Assert.Equal("testwriterid_2000", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.Connection.Id);
+                .First().DataSet.DataSetSource.Connection.Id);
+            Assert.Equal(2000, jobs
+                .Single().WriterGroup.DataSetWriters
+                .First().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
             Assert.Equal(1000, jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+                .Last().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+
         }
 
         [Fact]
@@ -310,7 +510,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -321,7 +521,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -339,7 +546,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -351,14 +558,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal(1000, jobs
+            Assert.Equal(2000, jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
@@ -368,7 +581,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -382,7 +595,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -400,12 +620,163 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
                 ""Id"": ""i=2258"",
                 ""OpcPublishingInterval"": 2000
+            },
+            {
+                ""Id"": ""i=2259""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel() {
+                DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
+            };
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(2000, jobs
+                .First().WriterGroup.DataSetWriters
+                .First().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubDataSetPublishingIntervalTimespan1Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(1000, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubDataSetPublishingIntervalTimespan2Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""OpcPublishingIntervalTimespan"": ""00:00:02""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(2000, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubDataSetPublishingIntervalTimespan3Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258""
+            },
+            {
+                ""Id"": ""i=2259""
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            var standaloneCli = new StandaloneCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
+
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal(1000, jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubDataSetPublishingIntervalTimespan4Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
             },
             {
                 ""Id"": ""i=2259"",
@@ -416,7 +787,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
@@ -428,15 +805,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Single(jobs);
             Assert.Equal(1000, jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+                .First().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
+
 
         [Fact]
         public async Task PnPlcPubSubDisplayName1Test() {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -448,7 +826,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
@@ -467,7 +852,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -478,7 +863,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
@@ -497,7 +889,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -510,7 +902,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
@@ -529,7 +928,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -541,7 +940,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
@@ -560,7 +966,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -572,7 +978,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
@@ -591,7 +1004,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -602,7 +1015,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
@@ -621,7 +1041,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -634,7 +1054,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
@@ -653,7 +1080,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-        ""DataSetPublishingInterval"": ""1000"",
+        ""DataSetPublishingInterval"": 1000,
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
@@ -665,7 +1092,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000)
             };
@@ -696,7 +1130,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -733,7 +1174,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -770,7 +1218,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -804,7 +1259,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -835,7 +1297,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -869,7 +1338,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             var standaloneCli = new StandaloneCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromSeconds(10)
@@ -907,7 +1382,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -944,7 +1426,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -992,7 +1481,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -1032,7 +1528,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -1092,7 +1595,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -1151,7 +1661,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -1217,7 +1734,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             };
 
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -1284,7 +1808,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             };
 
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -1349,7 +1880,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             };
 
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
@@ -1392,7 +1930,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ");
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn.ToString(), new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
@@ -1440,7 +1985,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ");
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+            var logger = TraceLogger.Create();
+
+            var converter = new PublishedNodesJobConverter(logger, _serializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
             var standaloneCli = new StandaloneCliModel();
             var entries = converter.Read(pn.ToString(), new StringReader(await schemaReader.ReadToEndAsync()));
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();

@@ -5,8 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
-    using System;
     using Opc.Ua;
+    using Opc.Ua.Configuration;
+    using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Certificate store extensions
@@ -14,13 +16,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public static class SecurityConfigEx {
 
         /// <summary>
-        /// Convert to security configuration
+        /// Builds and applies the the security configuration according to the local settings. Returns a the
+        /// configuration application ready to use for initialization of the OPC UA SDK client object.
         /// </summary>
-        /// <param name="securityConfig"></param>
-        /// <param name="hostname"></param>
-        /// <returns></returns>
-        public static SecurityConfiguration ToSecurityConfiguration(
-            this ISecurityConfig securityConfig, string hostname) {
+        ///<remarks>
+        /// Please note the input argument <cref>applicationConfiguration</cref> will be altered during execution
+        /// with the locally provided security configuration and shall not be used after calling this method.
+        /// </remarks>
+        public static async Task<ApplicationConfiguration> BuildSecurityConfiguration(
+            this ISecurityConfig securityConfig,
+            IApplicationConfigurationBuilderClientSelected applicationConfigurationBuilder,
+            ApplicationConfiguration applicationConfiguration,
+            string hostname) {
             if (securityConfig == null) {
                 throw new ArgumentNullException(nameof(securityConfig));
             }
@@ -45,18 +52,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     $"{nameof(securityConfig)}.{nameof(SecurityConfig.ApplicationCertificate)}");
             }
 
-            var securityConfiguration = new SecurityConfiguration {
-                TrustedIssuerCertificates = securityConfig.TrustedIssuerCertificates.ToCertificateTrustList(),
-                TrustedPeerCertificates = securityConfig.TrustedPeerCertificates.ToCertificateTrustList(),
-                RejectedCertificateStore = securityConfig.RejectedCertificateStore.ToCertificateTrustList(),
-                AutoAcceptUntrustedCertificates = securityConfig.AutoAcceptUntrustedCertificates,
-                RejectSHA1SignedCertificates = securityConfig.RejectSha1SignedCertificates,
-                MinimumCertificateKeySize = securityConfig.MinimumCertificateKeySize,
-                ApplicationCertificate = securityConfig.ApplicationCertificate.ToCertificateIdentifier(hostname),
-                AddAppCertToTrustedStore = securityConfig.AddAppCertToTrustedStore
-            };
+            var options = applicationConfigurationBuilder
+                .AddSecurityConfiguration(
+                    securityConfig.ApplicationCertificate.SubjectName.Replace("localhost", hostname),
+                    securityConfig.PkiRootPath)
+                .SetAutoAcceptUntrustedCertificates(securityConfig.AutoAcceptUntrustedCertificates)
+                .SetRejectSHA1SignedCertificates(securityConfig.RejectSha1SignedCertificates)
+                .SetMinimumCertificateKeySize(securityConfig.MinimumCertificateKeySize)
+                .SetAddAppCertToTrustedStore(securityConfig.AddAppCertToTrustedStore);
 
-            return securityConfiguration;
+            applicationConfiguration.SecurityConfiguration.ApplicationCertificate
+                .ApplyLocalConfig(securityConfig.ApplicationCertificate);
+            applicationConfiguration.SecurityConfiguration.TrustedPeerCertificates
+                .ApplyLocalConfig(securityConfig.TrustedPeerCertificates);
+            applicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates
+                .ApplyLocalConfig(securityConfig.TrustedIssuerCertificates);
+            applicationConfiguration.SecurityConfiguration.RejectedCertificateStore
+                .ApplyLocalConfig(securityConfig.RejectedCertificateStore);
+
+            return await options.Create().ConfigureAwait(false);
         }
     }
 }

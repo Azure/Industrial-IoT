@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Serializers;
@@ -41,7 +43,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCli = new StandaloneCliModel {
@@ -82,6 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         OpcPublishingInterval = initialNode.OpcPublishingInterval,
                         OpcSamplingInterval = initialNode.OpcSamplingInterval,
                         QueueSize = initialNode.QueueSize,
+                        // ToDo: Implement mechanism for SkipFirst.
                         SkipFirst = initialNode.SkipFirst,
                     });
                 }
@@ -132,7 +139,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCli = new StandaloneCliModel {
@@ -172,6 +183,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         OpcPublishingInterval = initialNode.OpcPublishingInterval,
                         OpcSamplingInterval = initialNode.OpcSamplingInterval,
                         QueueSize = initialNode.QueueSize,
+                        // ToDo: Implement mechanism for SkipFirst.
                         SkipFirst = initialNode.SkipFirst,
                     });
                 }
@@ -226,7 +238,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCli = new StandaloneCliModel {
@@ -322,13 +338,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject.OpcNodes.Count()
                 .Should()
                 .Be(2);
-            response.Subject.First().Id
+            response.Subject.OpcNodes.First().Id
                 .Should()
                 .Be("ns=2;s=FastUInt1");
-            response.Subject[1].Id
+            response.Subject.OpcNodes[1].Id
                 .Should()
                 .Be("ns=2;s=FastUInt2");
         }
@@ -361,10 +377,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject.OpcNodes.Count()
                 .Should()
                 .Be(1);
-            response.Subject.First().Id
+            response.Subject.OpcNodes.First().Id
                 .Should()
                 .Be("ns=2;s=SlowUInt1");
         }
@@ -404,10 +420,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         .NotThrowAsync()
                         .ConfigureAwait(false);
 
-                response.Subject.Count
+                response.Subject.OpcNodes.Count
                     .Should()
                     .Be(i + 1);
-                response.Subject.Last().Id
+                response.Subject.OpcNodes.Last().Id
                     .Should()
                     .Be($"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}");
             }
@@ -433,10 +449,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject.OpcNodes.Count()
                 .Should()
                 .Be(1);
-            response.Subject.First().Id
+            response.Subject.OpcNodes.First().Id
                 .Should()
                 .Be("ns=2;s=SlowUInt3");
         }
@@ -467,10 +483,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject.OpcNodes.Count()
                 .Should()
                 .Be(1);
-            response.Subject.First().Id
+            response.Subject.OpcNodes.First().Id
                 .Should()
                 .Be("ns=2;s=SlowUInt2");
         }
@@ -499,13 +515,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-            response.Subject.Count()
+            response.Subject.OpcNodes.Count()
                 .Should()
                 .Be(2);
-            response.Subject.First().Id
+            response.Subject.OpcNodes.First().Id
                 .Should()
                 .Be("ns=2;s=FastUInt3");
-            response.Subject[1].Id
+            response.Subject.OpcNodes[1].Id
                 .Should()
                 .Be("ns=2;s=FastUInt4");
         }
@@ -520,7 +536,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCli = new StandaloneCliModel {
@@ -567,7 +587,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+            var engineConfigMock = new Mock<IEngineConfiguration>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCli = new StandaloneCliModel {
@@ -604,7 +628,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            endpoints.Subject.Count.Should().Be(0);
+            endpoints.Subject.Endpoints.Count.Should().Be(0);
 
             // Publish nodes
             foreach (var request in publishNodesRequests) {
@@ -624,8 +648,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            endpoints.Subject.Count.Should().Be(5);
-            var endpointsHash = endpoints.Subject.Select(e => e.GetHashCode()).ToList();
+            endpoints.Subject.Endpoints.Count.Should().Be(5);
+            endpoints.Subject.Endpoints[0].Tag.Should().Be("Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
+            endpoints.Subject.Endpoints[1].Tag.Should().Be("Tag_Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
+            endpoints.Subject.Endpoints[2].Tag.Should().Be("Tag_Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952234");
+            endpoints.Subject.Endpoints[3].Tag.Should().Be("Tag_Leaf3_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
+            endpoints.Subject.Endpoints[4].Tag.Should().BeNull();
+
+            var endpointsHash = endpoints.Subject.Endpoints.Select(e => e.GetHashCode()).ToList();
             Assert.True(endpointsHash.Distinct().Count() == endpointsHash.Count());
         }
 

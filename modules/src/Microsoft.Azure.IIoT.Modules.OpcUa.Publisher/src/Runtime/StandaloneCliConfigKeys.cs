@@ -110,7 +110,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the maximum number of nodes per DataSet/Subscription
         /// </summary>
-        public const string DefaultMaxNodesPerDataSet = "DefaultMaxNodesPerDataSet";
+        public const string MaxNodesPerDataSet = "MaxNodesPerDataSet";
         /// <summary>
         /// Key for the scale test monitored items clones count .
         /// </summary>
@@ -210,5 +210,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the trusted issuer certificates.
         /// </summary>
         public const string OpcIssuerCertStorePath = SecurityConfig.TrustedIssuerCertificatesPathKey;
+
+        /// <summary>
+        /// Key for configuring reporting of OPC Publisher restarts.
+        /// </summary>
+        public const string RuntimeStateReporting = "RuntimeStateReporting";
     }
 }

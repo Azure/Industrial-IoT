@@ -26,7 +26,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
 
             return new PublishedNodesEntryModel {
-                EndpointUrl = new Uri(model.EndpointUrl),
+                EndpointUrl = !string.IsNullOrEmpty(model.EndpointUrl)
+                    ? new Uri(model.EndpointUrl)
+                    : null,
                 UseSecurity = model.UseSecurity,
                 OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
                 OpcAuthenticationPassword = model.Password,
@@ -36,7 +38,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 DataSetWriterGroup = model.DataSetWriterGroup,
                 DataSetWriterId = model.DataSetWriterId,
-                DataSetPublishingInterval = model.DataSetPublishingInterval,
+                Tag = model.Tag,
+                DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
+                // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
+                // was not provided.
+                DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue
+                    ? model.DataSetPublishingInterval
+                    : null,
             };
         }
 
@@ -53,9 +61,27 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataSetFieldId = model.DataSetFieldId,
                 DisplayName = model.DisplayName,
                 ExpandedNodeId = model.ExpandedNodeId,
-                OpcPublishingInterval = model.OpcPublishingInterval,
-                OpcSamplingInterval = model.OpcSamplingInterval,
+
+                OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
+                // only fill the OpcPublishingInterval if the OpcPublishingIntervalTimespan
+                // was not provided.
+                OpcPublishingInterval = !model.OpcPublishingIntervalTimespan.HasValue
+                    ? model.OpcPublishingInterval
+                    : null,
+
+                OpcSamplingIntervalTimespan = model.OpcSamplingIntervalTimespan,
+                // only fill the OpcSamplingInterval if the OpcSamplingIntervalTimespan
+                // was not provided.
+                OpcSamplingInterval = !model.OpcSamplingIntervalTimespan.HasValue
+                    ? model.OpcSamplingInterval
+                    : null,
+
                 HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
+                // only fill the HeartbeatInterval if the HeartbeatIntervalTimespan
+                // was not provided.
+                HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
+                    ? model.HeartbeatInterval
+                    : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
             };
@@ -82,13 +108,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
 
             return new PublishNodesEndpointApiModel {
-                EndpointUrl = endpoint.EndpointUrl.AbsoluteUri,
-                UseSecurity = endpoint.UseSecurity.GetValueOrDefault(false),
+                EndpointUrl = endpoint.EndpointUrl.OriginalString,
+                UseSecurity = endpoint.UseSecurity,
                 OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
                 UserName = endpoint.OpcAuthenticationUsername,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
                 DataSetWriterId = endpoint.DataSetWriterId,
-                DataSetPublishingInterval = endpoint.DataSetPublishingInterval
+                Tag = endpoint.Tag,
+                DataSetPublishingIntervalTimespan = endpoint.DataSetPublishingIntervalTimespan,
+                // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
+                // was not provided.
+                DataSetPublishingInterval = !endpoint.DataSetPublishingIntervalTimespan.HasValue
+                    ? endpoint.DataSetPublishingInterval
+                    : null,
             };
         }
 
@@ -115,11 +147,20 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             return new PublishedNodeApiModel {
                 Id = model.Id,
                 ExpandedNodeId = model.ExpandedNodeId,
-                OpcSamplingInterval = model.OpcSamplingInterval,
-                OpcPublishingInterval = model.OpcPublishingInterval,
                 DataSetFieldId = model.DataSetFieldId,
                 DisplayName = model.DisplayName,
-                HeartbeatInterval = model.HeartbeatInterval,
+                OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
+                OpcPublishingInterval = !model.OpcPublishingIntervalTimespan.HasValue
+                    ? model.OpcPublishingInterval
+                    : null,
+                OpcSamplingIntervalTimespan = model.OpcSamplingIntervalTimespan,
+                OpcSamplingInterval = !model.OpcSamplingIntervalTimespan.HasValue
+                    ? model.OpcSamplingInterval
+                    : null,
+                HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
+                HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
+                    ? model.HeartbeatInterval
+                    : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
             };
@@ -135,8 +176,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
 
             return new PublishNodesEndpointApiModel {
-                EndpointUrl = endpoint.EndpointUrl.AbsoluteUri,
-                UseSecurity = endpoint.UseSecurity.GetValueOrDefault(false),
+                EndpointUrl = endpoint.EndpointUrl.OriginalString,
+                UseSecurity = endpoint.UseSecurity,
                 OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
                 UserName = endpoint.OpcAuthenticationUsername,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
@@ -153,7 +194,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
 
             return model.Select(e => new DiagnosticInfoApiModel {
-                EndpointInfo = e.EndpointInfo.ToApiModel(),
+                Endpoint = e.Endpoint.ToApiModel(),
                 SentMessagesPerSec = e.SentMessagesPerSec,
                 IngestionDuration = e.IngestionDuration,
                 IngressDataChanges = e.IngressDataChanges,
