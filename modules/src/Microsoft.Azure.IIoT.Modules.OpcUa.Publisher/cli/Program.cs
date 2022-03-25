@@ -40,7 +40,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
             var withServer = false;
             var verbose = false;
             string deviceId = null, moduleId = null;
-            Console.WriteLine("Publisher module command line interface.");
+
+            var logger = ConsoleLogger.Create(LogEventLevel.Error);
+
+            logger.Information("Publisher module command line interface.");
             var configuration = new ConfigurationBuilder()
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
@@ -98,18 +101,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
 
                 if (deviceId == null) {
                     deviceId = Utils.GetHostName();
-                    Console.WriteLine($"Using <deviceId> '{deviceId}'");
+                    logger.Information($"Using <deviceId> '{deviceId}'");
                 }
                 if (moduleId == null) {
                     moduleId = "publisher";
-                    Console.WriteLine($"Using <moduleId> '{moduleId}'");
+                    logger.Information($"Using <moduleId> '{moduleId}'");
                 }
 
                 args = unknownArgs.ToArray();
             }
             catch (Exception e) {
-                Console.WriteLine(e.Message);
-                Console.WriteLine(
+                logger.Error(e.Message);
+                logger.Error(
                     @"
 Usage:       Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli [options]
 
@@ -127,10 +130,8 @@ Options:
                 return;
             }
 
-            var logger = ConsoleLogger.Create(LogEventLevel.Error);
             AppDomain.CurrentDomain.UnhandledException += (s, e) => {
                 logger.Fatal(e.ExceptionObject as Exception, "Exception");
-                Console.WriteLine(e);
             };
 
             try {
@@ -142,7 +143,7 @@ Options:
                 }
             }
             catch (Exception e) {
-                Console.WriteLine(e);
+                logger.Error(e, "Exception");
             }
         }
 
@@ -152,17 +153,17 @@ Options:
         private static async Task HostAsync(IIoTHubConfig config, ILogger logger,
             string deviceId, string moduleId, string[] args, bool verbose = false,
             bool acceptAll = false) {
-            Console.WriteLine("Create or retrieve connection string...");
+            logger.Information("Create or retrieve connection string...");
 
             var cs = await Retry.WithExponentialBackoff(logger,
-                () => AddOrGetAsync(config, deviceId, moduleId));
+                () => AddOrGetAsync(config, deviceId, moduleId, logger));
 
             // Hook event source
             using (var broker = new EventSourceBroker()) {
                 LogControl.Level.MinimumLevel = verbose ?
                     LogEventLevel.Verbose : LogEventLevel.Information;
 
-                Console.WriteLine("Starting publisher module...");
+                logger.Information("Starting publisher module...");
                 broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
                 var arguments = args.ToList();
                 arguments.Add($"--ec={cs}");
@@ -170,7 +171,7 @@ Options:
                     arguments.Add("--aa");
                 }
                 Publisher.Program.Main(arguments.ToArray());
-                Console.WriteLine("Publisher module exited.");
+                logger.Information("Publisher module exited.");
             }
         }
 
@@ -202,8 +203,7 @@ Options:
         /// Add or get module identity
         /// </summary>
         private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
-            string deviceId, string moduleId) {
-            var logger = ConsoleLogger.Create(LogEventLevel.Error);
+            string deviceId, string moduleId, ILogger logger) {
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, new NewtonSoftJsonSerializer(), logger);
             try {
