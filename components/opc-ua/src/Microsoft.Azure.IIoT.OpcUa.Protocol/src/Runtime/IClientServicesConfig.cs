@@ -26,12 +26,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         string ProductUri { get; }
 
         /// <summary>
-        /// Default session timeout
+        /// Default session timeout in milliseconds.
         /// </summary>
         uint DefaultSessionTimeout { get; }
 
         /// <summary>
-        /// Keep alive interval
+        /// Keep alive interval in milliseconds.
         /// </summary>
         int KeepAliveInterval { get; }
 
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         uint MaxKeepAliveCount { get; }
 
         /// <summary>
-        /// Minimum subscription lifetime
+        /// Minimum subscription lifetime in milliseconds.
         /// </summary>
         int MinSubscriptionLifetime { get; }
     }

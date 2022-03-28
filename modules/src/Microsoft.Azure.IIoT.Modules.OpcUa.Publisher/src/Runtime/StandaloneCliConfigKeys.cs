@@ -162,9 +162,24 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string OpcMaxStringLength = TransportQuotaConfig.MaxStringLengthKey;
 
         /// <summary>
+        /// Key for application uri.
+        /// </summary>
+        public const string ApplicationUriKey = ClientServicesConfig.ApplicationUriKey;
+
+        /// <summary>
+        /// Key for product uri.
+        /// </summary>
+        public const string ProductUriKey = ClientServicesConfig.ProductUriKey;
+
+        /// <summary>
         /// Key for the default OPC Session timeout in seconds - to request from the OPC server at session creation.
         /// </summary>
         public const string OpcSessionCreationTimeout = ClientServicesConfig.DefaultSessionTimeoutKey;
+
+        /// <summary>
+        /// Key for minimum subscription lifetime in seconds.
+        /// </summary>
+        public const string MinSubscriptionLifetimeKey = ClientServicesConfig.MinSubscriptionLifetimeKey;
 
         /// <summary>
         /// Key for the OPC Keep Alive Interval in seconds.

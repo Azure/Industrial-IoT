@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
                     // Client settings
-                    { "ot|operationtimeout=", "The operation timeout of the publisher OPC UA client in ms.",
+                    { "ot|operationtimeout=", "The operation timeout of the publisher OPC UA client in milliseconds.",
                         (uint i) => this[StandaloneCliConfigKeys.OpcOperationTimeout] = TimeSpan.FromMilliseconds(i).ToString() },
                     { "ol|opcmaxstringlen=", "The max length of a string opc can transmit/receive.",
                         (uint i) => this[StandaloneCliConfigKeys.OpcMaxStringLength] = i.ToString() },
@@ -106,16 +106,25 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "op|opcpublishinginterval=", "Default value in milliseconds for the publishing interval " +
                         "setting of the subscriptions against the OPC UA server.",
                         (int i) => this[StandaloneCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
-                    { "ct|createsessiontimeout=", "Maximum amount of time in seconds that a session should " +
+
+                    { $"{StandaloneCliConfigKeys.ApplicationUriKey}=", "OPC UA Client Application Config - Application URI as per OPC UA definition.",
+                        s => this[StandaloneCliConfigKeys.ApplicationUriKey] = s },
+                    { $"{StandaloneCliConfigKeys.ProductUriKey}=", "OPC UA Client Application Config - Product URI as per OPC UA definition.",
+                        s => this[StandaloneCliConfigKeys.ProductUriKey] = s },
+                    { $"ct|createsessiontimeout=|{StandaloneCliConfigKeys.OpcSessionCreationTimeout}=", "Maximum amount of time in seconds that a session should " +
                         "remain open by the OPC server without any activity (session timeout) " +
                         "- to request from the OPC server at session creation.",
-                        (uint u) => this[StandaloneCliConfigKeys.OpcSessionCreationTimeout] = TimeSpan.FromSeconds(u).ToString() },
+                        (uint u) => this[StandaloneCliConfigKeys.OpcSessionCreationTimeout] = u.ToString() },
+                    { $"{StandaloneCliConfigKeys.MinSubscriptionLifetimeKey}=", "OPC UA Client Application Config - " +
+                        "Minimum subscription lifetime in seconds as per OPC UA definition.",
+                        (int i) => this[StandaloneCliConfigKeys.MinSubscriptionLifetimeKey] = i.ToString() },
                     { "ki|keepaliveinterval=", "The interval in seconds the publisher is sending keep alive messages " +
                         "to the OPC servers on the endpoints it is connected to.",
-                        (int i) => this[StandaloneCliConfigKeys.OpcKeepAliveIntervalInSec] = TimeSpan.FromSeconds(i).ToString() },
-                    { "kt|keepalivethreshold=", "Specify the number of keep alive packets a server can miss, " +
-                        "before the session is disconneced.",
+                        (int i) => this[StandaloneCliConfigKeys.OpcKeepAliveIntervalInSec] = i.ToString() },
+                    { $"kt|keepalivethreshold=|{StandaloneCliConfigKeys.OpcKeepAliveDisconnectThreshold}=",
+                        "Specify the number of keep alive packets a server can miss, before the session is disconneced.",
                         (uint u) => this[StandaloneCliConfigKeys.OpcKeepAliveDisconnectThreshold] = u.ToString() },
+
                     { "fd|fetchdisplayname=", "Fetches the displayname for the monitored items subscribed.",
                         (bool b) => this[StandaloneCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
                     { "mq|monitoreditemqueuecapacity=", "Default queue size for monitored items.",
