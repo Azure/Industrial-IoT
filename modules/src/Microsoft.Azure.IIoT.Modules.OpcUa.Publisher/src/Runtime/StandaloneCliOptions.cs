@@ -260,13 +260,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
             if (unsupportedOptions.Count > 0) {
                 foreach (var option in unsupportedOptions) {
-                    // Report warning only if the key is not part of security
-                    // configuration keys which are processed separatelly.
-                    var processedOption = option.TrimStart('-').Split('=');
-                    if (!SecurityConfig.SecurityConfigKeys.Contains(processedOption[0])) {
-                        logger.Warning("Option {option} wrong or not supported, " +
-                            "please use -h option to get all the supported options.", option);
-                    }
+                    logger.Warning("Option {option} wrong or not supported, " +
+                        "please use -h option to get all the supported options.", option);
                 }
             }
 
