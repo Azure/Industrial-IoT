@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "s|site=", "The site OPC Publisher is working in.",
                         s => this[StandaloneCliConfigKeys.PublisherSite] = s },
 
-                    { "di|diagnosticsinterval=", "Shows publisher diagnostic info at the specified interval " +
+                    { $"di|diagnosticsinterval=|{StandaloneCliConfigKeys.DiagnosticsInterval}=", "Shows publisher diagnostic info at the specified interval " +
                         "in seconds (need log level info).\n-1 disables remote diagnostic log and diagnostic output",
                         (int i) => this[StandaloneCliConfigKeys.DiagnosticsInterval] = TimeSpan.FromSeconds(i).ToString() },
                     { $"lf|logfile=|{StandaloneCliConfigKeys.LogFileName}=", "The filename of the logfile to use.",
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (TransportOption p) => this[StandaloneCliConfigKeys.HubTransport] = p.ToString() },
                     { "dc|deviceconnectionstring=", "A device or edge module connection string to use.",
                         dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
-                    { "ec|edgehubconnectionstring=", "An edge module connection string to use",
+                    { $"ec|edgehubconnectionstring=|{StandaloneCliConfigKeys.EdgeHubConnectionString}=", "An edge module connection string to use",
                         dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
                     { $"{StandaloneCliConfigKeys.BypassCertVerificationKey}=", "Enables bypass of certificate verification for upstream communication to edgeHub.",
                         (bool b) => this[StandaloneCliConfigKeys.BypassCertVerificationKey] = b.ToString() },
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     //    "event setting of nodes without a skip first event setting.",
                     //    (bool b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b.ToString() },
 
-                    { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." +
+                    { $"fm|fullfeaturedmessage=|{StandaloneCliConfigKeys.FullFeaturedMessage}=", "The full featured mode for messages (all fields filled in)." +
                         "Default is 'false' for legacy compatibility.",
                         (bool b) => this[StandaloneCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
@@ -131,7 +131,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { $"{StandaloneCliConfigKeys.MinSubscriptionLifetimeKey}=", "OPC UA Client Application Config - " +
                         "Minimum subscription lifetime in seconds as per OPC UA definition.",
                         (int i) => this[StandaloneCliConfigKeys.MinSubscriptionLifetimeKey] = i.ToString() },
-                    { "ki|keepaliveinterval=", "The interval in seconds the publisher is sending keep alive messages " +
+                    { $"ki|keepaliveinterval=|{StandaloneCliConfigKeys.OpcKeepAliveIntervalInSec}=", "The interval in seconds the publisher is sending keep alive messages " +
                         "to the OPC servers on the endpoints it is connected to.",
                         (int i) => this[StandaloneCliConfigKeys.OpcKeepAliveIntervalInSec] = i.ToString() },
                     { $"kt|keepalivethreshold=|{StandaloneCliConfigKeys.OpcKeepAliveDisconnectThreshold}=",
@@ -189,26 +189,26 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { $"{StandaloneCliConfigKeys.MinimumCertificateKeySizeKey}=", "Minimum accepted certificate size.",
                         s => this[StandaloneCliConfigKeys.MinimumCertificateKeySizeKey] = s },
                     { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); } },
-                    { "bs|batchsize=", "The size of message batching buffer.",
+                    { $"bs|batchsize=|{StandaloneCliConfigKeys.BatchSize}=", "The size of message batching buffer.",
                         (int i) => this[StandaloneCliConfigKeys.BatchSize] = i.ToString() },
                     { $"si|iothubsendinterval=|{StandaloneCliConfigKeys.BatchTriggerInterval}=", "The trigger batching interval in seconds.",
                         (int k) => this[StandaloneCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
                     { $"ms|iothubmessagesize=|{StandaloneCliConfigKeys.IoTHubMaxMessageSize}=", "The maximum size of the (IoT D2C) message.",
                         (int i) => this[StandaloneCliConfigKeys.IoTHubMaxMessageSize] = i.ToString() },
-                    { "om|maxoutgressmessages=", "The maximum size of the (IoT D2C) message outgress buffer",
+                    { $"om|maxoutgressmessages=|{StandaloneCliConfigKeys.MaxOutgressMessages}=", "The maximum size of the (IoT D2C) message outgress buffer",
                         (int i) => this[StandaloneCliConfigKeys.MaxOutgressMessages] = i.ToString() },
                     { $"{StandaloneCliConfigKeys.MaxNodesPerDataSet}=", "Maximum number of nodes within a DataSet/Subscription.",
                         (int i) => this[StandaloneCliConfigKeys.MaxNodesPerDataSet] = i.ToString() },
-                    { "mm|messagingmode=", "The messaging mode for messages " +
+                    { $"mm|messagingmode=|{StandaloneCliConfigKeys.MessagingMode}=", "The messaging mode for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
                         (MessagingMode m) => this[StandaloneCliConfigKeys.MessagingMode] = m.ToString() },
-                    { "me|messageencoding=", "The message encoding for messages " +
+                    { $"me|messageencoding=|{StandaloneCliConfigKeys.MessageEncoding}=", "The message encoding for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessageEncoding)))}).",
                         (MessageEncoding m) => this[StandaloneCliConfigKeys.MessageEncoding] = m.ToString() },
-                    { "lc|legacycompatibility=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
+                    { $"lc|legacycompatibility=|{StandaloneCliConfigKeys.LegacyCompatibility}=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
                         "Default is 'false'.",
                         (bool b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b.ToString() },
-                    { "rs|runtimestatereporting", "The publisher reports its restarts. By default this is disabled.",
+                    { $"rs|runtimestatereporting|{StandaloneCliConfigKeys.RuntimeStateReporting}", "The publisher reports its restarts. By default this is disabled.",
                         b => this[StandaloneCliConfigKeys.RuntimeStateReporting] = (b != null).ToString()},
 
                     // testing purposes

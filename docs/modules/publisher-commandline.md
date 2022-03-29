@@ -114,7 +114,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Alternative argument type: integer in seconds
                                       Default: {00:00:00} meaning heartbeat is disabled
 
-            MessagingEncoding=VALUE
+            MessageEncoding=VALUE
                                       The messaging encoding for outgoing telemetry.
                                       Alternative: --me, --messageencoding
                                       Mode: Standalone only
