@@ -96,10 +96,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
                     // Client settings
-                    { "ot|operationtimeout=", "The operation timeout of the publisher OPC UA client in milliseconds.",
-                        (uint i) => this[StandaloneCliConfigKeys.OpcOperationTimeout] = TimeSpan.FromMilliseconds(i).ToString() },
-                    { "ol|opcmaxstringlen=", "The max length of a string opc can transmit/receive.",
-                        (uint i) => this[StandaloneCliConfigKeys.OpcMaxStringLength] = i.ToString() },
+                    { $"ot|operationtimeout=|{StandaloneCliConfigKeys.OpcOperationTimeout}=", "The operation timeout of the publisher OPC UA client in milliseconds.",
+                        (uint u) => this[StandaloneCliConfigKeys.OpcOperationTimeout] = u.ToString() },
+                    { $"ol|opcmaxstringlen=|{StandaloneCliConfigKeys.OpcMaxStringLength}=", "The max length of a string opc can transmit/receive.",
+                        (uint u) => this[StandaloneCliConfigKeys.OpcMaxStringLength] = u.ToString() },
+                    { $"{StandaloneCliConfigKeys.SecurityTokenLifetimeKey}=", "OPC UA Stack Transport Secure Channel - Security token lifetime in milliseconds.",
+                        (uint u) => this[StandaloneCliConfigKeys.SecurityTokenLifetimeKey] = u.ToString() },
+                    { $"{StandaloneCliConfigKeys.ChannelLifetimeKey}=", "OPC UA Stack Transport Secure Channel - Channel lifetime in milliseconds.",
+                        (uint u) => this[StandaloneCliConfigKeys.ChannelLifetimeKey] = u.ToString() },
+                    { $"{StandaloneCliConfigKeys.MaxBufferSizeKey}=", "OPC UA Stack Transport Secure Channel - Max buffer size.",
+                        (uint u) => this[StandaloneCliConfigKeys.MaxBufferSizeKey] = u.ToString() },
+                    { $"{StandaloneCliConfigKeys.MaxMessageSizeKey}=", "OPC UA Stack Transport Secure Channel - Max message size.",
+                        (uint u) => this[StandaloneCliConfigKeys.MaxMessageSizeKey] = u.ToString() },
+                    { $"{StandaloneCliConfigKeys.MaxArrayLengthKey}=", "OPC UA Stack Transport Secure Channel - Max array length.",
+                        (uint u) => this[StandaloneCliConfigKeys.MaxArrayLengthKey] = u.ToString() },
+                    { $"{StandaloneCliConfigKeys.MaxByteStringLengthKey}=", "OPC UA Stack Transport Secure Channel - Max byte string length.",
+                        (uint u) => this[StandaloneCliConfigKeys.MaxByteStringLengthKey] = u.ToString() },
+
                     { $"oi|opcsamplinginterval=|{StandaloneCliConfigKeys.OpcSamplingInterval}=", "Default value in milliseconds to request the servers to " +
                         "sample values.",
                         (int i) => this[StandaloneCliConfigKeys.OpcSamplingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
@@ -369,7 +382,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.MessagingMode = GetValueOrDefault(StandaloneCliConfigKeys.MessagingMode, model.MessagingMode);
             model.MessageEncoding = GetValueOrDefault(StandaloneCliConfigKeys.MessageEncoding, model.MessageEncoding);
             model.FullFeaturedMessage = GetValueOrDefault(StandaloneCliConfigKeys.FullFeaturedMessage, model.FullFeaturedMessage);
-            model.OperationTimeout = GetValueOrDefault(StandaloneCliConfigKeys.OpcOperationTimeout, model.OperationTimeout);
             model.BatchSize = GetValueOrDefault(StandaloneCliConfigKeys.BatchSize, model.BatchSize);
             model.BatchTriggerInterval = GetValueOrDefault(StandaloneCliConfigKeys.BatchTriggerInterval, model.BatchTriggerInterval);
             model.MaxMessageSize = GetValueOrDefault(StandaloneCliConfigKeys.IoTHubMaxMessageSize, model.MaxMessageSize);

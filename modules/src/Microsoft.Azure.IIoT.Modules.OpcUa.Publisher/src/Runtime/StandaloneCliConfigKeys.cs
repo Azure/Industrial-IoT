@@ -162,6 +162,36 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string OpcMaxStringLength = TransportQuotaConfig.MaxStringLengthKey;
 
         /// <summary>
+        /// Key for security token lifetime in milliseconds.
+        /// </summary>
+        public const string SecurityTokenLifetimeKey = TransportQuotaConfig.SecurityTokenLifetimeKey;
+
+        /// <summary>
+        /// Key for channel lifetime in milliseconds.
+        /// </summary>
+        public const string ChannelLifetimeKey = TransportQuotaConfig.ChannelLifetimeKey;
+
+        /// <summary>
+        /// Key for max buffer size.
+        /// </summary>
+        public const string MaxBufferSizeKey = TransportQuotaConfig.MaxBufferSizeKey;
+
+        /// <summary>
+        /// Key for max message size.
+        /// </summary>
+        public const string MaxMessageSizeKey = TransportQuotaConfig.MaxMessageSizeKey;
+
+        /// <summary>
+        /// Key for max array length.
+        /// </summary>
+        public const string MaxArrayLengthKey = TransportQuotaConfig.MaxArrayLengthKey;
+
+        /// <summary>
+        /// Key for max byte string length.
+        /// </summary>
+        public const string MaxByteStringLengthKey = TransportQuotaConfig.MaxByteStringLengthKey;
+
+        /// <summary>
         /// Key for application uri.
         /// </summary>
         public const string ApplicationUriKey = ClientServicesConfig.ApplicationUriKey;
