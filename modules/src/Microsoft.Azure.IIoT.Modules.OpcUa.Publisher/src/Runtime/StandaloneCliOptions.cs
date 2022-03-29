@@ -55,9 +55,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             // command line options
             var options = new Mono.Options.OptionSet {
                     // Publisher configuration options
-                    { "pf|publishfile=", "The filename to configure the nodes to publish.",
+                    { $"pf|publishfile=|{StandaloneCliConfigKeys.PublishedNodesConfigurationFilename}=", "The filename to configure the nodes to publish.",
                         s => this[StandaloneCliConfigKeys.PublishedNodesConfigurationFilename] = s },
-                    { "pfs|publishfileschema=", "The validation schema filename for publish file. Disabled by default.",
+                    { $"pfs|publishfileschema=|{StandaloneCliConfigKeys.PublishedNodesConfigurationSchemaFilename}=", "The validation schema filename for publish file. Disabled by default.",
                         s => this[StandaloneCliConfigKeys.PublishedNodesConfigurationSchemaFilename] = s },
                     { "s|site=", "The site OPC Publisher is working in.",
                         s => this[StandaloneCliConfigKeys.PublisherSite] = s },
@@ -65,9 +65,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "di|diagnosticsinterval=", "Shows publisher diagnostic info at the specified interval " +
                         "in seconds (need log level info).\n-1 disables remote diagnostic log and diagnostic output",
                         (int i) => this[StandaloneCliConfigKeys.DiagnosticsInterval] = TimeSpan.FromSeconds(i).ToString() },
-                    { "lf|logfile=", "The filename of the logfile to use.",
+                    { $"lf|logfile=|{StandaloneCliConfigKeys.LogFileName}=", "The filename of the logfile to use.",
                         s => this[StandaloneCliConfigKeys.LogFileName] = s },
-                    { "lt|logflushtimespan=", "The timespan in seconds when the logfile should be flushed.",
+                    { $"lt|logflushtimespan=|{StandaloneCliConfigKeys.LogFileFlushTimeSpanSec}=", "The timespan in seconds when the logfile should be flushed.",
                         (int i) => this[StandaloneCliConfigKeys.LogFileFlushTimeSpanSec] = TimeSpan.FromSeconds(i).ToString() },
                     { "ll|loglevel=", "The loglevel to use (allowed: fatal, error, warn, info, debug, verbose).",
                         (LogEventLevel l) => LogControl.Level.MinimumLevel = l },
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { $"{StandaloneCliConfigKeys.EnableMetricsKey}=", "Enables upstream metrics propagation.",
                         (bool b) => this[StandaloneCliConfigKeys.EnableMetricsKey] = b.ToString() },
 
-                    { "hb|heartbeatinterval=", "The publisher is using this as default value in seconds " +
+                    { $"hb|heartbeatinterval=|{StandaloneCliConfigKeys.HeartbeatIntervalDefault}=", "The publisher is using this as default value in seconds " +
                         "for the heartbeat interval setting of nodes without a heartbeat interval setting.",
                         (int i) => this[StandaloneCliConfigKeys.HeartbeatIntervalDefault] = TimeSpan.FromSeconds(i).ToString() },
                     // ToDo: Bring back once SkipFirst mechanism is implemented.
@@ -100,10 +100,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (uint i) => this[StandaloneCliConfigKeys.OpcOperationTimeout] = TimeSpan.FromMilliseconds(i).ToString() },
                     { "ol|opcmaxstringlen=", "The max length of a string opc can transmit/receive.",
                         (uint i) => this[StandaloneCliConfigKeys.OpcMaxStringLength] = i.ToString() },
-                    { "oi|opcsamplinginterval=", "Default value in milliseconds to request the servers to " +
+                    { $"oi|opcsamplinginterval=|{StandaloneCliConfigKeys.OpcSamplingInterval}=", "Default value in milliseconds to request the servers to " +
                         "sample values.",
                         (int i) => this[StandaloneCliConfigKeys.OpcSamplingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
-                    { "op|opcpublishinginterval=", "Default value in milliseconds for the publishing interval " +
+                    { $"op|opcpublishinginterval=|{StandaloneCliConfigKeys.OpcPublishingInterval}=", "Default value in milliseconds for the publishing interval " +
                         "setting of the subscriptions against the OPC UA server.",
                         (int i) => this[StandaloneCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
 
@@ -125,9 +125,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         "Specify the number of keep alive packets a server can miss, before the session is disconneced.",
                         (uint u) => this[StandaloneCliConfigKeys.OpcKeepAliveDisconnectThreshold] = u.ToString() },
 
-                    { "fd|fetchdisplayname=", "Fetches the displayname for the monitored items subscribed.",
+                    { $"fd|fetchdisplayname=|{StandaloneCliConfigKeys.FetchOpcNodeDisplayName}=", "Fetches the displayname for the monitored items subscribed.",
                         (bool b) => this[StandaloneCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
-                    { "mq|monitoreditemqueuecapacity=", "Default queue size for monitored items.",
+                    { $"mq|monitoreditemqueuecapacity=|{StandaloneCliConfigKeys.DefaultQueueSize}=", "Default queue size for monitored items.",
                         (uint u) => this[StandaloneCliConfigKeys.DefaultQueueSize] = u.ToString() },
 
                     // cert store option
@@ -178,12 +178,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); } },
                     { "bs|batchsize=", "The size of message batching buffer.",
                         (int i) => this[StandaloneCliConfigKeys.BatchSize] = i.ToString() },
-                    { "si|iothubsendinterval=", "The trigger batching interval in seconds.",
+                    { $"si|iothubsendinterval=|{StandaloneCliConfigKeys.BatchTriggerInterval}=", "The trigger batching interval in seconds.",
                         (int k) => this[StandaloneCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
-                    { "ms|iothubmessagesize=", "The maximum size of the (IoT D2C) message.",
+                    { $"ms|iothubmessagesize=|{StandaloneCliConfigKeys.IoTHubMaxMessageSize}=", "The maximum size of the (IoT D2C) message.",
                         (int i) => this[StandaloneCliConfigKeys.IoTHubMaxMessageSize] = i.ToString() },
                     { "om|maxoutgressmessages=", "The maximum size of the (IoT D2C) message outgress buffer",
                         (int i) => this[StandaloneCliConfigKeys.MaxOutgressMessages] = i.ToString() },
+                    { $"{StandaloneCliConfigKeys.MaxNodesPerDataSet}=", "Maximum number of nodes within a DataSet/Subscription.",
+                        (int i) => this[StandaloneCliConfigKeys.MaxNodesPerDataSet] = i.ToString() },
                     { "mm|messagingmode=", "The messaging mode for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
                         (MessagingMode m) => this[StandaloneCliConfigKeys.MessagingMode] = m.ToString() },
