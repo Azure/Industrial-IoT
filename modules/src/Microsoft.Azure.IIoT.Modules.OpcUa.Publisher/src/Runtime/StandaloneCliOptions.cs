@@ -46,10 +46,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <param name="args">The specified command line arguments.</param>
         public StandaloneCliOptions(string[] args) {
 
+            _logger = ConsoleLogger.Create(LogEventLevel.Warning);
+
             bool showHelp = false;
             List<string> unsupportedOptions = new List<string>();
             List<string> legacyOptions = new List<string>();
-            var logger = ConsoleLogger.Create(LogEventLevel.Warning);
 
             // command line options
             var options = new Mono.Options.OptionSet {
@@ -253,20 +254,20 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 unsupportedOptions = options.Parse(args);
             }
             catch (Exception e) {
-                logger.Warning("Parse args exception: " + e.Message);
+                Warning("Parse args exception: " + e.Message);
                 Exit(160);
             }
 
             if (unsupportedOptions.Count > 0) {
                 foreach (var option in unsupportedOptions) {
-                    logger.Warning("Option {option} wrong or not supported, " +
+                    Warning("Option {option} wrong or not supported, " +
                         "please use -h option to get all the supported options.", option);
                 }
             }
 
-            if (legacyOptions.Any()) {
+            if (legacyOptions.Count > 0) {
                 foreach (var option in legacyOptions) {
-                    logger.Warning("Legacy option {option} not supported, please use -h option to get all the supported options.", option);
+                    Warning("Legacy option {option} not supported, please use -h option to get all the supported options.", option);
                 }
             }
 
@@ -360,6 +361,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             Environment.Exit(exitCode);
         }
 
+        /// <summary>
+        /// Write a log event with the Warning level.
+        /// </summary>
+        /// <param name="messageTemplate">Message template describing the event.</param>
+        public virtual void Warning(string messageTemplate) {
+            _logger?.Warning(messageTemplate);
+        }
+
+        /// <summary>
+        /// Write a log event with the Warning level.
+        /// </summary>
+        /// <param name="messageTemplate">Message template describing the event.</param>
+        /// <param name="propertyValue">Object positionally formatted into the message template.</param>
+        public virtual void Warning<T>(string messageTemplate, T propertyValue) {
+            _logger?.Warning(messageTemplate, propertyValue);
+        }
+
         private StandaloneCliModel ToStandaloneCliModel() {
             var model = new StandaloneCliModel();
             model.PublishedNodesFile = GetValueOrDefault(StandaloneCliConfigKeys.PublishedNodesConfigurationFilename, StandaloneCliConfigKeys.DefaultPublishedNodesFilename);
@@ -408,6 +426,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             return (T)converter.ConvertFrom(this[key]);
         }
 
+        private readonly ILogger _logger;
         private StandaloneCliModel _standaloneCliModel;
     }
 }
