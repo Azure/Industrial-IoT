@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public TimeSpan? SamplingInterval { get; set; }
 
         /// <summary>
-        /// Sampling interval to use
+        /// Heartbeat interval to use
         /// </summary>
         [DataMember(Name = "heartbeatInterval", Order = 4,
             EmitDefaultValue = false)]

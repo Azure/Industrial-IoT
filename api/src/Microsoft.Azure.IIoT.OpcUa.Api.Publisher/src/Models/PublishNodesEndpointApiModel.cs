@@ -42,12 +42,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
 
         /// <summary> Use a secured channel for the opc ua communication </summary>
         [DataMember(Name = "useSecurity", Order = 5,
-            EmitDefaultValue = false)]
+            EmitDefaultValue = true)]
         public bool UseSecurity { get; set; }
 
         /// <summary> endpoint authentication mode </summary>
         [DataMember(Name = "opcAuthenticationMode", Order = 6,
-            EmitDefaultValue = false)]
+            EmitDefaultValue = true)]
         public AuthenticationMode OpcAuthenticationMode { get; set; }
 
         /// <summary> Endpoint's username </summary>
@@ -60,8 +60,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public string Password { get; set; }
 
+        /// <summary> User defined tag for this particular dataset </summary>
+        [DataMember(Name = "tag", Order = 9,
+            EmitDefaultValue = false)]
+        public string Tag { get; set; }
+
         /// <summary> List of the OpcNodes to be monitored </summary>
-        [DataMember(Name = "opcNodes", Order = 9,
+        [DataMember(Name = "opcNodes", Order = 10,
             EmitDefaultValue = false)]
         public List<PublishedNodeApiModel> OpcNodes { get; set; }
     }

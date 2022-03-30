@@ -18,6 +18,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// </summary>
             public static void AssertEndpointModel(PublishNodesEndpointApiModel expected, PublishNodesEndpointApiModel actual) {
                 Assert.Equal(expected.DataSetPublishingInterval, actual.DataSetPublishingInterval);
+                Assert.Equal(expected.DataSetPublishingIntervalTimespan, actual.DataSetPublishingIntervalTimespan);
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
                 Assert.Equal(expected.DataSetWriterId, actual.DataSetWriterId);
                 Assert.Equal(expected.EndpointUrl.TrimEnd('/'), actual.EndpointUrl.TrimEnd('/'));
@@ -34,7 +35,7 @@ namespace IIoTPlatform_E2E_Tests {
                 PublishNodesEndpointApiModel expected,
                 DiagnosticInfoApiModel diagnosticInfo) {
 
-                var actual = diagnosticInfo.EndpointInfo;
+                var actual = diagnosticInfo.Endpoint;
 
                 Assert.Equal(expected.DataSetWriterGroup, actual.DataSetWriterGroup);
                 Assert.Equal(expected.EndpointUrl.TrimEnd('/'), actual.EndpointUrl.TrimEnd('/'));
@@ -51,8 +52,8 @@ namespace IIoTPlatform_E2E_Tests {
                 Assert.True(diagnosticInfo.OutgressIoTMessageCount > 0);
 
                 // Check that we are not dropping anything.
-                Assert.Equal((uint)0, diagnosticInfo.EncoderNotificationsDropped);
-                Assert.Equal((ulong)0, diagnosticInfo.OutgressInputBufferDropped);
+                Assert.Equal(0U, diagnosticInfo.EncoderNotificationsDropped);
+                Assert.Equal(0UL, diagnosticInfo.OutgressInputBufferDropped);
             }
         }
     }

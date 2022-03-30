@@ -24,7 +24,7 @@ You should have already successfully deployed all Microservices and at least one
 
 ## Start the demo OPC UA server
 
-To make the demo deterministic we also start a demo OPC UA server.  
+To make the demo deterministic we also start a demo OPC UA server.
 
 1. Open a terminal or command prompt and run
 
@@ -32,7 +32,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    hostname
    ```
 
-   Remember the return host name of your development PC.  You will need it later when you specify the discovery URL of the server.  
+   Remember the return host name of your development PC.  You will need it later when you specify the discovery URL of the server.
 
 2. Now run
 
@@ -40,7 +40,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    docker run -it -p 50000:50000 mcr.microsoft.com/iotedge/opc-plc -aa
    ```
 
-   to start PLC demo server.  For simplicity we instruct the demo server to accept our certificate.  
+   to start PLC demo server.  For simplicity we instruct the demo server to accept our certificate.
 
 ## Build and run the Azure IoT Industrial IoT API CLI console
 
@@ -181,7 +181,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    >
    ```
 
-   Note all the information about the application that the IoT Edge added during the registration, including public certificate, product URI and more. 
+   Note all the information about the application that the IoT Edge added during the registration, including public certificate, product URI and more.
 
 4. To activate all endpoints of all servers and enable communication with them run
 
@@ -215,8 +215,7 @@ To make the demo deterministic we also start a demo OPC UA server.
 
    to browse the root node of the endpoint.
 
-
-> If you fail to browse a real OPC UA server, it is because the server does not trust the module client certificate.  For now, please follow the server manual to move the rejected certificate into the trust list and try again.   We are working on it.
+   > If you fail to browse a real OPC UA server, it is because the server does not trust the module client certificate.  For now, please follow the server manual to move the rejected certificate into the trust list and try again.   We are working on it.
 
 2. Run
 
@@ -224,7 +223,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    > nodes publish -n i=2258
    ```
 
-​		to publish the system time changes to Azure.
+   to publish the system time changes to Azure.
 
 3. Run
 
@@ -248,7 +247,7 @@ apps unregister
 
 1. On the console prompt, run `apps list` and `endpoints list`, the result should be empty lists, meaning that there are no applications registered. If you see applications or endpoints, follow the cleanup steps below.
 
-1. Run
+2. Run
 
    ```bash
    > supervisors list
@@ -256,7 +255,7 @@ apps unregister
 
    and note down the `supervisorId`.
 
-1. Scan network
+3. Scan network
 
    ```bash
    > app discover -m
@@ -264,7 +263,7 @@ apps unregister
 
    `–m` monitors the discovery process.
 
-1. Run
+4. Run
 
    ```bash
    > apps list
@@ -272,7 +271,7 @@ apps unregister
 
    To list all found servers.
 
-1. To activate all endpoints of all servers and enable communication with them run
+5. To activate all endpoints of all servers and enable communication with them run
 
    ```bash
    > endpoints activate
@@ -282,7 +281,7 @@ apps unregister
 
    See the [architectural flow diagrams](../architecture-flow.md) for more information.
 
-1. To get a list of connected and ready endpoints run
+6. To get a list of connected and ready endpoints run
 
    ```bash
    > endpoints query -s Ready
