@@ -38,6 +38,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 this[item.Key] = item.Value;
             }
             Config = ToAgentConfigModel();
+
+            _logger = ConsoleLogger.Create(LogEventLevel.Warning);
         }
 
         /// <summary>
@@ -258,6 +260,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 Exit(160);
             }
 
+            if (_logger.IsEnabled(LogEventLevel.Debug)) {
+                foreach (var key in this.Keys) {
+                    Debug("Parsed command line option: '{key}'='{value}'", key, this[key]);
+                }
+            }
+
             if (unsupportedOptions.Count > 0) {
                 foreach (var option in unsupportedOptions) {
                     Warning("Option {option} wrong or not supported, " +
@@ -366,7 +374,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         /// <param name="messageTemplate">Message template describing the event.</param>
         public virtual void Warning(string messageTemplate) {
-            _logger?.Warning(messageTemplate);
+            _logger.Warning(messageTemplate);
         }
 
         /// <summary>
@@ -375,7 +383,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <param name="messageTemplate">Message template describing the event.</param>
         /// <param name="propertyValue">Object positionally formatted into the message template.</param>
         public virtual void Warning<T>(string messageTemplate, T propertyValue) {
-            _logger?.Warning(messageTemplate, propertyValue);
+            _logger.Warning(messageTemplate, propertyValue);
+        }
+
+        /// <summary>
+        /// Write a log event with the Debug level.
+        /// </summary>
+        public virtual void Debug<T0, T1>(string messageTemplate, T0 propertyValue0, T1 propertyValue1) {
+            _logger.Debug(messageTemplate, propertyValue0, propertyValue1);
         }
 
         private StandaloneCliModel ToStandaloneCliModel() {
