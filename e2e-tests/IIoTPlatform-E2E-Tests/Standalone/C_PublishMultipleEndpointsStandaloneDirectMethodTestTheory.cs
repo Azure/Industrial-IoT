@@ -953,6 +953,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
+            // Delay a bit so the unpublish is performed
+            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token).ConfigureAwait(false);
+
             // Call GetConfiguredEndpoints direct method
             responseGetConfiguredEndpoints = await CallMethodAsync(
                 new MethodParameterModel {
