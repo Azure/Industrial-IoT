@@ -142,6 +142,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string EdgeHubConnectionString = ModuleConfig.kEdgeHubConnectionStringKey;
 
         /// <summary>
+        /// Key for bypass cert validation flag.
+        /// </summary>
+        public const string BypassCertVerificationKey = ModuleConfig.kBypassCertVerificationKey;
+
+        /// <summary>
+        /// Key for enable metrics flag.
+        /// </summary>
+        public const string EnableMetricsKey = ModuleConfig.kEnableMetricsKey;
+
+        /// <summary>
         /// Key for the operation timeout in milliseconds.
         /// </summary>
         public const string OpcOperationTimeout = TransportQuotaConfig.OperationTimeoutKey;
@@ -152,9 +162,54 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string OpcMaxStringLength = TransportQuotaConfig.MaxStringLengthKey;
 
         /// <summary>
+        /// Key for security token lifetime in milliseconds.
+        /// </summary>
+        public const string SecurityTokenLifetimeKey = TransportQuotaConfig.SecurityTokenLifetimeKey;
+
+        /// <summary>
+        /// Key for channel lifetime in milliseconds.
+        /// </summary>
+        public const string ChannelLifetimeKey = TransportQuotaConfig.ChannelLifetimeKey;
+
+        /// <summary>
+        /// Key for max buffer size.
+        /// </summary>
+        public const string MaxBufferSizeKey = TransportQuotaConfig.MaxBufferSizeKey;
+
+        /// <summary>
+        /// Key for max message size.
+        /// </summary>
+        public const string MaxMessageSizeKey = TransportQuotaConfig.MaxMessageSizeKey;
+
+        /// <summary>
+        /// Key for max array length.
+        /// </summary>
+        public const string MaxArrayLengthKey = TransportQuotaConfig.MaxArrayLengthKey;
+
+        /// <summary>
+        /// Key for max byte string length.
+        /// </summary>
+        public const string MaxByteStringLengthKey = TransportQuotaConfig.MaxByteStringLengthKey;
+
+        /// <summary>
+        /// Key for application uri.
+        /// </summary>
+        public const string ApplicationUriKey = ClientServicesConfig.ApplicationUriKey;
+
+        /// <summary>
+        /// Key for product uri.
+        /// </summary>
+        public const string ProductUriKey = ClientServicesConfig.ProductUriKey;
+
+        /// <summary>
         /// Key for the default OPC Session timeout in seconds - to request from the OPC server at session creation.
         /// </summary>
         public const string OpcSessionCreationTimeout = ClientServicesConfig.DefaultSessionTimeoutKey;
+
+        /// <summary>
+        /// Key for minimum subscription lifetime in seconds.
+        /// </summary>
+        public const string MinSubscriptionLifetimeKey = ClientServicesConfig.MinSubscriptionLifetimeKey;
 
         /// <summary>
         /// Key for the OPC Keep Alive Interval in seconds.
@@ -210,6 +265,36 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the trusted issuer certificates.
         /// </summary>
         public const string OpcIssuerCertStorePath = SecurityConfig.TrustedIssuerCertificatesPathKey;
+
+        /// <summary>
+        /// Key for PkiRootPath.
+        /// </summary>
+        public const string PkiRootPathKey = SecurityConfig.PkiRootPathKey;
+
+        /// <summary>
+        /// Key for trusted issuer certificates type.
+        /// </summary>
+        public const string TrustedIssuerCertificatesTypeKey = SecurityConfig.TrustedIssuerCertificatesTypeKey;
+
+        /// <summary>
+        /// Key for trusted peer certificates type.
+        /// </summary>
+        public const string TrustedPeerCertificatesTypeKey = SecurityConfig.TrustedPeerCertificatesTypeKey;
+
+        /// <summary>
+        /// Key for rejected certificate store type.
+        /// </summary>
+        public const string RejectedCertificateStoreTypeKey = SecurityConfig.RejectedCertificateStoreTypeKey;
+
+        /// <summary>
+        /// Key for the reject unsecure signatures flag.
+        /// </summary>
+        public const string RejectSha1SignedCertificatesKey = SecurityConfig.RejectSha1SignedCertificatesKey;
+
+        /// <summary>
+        /// Key for minimum certificate size.
+        /// </summary>
+        public const string MinimumCertificateKeySizeKey = SecurityConfig.MinimumCertificateKeySizeKey;
 
         /// <summary>
         /// Key for configuring reporting of OPC Publisher restarts.

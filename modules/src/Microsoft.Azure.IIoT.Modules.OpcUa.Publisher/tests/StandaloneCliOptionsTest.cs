@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Modules.Publisher.Tests {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Test class to override Exit method
@@ -16,6 +18,11 @@ namespace Microsoft.Azure.IIoT.Modules.Publisher.Tests {
         /// </summary>
         public int ExitCode { get; set; } = -1;
 
+        /// <summary>
+        /// Warnings reported by StandaloneCliOptions.
+        /// </summary>
+        public List<string> Warnings = new List<string>();
+
         public StandaloneCliOptionsTest(string[] args) : base(args) {
         }
 
@@ -24,6 +31,16 @@ namespace Microsoft.Azure.IIoT.Modules.Publisher.Tests {
         /// </summary>
         public override void Exit(int exitCode) {
             ExitCode = exitCode;
+        }
+
+        /// <inheritdoc/>
+        public override void Warning(string messageTemplate) {
+            Warnings.Add(messageTemplate);
+        }
+
+        /// <inheritdoc/>
+        public override void Warning<T>(string messageTemplate, T propertyValue) {
+            Warnings.Add(messageTemplate + "::" + propertyValue.ToString());
         }
     }
 }
