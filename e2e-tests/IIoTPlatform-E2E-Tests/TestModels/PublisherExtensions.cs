@@ -47,11 +47,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             return new PublishedNodeApiModel {
                 Id = model.Id,
                 DisplayName = model.DisplayName,
+                DataSetFieldId = model.DataSetFieldId,
                 ExpandedNodeId = model.ExpandedNodeId,
                 OpcPublishingInterval = (int?)model.OpcPublishingInterval,
                 OpcSamplingInterval = (int?)model.OpcSamplingInterval,
                 HeartbeatInterval = (int?)model.HeartbeatInterval,
-                SkipFirst = model.SkipFirst
+                SkipFirst = model.SkipFirst,
+                QueueSize = model.QueueSize,
             };
         }
     }
