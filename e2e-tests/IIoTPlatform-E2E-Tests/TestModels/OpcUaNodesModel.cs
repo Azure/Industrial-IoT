@@ -36,6 +36,11 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
         public string DisplayName { get; set; }
 
         /// <summary>
+        /// DataSetFieldId
+        /// </summary>
+        public string DataSetFieldId { get; set; }
+
+        /// <summary>
         /// Heartbeat
         /// </summary>
         public uint? HeartbeatInterval { get; set; }
@@ -44,5 +49,10 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
         /// Skip first value
         /// </summary>
         public bool? SkipFirst { get; set; }
+
+        /// <summary>
+        /// QueueSize value
+        /// </summary>
+        public uint QueueSize { get; set; }
     }
 }
