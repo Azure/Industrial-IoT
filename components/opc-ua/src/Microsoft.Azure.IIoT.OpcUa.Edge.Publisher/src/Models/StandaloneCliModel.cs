@@ -87,10 +87,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public bool FullFeaturedMessage { get; set; } = false;
 
         /// <summary>
-        /// The operation timeout.
-        /// </summary>
-        public TimeSpan? OperationTimeout { get; set; } = TimeSpan.FromSeconds(15);
-        /// <summary>
         /// The size of the message batching buffer
         /// </summary>
         public int? BatchSize { get; set; } = 50;

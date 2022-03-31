@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface ITransportQuotaConfig {
 
         /// <summary>
-        /// Channel lifetime
+        /// Channel lifetime in milliseconds.
         /// </summary>
         int ChannelLifetime { get; }
 
@@ -41,12 +41,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         int MaxStringLength { get; }
 
         /// <summary>
-        /// Operation timeout
+        /// Operation timeout in milliseconds.
         /// </summary>
         int OperationTimeout { get; }
 
         /// <summary>
-        /// Security token lifetime
+        /// Security token lifetime in milliseconds.
         /// </summary>
         int SecurityTokenLifetime { get; }
     }

@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Modules.Publisher.Tests {
 
             var result = new StandaloneCliOptions(param);
 
-            result.Count()
+            result.Count
                 .Should()
                 .Be(1);
 
@@ -39,49 +39,65 @@ namespace Microsoft.Azure.IIoT.Modules.Publisher.Tests {
         /// LegacyOptionTest
         /// </summary>
         [Theory]
-        [InlineData("testValue", new string[] { "-tc", "testValue" })]
-        [InlineData("testValue", new string[] { "--tc", "testValue" })]
-        [InlineData("testValue", new string[] { "-telemetryconfigfile", "testValue" })]
-        [InlineData("testValue", new string[] { "--telemetryconfigfile", "testValue" })]
-        public void LegacyOptionTest(string expected, string[] param) {
+        [InlineData("tc|telemetryconfigfile", new string[] { "-tc", "testValue" })]
+        [InlineData("tc|telemetryconfigfile", new string[] { "--tc", "testValue" })]
+        [InlineData("tc|telemetryconfigfile", new string[] { "-telemetryconfigfile", "testValue" })]
+        [InlineData("tc|telemetryconfigfile", new string[] { "--telemetryconfigfile", "testValue" })]
+        public void LegacyOptionTest(string cliOption, string[] param) {
 
-            var result = new StandaloneCliOptions(param);
+            var result = new StandaloneCliOptionsTest(param);
 
-            result.Count()
-                .Should()
-                .Be(0);
+            result.Count.Should().Be(0);
+
+            result.Warnings.Count.Should().Be(1);
+            result.Warnings[0].Should().Be(
+                "Legacy option {option} not supported, please use -h option to get all the supported options."
+                + "::" + cliOption
+            );
         }
 
         /// <summary>
         /// UnsupportedOptionTest
         /// </summary>
         [Theory]
-        [InlineData("testValue", new string[] { "-xx" })]
-        [InlineData("testValue", new string[] { "--xx" })]
-        public void UnsupportedOptionTest(string expected, string[] param) {
+        [InlineData("-xx")]
+        [InlineData("--xx")]
+        [InlineData("--unknown")]
+        [InlineData("-unknown", "testValue")]
+        [InlineData("unknown=testValue")]
+        public void UnsupportedOptionTest(params string[] param) {
 
-            var result = new StandaloneCliOptions(param);
+            var result = new StandaloneCliOptionsTest(param);
 
-            result.Count()
-                .Should()
-                .Be(0);
+            result.Count.Should().Be(0);
+
+            result.Warnings.Count.Should().Be(param.Length);
+
+            for (var i = 0; i < result.Warnings.Count; ++i) {
+                var warning = result.Warnings[i];
+                warning.Should().Be(
+                    "Option {option} wrong or not supported, please use -h option to get all the supported options."
+                    + "::" + param[i]
+                );
+            }
         }
 
         /// <summary>
         /// MissingOptionParameterTest
         /// </summary>
         [Theory]
-        [InlineData("testValue", new string[] { "-dc" })]
-        [InlineData("testValue", new string[] { "--dc" })]
-        [InlineData("testValue", new string[] { "-deviceconnectionstring" })]
-        [InlineData("testValue", new string[] { "--deviceconnectionstring" })]
-        public void MissingOptionParameterTest(string expected, string[] param) {
+        [InlineData("-dc")]
+        [InlineData("--dc")]
+        [InlineData("-deviceconnectionstring")]
+        [InlineData("--deviceconnectionstring")]
+        public void MissingOptionParameterTest(params string[] param) {
 
             var result = new StandaloneCliOptionsTest(param);
 
-            result.ExitCode
-                .Should()
-                .Be(160);
+            result.ExitCode.Should().Be(160);
+
+            result.Warnings.Count.Should().Be(1);
+            result.Warnings[0].Should().Be($"Parse args exception: Missing required value for option '{param[0]}'.");
         }
 
         /// <summary>
