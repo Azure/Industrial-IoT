@@ -26,7 +26,6 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Text.RegularExpressions;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using IIoTPlatform_E2E_Tests.TestEventProcessor;
 
     internal static partial class TestHelper {
@@ -608,7 +607,7 @@ namespace IIoTPlatform_E2E_Tests {
                     OpcNodes = new OpcUaNodesModel[] {
                         new OpcUaNodesModel {
                             Id = "ns=2;s=SlowUInt1",
-                            OpcPublishingInterval = 10000
+                            OpcPublishingInterval = 10000,
                         }
                     }
                 };
@@ -625,6 +624,7 @@ namespace IIoTPlatform_E2E_Tests {
                     var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
                     opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
                     opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
+                    opcNode.QueueSize = 4;
                     return opcNode;
                 })
                 .ToArray();
@@ -663,6 +663,7 @@ namespace IIoTPlatform_E2E_Tests {
                         var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
                         opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
                         opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
+                        opcNode.QueueSize = 4;
                         return opcNode;
                     })
                     .ToArray();
@@ -681,7 +682,8 @@ namespace IIoTPlatform_E2E_Tests {
                     nodes.Add(new OpcUaNodesModel {
                         Id = $"ns=2;s=SlowUInt{i + 1}",
                         OpcPublishingInterval = 10000 / 2,
-                        OpcSamplingInterval = 10000 / 4
+                        OpcSamplingInterval = 10000 / 4,
+                        QueueSize = 4,
                     });
                 }
 

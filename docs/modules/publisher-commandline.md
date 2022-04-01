@@ -114,7 +114,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Alternative argument type: integer in seconds
                                       Default: {00:00:00} meaning heartbeat is disabled
 
-            MessagingEncoding=VALUE
+            MessageEncoding=VALUE
                                       The messaging encoding for outgoing telemetry.
                                       Alternative: --me, --messageencoding
                                       Mode: Standalone only
@@ -238,24 +238,24 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: "https://www.github.com/Azure/Industrial-IoT"
 
             DefaultSessionTimeout=VALUE
-                                      OPC UA Client Application Config - Session timeout
-                                      as per OPC UA definition
+                                      OPC UA Client Application Config - Session timeout in seconds
+                                      as per OPC UA definition.
                                       Alternative: --ct --createsessiontimeout
                                       Mode: Standalone and Orchestrated
                                       Type: integer
                                       Default: 0, meaning <not set>
 
             MinSubscriptionLifetime=VALUE
-                                      OPC UA Client Application Config - Minimum subscription lifetime
-                                      as per OPC UA definition
+                                      OPC UA Client Application Config - Minimum subscription lifetime in seconds
+                                      as per OPC UA definition.
                                       Alternative: N/A
                                       Mode: Standalone and Orchestrated
                                       Type: integer
                                       Default: 0, <not set>
 
             KeepAliveInterval=VALUE
-                                      OPC UA Client Application Config - Keep alive interval
-                                      as per OPC UA definition
+                                      OPC UA Client Application Config - Keep alive interval in seconds
+                                      as per OPC UA definition.
                                       Alternative: --ki, --keepaliveinterval
                                       Mode: Standalone and Orchestrated
                                       Type: integer milliseconds
@@ -263,7 +263,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
 
             MaxKeepAliveCount=VALUE
                                       OPC UA Client Application Config - Maximum count of keep alive events
-                                      as per OPC UA definition
+                                      as per OPC UA definition.
                                       Alternative: --kt, --keepalivethreshold
                                       Mode: Standalone and Orchestrated
                                       Type: integer
