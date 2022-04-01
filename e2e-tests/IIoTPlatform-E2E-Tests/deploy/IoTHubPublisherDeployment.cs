@@ -58,11 +58,12 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
             var createOptions = JsonConvert.SerializeObject(new {
                 Hostname = ModuleName,
                 Cmd = new[] {
-                "PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
+                "--PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
                 "--aa",
                 "--pf=" + TestConstants.PublishedNodesFullName,
                 "--mm=" + MessagingMode.ToString(),
                 "--fm=true",
+                "--RuntimeStateReporting=true",
             },
                 HostConfig = new {
                     Binds = new[] {
