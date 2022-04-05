@@ -437,9 +437,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Start monitoring before restarting the module.
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).ConfigureAwait(false);
 
-            // Wait some time to allow for data collection initialization.
-            await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token).ConfigureAwait(false);
-
             // Restart OPC Publisher.
             var parload = new Dictionary<string, string> {
                 {"schemaVersion", "1.0" },

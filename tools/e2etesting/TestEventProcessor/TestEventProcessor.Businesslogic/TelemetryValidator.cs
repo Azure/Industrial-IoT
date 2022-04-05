@@ -15,6 +15,7 @@ namespace TestEventProcessor.BusinessLogic {
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -43,6 +44,8 @@ namespace TestEventProcessor.BusinessLogic {
         private SequenceNumberChecker _incrementalSequenceChecker;
 
         private bool _restartAnnouncementReceived;
+        private Dictionary<string, bool> _initializedPartitions;
+        private SemaphoreSlim _lockInitializedPartitions;
 
         /// <summary>
         /// Instance to write logs
@@ -117,6 +120,12 @@ namespace TestEventProcessor.BusinessLogic {
             _logger.LogInformation("Connecting to blob storage...");
             var blobContainerClient = new BlobContainerClient(configuration.StorageConnectionString, configuration.BlobContainerName);
 
+            // Get number of partitions and initialize _initializedPartitions.
+            var eventHubConsumerClient = new EventHubConsumerClient(configuration.EventHubConsumerGroup, configuration.IoTHubEventHubEndpointConnectionString);
+            var partitions = await eventHubConsumerClient.GetPartitionIdsAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
+            _initializedPartitions = partitions.ToDictionary(item => item, _ => false);
+            _lockInitializedPartitions = new SemaphoreSlim(1, 1);
+
             _logger.LogInformation("Connecting to IoT Hub...");
             _client = new EventProcessorClient(blobContainerClient, configuration.EventHubConsumerGroup, configuration.IoTHubEventHubEndpointConnectionString);
             _client.PartitionInitializingAsync += Client_PartitionInitializingAsync;
@@ -166,7 +175,31 @@ namespace TestEventProcessor.BusinessLogic {
 
             _restartAnnouncementReceived = false;
 
+            await WaitForPartitionInitialization(_cancellationTokenSource.Token).ConfigureAwait(false);
+
             return new StartResult();
+        }
+
+        /// <summary>
+        /// Wait until we receive confirmation that monitoring of each partition is started.
+        /// </summary>
+        private async Task WaitForPartitionInitialization(CancellationToken ct) {
+            var sw = Stopwatch.StartNew();
+
+            while (!ct.IsCancellationRequested) {
+                _lockInitializedPartitions.Wait();
+                try {
+                    if (_initializedPartitions.Count(kvp => kvp.Value) == _initializedPartitions.Count) {
+                        _logger.LogInformation("Partition initialization took: {elapsed}", sw.Elapsed);
+                        return;
+                    }
+                }
+                finally {
+                    _lockInitializedPartitions.Release();
+                }
+
+                await Task.Delay(1000).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -412,6 +445,15 @@ namespace TestEventProcessor.BusinessLogic {
             _logger.LogInformation("EventProcessorClient initializing, start with latest position for " +
                 "partition {PartitionId}", arg.PartitionId);
             arg.DefaultStartingPosition = EventPosition.Latest;
+
+            _lockInitializedPartitions.Wait();
+            try {
+                _initializedPartitions[arg.PartitionId] = true;
+            }
+            finally {
+                _lockInitializedPartitions.Release();
+            }
+
             return Task.CompletedTask;
         }
 
