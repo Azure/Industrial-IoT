@@ -330,8 +330,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             var jsonResponse = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseApiModel>(
                 responseGetConfiguredNodesOnEndpoint.JsonPayload);
-            Assert.Equal(jsonResponse.OpcNodes.Count, 1);
-            Assert.Equal(jsonResponse.OpcNodes[0].Id, "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1");
+            Assert.Equal(1, jsonResponse.OpcNodes.Count);
+            Assert.Equal(request.OpcNodes[0].Id, jsonResponse.OpcNodes[0].Id);
 
             // Call GetDiagnosticInfo direct method
             var responseGetDiagnosticInfo = await CallMethodAsync(

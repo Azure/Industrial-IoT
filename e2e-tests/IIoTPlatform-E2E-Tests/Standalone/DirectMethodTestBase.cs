@@ -77,14 +77,14 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             string moduleName,
             CancellationToken ct
         ) {
-            var parload = new Dictionary<string, string> {
+            var payload = new Dictionary<string, string> {
                 {"schemaVersion", "1.0" },
                 {"id", moduleName },
             };
 
             var parameters = new MethodParameterModel {
                 Name = "RestartModule",
-                JsonPayload = _serializer.SerializeToString(parload)
+                JsonPayload = _serializer.SerializeToString(payload)
             };
 
             var moduleRestartResponse = await TestHelper.CallMethodAsync(

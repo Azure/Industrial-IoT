@@ -29,10 +29,9 @@ namespace TestEventProcessor.BusinessLogic {
     public class TelemetryValidator : ITelemetryValidator
     {
         private CancellationTokenSource _cancellationTokenSource;
-        private EventProcessorClient _client = null;
+        private EventProcessorWrapper _clientWrapper;
         private DateTime _startTime = DateTime.MinValue;
         private int _totalValueChangesCount = 0;
-        private int _shuttingDown;
 
         // Checkers
         private MissingTimestampsChecker _missingTimestampsChecker;
@@ -44,8 +43,6 @@ namespace TestEventProcessor.BusinessLogic {
         private SequenceNumberChecker _incrementalSequenceChecker;
 
         private bool _restartAnnouncementReceived;
-        private Dictionary<string, bool> _initializedPartitions;
-        private SemaphoreSlim _lockInitializedPartitions;
 
         /// <summary>
         /// Instance to write logs
@@ -109,31 +106,20 @@ namespace TestEventProcessor.BusinessLogic {
                 configuration.ExpectedMaximalDuration = uint.MaxValue;
             }
 
-            Interlocked.Exchange(ref _shuttingDown, 0);
             _currentConfiguration = configuration;
 
             Interlocked.Exchange(ref _totalValueChangesCount, 0);
 
             _cancellationTokenSource = new CancellationTokenSource();
 
-            // Initialize EventProcessorClient
-            _logger.LogInformation("Connecting to blob storage...");
-            var blobContainerClient = new BlobContainerClient(configuration.StorageConnectionString, configuration.BlobContainerName);
+            //// Initialize EventProcessorWrapper
+            if (_clientWrapper == null || _clientWrapper.GetHashCode() != EventProcessorWrapper.GetHashCode(_currentConfiguration)) {
+                _clientWrapper = new EventProcessorWrapper(_currentConfiguration, _logger);
+                await _clientWrapper.InitializeClient(_cancellationTokenSource.Token).ConfigureAwait(false);
+            }
 
-            // Get number of partitions and initialize _initializedPartitions.
-            var eventHubConsumerClient = new EventHubConsumerClient(configuration.EventHubConsumerGroup, configuration.IoTHubEventHubEndpointConnectionString);
-            var partitions = await eventHubConsumerClient.GetPartitionIdsAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
-            _initializedPartitions = partitions.ToDictionary(item => item, _ => false);
-            _lockInitializedPartitions = new SemaphoreSlim(1, 1);
-
-            _logger.LogInformation("Connecting to IoT Hub...");
-            _client = new EventProcessorClient(blobContainerClient, configuration.EventHubConsumerGroup, configuration.IoTHubEventHubEndpointConnectionString);
-            _client.PartitionInitializingAsync += Client_PartitionInitializingAsync;
-            _client.ProcessEventAsync += Client_ProcessEventAsync;
-            _client.ProcessErrorAsync += Client_ProcessErrorAsync;
-
-            _logger.LogInformation("Starting monitoring of events...");
-            await _client.StartProcessingAsync(_cancellationTokenSource.Token);
+            _clientWrapper.ProcessEventAsync += Client_ProcessEventAsync;
+            await _clientWrapper.StartProcessingAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
 
             _startTime = DateTime.UtcNow;
 
@@ -175,31 +161,7 @@ namespace TestEventProcessor.BusinessLogic {
 
             _restartAnnouncementReceived = false;
 
-            await WaitForPartitionInitialization(_cancellationTokenSource.Token).ConfigureAwait(false);
-
             return new StartResult();
-        }
-
-        /// <summary>
-        /// Wait until we receive confirmation that monitoring of each partition is started.
-        /// </summary>
-        private async Task WaitForPartitionInitialization(CancellationToken ct) {
-            var sw = Stopwatch.StartNew();
-
-            while (!ct.IsCancellationRequested) {
-                _lockInitializedPartitions.Wait();
-                try {
-                    if (_initializedPartitions.Count(kvp => kvp.Value) == _initializedPartitions.Count) {
-                        _logger.LogInformation("Partition initialization took: {elapsed}", sw.Elapsed);
-                        return;
-                    }
-                }
-                finally {
-                    _lockInitializedPartitions.Release();
-                }
-
-                await Task.Delay(1000).ConfigureAwait(false);
-            }
         }
 
         /// <summary>
@@ -213,8 +175,6 @@ namespace TestEventProcessor.BusinessLogic {
                 return Task.FromResult(new StopResult());
             }
 
-            Interlocked.Exchange(ref _shuttingDown, 1);
-
             var endTime = DateTime.UtcNow;
 
             if (_cancellationTokenSource != null) {
@@ -222,8 +182,11 @@ namespace TestEventProcessor.BusinessLogic {
                 _cancellationTokenSource = null;
             }
 
-            // the stop procedure takes about a minute, so we fire and forget.
-            StopEventProcessorClientAsync().SafeFireAndForget(e => _logger.LogError(e, "Error while stopping event monitoring."));
+            // Stop event monitoring and deregister handler.
+            if (_clientWrapper != null) {
+                _clientWrapper.StopProcessing();
+                _clientWrapper.ProcessEventAsync -= Client_ProcessEventAsync;
+            }
 
             // Stop checkers and collect resutls.
             var missingTimestampsCounter = _missingTimestampsChecker.Stop();
@@ -267,27 +230,6 @@ namespace TestEventProcessor.BusinessLogic {
             };
 
             return Task.FromResult(stopResult);
-        }
-
-        /// <summary>
-        /// Stops the Event Hub Client and deregisters event handlers.
-        /// </summary>
-        /// <returns></returns>
-        private async Task StopEventProcessorClientAsync()
-        {
-            _logger.LogInformation("Stopping monitoring of events...");
-
-            if (_client != null)
-            {
-                var tempClient = _client;
-                _client = null;
-                await tempClient.StopProcessingAsync();
-                tempClient.PartitionInitializingAsync -= Client_PartitionInitializingAsync;
-                tempClient.ProcessEventAsync -= Client_ProcessEventAsync;
-                tempClient.ProcessErrorAsync -= Client_ProcessErrorAsync;
-            }
-
-            _logger.LogInformation("Stopped monitoring of events.");
         }
 
         /// <summary>
@@ -433,40 +375,6 @@ namespace TestEventProcessor.BusinessLogic {
                 return;
             }
             _incrementalSequenceChecker.ProcessEvent(dataSetWriterId, sequenceNumber);
-        }
-
-        /// <summary>
-        /// Event handler that ensures only newest events are processed
-        /// </summary>
-        /// <param name="arg">Init event args</param>
-        /// <returns>Completed Task, no async work needed</returns>
-        private Task Client_PartitionInitializingAsync(PartitionInitializingEventArgs arg)
-        {
-            _logger.LogInformation("EventProcessorClient initializing, start with latest position for " +
-                "partition {PartitionId}", arg.PartitionId);
-            arg.DefaultStartingPosition = EventPosition.Latest;
-
-            _lockInitializedPartitions.Wait();
-            try {
-                _initializedPartitions[arg.PartitionId] = true;
-            }
-            finally {
-                _lockInitializedPartitions.Release();
-            }
-
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Event handler that logs errors from EventProcessorClient
-        /// </summary>
-        /// <param name="arg">Error event args</param>
-        /// <returns>Completed Task, no async work needed</returns>
-        private Task Client_ProcessErrorAsync(ProcessErrorEventArgs arg)
-        {
-            _logger.LogError(arg.Exception, "Issue reported by EventProcessorClient, partition " +
-                "{PartitionId}, operation {Operation}", arg.PartitionId, arg.Operation);
-            return Task.CompletedTask;
         }
     }
 }
