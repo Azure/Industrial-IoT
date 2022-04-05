@@ -438,24 +438,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).ConfigureAwait(false);
 
             // Restart OPC Publisher.
-            var parload = new Dictionary<string, string> {
-                {"schemaVersion", "1.0" },
-                {"id", ioTHubPublisherDeployment.ModuleName },
-            };
-
-            var parameters = new MethodParameterModel {
-                Name = "RestartModule",
-                JsonPayload = _serializer.SerializeToString(parload)
-            };
-
-            var moduleRestartResponse = await TestHelper.CallMethodAsync(
-                _iotHubClient,
-                _iotHubPublisherDeviceName,
-                "$edgeAgent",
-                parameters,
-                _context,
-                cts.Token
-            ).ConfigureAwait(false);
+            var moduleRestartResponse = await RestartModule(ioTHubPublisherDeployment.ModuleName, cts.Token)
+                .ConfigureAwait(false);
             Assert.Equal((int)HttpStatusCode.OK, moduleRestartResponse.Status);
 
             // Wait some time.

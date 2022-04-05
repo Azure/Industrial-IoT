@@ -11,6 +11,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit.Abstractions;
@@ -65,6 +66,37 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 _context,
                 ct
             ).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Restart module with the given name.
+        /// </summary>
+        /// <param name="moduleName"> Module name. </param>
+        /// <param name="ct"> Cancellation token. </param>
+        public async Task<MethodResultModel> RestartModule(
+            string moduleName,
+            CancellationToken ct
+        ) {
+            var parload = new Dictionary<string, string> {
+                {"schemaVersion", "1.0" },
+                {"id", moduleName },
+            };
+
+            var parameters = new MethodParameterModel {
+                Name = "RestartModule",
+                JsonPayload = _serializer.SerializeToString(parload)
+            };
+
+            var moduleRestartResponse = await TestHelper.CallMethodAsync(
+                _iotHubClient,
+                _iotHubPublisherDeviceName,
+                "$edgeAgent",
+                parameters,
+                _context,
+                ct
+            ).ConfigureAwait(false);
+
+            return moduleRestartResponse;
         }
 
         /// <inheritdoc/>
