@@ -42,6 +42,8 @@ namespace TestEventProcessor.BusinessLogic {
         private IncrementalIntValueChecker _incrementalIntValueChecker;
         private SequenceNumberChecker _incrementalSequenceChecker;
 
+        private bool _restartAnnouncementReceived;
+
         /// <summary>
         /// Instance to write logs
         /// </summary>
@@ -162,6 +164,8 @@ namespace TestEventProcessor.BusinessLogic {
 
             _incrementalSequenceChecker = new SequenceNumberChecker(_logger);
 
+            _restartAnnouncementReceived = false;
+
             return new StartResult();
         }
 
@@ -226,6 +230,7 @@ namespace TestEventProcessor.BusinessLogic {
                 DroppedSequenceCount = incrSequenceResult.DroppedValueCount,
                 DuplicateSequenceCount = incrSequenceResult.DuplicateValueCount,
                 ResetSequenceCount = incrSequenceResult.ResetsValueCount,
+                RestartAnnouncementReceived = _restartAnnouncementReceived,
             };
 
             return Task.FromResult(stopResult);
@@ -278,10 +283,14 @@ namespace TestEventProcessor.BusinessLogic {
             var body = arg.Data.Body.ToArray();
             var content = Encoding.UTF8.GetString(body);
             dynamic json = JsonConvert.DeserializeObject(content);
+
+            if (CheckRestartAnnouncement(json)) {
+                return Task.CompletedTask;
+            }
+
             var valueChangesCount = 0;
 
             foreach (dynamic entry in json){
-
                 try {
                     // validate if the message has an OPC UA PubSub message type signature
                     if (entry.MessageType == "ua-data") {
@@ -321,7 +330,6 @@ namespace TestEventProcessor.BusinessLogic {
                     _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from " +
                         "message. Please make sure that publisher is running with samples format and with " +
                         "--fm parameter set.");
-                    continue;
                 }
             }
 
@@ -330,6 +338,24 @@ namespace TestEventProcessor.BusinessLogic {
             return Task.CompletedTask;
         }
 
+        private bool CheckRestartAnnouncement(dynamic json) {
+            if (json is JObject) {
+                try {
+                    var messageType = (string)json["MessageType"].Value;
+                    var messageVersion = (int)json["MessageVersion"].Value;
+
+                    if (messageType == "RestartAnnouncement" && messageVersion == 1) {
+                        _restartAnnouncementReceived = true;
+                        return true;
+                    }
+                }
+                catch (Exception) {
+                    // Do nothing.
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Feed the checkers for the Value Change (single Node value) within the reveived event

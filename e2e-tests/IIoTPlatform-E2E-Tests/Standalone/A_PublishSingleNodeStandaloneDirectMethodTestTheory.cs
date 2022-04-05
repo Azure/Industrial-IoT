@@ -400,5 +400,73 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
                 $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
         }
+
+        [Fact]
+        async Task RestartAnnouncementTest() {
+            var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
+            var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, MessagingMode.PubSub);
+
+            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+
+            // Make sure that there is no active monitoring.
+            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
+
+            // Clean publishednodes.json.
+            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context).ConfigureAwait(false);
+
+            // Create base edge deployment.
+            var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
+            Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
+            _output.WriteLine("Created/Updated new edge base deployment.");
+
+            // Create layered edge deployment.
+            var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
+            Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
+            _output.WriteLine("Created/Updated layered deployment for publisher module.");
+
+            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
+
+            // We will wait for module to be deployed.
+            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+                _context.DeviceConfig.DeviceId,
+                cts.Token,
+                new string[] { "publisher_standalone" }
+            ).GetAwaiter().GetResult());
+            Assert.Null(exception);
+
+            // Start monitoring before restarting the module.
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).ConfigureAwait(false);
+
+            // Wait some time to allow for data collection initialization.
+            await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token).ConfigureAwait(false);
+
+            // Restart OPC Publisher.
+            var parload = new Dictionary<string, string> {
+                {"schemaVersion", "1.0" },
+                {"id", ioTHubPublisherDeployment.ModuleName },
+            };
+
+            var parameters = new MethodParameterModel {
+                Name = "RestartModule",
+                JsonPayload = _serializer.SerializeToString(parload)
+            };
+
+            var moduleRestartResponse = await TestHelper.CallMethodAsync(
+                _iotHubClient,
+                _iotHubPublisherDeviceName,
+                "$edgeAgent",
+                parameters,
+                _context,
+                cts.Token
+            ).ConfigureAwait(false);
+            Assert.Equal((int)HttpStatusCode.OK, moduleRestartResponse.Status);
+
+            // Wait some time.
+            await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token).ConfigureAwait(false);
+
+            // Stop monitoring and check that restart announcement was received.
+            var monitoringResult = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
+            Assert.True(monitoringResult.RestartAnnouncementReceived);
+        }
     }
 }
