@@ -74,94 +74,103 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns>Task that run until token is canceled</returns>
         public async Task<StartResult> StartAsync(ValidatorConfiguration configuration)
         {
-            // Check if already started.
-            if (_cancellationTokenSource != null) {
+            _logger.LogInformation("StartAsync called.");
+            var sw = new Stopwatch();
+            sw.Start();
+
+            try {
+                // Check if already started.
+                if (_cancellationTokenSource != null) {
+                    return new StartResult();
+                }
+
+                // Check provided configuration.
+                if (configuration == null) {
+                    throw new ArgumentNullException(nameof(configuration));
+                }
+
+                if (configuration.ExpectedValueChangesPerTimestamp < 0) {
+                    throw new ArgumentNullException("Invalid configuration detected, expected value changes per timestamp can't be lower than zero");
+                }
+                if (configuration.ExpectedIntervalOfValueChanges < 0) {
+                    throw new ArgumentNullException("Invalid configuration detected, expected interval of value changes can't be lower than zero");
+                }
+                if (configuration.ExpectedMaximalDuration < 0) {
+                    throw new ArgumentNullException("Invalid configuration detected, maximal total duration can't be lower than zero");
+                }
+                if (configuration.ThresholdValue <= 0) {
+                    throw new ArgumentNullException("Invalid configuration detected, threshold can't be negative or zero");
+                }
+
+                if (string.IsNullOrWhiteSpace(configuration.IoTHubEventHubEndpointConnectionString)) throw new ArgumentNullException(nameof(configuration.IoTHubEventHubEndpointConnectionString));
+                if (string.IsNullOrWhiteSpace(configuration.StorageConnectionString)) throw new ArgumentNullException(nameof(configuration.StorageConnectionString));
+                if (string.IsNullOrWhiteSpace(configuration.BlobContainerName)) throw new ArgumentNullException(nameof(configuration.BlobContainerName));
+                if (string.IsNullOrWhiteSpace(configuration.EventHubConsumerGroup)) throw new ArgumentNullException(nameof(configuration.EventHubConsumerGroup));
+
+                if (configuration.ExpectedMaximalDuration == 0) {
+                    configuration.ExpectedMaximalDuration = uint.MaxValue;
+                }
+
+                _currentConfiguration = configuration;
+
+                Interlocked.Exchange(ref _totalValueChangesCount, 0);
+
+                _cancellationTokenSource = new CancellationTokenSource();
+
+                //// Initialize EventProcessorWrapper
+                if (_clientWrapper == null || _clientWrapper.GetHashCode() != EventProcessorWrapper.GetHashCode(_currentConfiguration)) {
+                    _clientWrapper = new EventProcessorWrapper(_currentConfiguration, _logger);
+                    await _clientWrapper.InitializeClient(_cancellationTokenSource.Token).ConfigureAwait(false);
+                }
+
+                _clientWrapper.ProcessEventAsync += Client_ProcessEventAsync;
+                await _clientWrapper.StartProcessingAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
+
+                _startTime = DateTime.UtcNow;
+
+                // Initialize checkers.
+                _missingTimestampsChecker = new MissingTimestampsChecker(
+                    TimeSpan.FromMilliseconds(_currentConfiguration.ExpectedIntervalOfValueChanges),
+                    TimeSpan.FromMilliseconds(_currentConfiguration.ThresholdValue),
+                    _logger
+                );
+                _missingTimestampsChecker.StartAsync(
+                    TimeSpan.FromMilliseconds(kCheckerDelayMilliseconds),
+                    _cancellationTokenSource.Token
+                ).Start();
+
+                _messageProcessingDelayChecker = new MessageProcessingDelayChecker(
+                    TimeSpan.FromMilliseconds(_currentConfiguration.ThresholdValue),
+                    _logger
+                );
+
+                _messageDeliveryDelayChecker = new MessageDeliveryDelayChecker(
+                    TimeSpan.FromMilliseconds(_currentConfiguration.ExpectedMaximalDuration),
+                    _logger
+                );
+
+                _valueChangeCounterPerNodeId = new ValueChangeCounterPerNodeId(_logger);
+
+                _missingValueChangesChecker = new MissingValueChangesChecker(
+                    _currentConfiguration.ExpectedValueChangesPerTimestamp,
+                    _logger
+                );
+                _missingValueChangesChecker.StartAsync(
+                    TimeSpan.FromMilliseconds(kCheckerDelayMilliseconds),
+                    _cancellationTokenSource.Token
+                ).Start();
+
+                _incrementalIntValueChecker = new IncrementalIntValueChecker(_logger);
+
+                _incrementalSequenceChecker = new SequenceNumberChecker(_logger);
+
+                _restartAnnouncementReceived = false;
+
                 return new StartResult();
             }
-
-            // Check provided configuration.
-            if (configuration == null) {
-                throw new ArgumentNullException(nameof(configuration));
+            finally {
+                _logger.LogInformation("StartAsync finished in {elapsed}", sw.Elapsed);
             }
-
-            if (configuration.ExpectedValueChangesPerTimestamp < 0) {
-                throw new ArgumentNullException("Invalid configuration detected, expected value changes per timestamp can't be lower than zero");
-            }
-            if (configuration.ExpectedIntervalOfValueChanges < 0) {
-                throw new ArgumentNullException("Invalid configuration detected, expected interval of value changes can't be lower than zero");
-            }
-            if (configuration.ExpectedMaximalDuration < 0) {
-                throw new ArgumentNullException("Invalid configuration detected, maximal total duration can't be lower than zero");
-            }
-            if (configuration.ThresholdValue <= 0) {
-                throw new ArgumentNullException("Invalid configuration detected, threshold can't be negative or zero");
-            }
-
-            if (string.IsNullOrWhiteSpace(configuration.IoTHubEventHubEndpointConnectionString)) throw new ArgumentNullException(nameof(configuration.IoTHubEventHubEndpointConnectionString));
-            if (string.IsNullOrWhiteSpace(configuration.StorageConnectionString)) throw new ArgumentNullException(nameof(configuration.StorageConnectionString));
-            if (string.IsNullOrWhiteSpace(configuration.BlobContainerName)) throw new ArgumentNullException(nameof(configuration.BlobContainerName));
-            if (string.IsNullOrWhiteSpace(configuration.EventHubConsumerGroup)) throw new ArgumentNullException(nameof(configuration.EventHubConsumerGroup));
-
-            if (configuration.ExpectedMaximalDuration == 0) {
-                configuration.ExpectedMaximalDuration = uint.MaxValue;
-            }
-
-            _currentConfiguration = configuration;
-
-            Interlocked.Exchange(ref _totalValueChangesCount, 0);
-
-            _cancellationTokenSource = new CancellationTokenSource();
-
-            //// Initialize EventProcessorWrapper
-            if (_clientWrapper == null || _clientWrapper.GetHashCode() != EventProcessorWrapper.GetHashCode(_currentConfiguration)) {
-                _clientWrapper = new EventProcessorWrapper(_currentConfiguration, _logger);
-                await _clientWrapper.InitializeClient(_cancellationTokenSource.Token).ConfigureAwait(false);
-            }
-
-            _clientWrapper.ProcessEventAsync += Client_ProcessEventAsync;
-            await _clientWrapper.StartProcessingAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
-
-            _startTime = DateTime.UtcNow;
-
-            // Initialize checkers.
-            _missingTimestampsChecker = new MissingTimestampsChecker(
-                TimeSpan.FromMilliseconds(_currentConfiguration.ExpectedIntervalOfValueChanges),
-                TimeSpan.FromMilliseconds(_currentConfiguration.ThresholdValue),
-                _logger
-            );
-            _missingTimestampsChecker.StartAsync(
-                TimeSpan.FromMilliseconds(kCheckerDelayMilliseconds),
-                _cancellationTokenSource.Token
-            ).Start();
-
-            _messageProcessingDelayChecker = new MessageProcessingDelayChecker(
-                TimeSpan.FromMilliseconds(_currentConfiguration.ThresholdValue),
-                _logger
-            );
-
-            _messageDeliveryDelayChecker = new MessageDeliveryDelayChecker(
-                TimeSpan.FromMilliseconds(_currentConfiguration.ExpectedMaximalDuration),
-                _logger
-            );
-
-            _valueChangeCounterPerNodeId = new ValueChangeCounterPerNodeId(_logger);
-
-            _missingValueChangesChecker = new MissingValueChangesChecker(
-                _currentConfiguration.ExpectedValueChangesPerTimestamp,
-                _logger
-            );
-            _missingValueChangesChecker.StartAsync(
-                TimeSpan.FromMilliseconds(kCheckerDelayMilliseconds),
-                _cancellationTokenSource.Token
-            ).Start();
-
-            _incrementalIntValueChecker = new IncrementalIntValueChecker(_logger);
-
-            _incrementalSequenceChecker = new SequenceNumberChecker(_logger);
-
-            _restartAnnouncementReceived = false;
-
-            return new StartResult();
         }
 
         /// <summary>
@@ -170,66 +179,75 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns></returns>
         public Task<StopResult> StopAsync()
         {
-            // Check if already stopped.
-            if (_cancellationTokenSource == null) {
-                return Task.FromResult(new StopResult());
+            _logger.LogInformation("StopAsync called.");
+            var sw = new Stopwatch();
+            sw.Start();
+
+            try {
+                // Check if already stopped.
+                if (_cancellationTokenSource == null) {
+                    return Task.FromResult(new StopResult());
+                }
+
+                var endTime = DateTime.UtcNow;
+
+                if (_cancellationTokenSource != null) {
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource = null;
+                }
+
+                // Stop event monitoring and deregister handler.
+                if (_clientWrapper != null) {
+                    _clientWrapper.StopProcessing();
+                    _clientWrapper.ProcessEventAsync -= Client_ProcessEventAsync;
+                }
+
+                // Stop checkers and collect resutls.
+                var missingTimestampsCounter = _missingTimestampsChecker.Stop();
+                var maxMessageProcessingDelay = _messageProcessingDelayChecker.Stop();
+                var maxMessageDeliveryDelay = _messageDeliveryDelayChecker.Stop();
+
+                var valueChangesPerNodeId = _valueChangeCounterPerNodeId.Stop();
+                var allExpectedValueChanges = true;
+                if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
+
+                    // TODO collect "expected" parameter as groups related to OPC UA nodes
+                    allExpectedValueChanges = valueChangesPerNodeId?
+                        .All(kvp => (_totalValueChangesCount / kvp.Value ) ==
+                            _currentConfiguration.ExpectedValueChangesPerTimestamp
+                        ) ?? false;
+                    _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}",
+                        allExpectedValueChanges);
+                }
+
+                var incompleteTimestamps = _missingValueChangesChecker.Stop();
+
+                var incrCheckerResult = _incrementalIntValueChecker.Stop();
+
+                var incrSequenceResult = _incrementalSequenceChecker.Stop();
+
+                var stopResult =  new StopResult() {
+                    ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
+                    AllExpectedValueChanges = allExpectedValueChanges,
+                    TotalValueChangesCount = _totalValueChangesCount,
+                    AllInExpectedInterval = missingTimestampsCounter == 0,
+                    StartTime = _startTime,
+                    EndTime = endTime,
+                    MaxDelayToNow = maxMessageProcessingDelay.ToString(),
+                    MaxDeliveyDuration = maxMessageDeliveryDelay.ToString(),
+                    DroppedValueCount = incrCheckerResult.DroppedValueCount,
+                    DuplicateValueCount = incrCheckerResult.DuplicateValueCount,
+                    DroppedSequenceCount = incrSequenceResult.DroppedValueCount,
+                    DuplicateSequenceCount = incrSequenceResult.DuplicateValueCount,
+                    ResetSequenceCount = incrSequenceResult.ResetsValueCount,
+                    RestartAnnouncementReceived = _restartAnnouncementReceived,
+                };
+
+                return Task.FromResult(stopResult);
             }
-
-            var endTime = DateTime.UtcNow;
-
-            if (_cancellationTokenSource != null) {
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource = null;
+            finally {
+                _logger.LogInformation("StopAsync finished in {elapsed}", sw.Elapsed);
             }
-
-            // Stop event monitoring and deregister handler.
-            if (_clientWrapper != null) {
-                _clientWrapper.StopProcessing();
-                _clientWrapper.ProcessEventAsync -= Client_ProcessEventAsync;
-            }
-
-            // Stop checkers and collect resutls.
-            var missingTimestampsCounter = _missingTimestampsChecker.Stop();
-            var maxMessageProcessingDelay = _messageProcessingDelayChecker.Stop();
-            var maxMessageDeliveryDelay = _messageDeliveryDelayChecker.Stop();
-
-            var valueChangesPerNodeId = _valueChangeCounterPerNodeId.Stop();
-            var allExpectedValueChanges = true;
-            if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
-
-                // TODO collect "expected" parameter as groups related to OPC UA nodes
-                allExpectedValueChanges = valueChangesPerNodeId?
-                    .All(kvp => (_totalValueChangesCount / kvp.Value ) ==
-                        _currentConfiguration.ExpectedValueChangesPerTimestamp
-                    ) ?? false;
-                _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}",
-                    allExpectedValueChanges);
-            }
-
-            var incompleteTimestamps = _missingValueChangesChecker.Stop();
-
-            var incrCheckerResult = _incrementalIntValueChecker.Stop();
-
-            var incrSequenceResult = _incrementalSequenceChecker.Stop();
-
-            var stopResult =  new StopResult() {
-                ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
-                AllExpectedValueChanges = allExpectedValueChanges,
-                TotalValueChangesCount = _totalValueChangesCount,
-                AllInExpectedInterval = missingTimestampsCounter == 0,
-                StartTime = _startTime,
-                EndTime = endTime,
-                MaxDelayToNow = maxMessageProcessingDelay.ToString(),
-                MaxDeliveyDuration = maxMessageDeliveryDelay.ToString(),
-                DroppedValueCount = incrCheckerResult.DroppedValueCount,
-                DuplicateValueCount = incrCheckerResult.DuplicateValueCount,
-                DroppedSequenceCount = incrSequenceResult.DroppedValueCount,
-                DuplicateSequenceCount = incrSequenceResult.DuplicateValueCount,
-                ResetSequenceCount = incrSequenceResult.ResetsValueCount,
-                RestartAnnouncementReceived = _restartAnnouncementReceived,
-            };
-
-            return Task.FromResult(stopResult);
         }
 
         /// <summary>
