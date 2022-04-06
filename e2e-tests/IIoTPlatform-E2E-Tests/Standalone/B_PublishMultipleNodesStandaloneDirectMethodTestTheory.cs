@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -70,10 +70,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
-                _context.DeviceConfig.DeviceId,
-                cts.Token,
-                new string[] { ioTHubPublisherDeployment.ModuleName }
+            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+                ioTHubPublisherDeployment.GenerateDeploymentConfiguration(),
+                cts.Token
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
@@ -119,7 +118,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 250, 10_000, 90_000_000, cts.Token).ConfigureAwait(false);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 250, 0, 90_000_000, cts.Token).ConfigureAwait(false);
 
             // Wait some time to generate events to process.
             await Task.Delay(TestConstants.AwaitDataInMilliseconds, cts.Token).ConfigureAwait(false);

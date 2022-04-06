@@ -4,16 +4,22 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.Deploy {
+    using Microsoft.Azure.Devices;
     using System.Threading;
     using System.Threading.Tasks;
 
     public interface IIoTHubEdgeDeployment {
 
         /// <summary>
-        /// Create a new layered deployment or update an existing one
+        /// Create a new layered deployment or update an existing one.
         /// </summary>
         /// <param name="token">The token to cancel the async task</param>
         /// <returns>true if create or update was successful otherwise false</returns>
         Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token);
+
+        /// <summary>
+        /// Generate deployment configuration.
+        /// </summary>
+        Configuration GenerateDeploymentConfiguration();
     }
 }
