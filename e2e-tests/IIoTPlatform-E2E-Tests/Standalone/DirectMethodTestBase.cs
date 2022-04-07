@@ -100,7 +100,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public virtual void Dispose() {
             _iotHubClient?.Dispose();
         }
     }

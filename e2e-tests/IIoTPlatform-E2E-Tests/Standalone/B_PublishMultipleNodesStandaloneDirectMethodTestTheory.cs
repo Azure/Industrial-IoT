@@ -10,6 +10,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -30,7 +31,21 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         public B_PublishMultipleNodesStandaloneDirectMethodTestTheory(
             ITestOutputHelper output,
             IIoTMultipleNodesTestContext context
-        ) : base(output, context) { }
+        ) : base(output, context) {
+            // Clean publishednodes.json.
+            TestHelper.CleanPublishedNodesJsonFilesAsync(_context).Wait();
+        }
+
+        /// <inheritdoc/>
+        public override void Dispose() {
+            try {
+                // Clean publishednodes.json.
+                TestHelper.CleanPublishedNodesJsonFilesAsync(_context).Wait();
+            }
+            catch (Exception) { }
+
+            base.Dispose();
+        }
 
         [Theory]
         [InlineData(MessagingMode.Samples, false)]
@@ -53,9 +68,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Make sure that there is no active monitoring.
             await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
-
-            // Clean publishednodes.json.
-            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context).ConfigureAwait(false);
 
             // Create base edge deployment.
             var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token).ConfigureAwait(false);
@@ -260,9 +272,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Make sure that there is no active monitoring.
             await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).ConfigureAwait(false);
 
-            // Clean publishednodes.json.
-            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context).ConfigureAwait(false);
-
             // Create base edge deployment.
             var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token).ConfigureAwait(false);
             Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
@@ -278,10 +287,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
-                _context.DeviceConfig.DeviceId,
-                cts.Token,
-                new string[] { ioTHubLegacyPublisherDeployment.ModuleName }
+            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+                ioTHubLegacyPublisherDeployment.GenerateDeploymentConfiguration(),
+                cts.Token
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 

@@ -64,10 +64,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
-                _context.DeviceConfig.DeviceId,
-                cts.Token,
-                new string[] { ioTHubPublisherDeployment.ModuleName }
+            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+                ioTHubPublisherDeployment.GenerateDeploymentConfiguration(),
+                cts.Token
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
@@ -259,10 +258,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
-                _context.DeviceConfig.DeviceId,
-                cts.Token,
-                new string[] { ioTHubLegacyPublisherDeployment.ModuleName }
+            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+                ioTHubLegacyPublisherDeployment.GenerateDeploymentConfiguration(),
+                cts.Token
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
@@ -427,10 +425,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
-                _context.DeviceConfig.DeviceId,
-                cts.Token,
-                new string[] { "publisher_standalone" }
+            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+                ioTHubPublisherDeployment.GenerateDeploymentConfiguration(),
+                cts.Token
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 

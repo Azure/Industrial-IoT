@@ -72,10 +72,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
-                _context.DeviceConfig.DeviceId,
-                cts.Token,
-                new string[] { "publisher_standalone" }
+            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+                ioTHubPublisherDeployment.GenerateDeploymentConfiguration(),
+                cts.Token
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
