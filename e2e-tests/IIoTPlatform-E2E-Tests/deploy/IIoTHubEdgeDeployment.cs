@@ -18,8 +18,8 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token);
 
         /// <summary>
-        /// Generate deployment configuration.
+        /// Get deployment configuration.
         /// </summary>
-        Configuration GenerateDeploymentConfiguration();
+        Configuration GetDeploymentConfiguration();
     }
 }

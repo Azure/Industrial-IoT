@@ -19,7 +19,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
 
         /// <inheritdoc />
         public async Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token) {
-            var deploymentConfiguration = GenerateDeploymentConfiguration();
+            var deploymentConfiguration = GetDeploymentConfiguration();
 
             var configuration = await _context.RegistryHelper
                 .CreateOrUpdateConfigurationAsync(deploymentConfiguration, token)
@@ -29,7 +29,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         }
 
         /// <inheritdoc />
-        public Configuration GenerateDeploymentConfiguration() {
+        public Configuration GetDeploymentConfiguration() {
             var deploymentConfiguration = new Configuration(DeploymentName) {
                 Content = new ConfigurationContent {
                     ModulesContent = CreateDeploymentModules()
