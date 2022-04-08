@@ -257,78 +257,86 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns>Task that run until token is canceled</returns>
         private Task Client_ProcessEventAsync(ProcessEventArgs arg)
         {
+            var sw = new Stopwatch();
+            sw.Start();
+
             var eventReceivedTimestamp = DateTime.UtcNow;
 
-            // Check if already stopped.
-            if (_cancellationTokenSource == null) {
-                _logger.LogWarning("Received Events but nothing to do, because already stopped");
-                return Task.CompletedTask;
-            }
+            try {
+                // Check if already stopped.
+                if (_cancellationTokenSource == null) {
+                    _logger.LogWarning("Received Events but nothing to do, because already stopped");
+                    return Task.CompletedTask;
+                }
 
-            if (!arg.HasEvent) {
-                _logger.LogWarning("Received partition event without content");
-                return Task.CompletedTask;
-            }
+                if (!arg.HasEvent) {
+                    _logger.LogWarning("Received partition event without content");
+                    return Task.CompletedTask;
+                }
 
-            var properties = arg.Data.Properties;
-            var hasPubSubJsonHeader = properties.TryGetValue("$$ContentType", out var schema) ? schema.ToString() == MessageSchemaTypes.NetworkMessageJson : false;
+                var properties = arg.Data.Properties;
+                var hasPubSubJsonHeader = properties.TryGetValue("$$ContentType", out var schema) ? schema.ToString() == MessageSchemaTypes.NetworkMessageJson : false;
 
-            var body = arg.Data.Body.ToArray();
-            var content = Encoding.UTF8.GetString(body);
-            dynamic json = JsonConvert.DeserializeObject(content);
+                var body = arg.Data.Body.ToArray();
+                var content = Encoding.UTF8.GetString(body);
+                dynamic json = JsonConvert.DeserializeObject(content);
 
-            if (CheckRestartAnnouncement(json)) {
-                return Task.CompletedTask;
-            }
+                if (CheckRestartAnnouncement(json)) {
+                    return Task.CompletedTask;
+                }
 
-            var valueChangesCount = 0;
+                var valueChangesCount = 0;
 
-            foreach (dynamic entry in json){
-                try {
-                    // validate if the message has an OPC UA PubSub message type signature
-                    if (entry.MessageType == "ua-data") {
-                        if (!hasPubSubJsonHeader) {
-                            _logger.LogInformation("Received event with \"ua-data\" signature but invalid content type header");
-                        }
+                foreach (dynamic entry in json) {
+                    try {
+                        // validate if the message has an OPC UA PubSub message type signature
+                        if (entry.MessageType == "ua-data") {
+                            if (!hasPubSubJsonHeader) {
+                                _logger.LogInformation("Received event with \"ua-data\" signature but invalid content type header");
+                            }
 
-                        foreach (dynamic message in entry.Messages) {
-                            var dataSetWriterId = message.DataSetWriterId.ToObject<string>();
-                            var sequenceNumber = message.SequenceNumber.ToObject<uint?>();
-                            FeedDataChangeCheckers(dataSetWriterId, sequenceNumber);
+                            foreach (dynamic message in entry.Messages) {
+                                var dataSetWriterId = message.DataSetWriterId.ToObject<string>();
+                                var sequenceNumber = message.SequenceNumber.ToObject<uint?>();
+                                FeedDataChangeCheckers(dataSetWriterId, sequenceNumber);
 
-                            var payload = message.Payload as JObject;
-                            foreach (JProperty property in payload.Properties()) {
-                                dynamic propertyValue = property.Value.ToObject<dynamic>();
-                                FeedDataCheckers(
-                                    (string)property.Name,
-                                    (DateTime)propertyValue.SourceTimestamp,
-                                    arg.Data.EnqueuedTime.UtcDateTime,
-                                    eventReceivedTimestamp,
-                                    propertyValue.Value);
-                                valueChangesCount++;
+                                var payload = message.Payload as JObject;
+                                foreach (JProperty property in payload.Properties()) {
+                                    dynamic propertyValue = property.Value.ToObject<dynamic>();
+                                    FeedDataCheckers(
+                                        (string)property.Name,
+                                        (DateTime)propertyValue.SourceTimestamp,
+                                        arg.Data.EnqueuedTime.UtcDateTime,
+                                        eventReceivedTimestamp,
+                                        propertyValue.Value);
+                                    valueChangesCount++;
+                                }
                             }
                         }
+                        else {
+                            FeedDataCheckers(
+                                (string)entry.NodeId,
+                                (DateTime)entry.Value.SourceTimestamp,
+                                arg.Data.EnqueuedTime.UtcDateTime,
+                                eventReceivedTimestamp,
+                                entry.Value.Value);
+                            valueChangesCount++;
+                        }
                     }
-                    else {
-                        FeedDataCheckers(
-                            (string)entry.NodeId,
-                            (DateTime)entry.Value.SourceTimestamp,
-                            arg.Data.EnqueuedTime.UtcDateTime,
-                            eventReceivedTimestamp,
-                            entry.Value.Value);
-                        valueChangesCount++;
+                    catch (Exception ex) {
+                        _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from " +
+                            "message. Please make sure that publisher is running with samples format and with " +
+                            "--fm parameter set.");
                     }
                 }
-                catch (Exception ex){
-                    _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from " +
-                        "message. Please make sure that publisher is running with samples format and with " +
-                        "--fm parameter set.");
-                }
-            }
 
-            _logger.LogDebug("Received {NumberOfValueChanges} messages from IoT Hub, partition {PartitionId}.",
-                valueChangesCount, arg.Partition.PartitionId);
-            return Task.CompletedTask;
+                _logger.LogDebug("Received {NumberOfValueChanges} messages from IoT Hub, partition {PartitionId}.",
+                    valueChangesCount, arg.Partition.PartitionId);
+                return Task.CompletedTask;
+            }
+            finally {
+                _logger.LogInformation("Processing of an event took: {elapsed}", sw.Elapsed);
+            }
         }
 
         private bool CheckRestartAnnouncement(dynamic json) {
@@ -377,7 +385,7 @@ namespace TestEventProcessor.BusinessLogic {
             _messageDeliveryDelayChecker.ProcessEvent(nodeId, sourceTimestamp, enqueuedTimestamp);
             _valueChangeCounterPerNodeId.ProcessEvent(nodeId, sourceTimestamp, value);
             _missingValueChangesChecker.ProcessEvent(sourceTimestamp);
-            _incrementalIntValueChecker.ProcessEvent(nodeId, value);
+            _incrementalIntValueChecker.ProcessEvent(nodeId, sourceTimestamp, value);
 
             Interlocked.Increment(ref _totalValueChangesCount);
         }
