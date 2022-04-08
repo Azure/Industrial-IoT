@@ -88,6 +88,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                     if (activeConfiguration != null
                         && Equals(activeConfiguration, deploymentConfiguration)
+                        && activeConfiguration.SystemMetrics.Results.ContainsKey("reportedSuccessfulCount")
                         && activeConfiguration.SystemMetrics.Results["reportedSuccessfulCount"] == 1) {
                         _context.OutputHelper?.WriteLine("All required IoT Edge modules are loaded!");
                         return;
