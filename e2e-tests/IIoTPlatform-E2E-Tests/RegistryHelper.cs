@@ -45,7 +45,7 @@ namespace IIoTPlatform_E2E_Tests {
 
             try {
                 while (true) {
-                    var modules = await RegistryManager.GetModulesOnDeviceAsync(deviceId, ct);
+                    var modules = await RegistryManager.GetModulesOnDeviceAsync(deviceId, ct).ConfigureAwait(false);
                     var connectedModulesCout = modules
                         .Where(m => moduleNames.Contains(m.Id))
                         .Where(m => m.ConnectionState == DeviceConnectionState.Connected)
@@ -56,7 +56,7 @@ namespace IIoTPlatform_E2E_Tests {
                         return;
                     }
 
-                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) {
@@ -75,8 +75,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         public async Task WaitForSuccessfulDeploymentAsync(
             Configuration deploymentConfiguration,
-            CancellationToken ct
-        ) {
+            CancellationToken ct) {
 
             try {
                 while (true) {
@@ -94,7 +93,7 @@ namespace IIoTPlatform_E2E_Tests {
                         return;
                     }
 
-                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) {
@@ -166,10 +165,17 @@ namespace IIoTPlatform_E2E_Tests {
                 return false;
             }
 
-            if (c0.Content.ModulesContent.Count != c1.Content.ModulesContent.Count) {
+            var c0ModulesContentCount = c0.Content?.ModulesContent?.Count ?? 0;
+            var c1ModulesContentCount = c1.Content?.ModulesContent?.Count ?? 0;
+
+            if (c0ModulesContentCount == 0 && c1ModulesContentCount == 0) {
+                return true;
+            }
+            else if (c0ModulesContentCount != c1ModulesContentCount) {
                 return false;
             }
 
+            // After the previous checks we know that both have the same non-zero number of module contents.
             foreach (var moduleName in c1.Content.ModulesContent.Keys) {
                 if (c0.Content.ModulesContent.ContainsKey(moduleName)) {
                     var moduleContent0 = c0.Content.ModulesContent[moduleName];

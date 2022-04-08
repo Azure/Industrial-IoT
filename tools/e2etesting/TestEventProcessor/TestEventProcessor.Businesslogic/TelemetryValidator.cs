@@ -75,8 +75,7 @@ namespace TestEventProcessor.BusinessLogic {
         public async Task<StartResult> StartAsync(ValidatorConfiguration configuration)
         {
             _logger.LogInformation("StartAsync called.");
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             try {
                 // Check if already started.
@@ -180,8 +179,7 @@ namespace TestEventProcessor.BusinessLogic {
         public Task<StopResult> StopAsync()
         {
             _logger.LogInformation("StopAsync called.");
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             try {
                 // Check if already stopped.
@@ -257,8 +255,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns>Task that run until token is canceled</returns>
         private Task Client_ProcessEventAsync(ProcessEventArgs arg)
         {
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             var eventReceivedTimestamp = DateTime.UtcNow;
 
@@ -340,18 +337,22 @@ namespace TestEventProcessor.BusinessLogic {
         }
 
         private bool CheckRestartAnnouncement(dynamic json) {
-            if (json is JObject) {
+            if (json is JObject jsonObj) {
                 try {
-                    var messageType = (string)json["MessageType"].Value;
-                    var messageVersion = (int)json["MessageVersion"].Value;
+                    if (!jsonObj.TryGetValue("MessageType", out var messageType)) {
+                        return false;
+                    }
+                    if (!jsonObj.TryGetValue("MessageVersion", out var messageVersion)) {
+                        return false;
+                    }
 
-                    if (messageType == "RestartAnnouncement" && messageVersion == 1) {
+                    if (messageType.Value<string>() == "RestartAnnouncement" && messageVersion.Value<int>() == 1) {
                         _restartAnnouncementReceived = true;
                         return true;
                     }
                 }
-                catch (Exception) {
-                    // Do nothing.
+                catch (Exception ex) {
+                    _logger.LogError(ex, "Error during deserialization of restart announcement.");
                 }
             }
 

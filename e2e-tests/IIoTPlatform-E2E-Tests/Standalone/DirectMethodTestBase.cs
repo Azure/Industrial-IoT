@@ -75,8 +75,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         /// <param name="ct"> Cancellation token. </param>
         public async Task<MethodResultModel> RestartModule(
             string moduleName,
-            CancellationToken ct
-        ) {
+            CancellationToken ct) {
+
             var payload = new Dictionary<string, string> {
                 {"schemaVersion", "1.0" },
                 {"id", moduleName },

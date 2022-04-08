@@ -34,8 +34,8 @@ namespace TestEventProcessor.Businesslogic {
 
         public EventProcessorWrapper(
             IEventProcessorConfig configuration,
-            ILogger logger
-        ) {
+            ILogger logger) {
+
             if (configuration == null) {
                 throw new ArgumentNullException(nameof(configuration));
             }
@@ -123,7 +123,7 @@ namespace TestEventProcessor.Businesslogic {
             }
 
             // If processing is active for all partitions then we only need to enable message propagation.
-            _lockInitializedPartitions.Wait();
+            await _lockInitializedPartitions.WaitAsync(ct).ConfigureAwait(false);
             try {
                 if (_initializedPartitions.Count(kvp => kvp.Value) == _initializedPartitions.Count) {
                     _logger.LogInformation("Enabling monitoring of events...");
@@ -161,7 +161,7 @@ namespace TestEventProcessor.Businesslogic {
             var sw = Stopwatch.StartNew();
 
             while (!ct.IsCancellationRequested) {
-                _lockInitializedPartitions.Wait();
+                await _lockInitializedPartitions.WaitAsync(ct).ConfigureAwait(false);
                 try {
                     if (_initializedPartitions.Count(kvp => kvp.Value) == _initializedPartitions.Count) {
                         _logger.LogInformation("Partition initialization took: {elapsed}", sw.Elapsed);
@@ -179,38 +179,34 @@ namespace TestEventProcessor.Businesslogic {
         /// <summary>
         /// Event handler for monitoring partition closing events.
         /// </summary>
-        private Task Client_PartitionClosingAsync(PartitionClosingEventArgs arg) {
+        private async Task Client_PartitionClosingAsync(PartitionClosingEventArgs arg) {
             _logger.LogInformation("EventProcessorClient partition closing: {PartitionId}", arg.PartitionId);
 
-            _lockInitializedPartitions.Wait();
+            await _lockInitializedPartitions.WaitAsync().ConfigureAwait(false);
             try {
                 _initializedPartitions[arg.PartitionId] = false;
             }
             finally {
                 _lockInitializedPartitions.Release();
             }
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Event handler for monitoring partition initializing events.
         /// </summary>
-        private Task Client_PartitionInitializingAsync(PartitionInitializingEventArgs arg) {
+        private async Task Client_PartitionInitializingAsync(PartitionInitializingEventArgs arg) {
             _logger.LogInformation("EventProcessorClient partition initializing, start with latest position for " +
                 "partition {PartitionId}", arg.PartitionId);
 
             arg.DefaultStartingPosition = EventPosition.Latest;
 
-            _lockInitializedPartitions.Wait();
+            await _lockInitializedPartitions.WaitAsync().ConfigureAwait(false);
             try {
                 _initializedPartitions[arg.PartitionId] = true;
             }
             finally {
                 _lockInitializedPartitions.Release();
             }
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
