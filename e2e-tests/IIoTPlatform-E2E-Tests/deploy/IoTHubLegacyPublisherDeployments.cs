@@ -16,13 +16,14 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         /// </summary>
         /// <param name="context"></param>
         public IoTHubLegacyPublisherDeployments(IIoTPlatformTestContext context) : base(context) {
+            _deploymentName = kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd")}";
         }
 
         /// <inheritdoc />
         protected override int Priority => 2;
 
         /// <inheritdoc />
-        protected override string DeploymentName => kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd")}";
+        protected override string DeploymentName => _deploymentName;
 
         /// <inheritdoc />
         protected override string TargetCondition => kTargetCondition;
@@ -81,6 +82,8 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         private const string kModuleName = "publisher_standalone_legacy";
         private const string kDeploymentName = "__default-opcpublisher-standalone-legacy";
         private const string kTargetCondition = "(tags.__type__ = 'iiotedge' AND IS_DEFINED(tags.unmanaged))";
+
+        private readonly string _deploymentName;
     }
 }
 
