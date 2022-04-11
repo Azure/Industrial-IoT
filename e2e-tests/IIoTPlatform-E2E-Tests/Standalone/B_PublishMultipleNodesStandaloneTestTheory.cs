@@ -74,11 +74,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
                 ioTHubPublisherDeployment.GetDeploymentConfiguration(),
                 cts.Token
-            ).GetAwaiter().GetResult());
-            Assert.Null(exception);
+            ).ConfigureAwait(false);
+
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+                _context.DeviceConfig.DeviceId,
+                cts.Token,
+                new string[] { ioTHubPublisherDeployment.ModuleName }
+            ).ConfigureAwait(false);
 
             // Wait some time till the updated pn.json is reflected.
             await Task.Delay(3 * TestConstants.DefaultTimeoutInMilliseconds);

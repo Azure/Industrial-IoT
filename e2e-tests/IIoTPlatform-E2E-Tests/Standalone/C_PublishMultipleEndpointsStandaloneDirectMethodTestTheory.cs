@@ -71,11 +71,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
                 ioTHubPublisherDeployment.GetDeploymentConfiguration(),
                 cts.Token
-            ).GetAwaiter().GetResult());
-            Assert.Null(exception);
+            ).ConfigureAwait(false);
+
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+                _context.DeviceConfig.DeviceId,
+                cts.Token,
+                new string[] { ioTHubPublisherDeployment.ModuleName }
+            ).ConfigureAwait(false);
 
             // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
@@ -411,11 +416,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
                 ioTHubPublisherDeployment.GetDeploymentConfiguration(),
                 cts.Token
-            ).GetAwaiter().GetResult());
-            Assert.Null(exception);
+            ).ConfigureAwait(false);
+
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+                _context.DeviceConfig.DeviceId,
+                cts.Token,
+                new string[] { ioTHubPublisherDeployment.ModuleName }
+            ).ConfigureAwait(false);
 
             // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
@@ -736,11 +746,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _output.WriteLine("Created/Updated layered deployment for legacy publisher module.");
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
                 ioTHubLegacyPublisherDeployment.GetDeploymentConfiguration(),
                 cts.Token
-            ).GetAwaiter().GetResult());
-            Assert.Null(exception);
+            ).ConfigureAwait(false);
+
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+                _context.DeviceConfig.DeviceId,
+                cts.Token,
+                new string[] { ioTHubLegacyPublisherDeployment.ModuleName }
+            ).ConfigureAwait(false);
 
             // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(

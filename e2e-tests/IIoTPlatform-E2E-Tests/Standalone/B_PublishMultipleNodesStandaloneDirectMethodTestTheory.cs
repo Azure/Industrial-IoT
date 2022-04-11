@@ -289,11 +289,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, _cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
                 ioTHubLegacyPublisherDeployment.GetDeploymentConfiguration(),
                 _cts.Token
-            ).GetAwaiter().GetResult());
-            Assert.Null(exception);
+            ).ConfigureAwait(false);
+
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+                _context.DeviceConfig.DeviceId,
+                _cts.Token,
+                new string[] { ioTHubLegacyPublisherDeployment.ModuleName }
+            ).ConfigureAwait(false);
 
             // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(

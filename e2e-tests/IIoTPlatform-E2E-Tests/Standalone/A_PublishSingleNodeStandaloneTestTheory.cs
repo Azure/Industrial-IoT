@@ -72,11 +72,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
                 ioTHubPublisherDeployment.GetDeploymentConfiguration(),
                 cts.Token
-            ).GetAwaiter().GetResult());
-            Assert.Null(exception);
+            ).ConfigureAwait(false);
+
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+                _context.DeviceConfig.DeviceId,
+                cts.Token,
+                new string[] { ioTHubPublisherDeployment.ModuleName }
+            ).ConfigureAwait(false);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
