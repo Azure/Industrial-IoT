@@ -16,6 +16,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
     class IncrementalIntValueChecker {
 
         private readonly IDictionary<string, int> _latestValuePerNodeId;
+        private readonly IDictionary<string, DateTime> _latestDateTimePerNodeId;
         private uint _duplicateValues = 0;
         private uint _droppedValues = 0;
         private readonly SemaphoreSlim _lock;
@@ -31,6 +32,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _latestValuePerNodeId = new Dictionary<string, int>();
+            _latestDateTimePerNodeId = new Dictionary<string, DateTime>();
             _lock = new SemaphoreSlim(1, 1);
         }
 
@@ -41,6 +43,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <param name="value"></param>
         public void ProcessEvent(
             string nodeId,
+            DateTime sourceTimestamp,
             object value
         ) {
             int curValue;
@@ -58,23 +61,32 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                 if (!_latestValuePerNodeId.ContainsKey(nodeId)) {
                     // There is no previous value.
                     _latestValuePerNodeId[nodeId] = curValue;
+                    _latestDateTimePerNodeId[nodeId] = sourceTimestamp;
                     return;
                 }
 
                 if (curValue == _latestValuePerNodeId[nodeId] + 1) {
                     _latestValuePerNodeId[nodeId] = curValue;
+                    _latestDateTimePerNodeId[nodeId] = sourceTimestamp;
                     return;
                 }
 
                 if (curValue == _latestValuePerNodeId[nodeId]) {
                     _duplicateValues++;
-                    _logger.LogWarning("Duplicate value detected for {nodeId}: {value}", nodeId, curValue);
-                } else {
+                    _logger.LogWarning("Duplicate value detected for {nodeId}: {value}, {prevTimestamp} -> {curTimestamp}",
+                        nodeId, curValue, _latestDateTimePerNodeId[nodeId], sourceTimestamp);
+                    _latestDateTimePerNodeId[nodeId] = sourceTimestamp;
+                }
+                else {
                     _droppedValues++;
-                    _logger.LogWarning("Dropped value detected for {nodeId}, previous value is {prevValue} " +
-                        "and current value is {curValue}.", nodeId, _latestValuePerNodeId[nodeId], curValue);
+                    _logger.LogWarning("Dropped value detected for {nodeId}, " +
+                        "previous value is {prevValue} at {prevTimestamp} " +
+                        "and current value is {curValue} at {curTimestamp}.",
+                        nodeId, _latestValuePerNodeId[nodeId], _latestDateTimePerNodeId[nodeId],
+                        curValue, sourceTimestamp);
 
                     _latestValuePerNodeId[nodeId] = curValue;
+                    _latestDateTimePerNodeId[nodeId] = sourceTimestamp;
                 }
             }
             finally {
