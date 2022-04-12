@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State {
 
     using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State.Models;
     using Microsoft.Azure.IIoT.Serializers;
@@ -62,6 +63,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State {
                     ContentType = _jsonSerializer.MimeType,
                     ContentEncoding = Encoding.UTF8.WebName,
                 };
+
+                message.Properties.Add(SystemProperties.MessageSchema, _jsonSerializer.MimeType);
+                message.Properties.Add(CommonProperties.ContentEncoding, Encoding.UTF8.WebName);
 
                 await _clientAccessor.Client
                     .SendEventAsync(RuntimeStateReportingPath, message)
