@@ -90,6 +90,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // manages to send some telemetry. This wait makes sure that we do not run the test while restart is happening.
             await Task.Delay(TestConstants.AwaitInitInMilliseconds, _cts.Token).ConfigureAwait(false);
 
+            _output.WriteLine("OPC Publisher module is up and running.");
+
             // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
                 new MethodParameterModel {
