@@ -71,12 +71,25 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+                ioTHubPublisherDeployment.GetDeploymentConfiguration(),
+                cts.Token
+            ).ConfigureAwait(false);
+
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
                 _context.DeviceConfig.DeviceId,
                 cts.Token,
                 new string[] { ioTHubPublisherDeployment.ModuleName }
-            ).GetAwaiter().GetResult());
-            Assert.Null(exception);
+            ).ConfigureAwait(false);
+
+            // We've observed situations when even after the above waits the module did not yet restart.
+            // That leads to situations where the publishing of nodes happens just before the restart to apply
+            // new container creation options. After restart persisted nodes are picked up, but on the telemetry side
+            // the restart causes dropped messages to be detected. That happens because just before the restart OPC Publisher
+            // manages to send some telemetry. This wait makes sure that we do not run the test while restart is happening.
+            await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token).ConfigureAwait(false);
+
+            _output.WriteLine("OPC Publisher module is up and running.");
 
             // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
@@ -412,12 +425,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+                ioTHubPublisherDeployment.GetDeploymentConfiguration(),
+                cts.Token
+            ).ConfigureAwait(false);
+
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
                 _context.DeviceConfig.DeviceId,
                 cts.Token,
                 new string[] { ioTHubPublisherDeployment.ModuleName }
-            ).GetAwaiter().GetResult());
-            Assert.Null(exception);
+            ).ConfigureAwait(false);
 
             // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
@@ -426,6 +443,15 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 },
                 cts.Token
             ).ConfigureAwait(false);
+
+            // We've observed situations when even after the above waits the module did not yet restart.
+            // That leads to situations where the publishing of nodes happens just before the restart to apply
+            // new container creation options. After restart persisted nodes are picked up, but on the telemetry side
+            // the restart causes dropped messages to be detected. That happens because just before the restart OPC Publisher
+            // manages to send some telemetry. This wait makes sure that we do not run the test while restart is happening.
+            await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token).ConfigureAwait(false);
+
+            _output.WriteLine("OPC Publisher module is up and running.");
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
             var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
@@ -738,12 +764,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _output.WriteLine("Created/Updated layered deployment for legacy publisher module.");
 
             // We will wait for module to be deployed.
-            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
+            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
+                ioTHubLegacyPublisherDeployment.GetDeploymentConfiguration(),
+                cts.Token
+            ).ConfigureAwait(false);
+
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
                 _context.DeviceConfig.DeviceId,
                 cts.Token,
                 new string[] { ioTHubLegacyPublisherDeployment.ModuleName }
-            ).GetAwaiter().GetResult());
-            Assert.Null(exception);
+            ).ConfigureAwait(false);
 
             // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
