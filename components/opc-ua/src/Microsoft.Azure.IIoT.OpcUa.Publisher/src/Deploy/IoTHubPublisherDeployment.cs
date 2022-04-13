@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                     Hostname = "publisher",
                     Cmd = new[] {
                         "PkiRootPath=/mount/pki",
-                        "--aa"
+                        "AutoAcceptUntrustedCertificates=true"
                     },
                     HostConfig = new {
                         Binds = new [] {
@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                     Hostname = "publisher",
                     Cmd = new[] {
                         "PkiRootPath=/mount/pki",
-                        "--aa"
+                        "AutoAcceptUntrustedCertificates=true"
                     },
                     HostConfig = new {
                         Mounts = new[] {
