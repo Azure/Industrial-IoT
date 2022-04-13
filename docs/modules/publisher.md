@@ -258,10 +258,10 @@ To ensure operation of OPC Publisher over restarts, it's required to map configu
 
 In version 2.6 and above, username and password are stored in plain text in the configuration file. It must be ensured that the configuration file is protected by the file system access control of the host file system. The same must be ensured for the file system based certificate store, since it contains the private certificate and private key of OPC Publisher.
 
-### Use customer certs in OPC Publisher
+### Use custom OPC UA application instance certificate in OPC Publisher
 
 By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
-To enable CA-signed app certs for OPC Publisher, both in orchestrated and standalone mode can be done using env variable.
+One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
 
 Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the ApplicationCertificateSubjectName like in the example below.
  
