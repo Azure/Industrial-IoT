@@ -49,9 +49,14 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
 3. Select the '-client' app registration. From the 'Overview' tab, copy the following:
    - Application (client) ID, later: [YOUR AAD CLIENT ID]
    - Directory (tenant) ID, later: [YOUR TENANT ID]
+   - In the 'Authentication' tab, if  'Web' platform doesn't exist, then click 'Add a platform' > 'Web' > add a new 'Redirect URI': e.g. `https://[yourprefix].azurewebsites.net/.auth/login/aad/callback`.
+
+      This redirect uri is later used as [YOUR CALLBACK URI]
+   - In the 'Certificates & Secrets' tab, create a new secret and copy its 'Value', later [YOUR AAD CLIENT SECRET]
 4. Go back to the list of app registrations and select '-service':
-   - From the 'Expose an API' tab, copy the default scope: `https://[yourtenant]].onmicrosoft.com/[yourprefix]-services/user_impersonation`, later [YOUR SCOPE URI]
-   - On the 'Authentication' tab, add a new 'Redirect URI': e.g. `https://[yourprefix].azurewebsites.net/.auth/login/aad/callback`
+   - From the 'Expose an API' tab, copy the application id uri : [YOUR_APPLICATION_ID_URI]
+
+      The default scope would be : `[YOUR_APPLICATION_ID_URI]/user_impersonation`, later [YOUR SCOPE URI]
 
 ## Download a sample set of API calls (Postman collection)
 
@@ -71,10 +76,11 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
 4. Fill in the following fields:
    - Token Name: Some name
    - Grant type: Authorization Code
-   - Callback URL: `https://[yourprefix].azurewebsites.net/.auth/login/aad/callback`
+   - Callback URL: `[YOUR CALLBACK URI]`
    - Auth URL: `https://login.microsoftonline.com/[YOUR TENANT ID]/oauth2/v2.0/authorize`
    - Access Token URL: `https://login.microsoftonline.com/[YOUR TENANT ID]/oauth2/v2.0/token`
    - Client ID: `[YOUR AAD CLIENT ID]`
+   - Client Secret: `[YOUR AAD CLIENT SECRET]`
    - Scope: `[YOUR SCOPE URI]`
    - Click 'Request Token'
    ![gettoken](../media/4-postmantoken.png)

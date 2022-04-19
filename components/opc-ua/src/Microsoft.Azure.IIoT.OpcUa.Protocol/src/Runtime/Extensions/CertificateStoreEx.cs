@@ -4,11 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Opc.Ua;
-    using System.Net;
-
+    using System;
 
     /// <summary>
     /// Certificate store extensions
@@ -16,33 +14,64 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public static class CertificateStoreEx {
 
         /// <summary>
-        /// Create trust list
+        /// Apply the configured settings provided via a CertificateStore to a CertificateTrustList.
         /// </summary>
-        /// <param name="certificateStore"></param>
-        /// <returns></returns>
-        public static CertificateTrustList ToCertificateTrustList(this CertificateStore certificateStore) {
-            var certificateTrustList = new CertificateTrustList {
-                StoreType = certificateStore.StoreType,
-                StorePath = certificateStore.StorePath
-            };
+        public static void ApplyLocalConfig(
+            this CertificateTrustList certificateTrustList,
+            CertificateStore certificateStore) {
+            if (certificateTrustList == null) {
+                throw new ArgumentNullException(nameof(certificateTrustList));
+            }
 
-            return certificateTrustList;
+            if (certificateStore == null) {
+                throw new ArgumentNullException(nameof(certificateStore));
+            }
+
+            if (certificateTrustList.StorePath != certificateStore.StorePath) {
+                certificateTrustList.StoreType = certificateStore.StoreType;
+                certificateTrustList.StorePath = certificateStore.StorePath;
+            }
         }
 
         /// <summary>
-        /// Create identifier
+        /// Applies the configuration settings to the own app certificate.
         /// </summary>
-        /// <param name="certificateInfo"></param>
-        /// <param name="hostname"></param>
-        /// <returns></returns>
-        public static CertificateIdentifier ToCertificateIdentifier(
-            this CertificateInfo certificateInfo, string hostname) {
-            var certificateIdentifier = new CertificateIdentifier {
-                StoreType = certificateInfo.StoreType,
-                StorePath = certificateInfo.StorePath,
-                SubjectName = certificateInfo.SubjectName.Replace("DC=localhost", $"DC={hostname}")
-            };
-            return certificateIdentifier;
+        public static void ApplyLocalConfig(
+            this CertificateIdentifier certificateIdentifier,
+            CertificateInfo certificateStore) {
+            if (certificateIdentifier == null) {
+                throw new ArgumentNullException(nameof(certificateIdentifier));
+            }
+
+            if (certificateStore == null) {
+                throw new ArgumentNullException(nameof(certificateStore));
+            }
+
+            if (certificateIdentifier.StorePath != certificateStore.StorePath) {
+                certificateIdentifier.StoreType = certificateStore.StoreType;
+                certificateIdentifier.StorePath = certificateStore.StorePath;
+            }
+        }
+
+        /// <summary>
+        /// Apply the configured settings provided via a CertificateStore to a CertificateStoreIdentifier
+        /// Particularily used for for rejected certificates store.
+        /// </summary>
+        public static void ApplyLocalConfig(
+            this CertificateStoreIdentifier certificateStoreIdentifier,
+            CertificateStore certificateStore) {
+            if (certificateStore == null) {
+                throw new ArgumentNullException(nameof(certificateStore));
+            }
+
+            if (certificateStoreIdentifier == null) {
+                throw new ArgumentNullException(nameof(certificateStoreIdentifier));
+            }
+
+            if (certificateStoreIdentifier.StorePath != certificateStore.StorePath) {
+                certificateStoreIdentifier.StoreType = certificateStore.StoreType;
+                certificateStoreIdentifier.StorePath = certificateStore.StorePath;
+            }
         }
     }
 }

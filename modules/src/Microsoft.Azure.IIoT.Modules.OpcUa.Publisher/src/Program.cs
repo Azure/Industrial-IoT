@@ -7,10 +7,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
-    using System.IO;
     using System.Diagnostics;
-    using System.Threading;
+    using System.IO;
     using System.Linq;
+    using System.Threading;
 
     /// <summary>
     /// Module
@@ -28,8 +28,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AddJsonFile("appsettings.json", true)
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddLegacyPublisherCommandLine(args)
                 .AddCommandLine(args)
+                .AddStandalonePublisherCommandLine(args)
+                // making sure the standalone arguments are processed at last so they are not overriden
                 .Build();
 
 #if DEBUG
@@ -44,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 #endif
 
             var module = new ModuleProcess(config);
-            module.RunAsync().Wait();
+            module.RunAsync().GetAwaiter().GetResult();
         }
     }
 }

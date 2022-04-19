@@ -531,7 +531,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     DisplayName = serviceApplicationName,
                     IsFallbackPublicClient = false,
                     IdentifierUris = new List<string> {
-                        $"https://{_tenantId.ToString()}/{serviceApplicationName}"
+                        $"api://{_tenantId.ToString()}/{serviceApplicationName}"
                     },
                     Tags = tags,
                     SignInAudience = "AzureADMyOrg",
@@ -728,7 +728,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     DisplayName = clientApplicationName,
                     IsFallbackPublicClient = true,
                     IdentifierUris = new List<string> {
-                        $"https://{_tenantId.ToString()}/{clientApplicationName}"
+                        $"api://{_tenantId.ToString()}/{clientApplicationName}"
                     },
                     Tags = tags,
                     SignInAudience = "AzureADMyOrg",
@@ -823,7 +823,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     DisplayName = aksApplicationName,
                     IsFallbackPublicClient = false,
                     IdentifierUris = new List<string> {
-                        $"https://{_tenantId.ToString()}/{aksApplicationName}"
+                        $"api://{_tenantId.ToString()}/{aksApplicationName}"
                     },
                     Tags = tags,
                     SignInAudience = "AzureADMyOrg",

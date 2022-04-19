@@ -50,10 +50,11 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <summary>
         /// Method that should be called for processing of events.
         /// </summary>
-        /// <param name="_0"></param>
-        /// <param name="sourceTimestamp"></param>
-        /// <param name="_1"></param>
+        /// <param name="nodeId">Identifeir of the data source.</param>
+        /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
+        /// <param name="enqueuedTimestamp">IoT Hub message enqueue timestamp.</param>
         public void ProcessEvent(
+            string nodeId,
             DateTime sourceTimestamp,
             DateTime enqueuedimestamp
         ) {
@@ -71,14 +72,18 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             var messageDeliveryDuration = enqueuedimestamp - sourceTimestamp;
 
             if (messageDeliveryDuration.TotalMilliseconds < 0) {
-                _logger.LogWarning("Total duration is negative number, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
+                _logger.LogWarning("Total duration is negative number for {nodeId} node, " +
+                    "OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
+                    nodeId,
                     sourceTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
                     enqueuedimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
                     messageDeliveryDuration);
             }
 
             if (messageDeliveryDuration > _expectedMaximalDuration) {
-                _logger.LogInformation("Total duration exceeded limit, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
+                _logger.LogInformation("Total duration exceeded limit for {nodeId} node, " +
+                    "OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
+                    nodeId,
                     sourceTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
                     enqueuedimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
                     messageDeliveryDuration);

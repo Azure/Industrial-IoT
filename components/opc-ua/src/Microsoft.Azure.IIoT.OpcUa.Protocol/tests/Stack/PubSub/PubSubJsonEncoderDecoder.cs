@@ -36,7 +36,7 @@ namespace Opc.Ua.PubSub.Tests {
                     JsonDataSetMessageContentMask.Timestamp |
                     JsonDataSetMessageContentMask.Status),
                 Payload = new DataSet(payload, (uint)(
-                    DataSetFieldContentMask.StatusCode | 
+                    DataSetFieldContentMask.StatusCode |
                     DataSetFieldContentMask.SourceTimestamp))
             };
 
@@ -144,7 +144,7 @@ namespace Opc.Ua.PubSub.Tests {
         /// Convert timestamps of payload to OpcUa Utc.
         /// </summary>
         private void ConvertToOpcUaUniversalTime(NetworkMessage networkMessage) {
-            // convert DataSet Payload DataValue timestamps to OpcUa Utc 
+            // convert DataSet Payload DataValue timestamps to OpcUa Utc
             foreach (var dataSetMessage in networkMessage.Messages) {
                 var expectedPayload = new Dictionary<string, DataValue>();
                 foreach (var entry in dataSetMessage.Payload) {

@@ -1,0 +1,43 @@
+[
+    {
+        "DataSetWriterId": "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "Tag": "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+        "DataSetWriterGroup": "Leaf0",
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "Anonymous",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+                "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+                "OpcSamplingIntervalTimespan": "00:00:01.500",
+                "OpcPublishingIntervalTimespan": "00:00:01.500",
+                "HeartbeatIntervalTimespan": "00:00:01.500",
+                "SkipFirst": true,
+                "QueueSize": 10
+            }
+        ]
+    },
+    {
+        "DataSetWriterId": "Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
+        "Tag": "Tag_Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
+        "DataSetWriterGroup": "Leaf1",
+        "DataSetPublishingInterval": 10000,
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "UsernamePassword",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
+                "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
+                "OpcSamplingInterval": 2000,
+                "OpcPublishingInterval": 2000,
+                "HeartbeatInterval": 2,
+                "SkipFirst": true,
+                "QueueSize": 10
+            }
+        ]
+    }
+]

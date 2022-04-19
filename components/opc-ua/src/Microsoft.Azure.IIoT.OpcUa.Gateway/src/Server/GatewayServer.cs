@@ -111,9 +111,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
 
             Sessions.ValidateUser += ValidateUserIdentityToken;
             _requestState = new RequestState();
+            _endpoints = new EndpointDescriptionCollection();
             InitAsync().Wait(); // Initialize configuration and start underlying server
             _serverState = ServerState.Running;
-            _endpoints = new EndpointDescriptionCollection();
         }
 
         /// <inheritdoc/>
@@ -1737,7 +1737,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 DiscoveryUrls = null
             };
             endpoints = _endpoints;
-            return new List<ServiceHost> { CreateServiceHost(this, endpoints.Select(x => new Uri(x.EndpointUrl)).ToArray()) }; 
+            return new List<ServiceHost> { CreateServiceHost(this, endpoints.Select(x => new Uri(x.EndpointUrl)).ToArray()) };
         }
 
         /// <inheritdoc/>

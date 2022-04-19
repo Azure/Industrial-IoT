@@ -81,7 +81,7 @@
             }
 
             return messages;
-        }      
+        }
 
         /// <summary>
         /// Setup publishing from sample server.
@@ -103,7 +103,7 @@
                                         .AddJsonFile("appsettings.json", true)
                                         .AddEnvironmentVariables()
                                         .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                                        .AddLegacyPublisherCommandLine(arguments.ToArray())
+                                        .AddStandalonePublisherCommandLine(arguments.ToArray())
                                         .AddCommandLine(arguments.ToArray())
                                         .Build();
 
@@ -161,11 +161,11 @@
 
         /// <summary>
         /// Configures DI for the types required.
-        /// </summary>        
+        /// </summary>
         private IContainer ConfigureContainer(IConfiguration configuration, List<(DeviceTwinModel, DeviceModel)> devices) {
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
-            var legacyCliOptions = new LegacyCliOptions(configuration);
+            var standaloneCliOptions = new StandaloneCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config).AsImplementedInterfaces();
@@ -178,8 +178,8 @@
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            builder.AddDiagnostics(config, legacyCliOptions.ToLoggerConfiguration());
-            builder.RegisterInstance(legacyCliOptions).AsImplementedInterfaces();
+            builder.AddDiagnostics(config, standaloneCliOptions.ToLoggerConfiguration());
+            builder.RegisterInstance(standaloneCliOptions).AsImplementedInterfaces();
 
             builder.RegisterType<IoTHubClientFactory>().AsImplementedInterfaces().InstancePerLifetimeScope();
 
@@ -187,7 +187,7 @@
 
             builder.RegisterType<ModuleHost>().AsImplementedInterfaces().SingleInstance();
             // Local orchestrator
-            builder.RegisterType<LegacyJobOrchestrator>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<StandaloneJobOrchestrator>().AsImplementedInterfaces().SingleInstance();
             // Create jobs from published nodes file
             builder.RegisterType<PublishedNodesJobConverter>().SingleInstance();
 
@@ -203,7 +203,7 @@
 
         /// <inheritdoc/>
         private void Exit() {
-            // Shut down gracefully.            
+            // Shut down gracefully.
             _exit.TrySetResult(true);
         }
 

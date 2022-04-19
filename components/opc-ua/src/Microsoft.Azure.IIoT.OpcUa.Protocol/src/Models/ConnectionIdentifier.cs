@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
 
         /// <inheritdoc/>
         public override string ToString() {
-            return (Connection.Endpoint?.Url ?? "" + _hash).ToSha1Hash();
+            return Connection.CreateConnectionId();
         }
 
         private readonly int _hash;

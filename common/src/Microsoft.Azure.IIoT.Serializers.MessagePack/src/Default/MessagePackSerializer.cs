@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
     using MsgPackWriter = global::MessagePack.MessagePackBinary;
     using MessagePackSerializationException = System.Exception;
     using MessagePackSerializerOptions = global::MessagePack.IFormatterResolver;
+    using System.IO;
 #endif
 
     /// <summary>
@@ -83,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
         }
 
         /// <inheritdoc/>
-        public object Deserialize(ReadOnlyMemory<byte> buffer, Type type) {
+        public object Deserialize(ReadOnlyMemory<byte> buffer, Type type, TextReader schemaReader = null) {
             try {
 #if MessagePack2
                 return MsgPack.Deserialize(type, buffer, Options);

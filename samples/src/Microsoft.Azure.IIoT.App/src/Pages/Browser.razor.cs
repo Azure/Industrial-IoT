@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public CredentialModel Credential { get; set; } = new CredentialModel();
         public bool IsOpen { get; set; } = false;
         public ListNode NodeData { get; set; }
-        public EndpointInfoApiModel EndpointModel { get; set; } 
+        public EndpointInfoApiModel EndpointModel { get; set; }
         private IAsyncDisposable PublishEvent { get; set; }
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";

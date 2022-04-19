@@ -4,8 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.OpcUa.Core;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
+    using Opc.Ua.Encoders;
+    using Opc.Ua.Extensions;
+    using Opc.Ua.PubSub;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -14,13 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Text;
     using System.Threading.Tasks;
     using Serilog;
-    using Opc.Ua.PubSub;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core;
-    using Opc.Ua.Encoders;
-    using Opc.Ua.Extensions;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -45,23 +45,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         private readonly ILogger _logger;
 
-        /// <summary>
-        /// We have to lookup payload identifier per notitication, because we have to handle huge amount of
-        /// notifications a cache is useful
-        /// </summary>
-        /// <remarks>
-        /// Clearing the cache is not necessary in standalone mode, each modification to published_nodes.json
-        /// will create new instance of NetworkMessageEncoder.
-        ///
-        /// Currently orchestrated mode don't support PubSub format, therefor the cache don't need to be cleaned
-        /// This need to be rechecked, once orchestrated mode support PubSub
-        /// </remarks>
-        private readonly IDictionary<string, string> _knownPayloadIdentifiers;
-
         /// <inheritdoc/>
         public NetworkMessageEncoder(ILogger logger) {
             _logger = logger;
-            _knownPayloadIdentifiers = new Dictionary<string, string>(5000);
         }
 
         /// <inheritdoc/>
@@ -71,10 +57,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var resultJson = EncodeAsJson(messages, maxMessageSize, useReversibleEncoding);
                 var resultUadp = EncodeAsUadp(messages, maxMessageSize);
                 var result = resultJson.Concat(resultUadp);
-                return Task.FromResult(result);
+                return Task.FromResult<IEnumerable<NetworkMessageModel>>(result.ToList());
             }
             catch (Exception e) {
-                return Task.FromException<IEnumerable<NetworkMessageModel>>(e);
+                _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
+                return Task.FromResult(Enumerable.Empty<NetworkMessageModel>());
             }
         }
 
@@ -85,10 +72,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var resultJson = EncodeBatchAsJson(messages, maxMessageSize, useReversibleEncoding);
                 var resultUadp = EncodeBatchAsUadp(messages, maxMessageSize);
                 var result = resultJson.Concat(resultUadp);
-                return Task.FromResult(result);
+                return Task.FromResult<IEnumerable<NetworkMessageModel>>(result.ToList());
             }
             catch (Exception e) {
-                return Task.FromException<IEnumerable<NetworkMessageModel>>(e);
+                _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
+                return Task.FromResult(Enumerable.Empty<NetworkMessageModel>());
             }
         }
 
@@ -108,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 ?.ServiceMessageContext;
             var compressedPayload = messages.Where(x => x.CompressedPayload).Any();
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
             var current = notifications.GetEnumerator();
@@ -142,24 +130,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
                     }
 
-                    notificationsPerMessage = notification.Messages.Sum(m => m.Payload.Count);
+                    var notificationsInBatch = notification.Messages.Sum(m => m.Payload.Count);
                     if (notificationSize > maxMessageSize) {
                         // Message too large, drop it.
-                        NotificationsDroppedCount += (uint)notificationsPerMessage;
-                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
+                        NotificationsDroppedCount += (uint)notificationsInBatch;
+                        _logger.Warning("Message too large, dropped {notificationsInBatch} values", notificationsInBatch);
                         processing = current.MoveNext();
                     }
                     else {
                         messageCompleted = maxMessageSize < (messageSize + notificationSize);
                         if (!messageCompleted) {
                             chunk.Add(notification);
-                            NotificationsProcessedCount += (uint)notificationsPerMessage;
+                            NotificationsProcessedCount += (uint)notificationsInBatch;
+                            notificationsPerMessage += notificationsInBatch;
                             processing = current.MoveNext();
                             messageSize += notificationSize + (processing ? 1 : 0);
                         }
                     }
                 }
-                if (!processing || messageCompleted) {
+                if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var writer = new StringWriter();
                     var encoder = new JsonEncoderEx(writer, encodingContext,
                         JsonEncoderEx.JsonEncoding.Array) {
@@ -217,7 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
             var current = notifications.GetEnumerator();
@@ -232,24 +221,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperEncoder = new BinaryEncoder(encodingContext);
                     helperEncoder.WriteEncodeable(null, notification);
                     var notificationSize = helperEncoder.CloseAndReturnBuffer().Length;
-                    notificationsPerMessage = notification.Messages.Sum(m => m.Payload.Count);
+                    var notificationsInBatch = notification.Messages.Sum(m => m.Payload.Count);
                     if (notificationSize > maxMessageSize) {
                         // Message too large, drop it.
-                        NotificationsDroppedCount += (uint)notificationsPerMessage;
-                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
+                        NotificationsDroppedCount += (uint)notificationsInBatch;
+                        _logger.Warning("Message too large, dropped {notificationsInBatch} values", notificationsInBatch);
                         processing = current.MoveNext();
                     }
                     else {
                         messageCompleted = maxMessageSize < (messageSize + notificationSize);
                         if (!messageCompleted) {
                             chunk.Add(notification);
-                            NotificationsProcessedCount += (uint)notificationsPerMessage;
+                            NotificationsProcessedCount += (uint)notificationsInBatch;
+                            notificationsPerMessage += notificationsInBatch;
                             processing = current.MoveNext();
                             messageSize += notificationSize;
                         }
                     }
                 }
-                if (!processing || messageCompleted) {
+                if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var encoder = new BinaryEncoder(encodingContext);
                     encoder.WriteBoolean(null, true); // is Batch
                     encoder.WriteEncodeableArray(null, chunk);
@@ -287,7 +277,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
             foreach (var networkMessage in notifications) {
@@ -310,8 +300,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // Message too large, drop it.
                     NotificationsDroppedCount += (uint)notificationsPerMessage;
-                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
-                    yield break;
+                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
+                    continue;
                 }
                 NotificationsProcessedCount += (uint)notificationsPerMessage;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
@@ -337,7 +327,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
 
@@ -356,8 +346,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // Message too large, drop it.
                     NotificationsDroppedCount += (uint)notificationsPerMessage;
-                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
-                    yield break;
+                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
+                    continue;
                 }
                 NotificationsProcessedCount += (uint)notificationsPerMessage;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
@@ -378,12 +368,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <returns></returns>
         private IEnumerable<NetworkMessage> GetNetworkMessages(
             IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (context?.NamespaceUris == null) {
                 // Declare all notifications in messages as dropped.
                 int totalNotifications = messages.Sum(m => m?.Notifications?.Count() ?? 0);
                 NotificationsDroppedCount += (uint)totalNotifications;
-                _logger.Warning("Namespace is empty, dropped {totalNotifications} values");
+                _logger.Warning("Namespace is empty, dropped {totalNotifications} values", totalNotifications);
                 yield break;
             }
 
@@ -402,21 +392,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         DataSetWriterGroup = message.WriterGroup.WriterGroupId,
                         MessageId = message.SequenceNumber.ToString()
                     };
-                    var notificationQueues = message.Notifications.GroupBy(m => m.NodeId)
-                        .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray())).ToArray();
-                    while (notificationQueues.Where(q => q.Any()).Any()) {
+                    var notificationQueues = message.Notifications
+                        .GroupBy(m => !string.IsNullOrEmpty(m.Id) ?
+                                        m.Id :
+                                        !string.IsNullOrEmpty(m.DisplayName) ?
+                                            m.DisplayName :
+                                            m.NodeId)
+                        .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
+                        .ToArray();
+
+                    while (notificationQueues.Any(q => q.Any())) {
                         var payload = notificationQueues
                             .Select(q => q.Any() ? q.Dequeue() : null)
-                                .Where(s => s != null)
-                                    .ToDictionary(
-                                        /*s => !string.IsNullOrEmpty(s.DisplayName) 
-                                            ? s.DisplayName 
-                                            : !string.IsNullOrEmpty(s.Id)
-                                            ? s.Id
-                                            : s.NodeId.ToExpandedNodeId(context.NamespaceUris)
-                                                .AsString(message.ServiceMessageContext),*/
-                                        s => GetPayloadIdentifier(s, message,context),
-                                        s => s.Value);
+                            .Where(s => s != null)
+                            .ToDictionary(
+                                //  Identifier to show for notification in payload of IoT Hub method
+                                //  Prio 1: Id = DataSetFieldId - if already configured
+                                //  Prio 2: Id = DisplayName - if already configured
+                                //  Prio 3: NodeId as configured
+                                s => !string.IsNullOrEmpty(s.Id) ?
+                                        s.Id :
+                                        !string.IsNullOrEmpty(s.DisplayName) ?
+                                            s.DisplayName :
+                                            s.NodeId,
+                                s => s.Value);
+
                         var dataSetMessage = new DataSetMessage() {
                             DataSetWriterId = message.Writer.DataSetWriterId,
                             MetaDataVersion = new ConfigurationVersionDataType {
@@ -438,55 +438,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     yield return networkMessage;
                 }
             }
-        }
-
-        /// <summary>
-        ///  Reads to identifier to show for notification in payload of IoT Hub method
-        ///  Prio 1: DataSetFieldId (need to be read from message)
-        ///  Prio 2: DisplayName - nothing to do, because notification.Id already contains DisplayName
-        ///  Prio 3: ExpandedNodeId
-        /// </summary>
-        /// <param name="notification">Notification, were ID need to be looked up for</param>
-        /// <param name="message">subscription notification message, containing notifications</param>
-        /// <param name="context">service context</param>
-        /// <returns>identifier of payload element</returns>
-        private string GetPayloadIdentifier(MonitoredItemNotificationModel notification, DataSetMessageModel message, ServiceMessageContext context) {
-            if (notification is null) {
-                throw new ArgumentNullException(nameof(notification));
-            }
-
-            if (message is null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            if (context is null) {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (_knownPayloadIdentifiers.TryGetValue(notification.NodeId.ToString(), out var knownPayloadIdentifier)) {
-                if (!string.IsNullOrEmpty(knownPayloadIdentifier)) {
-                    return knownPayloadIdentifier;
-                }
-            }
-            else { //do the long running lookup as less as possible
-                foreach (var dataSetWriter in message.WriterGroup.DataSetWriters) {
-                    foreach (var publishedVariableData in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
-                        if ((publishedVariableData.PublishedVariableNodeId == notification.NodeId
-                              || publishedVariableData.PublishedVariableNodeId.ToExpandedNodeId(context).AsString(context) == notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context)) &&
-                            publishedVariableData.Id != notification.NodeId) {
-                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = publishedVariableData.Id;
-                            return publishedVariableData.Id;
-                        } else {
-                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = string.Empty;
-                        }
-                    }
-                }
-            }
-
-            return !string.IsNullOrEmpty(notification.Id)
-                    ? notification.Id
-                    : notification.NodeId.ToExpandedNodeId(context.NamespaceUris)
-                        .AsString(message.ServiceMessageContext);
         }
     }
 }

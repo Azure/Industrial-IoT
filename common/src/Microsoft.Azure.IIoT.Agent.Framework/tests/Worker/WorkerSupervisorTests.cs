@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
     using Serilog;
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Http.HealthChecks;
 
     public class WorkerSupervisorTests {
 
@@ -58,6 +59,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
 
             public event ConfigUpdatedEventHandler OnConfigUpdated;
 
+            /// <inheritdoc/>
+            public void TriggerConfigUpdate(object sender, EventArgs eventArgs) {
+                OnConfigUpdated?.Invoke(sender, eventArgs);
+            }
+
             public void SetMaxWorker(int numberOfWorker) {
 
                 Config.MaxWorkers = numberOfWorker;
@@ -71,8 +77,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
             using var container = GetAutofacTestConfiguration();
             var agentConfigMock = new Mock<IAgentConfigProvider>();
             var loggerMock = new Mock<ILogger>();
+            var healthCheckManagerMock = new Mock<IHealthCheckManager>();
 
-            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfigMock.Object, loggerMock.Object, kSupervisorDelay);
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfigMock.Object, loggerMock.Object, healthCheckManagerMock.Object, kSupervisorDelay);
 
             // start host process
             var sut = workerSupervisor as IWorkerSupervisor;
@@ -88,12 +95,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
 
         [Fact]
         public async Task Test_002_IncreaseMaxWorker_Expect_WorkerSpawned() {
-            
+
             using var container = GetAutofacTestConfiguration();
             var agentConfig = new TestAgentConfigProvider();
             var loggerMock = new Mock<ILogger>();
+            var healthCheckManagerMock = new Mock<IHealthCheckManager>();
 
-            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, kSupervisorDelay);
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, healthCheckManagerMock.Object, kSupervisorDelay);
 
             // start host process
             var sut = workerSupervisor as IWorkerSupervisor;
@@ -115,8 +123,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
             using var container = GetAutofacTestConfiguration();
             var agentConfig = new TestAgentConfigProvider();
             var loggerMock = new Mock<ILogger>();
+            var healthCheckManagerMock = new Mock<IHealthCheckManager>();
 
-            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, kSupervisorDelay);
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, healthCheckManagerMock.Object, kSupervisorDelay);
 
             // start host process
             var sut = workerSupervisor as IWorkerSupervisor;
@@ -139,12 +148,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
             using var container = GetAutofacTestConfiguration();
             var agentConfig = new TestAgentConfigProvider();
             var loggerMock = new Mock<ILogger>();
+            var healthCheckManagerMock = new Mock<IHealthCheckManager>();
             loggerMock.Setup(l => l.Error(
-                It.Is<string>(s => s.Contains("MaxWorker")), 
+                It.Is<string>(s => s.Contains("MaxWorker")),
                 It.Is<int>(i => i == kDefaultMaxWorker)))
                 .Verifiable();
 
-            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, kSupervisorDelay);
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, healthCheckManagerMock.Object, kSupervisorDelay);
 
             // start host process
             var sut = workerSupervisor as IWorkerSupervisor;
@@ -155,7 +165,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
             const int numberOfWorker = -4;
             agentConfig.SetMaxWorker(numberOfWorker);
 
-            await Task.Delay(kDefaultDelay); 
+            await Task.Delay(kDefaultDelay);
             Assert.Equal(kDefaultMaxWorker, sut.NumberOfWorkers);
             loggerMock.Verify();
 
@@ -169,8 +179,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
             using var container = GetAutofacTestConfiguration();
             var agentConfig = new TestAgentConfigProvider();
             var loggerMock = new Mock<ILogger>();
+            var healthCheckManagerMock = new Mock<IHealthCheckManager>();
 
-            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, kSupervisorDelay);
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, healthCheckManagerMock.Object, kSupervisorDelay);
 
             // start host process
             var sut = workerSupervisor as IWorkerSupervisor;

@@ -36,7 +36,7 @@ namespace TestData {
     public class TestDataServer : INodeManagerFactory {
 
         /// <inheritdoc/>
-        public INodeManager CreateNodeManager(IServerInternal server,
+        public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
             return new TestDataNodeManager(server, configuration);
         }

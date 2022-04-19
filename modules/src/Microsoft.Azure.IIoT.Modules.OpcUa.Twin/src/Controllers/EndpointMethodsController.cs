@@ -14,16 +14,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Serializers;
+    using Prometheus;
     using System;
     using System.Threading.Tasks;
-    using Prometheus;
-    using Microsoft.Azure.IIoT.Module;
 
     /// <summary>
     /// Endpoint methods controller
     /// </summary>
-    [Version(1)]
-    [Version(2)]
+    [Version("_V1")]
+    [Version("_V2")]
     [ExceptionsFilter]
     public class EndpointMethodsController : IMethodController {
 

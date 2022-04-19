@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -26,20 +26,9 @@ namespace IIoTPlatform_E2E_Tests {
     using Xunit;
     using Xunit.Abstractions;
     using System.Text.RegularExpressions;
-    using Newtonsoft.Json.Linq;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-    using Microsoft.Azure.Management.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-    using Microsoft.WindowsAzure.Storage;
-    using Microsoft.WindowsAzure.Storage.Auth;
-    using Azure.Identity;
-    using Azure.Core;
     using Microsoft.Azure.Devices;
-    using Microsoft.Rest;
-    using System.Diagnostics;
-    using System.Runtime.CompilerServices;
-    using System.IO.Compression;
+    using Microsoft.Azure.IIoT.Hub.Models;
+    using IIoTPlatform_E2E_Tests.TestEventProcessor;
 
     internal static partial class TestHelper {
 
@@ -91,7 +80,7 @@ namespace IIoTPlatform_E2E_Tests {
             var request = new RestRequest(Method.POST);
             request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
             request.AddParameter("grant_type", "client_credentials");
-            request.AddParameter("scope", $"https://{tenantId}/{applicationName}-service/.default");
+            request.AddParameter("scope", $"api://{tenantId}/{applicationName}-service/.default");
 
             var response = await client.ExecuteAsync(request, ct);
             Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
@@ -224,10 +213,10 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="entries">Entries for published_nodes.json</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
-        public static Task SwitchToStandaloneModeAndPublishNodesAsync(
-            IEnumerable<PublishedNodesEntryModel> entries,
+        public static async Task PublishNodesAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct = default
+            string publishedNodesFullPath,
+            IEnumerable<PublishedNodesEntryModel> entries
         ) {
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             return SwitchToStandaloneModeAndPublishNodesAsync(json, context, ct);
@@ -249,23 +238,50 @@ namespace IIoTPlatform_E2E_Tests {
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
             using var scpClient = CreateScpClientAndConnect(context);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-            scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
+
+            scpClient.Upload(stream, publishedNodesFullPath);
 
             if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
                 using var sshCient = CreateSshClientAndConnect(context);
                 foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
                     if (edge != string.Empty) {
                         // Copy file to the edge vm
-                        var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
+                        var command = $"scp -oStrictHostKeyChecking=no {publishedNodesFullPath} {edge}:{TestConstants.PublishedNodesFilename}";
                         sshCient.RunCommand(command);
-                        // Move file to the target folder with sudo permissions 
-                        command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
+
+                        // Move file to the target folder with sudo permissions
+                        command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {publishedNodesFullPath}'";
                         sshCient.RunCommand(command);
                     }
                 }
             }
+        }
 
-            await SwitchToStandaloneModeAsync(context, ct);
+        /// <summary>
+        /// Clean published nodes JSON files for both legacy (2.5) and current (2.8) versions.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context) {
+            // Make sure directories exist.
+            using (var sshCient = CreateSshClientAndConnect(context)) {
+                sshCient.RunCommand($"[ ! -d { TestConstants.PublishedNodesFolder} ]" +
+                    $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
+                sshCient.RunCommand($"[ ! -d { TestConstants.PublishedNodesFolderLegacy} ]" +
+                    $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolderLegacy}");
+            }
+
+            await PublishNodesAsync(
+                context,
+                TestConstants.PublishedNodesFullName,
+                Array.Empty<PublishedNodesEntryModel>()
+            ).ConfigureAwait(false);
+
+            await PublishNodesAsync(
+                context,
+                TestConstants.PublishedNodesFullNameLegacy,
+                Array.Empty<PublishedNodesEntryModel>()
+            ).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -274,7 +290,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        private static async Task SwitchToStandaloneModeAsync(
+        public static async Task SwitchToStandaloneModeAsync(
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
@@ -450,7 +466,10 @@ namespace IIoTPlatform_E2E_Tests {
                     StorageConnectionString = context.IoTHubConfig.CheckpointStorageConnectionString,
                     ExpectedValueChangesPerTimestamp = expectedValuesChangesPerTimestamp,
                     ExpectedIntervalOfValueChanges = expectedIntervalOfValueChanges,
-                    ExpectedMaximalDuration = expectedMaximalDuration
+                    ThresholdValue = expectedIntervalOfValueChanges > 0
+                        ? expectedIntervalOfValueChanges / 10
+                        : 100,
+                    ExpectedMaximalDuration = expectedMaximalDuration,
                 }
             };
 
@@ -470,7 +489,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async Task<dynamic> StopMonitoringIncomingMessagesAsync(
+        public static async Task<StopResult> StopMonitoringIncomingMessagesAsync(
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
@@ -492,11 +511,10 @@ namespace IIoTPlatform_E2E_Tests {
 
             var response = await client.ExecuteAsync(request, ct);
 
-            dynamic json = JsonConvert.DeserializeObject(response.Content);
-            Assert.NotNull(json);
-            Assert.NotEmpty(json);
+            var result = JsonConvert.DeserializeObject<StopResult>(response.Content);
+            Assert.NotNull(result);
 
-            return json;
+            return result;
         }
 
         /// <summary>
@@ -609,6 +627,142 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
+        /// Create a single node model with opcplc node
+        /// </summary>
+        /// <param name="IIoTMultipleNodesTestContext">context</param>
+        /// <param name="CancellationTokenSource">cancellation token</param>
+        public static async Task<PublishedNodesEntryModel> CreateSingleNodeModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct) {
+            IDictionary<string, PublishedNodesEntryModel> simulatedPublishedNodesConfiguration =
+                new Dictionary<string, PublishedNodesEntryModel>(0);
+
+            // With the nested edge test servers don't have public IP addresses and cannot be accessed in this way
+            if (context.IoTEdgeConfig.NestedEdgeFlag != "Enable") {
+                simulatedPublishedNodesConfiguration =
+                    await GetSimulatedPublishedNodesConfigurationAsync(context, ct);
+            }
+
+            PublishedNodesEntryModel model;
+            if (simulatedPublishedNodesConfiguration.Count > 0) {
+                model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
+            }
+            else {
+                var opcPlcIp = context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[0];
+                model = new PublishedNodesEntryModel {
+                    EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
+                    UseSecurity = false,
+                    OpcNodes = new OpcUaNodesModel[] {
+                        new OpcUaNodesModel {
+                            Id = "ns=2;s=SlowUInt1",
+                            OpcPublishingInterval = 10000,
+                        }
+                    }
+                };
+            }
+
+            // We want to take one of the slow nodes that updates each 10 seconds.
+            // To make sure that we will not have missing values because of timing issues,
+            // we will set publishing and sampling intervals to a lower value than the publishing
+            // interval of the simulated OPC PLC. This will eliminate false-positives.
+            model.OpcNodes = model.OpcNodes
+                .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                .Where(opcNode => opcNode.Id.Contains("SlowUInt"))
+                .Take(1).Select(opcNode => {
+                    var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
+                    opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
+                    opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
+                    opcNode.QueueSize = 4;
+                    return opcNode;
+                })
+                .ToArray();
+
+            return model;
+        }
+
+        /// <summary>
+        /// Create a multiple nodes model with opcplc nodes
+        /// </summary>
+        /// <param name="IIoTMultipleNodesTestContext">context</param>
+        /// <param name="CancellationTokenSource">cancellation token</param>
+        public static async Task<PublishedNodesEntryModel> CreateMultipleNodesModelAsync(
+            IIoTMultipleNodesTestContext context,
+            CancellationToken ct,
+            int endpointIndex = 2,
+            int numberOfNodes = 250) {
+
+            await context.LoadSimulatedPublishedNodes(ct);
+
+            PublishedNodesEntryModel nodesToPublish;
+            if (context.SimulatedPublishedNodes.Count > 1) {
+                var testPlc = context.SimulatedPublishedNodes.Skip(endpointIndex).First().Value;
+                nodesToPublish = context.GetEntryModelWithoutNodes(testPlc);
+
+                // We want to take several slow and fast nodes.
+                // To make sure that we will not have missing values because of timing issues,
+                // we will set publishing and sampling intervals to a lower value than the publishing
+                // interval of the simulated OPC PLC. This will eliminate false-positives.
+                nodesToPublish.OpcNodes = testPlc.OpcNodes
+                    .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                    .Where(node => node.Id.Contains("slow", StringComparison.OrdinalIgnoreCase)
+                        || node.Id.Contains("fast", StringComparison.OrdinalIgnoreCase))
+                    .Take(numberOfNodes)
+                    .Select(opcNode => {
+                        var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
+                        opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
+                        opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
+                        opcNode.QueueSize = 4;
+                        return opcNode;
+                    })
+                    .ToArray();
+
+                context.ConsumedOpcUaNodes.AddOrUpdate(testPlc.EndpointUrl, nodesToPublish);
+            }
+            else {
+                var opcPlcIp = context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[endpointIndex];
+                nodesToPublish = new PublishedNodesEntryModel {
+                    EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
+                    UseSecurity = false
+                };
+
+                var nodes = new List<OpcUaNodesModel>();
+                for (int i = 0; i < numberOfNodes; i++) {
+                    nodes.Add(new OpcUaNodesModel {
+                        Id = $"ns=2;s=SlowUInt{i + 1}",
+                        OpcPublishingInterval = 10000 / 2,
+                        OpcSamplingInterval = 10000 / 4,
+                        QueueSize = 4,
+                    });
+                }
+
+                nodesToPublish.OpcNodes = nodes.ToArray();
+                context.ConsumedOpcUaNodes.Add(opcPlcIp, nodesToPublish);
+            }
+
+            return nodesToPublish;
+        }
+
+
+        /// <summary>
+        /// Initialize DeviceServiceClient from IoT Hub connection string.
+        /// </summary>
+        /// <param name="iotHubConnectionString"></param>
+        /// <param name="transportType"></param>
+        public static ServiceClient DeviceServiceClient(
+            string iotHubConnectionString,
+            TransportType transportType = TransportType.Amqp_WebSocket_Only
+        ) {
+            ServiceClient iotHubClient;
+
+            if (string.IsNullOrWhiteSpace(iotHubConnectionString)) {
+                throw new ArgumentNullException(nameof(iotHubConnectionString));
+            }
+
+            return iotHubClient = ServiceClient.CreateFromConnectionString(
+                iotHubConnectionString,
+                transportType
+            );
+        }
+
+        /// <summary>
         /// Gets endpoints from registry
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
@@ -639,7 +793,6 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="e">Exception to be printed</param>
         /// <param name="outputHelper">XUnit Test OutputHelper instance or null (no print in this case)</param>
         private static void PrettyPrintException(Exception e, ITestOutputHelper outputHelper) {
-            if (outputHelper == null) return;
 
             var exception = e;
             while (exception != null) {
@@ -1034,68 +1187,31 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
-        /// Returns elements from an async-enumerable sequence for a given time duration,
-        /// starting when one message has been published from every publishing source (PLC simulator).
+        /// Call a direct method
         /// </summary>
-        /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
-        /// <param name="source">A sequence to return elements from.</param>
+        /// <param name="serviceClient">Device service client</param>
+        /// <param name="deviceId">Device Id</param>
+        /// <param name="moduleId">Module Id</param>
+        /// <param name="parameters">Method parameter </param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="publisherIdFunc">A function to extract the Source ID from a message payload.</param>
-        /// <param name="duration">A time duration during which to return data.</param>
-        /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        private static IAsyncEnumerable<TSource> ConsumeDuring<TSource>(
-            this IAsyncEnumerable<TSource> source,
-            IIoTPlatformTestContext context,
-            Func<TSource, string> publisherIdFunc,
-            TimeSpan duration
-        ) {
-            // When the first message has been received for each simulator, the system is up and we
-            // "let the flag fall" to start computing event rates.
-            return source.SkipUntilDistinctCountReached(
-                    publisherIdFunc,
-                    context.PlcAciDynamicUrls.Length,
-                    () => context.OutputHelper?.WriteLine("Waiting for first message for each PLC"),
-                    () => context.OutputHelper?.WriteLine($"Consuming messages for {duration}")
-                )
-                .TakeDuring(duration);
-        }
-
-        /// <summary>
-        /// Returns elements from an async-enumerable sequence for a given time duration,
-        /// starting when one message has been published from every publishing source (PLC simulator).
-        /// </summary>
-        /// <typeparam name="TPayload">The type of the payloads in the Publisher messages.</typeparam>
-        /// <param name="source">A sequence to return elements from.</param>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="duration">A time duration during which to return data.</param>
-        /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
-        public static IAsyncEnumerable<EventData<TPayload>> ConsumeDuring<TPayload>(
-            this IAsyncEnumerable<EventData<TPayload>> source,
-            IIoTPlatformTestContext context,
-            TimeSpan duration
-        ) where TPayload : BaseEventTypePayload {
-            return source.ConsumeDuring(context, m => m.PublisherId, duration);
-        }
-
-        /// <summary>
-        /// Truncate a date time
-        /// </summary>
-        /// <param name="dateTime">Date time top truncate</param>
-        /// <param name="timeSpan">Time span</param>
-        public static DateTime Truncate(this DateTime dateTime, TimeSpan timeSpan) {
-            if (timeSpan == TimeSpan.Zero) {
-                return dateTime;
+        /// <param name="ct">Cancellation token</param>
+        public static async Task<MethodResultModel> CallMethodAsync(ServiceClient serviceClient, string deviceId, string moduleId,
+            MethodParameterModel parameters, IIoTPlatformTestContext context, CancellationToken ct) {
+            try {
+                var methodInfo = new CloudToDeviceMethod(parameters.Name);
+                methodInfo.SetPayloadJson(parameters.JsonPayload);
+                var result = await (string.IsNullOrEmpty(moduleId) ?
+                     serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
+                     serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct));
+                return new MethodResultModel {
+                    JsonPayload = result.GetPayloadAsJson(),
+                    Status = result.Status
+                };
             }
-
-            if (dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue) {
-                return dateTime;
+            catch (Exception e) {
+                PrettyPrintException(e, context.OutputHelper);
+                return null;
             }
-
-            return dateTime.AddTicks(-(dateTime.Ticks % timeSpan.Ticks));
         }
-
-        private static readonly JsonSerializer kSerializer = new JsonSerializer();
     }
 }

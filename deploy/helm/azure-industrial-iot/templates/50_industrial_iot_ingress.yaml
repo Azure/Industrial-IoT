@@ -1,8 +1,12 @@
 {{- if and .Values.deployment.ingress.enabled .Values.deployment.ingress.paths }}
+{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1" }}
+apiVersion: networking.k8s.io/v1
+{{ else }}
 {{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1beta1" }}
 apiVersion: networking.k8s.io/v1beta1
 {{ else }}
 apiVersion: extensions/v1beta1
+{{ end -}}
 {{ end -}}
 kind: Ingress
 metadata:
@@ -37,51 +41,115 @@ spec:
 {{- end }}
       paths:
 {{- if and .Values.deployment.microServices.registry.enabled .Values.deployment.ingress.paths.registry }}
+{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1" }}
+      - path: {{ .Values.deployment.ingress.paths.registry }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "azure-industrial-iot.registry.fullname" . }}
+            port:
+              number: {{ .Values.deployment.microServices.registry.service.port }}
+{{ else }}
       - path: {{ .Values.deployment.ingress.paths.registry }}
         backend:
           serviceName: {{ template "azure-industrial-iot.registry.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.registry.service.port }}
 {{- end }}
+{{- end }}
 {{- if and .Values.deployment.microServices.twin.enabled .Values.deployment.ingress.paths.twin }}
+{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1" }}
+      - path: {{ .Values.deployment.ingress.paths.twin }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "azure-industrial-iot.twin.fullname" . }}
+            port:
+              number: {{ .Values.deployment.microServices.twin.service.port }}
+{{ else }}
       - path: {{ .Values.deployment.ingress.paths.twin }}
         backend:
           serviceName: {{ template "azure-industrial-iot.twin.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.twin.service.port }}
 {{- end }}
+{{- end }}
 {{- if and .Values.deployment.microServices.history.enabled .Values.deployment.ingress.paths.history }}
+{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1" }}
+      - path: {{ .Values.deployment.ingress.paths.history }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "azure-industrial-iot.history.fullname" . }}
+            port:
+              number: {{ .Values.deployment.microServices.history.service.port }}
+{{ else }}
       - path: {{ .Values.deployment.ingress.paths.history }}
         backend:
           serviceName: {{ template "azure-industrial-iot.history.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.history.service.port }}
 {{- end }}
-{{- if and .Values.deployment.microServices.gateway.enabled .Values.deployment.ingress.paths.gateway }}
-      - path: {{ .Values.deployment.ingress.paths.gateway }}
-        backend:
-          serviceName: {{ template "azure-industrial-iot.gateway.fullname" . }}
-          servicePort: {{ .Values.deployment.microServices.gateway.service.port }}
 {{- end }}
 {{- if and .Values.deployment.microServices.publisher.enabled .Values.deployment.ingress.paths.publisher }}
+{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1" }}
+      - path: {{ .Values.deployment.ingress.paths.publisher }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "azure-industrial-iot.publisher.fullname" . }}
+            port:
+              number: {{ .Values.deployment.microServices.publisher.service.port }}
+{{ else }}
       - path: {{ .Values.deployment.ingress.paths.publisher }}
         backend:
           serviceName: {{ template "azure-industrial-iot.publisher.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.publisher.service.port }}
 {{- end }}
+{{- end }}
 {{- if and .Values.deployment.microServices.events.enabled .Values.deployment.ingress.paths.events }}
+{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1" }}
+      - path: {{ .Values.deployment.ingress.paths.events }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "azure-industrial-iot.events.fullname" . }}
+            port:
+              number: {{ .Values.deployment.microServices.events.service.port }}
+{{ else }}
       - path: {{ .Values.deployment.ingress.paths.events }}
         backend:
           serviceName: {{ template "azure-industrial-iot.events.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.events.service.port }}
 {{- end }}
+{{- end }}
 {{- if and .Values.deployment.microServices.edgeJobs.enabled .Values.deployment.ingress.paths.edgeJobs }}
+{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1" }}
+      - path: {{ .Values.deployment.ingress.paths.edgeJobs }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "azure-industrial-iot.edge-jobs.fullname" . }}
+            port:
+              number: {{ .Values.deployment.microServices.edgeJobs.service.port }}
+{{ else }}
       - path: {{ .Values.deployment.ingress.paths.edgeJobs }}
         backend:
           serviceName: {{ template "azure-industrial-iot.edge-jobs.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.edgeJobs.service.port }}
 {{- end }}
+{{- end }}
 {{- if and .Values.deployment.microServices.engineeringTool.enabled .Values.deployment.ingress.paths.engineeringTool }}
+{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1" }}
+      - path: {{ .Values.deployment.ingress.paths.engineeringTool }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "azure-industrial-iot.engineering-tool.fullname" . }}
+            port:
+              number: {{ .Values.deployment.microServices.engineeringTool.service.httpPort }}
+{{ else }}
       - path: {{ .Values.deployment.ingress.paths.engineeringTool }}
         backend:
           serviceName: {{ template "azure-industrial-iot.engineering-tool.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.engineeringTool.service.httpPort }}
+{{- end }}
 {{- end }}
 {{- end }}

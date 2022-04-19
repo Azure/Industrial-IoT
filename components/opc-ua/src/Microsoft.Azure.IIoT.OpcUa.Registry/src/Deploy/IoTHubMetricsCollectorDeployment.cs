@@ -36,7 +36,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
 
         /// <inheritdoc/>
         public async Task StartAsync() {
-            if (string.IsNullOrEmpty(_config.LogWorkspaceId) || string.IsNullOrEmpty(_config.LogWorkspaceKey)) {
+            if (string.IsNullOrEmpty(_config.LogWorkspaceId) || string.IsNullOrEmpty(_config.LogWorkspaceKey)
+                    || string.IsNullOrEmpty(_config.IoTHubResourceId)) {
                 _logger.Warning("Azure Log Analytics Workspace configuration is not set." +
                     " Cannot proceed with metricscollector deployment.");
                 return;
@@ -119,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                                 ""value"": """ + _config.IoTHubResourceId + @"""
                             },
                             ""MetricsEndpointsCSV"": {
-                                ""value"": ""http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://opcpublisher:9702/metrics""
+                                ""value"": ""http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://publisher:9702/metrics""
                             }
                         },
                         ""status"": ""running"",

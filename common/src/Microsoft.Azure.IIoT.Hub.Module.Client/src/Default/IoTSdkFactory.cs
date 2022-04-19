@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
 
         /// <inheritdoc/>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5359:Do Not Disable Certificate Validation", 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5359:Do Not Disable Certificate Validation",
             Justification = "<Pending>")]
         public async Task<IClient> CreateAsync(string product, IProcessControl ctrl) {
 
@@ -297,6 +297,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     return;
                 }
                 await _client.SendEventAsync(message);
+            }
+
+            /// <inheritdoc />
+            public async Task SendEventAsync(string outputName, Message message) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.SendEventAsync(outputName, message);
             }
 
             /// <inheritdoc />
@@ -500,6 +508,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     return;
                 }
                 await _client.SendEventAsync(message);
+            }
+
+            /// <inheritdoc />
+            public Task SendEventAsync(string outputName, Message message) {
+                throw new InvalidOperationException(
+                    "DeviceClient does not support specifying output target.");
             }
 
             /// <inheritdoc />

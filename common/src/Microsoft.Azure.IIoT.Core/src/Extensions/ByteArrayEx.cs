@@ -75,7 +75,7 @@ namespace System {
         /// </summary>
         /// <param name="bytestr">string to hash</param>
         /// <returns></returns>
-        [Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5350:Do Not Use Weak Cryptographic Algorithms", 
+        [Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5350:Do Not Use Weak Cryptographic Algorithms",
             Justification = "SHA1 not used for crypto operation.")]
         public static string ToSha1Hash(this byte[] bytestr) {
             if (bytestr == null) {

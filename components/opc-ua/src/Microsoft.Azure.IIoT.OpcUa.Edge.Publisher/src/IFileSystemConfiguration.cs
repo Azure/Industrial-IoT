@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
     /// <summary>
     /// File system sink configuration
     /// </summary>
-    public interface IFileSystemConfiguration  {
+    public interface IFileSystemConfiguration {
 
         /// <summary>
         /// Folder to write to

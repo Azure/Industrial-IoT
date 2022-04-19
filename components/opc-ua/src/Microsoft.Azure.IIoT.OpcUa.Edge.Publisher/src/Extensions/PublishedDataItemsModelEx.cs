@@ -31,7 +31,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     continue;
                 }
                 var monitoredItem = item.ToMonitoredItem();
-                map.Add(monitoredItem.Id ?? Guid.NewGuid().ToString(), monitoredItem);
+
+                map.Add(monitoredItem.StartNodeId, monitoredItem);
             }
             return map.Values;
         }

@@ -118,7 +118,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             Assert.True(nodes.Count > 2000);
 
             Assert.Contains(nodes, n => string.Equals("i=2254", n.NodeId));
-            Assert.Contains(nodes, n => string.Equals("i=11312", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=11617", n.NodeId));
             Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=SlowUInt1", n.NodeId));
         }
     }

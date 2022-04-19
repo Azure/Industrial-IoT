@@ -93,7 +93,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var testPlc = _context.SimulatedPublishedNodes[_context.ConsumedOpcUaNodes.First().Key];
-            _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes.Skip(250).ToArray();
+
+            // We will filter out bad fast and slow nodes as they drop messages by design.
+            _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes
+                .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                .Skip(250).ToArray();
 
             var body = new {
                 NodesToAdd = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(node => new {
@@ -137,24 +141,30 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
+            // Make sure that there is no active monitoring.
+            TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
+
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             TestHelper.StartMonitoringIncomingMessagesAsync(_context, 50, 1000, 90_000_000, cts.Token).GetAwaiter().GetResult();
-            
+
             // Wait some time to generate events to process
             // On VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
             var delay = TestConstants.DefaultTimeoutInMilliseconds * 2;
             Task.Delay(delay, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
-            Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
-            Assert.True((uint)json.droppedValueCount == 0, "Dropped messages detected");
-            Assert.True((uint)json.duplicateValueCount == 0, "Duplicate values detected");
+            Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
+            Assert.True(json.DuplicateValueCount == 0, "Duplicate values detected");
+            Assert.Equal(0U, json.DroppedSequenceCount);
+            Assert.Equal(0U, json.DuplicateSequenceCount);
+            Assert.Equal(0U, json.ResetSequenceCount);
 
             var unexpectedNodesThatPublish = new List<string>();
             // Check that every published node is sending data
             if (_context.ConsumedOpcUaNodes != null) {
                 var expectedNodes = new List<string>(_context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id));
-                foreach(dynamic property in json.valueChangesByNodeId) {
-                    var propertyName = (string)property.Name;
+                foreach(var property in json.ValueChangesByNodeId) {
+                    var propertyName = property.Key;
                     var nodeId = propertyName.Split('#').Last();
                     var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
                     if (expected != null) {
@@ -182,7 +192,12 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             var testPlc = _context.SimulatedPublishedNodes[_context.ConsumedOpcUaNodes.First().Key];
-            _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes.Skip(250).ToArray();
+
+            // We will filter out bad fast and slow nodes as they drop messages by design.
+            _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes
+                .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                .Skip(250).ToArray();
+
             var body = new {
                 NodesToRemove = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(node => node.Id ).ToArray()
             };
@@ -195,12 +210,17 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         public void Test_VerifyNoDataIncomingAtIoTHub() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult(); //wait till the publishing has stopped
-            //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
+
+            // Make sure that there is no active monitoring.
+            TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
+
+            // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).GetAwaiter().GetResult();
-            // wait some time to generate events to process
+
+            // Wait some time to generate events to process
             Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
-            Assert.True((int)json.totalValueChangesCount == 0, "Unexpected Messages received at IoT Hub");
+            Assert.True(json.TotalValueChangesCount == 0, "Unexpected Messages received at IoT Hub");
         }
 
 

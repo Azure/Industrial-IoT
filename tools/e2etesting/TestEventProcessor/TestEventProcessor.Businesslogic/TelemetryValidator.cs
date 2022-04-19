@@ -19,6 +19,7 @@ namespace TestEventProcessor.BusinessLogic {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using TestEventProcessor.Businesslogic;
     using TestEventProcessor.BusinessLogic.Checkers;
 
     /// <summary>
@@ -39,6 +40,7 @@ namespace TestEventProcessor.BusinessLogic {
         private ValueChangeCounterPerNodeId _valueChangeCounterPerNodeId;
         private MissingValueChangesChecker _missingValueChangesChecker;
         private IncrementalIntValueChecker _incrementalIntValueChecker;
+        private SequenceNumberChecker _incrementalSequenceChecker;
 
         /// <summary>
         /// Instance to write logs
@@ -157,6 +159,8 @@ namespace TestEventProcessor.BusinessLogic {
 
             _incrementalIntValueChecker = new IncrementalIntValueChecker(_logger);
 
+            _incrementalSequenceChecker = new SequenceNumberChecker(_logger);
+
             return new StartResult();
         }
 
@@ -205,7 +209,9 @@ namespace TestEventProcessor.BusinessLogic {
 
             var incrCheckerResult = _incrementalIntValueChecker.Stop();
 
-            var stopResult = new StopResult() {
+            var incrSequenceResult = _incrementalSequenceChecker.Stop();
+
+            var stopResult =  new StopResult() {
                 ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
                 AllExpectedValueChanges = allExpectedValueChanges,
                 TotalValueChangesCount = _totalValueChangesCount,
@@ -216,6 +222,9 @@ namespace TestEventProcessor.BusinessLogic {
                 MaxDeliveyDuration = maxMessageDeliveryDelay.ToString(),
                 DroppedValueCount = incrCheckerResult.DroppedValueCount,
                 DuplicateValueCount = incrCheckerResult.DuplicateValueCount,
+                DroppedSequenceCount = incrSequenceResult.DroppedValueCount,
+                DuplicateSequenceCount = incrSequenceResult.DuplicateValueCount,
+                ResetSequenceCount = incrSequenceResult.ResetsValueCount,
             };
 
             return Task.FromResult(stopResult);
@@ -268,6 +277,9 @@ namespace TestEventProcessor.BusinessLogic {
                 return Task.CompletedTask;
             }
 
+            var properties = arg.Data.Properties;
+            var hasPubSubJsonHeader = properties.TryGetValue("$$ContentType", out var schema) ? schema.ToString() == MessageSchemaTypes.NetworkMessageJson : false;
+
             var body = arg.Data.Body.ToArray();
             var content = Encoding.UTF8.GetString(body);
             lock (_jContents) {
@@ -280,65 +292,100 @@ namespace TestEventProcessor.BusinessLogic {
             dynamic json = JsonConvert.DeserializeObject(content);
             var valueChangesCount = 0;
 
-            DateTime entrySourceTimestamp = default(DateTime);
-            string entryNodeId = null;
-            object entryValue = null;
+            foreach (dynamic entry in json){
 
-            foreach (dynamic entry in json) {
-                if (entry.Messages != null) {
-                    try {
-                        // pub sub
-                        var dataSetMessages = entry.Messages;
-                        foreach (var dataSetMessage in dataSetMessages) {
-                            foreach (var payload in dataSetMessage.Payload) {
-                                foreach (var message in payload.Value) {
-                                    try {
-                                        entrySourceTimestamp = message.SourceTimestamp;
-                                    }
-                                    catch (Exception) {
-                                    }
-                                    valueChangesCount++;
-                                    Interlocked.Increment(ref _totalValueChangesCount);
-                                }
+                try {
+                    // validate if the message has an OPC UA PubSub message type signature
+                    if (entry.MessageType == "ua-data") {
+                        if (!hasPubSubJsonHeader) {
+                            _logger.LogInformation("Received event with \"ua-data\" signature but invalid content type header");
+                        }
+
+                        foreach (dynamic message in entry.Messages) {
+                            var dataSetWriterId = message.DataSetWriterId.ToObject<string>();
+                            var sequenceNumber = message.SequenceNumber.ToObject<uint?>();
+                            FeedDataChangeCheckers(dataSetWriterId, sequenceNumber);
+
+                            var payload = message.Payload as JObject;
+                            foreach (JProperty property in payload.Properties()) {
+                                dynamic propertyValue = property.Value.ToObject<dynamic>();
+                                FeedDataCheckers(
+                                    (string)property.Name,
+                                    (DateTime)propertyValue.SourceTimestamp,
+                                    arg.Data.EnqueuedTime.UtcDateTime,
+                                    eventReceivedTimestamp,
+                                    propertyValue.Value);
+                                valueChangesCount++;
                             }
                         }
                     }
-                    catch (Exception ex) {
-                        _logger.LogError(ex, "Could not read from message. Please make sure that publisher is running with samples format and with --fm parameter set.");
-                        return Task.CompletedTask;
+                    else {
+                        FeedDataCheckers(
+                            (string)entry.NodeId,
+                            (DateTime)entry.Value.SourceTimestamp,
+                            arg.Data.EnqueuedTime.UtcDateTime,
+                            eventReceivedTimestamp,
+                            entry.Value.Value);
+                        valueChangesCount++;
                     }
                 }
-                else {
-                    try {
-                        entrySourceTimestamp = (DateTime)entry.Value.SourceTimestamp;
-                        entryNodeId = entry.NodeId;
-                        entryValue = entry.Value.Value;
-                    }
-                    catch (Exception ex) {
-                        _logger.LogError(ex, "Could not read value, nodeId and/or timestamp from " +
-                            "message. Please make sure that publisher is running with samples format and with " +
-                            "--fm parameter set.");
-                        continue;
-                    }
-
-                    Interlocked.Increment(ref _totalValueChangesCount);
-                    valueChangesCount++;
+                catch (Exception ex){
+                    _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from " +
+                        "message. Please make sure that publisher is running with samples format and with " +
+                        "--fm parameter set.");
+                    continue;
                 }
-
-                // Feed data to checkers.
-                _missingTimestampsChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
-                _messageProcessingDelayChecker.ProcessEvent(entrySourceTimestamp, eventReceivedTimestamp);
-                _messageDeliveryDelayChecker.ProcessEvent(entrySourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime);
-                _valueChangeCounterPerNodeId.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
-                _missingValueChangesChecker.ProcessEvent(entrySourceTimestamp);
-                _incrementalIntValueChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
-
             }
 
             _logger.LogDebug("Received {NumberOfValueChanges} messages from IoT Hub, partition {PartitionId}.",
                 valueChangesCount, arg.Partition.PartitionId);
-
             return Task.CompletedTask;
+        }
+
+
+        /// <summary>
+        /// Feed the checkers for the Value Change (single Node value) within the reveived event
+        /// </summary>
+        /// <param name="nodeId">Identifeir of the data source.</param>
+        /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
+        /// <param name="enqueuedTimestamp">IoT Hub message enqueue timestamp.</param>
+        /// <param name="receivedTimestamp">Timestamp of arrival in the telemetry processor.</param>
+        /// <param name="value">The actual value of the data change.</param>
+        private void FeedDataCheckers(
+            string nodeId,
+            DateTime sourceTimestamp,
+            DateTime enqueuedTimestamp,
+            DateTime receivedTimestamp,
+            object value) {
+
+            // OPC PLC contains bad fast and slow nodes that drop messages by design.
+            // We will ignore entries that do not have a value.
+            if (value is null) {
+                return;
+            }
+
+            // Feed data to checkers.
+            _missingTimestampsChecker.ProcessEvent(nodeId, sourceTimestamp, value);
+            _messageProcessingDelayChecker.ProcessEvent(nodeId, sourceTimestamp, receivedTimestamp);
+            _messageDeliveryDelayChecker.ProcessEvent(nodeId, sourceTimestamp, enqueuedTimestamp);
+            _valueChangeCounterPerNodeId.ProcessEvent(nodeId, sourceTimestamp, value);
+            _missingValueChangesChecker.ProcessEvent(sourceTimestamp);
+            _incrementalIntValueChecker.ProcessEvent(nodeId, value);
+
+            Interlocked.Increment(ref _totalValueChangesCount);
+        }
+
+        /// <summary>
+        /// Feed the checkers for the Data Change (one or more groupped node values) within the reveived event
+        /// </summary>
+        /// <param name="sequenceNumber">The actual sequence number of the data change</param>
+        private void FeedDataChangeCheckers(string dataSetWriterId, uint? sequenceNumber) {
+
+            if (!sequenceNumber.HasValue) {
+                _logger.LogWarning("Sequance number is null");
+                return;
+            }
+            _incrementalSequenceChecker.ProcessEvent(dataSetWriterId, sequenceNumber);
         }
 
         /// <summary>

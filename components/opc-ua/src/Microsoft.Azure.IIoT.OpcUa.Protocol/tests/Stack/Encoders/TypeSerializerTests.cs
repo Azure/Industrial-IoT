@@ -530,7 +530,7 @@ namespace Opc.Ua.Encoders {
 
         [Theory]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
-        // ulong is encoded with surrounding "", but UInt16 expects a number 
+        // ulong is encoded with surrounding "", but UInt16 expects a number
         //[InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
         //[InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
@@ -743,8 +743,8 @@ namespace Opc.Ua.Encoders {
                     new Variant(new long[] {1, 2, 3, 4, 5 }),
                     new Variant(new string[] {"1", "2", "3", "4", "5" })
                 },
-                LastMethodReturnStatus = new StatusResult(
-                    StatusCodes.BadAggregateConfigurationRejected),
+                LastMethodReturnStatus = 
+                    StatusCodes.BadAggregateConfigurationRejected,
                 LastMethodSessionId = new NodeId(
                     Utils.Nonce.CreateNonce(32)),
                 LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
@@ -763,7 +763,7 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Create the encoder/decoder pair for tests.
         /// </summary>
-        private static ServiceMessageContext CreateSerializers(
+        private static IServiceMessageContext CreateSerializers(
             out ITypeSerializer encoder, out ITypeSerializer decoder) {
             var context = new ServiceMessageContext();
             encoder = new TypeSerializer(context);

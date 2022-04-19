@@ -37,17 +37,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
             GetStringOrDefault(ProductUriKey, () => "https://www.github.com/Azure/Industrial-IoT");
         /// <inheritdoc/>
         public uint DefaultSessionTimeout =>
-            (uint)GetDurationOrDefault(DefaultSessionTimeoutKey, () => TimeSpan.Zero).TotalMilliseconds;
+            (uint)GetIntOrDefault(DefaultSessionTimeoutKey, () => 60) * 1000;
         /// <inheritdoc/>
         public int MinSubscriptionLifetime =>
-            (int)GetDurationOrDefault(MinSubscriptionLifetimeKey, () => TimeSpan.Zero).TotalMilliseconds;
+            GetIntOrDefault(MinSubscriptionLifetimeKey, () => 10) * 1000;
         /// <inheritdoc/>
         public int KeepAliveInterval =>
-            (int)GetDurationOrDefault(KeepAliveIntervalKey, () => TimeSpan.FromSeconds(10)).TotalMilliseconds;
+            GetIntOrDefault(KeepAliveIntervalKey, () => 10) * 1000;
         /// <inheritdoc/>
         public uint MaxKeepAliveCount =>
-            (uint)GetIntOrDefault(MaxKeepAliveCountKey, () => 50);
-
+            (uint)GetIntOrDefault(MaxKeepAliveCountKey, () => 10);
         /// <inheritdoc/>
         public string PkiRootPath => _security.PkiRootPath;
         /// <inheritdoc/>

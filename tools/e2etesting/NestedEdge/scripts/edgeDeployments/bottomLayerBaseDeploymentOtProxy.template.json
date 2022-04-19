@@ -47,6 +47,9 @@
               },
               "httpSettings:enabled": {
                 "value": true
+              },
+              "SslProtocols": {
+                "value": "tls1.2"
               }
             }
           }

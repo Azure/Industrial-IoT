@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     resourceGroup.Name,
                     vm.Name,
                     cancellationToken: cancellationToken
-                );  
+                );
         }
 
         /// <summary>

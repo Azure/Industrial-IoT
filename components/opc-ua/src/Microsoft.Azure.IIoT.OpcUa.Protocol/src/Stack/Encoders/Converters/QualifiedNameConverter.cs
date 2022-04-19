@@ -19,7 +19,7 @@ namespace Opc.Ua {
             if (reader.TokenType != JsonToken.String) {
                 return null;
             }
-            if (!(serializer.Context.Context is ServiceMessageContext context)) {
+            if (!(serializer.Context.Context is IServiceMessageContext context)) {
                 context = ServiceMessageContext.GlobalContext;
             }
             return ((string)reader.Value).ToQualifiedName(context);
@@ -28,7 +28,7 @@ namespace Opc.Ua {
         /// <inheritdoc/>
         public override void WriteJson(JsonWriter writer, QualifiedName value,
             JsonSerializer serializer) {
-            if (!(serializer.Context.Context is ServiceMessageContext context)) {
+            if (!(serializer.Context.Context is IServiceMessageContext context)) {
                 context = ServiceMessageContext.GlobalContext;
             }
             writer.WriteToken(JsonToken.String, value.AsString(context));

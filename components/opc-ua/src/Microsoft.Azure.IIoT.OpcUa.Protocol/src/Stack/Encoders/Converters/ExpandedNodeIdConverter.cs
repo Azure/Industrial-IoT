@@ -19,7 +19,7 @@ namespace Opc.Ua {
             if (reader.TokenType != JsonToken.String) {
                 return null;
             }
-            if (!(serializer.Context.Context is ServiceMessageContext context)) {
+            if (!(serializer.Context.Context is IServiceMessageContext context)) {
                 context = ServiceMessageContext.GlobalContext;
             }
             return ((string)reader.Value).ToExpandedNodeId(context);

@@ -25,7 +25,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="context"></param>
         public ModelEncoder(Stream stream, string contentType,
             Action<ExpandedNodeId> callback = null,
-            ServiceMessageContext context = null) :
+            IServiceMessageContext context = null) :
             this(CreateEncoder(contentType, stream, context), callback) {
         }
 
@@ -45,11 +45,11 @@ namespace Opc.Ua.Encoders {
             _wrapped.EncodingType;
 
         /// <inheritdoc />
-        public ServiceMessageContext Context =>
+        public IServiceMessageContext Context =>
             _wrapped.Context;
 
         /// <inheritdoc />
-        public bool UseReversibleEncoding => 
+        public bool UseReversibleEncoding =>
             _wrapped.UseReversibleEncoding;
 
         /// <inheritdoc />
@@ -382,7 +382,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="context"></param>
         /// <returns></returns>
         private static IEncoder CreateEncoder(string contentType, Stream stream,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (stream == null) {
                 throw new ArgumentNullException(nameof(stream));
             }

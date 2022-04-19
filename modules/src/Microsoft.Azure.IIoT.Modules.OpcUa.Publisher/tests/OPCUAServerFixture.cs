@@ -1,7 +1,7 @@
 ﻿namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Moq;    
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
+    using Moq;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
@@ -19,7 +19,7 @@
         /// </summary>
         public BlockingCollection<EventMessage> Events { get; set; } = new BlockingCollection<EventMessage>();
 
-        public OPCUAServerFixture() {           
+        public OPCUAServerFixture() {
             // Start Server
             _serverWrapper = new ServerWrapper(Mock.Of<ILogger>());
         }

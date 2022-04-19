@@ -41,6 +41,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         Task<VariantValue> GetCurrentJobState();
 
         /// <summary>
+        /// Returns the diagnostic info of a job
+        /// </summary>
+        /// <returns></returns>
+        JobDiagnosticInfoModel GetDiagnosticInfo();
+
+        /// <summary>
         /// Switch processing mode
         /// </summary>
         /// <param name="processMode"></param>
@@ -48,5 +54,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <returns></returns>
         Task SwitchProcessMode(ProcessMode processMode,
             DateTime? timestamp);
+
+        /// <summary>
+        /// Reconfigure Trigger and take over the exsting resources
+        /// </summary>
+        void ReconfigureTrigger(object config);
     }
 }

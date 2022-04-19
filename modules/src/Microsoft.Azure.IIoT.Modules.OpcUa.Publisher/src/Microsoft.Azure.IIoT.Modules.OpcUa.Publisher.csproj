@@ -13,7 +13,7 @@
     <ProjectCapability Include="AzureIoTEdgeModule" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.14" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.14" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.14" />
@@ -24,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.Debug\src\Microsoft.Azure.IIoT.Diagnostics.Debug.csproj" />
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Http.HealthChecks\Microsoft.Azure.IIoT.Http.HealthChecks.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Publisher\src\Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.csproj" />
@@ -36,6 +37,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="publishednodes.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Schemas\strict-publishednodesschema.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Schemas\publishednodesschema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

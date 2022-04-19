@@ -13,19 +13,25 @@ schedules:
     - releases
   always: true
 
-# Trigger Stand Alone E2E Pipeline post completion of build pipeline.
-resources:
-  pipelines:
-  - pipeline: Standalone-E2E-CD-Pipeline
-    source: Custom\Azure_IOT\Industrial\Components\Azure.Industrial-IoT
-    trigger:
-      branches:
-        include:
-        - refs/heads/releases
-        - refs/heads/release/*
-        - refs/heads/main
+# # Pipeline completion triggers work only for pipelines within the same organization.
+# # We will trigger this pipeline via a REST API call from the main pipeline.
+#
+# # Trigger Stand Alone E2E Pipeline post completion of build pipeline.
+# resources:
+#   pipelines:
+#   - pipeline: Standalone-E2E-CD-Pipeline
+#     source: Custom\Azure_IOT\Industrial\Components\Azure.Industrial-IoT
+#     trigger:
+#       branches:
+#         include:
+#         - refs/heads/releases
+#         - refs/heads/release/*
+#         - refs/heads/main
+
 pool:
   name: '$(AgentPool)'
+  demands:
+  - agent.os -equals Windows_NT
 
 variables:
 - template: steps/variables.yml
@@ -72,7 +78,7 @@ stages:
   condition: and(not(canceled()), or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped')))
   jobs:
   - job: runtests
-    timeoutInMinutes: 120
+    timeoutInMinutes: 180
     displayName: 'Run End 2 End Tests'
     steps:
     - template: steps/runtests.yml

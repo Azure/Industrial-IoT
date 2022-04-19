@@ -72,6 +72,9 @@ namespace Opc.Ua.Extensions {
             int index = nodeId.NamespaceIndex;
             if (!string.IsNullOrEmpty(nodeId.NamespaceUri)) {
                 index = namespaces.GetIndex(nodeId.NamespaceUri);
+                if (index < 0) {
+                    throw new IndexOutOfRangeException($"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.");
+                }
             }
             return new NodeId(nodeId.Identifier, (ushort)index);
         }
@@ -87,7 +90,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <param name="noRelativeUriAllowed"></param>
         /// <returns></returns>
-        public static string AsString(this NodeId nodeId, ServiceMessageContext context,
+        public static string AsString(this NodeId nodeId, IServiceMessageContext context,
             bool noRelativeUriAllowed = false) {
             if (NodeId.IsNull(nodeId)) {
                 return null;
@@ -103,7 +106,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <param name="noRelativeUriAllowed"></param>
         /// <returns></returns>
-        public static string AsString(this ExpandedNodeId nodeId, ServiceMessageContext context,
+        public static string AsString(this ExpandedNodeId nodeId, IServiceMessageContext context,
             bool noRelativeUriAllowed = false) {
             if (NodeId.IsNull(nodeId)) {
                 return null;
@@ -135,7 +138,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="value"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static NodeId ToNodeId(this string value, ServiceMessageContext context) {
+        public static NodeId ToNodeId(this string value, IServiceMessageContext context) {
             if (value == null) {
                 return NodeId.Null;
             }
@@ -156,7 +159,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="value"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static ExpandedNodeId ToExpandedNodeId(this string value, ServiceMessageContext context) {
+        public static ExpandedNodeId ToExpandedNodeId(this string value, IServiceMessageContext context) {
             if (value == null) {
                 return ExpandedNodeId.Null;
             }

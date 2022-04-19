@@ -19,9 +19,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// Node id
+        /// Node Id in string format as configured
         /// </summary>
-        public NodeId NodeId { get; internal set; }
+        public string NodeId { get; internal set; }
 
         /// <summary>
         /// Attribute monitored

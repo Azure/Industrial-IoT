@@ -83,16 +83,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
 
                 if (curValue == _latestValuePerNodeId[nodeId].Item1) {
                     _duplicateValues++;
-
-                    _logger.LogWarning("Duplicate value detected for {nodeId}, previous timestamp is {prevTimestamp}, " +
-                        "current timestamp is {curTimestamp}.",
-                        nodeId,
-                        _latestValuePerNodeId[nodeId].Item2.ToString(_dateTimeFormat, _dateTimeFormatInfo),
-                        timestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo));
-
-                    _latestValuePerNodeId[nodeId] = Tuple.Create(curValue, timestamp);
-                }
-                else {
+                    _logger.LogWarning("Duplicate value detected for {nodeId}: {value}", nodeId, curValue);
+                } else {
                     _droppedValues++;
                     _logger.LogWarning("Dropped value detected for {nodeId}, " +
                         "previous value is {prevValue} with timestamp {prevTimestamp} " +

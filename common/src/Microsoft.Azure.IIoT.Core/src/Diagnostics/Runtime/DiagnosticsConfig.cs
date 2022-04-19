@@ -13,9 +13,12 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     public class DiagnosticsConfig : ConfigBase, IDiagnosticsConfig {
 
         private const string kInstrumentationKey = PcsVariable.PCS_APPINSIGHTS_INSTRUMENTATIONKEY;
+        private const string kLogLevel = PcsVariable.PCS_APPINSIGHTS_LOGLEVEL;
 
         /// <inheritdoc/>
         public string InstrumentationKey => GetStringOrDefault(kInstrumentationKey);
+        /// <inheritdoc/>
+        public string LogLevel => GetStringOrDefault(kLogLevel);
 
         /// <summary>
         /// Configuration constructor

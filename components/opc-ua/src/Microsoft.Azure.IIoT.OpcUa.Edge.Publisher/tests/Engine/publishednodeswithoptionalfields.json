@@ -1,0 +1,26 @@
+[
+    {
+        "EndpointUrl": "opc.tcp://server1:49580",
+        "UseSecurity": false,
+        "OpcNodes": [
+            {
+                "Id": "ns=2;s=Node-Server1",
+                "DisplayName": "Node-Server1",
+                "OpcSamplingInterval": 2000,
+                "OpcPublishingInterval": 2000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "opc.tcp://server2:49580",
+        "UseSecurity": false,
+        "OpcNodes": [
+            {
+                "Id": "ns=2;s=Node-Server2",
+                "DisplayName": "Node-Server2",
+                "OpcSamplingInterval": 2000,
+                "OpcPublishingInterval": 2000
+            }
+        ]
+    }
+]

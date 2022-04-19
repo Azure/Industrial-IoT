@@ -22,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string DEFAULT_EVENT_HUB_NAME_PREFIX = "eventhub-";
         public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
-        public const string EVENT_HUB_CONSUMER_GROUP_TELEMETRY_CDM = "telemetry_cdm";
         public const string EVENT_HUB_CONSUMER_GROUP_TELEMETRY_UX = "telemetry_ux";
         public const int DEFAULT_MESSAGE_RETENTION_IN_DAYS = 2;
         public const int DEFUALT_PARTITION_COUNT = 4;

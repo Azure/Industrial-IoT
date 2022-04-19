@@ -12,6 +12,11 @@ trigger:
     - releases
     - dev/*
     - release/*
+
+variables:
+  iaiStorageAccount: azureiiot
+  iaiStorageAccountSubscription: azureiiotbak-storage
+
 stages:
 - stage: build
   displayName: 'Build and Test Code'
@@ -52,3 +57,16 @@ stages:
   - build
   jobs:
   - template: tools/templates/cc.yml
+- stage: e2e_tests
+  displayName: 'Triggering E2E tests'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  dependsOn:
+  - build
+  - pack
+  - iiot_deployment
+  - images
+  - coverage
+  jobs:
+  - template: tools/templates/e2e_tests.yml
+    parameters:
+      branchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}

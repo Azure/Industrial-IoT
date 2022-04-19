@@ -24,13 +24,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME = "iothub-default";
         public const string STORAGE_ACCOUNT_DATAPROTECTION_CONTAINER_NAME = "dataprotection";
         public const string STORAGE_ACCOUNT_DEPLOYMENT_SCRIPTS_CONTAINER_NAME = "deployment-scripts";
-        public const string STORAGE_ACCOUNT_POWERBI_CONTAINER_NAME = "powerbi";
 
-        public const string POWERBI_ROOT_FOLDER = "IIoTDataFlow";
-
-        private const string kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT = 
+        private const string kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT =
             "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}";
-        private const string kDATA_LAKE_ENDPOINT_SUFFIX_FORMAT = "dfs.{0}";
 
         private readonly StorageManagementClient _storageManagementClient;
         private readonly AzureEnvironment _azureEnvironment;
@@ -401,50 +397,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// <returns></returns>
         public string GetEndpointSuffix() {
             return _azureEnvironment.StorageEndpointSuffix;
-        }
-
-        /// <summary>
-        /// Get data lake endpoint suffix.
-        /// </summary>
-        /// <returns></returns>
-        public string GetDataLakeEndpointSuffix() {
-            var dataLakeEndpointSuffix = string.Format(
-                kDATA_LAKE_ENDPOINT_SUFFIX_FORMAT,
-                _azureEnvironment.StorageEndpointSuffix
-            );
-            return dataLakeEndpointSuffix;
-        }
-
-        /// <summary>
-        /// Get connection string for Storage Account with data lake specific endpoint suffix.
-        /// </summary>
-        /// <param name="resourceGroup"></param>
-        /// <param name="storageAccount"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task<string> GetStorageAccountDataLakeConectionStringAsync(
-            IResourceGroup resourceGroup,
-            StorageAccountInner storageAccount,
-            CancellationToken cancellationToken = default
-        ) {
-            if (resourceGroup is null) {
-                throw new ArgumentNullException(nameof(resourceGroup));
-            }
-            if (storageAccount is null) {
-                throw new ArgumentNullException(nameof(storageAccount));
-            }
-
-            var storageAccountKey = await GetStorageAccountKeyAsync(resourceGroup, storageAccount, cancellationToken);
-            var dataLakeEndpointSuffix = GetDataLakeEndpointSuffix();
-
-            var storageAccountConectionString = string.Format(
-                kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT,
-                storageAccount.Name,
-                storageAccountKey.Value,
-                dataLakeEndpointSuffix
-            );
-
-            return storageAccountConectionString;
         }
 
         /// <summary>

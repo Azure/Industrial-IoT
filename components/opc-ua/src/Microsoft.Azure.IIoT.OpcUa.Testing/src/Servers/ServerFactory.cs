@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
-    using System.IdentityModel.Selectors;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
@@ -163,11 +162,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                         DiagnosticsEnabled = false,
                         ShutdownDelay = 5,
 
-                        // No op
-                        MinRequestThreadCount = 3,
-                        MaxRequestThreadCount = 100,
-                        MaxQueuedRequestCount = 2000,
-
                         // Runtime configuration
                         BaseAddresses = new StringCollection(ports
                             .Distinct()
@@ -200,12 +194,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                             }
                         },
 
-                        MaxSessionCount = 100,
+                        MinRequestThreadCount = 20,
+                        MaxRequestThreadCount = 200,
+                        MaxQueuedRequestCount = 200000,
+
+                        MaxSessionCount = 1000,
                         MinSessionTimeout = 10000,
                         MaxSessionTimeout = 3600000,
-                        MaxBrowseContinuationPoints = 10,
-                        MaxQueryContinuationPoints = 10,
-                        MaxHistoryContinuationPoints = 100,
+                        MaxBrowseContinuationPoints = 1000,
+                        MaxQueryContinuationPoints = 1000,
+                        MaxHistoryContinuationPoints = 1000,
                         MaxRequestAge = 600000,
                         MinPublishingInterval = 100,
                         MaxPublishingInterval = 3600000,
@@ -248,7 +246,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                 IServerInternal server, ApplicationConfiguration configuration) {
                 _logger.Information("Creating the Node Managers.");
                 var nodeManagers = _nodes
-                    .Select(n => n.CreateNodeManager(server, configuration));
+                    .Select(n => n.Create(server, configuration));
                 return new MasterNodeManager(server, configuration, null,
                     nodeManagers.ToArray());
             }

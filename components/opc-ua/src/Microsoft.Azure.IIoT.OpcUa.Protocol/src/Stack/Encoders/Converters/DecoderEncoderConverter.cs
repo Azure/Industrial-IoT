@@ -19,7 +19,7 @@ namespace Opc.Ua {
         /// <param name="serializer"></param>
         /// <returns></returns>
         protected JsonDecoderEx CreateDecoder(JsonReader reader, JsonSerializer serializer) {
-            if (!(serializer.Context.Context is ServiceMessageContext context)) {
+            if (!(serializer.Context.Context is IServiceMessageContext context)) {
                 context = ServiceMessageContext.GlobalContext;
             }
             return new JsonDecoderEx(reader, context, true);
@@ -32,7 +32,7 @@ namespace Opc.Ua {
         /// <param name="serializer"></param>
         /// <returns></returns>
         protected JsonEncoderEx CreateEncoder(JsonWriter writer, JsonSerializer serializer) {
-            if (!(serializer.Context.Context is ServiceMessageContext context)) {
+            if (!(serializer.Context.Context is IServiceMessageContext context)) {
                 context = ServiceMessageContext.GlobalContext;
             }
             return new JsonEncoderEx(writer, context, JsonEncoderEx.JsonEncoding.Token) {

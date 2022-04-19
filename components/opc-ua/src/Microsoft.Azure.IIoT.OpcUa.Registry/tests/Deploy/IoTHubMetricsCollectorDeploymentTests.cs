@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Deploy {
                         module["env"]["LogAnalyticsSharedKey"].Value<string>("value"));
                     Assert.Equal("/subscriptions/SubscriptionId/resourceGroups/ResourceGroupName/providers/Microsoft.Devices/IotHubs/test",
                         module["env"]["ResourceId"].Value<string>("value"));
-                    Assert.Equal("http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://opcpublisher:9702/metrics",
+                    Assert.Equal("http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://publisher:9702/metrics",
                         module["env"]["MetricsEndpointsCSV"].Value<string>("value"));
                 }
                 {
@@ -100,9 +100,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Deploy {
                         module["env"]["LogAnalyticsSharedKey"].Value<string>("value"));
                     Assert.Equal("/subscriptions/SubscriptionId/resourceGroups/ResourceGroupName/providers/Microsoft.Devices/IotHubs/test",
                         module["env"]["ResourceId"].Value<string>("value"));
-                    Assert.Equal("http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://opcpublisher:9702/metrics",
+                    Assert.Equal("http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://publisher:9702/metrics",
                         module["env"]["MetricsEndpointsCSV"].Value<string>("value"));
                 }
+            }
+        }
+
+        [Fact]
+        public async Task EmptyIotHubResourceIdConfigTestAsync() {
+
+            IList<ConfigurationModel> configurationModelList = new List<ConfigurationModel>();
+
+            var ioTHubConfigurationServicesMock = new Mock<IIoTHubConfigurationServices>();
+            ioTHubConfigurationServicesMock
+                .Setup(e => e.CreateOrUpdateConfigurationAsync(It.IsAny<ConfigurationModel>(), true, CancellationToken.None))
+                .Callback<ConfigurationModel, bool, CancellationToken>(
+                    (confModel, forceUpdate, ct) => configurationModelList.Add(confModel))
+                .Returns((ConfigurationModel configuration, bool forceUpdate, CancellationToken ct) => Task.FromResult(configuration));
+
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection()
+                .Build();
+            configuration["Docker:WorkspaceId"] = "WorkspaceId";
+            configuration["Docker:WorkspaceKey"] = "WorkspaceKey";
+            configuration["SubscriptionId"] = "";
+            configuration["ResourceGroupName"] = null;
+            configuration["IoTHubConnectionString"] = "HostName=test.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=test";
+
+            using (var mock = Setup(ioTHubConfigurationServicesMock, configuration)) {
+                var metricsCollectorDeploymentService = mock.Create<IoTHubMetricsCollectorDeployment>();
+                await metricsCollectorDeploymentService.StartAsync();
+                Assert.Equal(0, configurationModelList.Count);
             }
         }
 

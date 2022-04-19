@@ -13,7 +13,11 @@ of our microservices:
   Industrial IoT Platform microservices.
 - `0.3.2` version of `azure-industrial-iot` Helm chart to deploy `2.7.206` version of Azure Industrial IoT
   Platform microservices.
-- `0.4.0` version of `azure-industrial-iot` Helm chart to deploy `2.8` version of Azure Industrial IoT
+- `0.4.0` version of `azure-industrial-iot` Helm chart to deploy `2.8.0` version of Azure Industrial IoT
+  Platform microservices.
+- `0.4.1` version of `azure-industrial-iot` Helm chart to deploy `2.8.1` version of Azure Industrial IoT
+  Platform microservices.
+- `0.4.2` version of `azure-industrial-iot` Helm chart to deploy `2.8.2` version of Azure Industrial IoT
   Platform microservices.
 
 ## Installing The Chart
@@ -26,16 +30,30 @@ Kubernetes cluster:
 - For `0.2.0` version of the Chart: [Azure Industrial IoT Helm Chart v0.2.0](https://github.com/Azure/Industrial-IoT/blob/helm/0.2.0/deploy/helm/azure-industrial-iot/README.md)
 - For `0.3.1` version of the Chart: [Azure Industrial IoT Helm Chart v0.3.1](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/README.md)
 - For `0.3.2` version of the Chart: [Azure Industrial IoT Helm Chart v0.3.2](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.2/deploy/helm/azure-industrial-iot/README.md)
-- For `0.3.3` version of the Chart: [Azure Industrial IoT Helm Chart v0.3.3](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.3/deploy/helm/azure-industrial-iot/README.md)
+- For `0.4.0` version of the Chart: [Azure Industrial IoT Helm Chart v0.4.0](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.0/deploy/helm/azure-industrial-iot/README.md)
+- For `0.4.1` version of the Chart: [Azure Industrial IoT Helm Chart v0.4.1](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.1/deploy/helm/azure-industrial-iot/README.md)
+- For `0.4.2` version of the Chart: [Azure Industrial IoT Helm Chart v0.4.2](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.2/deploy/helm/azure-industrial-iot/README.md)
 
-For latest (`0.4.0`) documentation and chart sources please check [deploy/helm/azure-industrial-iot/](../../deploy/helm/azure-industrial-iot/)
-directory.
+For latest documentation and chart sources please check [deploy/helm/azure-industrial-iot/](../../deploy/helm/azure-industrial-iot/)
+directory on `main` branch.
 
 ## Helm Repositories
 
-You can find `azure-industrial-iot` Helm chart in the following [Helm Repositories](https://helm.sh/docs/topics/chart_repository/)
+You can find `azure-industrial-iot` Helm chart in the following [Helm Chart Repositories](https://helm.sh/docs/topics/chart_repository/)
+
+- `https://azure.github.io/Industrial-IoT/helm`
+
+  > NOTE: This is the recommended Helm chart repository to use.
+
+  To add the repository:
+
+  ```bash
+  helm repo add industrial-iot https://azure.github.io/Industrial-IoT/helm
+  ```
 
 - `https://azureiiot.blob.core.windows.net/helm`
+
+  > NOTE: This is a legacy Helm chart repository. We will keep updating it, but we recommend using `https://azure.github.io/Industrial-IoT/helm`.
 
   To add the repository:
 
@@ -44,6 +62,8 @@ You can find `azure-industrial-iot` Helm chart in the following [Helm Repositori
   ```
 
 - `https://microsoft.github.io/charts/repo`
+
+  > NOTE: This is a legacy Helm chart repository. We will keep updating it, but we recommend using `https://azure.github.io/Industrial-IoT/helm`.
 
   To add the repository:
 

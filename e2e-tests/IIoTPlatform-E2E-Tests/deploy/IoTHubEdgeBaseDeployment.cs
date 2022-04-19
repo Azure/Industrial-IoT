@@ -25,7 +25,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         protected override int Priority => 0;
 
         /// <inheritdoc />
-        protected override string DeploymentName => kDeploymentName + $"{DateTime.UtcNow.Ticks}";
+        protected override string DeploymentName => kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd")}";
 
         /// <inheritdoc />
         protected override string TargetCondition => kTargetCondition;
@@ -86,6 +86,9 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                                     },
                                     ""experimentalFeatures:nestedEdgeEnabled"": {
                                         ""value"": ""true""
+                                    },
+                                    ""SslProtocols"": {
+                                        ""value"": ""tls1.2""
                                     }
                                 }
                             }

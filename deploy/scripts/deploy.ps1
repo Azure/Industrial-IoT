@@ -70,6 +70,16 @@
 
  .PARAMETER numberOfWindowsGateways
     Number of Windows gateways to deploy into the simulation.
+
+ .PARAMETER gatewayVmSku
+    Virtual machine SKU size that hosts simulated edge gateway.
+    Suggestion: use VM with at least 2 cores and 8 GB of memory.
+    Must Support Generation 1.
+
+ .PARAMETER opcPlcVmSku
+    Virtual machine SKU size that hosts simulated OPC UA PLC.
+    Suggestion: use VM with at least 1 core and 2 GB of memory.
+    Must Support Generation 1.
 #>
 
 param(
@@ -89,6 +99,8 @@ param(
     [string] $acrRegistryName,
     [string] $acrSubscriptionName,
     [string] $simulationProfile,
+    [string] $gatewayVmSku,
+    [string] $opcPlcVmSku,
     [int] $numberOfLinuxGateways = 0,
     [int] $numberOfWindowsGateways = 0,
     [int] $numberOfSimulationsPerEdge = 0,
@@ -602,6 +614,9 @@ Function Get-EnvironmentVariables() {
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_APP_URL=$($var)"
     }
+    if (![string]::IsNullOrEmpty($script:version)) {
+        Write-Output "PCS_IMAGES_TAG=$($script:version)"
+    }
 }
 
 #******************************************************************************
@@ -818,36 +833,46 @@ Function New-Deployment() {
             $templateParameters.Add("numberOfSimulations", $script:numberOfSimulationsPerEdge)
         }
 
-        # Get all vm skus available in the location and in the account
-        $availableVms = Get-AzComputeResourceSku | Where-Object {
-            ($_.ResourceType.Contains("virtualMachines")) -and `
-            ($_.Locations -icontains $script:resourceGroupLocation) -and `
-            ($_.Restrictions.Count -eq 0)
-        }
-        # Sort based on sizes and filter minimum requirements
-        $availableVmNames = $availableVms `
-            | Select-Object -ExpandProperty Name -Unique
+        # To be refactored: it's necessary to filter out the unsupported SKU sizes.
+        # It still there isn't a API to identify the generations supported by the SKU sizes.
+        if ([string]::IsNullOrEmpty($script:gatewayVmSku)) {
+            
+            # Get all vm skus available in the location and in the account
+            $availableVms = Get-AzComputeResourceSku | Where-Object {
+                ($_.ResourceType.Contains("virtualMachines")) -and `
+                ($_.Locations -icontains $script:resourceGroupLocation) -and `
+                ($_.Restrictions.Count -eq 0)
+            }
+            # Sort based on sizes and filter minimum requirements
+            $availableVmNames = $availableVms `
+                | Select-Object -ExpandProperty Name -Unique
 
-        # We will use VM with at least 2 cores and 8 GB of memory as gateway host.
-        $edgeVmSizes = Get-AzVMSize $script:resourceGroupLocation `
-            | Where-Object { $availableVmNames -icontains $_.Name } `
-            | Where-Object {
-                ($_.NumberOfCores -ge 2) -and `
-                ($_.MemoryInMB -ge 8192) -and `
-                ($_.OSDiskSizeInMB -ge 1047552) -and `
-                ($_.ResourceDiskSizeInMB -gt 8192)
-            } `
-            | Sort-Object -Property `
-                NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
-        # Pick top
-        if ($edgeVmSizes.Count -ne 0) {
-            $edgeVmSize = $edgeVmSizes[0].Name
-            Write-Host "Using $($edgeVmSize) as VM size for all edge simulation gateway hosts..."
-            $templateParameters.Add("edgeVmSize", $edgeVmSize)
+            # We will use VM with at least 2 cores and 8 GB of memory as gateway host.
+            $edgeVmSizes = Get-AzVMSize $script:resourceGroupLocation `
+                | Where-Object { $availableVmNames -icontains $_.Name } `
+                | Where-Object {
+                    ($_.NumberOfCores -ge 2) -and `
+                    ($_.MemoryInMB -ge 8192) -and `
+                    ($_.OSDiskSizeInMB -ge 1047552) -and `
+                    ($_.ResourceDiskSizeInMB -gt 8192)
+                } `
+                | Sort-Object -Property `
+                    NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
+            # Pick top
+            if ($edgeVmSizes.Count -ne 0) {
+                $edgeVmSize = $edgeVmSizes[0].Name
+                Write-Host "Using $($edgeVmSize) as VM size for all edge simulation gateway hosts..."
+                $templateParameters.Add("edgeVmSize", $edgeVmSize)
+            }
+        }
+        else {
+            $templateParameters.Add("edgeVmSize", $script:gatewayVmSku)
         }
 
-        # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulation containers.
-        $simulationVmSizes = Get-AzVMSize $script:resourceGroupLocation `
+        if ([string]::IsNullOrEmpty($script:opcPlcVmSku)) {
+
+            # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulation containers.
+            $simulationVmSizes = Get-AzVMSize $script:resourceGroupLocation `
             | Where-Object { $availableVmNames -icontains $_.Name } `
             | Where-Object {
                 ($_.NumberOfCores -ge 1) -and `
@@ -857,11 +882,15 @@ Function New-Deployment() {
             } `
             | Sort-Object -Property `
                 NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
-        # Pick top
-        if ($simulationVmSizes.Count -ne 0) {
-            $simulationVmSize = $simulationVmSizes[0].Name
-            Write-Host "Using $($simulationVmSize) as VM size for all edge simulation hosts..."
-            $templateParameters.Add("simulationVmSize", $simulationVmSize)
+            # Pick top
+            if ($simulationVmSizes.Count -ne 0) {
+                $simulationVmSize = $simulationVmSizes[0].Name
+                Write-Host "Using $($simulationVmSize) as VM size for all edge simulation hosts..."
+                $templateParameters.Add("simulationVmSize", $simulationVmSize)
+            }
+        }    
+        else {
+            $templateParameters.Add("simulationVmSize", $script:opcPlcVmSku)
         }
 
         $adminUser = "sandboxuser"

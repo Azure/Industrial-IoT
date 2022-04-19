@@ -5,6 +5,14 @@ parameters:
   type: string
 
 steps:
+- task: UseDotNet@2
+  displayName: 'Install .NET Core SDK'
+  inputs:
+    packageType: sdk
+    version: 3.1.x
+    includePreviewVersions: false
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
 - task: AzureCLI@2
   displayName: 'Set Service Principal Environment Variables'
   name: promoteserviceprincipal
@@ -64,8 +72,8 @@ steps:
   displayName: 'Load secrets from Key Vault as variables by default'
   condition: and(eq(variables['ContainerRegistryServer'], ''), eq(variables['ContainerRegistryUsername'], ''), eq(variables['ContainerRegistryPassword'], ''))
   inputs:
-    azureSubscription: 'IOT-OPC-WALLS-SP'
-    KeyVaultName: 'developerPipelineKV'
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: '$(DevAcrCredentialsKeyVaultName)'
     SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
@@ -91,7 +99,7 @@ steps:
 
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
-  timeoutInMinutes: 90
+  timeoutInMinutes: 150
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
