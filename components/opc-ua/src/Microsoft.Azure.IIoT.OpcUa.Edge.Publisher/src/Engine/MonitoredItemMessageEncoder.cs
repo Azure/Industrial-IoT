@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Encoders;
-    using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
     using Serilog;
     using System;
@@ -44,12 +43,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary> Logger for reporting. </summary>
         private readonly ILogger _logger;
 
+        /// <summary> The ContentType to be used for json messages encoding. </summary>
+        private readonly string _jsonContentType;
+
+        /// <summary>
+        /// Create instance of MonitoredItemMessageEncoder.
+        /// </summary>
+        /// <param name="logger"> Logger to be used for reporting. </param>
+        /// <param name="standaloneConfig"> injected configuration. </param>
+        public MonitoredItemMessageEncoder(ILogger logger, IStandaloneCliModelProvider standaloneConfig) {
+            _logger = logger;
+            _jsonContentType = standaloneConfig.StandaloneCliModel.LegacyCompatibility
+                ? ContentMimeType.UaLegacyPublisher
+                : ContentMimeType.Json;
+        }
+
         /// <summary>
         /// Create instance of MonitoredItemMessageEncoder.
         /// </summary>
         /// <param name="logger"> Logger to be used for reporting. </param>
         public MonitoredItemMessageEncoder(ILogger logger) {
             _logger = logger;
+            _jsonContentType = ContentMimeType.Json;
         }
 
         /// <inheritdoc/>
@@ -147,7 +162,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Body = Encoding.UTF8.GetBytes(writer.ToString()),
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
-                        ContentType = ContentMimeType.UaJson,
+                        ContentType = _jsonContentType,
                         MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
@@ -260,7 +275,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Body = Encoding.UTF8.GetBytes(writer.ToString()),
                     ContentEncoding = "utf-8",
                     Timestamp = DateTime.UtcNow,
-                    ContentType = ContentMimeType.UaLegacyPublisher,
+                    ContentType = _jsonContentType,
                     MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson
                 };
                 if (encoded.Body.Length > maxMessageSize) {

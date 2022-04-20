@@ -1,0 +1,194 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$comment": "The outer most object of the configuration file must be an array, though its contents may adhere to several differing schema, presented from newest to oldest supported schema. Further design details can be found in the markdown document that is adjacent to this schema.",
+	"type": "array",
+	"items": {
+		"$comment": "The nested 'oneOf' under 'items' ensures that each array element must conform to one of the three following subschema. See the following stackoverflow post for details: https://stackoverflow.com/a/67314134/1276028",
+		"oneOf": [
+			{
+				"$comment": "The following subschema is the most current allowable configuration schema for OPC Publisher",
+				"type": "object",
+				"properties": {
+					"DataSetWriterId": {
+						"type": "string"
+					},
+					"DataSetWriterGroup": {
+						"type": "string"
+					},
+					"DataSetPublishingInterval": {
+						"type": [
+							"integer",
+							"string"
+						]
+					},
+					"EncryptedAuthPassword": {
+						"type": "string"
+					},
+					"OpcAuthenticationPassword": {
+						"type": "string"
+					},
+					"EndpointUrl": {
+						"type": "string",
+						"format": "uri",
+						"$comment": "Endpoint urls must adhere to OPC UA server addressing schemes which begin with `opc.tcp` followed by acceptable URI formatting, e.g. `opc.tcp://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`",
+						"pattern": "opc.tcp://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+					},
+					"UseSecurity": {
+						"type": "boolean"
+					},
+					"OpcNodes": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"Id": {
+									"type": "string",
+									"$comment": "This subschema supports all allowable formats, e.g. `nsu={url/urn resource path}/;{nodeId type}={nodeId}` or `ns={namespace index based on OPC UA IM}/;{nodeId type}={nodeId}` or `{nodeId type}={nodeId}`",
+									"pattern": "(^nsu=http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;(i=(\\d+)$))|(^nsu=http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;(s=([\\x00-\\x7F]|([\\xC2-\\xDF]|\\xE0[\\xA0-\\xBF]|\\xED[\\x80-\\x9F]|(|[\\xE1-\\xEC]|[\\xEE-\\xEF]|\\xF0[\\x90-\\xBF]|\\xF4[\\x80-\\x8F]|[\\xF1-\\xF3][\\x80-\\xBF])[\\x80-\\xBF])[\\x80-\\xBF])+$))|(^nsu=http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;(g=([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$))|(^nsu=http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;(b=(?:[A-Za-z\\d+/]{4})*(?:[A-Za-z\\d+/]{3}=|[A-Za-z\\d+/]{2}==)$))|(^ns=(\\d+);(i=(\\d+)$))|(^ns=(\\d+);(s=([\\x00-\\x7F]|([\\xC2-\\xDF]|\\xE0[\\xA0-\\xBF]|\\xED[\\x80-\\x9F]|(|[\\xE1-\\xEC]|[\\xEE-\\xEF]|\\xF0[\\x90-\\xBF]|\\xF4[\\x80-\\x8F]|[\\xF1-\\xF3][\\x80-\\xBF])[\\x80-\\xBF])[\\x80-\\xBF])+$))|(^ns=(\\d+);(g=([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$))|(^ns=(\\d+);(b=(?:[A-Za-z\\d+/]{4})*(?:[A-Za-z\\d+/]{3}=|[A-Za-z\\d+/]{2}==)$))|(^i=(\\d+)$)|(^s=([\\x00-\\x7F]|([\\xC2-\\xDF]|\\xE0[\\xA0-\\xBF]|\\xED[\\x80-\\x9F]|(|[\\xE1-\\xEC]|[\\xEE-\\xEF]|\\xF0[\\x90-\\xBF]|\\xF4[\\x80-\\x8F]|[\\xF1-\\xF3][\\x80-\\xBF])[\\x80-\\xBF])[\\x80-\\xBF])+$)|(^g=([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$)|(^b=(?:[A-Za-z\\d+/]{4})*(?:[A-Za-z\\d+/]{3}=|[A-Za-z\\d+/]{2}==)$)"
+								},
+								"DisplayName": {
+									"type": "string"
+								},
+								"DataSetFieldId": {
+									"type": "string"
+								},
+								"OpcSamplingInterval": {
+									"type": "integer"
+								},
+								"OpcPublishingInterval": {
+									"type": "integer"
+								},
+								"HeartbeatInterval": {
+									"type": "integer"
+								},
+								"HeartbeatIntervalTimespan": {
+									"type": "string"
+								},
+								"SkipFirst": {
+									"type": "boolean"
+								}
+							},
+							"required": [
+								"Id"
+							]
+						}
+					}
+				},
+				"required": [
+					"EndpointUrl",
+					"OpcNodes"
+				]
+			},
+			{
+				"type": "object",
+				"properties": {
+					"DataSetWriterId": {
+						"type": "string"
+					},
+					"DataSetWriterGroup": {
+						"type": "string"
+					},
+					"DataSetPublishingInterval": {
+						"type": [
+							"integer",
+							"string"
+						]
+					},
+					"EncryptedAuthPassword": {
+						"type": "string"
+					},
+					"OpcAuthenticationPassword": {
+						"type": "string"
+					},
+					"EndpointUrl": {
+						"type": "string",
+						"format": "uri",
+						"$comment": "Endpoint urls must adhere to OPC UA server addressing schemes which begin with `opc.tcp` followed by acceptable URI formatting, e.g. `opc.tcp://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`",
+						"pattern": "opc.tcp://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+					},
+					"UseSecurity": {
+						"type": "boolean"
+					},
+					"OpcNodes": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"ExpandedNodeId": {
+									"type": "string",
+									"$comment": "This subschema only supports the use of the expanded nodeid format, e.g. `nsu={url/urn resource path}/;{nodeId type}={nodeId}`",
+									"pattern": "(^nsu=http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;(i=(\\d+)$))|(^nsu=http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;(s=([\\x00-\\x7F]|([\\xC2-\\xDF]|\\xE0[\\xA0-\\xBF]|\\xED[\\x80-\\x9F]|(|[\\xE1-\\xEC]|[\\xEE-\\xEF]|\\xF0[\\x90-\\xBF]|\\xF4[\\x80-\\x8F]|[\\xF1-\\xF3][\\x80-\\xBF])[\\x80-\\xBF])[\\x80-\\xBF])+$))|(^nsu=http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;(g=([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$))|(^nsu=http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;(b=(?:[A-Za-z\\d+/]{4})*(?:[A-Za-z\\d+/]{3}=|[A-Za-z\\d+/]{2}==)$))"
+								},
+								"OpcSamplingInterval": {
+									"type": "integer"
+								},
+								"OpcPublishingInterval": {
+									"type": "integer"
+								}
+							},
+							"required": [
+								"ExpandedNodeId"
+							]
+						}
+					}
+				},
+				"required": [
+					"EndpointUrl",
+					"OpcNodes"
+				]
+			},
+			{
+				"type": "object",
+				"properties": {
+					"DataSetWriterId": {
+						"type": "string"
+					},
+					"DataSetWriterGroup": {
+						"type": "string"
+					},
+					"DataSetPublishingInterval": {
+						"type": [
+							"integer",
+							"string"
+						]
+					},
+					"EncryptedAuthPassword": {
+						"type": "string"
+					},
+					"OpcAuthenticationPassword": {
+						"type": "string"
+					},
+					"EndpointUrl": {
+						"type": "string",
+						"format": "uri",
+						"$comment": "Endpoint urls must adhere to OPC UA server addressing schemes which begin with `opc.tcp` followed by acceptable URI formatting, e.g. `opc.tcp://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`",
+						"pattern": "opc.tcp://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+					},
+					"NodeId": {
+						"type": "object",
+						"properties": {
+							"Identifier": {
+								"type": "string",
+								"$comment": "The only supported, historical ID format for this subschema is 'NodeId', e.g. `{nodeId type}={nodeId}` ",
+								"pattern": "(^i=(\\d+)$)|(^s=([\\x00-\\x7F]|([\\xC2-\\xDF]|\\xE0[\\xA0-\\xBF]|\\xED[\\x80-\\x9F]|(|[\\xE1-\\xEC]|[\\xEE-\\xEF]|\\xF0[\\x90-\\xBF]|\\xF4[\\x80-\\x8F]|[\\xF1-\\xF3][\\x80-\\xBF])[\\x80-\\xBF])[\\x80-\\xBF])+$)|(^g=([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$)|(^b=(?:[A-Za-z\\d+/]{4})*(?:[A-Za-z\\d+/]{3}=|[A-Za-z\\d+/]{2}==)$)|(^ns=(\\d+);(i=(\\d+)$))|(^ns=(\\d+);(s=([\\x00-\\x7F]|([\\xC2-\\xDF]|\\xE0[\\xA0-\\xBF]|\\xED[\\x80-\\x9F]|(|[\\xE1-\\xEC]|[\\xEE-\\xEF]|\\xF0[\\x90-\\xBF]|\\xF4[\\x80-\\x8F]|[\\xF1-\\xF3][\\x80-\\xBF])[\\x80-\\xBF])[\\x80-\\xBF])+$))|(^ns=(\\d+);(g=([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$))|(^ns=(\\d+);(b=(?:[A-Za-z\\d+/]{4})*(?:[A-Za-z\\d+/]{3}=|[A-Za-z\\d+/]{2}==)$))"
+							},
+							"OpcSamplingInterval": {
+								"type": "integer"
+							},
+							"OpcPublishingInterval": {
+								"type": "integer"
+							}
+						},
+						"required": [
+							"Identifier"
+						]
+					}
+				},
+				"required": [
+					"EndpointUrl",
+					"NodeId"
+				]
+			}
+		]
+	}
+}

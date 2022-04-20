@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Autofac;
     using System.Linq;
     using System.Threading;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine;
 
     public class MethodRouterTests {
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
@@ -501,8 +502,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _serializer.SerializeToBytes(buffer).ToArray())).Result;
 
             Assert.Equal(400, response.Status);
-            var ex = _serializer.Deserialize<ArgumentNullException>(
+            var deserializedResponse = _serializer.Deserialize<MethodCallStatusExceptionModel>(
                 response.ResultAsJson);
+            var ex = _serializer.Deserialize<ArgumentNullException>(
+                deserializedResponse.Details);
             Assert.Equal("request", ex.ParamName);
         }
 
@@ -568,7 +571,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             public byte[] Test { get; set; }
         }
 
-        [Version(1)]
+        [Version("_V1")]
         public class TestControllerV1 : IMethodController {
 
             public Task<TestModel> Test1Async(TestModel request) {
@@ -599,7 +602,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             public bool _noparamcalled;
         }
 
-        [Version(2)]
+        [Version("_V2")]
         public class TestControllerV2 : IMethodController {
 
             public Task<byte[]> Test2Async(byte[] request) {
@@ -618,8 +621,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
         }
 
-        [Version(1)]
-        [Version(2)]
+        [Version("_V1")]
+        [Version("_V2")]
         public class TestControllerV1And2 : IMethodController {
 
             public Task<byte[]> Test8Async(byte[] request) {

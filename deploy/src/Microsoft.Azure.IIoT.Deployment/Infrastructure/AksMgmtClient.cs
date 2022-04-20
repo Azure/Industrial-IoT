@@ -31,8 +31,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string NETWORK_PROFILE_DNS_SERVICE_IP = "10.0.0.10";
         public const string NETWORK_PROFILE_DOCKER_BRIDGE_CIDR = "172.17.0.1/16";
 
-        public const string KUBERNETES_VERSION_FALLBACK = "1.19.11";
-        public const string KUBERNETES_VERSION_MAJ_MIN = "1.19";
+        public const string KUBERNETES_VERSION_FALLBACK = "1.21.9";
+        public const string KUBERNETES_VERSION_MAJ_MIN = "1.21";
 
         private readonly ContainerServiceManagementClient _containerServiceManagementClient;
 
@@ -154,12 +154,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 //Fqdn = null,
                 AgentPoolProfiles = new List<ManagedClusterAgentPoolProfile> {
                     new ManagedClusterAgentPoolProfile {
+                        Type = AgentPoolType.VirtualMachineScaleSets,
                         Name = "agentpool",
                         Count = 2,
                         VmSize = ContainerServiceVMSizeTypes.StandardDS2V2,
                         OsDiskSizeGB = 100,
                         OsType = OSType.Linux,
-                        VnetSubnetID = virtualNetworkSubnet.Id
+                        VnetSubnetID = virtualNetworkSubnet.Id,
+                        MaxPods = 40,
                     }
                 },
                 LinuxProfile = new ContainerServiceLinuxProfile {

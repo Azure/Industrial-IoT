@@ -68,5 +68,25 @@ namespace TestEventProcessor.BusinessLogic
         /// Indicates the number of duplicate messages detected by IncrementalIntValueChecker.
         /// </summary>
         public uint DuplicateValueCount { get; set; }
+
+        /// <summary>
+        /// Indicates the number of dropped sequence numbers detected by SequenceNumberChecker.
+        /// </summary>
+        public uint DroppedSequenceCount { get; set; }
+
+        /// <summary>
+        /// Indicates the number of duplicate sequence numbers detected by SequenceNumberChecker.
+        /// </summary>
+        public uint DuplicateSequenceCount { get; set; }
+
+        /// <summary>
+        /// Indicates the number of times the sequence number was reset.
+        /// </summary>
+        public uint ResetSequenceCount { get; set; }
+
+        /// <summary>
+        /// Indicates whether restart announcement was received.
+        /// </summary>
+        public bool RestartAnnouncementReceived { get; set; }
     }
 }

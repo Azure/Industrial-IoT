@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -23,6 +24,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Number of retries
         /// </summary>
         int NumberOfConnectionRetries { get; }
+
+        /// <summary>
+        /// Is connection ok?
+        /// </summary>
+        bool IsConnectionOk { get; }
+
+        /// <summary>
+        /// Number of nodes currently connected and returning data
+        /// </summary>
+        int NumberOfGoodNodes { get; }
+
+        /// <summary>
+        /// Number of nodes currently not connected
+        /// </summary>
+        int NumberOfBadNodes { get; }
 
         /// <summary>
         /// The number of all monitored items value changes
@@ -59,8 +75,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Run the group triggering
         /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
         Task RunAsync(CancellationToken ct);
+
+        /// <summary>
+        /// Allow takeover of newly configured subscriptions
+        /// </summary>
+        void Reconfigure(object config);
+
+        /// <summary>
+        /// EndpointUrl
+        /// </summary>
+        Uri EndpointUrl { get; }
+
+        /// <summary>
+        /// DataSetWriterGroup
+        /// </summary>
+        string DataSetWriterGroup { get; }
+
+        /// <summary>
+        /// UseSecurity
+        /// </summary>
+        bool UseSecurity { get; }
+
+        /// <summary>
+        /// AuthenticationMode
+        /// </summary>
+        OpcAuthenticationMode AuthenticationMode { get; }
+
+        /// <summary>
+        /// AuthenticationUsername
+        /// </summary>
+        string AuthenticationUsername { get; }
     }
 }

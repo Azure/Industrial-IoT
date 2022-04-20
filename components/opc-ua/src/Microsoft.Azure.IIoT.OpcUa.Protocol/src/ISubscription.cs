@@ -52,6 +52,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         int NumberOfConnectionRetries { get; }
 
         /// <summary>
+        /// IsConnectionOk
+        /// </summary>
+        bool IsConnectionOk { get; }
+
+        /// <summary>
+        /// Number of nodes connected and receiving data
+        /// </summary>
+        int NumberOfGoodNodes { get; }
+
+        /// <summary>
+        /// Number of nodes disconnected
+        /// </summary>
+        int NumberOfBadNodes { get; }
+
+        /// <summary>
         /// Create snapshot
         /// </summary>
         /// <returns></returns>

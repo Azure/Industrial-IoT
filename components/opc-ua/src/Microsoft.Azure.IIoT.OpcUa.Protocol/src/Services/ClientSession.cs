@@ -20,7 +20,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Wraps a session object to provide serialized access and connection and

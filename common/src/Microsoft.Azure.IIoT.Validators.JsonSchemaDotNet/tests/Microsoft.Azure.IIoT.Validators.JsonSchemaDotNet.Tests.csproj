@@ -8,6 +8,9 @@
     <Content Include="..\..\..\..\modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\src\Schemas\publishednodesschema.json" Link="Default\publishednodesschema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\..\..\modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\src\Schemas\strict-publishednodesschema.json" Link="Default\strict-publishednodesschema.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac.Extras.Moq" Version="5.0.1" />

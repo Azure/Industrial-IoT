@@ -1,0 +1,13 @@
+[
+    {
+        "DataSetWriterId": "Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
+        "Tag": "Tag_Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d",
+        "DataSetWriterGroup": "Leaf1",
+        "DataSetPublishingInterval": 10000,
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "UsernamePassword",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd"
+    }
+]

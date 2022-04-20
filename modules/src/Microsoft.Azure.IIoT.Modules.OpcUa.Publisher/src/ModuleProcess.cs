@@ -4,37 +4,38 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
+    using Autofac;
+    using Microsoft.Azure.IIoT.Agent.Framework;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Http.HealthChecks;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.Agent.Framework;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Configuration;
+    using Opc.Ua;
+    using Prometheus;
+    using Serilog;
+    using Serilog.Events;
     using System;
     using System.Diagnostics;
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
-    using Autofac;
-    using Microsoft.Extensions.Configuration;
-    using Serilog;
-    using Prometheus;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Opc.Ua;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Serilog.Events;
 
     /// <summary>
     /// Publisher module
@@ -63,6 +64,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// </summary>
         public int OpcStackTraceMask { get; set; }
 
+        /// <summary>
+        /// Shows if we're running in standalone mode or not.
+        /// </summary>
+        public bool RunInStandaloneMode { get; set; }
+
         /// <inheritdoc />
         public void Reset() {
             _reset.TrySetResult(true);
@@ -77,12 +83,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             if (Host.IsContainer) {
                 // Set timer to kill the entire process after 5 minutes.
-#pragma warning disable IDE0067 // Dispose objects before losing scope
                 var _ = new Timer(o => {
                     Log.Logger.Fatal("Killing non responsive module process!");
                     Process.GetCurrentProcess().Kill();
                 }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
-#pragma warning restore IDE0067 // Dispose objects before losing scope
             }
         }
 
@@ -105,23 +109,35 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var identity = hostScope.Resolve<IIdentity>();
+                    var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
                     ISessionManager sessionManager = null;
                     var server = new MetricServer(port: kPublisherPrometheusPort);
+
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.Information("Starting module OpcPublisher version {version}.", version);
                         logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
+                        healthCheckManager.Start();
                         SetStackTraceMask();
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
-                            "OpcPublisher", version, this);
+                            "OpcPublisher", version, this).ConfigureAwait(false);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
-                        await workerSupervisor.StartAsync();
+                        await workerSupervisor.StartAsync().ConfigureAwait(false);
+
+                        // Reporting runtime state on restart.
+                        // Reporting will happen only in stadalone mode.
+                        if (RunInStandaloneMode) {
+                            var runtimeStateReporter = hostScope.Resolve<IRuntimeStateReporter>();
+                            // Needs to be called only after module.StartAsync() so that IClient is initialized.
+                            await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false);
+                        }
+
                         sessionManager = hostScope.Resolve<ISessionManager>();
                         OnRunning?.Invoke(this, true);
-                        await Task.WhenAny(_reset.Task, _exit.Task);
+                        await Task.WhenAny(_reset.Task, _exit.Task).ConfigureAwait(false);
                         if (_exit.Task.IsCompleted) {
                             logger.Information("Module exits...");
                             return _exitCode;
@@ -133,13 +149,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
-                        await workerSupervisor.StopAsync();
-                        await (sessionManager?.StopAsync() ?? Task.CompletedTask);
-                        await module.StopAsync();
                         OnRunning?.Invoke(this, false);
+                        await workerSupervisor.StopAsync().ConfigureAwait(false);
+                        await (sessionManager?.StopAsync()?? Task.CompletedTask).ConfigureAwait(false);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
+                        healthCheckManager.Stop();
                         server.StopWhenEnabled(moduleConfig, logger);
+                        await module.StopAsync().ConfigureAwait(false);
+                        logger.Information("Module stopped.");
                     }
                 }
             }
@@ -184,7 +202,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
-            var legacyCliOptions = new LegacyCliOptions(configuration);
+            var standaloneCliOptions = new StandaloneCliOptions(configuration);
+
+            RunInStandaloneMode = standaloneCliOptions.RunInStandaloneMode;
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -201,10 +221,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            if (legacyCliOptions.RunInLegacyMode) {
+            if (RunInStandaloneMode) {
                 builder.AddDiagnostics(config,
-                    legacyCliOptions.ToLoggerConfiguration());
-                builder.RegisterInstance(legacyCliOptions)
+                    standaloneCliOptions.ToLoggerConfiguration());
+                builder.RegisterInstance(standaloneCliOptions)
                     .AsImplementedInterfaces();
 
                 // we overwrite the ModuleHost registration from PerLifetimeScope
@@ -212,12 +232,20 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // we want to reuse the Client from the ModuleHost in sub-scopes.
                 builder.RegisterType<ModuleHost>()
                     .AsImplementedInterfaces().SingleInstance();
+                // Published nodes file provider
+                builder.RegisterType<PublishedNodesProvider>()
+                    .AsImplementedInterfaces().SingleInstance();
                 // Local orchestrator
-                builder.RegisterType<LegacyJobOrchestrator>()
+                builder.RegisterType<StandaloneJobOrchestrator>()
                     .AsImplementedInterfaces().SingleInstance();
                 // Create jobs from published nodes file
                 builder.RegisterType<PublishedNodesJobConverter>()
                     .SingleInstance();
+                builder.RegisterType<PublisherMethodsController>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
+                // Runtime state reporter.
+                builder.RegisterType<RuntimeStateReporter>()
+                    .AsImplementedInterfaces().SingleInstance();
             }
             else {
                 builder.AddDiagnostics(config);
@@ -249,6 +277,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
+
+            builder.RegisterType<HealthCheckManager>()
+                .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
         }
