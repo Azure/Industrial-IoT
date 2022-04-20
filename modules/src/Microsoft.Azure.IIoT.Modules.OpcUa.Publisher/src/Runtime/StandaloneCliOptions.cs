@@ -80,6 +80,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
                     { $"ec|edgehubconnectionstring=|{StandaloneCliConfigKeys.EdgeHubConnectionString}=", "An edge module connection string to use",
                         dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
+                    { $"mc|mqttclientconnectionstring=|{StandaloneCliConfigKeys.MqttClientConnectionString}", "An mqtt client connection string to use.",
+                        mc => this[StandaloneCliConfigKeys.MqttClientConnectionString] = mc },
                     { $"{StandaloneCliConfigKeys.BypassCertVerificationKey}=", "Enables bypass of certificate verification for upstream communication to edgeHub.",
                         (bool b) => this[StandaloneCliConfigKeys.BypassCertVerificationKey] = b.ToString() },
                     { $"{StandaloneCliConfigKeys.EnableMetricsKey}=", "Enables upstream metrics propagation.",

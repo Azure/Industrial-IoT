@@ -96,6 +96,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
+            public async Task SendEventAsync(string outputName, Message message) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.SendEventAsync(outputName, message);
+            }
+
+            /// <inheritdoc />
             public async Task SendEventBatchAsync(IEnumerable<Message> messages) {
                 if (IsClosed) {
                     return;

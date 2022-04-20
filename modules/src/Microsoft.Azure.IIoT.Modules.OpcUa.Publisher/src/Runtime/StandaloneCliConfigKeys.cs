@@ -147,6 +147,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string BypassCertVerificationKey = ModuleConfig.kBypassCertVerificationKey;
 
         /// <summary>
+        /// Key for the Mqtt client connection string.
+        /// </summary>
+        public const string MqttClientConnectionString = ModuleConfig.kMqttClientConnectionStringKey;
+
+        /// <summary>
         /// Key for enable metrics flag.
         /// </summary>
         public const string EnableMetricsKey = ModuleConfig.kEnableMetricsKey;

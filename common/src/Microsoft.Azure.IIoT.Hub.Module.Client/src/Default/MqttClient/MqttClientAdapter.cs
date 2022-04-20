@@ -140,7 +140,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// <param name="onConnectionLost">Handler for when the MQTT server connection is lost.</param>
             /// <param name="logger">Logger used for operations</param>
             /// <returns></returns>
-            public static Task<IClient> CreateAsync(string product, MqttClientConnectionStringBuilder cs, string deviceId, TimeSpan timeout, 
+            public static Task<IClient> CreateAsync(string product, MqttClientConnectionStringBuilder cs, string deviceId, TimeSpan timeout,
                 IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
                 var client = new MqttFactory().CreateManagedMqttClient();
                 return CreateAsync(client, product, cs, deviceId, timeout, retry, onConnectionLost, logger);
@@ -174,6 +174,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     topic += UrlEncodedDictionarySerializer.Serialize(properties) + kSegmentSeparator;
                 }
                 return InternalSendEventAsync(topic, message.BodyStream);
+            }
+
+            /// <inheritdoc />
+            public Task SendEventAsync(string outputName, Message message) {
+                throw new InvalidOperationException(
+                        "MqttClient does not support specifying output target.");
             }
 
             /// <inheritdoc />
@@ -219,7 +225,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
                 Twin result = null;
                 try {
-                    // Publish message and wait for response to come back. The thread may be unblocked by other 
+                    // Publish message and wait for response to come back. The thread may be unblocked by other
                     // simultaneous calls, so wait again if needed.
                     await InternalSendEventAsync($"$iothub/twin/GET/?$rid={requestId}", cancellationToken: cancellationTokenSource.Token);
                     while (!cancellationTokenSource.Token.IsCancellationRequested) {
