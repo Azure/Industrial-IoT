@@ -22,13 +22,14 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         /// <param name="context"></param>
         public IoTHubPublisherDeployment(IIoTPlatformTestContext context, MessagingMode messagingMode) : base(context) {
             MessagingMode = messagingMode;
+            _deploymentName = kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd")}";
         }
 
         /// <inheritdoc />
         protected override int Priority => 1;
 
         /// <inheritdoc />
-        protected override string DeploymentName => kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd")}";
+        protected override string DeploymentName => _deploymentName;
 
         protected override string TargetCondition => kTargetCondition;
 
@@ -58,11 +59,12 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
             var createOptions = JsonConvert.SerializeObject(new {
                 Hostname = ModuleName,
                 Cmd = new[] {
-                "PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
+                "--PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
                 "--aa",
                 "--pf=" + TestConstants.PublishedNodesFullName,
                 "--mm=" + MessagingMode.ToString(),
                 "--fm=true",
+                "--RuntimeStateReporting=true",
             },
                 HostConfig = new {
                     Binds = new[] {
@@ -109,5 +111,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         private const string kModuleName = "publisher_standalone";
         private const string kDeploymentName = "__default-opcpublisher-standalone";
         private const string kTargetCondition = "(tags.__type__ = 'iiotedge' AND IS_DEFINED(tags.unmanaged))";
+
+        private readonly string _deploymentName;
     }
 }
