@@ -189,11 +189,11 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
         /// </summary>
         private void Validate() {
             if (string.IsNullOrWhiteSpace(HostName)) {
-                throw new ArgumentException($"{HostName} must be specified in the connection string");
+                throw new ArgumentException($"{kHostNamePropertyName} must be specified in the connection string");
             }
 
             if (string.IsNullOrWhiteSpace(DeviceId)) {
-                throw new ArgumentException($"{DeviceId} must be specified in the connection string");
+                throw new ArgumentException($"{kDeviceIdPropertyName} must be specified in the connection string");
             }
 
             ValidateFormat(DeviceId, kDeviceIdPropertyName, kIdNameRegex);
@@ -201,7 +201,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
 
             if (UsingIoTHub) {
                 if (string.IsNullOrWhiteSpace(SharedAccessSignature)) {
-                    throw new ArgumentException($"{SharedAccessSignature} must be specified in the connection string");
+                    throw new ArgumentException($"{kSharedAccessSignaturePropertyName} must be specified in the connection string");
                 }
 
                 ValidateFormat(SharedAccessSignature, nameof(SharedAccessSignature), kSharedAccessSignatureRegex);
@@ -210,15 +210,15 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
                 ValidateFormat(SharedAccessSignature, nameof(SharedAccessSignature), kSasExpiryRegex);
 
                 if (string.IsNullOrWhiteSpace(Username)) {
-                    throw new ArgumentException($"{nameof(Username)} was not configured and is required for the Azure IoT Hub");
+                    throw new ArgumentException($"{kUsernamePropertyName} was not configured and is required for the Azure IoT Hub");
                 }
 
                 if (string.IsNullOrWhiteSpace(Password)) {
-                    throw new ArgumentException($"{nameof(Password)} was not configured and is required for the Azure IoT Hub");
+                    throw new ArgumentException($"{kPasswordPropertyName} was not configured and is required for the Azure IoT Hub");
                 }
 
                 if (X509Cert == null) {
-                    throw new ArgumentException($"{nameof(X509Cert)} was not configured and is required for the Azure IoT Hub");
+                    throw new ArgumentException($"X509 Certificate was not configured and is required for the Azure IoT Hub");
                 }
             }
         }
