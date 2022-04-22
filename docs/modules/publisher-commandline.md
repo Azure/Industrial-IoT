@@ -11,7 +11,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Mode: Standalone only
                                       Type: connection string 
                                           for MQTT Broker: `HostName=<IPorDnsName>;Port=<Port>;DeviceId=<IoTDeviceId>`
-                                          for IoT Hub: `UsingIoTHub=true;HostName=<IoTHubName>.azure-devices.net;DeviceId=<IoTDeviceId>;SharedAccessSignature=<SharedAccessSignature>` 
+                                          for IoT Hub: `HostName=<IoTHubName>.azure-devices.net;DeviceId=<IoTDeviceId>;SharedAccessSignature=<SharedAccessSignature>` 
                                             Please refer to https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#using-the-mqtt-protocol-directly-as-a-device for generating SharedAccessSignature. 
                                       Default: <not set> 
 
