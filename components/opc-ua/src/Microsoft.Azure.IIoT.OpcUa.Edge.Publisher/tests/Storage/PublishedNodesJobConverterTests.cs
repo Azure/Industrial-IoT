@@ -2126,7 +2126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
         }
 
         // ToDo: Parts of job converter for OpcEvents are commented out for now. So parts of the test that check this bellow are also commented out.
-        [Fact(Skip = "Job converter does not parse OpcEvents now.")]
+        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now.")]
         public async Task PnPlcMultiJob1TestWithDataItemsAndEvents() {
             var pn = @"
 [

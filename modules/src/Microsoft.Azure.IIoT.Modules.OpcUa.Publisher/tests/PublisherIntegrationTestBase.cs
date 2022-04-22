@@ -1,7 +1,8 @@
-﻿namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Autofac;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Http.HealthChecks;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
@@ -15,6 +16,7 @@
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Serializers;
@@ -125,37 +127,46 @@
         /// Host the publisher module.
         /// </summary>
         private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, List<(DeviceTwinModel, DeviceModel)> devices) {
-            // Hook event source
-            using (var broker = new EventSourceBroker()) {
+            try {
+                // Hook event source
+                using (var broker = new EventSourceBroker()) {
 
-                using (var hostScope = ConfigureContainer(configurationRoot, devices)) {
-                    var module = hostScope.Resolve<IModuleHost>();
-                    var events = hostScope.Resolve<IEventEmitter>();
-                    var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
-                    var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                    var identity = hostScope.Resolve<IIdentity>();
-                    ISessionManager sessionManager = null;
+                    using (var hostScope = ConfigureContainer(configurationRoot, devices)) {
+                        var module = hostScope.Resolve<IModuleHost>();
+                        var events = hostScope.Resolve<IEventEmitter>();
+                        var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
+                        var moduleConfig = hostScope.Resolve<IModuleConfig>();
+                        var identity = hostScope.Resolve<IIdentity>();
+                        var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
+                        ISessionManager sessionManager = null;
 
-                    var hubServices = (IoTHubServices)hostScope.Resolve<IIoTHub>();
-                    Events = hubServices.Events;
+                        var hubServices = (IoTHubServices)hostScope.Resolve<IIoTHub>();
+                        Events = hubServices.Events;
 
-                    try {
-                        var version = GetType().Assembly.GetReleaseVersion().ToString();
-                        logger.Information("Starting module OpcPublisher version {version}.", version);
-                        // Start module
-                        await module.StartAsync(IdentityType.Publisher, "IntegrationTests", "OpcPublisher", version, null);
-                        await workerSupervisor.StartAsync();
-                        sessionManager = hostScope.Resolve<ISessionManager>();
+                        try {
+                            var version = GetType().Assembly.GetReleaseVersion().ToString();
+                            logger.Information("Starting module OpcPublisher version {version}.", version);
+                            healthCheckManager.Start();
+                            // Start module
+                            await module.StartAsync(IdentityType.Publisher, "IntegrationTests", "OpcPublisher", version, null);
+                            await workerSupervisor.StartAsync();
+                            sessionManager = hostScope.Resolve<ISessionManager>();
 
-                        await Task.WhenAny(_exit.Task);
-                        logger.Information("Module exits...");
-                    }
-                    finally {
-                        await workerSupervisor.StopAsync();
-                        await sessionManager?.StopAsync();
-                        await module.StopAsync();
+                            await Task.WhenAny(_exit.Task);
+                            logger.Information("Module exits...");
+                        }
+                        finally {
+                            await workerSupervisor.StopAsync();
+                            await sessionManager?.StopAsync();
+                            healthCheckManager.Stop();
+                            await module.StopAsync();
+                        }
                     }
                 }
+            }
+            catch (Exception ex) {
+                logger.Error(ex, "Error when initializing module host.");
+                throw;
             }
         }
 
@@ -186,6 +197,8 @@
             builder.Register(ctx => Create(devices)).AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<ModuleHost>().AsImplementedInterfaces().SingleInstance();
+            // Published nodes file provider
+            builder.RegisterType<PublishedNodesProvider>().AsImplementedInterfaces().SingleInstance();
             // Local orchestrator
             builder.RegisterType<StandaloneJobOrchestrator>().AsImplementedInterfaces().SingleInstance();
             // Create jobs from published nodes file
@@ -197,6 +210,8 @@
             builder.RegisterType<DefaultSessionManager>().AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<SubscriptionServices>().AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>().AsImplementedInterfaces();
+
+            builder.RegisterType<HealthCheckManager>().AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
         }

@@ -24,4 +24,16 @@
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="PublishedNodes\DataItems.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="PublishedNodes\PendingAlarms.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="PublishedNodes\SimpleEvents.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
