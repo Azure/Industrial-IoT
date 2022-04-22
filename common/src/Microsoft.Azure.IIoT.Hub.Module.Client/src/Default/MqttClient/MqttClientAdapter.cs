@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 }
 
                 var tls_options = new MqttClientOptionsBuilderTlsParameters {
-                    UseTls = true,
+                    UseTls = cs.UsingIoTHub,
                     SslProtocol = SslProtocols.Tls12,
                     IgnoreCertificateRevocationErrors = true
                 };
