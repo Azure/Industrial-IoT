@@ -99,14 +99,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     options = options.WithCredentials(cs.Username, cs.Password);
                 }
 
+                var tls_options = new MqttClientOptionsBuilderTlsParameters {
+                    UseTls = true,
+                    SslProtocol = SslProtocols.Tls12,
+                    IgnoreCertificateRevocationErrors = true
+                };
+
                 if (cs.UsingX509Cert) {
-                    options = options.WithTls(new MqttClientOptionsBuilderTlsParameters {
-                        UseTls = true,
-                        SslProtocol = SslProtocols.Tls12,
-                        Certificates = new List<X509Certificate> { cs.X509Cert },
-                        IgnoreCertificateRevocationErrors = true
-                    });
+                    tls_options.Certificates = new List<X509Certificate> { cs.X509Cert };
                 }
+                options = options.WithTls(tls_options);
 
                 // Use MQTT 5.0 if message expiry interval is set.
                 if (cs.MessageExpiryInterval != null) {

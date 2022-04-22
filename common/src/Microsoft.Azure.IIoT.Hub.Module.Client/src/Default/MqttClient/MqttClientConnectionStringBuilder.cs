@@ -216,10 +216,6 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
                 if (string.IsNullOrWhiteSpace(Password)) {
                     throw new ArgumentException($"{kPasswordPropertyName} was not configured and is required for the Azure IoT Hub");
                 }
-
-                if (X509Cert == null) {
-                    throw new ArgumentException($"X509 Certificate was not configured and is required for the Azure IoT Hub");
-                }
             }
         }
 
