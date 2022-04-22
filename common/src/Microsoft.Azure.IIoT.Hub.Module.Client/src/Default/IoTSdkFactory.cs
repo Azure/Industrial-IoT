@@ -151,7 +151,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             else {
                 _transport = config.Transport;
             }
-            _timeout = TimeSpan.FromMinutes(5);
         }
 
         /// <inheritdoc/>
@@ -226,14 +225,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <returns></returns>
         private Task<IClient> CreateAdapterAsync(string product, Action onError,
             ITransportSettings transportSetting = null) {
+
+            var timeout = TimeSpan.FromSeconds(15);
+
             if (string.IsNullOrEmpty(ModuleId)) {
                 if (_mqttClientCs != null) {
                     return MqttClientAdapter.CreateAsync(product, _mqttClientCs, DeviceId,
-                        _timeout, RetryPolicy, onError, _logger);
+                        timeout, RetryPolicy, onError, _logger);
                 }
                 else if (_deviceClientCs != null) {
                     return DeviceClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId,
-                        transportSetting, _timeout, RetryPolicy, onError, _logger);
+                        transportSetting, timeout, RetryPolicy, onError, _logger);
                 }
                 else {
                     throw new InvalidConfigurationException(
@@ -241,7 +243,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
             }
             return ModuleClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId, ModuleId,
-                transportSetting, _timeout, RetryPolicy, onError, _logger);
+                transportSetting, timeout, RetryPolicy, onError, _logger);
         }
 
         /// <summary>
@@ -292,7 +294,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             public const string EventSource = "Microsoft-Azure-Devices-Device-Client";
         }
 
-        private readonly TimeSpan _timeout;
         private readonly TransportOption _transport;
         private readonly IotHubConnectionStringBuilder _deviceClientCs;
         private readonly MqttClientConnectionStringBuilder _mqttClientCs;
