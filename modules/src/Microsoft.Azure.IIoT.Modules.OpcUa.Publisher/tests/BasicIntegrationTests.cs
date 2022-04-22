@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.InRange(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
         }
 
+        // ToDo: Enable the test once PublishedNodesJobConverter parses OpcEvents.
         [Theory(Skip = "PublishedNodesJobConverter does not parse OpcEvents now.")]
         [InlineData(@"./PublishedNodes/SimpleEvents.json")]
         public async Task CanSendEventToIoTHubTest(string publishedNodesFile) {
@@ -39,6 +40,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.NotEmpty(messages[0].RootElement[0].GetProperty("Value").GetProperty("EventId").GetString());
         }
 
+        // ToDo: Enable the test once PublishedNodesJobConverter parses OpcEvents.
         [Theory(Skip = "PublishedNodesJobConverter does not parse OpcEvents now.")]
         [InlineData(@"./PublishedNodes/PendingAlarms.json")]
         public async Task CanSendPendingAlarmsToIoTHubTest(string publishedNodesFile) {
