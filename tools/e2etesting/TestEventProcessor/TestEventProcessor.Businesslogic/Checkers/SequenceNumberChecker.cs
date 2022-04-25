@@ -63,21 +63,22 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
 
                 if (curValue == _latestValue[dataSetWriterId]) {
                     _duplicateValues[dataSetWriterId]++;
-                    _logger.LogWarning("Duplicate SequenceNumber {value} detected ", curValue);
+                    _logger.LogWarning("Duplicate SequenceNumber for {dataSetWriterId} dataSetWriter detected: {value}",
+                        dataSetWriterId, curValue);
                     return;
                 }
 
                 if (curValue < _latestValue[dataSetWriterId]) {
                     _resetValues[dataSetWriterId]++;
-                    _logger.LogWarning("Reset SequenceNumber: previous {prevValue} vs current {value} detected.",
-                        _latestValue[dataSetWriterId], curValue);
+                    _logger.LogWarning("Reset SequenceNumber for {dataSetWriterId} dataSetWriter detected: previous {prevValue} vs current {value}",
+                        dataSetWriterId, _latestValue[dataSetWriterId], curValue);
                     _latestValue[dataSetWriterId] = curValue;
                     return;
                 }
 
                 _droppedValues[dataSetWriterId] += curValue - _latestValue[dataSetWriterId];
-                _logger.LogWarning("Dropped SequenceNumbers {count}: previous {prevValue} vs current {curValue}" +
-                    " detected.", curValue - _latestValue[dataSetWriterId], _latestValue[dataSetWriterId], curValue);
+                _logger.LogWarning("Dropped SequenceNumbers for {dataSetWriterId} dataSetWriter detected: {count}: previous {prevValue} vs current {curValue}",
+                    dataSetWriterId, curValue - _latestValue[dataSetWriterId], _latestValue[dataSetWriterId], curValue);
                 _latestValue[dataSetWriterId] = curValue;
             }
             finally {

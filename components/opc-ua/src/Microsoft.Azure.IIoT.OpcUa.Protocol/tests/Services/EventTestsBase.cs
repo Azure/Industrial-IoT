@@ -28,12 +28,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             return nodeCache;
         }
 
-        protected MonitoredItemWrapper GetMonitoredItemWrapper(BaseMonitoredItemModel template, ServiceMessageContext messageContext = null, INodeCache nodeCache = null, IVariantEncoder codec = null, bool activate = true) {
+        protected MonitoredItemWrapper GetMonitoredItemWrapper(
+            BaseMonitoredItemModel template,
+            ServiceMessageContext messageContext = null,
+            INodeCache nodeCache = null,
+            IVariantEncoder codec = null,
+            bool activate = true) {
+
+            if (codec == null) {
+                codec = messageContext == null
+                    ? new VariantEncoderFactory().Default
+                    : new VariantEncoderFactory().Create(messageContext);
+            }
+
             var monitoredItemWrapper = new MonitoredItemWrapper(template, Log.Logger);
             monitoredItemWrapper.Create(
                 messageContext ?? new ServiceMessageContext(),
                 nodeCache ?? GetNodeCache(),
-                codec ?? new VariantEncoderFactory().Default,
+                codec,
                 activate);
             return monitoredItemWrapper;
         }

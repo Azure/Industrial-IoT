@@ -83,5 +83,10 @@ namespace TestEventProcessor.BusinessLogic
         /// Indicates the number of times the sequence number was reset.
         /// </summary>
         public uint ResetSequenceCount { get; set; }
+
+        /// <summary>
+        /// Indicates whether restart announcement was received.
+        /// </summary>
+        public bool RestartAnnouncementReceived { get; set; }
     }
 }

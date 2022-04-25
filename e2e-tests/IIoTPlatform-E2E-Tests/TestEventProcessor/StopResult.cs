@@ -82,5 +82,10 @@ namespace IIoTPlatform_E2E_Tests.TestEventProcessor {
         /// Indicates the number of times the sequence number was reset.
         /// </summary>
         public uint ResetSequenceCount { get; set; }
+
+        /// <summary>
+        /// Indicates whether restart announcement was received.
+        /// </summary>
+        public bool RestartAnnouncementReceived { get; set; }
     }
 }
