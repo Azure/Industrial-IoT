@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opcplc
+  namespace: e2etesting
+spec:
+  selector:
+    matchLabels:
+      app: opcplc
+  template:
+    metadata:
+      labels:
+        app: opcplc
+    spec:
+      containers:
+      - name: opcplc
+        image: mcr.microsoft.com/iotedge/opc-plc:latest
+        ports:
+        - containerPort: 50000
+        args: ["--at", "Directory", "--nodesfile=/app/nodesfile.json", "--pn=50000", "--autoaccept", "--fn=10", "--fr=1", "--ft=uint"]
+        volumeMounts:
+            - name: opcplc-config
+              mountPath: /app/nodesfile.json
+              subPath: nodesfile.json
+      volumes:
+        - name: opcplc-config
+          configMap:
+            name: opcplc-config
