@@ -112,6 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
@@ -163,7 +164,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
                         ContentType = _jsonContentType,
-                        MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson
+                        MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson,
+                        RoutingInfo = routingInfo,
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
@@ -194,6 +196,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
@@ -231,7 +234,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Body = encoder.CloseAndReturnBuffer(),
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.UaBinary,
-                        MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary
+                        MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary,
+                        RoutingInfo = routingInfo,
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
@@ -262,6 +266,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 var writer = new StringWriter();
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
@@ -276,7 +281,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     ContentEncoding = "utf-8",
                     Timestamp = DateTime.UtcNow,
                     ContentType = _jsonContentType,
-                    MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson
+                    MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson,
+                    RoutingInfo = routingInfo,
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
@@ -311,6 +317,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 var encoder = new BinaryEncoder(encodingContext);
                 encoder.WriteBoolean(null, false); // is not Batch
@@ -320,7 +327,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Body = encoder.CloseAndReturnBuffer(),
                     Timestamp = DateTime.UtcNow,
                     ContentType = ContentMimeType.UaBinary,
-                    MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary
+                    MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary,
+                    RoutingInfo = routingInfo,
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it

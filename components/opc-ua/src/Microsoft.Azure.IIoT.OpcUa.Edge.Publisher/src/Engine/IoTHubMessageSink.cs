@@ -8,15 +8,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.Devices.Client;
+    using Prometheus;
     using Serilog;
-    using System.Linq;
-    using System.Threading.Tasks;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using Prometheus;
-    using Microsoft.Azure.IIoT.Module;
     using System.Globalization;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Iot hub client sink
@@ -49,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             var messageObjects = messages
                 .Select(m => CreateMessage(m.Body, m.MessageSchema,
-                    m.ContentType, m.ContentEncoding, m.MessageId))
+                    m.ContentType, m.ContentEncoding, m.MessageId, m.RoutingInfo))
                 .ToList();
             try {
                 var messagesCount = messageObjects.Count;
@@ -100,9 +99,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="contentType"></param>
         /// <param name="contentEncoding"></param>
         /// <param name="messageId"></param>
+        /// <param name="routingInfo"></param>
         /// <returns></returns>
         private static Message CreateMessage(byte[] body, string eventSchema,
-            string contentType, string contentEncoding, string messageId) {
+            string contentType, string contentEncoding, string messageId, string routingInfo) {
             var msg = new Message(body) {
                 ContentType = contentType,
                 ContentEncoding = contentEncoding,
@@ -118,6 +118,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             if (!string.IsNullOrEmpty(contentEncoding)) {
                 msg.Properties.Add(CommonProperties.ContentEncoding, contentEncoding);
+            }
+            if (!string.IsNullOrEmpty(routingInfo)) {
+                msg.Properties.Add(CommonProperties.RoutingInfo, routingInfo);
             }
             return msg;
         }

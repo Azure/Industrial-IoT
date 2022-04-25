@@ -275,7 +275,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                             BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
                             DiagnosticsInterval = TimeSpan.FromSeconds(60),
                             MaxMessageSize = 0,
-                            MaxOutgressMessages = DefaultMaxOutgressMessages.Value
+                            MaxOutgressMessages = DefaultMaxOutgressMessages.Value,
+                            HasRoutingInfo = false,
                     };
                     }
                     else {
@@ -311,7 +312,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                     BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0,
-                    MaxOutgressMessages = DefaultMaxOutgressMessages.Value
+                    MaxOutgressMessages = DefaultMaxOutgressMessages.Value,
+                    HasRoutingInfo = false
                 },
                 ConnectionString = null
             };

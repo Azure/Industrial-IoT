@@ -331,6 +331,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public int? MaxOutgressMessages => StandaloneCliModel.MaxOutgressMessages;
 
         /// <inheritdoc/>
+        public bool? HasRoutingInfo => StandaloneCliModel.HasRoutingInfo;
+
+        /// <inheritdoc/>
         public bool EnableRuntimeStateReporting { get => StandaloneCliModel.EnableRuntimeStateReporting; }
 
         /// <summary>
@@ -417,6 +420,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.MaxNodesPerDataSet = GetValueOrDefault(StandaloneCliConfigKeys.MaxNodesPerDataSet, model.MaxNodesPerDataSet);
             model.LegacyCompatibility = GetValueOrDefault(StandaloneCliConfigKeys.LegacyCompatibility, model.LegacyCompatibility);
             model.EnableRuntimeStateReporting = GetValueOrDefault(StandaloneCliConfigKeys.RuntimeStateReporting, model.EnableRuntimeStateReporting);
+            model.HasRoutingInfo = GetValueOrDefault(StandaloneCliConfigKeys.HasRoutingInfo, model.HasRoutingInfo);
             return model;
         }
 

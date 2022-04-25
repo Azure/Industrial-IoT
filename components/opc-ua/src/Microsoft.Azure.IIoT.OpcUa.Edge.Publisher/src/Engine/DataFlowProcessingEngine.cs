@@ -57,6 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed);
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
             _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(4096); // = 1 GB
+            _hasRoutingInfo = _config.HasRoutingInfo.GetValueOrDefault(false);
 
             _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
                 async input => {
@@ -387,6 +388,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Define the maximum size of messages
         /// </summary>
         private readonly int _maxOutgressMessages;
+
+        private readonly bool _hasRoutingInfo;
 
         /// <summary>
         /// Counts the amount of messages that couldn't be send to IoTHub
