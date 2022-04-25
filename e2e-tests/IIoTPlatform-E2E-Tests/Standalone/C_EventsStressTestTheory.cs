@@ -46,7 +46,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
 
             const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
             var fullData = await messages

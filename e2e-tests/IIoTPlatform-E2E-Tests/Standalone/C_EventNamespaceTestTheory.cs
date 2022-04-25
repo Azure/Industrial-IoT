@@ -37,7 +37,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 "5:CycleId",
                 "ns=5;i=2");
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -57,7 +57,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 "http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId",
                 "nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2");
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -75,7 +75,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("ns=5;i=2"));
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -93,7 +93,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"));
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act

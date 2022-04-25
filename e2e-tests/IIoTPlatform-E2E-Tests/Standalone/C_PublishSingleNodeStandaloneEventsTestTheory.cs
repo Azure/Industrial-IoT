@@ -32,7 +32,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var plcUrl = _context.OpcPlcConfig.Urls.Split(";")[0];
             var pnJson = TestConstants.PublishedNodesConfigurations.SimpleEvents(plcUrl, 50000, _writerId);
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
 
             // Read one payload from IoT Hub
             var firstMessage = await messages
@@ -64,7 +64,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter());
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
 
             const int nMessages = 6;
             var payloads = await messages

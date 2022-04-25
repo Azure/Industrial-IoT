@@ -5,6 +5,8 @@
 
 namespace IIoTPlatform_E2E_Tests {
 
+    using Newtonsoft.Json.Linq;
+
     /// <summary>
     /// Contains constants using for End 2 End testing
     /// </summary>
@@ -500,6 +502,84 @@ namespace IIoTPlatform_E2E_Tests {
             /// GetDiagnosticInfo
             /// </summary>
             public const string GetDiagnosticInfo = "GetDiagnosticInfo";
+        }
+
+        internal static class PublishedNodesConfigurations {
+            public static string SimpleEvents(string host, uint port, string writerId) {
+                return @$"
+                [
+                    {{
+                        ""EndpointUrl"": ""opc.tcp://{host}:{port}"",
+                        ""UseSecurity"": false,
+                        ""DataSetWriterId"":""{writerId}"",
+                        ""OpcEvents"": [
+                            {{
+                                ""Id"": ""ns=0;i=2253"",
+                                ""DisplayName"": ""SimpleEvents"",
+                                ""SelectClauses"": [
+                                    {{
+                                        ""TypeDefinitionId"": ""i=2041"",
+                                        ""BrowsePath"": [
+                                            ""EventId""
+                                        ]
+                                    }},
+                                    {{
+                                        ""TypeDefinitionId"": ""i=2041"",
+                                        ""BrowsePath"": [
+                                            ""Message""
+                                        ]
+                                    }},
+                                    {{
+                                        ""TypeDefinitionId"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"",
+                                        ""BrowsePath"": [
+                                            ""http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId""
+                                        ]
+                                    }},
+                                    {{
+                                        ""TypeDefinitionId"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"",
+                                        ""BrowsePath"": [
+                                            ""http://microsoft.com/Opc/OpcPlc/SimpleEvents#CurrentStep""
+                                        ]
+                                    }}
+                                ],
+                                ""WhereClause"": {{
+                                    ""Elements"": [
+                                        {{
+                                            ""FilterOperator"": ""OfType"",
+                                            ""FilterOperands"": [
+                                                {{
+                                                    ""Value"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2""
+                                                }}
+                                            ]
+                                        }}
+                                    ]
+                                }}
+                            }}
+                        ]
+                    }}
+                ]";
+            }
+
+            public static JArray SimpleEventFilter(
+                string typeDefinitionId = "i=2782") {
+                return new JArray(
+                    new JObject(
+                        new JProperty("Id", "i=2253"),
+                        new JProperty("TypeDefinitionId", typeDefinitionId)));
+            }
+
+            public static JArray PendingAlarmsForAlarmsView(bool compressedPayload) {
+                return new JArray(
+                    new JObject(
+                        new JProperty("Id", "i=2253"),
+                        new JProperty("TypeDefinitionId", "i=2915"),
+                        new JProperty("PendingAlarms", new JObject(
+                            new JProperty("IsEnabled", "true"),
+                            new JProperty("UpdateInterval", 10),
+                            new JProperty("SnapshotInterval", 20),
+                            new JProperty("CompressedPayload", compressedPayload)
+                        ))));
+            }
         }
     }
 }

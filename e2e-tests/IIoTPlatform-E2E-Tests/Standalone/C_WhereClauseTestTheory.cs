@@ -34,7 +34,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
 
             // take any message
             var ev = await messages
@@ -59,7 +59,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
             // take any message
             var ev = await messages
                 .FirstAsync(_timeoutToken);
@@ -82,7 +82,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var pnJson = TestConstants.PublishedNodesConfigurations.SimpleEvents(_context.PlcAciDynamicUrls[0],
                 50000,
                 _writerId);
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
             // take any message
             var ev = await messages
                 .FirstAsync(_timeoutToken);

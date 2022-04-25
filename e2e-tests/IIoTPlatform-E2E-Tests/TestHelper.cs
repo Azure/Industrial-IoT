@@ -4,31 +4,44 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
+    using Azure.Core;
+    using Azure.Identity;
+    using Azure.Messaging.EventHubs.Consumer;
+    using IIoTPlatform_E2E_Tests.Config;
+    using IIoTPlatform_E2E_Tests.TestEventProcessor;
+    using Microsoft.Azure.Devices;
+    using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.Management.Fluent;
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+    using Microsoft.Rest;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Auth;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+    using Newtonsoft.Json.Linq;
     using Renci.SshNet;
     using RestSharp;
     using RestSharp.Authenticators;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Dynamic;
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Runtime.CompilerServices;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.Messaging.EventHubs.Consumer;
-    using IIoTPlatform_E2E_Tests.Config;
-    using Newtonsoft.Json.Converters;
     using TestExtensions;
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
-    using System.Text.RegularExpressions;
-    using Microsoft.Azure.Devices;
-    using Microsoft.Azure.IIoT.Hub.Models;
-    using IIoTPlatform_E2E_Tests.TestEventProcessor;
 
     internal static partial class TestHelper {
 
@@ -210,27 +223,31 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Transfer the content of published_nodes.json file into the OPC Publisher edge module
         /// </summary>
-        /// <param name="entries">Entries for published_nodes.json</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="publishedNodesFullPath">Path of published nodes JSON file</param>
+        /// <param name="entries">Entries for published_nodes.json</param>
         /// <param name="ct">Cancellation token</param>
         public static async Task PublishNodesAsync(
             IIoTPlatformTestContext context,
             string publishedNodesFullPath,
-            IEnumerable<PublishedNodesEntryModel> entries
+            IEnumerable<PublishedNodesEntryModel> entries,
+            CancellationToken ct = default
         ) {
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
-            return SwitchToStandaloneModeAndPublishNodesAsync(json, context, ct);
+            await PublishNodesAsync(context, publishedNodesFullPath, json, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Transfer the content of published_nodes.json file into the OPC Publisher edge module
         /// </summary>
-        /// <param name="json">String for published_nodes.json</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="publishedNodesFullPath">Path of published nodes JSON file</param>
+        /// <param name="json">String for published_nodes.json</param>
         /// <param name="ct">Cancellation token</param>
-        public static async Task SwitchToStandaloneModeAndPublishNodesAsync(
-            string json,
+        public static async Task PublishNodesAsync(
             IIoTPlatformTestContext context,
+            string publishedNodesFullPath,
+            string json,
             CancellationToken ct = default
         ) {
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
@@ -255,6 +272,40 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Switch to standalone mode and transfer the content of published_nodes.json file into the OPC Publisher edge module
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="publishedNodesFullPath">Path of published nodes JSON file</param>
+        /// <param name="json">String for published_nodes.json</param>
+        /// <param name="ct">Cancellation token</param>
+        public static async Task SwitchToStandaloneModeAndPublishNodesAsync(
+            IIoTPlatformTestContext context,
+            string publishedNodesFullPath,
+            string json,
+            CancellationToken ct = default
+        ) {
+            await SwitchToStandaloneModeAsync(context, ct).ConfigureAwait(false);
+            await PublishNodesAsync(context, publishedNodesFullPath, json, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Switch to standalone mode and transfer the content of published_nodes.json file into the OPC Publisher edge module
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="publishedNodesFullPath">Path of published nodes JSON file</param>
+        /// <param name="json">String for published_nodes.json</param>
+        /// <param name="ct">Cancellation token</param>
+        public static async Task SwitchToStandaloneModeAndPublishNodesAsync(
+            IIoTPlatformTestContext context,
+            string publishedNodesFullPath,
+             IEnumerable<PublishedNodesEntryModel> entries,
+            CancellationToken ct = default
+        ) {
+            await SwitchToStandaloneModeAsync(context, ct).ConfigureAwait(false);
+            await PublishNodesAsync(context, publishedNodesFullPath, entries, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -748,7 +799,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="transportType"></param>
         public static ServiceClient DeviceServiceClient(
             string iotHubConnectionString,
-            TransportType transportType = TransportType.Amqp_WebSocket_Only
+            Microsoft.Azure.Devices.TransportType transportType = Microsoft.Azure.Devices.TransportType.Amqp_WebSocket_Only
         ) {
             ServiceClient iotHubClient;
 
@@ -1010,7 +1061,8 @@ namespace IIoTPlatform_E2E_Tests {
         public static T DeserializeJson<T>(this PartitionEvent partitionEvent) {
             using var sr = new StreamReader(partitionEvent.Data.BodyAsStream);
             using var reader = new JsonTextReader(sr);
-            return kSerializer.Deserialize<T>(reader);
+            var serializer = new JsonSerializer();
+            return serializer.Deserialize<T>(reader);
         }
 
         /// <summary>
@@ -1038,7 +1090,10 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
-        public static IAsyncEnumerable<EventData<T>> ReadMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId, [EnumeratorCancellation] CancellationToken cancellationToken) where T : BaseEventTypePayload
+        public static IAsyncEnumerable<EventData<T>> ReadMessagesFromWriterIdAsync<T>(
+            this EventHubConsumerClient consumer,
+            string dataSetWriterId,
+            [EnumeratorCancellation] CancellationToken cancellationToken) where T : BaseEventTypePayload
             => ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken)
                 .Select(x =>
                     new EventData<T> {
@@ -1062,7 +1117,10 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
-        public static IAsyncEnumerable<PendingAlarmEventData<T>> ReadPendingAlarmMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId, [EnumeratorCancellation] CancellationToken cancellationToken) where T : BaseEventTypePayload {
+        public static IAsyncEnumerable<PendingAlarmEventData<T>> ReadPendingAlarmMessagesFromWriterIdAsync<T>(
+            this EventHubConsumerClient consumer,
+            string dataSetWriterId,
+            [EnumeratorCancellation] CancellationToken cancellationToken) where T : BaseEventTypePayload {
             return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken)
                 .Select(x =>
                     new PendingAlarmEventData<T> {
@@ -1087,7 +1145,10 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{JObject}"/> to be used for iterating over messages.</returns>
-        public static async IAsyncEnumerable<(DateTime enqueuedTime, string publisherId, JObject messages, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId, [EnumeratorCancellation] CancellationToken cancellationToken) {
+        public static async IAsyncEnumerable<(DateTime enqueuedTime, string publisherId, JObject messages, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(
+            this EventHubConsumerClient consumer,
+            string dataSetWriterId,
+            [EnumeratorCancellation] CancellationToken cancellationToken) {
             var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
             await foreach (var partitionEvent in events.WithCancellation(cancellationToken)) {
                 var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[MessageSystemPropertyNames.EnqueuedTime];
@@ -1184,6 +1245,69 @@ namespace IIoTPlatform_E2E_Tests {
                 after?.Invoke();
                 return false;
             });
+        }
+
+        /// <summary>
+        /// Returns elements from an async-enumerable sequence for a given time duration,
+        /// starting when one message has been published from every publishing source (PLC simulator).
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements in the source sequence.</typeparam>
+        /// <param name="source">A sequence to return elements from.</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="publisherIdFunc">A function to extract the Source ID from a message payload.</param>
+        /// <param name="duration">A time duration during which to return data.</param>
+        /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
+        private static IAsyncEnumerable<TSource> ConsumeDuring<TSource>(
+            this IAsyncEnumerable<TSource> source,
+            IIoTPlatformTestContext context,
+            Func<TSource, string> publisherIdFunc,
+            TimeSpan duration
+        ) {
+            // When the first message has been received for each simulator, the system is up and we
+            // "let the flag fall" to start computing event rates.
+            return source.SkipUntilDistinctCountReached(
+                    publisherIdFunc,
+                    context.PlcAciDynamicUrls.Length,
+                    () => context.OutputHelper?.WriteLine("Waiting for first message for each PLC"),
+                    () => context.OutputHelper?.WriteLine($"Consuming messages for {duration}")
+                )
+                .TakeDuring(duration);
+        }
+
+        /// <summary>
+        /// Returns elements from an async-enumerable sequence for a given time duration,
+        /// starting when one message has been published from every publishing source (PLC simulator).
+        /// </summary>
+        /// <typeparam name="TPayload">The type of the payloads in the Publisher messages.</typeparam>
+        /// <param name="source">A sequence to return elements from.</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="duration">A time duration during which to return data.</param>
+        /// <returns>An async-enumerable sequence that contains the elements from the input sequence for the given time period, starting when the first element is retrieved.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
+        public static IAsyncEnumerable<EventData<TPayload>> ConsumeDuring<TPayload>(
+            this IAsyncEnumerable<EventData<TPayload>> source,
+            IIoTPlatformTestContext context,
+            TimeSpan duration
+        ) where TPayload : BaseEventTypePayload {
+            return source.ConsumeDuring(context, m => m.PublisherId, duration);
+        }
+
+        /// <summary>
+        /// Truncate a date time
+        /// </summary>
+        /// <param name="dateTime">Date time top truncate</param>
+        /// <param name="timeSpan">Time span</param>
+        public static DateTime Truncate(this DateTime dateTime, TimeSpan timeSpan) {
+            if (timeSpan == TimeSpan.Zero) {
+                return dateTime;
+            }
+
+            if (dateTime == DateTime.MinValue || dateTime == DateTime.MaxValue) {
+                return dateTime;
+            }
+
+            return dateTime.AddTicks(-(dateTime.Ticks % timeSpan.Ticks));
         }
 
         /// <summary>
