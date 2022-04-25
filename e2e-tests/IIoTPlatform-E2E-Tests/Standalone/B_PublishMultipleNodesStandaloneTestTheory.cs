@@ -6,7 +6,6 @@
 namespace IIoTPlatform_E2E_Tests.Standalone {
     using IIoTPlatform_E2E_Tests.Deploy;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -33,7 +32,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
-            _consumer = _context.GetEventHubConsumerClient();
         }
 
         [Theory]

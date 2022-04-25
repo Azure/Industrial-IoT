@@ -62,10 +62,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId,
                 _timeoutToken, new[] { "publisher_standalone" });
         }
-        
+
         [Fact, PriorityOrder(998)]
         public async Task Test_StopPublishingAllNodes_Expect_Success() {
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new PublishedNodesEntryModel[0], _context, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, new PublishedNodesEntryModel[0], _timeoutToken);
         }
 
         [Fact, PriorityOrder(999)]
