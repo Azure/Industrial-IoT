@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
     public class MqttClientConnectionStringBuilderTests : MqttClientConnectionStringBuilderTestsBase {
         [Fact]
         public void ValidGenericConnectionStringTest() {
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             const string mqttClientConnectionString = "HostName=127.0.0.1;DeviceId=device1;ModuleId=module1;Username=username1;Password=password1";
             var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create(mqttClientConnectionString);
 
@@ -68,6 +69,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
 
         [Fact]
         public void OverridePortTest() {
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             const string mqttClientConnectionString = "HostName=127.0.0.1;DeviceId=device1;ModuleId=module1;Username=username1;Password=password1;Port=1234";
             var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create(mqttClientConnectionString);
 
@@ -107,6 +109,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
 
         [Fact]
         public void MessageExpiryIntervalTest() {
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             const string mqttClientConnectionString = "HostName=127.0.0.1;DeviceId=device1;ModuleId=module1;Username=username1;Password=password1;MessageExpiryInterval=1234";
             var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create(mqttClientConnectionString);
 
