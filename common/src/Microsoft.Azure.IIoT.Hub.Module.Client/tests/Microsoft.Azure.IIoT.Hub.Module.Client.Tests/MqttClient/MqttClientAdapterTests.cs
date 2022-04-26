@@ -34,6 +34,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
 
         public MqttClientAdapterTests() {
             _logger = new Mock<ILogger>().Object;
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             _mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create("HostName=hub1.azure-devices.net;DeviceId=device1;ModuleId=module1;SharedAccessSignature=SharedAccessSignature sr=hub1.azure-devices.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860;StateFile=file1;MessageExpiryInterval=1234");
         }
 
@@ -60,7 +61,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
                     x.ClientOptions.ChannelOptions.As<MqttClientTcpOptions>().TlsOptions.Certificates.Count == 1 &&
                     x.ClientOptions.ChannelOptions.As<MqttClientTcpOptions>().TlsOptions.SslProtocol == SslProtocols.Tls12 &&
                     !string.IsNullOrWhiteSpace(x.ClientOptions.Credentials.Username) &&
-                    x.ClientOptions.Credentials.Password.Length > 0 && 
+                    x.ClientOptions.Credentials.Password.Length > 0 &&
                     x.Storage is ManagedMqttClientStorage)));
             mock.Verify(x => x.SubscribeAsync(
                 It.Is<MqttTopicFilter[]>(x =>

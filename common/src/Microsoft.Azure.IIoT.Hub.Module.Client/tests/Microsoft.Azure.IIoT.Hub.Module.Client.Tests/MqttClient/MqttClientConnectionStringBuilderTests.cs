@@ -31,12 +31,14 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
 
         [Fact]
         public void ValidIoTHubConnectionStringTest() {
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             const string mqttClientConnectionString = "HostName=hub1.azure-devices.net;DeviceId=device1;ModuleId=module1;SharedAccessSignature=SharedAccessSignature sr=hub1.azure-devices.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860";
             var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create(mqttClientConnectionString);
 
             Assert.Equal(mqttClientConnectionStringBuilder.HostName, "hub1.azure-devices.net");
             Assert.Equal(mqttClientConnectionStringBuilder.DeviceId, "device1");
             Assert.Equal(mqttClientConnectionStringBuilder.ModuleId, "module1");
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             Assert.Equal(mqttClientConnectionStringBuilder.SharedAccessSignature, "SharedAccessSignature sr=hub1.azure-devices.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860");
             Assert.Equal(mqttClientConnectionStringBuilder.Port, 8883);
             Assert.Equal(mqttClientConnectionStringBuilder.UsingIoTHub, true);
@@ -48,12 +50,14 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
         [Fact]
         public void OverrideUsingIoTHubTest() {
             // Use a HostName which cannot automatically be detected as an Azure IoT Hub.
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             const string mqttClientConnectionString = "HostName=hub1.invalid.net;DeviceId=device1;ModuleId=module1;SharedAccessSignature=SharedAccessSignature sr=hub1.invalid.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860;UsingIoTHub=true";
             var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create(mqttClientConnectionString);
 
             Assert.Equal(mqttClientConnectionStringBuilder.HostName, "hub1.invalid.net");
             Assert.Equal(mqttClientConnectionStringBuilder.DeviceId, "device1");
             Assert.Equal(mqttClientConnectionStringBuilder.ModuleId, "module1");
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             Assert.Equal(mqttClientConnectionStringBuilder.SharedAccessSignature, "SharedAccessSignature sr=hub1.invalid.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860");
             Assert.Equal(mqttClientConnectionStringBuilder.Port, 8883);
             Assert.Equal(mqttClientConnectionStringBuilder.UsingIoTHub, true);
@@ -83,12 +87,14 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
         [Fact]
         public void UsingStateFileTest() {
             // Use a HostName which cannot automatically be detected as an Azure IoT Hub.
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             const string mqttClientConnectionString = "HostName=hub1.invalid.net;DeviceId=device1;ModuleId=module1;SharedAccessSignature=SharedAccessSignature sr=hub1.invalid.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860;UsingIoTHub=true;StateFile=file1";
             var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create(mqttClientConnectionString);
 
             Assert.Equal(mqttClientConnectionStringBuilder.HostName, "hub1.invalid.net");
             Assert.Equal(mqttClientConnectionStringBuilder.DeviceId, "device1");
             Assert.Equal(mqttClientConnectionStringBuilder.ModuleId, "module1");
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             Assert.Equal(mqttClientConnectionStringBuilder.SharedAccessSignature, "SharedAccessSignature sr=hub1.invalid.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860");
             Assert.Equal(mqttClientConnectionStringBuilder.Port, 8883);
             Assert.Equal(mqttClientConnectionStringBuilder.UsingIoTHub, true);
@@ -119,6 +125,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
 
         [Fact]
         public void MissingSharedAccessSignatureTest() {
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             const string mqttClientConnectionString = "HostName=hub1.azure-devices.net;DeviceId=device1;ModuleId=module1;UsingIoTHub=true;Username=username1;Password=password1";
             Assert.Throws<KeyNotFoundException>(() => MqttClientConnectionStringBuilder.Create(mqttClientConnectionString));
         }
@@ -126,14 +133,17 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
         [Fact]
         public void InvalidSharedAccessSignatureTest() {
             // Invalid resource URI.
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             const string mqttClientConnectionString1 = "HostName=hub1.azure-devices.net;DeviceId=device1;ModuleId=module1;SharedAccessSignature=SharedAccessSignature sr=&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860";
             Assert.Throws<ArgumentException>(() => MqttClientConnectionStringBuilder.Create(mqttClientConnectionString1));
 
             // Invalid signature.
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             const string mqttClientConnectionString2 = "HostName=hub1.azure-devices.net;DeviceId=device1;ModuleId=module1;SharedAccessSignature=SharedAccessSignature sr=hub1.azure-devices.net%2Fdevices%2Fdevice1&sig=&se=1943452860";
             Assert.Throws<ArgumentException>(() => MqttClientConnectionStringBuilder.Create(mqttClientConnectionString2));
 
             // Invalid expiry.
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             const string mqttClientConnectionString3 = "HostName=hub1.azure-devices.net;DeviceId=device1;ModuleId=module1;SharedAccessSignature=SharedAccessSignature sr=hub1.azure-devices.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=invalid";
             Assert.Throws<ArgumentException>(() => MqttClientConnectionStringBuilder.Create(mqttClientConnectionString3));
         }
