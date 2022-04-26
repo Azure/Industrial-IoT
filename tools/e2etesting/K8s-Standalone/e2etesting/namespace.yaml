@@ -1,4 +1,4 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-name: e2etesting
+  name: e2etesting
