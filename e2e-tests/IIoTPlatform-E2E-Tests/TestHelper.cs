@@ -86,11 +86,12 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.True(!string.IsNullOrWhiteSpace(applicationName), "applicationName is null");
 
             var client = new RestSharp.RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token") {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
                 Authenticator = new HttpBasicAuthenticator(clientId, clientSecret)
             };
 
-            var request = new RestRequest(Method.POST);
+            var request = new RestRequest("", Method.Post) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+            };
             request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
             request.AddParameter("grant_type", "client_credentials");
             request.AddParameter("scope", $"api://{tenantId}/{applicationName}-service/.default");
@@ -191,7 +192,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="body">Body for the request</param>
         /// <param name="queryParameters">Additional query parameters</param>
         /// /// <param name="ct">Cancellation token</param>
-        public static IRestResponse CallRestApi(
+        public static RestResponse CallRestApi(
             IIoTPlatformTestContext context,
             Method method,
             string route,
@@ -201,8 +202,9 @@ namespace IIoTPlatform_E2E_Tests {
         ) {
             var accessToken = GetTokenAsync(context, ct).GetAwaiter().GetResult();
 
-            var request = new RestRequest(method);
-            request.Resource = route;
+            var request = new RestRequest(route, method) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+            };
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
             if (body != null) {
@@ -215,7 +217,7 @@ namespace IIoTPlatform_E2E_Tests {
                 }
             }
 
-            var restClient = new RestSharp.RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+            var restClient = new RestSharp.RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
             var response = restClient.ExecuteAsync(request, ct).GetAwaiter().GetResult();
             return response;
         }
@@ -505,9 +507,8 @@ namespace IIoTPlatform_E2E_Tests {
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
 
             var client = new RestSharp.RestClient(runtimeUrl) {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
                 Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
-                    context.TestEventProcessorConfig.TestEventProcessorPassword)
+                    context.TestEventProcessorConfig.TestEventProcessorPassword),
             };
 
             var body = new {
@@ -524,7 +525,9 @@ namespace IIoTPlatform_E2E_Tests {
                 }
             };
 
-            var request = new RestRequest(Method.PUT);
+            var request = new RestRequest("", Method.Put) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+            };
             request.AddJsonBody(body);
 
             var response = await client.ExecuteAsync(request, ct);
@@ -548,16 +551,17 @@ namespace IIoTPlatform_E2E_Tests {
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
 
             var client = new RestSharp.RestClient(runtimeUrl) {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
                 Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
-                    context.TestEventProcessorConfig.TestEventProcessorPassword)
+                    context.TestEventProcessorConfig.TestEventProcessorPassword),
             };
 
             var body = new {
                 CommandType = CommandEnum.Stop,
             };
 
-            var request = new RestRequest(Method.PUT);
+            var request = new RestRequest("", Method.Put) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+            };
             request.AddJsonBody(body);
 
             var response = await client.ExecuteAsync(request, ct);
@@ -581,12 +585,13 @@ namespace IIoTPlatform_E2E_Tests {
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime/Messages";
 
             var client = new RestSharp.RestClient(runtimeUrl) {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
                 Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
                     context.TestEventProcessorConfig.TestEventProcessorPassword)
             };
 
-            var request = new RestRequest(Method.GET);
+            var request = new RestRequest("", Method.Get) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+            };
 
             var response = await client.ExecuteAsync(request, ct);
 
@@ -618,18 +623,16 @@ namespace IIoTPlatform_E2E_Tests {
             };
 
             try {
-                var client = new RestSharp.RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
-                };
+                var client = new RestSharp.RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 while (true) {
                     ct.ThrowIfCancellationRequested();
 
-                    var tasks = new List<Task<IRestResponse>>();
+                    var tasks = new List<Task<RestResponse>>();
 
                     foreach (var healthRoute in healthRoutes) {
-                        var request = new RestRequest(Method.GET) {
-                            Resource = healthRoute
+                        var request = new RestRequest(healthRoute, Method.Get) {
+                            Timeout = TestConstants.DefaultTimeoutInMilliseconds,
                         };
 
                         tasks.Add(client.ExecuteAsync(request, ct));
@@ -820,11 +823,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="ct">Cancellation token</param>
         private static async Task<dynamic> GetEndpointInternalAsync(IIoTPlatformTestContext context, CancellationToken ct) {
             var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-            var client = new RestSharp.RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+            var client = new RestSharp.RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-            var request = new RestRequest(Method.GET);
+            var request = new RestRequest(TestConstants.APIRoutes.RegistryEndpoints, Method.Get) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+            };
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-            request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
 
             var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
             Assert.NotNull(response);
