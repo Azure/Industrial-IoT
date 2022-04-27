@@ -19,14 +19,12 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
     public class DiscoveryTestTheory {
         private readonly DiscoveryTestContext _context;
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly RestClient _restClient;
 
         public DiscoveryTestTheory(DiscoveryTestContext context, ITestOutputHelper output) {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
 
             _cancellationTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            _restClient = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl);
 
             // Get OAuth token
             var token = TestHelper.GetTokenAsync(_context, _cancellationTokenSource.Token).GetAwaiter().GetResult();
