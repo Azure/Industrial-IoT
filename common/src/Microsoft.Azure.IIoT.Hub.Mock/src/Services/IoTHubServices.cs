@@ -114,7 +114,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 ModuleId = moduleId,
                 EnqueuedTimeUtc = DateTime.UtcNow,
                 Message = new Message(payload),
-                MessageData = payload
             };
             foreach (var item in message.Properties) {
                 ev.Message.Properties.Add(item.Key, item.Value);
@@ -385,7 +384,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     DeviceId = Device.Id,
                     ModuleId = Device.ModuleId,
                     Message = message,
-                    MessageData = message.GetBytes(),
                     EnqueuedTimeUtc = DateTime.UtcNow
                 })) {
                     throw new CommunicationException("Failed to send event.");
@@ -399,7 +397,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     ModuleId = Device.ModuleId,
                     Message = message,
                     EnqueuedTimeUtc = DateTime.UtcNow,
-                    MessageData = message.GetBytes(),
                     OutputName = outputName
                 })) {
                     throw new CommunicationException("Failed to send event.");
@@ -538,8 +535,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             public Message Message { get; set; }
             /// <summary> The output target for sending the given message. </summary>
             public string OutputName { get; set; }
-            /// <summary/>
-            public byte[] MessageData { get; set; }
         }
 
         private readonly SqlQuery _query;
