@@ -1667,7 +1667,7 @@ OPC UA certificates used by the OPC Publisher Edge module and the OPC Twin Edge 
 {
     "Hostname": "publisher",
     "Cmd": [
-        "PkiRootPath=/mount/pki",
+        "--PkiRootPath=/mount/pki",
         "--pf=/mount/published_nodes.json",
         "--lf=/mount/publisher.log",
         "--mm=Samples",
