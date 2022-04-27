@@ -16,8 +16,8 @@ spec:
       - name: opcpublisher
         image: {{ContainerRegistryServer}}{{PublisherImagePath}}:{{PublisherImageTag}}
         args: [
-          "--mc HostName=mosquitto;Port=1883;DeviceId={{DeviceId}}",
-          "PkiRootPath=/mount/pki",     # Path to PKI folders
+          "--mc=HostName=mosquitto;Port=1883;DeviceId={{DeviceId}}",
+          "--PkiRootPath=/mount/pki",   # Path to PKI folders
           "--pf=/mount/pn.json",        # Path to Published Nodes file
           "--lf=/mount/publisher.log",  # Path to log file 
           "--mm=PubSub",                # Message Format OPC UA PubSub
