@@ -19,14 +19,12 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
     public class DiscoveryTestTheory {
         private readonly DiscoveryTestContext _context;
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly RestClient _restClient;      
 
         public DiscoveryTestTheory(DiscoveryTestContext context, ITestOutputHelper output) {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
-            
+
             _cancellationTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            _restClient = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             // Get OAuth token
             var token = TestHelper.GetTokenAsync(_context, _cancellationTokenSource.Token).GetAwaiter().GetResult();
@@ -67,14 +65,14 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             var urls = new List<string> { url };
             AddTestOpcServers(urls);
 
-            // Registers servers by running a discovery scan 
+            // Registers servers by running a discovery scan
             var cidr = ipAddress + "/16";
             var body = new {
                 configuration = new {
                     addressRangesToScan = cidr
                 }
             };
-            TestHelper.CallRestApi(_context, Method.POST, TestConstants.APIRoutes.RegistryDiscover, body);
+            TestHelper.CallRestApi(_context, Method.Post, TestConstants.APIRoutes.RegistryDiscover, body);
 
             // Validate that the endpoint can be found
             var result = TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(_context, _cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
@@ -98,7 +96,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
                     portRangesToScan = "50000:51000"
                 }
             };
-            TestHelper.CallRestApi(_context, Method.POST, TestConstants.APIRoutes.RegistryDiscover, body);
+            TestHelper.CallRestApi(_context, Method.Post, TestConstants.APIRoutes.RegistryDiscover, body);
 
             // Validate that all endpoints are found
             var result = TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(_context, cts.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
@@ -113,19 +111,19 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
                 RemoveApplication(applicationId);
             }
         }
-      
+
         private void AddTestOpcServers(List<string> endpointUrls) {
             foreach (var endpointUrl in endpointUrls) {
                 var body = new {
                     discoveryUrl = endpointUrl
                 };
-                TestHelper.CallRestApi(_context, Method.POST, TestConstants.APIRoutes.RegistryApplications, body);
+                TestHelper.CallRestApi(_context, Method.Post, TestConstants.APIRoutes.RegistryApplications, body);
             }
         }
 
         private void RemoveApplication(string applicationId) {
             var route = $"{TestConstants.APIRoutes.RegistryApplications}/{applicationId}";
-            TestHelper.CallRestApi(_context, Method.DELETE, route);
+            TestHelper.CallRestApi(_context, Method.Delete, route);
         }
     }
 }
