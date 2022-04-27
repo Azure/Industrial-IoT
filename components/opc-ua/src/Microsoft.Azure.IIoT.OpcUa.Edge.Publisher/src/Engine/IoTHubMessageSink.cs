@@ -43,9 +43,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task SendAsync(IEnumerable<NetworkMessageModel> messages) {
-            if (messages == null) {
+            if (messages == null || !messages.Any()) {
                 return;
             }
+            var routingInfo = messages.First().RoutingInfo;
+
             var messageObjects = messages
                 .Select(m => CreateMessage(m.Body, m.MessageSchema,
                     m.ContentType, m.ContentEncoding, m.MessageId, m.RoutingInfo))
@@ -66,11 +68,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     sw.Start();
 
                     try {
-                        if (messagesCount == 1) {
-                            await _clientAccessor.Client.SendEventAsync(messageObjects.First()).ConfigureAwait(false);
+                        if (string.IsNullOrEmpty(routingInfo)) {
+                            if (messagesCount == 1) {
+                                await _clientAccessor.Client.SendEventAsync(messageObjects.First()).ConfigureAwait(false);
+                            }
+                            else {
+                                await _clientAccessor.Client.SendEventBatchAsync(messageObjects).ConfigureAwait(false);
+                            }
                         }
                         else {
-                            await _clientAccessor.Client.SendEventBatchAsync(messageObjects).ConfigureAwait(false);
+                            if (messagesCount == 1) {
+                                await _clientAccessor.Client.SendEventAsync(routingInfo, messageObjects.First()).ConfigureAwait(false);
+                            }
+                            else {
+                                await _clientAccessor.Client.SendEventBatchAsync(routingInfo, messageObjects).ConfigureAwait(false);
+                            }
                         }
                     }
                     catch (Exception e) {

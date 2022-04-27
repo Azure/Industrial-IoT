@@ -22,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Linq;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
@@ -212,6 +211,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b.ToString() },
                     { $"rs|runtimestatereporting|{StandaloneCliConfigKeys.RuntimeStateReporting}", "The publisher reports its restarts. By default this is disabled.",
                         b => this[StandaloneCliConfigKeys.RuntimeStateReporting] = (b != null).ToString()},
+                    { $"{StandaloneCliConfigKeys.HasRoutingInfo}", "Add Routing Info to telemetry.",
+                        b => this[StandaloneCliConfigKeys.HasRoutingInfo] = (b != null).ToString() },
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",

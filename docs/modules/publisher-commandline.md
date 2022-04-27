@@ -444,6 +444,16 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Mode: Standalone
                                       Type: boolean
                                       Default: false
+
+            HasRoutingInfo=VALUE
+                                      adds the routing info to telemetry messages. The name of the property is 
+                                      `$$RoutingInfo` and the value is the `DataSetWriterGroup` for that particular message.
+                                      When the `DataSetWriterGroup` is not configured, the `$$RoutingInfo` property will
+                                      not be added to the message even if this argument is set. 
+                                      Alternative: 
+                                      Mode: Standalone
+                                      Type: boolean
+                                      Default: false
 <!---
 
             DefaultSkipFirst=VALUE
