@@ -86,8 +86,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                 else {
                     _droppedValues++;
                     _logger.LogWarning("Dropped value detected for {nodeId}, " +
-                        "previous value is {prevValue} with timestamp {prevTimestamp} " +
-                        "and current value is {curValue} with timestamp {curTimestamp}.",
+                        "previous value is {prevValue} at {prevTimestamp} " +
+                        "and current value is {curValue} at {curTimestamp}.",
                         nodeId, _latestValuePerNodeId[nodeId], _latestDateTimePerNodeId[nodeId],
                         curValue, sourceTimestamp);
 

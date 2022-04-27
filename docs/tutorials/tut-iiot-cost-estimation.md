@@ -53,7 +53,6 @@ The following factory setups are provided for reference. A slow node changes eve
 ```
 {
     "Cmd": [
-        "publisher",
         "--pf=/appdata/pn.json",
         "--di=60",
         "--aa",
