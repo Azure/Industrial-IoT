@@ -25,7 +25,7 @@ Container create options can be specified in the "Update IoT Edge Module" page o
 {
     "Hostname": "opcpublisher",
     "Cmd": [
-        "PkiRootPath=/mount/pki",
+        "--PkiRootPath=/mount/pki",
         "--pf=/mount/published_nodes.json",
         "--lf=/mount/publisher.log",
         "--mm=PubSub",
@@ -54,7 +54,7 @@ Container create options can be specified in the "Update IoT Edge Module" page o
 ```
 
 With these options specified, OPC Publisher will read the configuration file `./published_nodes.json`. The OPC Publisher's working directory is set to `/mount` at startup and thus OPC Publisher will read the file `/mount/publishednodes.json` inside its container.
-OPC Publisher's log file will be written to `/mount` and the `CertificateStores` directory (used for OPC UA certificates) will also be created in this directory. To make these files available in the IoT Edge host file system, the container configuration requires a bind mount volume. The **Mounts** section will  map the directory `/mount` to the host directory `/opcpublisher` (which will be created by the IoT Edge runtime if it doesn't exist).
+OPC Publisher's log file will be written to `/mount` and the `CertificateStores` directory (used for OPC UA certificates) will also be created in this directory. To make these files available in the IoT Edge host file system, the container configuration requires a bind mount volume. The **Mounts** section will  map the directory `/mount` to the host directory `/opcpublisher`. Please note that `/opcpublisher` directory should be present on host file system, otherwise OPC Publisher will fail to start.
 The `CapDrop` option will drop the CHOWN (user can’t makes arbitrary changes to file UIDs and GIDs) and SETUID (user can’t makes arbitrary manipulations of process UIDs) capabilities for security reason.
 
 **Without this bind mount volume, all OPC Publisher configuration files will be lost when the container is restarted.**
@@ -257,6 +257,17 @@ To ensure operation of OPC Publisher over restarts, it's required to map configu
 - the telemetry configuration file
 
 In version 2.6 and above, username and password are stored in plain text in the configuration file. It must be ensured that the configuration file is protected by the file system access control of the host file system. The same must be ensured for the file system based certificate store, since it contains the private certificate and private key of OPC Publisher.
+
+### Use custom OPC UA application instance certificate in OPC Publisher
+
+By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
+One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
+
+Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the `ApplicationCertificateSubjectName` like in the example below.
+
+`ApplicationCertificateSubjectName="CN=TEST-PUBLISHER,OU=Windows2019,OU=\"Test OU\",DC=microsoft,DC=com"`
+
+`ApplicationName ="TEST-PUBLISHER"`
 
 ## Performance and Memory Tuning OPC Publisher
 

@@ -154,12 +154,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 //Fqdn = null,
                 AgentPoolProfiles = new List<ManagedClusterAgentPoolProfile> {
                     new ManagedClusterAgentPoolProfile {
+                        Type = AgentPoolType.VirtualMachineScaleSets,
                         Name = "agentpool",
                         Count = 2,
                         VmSize = ContainerServiceVMSizeTypes.StandardDS2V2,
                         OsDiskSizeGB = 100,
                         OsType = OSType.Linux,
-                        VnetSubnetID = virtualNetworkSubnet.Id
+                        VnetSubnetID = virtualNetworkSubnet.Id,
+                        MaxPods = 40,
                     }
                 },
                 LinuxProfile = new ContainerServiceLinuxProfile {
