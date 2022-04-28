@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
             var messages = new List<JsonDocument>();
             foreach (var evt in Events) {
-                messages.Add(JsonDocument.Parse(Encoding.UTF8.GetString(evt.MessageData)));
+                messages.Add(JsonDocument.Parse(Encoding.UTF8.GetString(evt.Message.GetBytes())));
             }
 
             return messages;
