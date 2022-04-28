@@ -21,7 +21,7 @@ namespace MqttTestValidator.BusinessLogic {
             return new VerificationTask(
                 _instanceCounter, 
                 verificationRequest.MqttBroker,
-                verificationRequest.MqttPort,
+                Convert.ToInt32(verificationRequest.MqttPort),
                 verificationRequest.MqttTopic,
                 verificationRequest.StartupTime,
                 verificationRequest.TimeToObserve, 

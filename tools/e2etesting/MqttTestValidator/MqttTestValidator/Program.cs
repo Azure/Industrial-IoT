@@ -3,6 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using MqttTestValidator.BusinessLogic;
 using MqttTestValidator.Interfaces;
 using MqttTestValidator.Repositories;
 
@@ -14,7 +15,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddTransient<ITaskRepository, TaskRepository>();
+builder.Services.AddSingleton<ITaskRepository, TaskRepository>();
+builder.Services.AddTransient<IVerificationTaskFactory, VerificationTaskFactory>();
 
 var app = builder.Build();
 
@@ -22,6 +24,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();

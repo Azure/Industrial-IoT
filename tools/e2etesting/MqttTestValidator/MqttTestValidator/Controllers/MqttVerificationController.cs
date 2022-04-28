@@ -9,10 +9,8 @@ namespace MqttTestValidator.Controllers {
     using MqttTestValidator.Models;
 
     [ApiController]
-    [Route("[controller]")]
-    internal class MqttVerificationController : ControllerBase {
-      
-
+    [Route("/Mqtt")]
+    public class MqttVerificationController : ControllerBase {      
         private readonly ILogger<MqttVerificationController> _logger;
         private readonly ITaskRepository _repostiory;
         private readonly IVerificationTaskFactory _factory;

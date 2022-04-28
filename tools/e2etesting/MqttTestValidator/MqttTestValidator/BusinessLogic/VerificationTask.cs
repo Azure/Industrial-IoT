@@ -18,7 +18,7 @@ namespace MqttTestValidator.BusinessLogic {
 
     internal sealed class VerificationTask : IVerificationTask, IMqttClientConnectedHandler, IMqttClientDisconnectedHandler, IMqttApplicationMessageReceivedHandler {
         private readonly string _mqttBroker;
-        private readonly uint _mqttPort;
+        private readonly int _mqttPort;
         private readonly string _mqttTopic;
         private readonly TimeSpan _startUpDelay;
         private readonly TimeSpan _observationTime;
@@ -29,7 +29,7 @@ namespace MqttTestValidator.BusinessLogic {
         private uint _lowestMessageId;
         private uint _highestMessageId;
 
-        public VerificationTask(ulong id, string mqttBroker, uint mqttPort, string mqttTopic, TimeSpan startUpDelay, TimeSpan observationTime, ILogger<IVerificationTask> logger) {
+        public VerificationTask(ulong id, string mqttBroker, int mqttPort, string mqttTopic, TimeSpan startUpDelay, TimeSpan observationTime, ILogger<IVerificationTask> logger) {
             Id = id;
             _mqttBroker = mqttBroker;
             _mqttPort = mqttPort;
@@ -59,12 +59,12 @@ namespace MqttTestValidator.BusinessLogic {
 
                 using (var mqttClient = mqttFactory.CreateMqttClient()) {
 
-                    var clientId = $"{_mqttBroker}:{_mqttPort}";
+                    var clientId = $"validator_{Id}";
                     var mqttClientOptions = new MqttClientOptionsBuilder()
-                        .WithTcpServer(clientId)
+                        .WithTcpServer(_mqttBroker, _mqttPort)
                         .WithCleanSession(true)
                         .WithProtocolVersion(MqttProtocolVersion.V500)
-                        .WithClientId($"validator_{Id}")
+                        .WithClientId(clientId)
                         .Build();
 
                     mqttClient.ConnectedHandler = this;
@@ -90,6 +90,8 @@ namespace MqttTestValidator.BusinessLogic {
                         throw new InvalidProgramException("Can't subscribe to topic");
                     }
                     _logger.LogInformation($"Subscribed");
+
+                    cts.Token.WaitHandle.WaitOne();
                 }
             }, cts.Token)
             .ContinueWith(t => {
@@ -121,7 +123,7 @@ namespace MqttTestValidator.BusinessLogic {
         }
 
         Task IMqttClientDisconnectedHandler.HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs) {
-            _logger.LogInformation($"Disconnected from MQTT Broker ({_mqttBroker} on {_mqttPort}): {eventArgs.ConnectResult.ReasonString}:{eventArgs.ConnectResult.ResultCode}");
+            _logger.LogInformation($"Disconnected from MQTT Broker ({_mqttBroker} on {_mqttPort}): {eventArgs.Reason}:{eventArgs.ReasonCode}");
             //todo add reconnect logic
             return Task.CompletedTask;
         }

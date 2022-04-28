@@ -6,7 +6,7 @@
 namespace MqttTestValidator.Interfaces {
     using System.Linq.Expressions;
 
-    internal interface ITaskRepository {
+    public interface ITaskRepository {
         /// <summary>
         /// Check if id exist
         /// </summary>

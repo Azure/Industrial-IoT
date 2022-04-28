@@ -6,7 +6,7 @@
 namespace MqttTestValidator.Interfaces {
     using MqttTestValidator.Models;
 
-    internal interface IVerificationTaskFactory {
+    public interface IVerificationTaskFactory {
         /// <summary>
         /// Creates a new Verification Task
         /// </summary>
