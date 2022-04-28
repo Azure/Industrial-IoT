@@ -1,0 +1,31 @@
+variables:
+- template: steps/variables.yml
+
+stages:
+- stage: deploy
+  displayName: "Deploy IoT Hub and Key Vault"
+  
+  jobs:
+  - job: deploystandalone
+    displayName: 'Deploy Standalone Resources'
+    steps:
+    - template: steps/deploystandalone.yml
+
+- stage: deployAKS
+  displayName: "Deploy AKS"
+  dependsOn: deploy
+  condition: and(not(canceled()), eq(dependencies.deploy.result, 'Succeeded'))
+  steps: 
+  - template: steps/deployaks.yml
+
+- stage: cleanup
+  displayName: Cleanup resources
+  dependsOn: deploy
+  condition: and(not(canceled()), eq(variables['Cleanup'], true))
+  jobs:
+  - job: cleanup
+    displayName: Cleanup
+    steps:
+    - template: steps/cleanup.yml
+      parameters:
+        CleanupAppRegistrations: false

@@ -1,0 +1,36 @@
+steps:
+- task: AzureCLI@2
+  displayName: 'Set Service Principal Environment Variables'
+  name: promoteserviceprincipal
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
+
+- task: AzureKeyVault@1
+  displayName: 'Load secrets from Key Vault as variables by default'
+  condition: and(eq(variables['ContainerRegistryServer'], ''), eq(variables['ContainerRegistryUsername'], ''), eq(variables['ContainerRegistryPassword'], ''))
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: '$(DevAcrCredentialsKeyVaultName)'
+    SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
+    RunAsPreJob: true
+
+- task: AzurePowerShell@5
+  displayName: "Deploy AKS"
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DeployAKS.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -Region "$(Region)"
+      -ServicePrincipalId "$(ServicePrincipalId)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
+      -ContainerRegistryUsername "$(ContainerRegistryUsername)"
+      -ContainerRegistryPassword "$(ContainerRegistryPassword)"
