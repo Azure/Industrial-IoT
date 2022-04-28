@@ -23,11 +23,13 @@ namespace MqttTestValidator.BusinessLogic {
         private readonly TimeSpan _startUpDelay;
         private readonly TimeSpan _observationTime;
         private readonly ILogger<IVerificationTask> _logger;
+        private readonly string _clientId;
         private MqttVerificationDetailedResponse _result;
         private static object _lock = new object();
         private ulong _messageCounter;
         private uint _lowestMessageId;
         private uint _highestMessageId;
+        private IMqttClient? _mqttClient;
 
         public VerificationTask(ulong id, string mqttBroker, int mqttPort, string mqttTopic, TimeSpan startUpDelay, TimeSpan observationTime, ILogger<IVerificationTask> logger) {
             Id = id;
@@ -44,6 +46,7 @@ namespace MqttTestValidator.BusinessLogic {
             _messageCounter = 0;
             _lowestMessageId = 0;
             _highestMessageId = 0;
+            _clientId = $"validator_{Id}";
         }
 
         /// <inheritdoc />
@@ -52,26 +55,22 @@ namespace MqttTestValidator.BusinessLogic {
         /// <inheritdoc />
         public void Start()
         {
-            var cts = new CancellationTokenSource(_startUpDelay + _observationTime);
+            var timeBuffer = TimeSpan.FromMinutes(1);
+            var cts = new CancellationTokenSource(_startUpDelay + _observationTime + timeBuffer);
             var unítOfWork = Task.Delay(_startUpDelay, cts.Token)
             .ContinueWith(t => {
                 var mqttFactory = new MqttFactory();
 
                 using (var mqttClient = mqttFactory.CreateMqttClient()) {
-
-                    var clientId = $"validator_{Id}";
-                    var mqttClientOptions = new MqttClientOptionsBuilder()
-                        .WithTcpServer(_mqttBroker, _mqttPort)
-                        .WithCleanSession(true)
-                        .WithProtocolVersion(MqttProtocolVersion.V500)
-                        .WithClientId(clientId)
-                        .Build();
+                    _mqttClient = mqttClient;
 
                     mqttClient.ConnectedHandler = this;
                     mqttClient.DisconnectedHandler = this;
                     mqttClient.ApplicationMessageReceivedHandler = this;
 
-                    _logger.LogInformation($"Connecting to {_mqttBroker} on port {_mqttPort} with {clientId} as clean session");
+                    var mqttClientOptions = GetMqttClientOptions();
+
+                    _logger.LogInformation($"Connecting to {_mqttBroker} on port {_mqttPort} with {_clientId} as clean session");
                     var connectionResult = mqttClient.ConnectAsync(mqttClientOptions, cts.Token).ConfigureAwait(false).GetAwaiter().GetResult();
                     if (connectionResult.ResultCode != MqttClientConnectResultCode.Success)  {
                         _logger.LogError($"Can't connect to MQTT broker: {connectionResult.ReasonString}: {connectionResult.ResultCode}");
@@ -91,8 +90,9 @@ namespace MqttTestValidator.BusinessLogic {
                     }
                     _logger.LogInformation($"Subscribed");
 
-                    cts.Token.WaitHandle.WaitOne();
+                    Task.Delay(_observationTime).ConfigureAwait(false).GetAwaiter().GetResult();
                 }
+                _mqttClient = null;
             }, cts.Token)
             .ContinueWith(t => {
                 lock (_lock) {
@@ -122,10 +122,32 @@ namespace MqttTestValidator.BusinessLogic {
             return Task.CompletedTask;
         }
 
-        Task IMqttClientDisconnectedHandler.HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs) {
+        async Task IMqttClientDisconnectedHandler.HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs) {
             _logger.LogInformation($"Disconnected from MQTT Broker ({_mqttBroker} on {_mqttPort}): {eventArgs.Reason}:{eventArgs.ReasonCode}");
-            //todo add reconnect logic
-            return Task.CompletedTask;
+            if (_mqttClient == null) {
+                return;
+            }
+            ushort numberOfRetries = 3;
+            ushort maxNumberOfRetries = 3;
+            ushort backoffTimeInMilliseconds = 1_000;
+            ushort currentRetries = 0;
+
+            var clientOptions = GetMqttClientOptions();
+            while (!_mqttClient.IsConnected && numberOfRetries > 0) {
+                _logger.LogInformation($"Reconnecting to MQTT Broker {++currentRetries} of {maxNumberOfRetries} with backoff: {backoffTimeInMilliseconds}");
+
+                await Task.Delay(backoffTimeInMilliseconds).ConfigureAwait(false);
+
+                var result = await _mqttClient.ConnectAsync(clientOptions).ConfigureAwait(false);
+                if (result.ResultCode != MqttClientConnectResultCode.Success) {
+                    _logger.LogError($"Failed to reconnect to MQTT Broker, {result.ReasonString}: {result.ResultCode}");
+                    numberOfRetries--;
+                }
+                else {
+                    _logger.LogInformation("MQTT Client reconnected!");
+                    break;
+                }
+            }
         }
 
         Task IMqttApplicationMessageReceivedHandler.HandleApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs eventArgs) {
@@ -144,6 +166,15 @@ namespace MqttTestValidator.BusinessLogic {
             }
             
             return Task.CompletedTask;
+        }
+
+        private IMqttClientOptions GetMqttClientOptions() {
+            return new MqttClientOptionsBuilder()
+                        .WithTcpServer(_mqttBroker, _mqttPort)
+                        .WithCleanSession(true)
+                        .WithProtocolVersion(MqttProtocolVersion.V500)
+                        .WithClientId(_clientId)
+                        .Build();
         }
     }
 }
