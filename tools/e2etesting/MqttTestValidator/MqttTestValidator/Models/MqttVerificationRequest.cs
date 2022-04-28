@@ -1,6 +1,10 @@
-﻿namespace MqttTestValidator.Models {
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace MqttTestValidator.Models {
     using System.ComponentModel.DataAnnotations;
-    using System.Runtime.InteropServices;
 
     public class MqttVerificationRequest {
         /// <summary>

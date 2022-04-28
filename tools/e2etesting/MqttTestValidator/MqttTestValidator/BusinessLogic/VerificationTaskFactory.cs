@@ -1,16 +1,21 @@
-﻿namespace MqttTestValidator.BusinessLogic {
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace MqttTestValidator.BusinessLogic {
     using MqttTestValidator.Interfaces;
     using MqttTestValidator.Models;
-    using System;
 
     internal class VerificationTaskFactory : IVerificationTaskFactory {
         private readonly ILogger<IVerificationTask> _logger;
-        public VerificationTaskFactory(ILogger<IVerificationTask> logger)
-        {
+        private static ulong _instanceCounter = 0;
+
+        public VerificationTaskFactory(ILogger<IVerificationTask> logger) {
             _logger = logger;
         }
 
-        private static ulong _instanceCounter = 0;
+        /// <inheritdoc />
         public IVerificationTask CreateVerificationTask(MqttVerificationRequest verificationRequest) {
             _instanceCounter++;
             return new VerificationTask(

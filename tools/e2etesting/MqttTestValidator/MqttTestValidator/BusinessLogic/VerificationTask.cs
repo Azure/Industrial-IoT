@@ -1,4 +1,9 @@
-﻿namespace MqttTestValidator.BusinessLogic {
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace MqttTestValidator.BusinessLogic {
     using MQTTnet;
     using MQTTnet.Client;
     using MQTTnet.Client.Connecting;
@@ -41,8 +46,10 @@
             _highestMessageId = 0;
         }
 
+        /// <inheritdoc />
         public ulong Id { get; set; }
 
+        /// <inheritdoc />
         public void Start()
         {
             var cts = new CancellationTokenSource(_startUpDelay + _observationTime);
@@ -99,6 +106,7 @@
             });
         }
         
+        /// <inheritdoc />
         public MqttVerificationDetailedResponse GetResult()
         {
             lock(_lock)
@@ -107,18 +115,18 @@
             }
         }
 
-        public Task HandleConnectedAsync(MqttClientConnectedEventArgs eventArgs) {
+        Task IMqttClientConnectedHandler.HandleConnectedAsync(MqttClientConnectedEventArgs eventArgs) {
             _logger.LogInformation($"Connected to MQTT Broker ({_mqttBroker} on {_mqttPort}): {eventArgs.ConnectResult.ReasonString}:{eventArgs.ConnectResult.ResultCode}");
             return Task.CompletedTask;
         }
 
-        public Task HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs) {
+        Task IMqttClientDisconnectedHandler.HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs) {
             _logger.LogInformation($"Disconnected from MQTT Broker ({_mqttBroker} on {_mqttPort}): {eventArgs.ConnectResult.ReasonString}:{eventArgs.ConnectResult.ResultCode}");
             //todo add reconnect logic
             return Task.CompletedTask;
         }
 
-        public Task HandleApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs eventArgs) {
+        Task IMqttApplicationMessageReceivedHandler.HandleApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs eventArgs) {
             
             eventArgs.AutoAcknowledge = true;
             Interlocked.Increment(ref _messageCounter);
