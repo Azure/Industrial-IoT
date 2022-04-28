@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace MqttTestValidator.Models {
+    using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
 
     public class MqttVerificationRequest {
@@ -11,24 +12,31 @@ namespace MqttTestValidator.Models {
         /// The IP or DNS name of MQTT V5 broker to connect to
         /// </summary>
         [Required(AllowEmptyStrings = false)]
+        [DefaultValue("localhost")]
         public string MqttBroker { get; set; } = string.Empty;
         /// <summary>
         /// The Port of the MQTT V5 broker to connect to
         /// </summary>
-        [Range(1, 65535)]   
+        [Range(1, 65535)]
+        [DefaultValue(1883)]
         public uint MqttPort { get; set; } = 1883;
         /// <summary>
         /// The topic to observe
         /// </summary>
         [Required(AllowEmptyStrings = false)]
+        [DefaultValue("devices/#")]
         public string MqttTopic { get; set; } = string.Empty;
         /// <summary>
-        /// Timespan to wait for messages
+        /// Time to wait for messages in milliseconds
         /// </summary>
-        public TimeSpan TimeToObserve { get; set; } = TimeSpan.FromSeconds(30);
+        [Range(1, int.MaxValue)]
+        [DefaultValue(30_000)]
+        public int TimeToObserve { get; set; } = 30_000;
         /// <summary>
         /// Time to wait befor listening to messages
         /// </summary>
-        public TimeSpan StartupTime { get; set; } = TimeSpan.FromSeconds(5);
+        [Range(1, int.MaxValue)]
+        [DefaultValue(5_000)]
+        public int StartupTime { get; set; } = 5_000;
     }
 }

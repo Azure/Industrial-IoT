@@ -23,8 +23,8 @@ namespace MqttTestValidator.BusinessLogic {
                 verificationRequest.MqttBroker,
                 Convert.ToInt32(verificationRequest.MqttPort),
                 verificationRequest.MqttTopic,
-                verificationRequest.StartupTime,
-                verificationRequest.TimeToObserve, 
+                TimeSpan.FromMilliseconds(verificationRequest.StartupTime),
+                TimeSpan.FromMilliseconds(verificationRequest.TimeToObserve), 
                 _logger);
         }
     }
