@@ -15,6 +15,7 @@ namespace MqttTestValidator.BusinessLogic {
     using MqttTestValidator.Interfaces;
     using MqttTestValidator.Models;
     using System.Text;
+    using System.Text.RegularExpressions;
 
     internal sealed class VerificationTask : IVerificationTask, IMqttClientConnectedHandler, IMqttClientDisconnectedHandler, IMqttApplicationMessageReceivedHandler {
         private readonly string _mqttBroker;
@@ -24,12 +25,14 @@ namespace MqttTestValidator.BusinessLogic {
         private readonly TimeSpan _observationTime;
         private readonly ILogger<IVerificationTask> _logger;
         private readonly string _clientId;
+        private readonly Regex _messageIdRegEx = new Regex(".*?(\"MessageId\":).(\\d*)?", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled, TimeSpan.FromMilliseconds(250));
         private MqttVerificationDetailedResponse _result;
         private static object _lock = new object();
         private ulong _messageCounter;
         private uint _lowestMessageId;
         private uint _highestMessageId;
         private IMqttClient? _mqttClient;
+
 
         public VerificationTask(ulong id, string mqttBroker, int mqttPort, string mqttTopic, TimeSpan startUpDelay, TimeSpan observationTime, ILogger<IVerificationTask> logger) {
             Id = id;
@@ -44,8 +47,8 @@ namespace MqttTestValidator.BusinessLogic {
                 IsFinished = false
             };
             _messageCounter = 0;
-            _lowestMessageId = 0;
-            _highestMessageId = 0;
+            _lowestMessageId = uint.MaxValue;
+            _highestMessageId = uint.MinValue;
             _clientId = $"validator_{Id}";
         }
 
@@ -91,8 +94,8 @@ namespace MqttTestValidator.BusinessLogic {
                     _logger.LogInformation($"Subscribed");
 
                     Task.Delay(_observationTime).ConfigureAwait(false).GetAwaiter().GetResult();
+                    _mqttClient = null;
                 }
-                _mqttClient = null;
             }, cts.Token)
             .ContinueWith(t => {
                 lock (_lock) {
@@ -158,7 +161,20 @@ namespace MqttTestValidator.BusinessLogic {
             try {
                 var message = Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload);
                 _logger.LogTrace(message);
-                //todo set min and max MessageId
+
+                var matches = _messageIdRegEx.Matches(message);
+                foreach(Match match in matches.Where(m => m.Success)) {
+                    if (uint.TryParse(match.Groups[2].Value, out var messageId)) 
+                    {
+                        if (messageId > _highestMessageId) {
+                            _highestMessageId = messageId;
+                        }
+
+                        if (messageId < _lowestMessageId) {
+                            _lowestMessageId = messageId;
+                        }
+                    }
+                }
             }
             catch (Exception ex) {
                 _logger.LogError($"Error while processing MQTT message: {ex.Message}");
