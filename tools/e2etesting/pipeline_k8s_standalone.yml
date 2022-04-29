@@ -11,12 +11,17 @@ stages:
     steps:
     - template: steps/deploystandalone.yml
 
+#build test resource
+# upload test resource
+
 - stage: deployAKS
   displayName: "Deploy AKS"
   dependsOn: deploy
   condition: and(not(canceled()), eq(dependencies.deploy.result, 'Succeeded'))
   steps: 
   - template: steps/deployaks.yml
+
+# runt tests
 
 - stage: cleanup
   displayName: Cleanup resources

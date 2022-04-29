@@ -171,10 +171,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 if (!string.IsNullOrWhiteSpace(message.ContentEncoding)) {
                     properties[kContentEncodingPropertyName] = message.ContentEncoding;
                 }
+                //TODO: if cs.UsingIoTHub ...
                 var topic = $"devices/{_deviceId}/messages/events/";
                 if (properties.Any()) {
                     topic += UrlEncodedDictionarySerializer.Serialize(properties) + kSegmentSeparator;
                 }
+                //else user User Properties
+                // add setting to define topic schema (to integrate in Apollo)
                 return InternalSendEventAsync(topic, message.BodyStream);
             }
 
