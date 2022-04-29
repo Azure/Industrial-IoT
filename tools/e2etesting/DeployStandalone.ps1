@@ -1,7 +1,7 @@
 Param(
     [string]
     $ResourceGroupName,
-    [string]
+    [Guid]
     $TenantId,
     [string]
     $Region = "EastUS",
