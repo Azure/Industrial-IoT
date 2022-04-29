@@ -84,8 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     name = nameof(Utils.TraceMasks.Error);
                     break;
                 case Utils.TraceMasks.Information:
-                    // level = LogLevel.Info; // TOO VERBOSE
-                    level = LogEventLevel.Verbose;
+                    level = LogEventLevel.Information;
                     name = nameof(Utils.TraceMasks.Information);
                     break;
                 case Utils.TraceMasks.StartStop:
