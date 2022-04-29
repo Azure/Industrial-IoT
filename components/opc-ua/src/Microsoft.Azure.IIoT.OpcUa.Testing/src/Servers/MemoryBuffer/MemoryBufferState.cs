@@ -401,7 +401,6 @@ namespace MemoryBuffer {
                     tag.Offset,
                     0,
                     monitoredItemId,
-                    context.OperationContext.Session,
                     itemToMonitor,
                     diagnosticsMasks,
                     timestampsToReturn,

@@ -40,5 +40,15 @@ namespace MemoryBuffer {
             ApplicationConfiguration configuration) {
             return new MemoryBufferNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.MemoryBuffer,
+                };
+                return nameSpaces;
+            }
+        }
     }
 }
