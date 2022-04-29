@@ -40,5 +40,15 @@ namespace SimpleEvents {
             ApplicationConfiguration configuration) {
             return new SimpleEventsNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.SimpleEvents,
+                };
+                return nameSpaces;
+            }
+        }
     }
 }

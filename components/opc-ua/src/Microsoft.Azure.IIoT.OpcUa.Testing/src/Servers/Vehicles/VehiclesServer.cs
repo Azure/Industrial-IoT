@@ -39,5 +39,15 @@ namespace Vehicles {
             ApplicationConfiguration configuration) {
             return new VehiclesNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.Vehicles
+                };
+                return nameSpaces;
+            }
+        }
     }
 }

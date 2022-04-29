@@ -40,5 +40,15 @@ namespace TestData {
             ApplicationConfiguration configuration) {
             return new TestDataNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.TestData
+                };
+                return nameSpaces;
+            }
+        }
     }
 }

@@ -1,8 +1,8 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
- *
+ * 
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -11,7 +11,7 @@
  * copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following
  * conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -27,16 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Sample {
-    using System;
-    using System.Collections.Generic;
-    using Opc.Ua.Server;
+using System;
+using System.Collections.Generic;
+using Opc.Ua.Server;
 
+namespace Opc.Ua.Sample {
     /// <summary>
     /// Provides a basic monitored item implementation which does not support queuing.
     /// </summary>
-    public class DataChangeMonitoredItem : IDataChangeMonitoredItem {
-
+    public class DataChangeMonitoredItem : IDataChangeMonitoredItem2 {
+        #region Constructors
         /// <summary>
         /// Constructs a new instance.
         /// </summary>
@@ -52,20 +52,20 @@ namespace Opc.Ua.Sample {
             uint clientHandle,
             double samplingInterval,
             bool alwaysReportUpdates) {
-            _source = source;
-            Id = id;
-            AttributeId = attributeId;
-            IndexRange = indexRange;
-            DataEncoding = dataEncoding;
-            _timestampsToReturn = timestampsToReturn;
-            _diagnosticsMasks = diagnosticsMasks;
-            MonitoringMode = monitoringMode;
-            ClientHandle = clientHandle;
-            _samplingInterval = samplingInterval;
-            _nextSampleTime = DateTime.UtcNow.Ticks;
-            _readyToPublish = false;
-            _readyToTrigger = false;
-            AlwaysReportUpdates = alwaysReportUpdates;
+            m_source = source;
+            m_id = id;
+            m_attributeId = attributeId;
+            m_indexRange = indexRange;
+            m_dataEncoding = dataEncoding;
+            m_timestampsToReturn = timestampsToReturn;
+            m_diagnosticsMasks = diagnosticsMasks;
+            m_monitoringMode = monitoringMode;
+            m_clientHandle = clientHandle;
+            m_samplingInterval = samplingInterval;
+            m_nextSampleTime = DateTime.UtcNow.Ticks;
+            m_readyToPublish = false;
+            m_readyToTrigger = false;
+            m_alwaysReportUpdates = alwaysReportUpdates;
         }
 
         /// <summary>
@@ -85,74 +85,85 @@ namespace Opc.Ua.Sample {
             uint queueSize,
             bool discardOldest,
             DataChangeFilter filter,
-            Opc.Ua.Range range,
+            Range range,
             bool alwaysReportUpdates) {
-            _source = source;
-            Id = id;
-            AttributeId = attributeId;
-            IndexRange = indexRange;
-            DataEncoding = dataEncoding;
-            _timestampsToReturn = timestampsToReturn;
-            _diagnosticsMasks = diagnosticsMasks;
-            MonitoringMode = monitoringMode;
-            ClientHandle = clientHandle;
-            _samplingInterval = samplingInterval;
-            _nextSampleTime = DateTime.UtcNow.Ticks;
-            _readyToPublish = false;
-            _readyToTrigger = false;
-            _queue = null;
-            DataChangeFilter = filter;
-            _range = 0;
-            AlwaysReportUpdates = alwaysReportUpdates;
+            m_source = source;
+            m_id = id;
+            m_attributeId = attributeId;
+            m_indexRange = indexRange;
+            m_dataEncoding = dataEncoding;
+            m_timestampsToReturn = timestampsToReturn;
+            m_diagnosticsMasks = diagnosticsMasks;
+            m_monitoringMode = monitoringMode;
+            m_clientHandle = clientHandle;
+            m_samplingInterval = samplingInterval;
+            m_nextSampleTime = DateTime.UtcNow.Ticks;
+            m_readyToPublish = false;
+            m_readyToTrigger = false;
+            m_queue = null;
+            m_filter = filter;
+            m_range = 0;
+            m_alwaysReportUpdates = alwaysReportUpdates;
 
             if (range != null) {
-                _range = range.High - range.Low;
+                m_range = range.High - range.Low;
             }
 
             if (queueSize > 1) {
-                _queue = new MonitoredItemQueue();
-                _queue.SetQueueSize(queueSize, discardOldest, diagnosticsMasks);
-                _queue.SetSamplingInterval(samplingInterval);
+                m_queue = new MonitoredItemQueue(id);
+                m_queue.SetQueueSize(queueSize, discardOldest, diagnosticsMasks);
+                m_queue.SetSamplingInterval(samplingInterval);
             }
         }
+        #endregion
 
+        #region Public Members
         /// <summary>
         /// Gets the id for the attribute being monitored.
         /// </summary>
-        public uint AttributeId { get; }
+        public uint AttributeId {
+            get { return m_attributeId; }
+        }
 
         /// <summary>
         /// Gets the index range used to selected a subset of the value.
         /// </summary>
-        public NumericRange IndexRange { get; }
+        public NumericRange IndexRange {
+            get { return m_indexRange; }
+        }
 
         /// <summary>
         /// Gets the data encoding to use when returning the value.
         /// </summary>
-        public QualifiedName DataEncoding { get; }
+        public QualifiedName DataEncoding {
+            get { return m_dataEncoding; }
+        }
 
         /// <summary>
         /// Whether the monitored item should report a value without checking if it was changed.
         /// </summary>
-        public bool AlwaysReportUpdates { get; set; }
+        public bool AlwaysReportUpdates {
+            get { return m_alwaysReportUpdates; }
+            set { m_alwaysReportUpdates = value; }
+        }
 
         /// <summary>
         /// The number of milliseconds until the next sample.
         /// </summary>
         public int TimeToNextSample {
             get {
-                lock (_lock) {
-                    if (MonitoringMode == MonitoringMode.Disabled) {
-                        return int.MaxValue;
+                lock (m_lock) {
+                    if (m_monitoringMode == MonitoringMode.Disabled) {
+                        return Int32.MaxValue;
                     }
 
-                    var now = DateTime.UtcNow;
+                    DateTime now = DateTime.UtcNow;
 
-                    if (_nextSampleTime <= now.Ticks) {
+                    if (m_nextSampleTime <= now.Ticks) {
                         return 0;
                     }
 
-                    return (int)((_nextSampleTime - now.Ticks) / TimeSpan.TicksPerMillisecond);
+                    return (int)((m_nextSampleTime - now.Ticks) / TimeSpan.TicksPerMillisecond);
                 }
             }
         }
@@ -160,15 +171,19 @@ namespace Opc.Ua.Sample {
         /// <summary>
         /// The monitoring mode.
         /// </summary>
-        public MonitoringMode MonitoringMode { get; private set; }
+        public MonitoringMode MonitoringMode {
+            get {
+                return m_monitoringMode;
+            }
+        }
 
         /// <summary>
         /// The sampling interval.
         /// </summary>
         public double SamplingInterval {
             get {
-                lock (_lock) {
-                    return _samplingInterval;
+                lock (m_lock) {
+                    return m_samplingInterval;
                 }
             }
         }
@@ -195,50 +210,50 @@ namespace Opc.Ua.Sample {
             uint queueSize,
             bool discardOldest,
             DataChangeFilter filter,
-            Opc.Ua.Range range) {
-            lock (_lock) {
-                _diagnosticsMasks = diagnosticsMasks;
-                _timestampsToReturn = timestampsToReturn;
-                ClientHandle = clientHandle;
+            Range range) {
+            lock (m_lock) {
+                m_diagnosticsMasks = diagnosticsMasks;
+                m_timestampsToReturn = timestampsToReturn;
+                m_clientHandle = clientHandle;
 
                 // subtract the previous sampling interval.
-                var oldSamplingInterval = (long)(_samplingInterval * TimeSpan.TicksPerMillisecond);
+                long oldSamplingInterval = (long)(m_samplingInterval * TimeSpan.TicksPerMillisecond);
 
-                if (oldSamplingInterval < _nextSampleTime) {
-                    _nextSampleTime -= oldSamplingInterval;
+                if (oldSamplingInterval < m_nextSampleTime) {
+                    m_nextSampleTime -= oldSamplingInterval;
                 }
 
-                _samplingInterval = samplingInterval;
+                m_samplingInterval = samplingInterval;
 
-                // calculate the next sampling interval.
-                var newSamplingInterval = (long)(_samplingInterval * TimeSpan.TicksPerMillisecond);
+                // calculate the next sampling interval.                
+                long newSamplingInterval = (long)(m_samplingInterval * TimeSpan.TicksPerMillisecond);
 
-                if (_samplingInterval > 0) {
-                    _nextSampleTime += newSamplingInterval;
+                if (m_samplingInterval > 0) {
+                    m_nextSampleTime += newSamplingInterval;
                 }
                 else {
-                    _nextSampleTime = 0;
+                    m_nextSampleTime = 0;
                 }
 
                 // update the filter and the range.
-                DataChangeFilter = filter;
-                _range = 0;
+                m_filter = filter;
+                m_range = 0;
 
                 if (range != null) {
-                    _range = range.High - range.Low;
+                    m_range = range.High - range.Low;
                 }
 
                 // update the queue size.
                 if (queueSize > 1) {
-                    if (_queue == null) {
-                        _queue = new MonitoredItemQueue();
+                    if (m_queue == null) {
+                        m_queue = new MonitoredItemQueue(m_id);
                     }
 
-                    _queue.SetQueueSize(queueSize, discardOldest, diagnosticsMasks);
-                    _queue.SetSamplingInterval(samplingInterval);
+                    m_queue.SetQueueSize(queueSize, discardOldest, diagnosticsMasks);
+                    m_queue.SetSamplingInterval(samplingInterval);
                 }
                 else {
-                    _queue = null;
+                    m_queue = null;
                 }
 
                 return ServiceResult.Good;
@@ -249,9 +264,9 @@ namespace Opc.Ua.Sample {
         /// Called when the attribute being monitored changed. Reads and queues the value.
         /// </summary>
         public void ValueChanged(ISystemContext context) {
-            var value = new DataValue();
+            DataValue value = new DataValue();
 
-            var error = _source.Node.ReadAttribute(context, AttributeId, NumericRange.Empty, null, value);
+            ServiceResult error = m_source.Node.ReadAttribute(context, m_attributeId, NumericRange.Empty, null, value);
 
             if (ServiceResult.IsBad(error)) {
                 value = new DataValue(error.StatusCode);
@@ -259,22 +274,24 @@ namespace Opc.Ua.Sample {
 
             value.ServerTimestamp = DateTime.UtcNow;
 
-            QueueValue(value, error);
+            QueueValue(value, error, false);
         }
+        #endregion
 
-
-
+        #region IMonitoredItem Members
         /// <summary>
         /// The node manager for the monitored item.
         /// </summary>
-        public INodeManager NodeManager => _source.NodeManager;
+        public INodeManager NodeManager {
+            get { return m_source.NodeManager; }
+        }
 
         /// <summary>
         /// The session for the monitored item.
         /// </summary>
         public Session Session {
             get {
-                var subscription = SubscriptionCallback;
+                ISubscription subscription = m_subscription;
 
                 if (subscription != null) {
                     return subscription.Session;
@@ -289,7 +306,7 @@ namespace Opc.Ua.Sample {
         /// </summary>
         public uint SubscriptionId {
             get {
-                var subscription = SubscriptionCallback;
+                ISubscription subscription = m_subscription;
 
                 if (subscription != null) {
                     return subscription.Id;
@@ -302,48 +319,64 @@ namespace Opc.Ua.Sample {
         /// <summary>
         /// The unique identifier for the monitored item.
         /// </summary>
-        public uint Id { get; }
+        public uint Id {
+            get { return m_id; }
+        }
 
         /// <summary>
         /// The client handle.
         /// </summary>
-        public uint ClientHandle { get; private set; }
+        public uint ClientHandle {
+            get { return m_clientHandle; }
+        }
 
         /// <summary>
         /// The callback to use to notify the subscription when values are ready to publish.
         /// </summary>
-        public ISubscription SubscriptionCallback { get; set; }
+        public ISubscription SubscriptionCallback {
+            get {
+                return m_subscription;
+            }
+
+            set {
+                m_subscription = value;
+            }
+        }
 
         /// <summary>
         /// The handle assigned to the monitored item by the node manager.
         /// </summary>
-        public object ManagerHandle => _source;
+        public object ManagerHandle {
+            get { return m_source; }
+        }
 
         /// <summary>
         /// The type of monitor item.
         /// </summary>
-        public int MonitoredItemType => MonitoredItemTypeMask.DataChange;
+        public int MonitoredItemType {
+            get { return MonitoredItemTypeMask.DataChange; }
+        }
 
         /// <summary>
         /// Returns true if the item is ready to publish.
         /// </summary>
         public bool IsReadyToPublish {
             get {
-                lock (_lock) {
+                lock (m_lock) {
                     // check if not ready to publish.
-                    if (!_readyToPublish) {
+                    if (!m_readyToPublish) {
                         return false;
                     }
 
                     // check if monitoring was turned off.
-                    if (MonitoringMode != MonitoringMode.Reporting) {
+                    if (m_monitoringMode != MonitoringMode.Reporting) {
                         return false;
                     }
 
                     // re-queue if too little time has passed since the last publish.
-                    var now = DateTime.UtcNow.Ticks;
+                    long now = DateTime.UtcNow.Ticks;
 
-                    if (_nextSampleTime > now) {
+                    if (m_nextSampleTime > now) {
                         return false;
                     }
 
@@ -357,19 +390,19 @@ namespace Opc.Ua.Sample {
         /// </summary>
         public bool IsReadyToTrigger {
             get {
-                lock (_lock) {
+                lock (m_lock) {
                     // only allow to trigger if sampling or reporting.
-                    if (MonitoringMode == MonitoringMode.Disabled) {
+                    if (m_monitoringMode == MonitoringMode.Disabled) {
                         return false;
                     }
 
-                    return _readyToTrigger;
+                    return m_readyToTrigger;
                 }
             }
 
             set {
-                lock (_lock) {
-                    _readyToTrigger = value;
+                lock (m_lock) {
+                    m_readyToTrigger = value;
                 }
             }
         }
@@ -378,17 +411,17 @@ namespace Opc.Ua.Sample {
         /// Returns the results for the create request.
         /// </summary>
         public ServiceResult GetCreateResult(out MonitoredItemCreateResult result) {
-            lock (_lock) {
-                result = new MonitoredItemCreateResult {
-                    MonitoredItemId = Id,
-                    StatusCode = StatusCodes.Good,
-                    RevisedSamplingInterval = _samplingInterval,
-                    RevisedQueueSize = 0,
-                    FilterResult = null
-                };
+            lock (m_lock) {
+                result = new MonitoredItemCreateResult();
 
-                if (_queue != null) {
-                    result.RevisedQueueSize = _queue.QueueSize;
+                result.MonitoredItemId = m_id;
+                result.StatusCode = StatusCodes.Good;
+                result.RevisedSamplingInterval = m_samplingInterval;
+                result.RevisedQueueSize = 0;
+                result.FilterResult = null;
+
+                if (m_queue != null) {
+                    result.RevisedQueueSize = m_queue.QueueSize;
                 }
 
                 return ServiceResult.Good;
@@ -399,44 +432,55 @@ namespace Opc.Ua.Sample {
         /// Returns the results for the modify request.
         /// </summary>
         public ServiceResult GetModifyResult(out MonitoredItemModifyResult result) {
-            lock (_lock) {
-                result = new MonitoredItemModifyResult {
-                    StatusCode = StatusCodes.Good,
-                    RevisedSamplingInterval = _samplingInterval,
-                    RevisedQueueSize = 0,
-                    FilterResult = null
-                };
+            lock (m_lock) {
+                result = new MonitoredItemModifyResult();
 
-                if (_queue != null) {
-                    result.RevisedQueueSize = _queue.QueueSize;
+                result.StatusCode = StatusCodes.Good;
+                result.RevisedSamplingInterval = m_samplingInterval;
+                result.RevisedQueueSize = 0;
+                result.FilterResult = null;
+
+                if (m_queue != null) {
+                    result.RevisedQueueSize = m_queue.QueueSize;
                 }
 
                 return ServiceResult.Good;
             }
         }
+        #endregion
 
+        #region IDataChangeMonitoredItem Members
         /// <summary>
         /// Queues a new data change.
         /// </summary>
         public void QueueValue(DataValue value, ServiceResult error) {
-            lock (_lock) {
+            QueueValue(value, error, false);
+        }
+        #endregion
+
+        #region IDataChangeMonitoredItem2 Members
+        /// <summary>
+        /// Queues a new data change.
+        /// </summary>
+        public void QueueValue(DataValue value, ServiceResult error, bool ignoreFilters) {
+            lock (m_lock) {
                 // check if value has changed.
-                if (!AlwaysReportUpdates) {
-                    if (!MonitoredItem.ValueChanged(value, error, _lastValue, _lastError, DataChangeFilter, _range)) {
+                if (!m_alwaysReportUpdates) {
+                    if (!Opc.Ua.Server.MonitoredItem.ValueChanged(value, error, m_lastValue, m_lastError, m_filter, m_range)) {
                         return;
                     }
                 }
 
                 // make a shallow copy of the value.
                 if (value != null) {
-                    var copy = new DataValue {
-                        WrappedValue = value.WrappedValue,
-                        StatusCode = value.StatusCode,
-                        SourceTimestamp = value.SourceTimestamp,
-                        SourcePicoseconds = value.SourcePicoseconds,
-                        ServerTimestamp = value.ServerTimestamp,
-                        ServerPicoseconds = value.ServerPicoseconds
-                    };
+                    DataValue copy = new DataValue();
+
+                    copy.WrappedValue = value.WrappedValue;
+                    copy.StatusCode = value.StatusCode;
+                    copy.SourceTimestamp = value.SourceTimestamp;
+                    copy.SourcePicoseconds = value.SourcePicoseconds;
+                    copy.ServerTimestamp = value.ServerTimestamp;
+                    copy.ServerPicoseconds = value.ServerPicoseconds;
 
                     value = copy;
 
@@ -446,15 +490,17 @@ namespace Opc.Ua.Sample {
                     }
                 }
 
-                _lastValue = value;
-                _lastError = error;
+                m_lastValue = value;
+                m_lastError = error;
 
                 // queue value.
-                _queue?.QueueValue(value, error);
+                if (m_queue != null) {
+                    m_queue.QueueValue(value, error);
+                }
 
                 // flag the item as ready to publish.
-                _readyToPublish = true;
-                _readyToTrigger = true;
+                m_readyToPublish = true;
+                m_readyToTrigger = true;
             }
         }
 
@@ -465,8 +511,8 @@ namespace Opc.Ua.Sample {
         /// The StatusCode for next value reported by the monitored item will have the SemanticsChanged bit set.
         /// </remarks>
         public void SetSemanticsChanged() {
-            lock (_lock) {
-                _semanticsChanged = true;
+            lock (m_lock) {
+                m_semanticsChanged = true;
             }
         }
 
@@ -477,8 +523,8 @@ namespace Opc.Ua.Sample {
         /// The StatusCode for next value reported by the monitored item will have the StructureChanged bit set.
         /// </remarks>
         public void SetStructureChanged() {
-            lock (_lock) {
-                _structureChanged = true;
+            lock (m_lock) {
+                m_structureChanged = true;
             }
         }
 
@@ -486,24 +532,24 @@ namespace Opc.Ua.Sample {
         /// Changes the monitoring mode.
         /// </summary>
         public MonitoringMode SetMonitoringMode(MonitoringMode monitoringMode) {
-            lock (_lock) {
-                var previousMode = MonitoringMode;
+            lock (m_lock) {
+                MonitoringMode previousMode = m_monitoringMode;
 
                 if (previousMode == monitoringMode) {
                     return previousMode;
                 }
 
                 if (previousMode == MonitoringMode.Disabled) {
-                    _nextSampleTime = DateTime.UtcNow.Ticks;
-                    _lastError = null;
-                    _lastValue = null;
+                    m_nextSampleTime = DateTime.UtcNow.Ticks;
+                    m_lastError = null;
+                    m_lastValue = null;
                 }
 
-                MonitoringMode = monitoringMode;
+                m_monitoringMode = monitoringMode;
 
                 if (monitoringMode == MonitoringMode.Disabled) {
-                    _readyToPublish = false;
-                    _readyToTrigger = false;
+                    m_readyToPublish = false;
+                    m_readyToTrigger = false;
                 }
 
                 return previousMode;
@@ -513,27 +559,29 @@ namespace Opc.Ua.Sample {
         /// <summary>
         /// No filters supported.
         /// </summary>
-        public DataChangeFilter DataChangeFilter { get; private set; }
+        public DataChangeFilter DataChangeFilter {
+            get { return m_filter; }
+        }
 
         /// <summary>
         /// Increments the sample time to the next interval.
         /// </summary>
         private void IncrementSampleTime() {
             // update next sample time.
-            var now = DateTime.UtcNow.Ticks;
-            var samplingInterval = (long)(_samplingInterval * TimeSpan.TicksPerMillisecond);
+            long now = DateTime.UtcNow.Ticks;
+            long samplingInterval = (long)(m_samplingInterval * TimeSpan.TicksPerMillisecond);
 
-            if (_nextSampleTime > 0) {
-                var delta = now - _nextSampleTime;
+            if (m_nextSampleTime > 0) {
+                long delta = now - m_nextSampleTime;
 
                 if (samplingInterval > 0 && delta >= 0) {
-                    _nextSampleTime += ((delta / samplingInterval) + 1) * samplingInterval;
+                    m_nextSampleTime += ((delta / samplingInterval) + 1) * samplingInterval;
                 }
             }
 
             // set sampling time based on current time.
             else {
-                _nextSampleTime = now + samplingInterval;
+                m_nextSampleTime = now + samplingInterval;
             }
         }
 
@@ -541,7 +589,7 @@ namespace Opc.Ua.Sample {
         /// Called by the subscription to publish any notification.
         /// </summary>
         public bool Publish(OperationContext context, Queue<MonitoredItemNotification> notifications, Queue<DiagnosticInfo> diagnostics) {
-            lock (_lock) {
+            lock (m_lock) {
                 // check if not ready to publish.
                 if (!IsReadyToPublish) {
                     return false;
@@ -551,18 +599,18 @@ namespace Opc.Ua.Sample {
                 IncrementSampleTime();
 
                 // update publish flag.
-                _readyToPublish = false;
-                _readyToTrigger = false;
+                m_readyToPublish = false;
+                m_readyToTrigger = false;
 
                 // check if queuing is enabled.
-                if (_queue == null) {
-                    Publish(context, _lastValue, _lastError, notifications, diagnostics);
+                if (m_queue == null) {
+                    Publish(context, m_lastValue, m_lastError, notifications, diagnostics);
                 }
                 else {
                     DataValue value = null;
                     ServiceResult error = null;
 
-                    while (_queue.Publish(out value, out error)) {
+                    while (m_queue.Publish(out value, out error)) {
                         Publish(context, value, error, notifications, diagnostics);
                     }
                 }
@@ -581,7 +629,7 @@ namespace Opc.Ua.Sample {
             Queue<MonitoredItemNotification> notifications,
             Queue<DiagnosticInfo> diagnostics) {
             // set semantics changed bit.
-            if (_semanticsChanged) {
+            if (m_semanticsChanged) {
                 if (value != null) {
                     value.StatusCode = value.StatusCode.SetSemanticsChanged(true);
                 }
@@ -596,11 +644,11 @@ namespace Opc.Ua.Sample {
                         error.InnerResult);
                 }
 
-                _semanticsChanged = false;
+                m_semanticsChanged = false;
             }
 
             // set structure changed bit.
-            if (_structureChanged) {
+            if (m_structureChanged) {
                 if (value != null) {
                     value.StatusCode = value.StatusCode.SetStructureChanged(true);
                 }
@@ -615,21 +663,21 @@ namespace Opc.Ua.Sample {
                         error.InnerResult);
                 }
 
-                _structureChanged = false;
+                m_structureChanged = false;
             }
 
             // copy data value.
-            var item = new MonitoredItemNotification {
-                ClientHandle = ClientHandle,
-                Value = value
-            };
+            MonitoredItemNotification item = new MonitoredItemNotification();
+
+            item.ClientHandle = m_clientHandle;
+            item.Value = value;
 
             // apply timestamp filter.
-            if (_timestampsToReturn != TimestampsToReturn.Server && _timestampsToReturn != TimestampsToReturn.Both) {
+            if (m_timestampsToReturn != TimestampsToReturn.Server && m_timestampsToReturn != TimestampsToReturn.Both) {
                 item.Value.ServerTimestamp = DateTime.MinValue;
             }
 
-            if (_timestampsToReturn != TimestampsToReturn.Source && _timestampsToReturn != TimestampsToReturn.Both) {
+            if (m_timestampsToReturn != TimestampsToReturn.Source && m_timestampsToReturn != TimestampsToReturn.Both) {
                 item.Value.SourceTimestamp = DateTime.MinValue;
             }
 
@@ -638,28 +686,40 @@ namespace Opc.Ua.Sample {
             // update diagnostic info.
             DiagnosticInfo diagnosticInfo = null;
 
-            if (_lastError != null) {
-                if ((_diagnosticsMasks & DiagnosticsMasks.OperationAll) != 0) {
-                    diagnosticInfo = ServerUtils.CreateDiagnosticInfo(_source.Server, context, _lastError);
+            if (m_lastError != null) {
+                if ((m_diagnosticsMasks & DiagnosticsMasks.OperationAll) != 0) {
+                    diagnosticInfo = ServerUtils.CreateDiagnosticInfo(m_source.Server, context, m_lastError);
                 }
             }
 
             diagnostics.Enqueue(diagnosticInfo);
         }
+        #endregion
 
-        private readonly object _lock = new object();
-        private readonly MonitoredNode _source;
-        private DataValue _lastValue;
-        private ServiceResult _lastError;
-        private TimestampsToReturn _timestampsToReturn;
-        private DiagnosticsMasks _diagnosticsMasks;
-        private double _samplingInterval;
-        private MonitoredItemQueue _queue;
-        private double _range;
-        private long _nextSampleTime;
-        private bool _readyToPublish;
-        private bool _readyToTrigger;
-        private bool _semanticsChanged;
-        private bool _structureChanged;
+        #region Private Fields
+        private object m_lock = new object();
+        private MonitoredNode m_source;
+        private ISubscription m_subscription;
+        private uint m_id;
+        private DataValue m_lastValue;
+        private ServiceResult m_lastError;
+        private uint m_attributeId;
+        private NumericRange m_indexRange;
+        private QualifiedName m_dataEncoding;
+        private TimestampsToReturn m_timestampsToReturn;
+        private DiagnosticsMasks m_diagnosticsMasks;
+        private uint m_clientHandle;
+        private double m_samplingInterval;
+        private MonitoredItemQueue m_queue;
+        private DataChangeFilter m_filter;
+        private double m_range;
+        private MonitoringMode m_monitoringMode;
+        private long m_nextSampleTime;
+        private bool m_readyToPublish;
+        private bool m_readyToTrigger;
+        private bool m_alwaysReportUpdates;
+        private bool m_semanticsChanged;
+        private bool m_structureChanged;
+        #endregion
     }
 }

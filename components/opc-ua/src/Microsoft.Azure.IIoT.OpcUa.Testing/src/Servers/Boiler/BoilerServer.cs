@@ -40,5 +40,16 @@ namespace Boiler {
             ApplicationConfiguration configuration) {
             return new BoilerNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.Boiler,
+                    Namespaces.Boiler + "Instance"
+                };
+                return nameSpaces;
+            }
+        }
     }
 }
