@@ -40,5 +40,15 @@ namespace PerfTest {
             ApplicationConfiguration configuration) {
             return new PerfTestNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.PerfTest,
+                };
+                return nameSpaces;
+            }
+        }
     }
 }

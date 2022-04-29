@@ -40,5 +40,14 @@ namespace HistoricalEvents {
             ApplicationConfiguration configuration) {
             return new HistoricalEventsNodeManager(server, configuration);
         }
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.HistoricalEvents,
+                };
+                return nameSpaces;
+            }
+        }
     }
 }

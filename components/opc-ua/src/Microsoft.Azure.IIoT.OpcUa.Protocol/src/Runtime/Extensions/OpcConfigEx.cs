@@ -150,10 +150,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         certNum++, cert.Subject, cert.Thumbprint);
                 }
                 if (certStore.SupportsCRLs) {
-                    var crls = certStore.EnumerateCRLs();
+                    var crls = await certStore.EnumerateCRLs().ConfigureAwait(false);
                     int crlNum = 1;
                     logger.Information("Trusted issuer store has {count} CRLs.", crls.Count);
-                    foreach (var crl in certStore.EnumerateCRLs()) {
+                    foreach (var crl in crls) {
                         logger.Information("{crlNum:D2}: Issuer '{issuer}', Next update time '{nextUpdate}'",
                             crlNum++, crl.Issuer, crl.NextUpdate);
                     }
@@ -174,10 +174,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         certNum++, cert.Subject, cert.Thumbprint);
                 }
                 if (certStore.SupportsCRLs) {
-                    var crls = certStore.EnumerateCRLs();
+                    var crls = await certStore.EnumerateCRLs().ConfigureAwait(false);
                     int crlNum = 1;
                     logger.Information("Trusted peer store has {count} CRLs.", crls.Count);
-                    foreach (var crl in certStore.EnumerateCRLs()) {
+                    foreach (var crl in crls) {
                         logger.Information("{crlNum:D2}: Issuer '{issuer}', Next update time '{nextUpdate}'",
                             crlNum++, crl.Issuer, crl.NextUpdate);
                     }
