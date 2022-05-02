@@ -40,6 +40,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Flag to determine if a telemetry routing info is required.
         /// </summary>
-        public bool? HasRoutingInfo { get; set; }
+        public bool? EnableRoutingInfo { get; set; }
     }
 }

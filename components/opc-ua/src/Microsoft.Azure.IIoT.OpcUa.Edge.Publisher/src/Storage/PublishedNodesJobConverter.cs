@@ -163,7 +163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         DiagnosticsInterval = _engineConfig.DiagnosticsInterval,
                         MaxMessageSize = _engineConfig.MaxMessageSize,
                         MaxOutgressMessages = _engineConfig.MaxOutgressMessages,
-                        HasRoutingInfo = _engineConfig.HasRoutingInfo,
+                        EnableRoutingInfo = _engineConfig.EnableRoutingInfo,
                     },
                     WriterGroup = new WriterGroupModel {
                         MessageType = standaloneCliModel.MessageEncoding,

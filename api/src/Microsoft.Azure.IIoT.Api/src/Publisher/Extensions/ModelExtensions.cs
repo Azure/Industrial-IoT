@@ -919,7 +919,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxMessageSize = model.MaxMessageSize,
                 MaxOutgressMessages = model.MaxOutgressMessages,
-                HasRoutingInfo = model.HasRoutingInfo,
+                EnableRoutingInfo = model.EnableRoutingInfo,
             };
         }
 
@@ -937,7 +937,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 MaxMessageSize = model.MaxMessageSize,
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxOutgressMessages = model.MaxOutgressMessages,
-                HasRoutingInfo = model.HasRoutingInfo,
+                EnableRoutingInfo = model.EnableRoutingInfo,
             };
         }
 

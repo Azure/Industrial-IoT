@@ -39,8 +39,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         int? MaxOutgressMessages { get; }
 
         /// <summary>
-        /// Flag to determine if a telemetry routing info is required.
+        /// Flag to determine if adding telemetry routing info is enabled.
         /// </summary>
-        bool? HasRoutingInfo { get; }
+        bool? EnableRoutingInfo { get; }
     }
 }

@@ -276,8 +276,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                             DiagnosticsInterval = TimeSpan.FromSeconds(60),
                             MaxMessageSize = 0,
                             MaxOutgressMessages = DefaultMaxOutgressMessages.Value,
-                            HasRoutingInfo = false,
-                    };
+                            EnableRoutingInfo = false,
+                        };
                     }
                     else {
                         publishJob.Engine.BatchTriggerInterval = DefaultBatchTriggerInterval.Value;
@@ -313,7 +313,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0,
                     MaxOutgressMessages = DefaultMaxOutgressMessages.Value,
-                    HasRoutingInfo = false
+                    EnableRoutingInfo = false
                 },
                 ConnectionString = null
             };
@@ -344,7 +344,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             List<PublishedDataSetVariableModel> variables = null;
             foreach (var writer in publishJob.WriterGroup.DataSetWriters) {
                 if (writer.DataSet.DataSetSource.Connection.IsSameAs(connection) &&
-                    writer.DataSetWriterId == dataSetWriterId ) {
+                    writer.DataSetWriterId == dataSetWriterId) {
                     System.Diagnostics.Debug.Assert(writer.DataSet.DataSetSource.PublishedVariables.PublishedData != null);
                     variables = writer.DataSet.DataSetSource.PublishedVariables.PublishedData;
                     writer.DataSet.DataSetMetaData.ConfigurationVersion.MinorVersion++;

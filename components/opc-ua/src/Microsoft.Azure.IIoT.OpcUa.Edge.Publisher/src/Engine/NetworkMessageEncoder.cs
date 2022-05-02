@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Encoders;
@@ -41,12 +42,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
 
-        /// <inheritdoc/>
+        /// <summary> Logger for reporting. </summary>
         private readonly ILogger _logger;
 
-        /// <inheritdoc/>
-        public NetworkMessageEncoder(ILogger logger) {
+        /// <summary> Flag to determine if extra routing information is enabled </summary>
+        private readonly bool _enableRoutingInfo;
+
+        /// <summary>
+        /// Create instance of NetworkMessageEncoder.
+        /// </summary>
+        /// <param name="logger"> Logger to be used for reporting. </param>
+        /// <param name="engineConfig"> injected configuration. </param>
+        public NetworkMessageEncoder(ILogger logger, IEngineConfiguration engineConfig) {
             _logger = logger;
+            _enableRoutingInfo = engineConfig.EnableRoutingInfo.GetValueOrDefault(false);
         }
 
         /// <inheritdoc/>
@@ -151,7 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.Json,
                         MessageSchema = MessageSchemaTypes.NetworkMessageJson,
-                        RoutingInfo = routingInfo,
+                        RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
@@ -223,7 +232,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.Uadp,
                         MessageSchema = MessageSchemaTypes.NetworkMessageUadp,
-                        RoutingInfo = routingInfo,
+                        RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
@@ -272,7 +281,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Timestamp = DateTime.UtcNow,
                     ContentType = ContentMimeType.Json,
                     MessageSchema = MessageSchemaTypes.NetworkMessageJson,
-                    RoutingInfo = routingInfo,
+                    RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // Message too large, drop it.
@@ -319,7 +328,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Timestamp = DateTime.UtcNow,
                     ContentType = ContentMimeType.Uadp,
                     MessageSchema = MessageSchemaTypes.NetworkMessageUadp,
-                    RoutingInfo = routingInfo,
+                    RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // Message too large, drop it.

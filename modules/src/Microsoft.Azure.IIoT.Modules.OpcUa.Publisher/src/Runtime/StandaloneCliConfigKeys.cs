@@ -108,9 +108,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string MaxOutgressMessages = "MaxOutgressMessages";
 
         /// <summary>
-        /// Key for configuration flag to determine if a telemetry routing info is required.
+        /// Key for configuration flag to determine if a telemetry routing info is enabled.
         /// </summary>
-        public const string HasRoutingInfo = "HasRoutingInfo";
+        public const string EnableRoutingInfo = "EnableRoutingInfo";
 
         /// <summary>
         /// Key for the maximum number of nodes per DataSet/Subscription

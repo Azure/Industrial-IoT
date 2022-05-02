@@ -49,10 +49,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public int? MaxOutgressMessages { get; set; }
 
         /// <summary>
-        /// /// Flag to determine if a telemetry routing info is required.
+        /// /// Flag to determine if a telemetry routing info is enabled.
         /// </summary>
-        [DataMember(Name = "hasRoutingInfo", Order = 5,
+        [DataMember(Name = "enableRoutingInfo", Order = 5,
             EmitDefaultValue = false)]
-        public bool? HasRoutingInfo { get; set; }
+        public bool? EnableRoutingInfo { get; set; }
     }
 }

@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxMessageSize = model.MaxMessageSize,
                 MaxOutgressMessages = model.MaxOutgressMessages,
-                HasRoutingInfo = model.HasRoutingInfo,
+                EnableRoutingInfo = model.EnableRoutingInfo,
             };
         }
     }
