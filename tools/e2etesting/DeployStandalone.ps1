@@ -1,7 +1,7 @@
 Param(
     [string]
     $ResourceGroupName,
-    [string]
+    [Guid]
     $TenantId,
     [string]
     $Region = "EastUS",
@@ -26,12 +26,18 @@ if (!$ServicePrincipalId) {
 
 ## Login if required
 
+Write-Host "Getting Azure Context..."
 $context = Get-AzContext
 
 if (!$context) {
     Write-Host "Logging in..."
     Login-AzAccount -Tenant $TenantId
     $context = Get-AzContext
+}
+
+if (!$TenantId) {
+    $TenantId = $context.Tenant.Id
+    Write-Host "Using TenantId $($TenantId)."
 }
 
 ## Check if resource group exists

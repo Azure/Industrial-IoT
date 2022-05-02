@@ -18,7 +18,7 @@ steps:
       -UsePrivateIp $false
       -PLCImage "$(PLCImage)"
       -PLCUsername "$(PLCUsername)"
-      -PLCPassword "$(PLCPassword)" 
+      -PLCPassword "$(PLCPassword)"
 
 - task: AzureCLI@2
   displayName: "Deploy containers with simulated PLCs with private ips"
@@ -34,7 +34,7 @@ steps:
       -UsePrivateIp $true
       -PLCImage "$(PLCImage)"
       -PLCUsername "$(PLCUsername)"
-      -PLCPassword "$(PLCPassword)" 
+      -PLCPassword "$(PLCPassword)"
 
 - task: AzurePowerShell@5
   displayName: "Deploy VM with IoT Edge Runtime"
