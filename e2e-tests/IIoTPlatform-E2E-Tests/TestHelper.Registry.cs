@@ -120,7 +120,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var body = new { discoveryUrl };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
