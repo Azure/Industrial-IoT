@@ -203,7 +203,7 @@ helm repo update
 Install `jetstack/cert-manager` Helm chart:
 
 ```bash
-helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.6.1 --set installCRDs=true
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.8.0 --set installCRDs=true
 ```
 
 Documentation for `jetstack/cert-manager` Helm chart can be found [here](https://artifacthub.io/packages/helm/jetstack/cert-manager).
