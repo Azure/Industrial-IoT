@@ -15,7 +15,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
     /// </summary>
     public class C_WhereClauseTestTheory : DynamicAciTestBase {
-        public C_WhereClauseTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
+        public C_WhereClauseTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }
 

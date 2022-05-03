@@ -21,7 +21,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     public class C_PublishSingleNodeStandaloneEventsTestTheory : DynamicAciTestBase {
         private static readonly TimeSpan Precision = FromMilliseconds(500);
 
-        public C_PublishSingleNodeStandaloneEventsTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
+        public C_PublishSingleNodeStandaloneEventsTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }
 

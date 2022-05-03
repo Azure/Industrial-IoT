@@ -18,7 +18,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// The test theory submitting a high load of event messages
     /// </summary>
     public class C_EventsStressTestTheory : DynamicAciTestBase {
-        public C_EventsStressTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
+        public C_EventsStressTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }
 

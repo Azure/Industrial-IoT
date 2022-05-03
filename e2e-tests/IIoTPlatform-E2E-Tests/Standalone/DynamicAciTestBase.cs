@@ -5,6 +5,7 @@
 
 namespace IIoTPlatform_E2E_Tests.Standalone {
     using Azure.Messaging.EventHubs.Consumer;
+    using IIoTPlatform_E2E_Tests.Deploy;
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using System;
     using System.Threading;
@@ -17,17 +18,17 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// Base class for standalone tests using dynamic ACI
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
-    [Collection("IIoT Standalone Test Collection")]
+    [Collection("IIoT Multiple Nodes Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
     public abstract class DynamicAciTestBase : IDisposable {
         protected readonly ITestOutputHelper _output;
-        protected readonly IIoTStandaloneTestContext _context;
+        protected readonly IIoTMultipleNodesTestContext _context;
         protected readonly CancellationToken _timeoutToken;
         protected readonly EventHubConsumerClient _consumer;
         protected readonly string _writerId;
         private readonly CancellationTokenSource _timeoutTokenSource;
 
-        protected DynamicAciTestBase(IIoTStandaloneTestContext context, ITestOutputHelper output) {
+        protected DynamicAciTestBase(IIoTMultipleNodesTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
@@ -44,14 +45,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(1)]
         public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
-            var result = await _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
+            var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
+            var result = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
             _output.WriteLine("Created/Updated new EdgeBase deployment");
             Assert.True(result);
         }
 
         [Fact, PriorityOrder(2)]
         public async Task Test_CreatePublisherLayeredDeployment_Expect_Success() {
-            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
+            var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, MessagingMode.PubSub);
+            var result = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
             _output.WriteLine("Created/Updated layered deployment for publisher module");
             Assert.True(result);
         }

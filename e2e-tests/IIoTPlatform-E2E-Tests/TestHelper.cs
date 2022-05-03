@@ -865,7 +865,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="port">Port of OPC UA server</param>
         /// <param name="writerId">DataSetWriterId to set</param>
         /// <param name="opcEvents">OPC UA events</param>
-        public static string PublishedNodesJson(this IIoTStandaloneTestContext context, uint port, string writerId, JArray opcEvents) {
+        public static string PublishedNodesJson(this IIoTMultipleNodesTestContext context, uint port, string writerId, JArray opcEvents) {
             return JsonConvert.SerializeObject(
                 new JArray(
                     context.PlcAciDynamicUrls.Select(host => new JObject(
@@ -1012,9 +1012,30 @@ namespace IIoTPlatform_E2E_Tests {
                 return context.AzureContext;
             }
 
-            var defaultAzureCredential = new DefaultAzureCredential();
-            var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com//.default" }), cancellationToken);
+            var azureCredentialOptions = new DefaultAzureCredentialOptions {
+                AuthorityHost = new Uri($"https://login.windows.net/{context.OpcPlcConfig.TenantId}"),
+                InteractiveBrowserTenantId = context.OpcPlcConfig.TenantId,
+                SharedTokenCacheTenantId = context.OpcPlcConfig.TenantId,
+                VisualStudioCodeTenantId = context.OpcPlcConfig.TenantId,
+                VisualStudioTenantId = context.OpcPlcConfig.TenantId,
+            };
+
+            var defaultAzureCredential = new DefaultAzureCredential(azureCredentialOptions);
+
+            var tokenRequestContext = new TokenRequestContext(
+                new[] { "https://management.azure.com/.default" },
+                tenantId: context.OpcPlcConfig.TenantId
+            );
+
+            var accessToken = await defaultAzureCredential.GetTokenAsync(tokenRequestContext, cancellationToken);
             var tokenCredentials = new TokenCredentials(accessToken.Token);
+
+            var azureCredentials = new AzureCredentials(
+                tokenCredentials,
+                tokenCredentials,
+                context.OpcPlcConfig.TenantId,
+                AzureEnvironment.AzureGlobalCloud
+            );
 
             IAzure azure;
 
@@ -1022,18 +1043,14 @@ namespace IIoTPlatform_E2E_Tests {
                 azure = Azure
                     .Configure()
                     .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                    .Authenticate(new AzureCredentials(tokenCredentials,
-                                                        tokenCredentials, context.OpcPlcConfig.TenantId,
-                                                        AzureEnvironment.AzureGlobalCloud))
+                    .Authenticate(azureCredentials)
                     .WithDefaultSubscription();
             }
             else {
                 azure = Azure
                     .Configure()
                     .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                    .Authenticate(new AzureCredentials(tokenCredentials,
-                                                        tokenCredentials, context.OpcPlcConfig.TenantId,
-                                                        AzureEnvironment.AzureGlobalCloud))
+                    .Authenticate(azureCredentials)
                     .WithSubscription(context.OpcPlcConfig.SubscriptionId);
             }
 

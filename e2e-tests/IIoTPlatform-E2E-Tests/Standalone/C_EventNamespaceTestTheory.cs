@@ -18,7 +18,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
     /// </summary>
     public class C_EventNamespaceTestTheory : DynamicAciTestBase {
-        public C_EventNamespaceTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
+        public C_EventNamespaceTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }
 
