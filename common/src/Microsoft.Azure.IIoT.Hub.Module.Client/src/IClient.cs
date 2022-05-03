@@ -34,8 +34,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <summary>
         /// Sends a batch of events to device hub
         /// </summary>
-        /// <returns>The task containing the event</returns>
         Task SendEventBatchAsync(IEnumerable<Message> messages);
+
+        /// <summary>
+        /// Sends a batch of events to device hub on a specific output
+        /// </summary>
+        Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages);
 
         /// <summary>
         /// Registers a new delegate that is called for a method that

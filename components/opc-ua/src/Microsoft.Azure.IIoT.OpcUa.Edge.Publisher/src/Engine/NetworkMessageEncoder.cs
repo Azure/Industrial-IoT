@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Encoders;
@@ -41,12 +42,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
 
-        /// <inheritdoc/>
+        /// <summary> Logger for reporting. </summary>
         private readonly ILogger _logger;
 
-        /// <inheritdoc/>
-        public NetworkMessageEncoder(ILogger logger) {
+        /// <summary> Flag to determine if extra routing information is enabled </summary>
+        private readonly bool _enableRoutingInfo;
+
+        /// <summary>
+        /// Create instance of NetworkMessageEncoder.
+        /// </summary>
+        /// <param name="logger"> Logger to be used for reporting. </param>
+        /// <param name="engineConfig"> injected configuration. </param>
+        public NetworkMessageEncoder(ILogger logger, IEngineConfiguration engineConfig) {
             _logger = logger;
+            _enableRoutingInfo = engineConfig.EnableRoutingInfo.GetValueOrDefault(false);
         }
 
         /// <inheritdoc/>
@@ -96,6 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
@@ -149,7 +159,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.Json,
-                        MessageSchema = MessageSchemaTypes.NetworkMessageJson
+                        MessageSchema = MessageSchemaTypes.NetworkMessageJson,
+                        RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
@@ -181,6 +192,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
@@ -219,7 +231,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Body = encoder.CloseAndReturnBuffer(),
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.Uadp,
-                        MessageSchema = MessageSchemaTypes.NetworkMessageUadp
+                        MessageSchema = MessageSchemaTypes.NetworkMessageUadp,
+                        RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
@@ -251,6 +264,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 int notificationsPerMessage = networkMessage.Messages.Sum(m => m.Payload.Count);
                 var writer = new StringWriter();
@@ -266,7 +280,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     ContentEncoding = "utf-8",
                     Timestamp = DateTime.UtcNow,
                     ContentType = ContentMimeType.Json,
-                    MessageSchema = MessageSchemaTypes.NetworkMessageJson
+                    MessageSchema = MessageSchemaTypes.NetworkMessageJson,
+                    RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // Message too large, drop it.
@@ -301,7 +316,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
-
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 int notificationsPerMessage = networkMessage.Messages.Sum(m => m.Payload.Count);
                 var encoder = new BinaryEncoder(encodingContext);
@@ -312,7 +327,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Body = encoder.CloseAndReturnBuffer(),
                     Timestamp = DateTime.UtcNow,
                     ContentType = ContentMimeType.Uadp,
-                    MessageSchema = MessageSchemaTypes.NetworkMessageUadp
+                    MessageSchema = MessageSchemaTypes.NetworkMessageUadp,
+                    RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // Message too large, drop it.

@@ -34,5 +34,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
 
         /// <inheritdoc/>
         public int? MaxOutgressMessages { get; set; }
+
+        /// <inheritdoc/>
+        public bool? EnableRoutingInfo { get; set; }
     }
 }
