@@ -58,7 +58,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
-    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,testeventprocessor-baseurl,testeventprocessor-username,testeventprocessor-password,iothub-eventhub-connectionstring,storageaccount-iothubcheckpoint-connectionstring,SP-TENANT-ID'
+    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,testeventprocessor-baseurl,testeventprocessor-username,testeventprocessor-password,iothub-eventhub-connectionstring,storageaccount-iothubcheckpoint-connectionstring,SP-TENANT-ID,SUBSCRIPTION-ID'
 
 - task: AzureKeyVault@1
   displayName: 'Retrieve KeyVault secrets for API tests'
@@ -131,6 +131,7 @@ steps:
     NESTED_EDGE_FLAG: "$(NestedEdgeFlag)"
     NESTED_EDGE_SSH_CONNECTIONS: "$(NestedEdgeSshConnection)"
     SP_TENANT_ID: '$(SP-TENANT-ID)'
+    SUBSCRIPTION_ID: '$(SUBSCRIPTION-ID)'
     RESOURCE_GROUP_NAME: '$(ResourceGroupName)'
     REGION: '$(Region)'
     AZURE_CLIENT_SECRET: '$(AZURE_CLIENT_SECRET)'
