@@ -263,7 +263,7 @@ helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingr
 kubectl create namespace cert-manager
 
 # Install jetstack/cert-manager Helm chart
-helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v1.6.1 --timeout 30m0s \
+helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v1.8.0 --timeout 30m0s \
     --set installCRDs=true
 
 # Create Let's Encrypt ClusterIssuer

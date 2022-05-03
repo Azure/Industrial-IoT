@@ -193,7 +193,7 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
             if (body != null) {
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
             }
 
             if (queryParameters != null) {

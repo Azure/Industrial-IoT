@@ -533,6 +533,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (IsClosed) {
                     return;
                 }
+                _logger.Debug("DeviceClientAdapter does not support output routing. Falling back to regular SendEventBatchAsync()");
+                await _client.SendEventBatchAsync(messages);
+            }
+
+            /// <inheritdoc />
+            public async Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
+                if (IsClosed) {
+                    return;
+                }
                 await _client.SendEventBatchAsync(messages);
             }
 

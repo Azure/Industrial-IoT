@@ -218,7 +218,7 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
@@ -249,7 +249,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var body = new { attributes };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
@@ -287,7 +287,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var body = new { attributes };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
@@ -337,7 +337,7 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
@@ -373,7 +373,7 @@ namespace IIoTPlatform_E2E_Tests {
                     browsePaths = new List<object> { browsePath }
                 };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
@@ -411,7 +411,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var body = new { nodeId };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
@@ -461,7 +461,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var body = new { nodeId, value, dataType };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
