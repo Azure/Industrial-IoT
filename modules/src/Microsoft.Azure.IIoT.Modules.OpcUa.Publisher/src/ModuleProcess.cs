@@ -36,6 +36,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
+    using Serilog.Extensions.Logging;
 
     /// <summary>
     /// Publisher module
@@ -119,7 +120,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
                         healthCheckManager.Start();
-                        SetStackTraceMask();
+
+                        var microsoftLogger = new SerilogLoggerFactory(logger)
+                            .CreateLogger("OpcUa");
+                        SetStackTraceMask(microsoftLogger);
+
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this).ConfigureAwait(false);
@@ -166,30 +171,32 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// <summary>
         /// Set stack trace mask based on log level.
         /// </summary>
-        public void SetStackTraceMask() {
+        public void SetStackTraceMask(Extensions.Logging.ILogger logger) {
+            OpcStackTraceMask = Utils.TraceMasks.Error | Utils.TraceMasks.Security;
             switch (LogControl.Level.MinimumLevel) {
                 case LogEventLevel.Fatal:
-                    OpcStackTraceMask = 0;
+                    OpcStackTraceMask |= 0;
                     break;
                 case LogEventLevel.Error:
-                    OpcStackTraceMask = Utils.TraceMasks.Error;
+                    OpcStackTraceMask |= Utils.TraceMasks.StackTrace;
                     break;
                 case LogEventLevel.Warning:
-                    OpcStackTraceMask = 0;
+                    OpcStackTraceMask |= Utils.TraceMasks.StackTrace;
                     break;
                 case LogEventLevel.Information:
-                    OpcStackTraceMask = 0;
+                    OpcStackTraceMask |= Utils.TraceMasks.StartStop | Utils.TraceMasks.StackTrace | Utils.TraceMasks.Information;
                     break;
                 case LogEventLevel.Debug:
-                    OpcStackTraceMask = Utils.TraceMasks.StartStop | Utils.TraceMasks.ExternalSystem | Utils.TraceMasks.Security;
+                    OpcStackTraceMask |= Utils.TraceMasks.All;
                     break;
                 case LogEventLevel.Verbose:
-                    OpcStackTraceMask = Utils.TraceMasks.All;
+                    OpcStackTraceMask |= Utils.TraceMasks.All;
                     break;
             }
             Utils.SetTraceMask(OpcStackTraceMask);
             Utils.SetTraceOutput(Utils.TraceOutput.DebugAndFile);
             Utils.SetTraceLog(null, false);
+            Utils.SetLogger(logger);
             Console.WriteLine($"opcstacktracemask set to: 0x{OpcStackTraceMask:X}");
         }
 

@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Moq;
     using Opc.Ua;
@@ -21,11 +22,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     public class NetworkMessageEncoderTests {
 
         private readonly Mock<ILogger> _loggerMock;
+        private readonly Mock<IEngineConfiguration> _engineConfigMock;
         private readonly NetworkMessageEncoder _encoder;
 
         public NetworkMessageEncoderTests() {
             _loggerMock = new Mock<ILogger>();
-            _encoder = new NetworkMessageEncoder(_loggerMock.Object);
+            _engineConfigMock = new Mock<IEngineConfiguration>();
+            _encoder = new NetworkMessageEncoder(_loggerMock.Object, _engineConfigMock.Object);
         }
 
         [Theory]

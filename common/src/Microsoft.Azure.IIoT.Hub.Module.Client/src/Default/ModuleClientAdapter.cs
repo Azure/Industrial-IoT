@@ -112,6 +112,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
+            public async Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.SendEventBatchAsync(outputName, messages);
+            }
+
+            /// <inheritdoc />
             public Task SetMethodHandlerAsync(string methodName,
                 MethodCallback methodHandler, object userContext) {
                 return _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);

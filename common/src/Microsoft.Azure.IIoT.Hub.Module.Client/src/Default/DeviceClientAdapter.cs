@@ -29,9 +29,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// Create client
             /// </summary>
             /// <param name="client"></param>
-            internal DeviceClientAdapter(DeviceClient client) {
-                _client = client ??
-                    throw new ArgumentNullException(nameof(client));
+            /// <param name="logger"></param>
+            internal DeviceClientAdapter(DeviceClient client, ILogger logger) {
+                _client = client ?? throw new ArgumentNullException(nameof(client));
+                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             }
 
             /// <summary>
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 ITransportSettings transportSetting, TimeSpan timeout,
                 IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
                 var client = Create(cs, transportSetting);
-                var adapter = new DeviceClientAdapter(client);
+                var adapter = new DeviceClientAdapter(client, logger);
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
@@ -89,6 +90,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             public Task SendEventAsync(string outputName, Message message) {
                 throw new InvalidOperationException(
                         "DeviceClient does not support specifying output target.");
+            }
+
+            /// <inheritdoc />
+            public async Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
+                if (IsClosed) {
+                    return;
+                }
+                _logger.Debug("DeviceClientAdapter does not support output routing. Falling back to regular SendEventBatchAsync()");
+                await _client.SendEventBatchAsync(messages);
             }
 
             /// <inheritdoc />
@@ -212,6 +222,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             private readonly DeviceClient _client;
+            private readonly ILogger _logger;
+
             private int _reconnectCounter;
             private static readonly Gauge kReconnectionStatus = Metrics
                 .CreateGauge("iiot_edge_device_reconnected", "reconnected count",

@@ -15,5 +15,15 @@ namespace Plc {
             ApplicationConfiguration configuration) {
             return new PlcNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.OpcPlcApplications
+                };
+                return nameSpaces;
+            }
+        }
     }
 }

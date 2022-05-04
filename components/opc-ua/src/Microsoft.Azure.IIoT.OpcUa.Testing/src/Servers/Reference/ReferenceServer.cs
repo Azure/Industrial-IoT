@@ -40,5 +40,15 @@ namespace Reference {
             ApplicationConfiguration configuration) {
             return new ReferenceNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.ReferenceApplications,
+                };
+                return nameSpaces;
+            }
+        }
     }
 }

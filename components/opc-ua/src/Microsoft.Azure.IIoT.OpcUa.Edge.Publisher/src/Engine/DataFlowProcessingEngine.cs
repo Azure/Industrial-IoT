@@ -20,7 +20,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
 
-
     /// <summary>
     /// Dataflow engine
     /// </summary>

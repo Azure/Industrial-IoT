@@ -245,6 +245,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
 
             /// <inheritdoc />
+            public Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
+                if (IsClosed) {
+                    return Task.CompletedTask;
+                }
+
+                throw new InvalidOperationException(
+                         "MqttClient does not support specifying output target.");
+            }
+
+            /// <inheritdoc />
             public Task SetMethodHandlerAsync(string methodName, MethodCallback methodHandler, object userContext) {
                 _methodCallbacks[methodName] = (methodHandler, userContext);
                 return Task.CompletedTask;
