@@ -6,13 +6,13 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Threading.Tasks;
     using System.Threading;
-    using Prometheus;
+    using System.Threading.Tasks;
 
     public sealed partial class IoTSdkFactory {
         /// <summary>
