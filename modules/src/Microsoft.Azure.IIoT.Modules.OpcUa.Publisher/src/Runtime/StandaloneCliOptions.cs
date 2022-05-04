@@ -22,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Linq;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
@@ -212,6 +211,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b.ToString() },
                     { $"rs|runtimestatereporting|{StandaloneCliConfigKeys.RuntimeStateReporting}", "The publisher reports its restarts. By default this is disabled.",
                         b => this[StandaloneCliConfigKeys.RuntimeStateReporting] = (b != null).ToString()},
+                    { $"{StandaloneCliConfigKeys.EnableRoutingInfo}", "Enable adding routing info to telemetry.",
+                        b => this[StandaloneCliConfigKeys.EnableRoutingInfo] = (b != null).ToString() },
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
@@ -331,6 +332,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public int? MaxOutgressMessages => StandaloneCliModel.MaxOutgressMessages;
 
         /// <inheritdoc/>
+        public bool? EnableRoutingInfo => StandaloneCliModel.EnableRoutingInfo;
+
+        /// <inheritdoc/>
         public bool EnableRuntimeStateReporting { get => StandaloneCliModel.EnableRuntimeStateReporting; }
 
         /// <summary>
@@ -417,6 +421,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.MaxNodesPerDataSet = GetValueOrDefault(StandaloneCliConfigKeys.MaxNodesPerDataSet, model.MaxNodesPerDataSet);
             model.LegacyCompatibility = GetValueOrDefault(StandaloneCliConfigKeys.LegacyCompatibility, model.LegacyCompatibility);
             model.EnableRuntimeStateReporting = GetValueOrDefault(StandaloneCliConfigKeys.RuntimeStateReporting, model.EnableRuntimeStateReporting);
+            model.EnableRoutingInfo = GetValueOrDefault(StandaloneCliConfigKeys.EnableRoutingInfo, model.EnableRoutingInfo);
             return model;
         }
 
