@@ -125,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
                 HostName = properties.GetRequired<string>(kHostNamePropertyName),
                 DeviceId = properties.GetOptional<string>(kDeviceIdPropertyName),
                 ModuleId = properties.GetOptional<string>(kModuleIdPropertyName),
-                StateFile = properties.GetOptional<string>(kStateFilePropertyName)
+                StateFile = properties.GetOptional<string>(kStateFilePropertyName),
             };
 
             if (properties.ContainsKey(kUsingIoTHubPropertyName)) {

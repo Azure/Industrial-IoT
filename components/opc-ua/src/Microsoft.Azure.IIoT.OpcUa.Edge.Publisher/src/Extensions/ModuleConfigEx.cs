@@ -45,6 +45,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public TransportOption Transport { get; }
 
+            /// <inheritdoc/>
+            public string TelemetryTopicTemplate { get; }
+
             /// <summary>
             /// Create clone
             /// </summary>

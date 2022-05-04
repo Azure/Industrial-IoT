@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
             var mock = new Mock<IManagedMqttClient>();
             mock.SetupGet(x => x.IsStarted).Returns(false);
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
-            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", TimeSpan.Zero, null, () => { }, _logger);
+            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, null, () => { }, _logger);
 
             mock.VerifyGet(x => x.IsStarted);
             mock.VerifySet(x => x.ConnectedHandler = It.IsAny<IMqttClientConnectedHandler>());
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
 
             var mock = new Mock<IManagedMqttClient>();
             mock.SetupGet(x => x.IsStarted).Returns(true);
-            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", TimeSpan.FromMinutes(5), null, () => { }, _logger);
+            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), null, () => { }, _logger);
             await mqttClientAdapter.SendEventAsync(message);
 
             mock.Verify(x => x.PublishAsync(
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
         public async Task GetTwinTest() {
             var mock = new Mock<IManagedMqttClient>();
             mock.SetupGet(x => x.IsStarted).Returns(true);
-            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", TimeSpan.FromSeconds(0), null, () => { }, _logger);
+            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.FromSeconds(0), null, () => { }, _logger);
             await mqttClientAdapter.GetTwinAsync();
 
             mock.Verify(x => x.PublishAsync(
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
             var mock = new Mock<IManagedMqttClient>();
             mock.SetupGet(x => x.IsStarted).Returns(false);
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
-            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", TimeSpan.Zero, null, () => { }, _logger);
+            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, null, () => { }, _logger);
             await mqttClientAdapter.CloseAsync();
             await mqttClientAdapter.SendEventAsync(message);
 
@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
             mock.SetupGet(x => x.IsStarted).Returns(false);
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
             mock.Setup(x => x.StartAsync(It.IsAny<IManagedMqttClientOptions>())).Returns(() => { throw new TaskCanceledException(); });
-            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", TimeSpan.Zero, null, () => { }, _logger);
+            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, null, () => { }, _logger);
 
             mock.VerifyGet(x => x.IsStarted);
             mock.VerifySet(x => x.ConnectedHandler = It.IsAny<IMqttClientConnectedHandler>());

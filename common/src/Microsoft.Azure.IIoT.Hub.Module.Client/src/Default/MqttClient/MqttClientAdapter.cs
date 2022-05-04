@@ -46,6 +46,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// </summary>
             public bool IsClosed { get; private set; }
 
+            private const string DEVICE_ID_TEMPLATE_PLACEHOLDER = "{device_id}";
+
             /// <summary>
             /// Constructor
             /// </summary>
@@ -55,10 +57,23 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// <param name="timeout">Timeout used for operations.</param>
             /// <param name="retry">Retry policy used for operations.</param>
             /// <param name="onConnectionLost">Handler for when the MQTT server connection is lost.</param>
-            /// <param name="logger">Logger used for operations</param>
             /// <param name="messageExpiryInterval">Period of time (seconds) for the broker to store the message for any subscribers that are not yet connected</param>
             /// <param name="qualityOfServiceLevel">Quality of service level to use for MQTT messages.</param>
-            private MqttClientAdapter(IManagedMqttClient client, string product, string deviceId, TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost, ILogger logger, uint? messageExpiryInterval, MqttQualityOfServiceLevel qualityOfServiceLevel) {
+            /// <param name="useIoTHubTopics">A flag determining whether IoT Hub compatible Topics shall be used.</param>
+            /// <param name="telemetryTopicTemplate">A template to build Topics. Valid Placeholders are : {device_id}</param>
+            /// <param name="logger">Logger used for operations</param>
+            private MqttClientAdapter(
+                IManagedMqttClient client,
+                string product,
+                string deviceId,
+                TimeSpan timeout,
+                IRetryPolicy retry,
+                Action onConnectionLost,
+                uint? messageExpiryInterval,
+                MqttQualityOfServiceLevel qualityOfServiceLevel,
+                bool useIoTHubTopics,
+                string telemetryTopicTemplate,
+                ILogger logger) {
                 _client = client ?? throw new ArgumentNullException(nameof(client));
                 _product = product ?? throw new ArgumentNullException(nameof(product));
                 _deviceId = deviceId ?? throw new ArgumentNullException(nameof(deviceId));
@@ -68,6 +83,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
                 _messageExpiryInterval = messageExpiryInterval;
                 _qualityOfServiceLevel = qualityOfServiceLevel;
+                _useIoTHubTopics = useIoTHubTopics;
+                _telemetryTopicTemplate = telemetryTopicTemplate;
             }
 
             /// <summary>
@@ -77,13 +94,22 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// <param name="product">Custom product information.</param>
             /// <param name="cs">Connection string for the MQTT server.</param>
             /// <param name="deviceId">Id of the device.</param>
+            /// <param name="telemetryTopicTemplate">Telemetry topic template.</param>
             /// <param name="timeout">Timeout used for operations.</param>
             /// <param name="retry">Retry policy used for operations.</param>
             /// <param name="onConnectionLost">Handler for when the MQTT server connection is lost.</param>
             /// <param name="logger">Logger used for operations</param>
             /// <returns></returns>
-            public static async Task<IClient> CreateAsync(IManagedMqttClient client, string product, MqttClientConnectionStringBuilder cs, string deviceId, TimeSpan timeout,
-                IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
+            public static async Task<IClient> CreateAsync(
+                IManagedMqttClient client,
+                string product,
+                MqttClientConnectionStringBuilder cs,
+                string deviceId,
+                string telemetryTopicTemplate,
+                TimeSpan timeout,
+                IRetryPolicy retry,
+                Action onConnectionLost,
+                ILogger logger) {
                 var options = new MqttClientOptionsBuilder()
                     .WithClientId(cs.DeviceId)
                     .WithTcpServer(tcpOptions => {
@@ -115,7 +141,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     options = options.WithProtocolVersion(MqttProtocolVersion.V500);
                 }
 
-                var adapter = new MqttClientAdapter(client, product, deviceId, timeout, retry, onConnectionLost, logger, cs.MessageExpiryInterval, cs.UsingIoTHub ? MqttQualityOfServiceLevel.AtLeastOnce : MqttQualityOfServiceLevel.ExactlyOnce);
+                var adapter = new MqttClientAdapter(
+                    client,
+                    product,
+                    deviceId,
+                    timeout,
+                    retry,
+                    onConnectionLost,
+                    cs.MessageExpiryInterval,
+                    cs.UsingIoTHub ? MqttQualityOfServiceLevel.AtLeastOnce : MqttQualityOfServiceLevel.ExactlyOnce,
+                    cs.UsingIoTHub,
+                    telemetryTopicTemplate,
+                    logger);
                 client.UseConnectedHandler(adapter.OnConnected);
                 client.UseDisconnectedHandler(adapter.OnDisconnected);
                 client.UseApplicationMessageReceivedHandler(adapter.OnApplicationMessageReceivedHandler);
@@ -137,15 +174,21 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// <param name="product">Custom product information.</param>
             /// <param name="cs">Connection string for the MQTT server.</param>
             /// <param name="deviceId">Id of the device.</param>
+            /// <param name="telemetryTopicTemplate">Telemetry topic template.</param>
             /// <param name="timeout">Timeout used for operations.</param>
             /// <param name="retry">Retry policy used for operations.</param>
             /// <param name="onConnectionLost">Handler for when the MQTT server connection is lost.</param>
             /// <param name="logger">Logger used for operations</param>
             /// <returns></returns>
-            public static Task<IClient> CreateAsync(string product, MqttClientConnectionStringBuilder cs, string deviceId, TimeSpan timeout,
+            public static Task<IClient> CreateAsync(
+                string product,
+                MqttClientConnectionStringBuilder cs,
+                string deviceId,
+                string telemetryTopicTemplate,
+                TimeSpan timeout,
                 IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
                 var client = new MqttFactory().CreateManagedMqttClient();
-                return CreateAsync(client, product, cs, deviceId, timeout, retry, onConnectionLost, logger);
+                return CreateAsync(client, product, cs, deviceId, telemetryTopicTemplate, timeout, retry, onConnectionLost, logger);
             }
 
             /// <inheritdoc />
@@ -171,14 +214,20 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 if (!string.IsNullOrWhiteSpace(message.ContentEncoding)) {
                     properties[kContentEncodingPropertyName] = message.ContentEncoding;
                 }
-                //TODO: if cs.UsingIoTHub ...
-                var topic = $"devices/{_deviceId}/messages/events/";
-                if (properties.Any()) {
-                    topic += UrlEncodedDictionarySerializer.Serialize(properties) + kSegmentSeparator;
+
+                string topic;
+                if (_useIoTHubTopics || string.IsNullOrWhiteSpace(_telemetryTopicTemplate)) {
+                    topic = $"devices/{_deviceId}/messages/events/";
+                    if (properties.Any()) {
+                        topic += UrlEncodedDictionarySerializer.Serialize(properties) + kSegmentSeparator;
+                        properties.Clear();
+                    }
                 }
-                //else user User Properties
-                // add setting to define topic schema (to integrate in Apollo)
-                return InternalSendEventAsync(topic, message.BodyStream);
+                else {
+                    topic = _telemetryTopicTemplate.Replace(DEVICE_ID_TEMPLATE_PLACEHOLDER, _deviceId);
+                }
+
+                return InternalSendEventAsync(topic, message.BodyStream, properties);
             }
 
             /// <inheritdoc />
@@ -332,9 +381,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// </summary>
             /// <param name="topic">Topic for MQTT message.</param>
             /// <param name="payload">Optional payload for MQTT message.</param>
+            /// <param name="userProperties">Optional user properties for MQTT message.</param>
             /// <param name="cancellationToken">Optional cancellation token for operation.</param>
             /// <returns></returns>
-            private Task InternalSendEventAsync(string topic, Stream payload = null, CancellationToken cancellationToken = default) {
+            private Task InternalSendEventAsync(
+                string topic,
+                Stream payload = null,
+                IDictionary<string, string> userProperties = null,
+                CancellationToken cancellationToken = default) {
                 // Check topic length.
                 var topicLength = Encoding.UTF8.GetByteCount(topic);
                 if (topicLength > kMaxTopicLength) {
@@ -364,6 +418,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     if (_messageExpiryInterval != null) {
                         mqttApplicationMessageBuilder = mqttApplicationMessageBuilder.WithMessageExpiryInterval(_messageExpiryInterval.Value);
                     }
+                    if (userProperties != null) {
+                        foreach (var userProperty in userProperties) {
+                            mqttApplicationMessageBuilder.WithUserProperty(userProperty.Key, userProperty.Value);
+                        }
+                    }
+
                     return _client.PublishAsync(mqttApplicationMessageBuilder.Build(), cancellationToken);
                 }
                 catch (Exception ex) {
@@ -498,6 +558,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
             private readonly IManagedMqttClient _client;
             private readonly MqttQualityOfServiceLevel _qualityOfServiceLevel;
+            private readonly bool _useIoTHubTopics;
+            private readonly string _telemetryTopicTemplate;
 
             private const int kMaxTopicLength = 0xffff;
             private const string kSegmentSeparator = "/";

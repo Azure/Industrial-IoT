@@ -241,6 +241,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
             public string EdgeHubConnectionString { get; }
             /// <inheritdoc/>
             public string MqttClientConnectionString { get; }
+
+            /// <inheritdoc/>
+            public string TelemetryTopicTemplate { get; }
+
             /// <inheritdoc/>
             public bool BypassCertVerification { get; }
             /// <inheritdoc/>

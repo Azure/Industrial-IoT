@@ -47,6 +47,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="logger"></param>
         public IoTSdkFactory(IModuleConfig config, IEventSourceBroker broker, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _telemetryTopicTemplate = config.TelemetryTopicTemplate;
 
             if (broker != null) {
                 _logHook = broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
@@ -230,8 +231,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             if (string.IsNullOrEmpty(ModuleId)) {
                 if (_mqttClientCs != null) {
-                    return MqttClientAdapter.CreateAsync(product, _mqttClientCs, DeviceId,
-                        timeout, RetryPolicy, onError, _logger);
+                    return MqttClientAdapter.CreateAsync(
+                        product,
+                        _mqttClientCs,
+                        DeviceId,
+                        _telemetryTopicTemplate,
+                        timeout,
+                        RetryPolicy,
+                        onError,
+                        _logger);
                 }
                 else if (_deviceClientCs != null) {
                     return DeviceClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId,
@@ -298,6 +306,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private readonly IotHubConnectionStringBuilder _deviceClientCs;
         private readonly MqttClientConnectionStringBuilder _mqttClientCs;
         private readonly ILogger _logger;
+        private readonly string _telemetryTopicTemplate;
         private readonly IDisposable _logHook;
         private readonly bool _bypassCertValidation;
     }

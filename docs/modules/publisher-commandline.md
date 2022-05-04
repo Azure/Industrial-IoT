@@ -7,13 +7,21 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
 
             MqttClientConnectionString=VALUE
                                       Publisher connects as IoT Device to a MQTT V5 Broker or to IoT Hub MQTT broker endpoint.
-                                      Alternative: --mc, --mqttclientconnectionstring
+                                      Alternative: -mc, --mqttclientconnectionstring
                                       Mode: Standalone only
                                       Type: connection string 
                                           for MQTT Broker: `HostName=<IPorDnsName>;Port=<Port>;DeviceId=<IoTDeviceId>`
                                           for IoT Hub: `HostName=<IoTHubName>.azure-devices.net;DeviceId=<IoTDeviceId>;SharedAccessSignature=<SharedAccessSignature>` 
                                             Please refer to https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#using-the-mqtt-protocol-directly-as-a-device for generating SharedAccessSignature. 
-                                      Default: <not set> 
+                                      Default: <not set>
+
+            TelemetryTopicTemplate=VALUE
+                                      A template that shall be used to build the topic for outgoing telemetry messages. If no template is defined an IoT Hub compatible topic is used. The placeholder ```{device_id}``` can be used to inject the device id into the topic.
+                                      Alternative: -ttt, --telemetrytopictemplate
+                                      Mode: Standalone only
+                                      Type: string 
+                                      Default: <not set>
+
 
 ## OPC Publisher 2.8.2 and above
 
