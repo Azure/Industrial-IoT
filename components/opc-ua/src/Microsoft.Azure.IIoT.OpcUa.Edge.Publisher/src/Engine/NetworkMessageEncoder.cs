@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         ContentEncoding = compressedPayload ? "gzip" : "utf-8",
                         Timestamp = DateTime.UtcNow,
                         ContentType = compressedPayload ? ContentMimeType.Binary : ContentMimeType.UaJson,
-                        MessageSchema = MessageSchemaTypes.NetworkMessageJson
+                        MessageSchema = MessageSchemaTypes.NetworkMessageJson,
                         RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
