@@ -117,6 +117,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public bool? UseReversibleEncoding { get; set; } = false;
 
         /// <summary>
+        /// Flag to determine if a telemetry header helper is enabled.
+        /// </summary>
+        public bool? EnableRoutingInfo { get; set; } = false;
+
+        /// <summary>
         /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured
         /// for a dataSetWriter, they will be added in a different DataSet/Subscription.
         /// </summary>

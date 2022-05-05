@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Core;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Encoders;
@@ -46,25 +47,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary> The ContentType to be used for json messages encoding. </summary>
         private readonly string _jsonContentType;
 
+        /// <summary> Flag to determine if extra routing information is enabled </summary>
+        private readonly bool _enableRoutingInfo;
+
         /// <summary>
         /// Create instance of MonitoredItemMessageEncoder.
         /// </summary>
         /// <param name="logger"> Logger to be used for reporting. </param>
         /// <param name="standaloneConfig"> injected configuration. </param>
-        public MonitoredItemMessageEncoder(ILogger logger, IStandaloneCliModelProvider standaloneConfig) {
+        /// <param name="engineConfig"> injected configuration. </param>
+        public MonitoredItemMessageEncoder(ILogger logger,
+            IStandaloneCliModelProvider standaloneConfig,
+            IEngineConfiguration engineConfig) {
             _logger = logger;
             _jsonContentType = standaloneConfig.StandaloneCliModel.LegacyCompatibility
                 ? ContentMimeType.UaLegacyPublisher
                 : ContentMimeType.Json;
+            _enableRoutingInfo = engineConfig.EnableRoutingInfo.GetValueOrDefault(false);
         }
 
         /// <summary>
         /// Create instance of MonitoredItemMessageEncoder.
         /// </summary>
         /// <param name="logger"> Logger to be used for reporting. </param>
-        public MonitoredItemMessageEncoder(ILogger logger) {
+        /// <param name="engineConfig"> injected configuration. </param>
+        public MonitoredItemMessageEncoder(ILogger logger, IEngineConfiguration engineConfig) {
             _logger = logger;
             _jsonContentType = ContentMimeType.Json;
+            _enableRoutingInfo = engineConfig.EnableRoutingInfo.GetValueOrDefault(false);
         }
 
         /// <inheritdoc/>
@@ -113,6 +123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
@@ -164,7 +175,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
                         ContentType = _jsonContentType,
-                        MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson
+                        MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson,
+                        RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
                     AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
@@ -195,6 +207,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
@@ -232,7 +245,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Body = encoder.CloseAndReturnBuffer(),
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.UaBinary,
-                        MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary
+                        MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary,
+                        RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
                     AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
@@ -264,6 +278,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 var writer = new StringWriter();
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
@@ -278,7 +293,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     ContentEncoding = "utf-8",
                     Timestamp = DateTime.UtcNow,
                     ContentType = _jsonContentType,
-                    MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson
+                    MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson,
+                    RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
@@ -313,6 +329,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!notifications.Any()) {
                 yield break;
             }
+            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 var encoder = new BinaryEncoder(encodingContext);
                 encoder.WriteBoolean(null, false); // is not Batch
@@ -322,7 +339,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Body = encoder.CloseAndReturnBuffer(),
                     Timestamp = DateTime.UtcNow,
                     ContentType = ContentMimeType.UaBinary,
-                    MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary
+                    MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary,
+                    RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it

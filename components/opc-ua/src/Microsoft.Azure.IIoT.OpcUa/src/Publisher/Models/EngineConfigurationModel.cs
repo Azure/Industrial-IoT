@@ -41,5 +41,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Flag to use reversible encoding for messages
         /// </summary>
         public bool? UseReversibleEncoding { get; set; }
+
+        /// <summary>
+        /// Flag to determine if a telemetry routing info is required.
+        /// </summary>
+        public bool? EnableRoutingInfo { get; set; }
     }
 }

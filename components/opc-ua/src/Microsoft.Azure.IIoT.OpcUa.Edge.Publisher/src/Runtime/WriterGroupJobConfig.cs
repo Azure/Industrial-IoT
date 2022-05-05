@@ -37,5 +37,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
 
         /// <inheritdoc/>
         public bool? UseReversibleEncoding { get; set; }
+
+        /// <inheritdoc/>
+        public bool? EnableRoutingInfo { get; set; }
     }
 }

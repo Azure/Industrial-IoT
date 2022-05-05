@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using System.Runtime.Serialization;
     using System;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Publisher processing engine configuration
@@ -26,7 +26,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "batchTriggerInterval", Order = 1,
             EmitDefaultValue = false)]
         public TimeSpan? BatchTriggerInterval { get; set; }
-
 
         /// <summary>
         /// Interval for diagnostic messages
@@ -55,5 +54,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "reversibleEncoding", Order = 5,
             EmitDefaultValue = false)]
         public bool? UseReversibleEncoding { get; set; }
+
+        /// <summary>
+        /// /// Flag to determine if a telemetry routing info is enabled.
+        /// </summary>
+        [DataMember(Name = "enableRoutingInfo", Order = 5,
+            EmitDefaultValue = false)]
+        public bool? EnableRoutingInfo { get; set; }
     }
 }

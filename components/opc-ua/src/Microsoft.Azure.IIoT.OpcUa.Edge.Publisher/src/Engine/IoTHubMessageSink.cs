@@ -8,15 +8,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.Devices.Client;
+    using Prometheus;
     using Serilog;
-    using System.Linq;
-    using System.Threading.Tasks;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using Prometheus;
-    using Microsoft.Azure.IIoT.Module;
     using System.Globalization;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Iot hub client sink
@@ -44,12 +43,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task SendAsync(IEnumerable<NetworkMessageModel> messages) {
-            if (messages == null) {
+            if (messages == null || !messages.Any()) {
                 return;
             }
+            var routingInfo = messages.First().RoutingInfo;
+
             var messageObjects = messages
                 .Select(m => CreateMessage(m.Body, m.MessageSchema,
-                    m.ContentType, m.ContentEncoding, m.MessageId))
+                    m.ContentType, m.ContentEncoding, m.MessageId, m.RoutingInfo))
                 .ToList();
             try {
                 var messagesCount = messageObjects.Count;
@@ -67,11 +68,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     sw.Start();
 
                     try {
-                        if (messagesCount == 1) {
-                            await _clientAccessor.Client.SendEventAsync(messageObjects.First()).ConfigureAwait(false);
+                        if (string.IsNullOrEmpty(routingInfo)) {
+                            if (messagesCount == 1) {
+                                await _clientAccessor.Client.SendEventAsync(messageObjects.First()).ConfigureAwait(false);
+                            }
+                            else {
+                                await _clientAccessor.Client.SendEventBatchAsync(messageObjects).ConfigureAwait(false);
+                            }
                         }
                         else {
-                            await _clientAccessor.Client.SendEventBatchAsync(messageObjects).ConfigureAwait(false);
+                            if (messagesCount == 1) {
+                                await _clientAccessor.Client.SendEventAsync(routingInfo, messageObjects.First()).ConfigureAwait(false);
+                            }
+                            else {
+                                await _clientAccessor.Client.SendEventBatchAsync(routingInfo, messageObjects).ConfigureAwait(false);
+                            }
                         }
                     }
                     catch (Exception e) {
@@ -97,9 +108,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="contentType"></param>
         /// <param name="contentEncoding"></param>
         /// <param name="messageId"></param>
+        /// <param name="routingInfo"></param>
         /// <returns></returns>
         private static Message CreateMessage(byte[] body, string eventSchema,
-            string contentType, string contentEncoding, string messageId) {
+            string contentType, string contentEncoding, string messageId, string routingInfo) {
             var msg = new Message(body) {
                 ContentType = contentType,
                 ContentEncoding = contentEncoding,
@@ -115,6 +127,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             if (!string.IsNullOrEmpty(contentEncoding)) {
                 msg.Properties.Add(CommonProperties.ContentEncoding, contentEncoding);
+            }
+            if (!string.IsNullOrEmpty(routingInfo)) {
+                msg.Properties.Add(CommonProperties.RoutingInfo, routingInfo);
             }
             return msg;
         }
