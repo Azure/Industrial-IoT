@@ -113,7 +113,7 @@ $SubscriptionId = $context.Subscription.Id
 
 Write-Host "Adding/Updating KeyVault-Secret 'PCS-IOTHUB-CONNSTRING' with value '***'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IOTHUB-CONNSTRING' -SecretValue (ConvertTo-SecureString $connectionString.PrimaryConnectionString -AsPlainText -Force) | Out-Null
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'SP-TENANT-ID' -SecretValue (ConvertTo-SecureString $TenantId -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-TENANT-ID' -SecretValue (ConvertTo-SecureString $TenantId -AsPlainText -Force) | Out-Null
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-SUBSCRIPTION-ID' -SecretValue (ConvertTo-SecureString $SubscriptionId -AsPlainText -Force) | Out-Null
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-RESOURCE-GROUP' -SecretValue (ConvertTo-SecureString $ResourceGroupName -AsPlainText -Force) | Out-Null
 

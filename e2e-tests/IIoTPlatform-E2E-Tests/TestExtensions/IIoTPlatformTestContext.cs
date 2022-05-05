@@ -226,7 +226,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new Exception("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
-        string IOpcPlcConfig.TenantId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SP_TENANT_ID,
+        string IOpcPlcConfig.TenantId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_TENANT_ID,
             () => throw new Exception("Tenant Id is not provided."));
 
         string IOpcPlcConfig.ResourceGroupName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_RESOURCE_GROUP,
