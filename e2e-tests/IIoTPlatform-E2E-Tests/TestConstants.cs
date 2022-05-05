@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
-    using System;
 
     /// <summary>
     /// Contains constants using for End 2 End testing
@@ -19,6 +18,21 @@ namespace IIoTPlatform_E2E_Tests {
         /// Name of the test assembly
         /// </summary>
         public const string TestAssemblyName = "IIoTPlatform-E2E-Tests";
+
+        /// <summary>
+        /// Await time for initialization/setup or no data expected.
+        /// </summary>
+        public const int AwaitInitInMilliseconds = 30 * 1000;
+
+        /// <summary>
+        /// Await time for waiting new data
+        /// </summary>
+        public const int AwaitDataInMilliseconds = 90 * 1000;
+
+        /// <summary>
+        /// Await time for cleanup or no data expected.
+        /// </summary>
+        public const int AwaitCleanupInMilliseconds = 20 * 1000;
 
         /// <summary>
         /// Default timeout of web calls

@@ -40,5 +40,15 @@ namespace HistoricalAccess {
             ApplicationConfiguration configuration) {
             return new HistoricalAccessServerNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.HistoricalAccess,
+                };
+                return nameSpaces;
+            }
+        }
     }
 }

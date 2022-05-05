@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Moq;
     using Serilog;
@@ -17,11 +18,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     public class MonitoredItemMessageEncoderTests {
 
         private readonly Mock<ILogger> _loggerMock;
+        private readonly Mock<IEngineConfiguration> _engineConfigMock;
         private readonly MonitoredItemMessageEncoder _encoder;
 
         public MonitoredItemMessageEncoderTests() {
             _loggerMock = new Mock<ILogger>();
-            _encoder = new MonitoredItemMessageEncoder(_loggerMock.Object);
+            _engineConfigMock = new Mock<IEngineConfiguration>();
+            _encoder = new MonitoredItemMessageEncoder(_loggerMock.Object, _engineConfigMock.Object);
         }
 
         [Theory]

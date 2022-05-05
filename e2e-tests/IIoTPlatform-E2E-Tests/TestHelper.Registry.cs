@@ -36,9 +36,7 @@ namespace IIoTPlatform_E2E_Tests {
                 IEnumerable<string> requestedEndpointUrls = null) {
 
                 var accessToken = await GetTokenAsync(context, ct);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
-                };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
                 ct.ThrowIfCancellationRequested();
                 try {
@@ -46,9 +44,10 @@ namespace IIoTPlatform_E2E_Tests {
                     var activationStates = new List<string>(10);
                     do {
                         activationStates.Clear();
-                        var request = new RestRequest(Method.GET);
+                        var request = new RestRequest(TestConstants.APIRoutes.RegistryEndpoints, Method.Get) {
+                            Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                        };
                         request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                        request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
 
                         var response = await client.ExecuteAsync(request, ct);
                         Assert.NotNull(response);
@@ -112,15 +111,16 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.POST);
+                var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Post) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                request.Resource = TestConstants.APIRoutes.RegistryApplications;
 
                 var body = new { discoveryUrl };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
@@ -145,11 +145,12 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.GET);
+                var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Get) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                request.Resource = TestConstants.APIRoutes.RegistryApplications;
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
@@ -205,11 +206,13 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.DELETE);
+                var resource = string.Format(TestConstants.APIRoutes.RegistryApplicationsWithApplicationIdFormat, applicationId);
+                var request = new RestRequest(resource, Method.Delete) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                request.Resource = string.Format(TestConstants.APIRoutes.RegistryApplicationsWithApplicationIdFormat, applicationId);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
@@ -231,13 +234,12 @@ namespace IIoTPlatform_E2E_Tests {
 
                 Assert.False(string.IsNullOrWhiteSpace(endpointId), "Endpoint not set in the test context");
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
-                };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.POST);
+                var request = new RestRequest(string.Format(TestConstants.APIRoutes.RegistryActivateEndpointsFormat, endpointId), Method.Post) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                request.Resource = string.Format(TestConstants.APIRoutes.RegistryActivateEndpointsFormat, endpointId);
 
                 // TODO remove workaround
                 // This request used to fail when called for the first time. The bug was fixed in the master,
@@ -280,13 +282,12 @@ namespace IIoTPlatform_E2E_Tests {
 
                 Assert.False(string.IsNullOrWhiteSpace(endpointId), "Endpoint not set in the test context");
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
-                };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.POST);
+                var request = new RestRequest(string.Format(TestConstants.APIRoutes.RegistryDeactivateEndpointsFormat, endpointId), Method.Post) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                request.Resource = string.Format(TestConstants.APIRoutes.RegistryDeactivateEndpointsFormat, endpointId);
 
                 var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
 

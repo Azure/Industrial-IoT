@@ -37,6 +37,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public string MessageSchema { get; set; }
 
         /// <summary>
+        /// Custom routing info to be added to the header.
+        /// </summary>
+        public string RoutingInfo { get; set; }
+
+        /// <summary>
         /// Message body
         /// </summary>
         public byte[] Body { get; set; }

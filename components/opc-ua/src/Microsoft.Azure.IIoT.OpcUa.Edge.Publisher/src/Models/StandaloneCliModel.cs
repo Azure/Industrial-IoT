@@ -87,10 +87,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public bool FullFeaturedMessage { get; set; } = false;
 
         /// <summary>
-        /// The operation timeout.
-        /// </summary>
-        public TimeSpan? OperationTimeout { get; set; } = TimeSpan.FromSeconds(15);
-        /// <summary>
         /// The size of the message batching buffer
         /// </summary>
         public int? BatchSize { get; set; } = 50;
@@ -114,6 +110,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Define the maximum amount of the IoT D2C messages
         /// </summary>
         public int? MaxOutgressMessages { get; set; } = 4096;
+
+        /// <summary>
+        /// Flag to determine if a telemetry header helper is enabled.
+        /// </summary>
+        public bool? EnableRoutingInfo { get; set; } = false;
 
         /// <summary>
         /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured

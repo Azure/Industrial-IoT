@@ -74,22 +74,26 @@ namespace IIoTPlatform_E2E_Tests {
                     CancellationToken ct = default) {
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.GET);
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-
+                RestRequest request;
                 if (continuationToken == null) {
-                    request.Resource = $"twin/v2/browse/{endpointId}";
+                    request = new RestRequest($"twin/v2/browse/{endpointId}", Method.Get) {
+                        Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                    };
 
                     if (!string.IsNullOrEmpty(nodeId)) {
                         request.AddQueryParameter("nodeId", nodeId);
                     }
                 }
                 else {
-                    request.Resource = $"twin/v2/browse/{endpointId}/next";
+                    request = new RestRequest($"twin/v2/browse/{endpointId}/next", Method.Get) {
+                        Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                    };
                     request.AddQueryParameter("continuationToken", continuationToken);
                 }
+
+                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
@@ -198,12 +202,12 @@ namespace IIoTPlatform_E2E_Tests {
                     CancellationToken ct = default) {
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.POST);
+                var request = new RestRequest($"twin/v2/call/{endpointId}/metadata", Method.Post) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-
-                request.Resource = $"twin/v2/call/{endpointId}/metadata";
 
                 var body = new {
                     methodId,
@@ -214,7 +218,7 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
@@ -236,15 +240,16 @@ namespace IIoTPlatform_E2E_Tests {
                     CancellationToken ct = default) {
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.POST);
+                var request = new RestRequest($"twin/v2/read/{endpointId}/attributes", Method.Post) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                request.Resource = $"twin/v2/read/{endpointId}/attributes";
 
                 var body = new { attributes };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
@@ -273,15 +278,16 @@ namespace IIoTPlatform_E2E_Tests {
                     CancellationToken ct = default) {
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.POST);
+                var request = new RestRequest($"twin/v2/write/{endpointId}/attributes", Method.Post) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                request.Resource = $"twin/v2/write/{endpointId}/attributes";
 
                 var body = new { attributes };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
@@ -313,12 +319,12 @@ namespace IIoTPlatform_E2E_Tests {
                     CancellationToken ct = default) {
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.POST);
+                var request = new RestRequest($"twin/v2/call/{endpointId}", Method.Post) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-
-                request.Resource = $"twin/v2/call/{endpointId}";
 
                 var body = new {
                     methodId,
@@ -331,7 +337,7 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
@@ -355,18 +361,19 @@ namespace IIoTPlatform_E2E_Tests {
                     CancellationToken ct = default) {
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.POST);
+                var request = new RestRequest($"twin/v2/browse/{endpointId}/path", Method.Post) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                request.Resource = $"twin/v2/browse/{endpointId}/path";
 
                 var body = new {
                     nodeId,
                     browsePaths = new List<object> { browsePath }
                 };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
@@ -395,15 +402,16 @@ namespace IIoTPlatform_E2E_Tests {
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.POST);
+                var request = new RestRequest($"twin/v2/read/{endpointId}", Method.Post) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                request.Resource = $"twin/v2/read/{endpointId}";
 
                 var body = new { nodeId };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
@@ -444,15 +452,16 @@ namespace IIoTPlatform_E2E_Tests {
             {
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
-                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
-                var request = new RestRequest(Method.POST);
+                var request = new RestRequest($"twin/v2/write/{endpointId}", Method.Post) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+                };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                request.Resource = $"twin/v2/write/{endpointId}";
 
                 var body = new { nodeId, value, dataType };
 
-                request.AddJsonBody(JsonConvert.SerializeObject(body));
+                request.AddJsonBody(body);
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);

@@ -331,37 +331,38 @@ namespace HistoricalAccess {
         /// <param name="context">The context.</param>
         /// <param name="handle">The item handle.</param>
         /// <param name="monitoredItem">The monitored item.</param>
-        protected override void ReadInitialValue(
-            ServerSystemContext context,
+        protected override ServiceResult ReadInitialValue(
+            ISystemContext context,
             NodeHandle handle,
-            MonitoredItem monitoredItem) {
+            IDataChangeMonitoredItem2 dataChangeMonitoredItem) {
+            ArchiveItemState item = handle.Node as ArchiveItemState;
 
-            if (!(handle.Node is ArchiveItemState item) || monitoredItem.AttributeId != Attributes.Value) {
-                base.ReadInitialValue(context, handle, monitoredItem);
-                return;
+            if (item == null || dataChangeMonitoredItem.AttributeId != Attributes.Value) {
+                return base.ReadInitialValue(context, handle, dataChangeMonitoredItem);
             }
 
+            MonitoredItem monitoredItem = dataChangeMonitoredItem as MonitoredItem;
+            AggregateFilter filter = monitoredItem.Filter as AggregateFilter;
 
-            if (!(monitoredItem.Filter is AggregateFilter filter) || filter.StartTime >= DateTime.UtcNow.AddMilliseconds(-filter.ProcessingInterval)) {
-                base.ReadInitialValue(context, handle, monitoredItem);
-                return;
+            if (filter == null || filter.StartTime >= DateTime.UtcNow.AddMilliseconds(-filter.ProcessingInterval)) {
+                return base.ReadInitialValue(context, handle, dataChangeMonitoredItem);
             }
 
-            var details = new ReadRawModifiedDetails {
-                StartTime = filter.StartTime,
-                EndTime = DateTime.UtcNow,
-                ReturnBounds = true,
-                IsReadModified = false,
-                NumValuesPerNode = 0
-            };
+            ServiceResult error = StatusCodes.Good;
+            ReadRawModifiedDetails details = new ReadRawModifiedDetails();
 
-            var nodeToRead = new HistoryReadValueId {
-                NodeId = handle.NodeId,
-                ParsedIndexRange = NumericRange.Empty
-            };
+            details.StartTime = filter.StartTime;
+            details.EndTime = DateTime.UtcNow;
+            details.ReturnBounds = true;
+            details.IsReadModified = false;
+            details.NumValuesPerNode = 0;
+
+            HistoryReadValueId nodeToRead = new HistoryReadValueId();
+            nodeToRead.NodeId = handle.NodeId;
+            nodeToRead.ParsedIndexRange = NumericRange.Empty;
 
             try {
-                var request = CreateHistoryReadRequest(
+                HistoryReadRequest request = CreateHistoryReadRequest(
                     context,
                     details,
                     handle,
@@ -372,15 +373,16 @@ namespace HistoricalAccess {
                         break;
                     }
 
-                    var value = request.Values.First.Value;
+                    DataValue value = request.Values.First.Value;
                     request.Values.RemoveFirst();
                     monitoredItem.QueueValue(value, null);
                 }
             }
             catch (Exception e) {
-                var error = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Unexpected error fetching initial values.");
+                error = ServiceResult.Create(e, StatusCodes.BadUnexpectedError, "Unexpected error fetching initial values.");
                 monitoredItem.QueueValue(null, error);
             }
+            return error;
         }
 
         /// <summary>
@@ -994,7 +996,7 @@ namespace HistoricalAccess {
         /// <summary>
         /// Loads the archive item state from the underlying source.
         /// </summary>
-        private ArchiveItemState Reload(ServerSystemContext context, NodeHandle handle) {
+        private ArchiveItemState Reload(ISystemContext context, NodeHandle handle) {
             var item = handle.Node as ArchiveItemState;
 
             if (item == null) {
@@ -1013,7 +1015,7 @@ namespace HistoricalAccess {
         /// Creates a new history request.
         /// </summary>
         private HistoryReadRequest CreateHistoryReadRequest(
-            ServerSystemContext context,
+            ISystemContext context,
             ReadRawModifiedDetails details,
             NodeHandle handle,
             HistoryReadValueId nodeToRead) {
@@ -1380,7 +1382,7 @@ namespace HistoricalAccess {
         /// Creates a new history request.
         /// </summary>
         private DataValue RowToDataValue(
-            ServerSystemContext context,
+            ISystemContext context,
             HistoryReadValueId nodeToRead,
             DataRowView row,
             bool applyIndexRangeOrEncoding) {
