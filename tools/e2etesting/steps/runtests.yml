@@ -129,4 +129,4 @@ steps:
     NESTED_EDGE_SSH_CONNECTIONS: "$(NestedEdgeSshConnection)"
     SP_TENANT_ID: '$(SP-TENANT-ID)'
     SUBSCRIPTION_ID: '$(SUBSCRIPTION-ID)'
-    RESOURCE_GROUP_NAME: '$(ResourceGroupName)'
+    PCS_RESOURCE_GROUP: '$(ResourceGroupName)'

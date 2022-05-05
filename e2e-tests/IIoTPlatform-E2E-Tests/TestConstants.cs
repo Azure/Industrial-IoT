@@ -344,9 +344,9 @@ namespace IIoTPlatform_E2E_Tests {
             public const string SP_TENANT_ID = "SP_TENANT_ID";
 
             /// <summary>
-            /// Tenant Id
+            /// Resource group name
             /// </summary>
-            public const string RESOURCE_GROUP_NAME = "RESOURCE_GROUP_NAME";
+            public const string PCS_RESOURCE_GROUP = "PCS_RESOURCE_GROUP";
 
             /// <summary>
             /// Subscription Id

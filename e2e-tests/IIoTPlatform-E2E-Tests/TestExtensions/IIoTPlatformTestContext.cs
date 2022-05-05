@@ -229,7 +229,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IOpcPlcConfig.TenantId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SP_TENANT_ID,
             () => throw new Exception("Tenant Id is not provided."));
 
-        string IOpcPlcConfig.ResourceGroupName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.RESOURCE_GROUP_NAME,
+        string IOpcPlcConfig.ResourceGroupName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_RESOURCE_GROUP,
             () => throw new Exception("Resource Group Name is not provided."));
 
         string IOpcPlcConfig.SubscriptionId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SUBSCRIPTION_ID, () => string.Empty);
