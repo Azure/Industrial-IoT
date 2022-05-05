@@ -339,34 +339,19 @@ namespace IIoTPlatform_E2E_Tests {
             public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG";
 
             /// <summary>
-            /// SP Key
-            /// </summary>
-            public const string SP_KEY = "SP_KEY";
-
-            /// <summary>
-            /// SP Id
-            /// </summary>
-            public const string SP_ID = "SP_ID";
-
-            /// <summary>
             /// Tenant Id
             /// </summary>
-            public const string SP_TENANT_ID = "SP_TENANT_ID";
+            public const string PCS_TENANT_ID = "PCS_TENANT_ID";
 
             /// <summary>
-            /// Tenant Id
+            /// Resource group name
             /// </summary>
-            public const string RESOURCE_GROUP_NAME = "RESOURCE_GROUP_NAME";
-
-            /// <summary>
-            /// Tenant Id
-            /// </summary>
-            public const string REGION = "REGION";
+            public const string PCS_RESOURCE_GROUP = "PCS_RESOURCE_GROUP";
 
             /// <summary>
             /// Subscription Id
             /// </summary>
-            public const string SUBSCRIPTION_ID = "SUBSCRIPTION_ID";
+            public const string PCS_SUBSCRIPTION_ID = "PCS_SUBSCRIPTION_ID";
         }
 
         /// <summary>

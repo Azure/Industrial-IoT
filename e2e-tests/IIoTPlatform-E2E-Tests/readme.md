@@ -58,7 +58,7 @@ Follow these steps:
 * Execute /tools/e2etesting/GetSecrets.ps1 -KeyVaultName &lt;YourKeyVaultName&gt;. You will be asked whether you want to overwrite the settings file or not.
   * if you choose 'yes' just wait for the script to finish and no further steps are needed
   * if you choose 'no' copy the script output to IIoTPlatform-E2E-Tests\Properties\launchSettings.json under environmentVariables
-* If you don't want to use the default subscription, add SUBSCRIPTION_ID: "<sub id" to launchSettings.json
+* If you don't want to use the default subscription, add PCS_SUBSCRIPTION_ID: "<sub id" to launchSettings.json
 * Now you can use Visual Studio to execute your tests.
 * Don't forget to clean up by executing the pipeline with these variables set:
   * `Cleanup = false`

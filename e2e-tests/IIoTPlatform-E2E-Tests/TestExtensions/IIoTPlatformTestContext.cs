@@ -193,7 +193,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IIoTEdgeConfig.NestedEdgeFlag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_FLAG,
             () => "Disable");
 
-        string[] IIoTEdgeConfig.NestedEdgeSshConnections => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_SSH_CONNECTIONS, 
+        string[] IIoTEdgeConfig.NestedEdgeSshConnections => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_SSH_CONNECTIONS,
             () => "").Split(",");
 
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
@@ -226,19 +226,13 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new Exception("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
-        string IOpcPlcConfig.TenantId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SP_TENANT_ID,
+        string IOpcPlcConfig.TenantId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_TENANT_ID,
             () => throw new Exception("Tenant Id is not provided."));
 
-        string IOpcPlcConfig.ServicePrincipalId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SP_ID,
-            () => throw new Exception("Service Principal Id is not provided."));
-
-        string IOpcPlcConfig.ResourceGroupName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.RESOURCE_GROUP_NAME,
+        string IOpcPlcConfig.ResourceGroupName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_RESOURCE_GROUP,
             () => throw new Exception("Resource Group Name is not provided."));
 
-        string IOpcPlcConfig.Region => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.REGION,
-            () => throw new Exception("Region is not provided."));
-
-        string IOpcPlcConfig.SubscriptionId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SUBSCRIPTION_ID, () => string.Empty);
+        string IOpcPlcConfig.SubscriptionId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SUBSCRIPTION_ID, () => string.Empty);
 
         string ITestEventProcessorConfig.TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
             () => throw new Exception("Test Event Processor BaseUrl is not provided."));
