@@ -18,19 +18,9 @@ namespace IIoTPlatform_E2E_Tests.Config {
         string TenantId { get; }
 
         /// <summary>
-        /// SP Id
-        /// </summary>
-        string ServicePrincipalId { get; }
-
-        /// <summary>
         /// Resource Group
         /// </summary>
         string ResourceGroupName { get; }
-
-        /// <summary>
-        /// Region
-        /// </summary>
-        string Region { get; }
 
         /// <summary>
         /// Subscription Id

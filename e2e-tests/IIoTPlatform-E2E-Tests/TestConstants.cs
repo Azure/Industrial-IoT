@@ -339,16 +339,6 @@ namespace IIoTPlatform_E2E_Tests {
             public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG";
 
             /// <summary>
-            /// SP Key
-            /// </summary>
-            public const string SP_KEY = "SP_KEY";
-
-            /// <summary>
-            /// SP Id
-            /// </summary>
-            public const string SP_ID = "SP_ID";
-
-            /// <summary>
             /// Tenant Id
             /// </summary>
             public const string SP_TENANT_ID = "SP_TENANT_ID";
@@ -357,11 +347,6 @@ namespace IIoTPlatform_E2E_Tests {
             /// Tenant Id
             /// </summary>
             public const string RESOURCE_GROUP_NAME = "RESOURCE_GROUP_NAME";
-
-            /// <summary>
-            /// Tenant Id
-            /// </summary>
-            public const string REGION = "REGION";
 
             /// <summary>
             /// Subscription Id
