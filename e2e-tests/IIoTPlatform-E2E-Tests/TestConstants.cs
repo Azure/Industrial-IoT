@@ -351,7 +351,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// Subscription Id
             /// </summary>
-            public const string SUBSCRIPTION_ID = "SUBSCRIPTION_ID";
+            public const string PCS_SUBSCRIPTION_ID = "PCS_SUBSCRIPTION_ID";
         }
 
         /// <summary>

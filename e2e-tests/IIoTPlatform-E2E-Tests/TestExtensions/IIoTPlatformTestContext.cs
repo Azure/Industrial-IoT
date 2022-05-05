@@ -232,7 +232,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IOpcPlcConfig.ResourceGroupName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_RESOURCE_GROUP,
             () => throw new Exception("Resource Group Name is not provided."));
 
-        string IOpcPlcConfig.SubscriptionId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SUBSCRIPTION_ID, () => string.Empty);
+        string IOpcPlcConfig.SubscriptionId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SUBSCRIPTION_ID, () => string.Empty);
 
         string ITestEventProcessorConfig.TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
             () => throw new Exception("Test Event Processor BaseUrl is not provided."));
