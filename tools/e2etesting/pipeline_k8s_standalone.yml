@@ -26,6 +26,7 @@ stages:
   jobs:
   - job: deployaks
     displayName: 'Deploy aks cluster'
+    timeoutInMinutes: 180
     steps: 
     - template: steps/deployaks.yml
 
