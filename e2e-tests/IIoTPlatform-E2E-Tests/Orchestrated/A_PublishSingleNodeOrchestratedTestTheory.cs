@@ -98,7 +98,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var opcServerEndpoints = ((IEnumerable<dynamic>)json.items)
                 .Where(item => item.registration.endpoint.url.Trim('/') == _context.OpcServerUrl.Trim('/')
-                    && item.registration.endpoint.securityMode == "SignAndEncrypt");
+                    && item.registration.endpoint.securityMode == "SignAndEncrypt"
+                    && item.registration.endpoint.securityPolicy == "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256");
 
             Assert.Equal(1, opcServerEndpoints.Count());
 
