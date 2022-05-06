@@ -73,6 +73,10 @@ if (!$testSuffix) {
     $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
 }
 
+## Create SSH key
+New-AzSshKey -ResourceGroupName $resourceGroupName -Name "akssshkey"
+
+
 ## Create AKS Cluster
 $aksName = "aksCluster_$($testSuffix)"
 $aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3
