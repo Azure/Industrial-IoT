@@ -30,7 +30,7 @@ if (!$Region) {
     Write-Error "Region not set."
 }
 
-if (!Test-Path -Path $PublisherDeploymentFile -PathType Leaf) {
+if (!(Microsoft.PowerShell.Management\Test-Path -Path $PublisherDeploymentFile -PathType Leaf)) {
     Write-Error "OPC Publisher k8s deployment file does not exist"
 }
 
