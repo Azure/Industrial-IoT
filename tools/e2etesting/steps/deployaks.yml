@@ -26,7 +26,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     scriptType: filePath
-    scriptPath: '$(BasePath)\DeployAKS.ps1'
+    scriptPath: '$(System.DefaultWorkingDirectory)/tools/e2etesting/DeployAKS.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
