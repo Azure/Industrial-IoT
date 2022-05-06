@@ -1,15 +1,15 @@
 variables:
 - template: steps/variables.yml
 
-stages:
-- stage: deploy
-  displayName: "Deploy IoT Hub and Key Vault"
+# stages:
+# - stage: deploy
+#   displayName: "Deploy IoT Hub and Key Vault"
   
-  jobs:
-  - job: deploystandalone
-    displayName: 'Deploy Standalone Resources'
-    steps:
-    - template: steps/deploystandalone.yml
+#   jobs:
+#   - job: deploystandalone
+#     displayName: 'Deploy Standalone Resources'
+#     steps:
+#     - template: steps/deploystandalone.yml
 
 #build test resource
 # upload test resource
