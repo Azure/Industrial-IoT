@@ -1,7 +1,7 @@
 variables:
 - template: steps/variables.yml
 
-# stages:
+stages:
 # - stage: deploy
 #   displayName: "Deploy IoT Hub and Key Vault"
   
