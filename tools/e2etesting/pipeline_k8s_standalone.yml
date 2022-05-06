@@ -18,8 +18,11 @@ stages:
   displayName: "Deploy AKS"
   dependsOn: deploy
   condition: and(not(canceled()), eq(dependencies.deploy.result, 'Succeeded'))
-  steps: 
-  - template: steps/deployaks.yml
+  jobs:
+  - job: deployaks
+    displayName: 'Deploy aks cluster'
+    steps: 
+    - template: steps/deployaks.yml
 
 # runt tests
 
