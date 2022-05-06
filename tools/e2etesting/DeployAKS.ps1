@@ -131,5 +131,4 @@ $fileContent | Out-File $PublisherDeploymentFile -Force -Encoding utf8
 
 kubectl apply -f ./K8s-Standalone/publisher
 
-## Load MQTT Verification
-...
+kubectl apply -f ./K8s-Standalone/verifier

@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: verifier
+  namespace: e2etesting
+spec:
+  selector:
+    matchLabels:
+      app: verifier
+  template:
+    metadata:
+      labels:
+        app: verifier
+    spec:
+      containers:
+      - name: verifier
+        image: edgeappmodel.azurecr.io/mqtt-publisher:latest
+        ports:
+        - containerPort: 80
+        - containerPort: 443
