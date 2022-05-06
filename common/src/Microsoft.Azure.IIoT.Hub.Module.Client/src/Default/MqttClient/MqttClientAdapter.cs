@@ -280,7 +280,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     return null;
                 }
 
-                var cancellationTokenSource = new CancellationTokenSource();
+                using var cancellationTokenSource = new CancellationTokenSource();
                 cancellationTokenSource.CancelAfter(_timeout);
 
                 // Signal that the response should be saved by setting the key.
@@ -318,13 +318,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
 
             /// <inheritdoc />
-            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
+            public async Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
                 if (IsClosed) {
-                    return Task.CompletedTask;
+                    return;
                 }
 
-                var payload = new MemoryStream(Encoding.UTF8.GetBytes(reportedProperties.ToJson()));
-                return InternalSendEventAsync("$iothub/twin/PATCH/properties/reported/?$rid=patch_temp", payload);
+                using var payload = new MemoryStream(Encoding.UTF8.GetBytes(reportedProperties.ToJson()));
+                await InternalSendEventAsync("$iothub/twin/PATCH/properties/reported/?$rid=patch_temp", payload);
             }
 
             /// <inheritdoc />
@@ -407,9 +407,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                         $"The list of message.properties and/or message.systemProperties is likely too long. Please use AMQP or HTTP.");
                 }
 
+                CancellationTokenSource cancellationTokenSource = null;
+
                 // Create default cancellation token.
                 if (cancellationToken == default) {
-                    var cancellationTokenSource = new CancellationTokenSource();
+                    cancellationTokenSource = new CancellationTokenSource();
                     cancellationTokenSource.CancelAfter(_timeout);
                     cancellationToken = cancellationTokenSource.Token;
                 }
@@ -439,6 +441,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 catch (Exception ex) {
                     _logger.Error($"Failed to publish MQTT message: {ex.Message}");
                 }
+                finally {
+                    cancellationTokenSource?.Dispose();
+                }
+
                 return Task.CompletedTask;
             }
 
@@ -532,6 +538,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                         payload = new MemoryStream(methodResponse.Result);
                     }
                     await InternalSendEventAsync($"$iothub/methods/res/{methodResponse.Status}/?$rid={requestId}", payload);
+                    payload?.Dispose();
                 }
                 catch (Exception ex) {
                     _logger.Error($"Failed to call method \"{methodName}\": {ex.Message}");
