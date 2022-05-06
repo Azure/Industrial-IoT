@@ -16,8 +16,8 @@ stages:
 
 - stage: deployAKS
   displayName: "Deploy AKS"
-  dependsOn: deploy
-  condition: and(not(canceled()), eq(dependencies.deploy.result, 'Succeeded'))
+  #dependsOn: deploy
+  #condition: and(not(canceled()), eq(dependencies.deploy.result, 'Succeeded'))
   jobs:
   - job: deployaks
     displayName: 'Deploy aks cluster'
