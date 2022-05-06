@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
         private const string kDeviceIdPropertyName = nameof(DeviceId);
         private const string kModuleIdPropertyName = nameof(ModuleId);
         private const string kUsernamePropertyName = nameof(Username);
-        private const string kPasswordPropertyName = nameof(Password);
+        private const string kAuthPropertyName = nameof(Password);
         private const string kSharedAccessSignaturePropertyName = nameof(SharedAccessSignature);
         private const string kUsingIoTHubPropertyName = nameof(UsingIoTHub);
         private const string kStateFilePropertyName = nameof(StateFile);
@@ -164,7 +164,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
             }
             else {
                 mqttClientConnectionStringBuilder.Username = properties.GetOptional<string>(kUsernamePropertyName);
-                mqttClientConnectionStringBuilder.Password = properties.GetOptional<string>(kPasswordPropertyName);
+                mqttClientConnectionStringBuilder.Password = properties.GetOptional<string>(kAuthPropertyName);
             }
 
             if (properties.ContainsKey(kMessageExpiryIntervalPropertyName)) {
@@ -214,7 +214,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
                 }
 
                 if (string.IsNullOrWhiteSpace(Password)) {
-                    throw new ArgumentException($"{kPasswordPropertyName} was not configured and is required for the Azure IoT Hub");
+                    throw new ArgumentException($"{kAuthPropertyName} was not configured and is required for the Azure IoT Hub");
                 }
             }
         }
@@ -256,7 +256,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
             stringBuilder.AppendKeyValuePairIfNotEmpty(kDeviceIdPropertyName, DeviceId);
             stringBuilder.AppendKeyValuePairIfNotEmpty(kModuleIdPropertyName, ModuleId);
             stringBuilder.AppendKeyValuePairIfNotEmpty(kUsernamePropertyName, Username);
-            stringBuilder.AppendKeyValuePairIfNotEmpty(kPasswordPropertyName, Password);
+            stringBuilder.AppendKeyValuePairIfNotEmpty(kAuthPropertyName, Password);
             stringBuilder.AppendKeyValuePairIfNotEmpty(kUsingIoTHubPropertyName, UsingIoTHub);
             if (stringBuilder.Length > 0) {
                 stringBuilder.Remove(stringBuilder.Length - 1, 1);
