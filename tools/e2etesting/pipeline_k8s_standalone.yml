@@ -1,6 +1,8 @@
 variables:
 - template: steps/variables.yml
-  ResourceGroupName: jscakse2e
+- name: ResourceGroupName
+  value: jscakse2e
+   
 
 stages:
 # - stage: deploy
