@@ -2,6 +2,8 @@ variables:
 - template: steps/variables.yml
 - name: ResourceGroupName
   value: jscakse2e
+- name: Region
+  value: northeurope
    
 
 stages:
