@@ -74,7 +74,7 @@ if (!$testSuffix) {
 }
 
 ## Create SSH key
-New-AzSshKey -ResourceGroupName $resourceGroupName -Name "akssshkey"
+New-AzSshKey -ResourceGroupName $resourceGroupName -Name "id_rsa"
 
 
 ## Create AKS Cluster
