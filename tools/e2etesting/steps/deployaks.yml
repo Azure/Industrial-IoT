@@ -34,3 +34,4 @@ steps:
       -ContainerRegistryServer '$(ContainerRegistryServer)'
       -ContainerRegistryUsername '$(ContainerRegistryUsername)'
       -ContainerRegistryPassword '$(ContainerRegistryPassword)'
+      -PublisherDeploymentFile '$(System.DefaultWorkingDirectory)/tools/K8s-Standalone/publisher/deployment.yaml
