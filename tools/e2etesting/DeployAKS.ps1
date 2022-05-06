@@ -31,7 +31,7 @@ if (!$Region) {
 }
 
 if (!(Microsoft.PowerShell.Management\Test-Path -Path $PublisherDeploymentFile -PathType Leaf)) {
-    Write-Error "OPC Publisher k8s deployment file does not exist"
+    Write-Error "OPC Publisher k8s deployment file '$PublisherDeploymentFile' does not exist"
 }
 
 
