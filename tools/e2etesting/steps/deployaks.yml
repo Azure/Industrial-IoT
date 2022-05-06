@@ -29,8 +29,8 @@ steps:
     scriptPath: '$(System.DefaultWorkingDirectory)/tools/e2etesting/DeployAKS.ps1'
     scriptArguments: >
       -ResourceGroupName $(ResourceGroupName)
-      -Region '$(Region)'
-      -ServicePrincipalId "$(ServicePrincipalId)"
-      -ContainerRegistryServer "$(ContainerRegistryServer)"
-      -ContainerRegistryUsername "$(ContainerRegistryUsername)"
-      -ContainerRegistryPassword "$(ContainerRegistryPassword)"
+      -Region $(Region)
+      -ServicePrincipalId $(ServicePrincipalId)
+      -ContainerRegistryServer $(ContainerRegistryServer)
+      -ContainerRegistryUsername $(ContainerRegistryUsername)
+      -ContainerRegistryPassword $(ContainerRegistryPassword)

@@ -11,7 +11,7 @@ Param(
     $ContainerRegistryServer = "mcr.microsoft.com",
     [string] 
     $ContainerRegistryUsername,
-    [SecureString]
+    [string]
     $ContainerRegistryPassword,
     [string]
     $PublisherImagePath = "/main/iotedge/opc-publisher",
@@ -109,8 +109,8 @@ $deviceId = "device_$($testSuffix)"
 ### Create Image Pull Secret if required
 if (![string]::IsNullOrEmpty($ContainerRegistryUsername) && $ContainerRegistryPassword.Length -ne 0) {
     $withImagePullSecret = $true
-    $temp = ConvertFrom-SecureString -SecureString $ContainerRegistryPassword -AsPlainText
-    kubectl create secret docker-registry dev-registry-pull-secret --docker-server=$ContainerRegistryServer --docker-username=$ContainerRegistryUsername --namespace=e2etesting --docker-password=$temp
+    # $temp = ConvertFrom-SecureString -SecureString $ContainerRegistryPassword -AsPlainText
+    kubectl create secret docker-registry dev-registry-pull-secret --docker-server=$ContainerRegistryServer --docker-username=$ContainerRegistryUsername --namespace=e2etesting --docker-password=$ContainerRegistryPassword
     $temp = $null
 } else {
     $withImagePullSecret = $false
