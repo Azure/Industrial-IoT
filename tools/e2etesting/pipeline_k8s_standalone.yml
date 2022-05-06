@@ -28,7 +28,7 @@ stages:
 
 - stage: cleanup
   displayName: Cleanup resources
-  dependsOn: deploy
+  dependsOn: deployAKS
   condition: and(not(canceled()), eq(variables['Cleanup'], true))
   jobs:
   - job: cleanup
