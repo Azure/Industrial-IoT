@@ -103,13 +103,13 @@ Install-AzAksKubectl -Version latest -Force
 Import-AzAksCredential -ResourceGroupName $resourceGroupName -Name $aksName -Force
 
 ## Create testing namespace in AKS
-kubectl apply -f ./K8s-Standalone/e2etesting/
+kubectl apply -f .tools/e2etesting/K8s-Standalone/e2etesting/
 
 ## Load Mosquitto
-kubectl apply -f ./K8s-Standalone/mosquitto/
+kubectl apply -f .tools/e2etesting/K8s-Standalone/mosquitto/
 
 ## Load OPC PLC
-kubectl apply -f ./K8s-Standalone/opcplc/
+kubectl apply -f .tools/e2etesting/K8s-Standalone/opcplc/
 
 ## Load OPC Publisher
 
@@ -138,6 +138,6 @@ if ($withImagePullSecret) {
 }
 $fileContent | Out-File $PublisherDeploymentFile -Force -Encoding utf8
 
-kubectl apply -f ./K8s-Standalone/publisher
+kubectl apply -f .tools/e2etesting/K8s-Standalone/publisher
 
-kubectl apply -f ./K8s-Standalone/verifier
+kubectl apply -f .tools/e2etesting/K8s-Standalone/verifier
