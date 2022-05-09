@@ -4,25 +4,22 @@ variables:
   value: publisher-mqtt-k8s
 - name: Region
   value: northeurope
-   
+- name: Cleanup
+  value: false
+- name: ContainerRegistryServer
+  value: EdgeAppModel
+- name: ContainerRegistryResourceGroup
+  value: edge-app-model-for-industries-acr
+- name: PublisherImagePath
+  value: mqtt-publisher
+     
 
 stages:
-# - stage: deploy
-#   displayName: "Deploy IoT Hub and Key Vault"
-  
-#   jobs:
-#   - job: deploystandalone
-#     displayName: 'Deploy Standalone Resources'
-#     steps:
-#     - template: steps/deploystandalone.yml
-
-#build test resource
+# build test resource
 # upload test resource
 
 - stage: deployAKS
   displayName: "Deploy AKS"
-  #dependsOn: deploy
-  #condition: and(not(canceled()), eq(dependencies.deploy.result, 'Succeeded'))
   jobs:
   - job: deployaks
     displayName: 'Deploy aks cluster'
@@ -30,7 +27,7 @@ stages:
     steps: 
     - template: steps/deployaks.yml
 
-# runt tests
+# run tests
 
 - stage: cleanup
   displayName: Cleanup resources
