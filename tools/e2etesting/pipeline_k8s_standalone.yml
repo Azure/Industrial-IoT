@@ -10,6 +10,8 @@ variables:
   value: false
 - name: PublisherImagePath
   value: mqtt-publisher
+- name: ContainerRegistryServer
+  value: edgeappmodel.azurecr.io
      
 
 stages:

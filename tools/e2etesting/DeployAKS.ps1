@@ -140,4 +140,12 @@ $fileContent | Out-File $PublisherDeploymentFile -Force -Encoding utf8
 
 kubectl apply -f ./tools/e2etesting/K8s-Standalone/publisher
 
+$fileContent = Get-Content '$(System.DefaultWorkingDirectory)/tools/e2etesting/K8s-Standalone/verifier/deployment.yaml' -Raw
+if ($withImagePullSecret) {
+    $fileContent = $fileContent -replace "{{ImagePullSecret}}", ""
+} else {
+    $fileContent = $fileContent -replace "{{ImagePullSecret}}", "#"
+}
+$fileContent | Out-File '$(System.DefaultWorkingDirectory)/tools/e2etesting/K8s-Standalone/verifier/deployment.yaml' -Force -Encoding utf8
+
 kubectl apply -f ./tools/e2etesting/K8s-Standalone/verifier
