@@ -14,7 +14,7 @@ steps:
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: 'Install-Module -Name Az.ContainerRegistry -RequiredVersion 2.2.2'
+    script: 'Install-Module -Name Az.ContainerRegistry -RequiredVersion 2.2.2 -Force'
 
 - task: AzureCLI@2
   displayName: 'Load acr secrets'
