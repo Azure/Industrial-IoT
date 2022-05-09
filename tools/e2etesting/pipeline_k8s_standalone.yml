@@ -40,6 +40,6 @@ stages:
   - job: cleanup
     displayName: Cleanup
     steps:
-    - template: steps/cleanup.yml
+    - template: steps/cleanupaks.yml
       parameters:
         CleanupAppRegistrations: false
