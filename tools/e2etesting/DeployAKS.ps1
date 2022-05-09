@@ -76,11 +76,15 @@ if (!$testSuffix) {
     $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
 }
 
+# Create ssh keys
+Write-Host "Creating ssh key"
+ssh-keygen -m PEM -t rsa -b 4096
+
 ## Create AKS Cluster
 $aksName = "aksCluster_$($testSuffix)"
 Write-Host "Creating cluster $aksName"
 
-$aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -Force --generate-ssh-keys
+$aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -Force
 
 if (!$aksCluster) {
     Write-Error "Failed to create AKS cluster."
