@@ -54,9 +54,10 @@ $resourceGroup = Get-AzResourceGroup -Name $resourceGroupName -ErrorAction Silen
 if (!$resourceGroup) {
     Write-Host "Creating Resource Group $($ResourceGroupName) in $($Region)..."
     $resourceGroup = New-AzResourceGroup -Name $ResourceGroupName -Location $Region
+}else{
+    Write-Host "Using resource Group: $($resourceGroup.ResourceGroupName)"
 }
 
-Write-Host "Resource Group: $($resourceGroup.ResourceGroupName)"
 
 ## Determine suffix for testing resources
 
@@ -77,10 +78,14 @@ if (!$testSuffix) {
 
 ## Create AKS Cluster
 $aksName = "aksCluster_$($testSuffix)"
-$aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -Force -GenerateSshKey
+Write-Host "Creating cluster $aksName"
+
+$aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -Force 
 
 if (!$aksCluster) {
     Write-Error "Failed to create AKS cluster."
+}else{
+    Write-Host "Cluster $aksName created"
 }
 
 ## Install kubectl
