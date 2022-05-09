@@ -80,7 +80,7 @@ if (!$testSuffix) {
 $aksName = "aksCluster_$($testSuffix)"
 Write-Host "Creating cluster $aksName"
 
-$aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -Force 
+$aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -Force --generate-ssh-keys
 
 if (!$aksCluster) {
     Write-Error "Failed to create AKS cluster."
