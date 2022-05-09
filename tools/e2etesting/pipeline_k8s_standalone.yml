@@ -1,7 +1,7 @@
 variables:
 - template: steps/variables.yml
 - name: ResourceGroupName
-  value: jscakse2e
+  value: publisher-mqtt-k8s
 - name: Region
   value: northeurope
    
