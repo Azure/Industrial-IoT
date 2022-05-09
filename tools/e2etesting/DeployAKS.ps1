@@ -34,6 +34,8 @@ if (!(Microsoft.PowerShell.Management\Test-Path -Path $PublisherDeploymentFile -
     Write-Error "OPC Publisher k8s deployment file '$PublisherDeploymentFile' does not exist"
 }
 
+## show installed az.aks module
+Get-Module -listAvailable -Name Az.Aks
 
 ## Login if required
 
