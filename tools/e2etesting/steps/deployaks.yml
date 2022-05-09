@@ -16,18 +16,18 @@ steps:
     targetType: 'inline'
     script: 'Install-Module -Name Az.ContainerRegistry -RequiredVersion 2.2.2 -Force'
 
-- task: AzureCLI@2
-  displayName: 'Load acr secrets'
-  name: loadacrsecrets
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
-    scriptLocation: 'InlineScript'
-    scriptType: 'pscore'
-    inlineScript: |
-      $credentials = Get-AzContainerRegistryCredential -Name $(ContainerRegistryServer) -ResourceGroupName $(ContainerRegistryResourceGroup)
-      Write-Host "##vso[task.setvariable variable=ContainerRegistryUsername;]$credentials.Username"
-      Write-Host "##vso[task.setvariable variable=ContainerRegistryPassword;]$credentials.Password"
+# - task: AzureCLI@2
+#   displayName: 'Load acr secrets'
+#   name: loadacrsecrets
+#   inputs:
+#     azureSubscription: '$(AzureSubscription)'
+#     azurePowerShellVersion: 'latestVersion'
+#     scriptLocation: 'InlineScript'
+#     scriptType: 'pscore'
+#     inlineScript: |
+#       $credentials = Get-AzContainerRegistryCredential -Name $(ContainerRegistryServer) -ResourceGroupName $(ContainerRegistryResourceGroup)
+#       Write-Host "##vso[task.setvariable variable=ContainerRegistryUsername;]$credentials.Username"
+#       Write-Host "##vso[task.setvariable variable=ContainerRegistryPassword;]$credentials.Password"
 
 
 - task: AzurePowerShell@5

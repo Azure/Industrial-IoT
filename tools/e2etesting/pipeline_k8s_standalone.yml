@@ -1,3 +1,5 @@
+trigger: none
+
 variables:
 - template: steps/variables.yml
 - name: ResourceGroupName
@@ -6,10 +8,6 @@ variables:
   value: northeurope
 - name: Cleanup
   value: false
-- name: ContainerRegistryServer
-  value: EdgeAppModel
-- name: ContainerRegistryResourceGroup
-  value: edge-app-model-for-industries-acr
 - name: PublisherImagePath
   value: mqtt-publisher
      
