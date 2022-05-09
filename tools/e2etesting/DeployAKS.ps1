@@ -75,23 +75,18 @@ if (!$testSuffix) {
 
 ## Create AKS Cluster
 $aksName = "aksCluster_$($testSuffix)"
-$aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -GenerateSshKey
+$aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -Force -GenerateSshKey
 
 if (!$aksCluster) {
     Write-Error "Failed to create AKS cluster."
 }
 
 ## Install kubectl
-$installedKubectl = Install-AzAksKubectl -Version latest
-if (!$installedKubectl) {
-    Write-Error "Failed to install kubectl."
-}
+Install-AzAksKubectl -Version latest -Force
+
 
 ## Load AKS Cluster credentials
-$importCredentials = Import-AzAksCredential -ResourceGroupName $resourceGroupName -Name $aksName -Confirm -Force
-if (!$importCredentials) {
-    Write-Error "Failed to import AKS credentials."
-}
+Import-AzAksCredential -ResourceGroupName $resourceGroupName -Name $aksName -Force
 
 ## Create testing namespace in AKS
 kubectl apply -f ./K8s-Standalone/e2etesting/
