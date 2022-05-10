@@ -27,7 +27,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             return TestHelper.CreateSimulationContainerAsync(_context, new List<string> { "/bin/sh", "-c", "./opcplc --autoaccept -ses --pn=50000" }, _timeoutToken);
         }
 
-        [Fact, PriorityOrder(11)]
+        // ToDo: remove ´skip test´ when event and alarm are fully implemented
+        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(11)]
         public async Task Test_VerifyIntegerNamespace_Expect_SimpleEvents_InHub() {
             // Arrange
             var pnJson = SimpleEvents(
@@ -47,7 +48,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             VerifyPayloads(payloads.Messages);
         }
 
-        [Fact, PriorityOrder(12)]
+        // ToDo: remove ´skip test´ when event and alarm are fully implemented
+        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(12)]
         public async Task Test_VerifyStringNamespace_Expect_SimpleEvents_InHub() {
             // Arrange
             var pnJson = SimpleEvents(
@@ -67,7 +69,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             VerifyPayloads(payloads.Messages);
         }
 
-        [Fact, PriorityOrder(13)]
+        // ToDo: remove ´skip test´ when event and alarm are fully implemented
+        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(13)]
         public async Task Test_VerifyIntegerNamespace_Expect_FilteredSimpleEvents_InHub() {
             // Arrange
             var pnJson = _context.PublishedNodesJson(
@@ -85,7 +88,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             VerifyPayloads(payloads.Messages);
         }
 
-        [Fact, PriorityOrder(14)]
+        // ToDo: remove ´skip test´ when event and alarm are fully implemented
+        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(14)]
         public async Task Test_VerifyStringNamespace_Expect_FilteredSimpleEvents_InHub() {
             // Arrange
             var pnJson = _context.PublishedNodesJson(
