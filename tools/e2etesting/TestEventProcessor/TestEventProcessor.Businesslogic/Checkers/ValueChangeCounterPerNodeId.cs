@@ -35,16 +35,16 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <summary>
         /// Method that should be called for processing of events.
         /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="_0"></param>
-        /// <param name="_1"></param>
+        /// <param name="nodeId">Identifeir of the data source.</param>
+        /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
+        /// <param name="value">The actual value of the data change.</param>
         public void ProcessEvent(
             string nodeId,
-            DateTime _0,
-            object _1
+            DateTime sourceTimestamp,
+            object value
         ) {
             // do not process if we are missing data
-            if (string.IsNullOrEmpty(nodeId) || _0 == default(DateTime) || _1 == null) {
+            if (string.IsNullOrEmpty(nodeId) || sourceTimestamp == default(DateTime) || value == null) {
                 return;
             }
 

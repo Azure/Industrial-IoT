@@ -394,7 +394,7 @@ namespace TestEventProcessor.BusinessLogic {
             }
 
             // Feed data to checkers.
-            _missingTimestampsChecker.ProcessEvent(nodeId, sourceTimestamp, value);
+            _missingTimestampsChecker.ProcessEvent(nodeId, sourceTimestamp);
             _messageProcessingDelayChecker.ProcessEvent(nodeId, sourceTimestamp, receivedTimestamp);
             _messageDeliveryDelayChecker.ProcessEvent(nodeId, sourceTimestamp, enqueuedTimestamp);
             _valueChangeCounterPerNodeId.ProcessEvent(nodeId, sourceTimestamp, value);
