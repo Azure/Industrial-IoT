@@ -39,9 +39,9 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <summary>
         /// Method that should be called for processing of events.
         /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="sourceTimestamp"></param>
-        /// <param name="value"></param>
+        /// <param name="nodeId">Identifeir of the data source.</param>
+        /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
+        /// <param name="value">The actual value of the data change.</param>
         public void ProcessEvent(
             string nodeId,
             DateTime sourceTimestamp,

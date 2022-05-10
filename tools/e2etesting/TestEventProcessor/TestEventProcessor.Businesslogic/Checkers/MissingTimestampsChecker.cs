@@ -63,13 +63,11 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <summary>
         /// Method that should be called for processing of events.
         /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="sourceTimestamp"></param>
-        /// <param name="_"></param>
+        /// <param name="nodeId">Identifeir of the data source.</param>
+        /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
         public void ProcessEvent(
             string nodeId,
-            DateTime sourceTimestamp,
-            object _
+            DateTime sourceTimestamp
         ) {
             // Do not process events after Stop() has been called.
             if (_isStopped) {

@@ -53,12 +53,11 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             DateTime receivedTimestamp
         ) {
             // do not process if we don't have source timestamp
-            if (sourceTimestamp == default(DateTime)) {
+            if (string.IsNullOrEmpty(nodeId) || sourceTimestamp == default(DateTime)) {
                 return;
             }
 
             _lock.Wait();
-
             try {
                 // Check and report if processing delay has changed considerably, meaning more that the threshold.
                 var newOpcDiffToNow = receivedTimestamp - sourceTimestamp;
