@@ -19,7 +19,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             : base(context, output) {
         }
 
-        [Fact, PriorityOrder(10)]
+        // ToDo: remove ´skip test´ when event and alarm are fully implemented
+        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(10)]
         public async void Test_VerifyDataAvailableAtIoTHub_Expect_FieldsToMatchSimpleFilter() {
 
             // Arrange
@@ -44,7 +45,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ValidateBaseEventTypeFields(ev.messages);
         }
 
-        [Fact, PriorityOrder(11)]
+        // ToDo: remove ´skip test´ when event and alarm are fully implemented
+        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(11)]
         public async void Test_VerifyDataAvailableAtIoTHub_Expect_FieldsToMatchEventFilter() {
 
             // Arrange
@@ -68,7 +70,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ValidateBaseEventTypeFields(ev.messages);
         }
 
-        [Fact, PriorityOrder(12)]
+        // ToDo: remove ´skip test´ when event and alarm are fully implemented
+        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(12)]
         public async void Test_VerifyDataAvailableAtIoTHub_Expect_FieldsToSimpleEvents() {
 
             // Arrange
