@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Flag to use reversible encoding for messages
         /// </summary>
-        [DataMember(Name = "reversibleEncoding", Order = 5,
+        [DataMember(Name = "useReversibleEncoding", Order = 5,
             EmitDefaultValue = false)]
         public bool? UseReversibleEncoding { get; set; }
 
