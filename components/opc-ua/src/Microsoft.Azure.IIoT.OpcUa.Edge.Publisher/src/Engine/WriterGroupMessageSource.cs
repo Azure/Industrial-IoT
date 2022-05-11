@@ -543,7 +543,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         ApplicationUri = notification.ApplicationUri,
                         EndpointUrl = notification.EndpointUrl,
                         TimeStamp = notification.Timestamp,
-                        CompressedPayload = notification.CompressedPayload,
                         PublisherId = _outer._publisherId,
                         Writer = _dataSetWriter,
                         WriterGroup = _outer._writerGroup

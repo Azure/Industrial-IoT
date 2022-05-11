@@ -39,7 +39,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
-            TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView(false));
+                TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView()
+            );
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
             // take any message
             var ev = await messages
@@ -47,31 +48,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Assert
             ValidatePendingAlarmsView(ev, false);
-        }
-
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(11)]
-        public async void Test_VerifyDataAvailableAtIoTHub_Expect_PendingAlarmsView_WithCompression() {
-
-            // Arrange
-            await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
-                {"/bin/sh", "-c", "./opcplc --autoaccept --alm --pn=50000"},
-                _timeoutToken);
-
-            var messages = _consumer.ReadPendingAlarmMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken);
-
-            // Act
-            var pnJson = _context.PublishedNodesJson(
-                50000,
-                _writerId,
-            TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView(true));
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
-            // take any message
-            var ev = await messages
-                .FirstAsync(_timeoutToken);
-
-            // Assert
-            ValidatePendingAlarmsView(ev, true);
         }
 
         private static void ValidatePendingAlarmsView(PendingAlarmEventData<ConditionTypePayload> eventData, bool expectCompressedPayload) {

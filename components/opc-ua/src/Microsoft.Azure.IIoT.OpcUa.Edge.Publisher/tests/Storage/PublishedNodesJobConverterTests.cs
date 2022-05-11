@@ -2406,8 +2406,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                 ""PendingAlarms"": {
                     ""IsEnabled"": true,
                     ""UpdateInterval"": 10000,
-                    ""SnapshotInterval"": 20000,
-                    ""CompressedPayload"": false
+                    ""SnapshotInterval"": 20000
                 }
             }
         ]
@@ -2445,7 +2444,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.True(eventModel.PendingAlarms.IsEnabled);
             Assert.Equal(10000, eventModel.PendingAlarms.UpdateInterval);
             Assert.Equal(20000, eventModel.PendingAlarms.SnapshotInterval);
-            Assert.False(eventModel.PendingAlarms.CompressedPayload);
         }
 
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();

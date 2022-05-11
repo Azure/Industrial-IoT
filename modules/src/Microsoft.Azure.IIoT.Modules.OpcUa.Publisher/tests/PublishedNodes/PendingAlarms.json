@@ -10,8 +10,7 @@
         "PendingAlarms": {
           "IsEnabled": true,
           "UpdateInterval": 10,
-          "SnapshotInterval": 20,
-          "CompressedPayload": false
+          "SnapshotInterval": 20
         }
       }
     ]

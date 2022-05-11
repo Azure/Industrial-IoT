@@ -47,10 +47,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Publishing time
         /// </summary>
         public DateTime Timestamp { get; internal set; }
-
-        /// <summary>
-        /// Shold we compress messages using GZip?
-        /// </summary>
-        public bool CompressedPayload { get; internal set; }
     }
 }
