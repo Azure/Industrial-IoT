@@ -213,6 +213,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         b => this[StandaloneCliConfigKeys.RuntimeStateReporting] = (b != null).ToString()},
                     { $"{StandaloneCliConfigKeys.EnableRoutingInfo}", "Enable adding routing info to telemetry.",
                         b => this[StandaloneCliConfigKeys.EnableRoutingInfo] = (b != null).ToString() },
+                    { $"{StandaloneCliConfigKeys.UseReversibleEncoding}=", "Use reversible encoding in JSON encoders. Default is false.",
+                        (bool b) => this[StandaloneCliConfigKeys.UseReversibleEncoding] = b.ToString() },
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
@@ -427,6 +429,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.LegacyCompatibility = GetValueOrDefault(StandaloneCliConfigKeys.LegacyCompatibility, model.LegacyCompatibility);
             model.EnableRuntimeStateReporting = GetValueOrDefault(StandaloneCliConfigKeys.RuntimeStateReporting, model.EnableRuntimeStateReporting);
             model.EnableRoutingInfo = GetValueOrDefault(StandaloneCliConfigKeys.EnableRoutingInfo, model.EnableRoutingInfo);
+            model.UseReversibleEncoding = GetValueOrDefault(StandaloneCliConfigKeys.UseReversibleEncoding, model.UseReversibleEncoding);
             return model;
         }
 

@@ -3,6 +3,7 @@
 This section describes what the output looks like when listening for events in the OPC Publisher. Events are produced in the PubSub format specified in the OPC UA Standard. The payload is an event which consists of fields selected in the select clause and its values.
 
 Here is an example of the output we get when listening to events from the Simple Events sample:
+
 ```json
 {
   "body": [
@@ -45,9 +46,11 @@ Here is an example of the output we get when listening to events from the Simple
   }
 }
 ```
+
 A few things to note here. Here the event in the payload is named "SimpleEvents" which has been configured to by setting the DisplayName property of the events configuration. Also note that all fields+values reside under the Value key.
 
-The format produced here does not contain enough information to decode the JSON properly. If you need this there is a command-line switch in the OPC Publisher called "reversibleencoding", or "re" which can be set to either true or false. The default value is false. If you enable this setting the output will look like this:
+The format produced here does not contain enough information to decode the JSON properly. If you need this there is a command-line option in the OPC Publisher called "UseReversibleEncoding", which can be set to either true or false. The default value is false. If you enable this setting the output will look like this:
+
 ```json
 {
   "body": [
@@ -124,6 +127,7 @@ The format produced here does not contain enough information to decode the JSON 
   }
 }
 ```
+
 This JSON contains enough metadata information to decode it properly.
 
 The output is contained within an *EncodeableDictionary* object, as indicated by the the type identifier: *http://microsoft.com/Industrial-IoT/OpcPublisher#i=1*. At this point, the best way to consume the type is by getting a copy of the [*EncodeableDictionary*](../components/opc-ua/src/Microsoft.Azure.IIoT.OpcUa.Protocol/src/Stack/Encoders/Models/EncodeableDictionary.cs) class and registering it in the *ServiceMessageContext*. Then, the *JsonDecoderEx* can properly decode the EncodeableDictionary:
@@ -141,6 +145,7 @@ using (var stream = new MemoryStream(buffer)) {
 ```
 
 The OPC Publisher also support the Pending Alarms view when listening for events, as described in the user guide for configuration of events. When this feature is enabled, it will listen to all ConditionType derived events and cache all of them that has the Retain property set to true. It will then periodically generate output with an array of all these cached events. When running against the Alarms & Conditions sample the output will look like this:
+
 ```json
 {
   "body": [
@@ -199,4 +204,5 @@ The OPC Publisher also support the Pending Alarms view when listening for events
   }
 }
 ```
+
 The key thing to highlight here is that the payload is an array of events, which has the Retain property set to true. Otherwise it's very similar to the regular events output.
