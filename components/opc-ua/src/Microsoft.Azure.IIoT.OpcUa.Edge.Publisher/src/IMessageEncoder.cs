@@ -43,19 +43,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// </summary>
         /// <param name="message">Messages to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
-        /// <param name="useReversibleEncoding">Flag for reversible encoding</param>
-        /// <returns></returns>
         Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            IEnumerable<DataSetMessageModel> message, int maxMessageSize, bool useReversibleEncoding);
+            IEnumerable<DataSetMessageModel> message, int maxMessageSize);
 
         /// <summary>
         /// Encodes the list of messages into batched NetworkMessageModel list
         /// </summary>
         /// <param name="messages">Messages to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
-        /// <param name="useReversibleEncoding">Flag for reversible encoding</param>
-        /// <returns></returns>
         Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync
-            (IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding);
+            (IEnumerable<DataSetMessageModel> messages, int maxMessageSize);
     }
 }

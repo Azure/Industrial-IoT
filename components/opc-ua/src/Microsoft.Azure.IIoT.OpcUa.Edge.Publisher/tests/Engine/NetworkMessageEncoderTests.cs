@@ -39,8 +39,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var messages = new List<DataSetMessageModel>();
 
             var networkMessages = await (encodeBatchFlag
-                ?_encoder.EncodeBatchAsync(messages, maxMessageSize, false)
-                : _encoder.EncodeAsync(messages, maxMessageSize, false)
+                ?_encoder.EncodeBatchAsync(messages, maxMessageSize)
+                : _encoder.EncodeAsync(messages, maxMessageSize)
             );
 
             Assert.Empty(networkMessages);
@@ -57,8 +57,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var messages = new[] { new DataSetMessageModel() };
 
             var networkMessages = await (encodeBatchFlag
-                ? _encoder.EncodeBatchAsync(messages, maxMessageSize, false)
-                : _encoder.EncodeAsync(messages, maxMessageSize, false)
+                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
+                : _encoder.EncodeAsync(messages, maxMessageSize)
             );
 
             Assert.Empty(networkMessages);
@@ -77,8 +77,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var messages = GenerateSampleMessages(3, encoding);
 
             var networkMessages = await (encodeBatchFlag
-                ? _encoder.EncodeBatchAsync(messages, maxMessageSize, false)
-                : _encoder.EncodeAsync(messages, maxMessageSize, false)
+                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
+                : _encoder.EncodeAsync(messages, maxMessageSize)
             );
 
             Assert.Empty(networkMessages);
@@ -97,8 +97,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var messages = GenerateSampleMessages(20, encoding);
 
             var networkMessages = await (encodeBatchFlag
-                ? _encoder.EncodeBatchAsync(messages, maxMessageSize, false)
-                : _encoder.EncodeAsync(messages, maxMessageSize, false)
+                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
+                : _encoder.EncodeAsync(messages, maxMessageSize)
             );
 
             if (encodeBatchFlag) {
