@@ -68,12 +68,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         public bool Dirty { get; set; } = false;
 
         /// <summary>
-        /// Should we compress using GZip when sending pending alarm messages for this item?
-        /// </summary>
-        [DataMember(EmitDefaultValue = true)]
-        public bool CompressedPayload { get; set; } = false;
-
-        /// <summary>
         /// Clone
         /// </summary>
         /// <returns></returns>
@@ -85,7 +79,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
                 ConditionIdIndex = ConditionIdIndex,
                 RetainIndex = RetainIndex,
                 Dirty = Dirty,
-                CompressedPayload = CompressedPayload
             };
         }
 
@@ -101,8 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
                    SnapshotInterval == model.SnapshotInterval &&
                    ConditionIdIndex == model.ConditionIdIndex &&
                    RetainIndex == model.RetainIndex &&
-                   Dirty == model.Dirty &&
-                   CompressedPayload == model.CompressedPayload;
+                   Dirty == model.Dirty;
         }
 
         /// <summary>
@@ -110,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// </summary>
         /// <returns>Return the hash code for this object</returns>
         public override int GetHashCode() {
-            return HashCode.Combine(IsEnabled, UpdateInterval, SnapshotInterval, ConditionIdIndex, RetainIndex, Dirty, CompressedPayload);
+            return HashCode.Combine(IsEnabled, UpdateInterval, SnapshotInterval, ConditionIdIndex, RetainIndex, Dirty);
         }
 
         /// <summary>

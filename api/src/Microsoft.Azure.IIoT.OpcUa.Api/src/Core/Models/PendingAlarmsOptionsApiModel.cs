@@ -31,11 +31,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         [DataMember(Name = "snapshotInterval", Order = 2,
             EmitDefaultValue = false)]
         public int? SnapshotInterval { get; set; }
-
-        /// <summary>
-        /// Should we compress messages using GZip?
-        /// </summary>
-        [DataMember(Name = "compressedPayload", Order = 3)]
-        public bool CompressedPayload { get; set; } = false;
     }
 }
