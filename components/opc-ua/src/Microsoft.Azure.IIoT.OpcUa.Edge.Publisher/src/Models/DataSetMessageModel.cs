@@ -41,6 +41,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public DateTime? TimeStamp { get; set; }
 
         /// <summary>
+        /// Should we compress messages using GZip?
+        /// </summary>
+        public bool CompressedPayload { get; set; }
+
+        /// <summary>
         /// Service message context
         /// </summary>
         public IServiceMessageContext ServiceMessageContext { get; set; }

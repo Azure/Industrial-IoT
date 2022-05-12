@@ -548,7 +548,7 @@ namespace IIoTPlatform_E2E_Tests {
                         new JProperty("TypeDefinitionId", typeDefinitionId)));
             }
 
-            public static JArray PendingAlarmsForAlarmsView() {
+            public static JArray PendingAlarmsForAlarmsView(bool compressedPayload) {
                 return new JArray(
                     new JObject(
                         new JProperty("Id", "i=2253"),
@@ -556,7 +556,8 @@ namespace IIoTPlatform_E2E_Tests {
                         new JProperty("PendingAlarms", new JObject(
                             new JProperty("IsEnabled", "true"),
                             new JProperty("UpdateInterval", 10),
-                            new JProperty("SnapshotInterval", 20)
+                            new JProperty("SnapshotInterval", 20),
+                            new JProperty("CompressedPayload", compressedPayload)
                         ))));
             }
         }
