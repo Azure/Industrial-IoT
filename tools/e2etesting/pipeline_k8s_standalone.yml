@@ -29,9 +29,26 @@ stages:
 
 # run tests
 
+- stage: testAKS
+  displayName: Test 
+  dependsOn: deployAKS
+  condition: not(canceled())
+  jobs:
+  - job: test
+    displayName: Test
+    steps:
+    - template: steps/testaks.yml
+      parameters:
+        Verifier_Endpoint: $VerifierIp
+        Broker_Endpoint: mosquitto
+        Broker_Port: 1883
+        Topic_Key: "/#"
+        Time_To_Observe: "5000" 
+
+
 - stage: cleanup
   displayName: Cleanup resources
-  dependsOn: deployAKS
+  dependsOn: testAKS
   condition: and(not(canceled()), eq(variables['Cleanup'], true))
   jobs:
   - job: cleanup

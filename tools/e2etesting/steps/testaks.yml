@@ -1,0 +1,27 @@
+parameters:
+- name: Verifier_Endpoint 
+  type: string
+- name: Broker_Endpoint
+  type: string
+- name: Broker_Port 
+  type: string
+- name: Topic_Key 
+  type: string
+- name: Time_To_Observe 
+  type: string
+
+steps:
+  # - task: PowerShell@2
+  #   inputs:
+  #     targetType: 'inline'
+  #     script: 'Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: './tools/e2etesting/MqttTestValidator/MqttValidation/MqttValidation.csproj'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'test'
+      projects: './tools/e2etesting/MqttTestValidator/MqttValidation/MqttValidation.csproj'
+      publishTestResults: false
+      testRunTitle: 'Sanity Test'

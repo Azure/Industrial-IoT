@@ -10,7 +10,7 @@ namespace MqttTestValidator.Controllers {
 
     [ApiController]
     [Route("/Mqtt")]
-    public class MqttVerificationController : ControllerBase {      
+    public class MqttVerificationController : ControllerBase {
         private readonly ILogger<MqttVerificationController> _logger;
         private readonly ITaskRepository _repostiory;
         private readonly IVerificationTaskFactory _factory;
@@ -22,6 +22,7 @@ namespace MqttTestValidator.Controllers {
         }
 
         [HttpPost("/StartVerification")]
+        [Produces(typeof(MqttVerificationResponse))]
         public async Task<IActionResult> Verify([FromBody] MqttVerificationRequest request) {
             if (request == null) {
                 _logger.LogDebug("Request object is null");
@@ -47,9 +48,9 @@ namespace MqttTestValidator.Controllers {
         }
 
         [HttpGet("/GetVerificationResult/{id}")]
-        public async Task<IActionResult> GetResult([FromRoute] ulong id)
-        {
-            if(!_repostiory.Contains(id)) {
+        [Produces(typeof(MqttVerificationDetailedResponse))]
+        public async Task<IActionResult> GetResult([FromRoute] ulong id) {
+            if (!_repostiory.Contains(id)) {
                 _logger.LogDebug("Verification task id unkown");
                 return BadRequest();
             }

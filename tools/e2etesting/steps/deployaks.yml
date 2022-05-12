@@ -46,3 +46,15 @@ steps:
       -ContainerRegistryPassword '$(ContainerRegistryPassword)'
       -PublisherDeploymentFile '$(System.DefaultWorkingDirectory)/tools/e2etesting/K8s-Standalone/publisher/deployment.yaml'
       -PublisherImagePath '$(PublisherImagePath)'
+
+- task: AzureCLI@2
+  displayName: 'Resolve Verifier Public IP'
+  name: resolveverifierip
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'pscore'
+    inlineScript: |
+      $verifierIp = kubectl get services/verifier -n e2etesting -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+      Write-Host "##vso[task.setvariable variable=VerifierIp;]$verifierIp"
