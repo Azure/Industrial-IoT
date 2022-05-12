@@ -189,7 +189,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Body = body,
                         ContentEncoding = compressedPayload ? "gzip" : "utf-8",
                         Timestamp = DateTime.UtcNow,
-                        ContentType = compressedPayload ? ContentMimeType.Binary : ContentMimeType.UaJson,
+                        ContentType = compressedPayload ? ContentMimeType.Binary : ContentMimeType.Json,
                         MessageSchema = MessageSchemaTypes.NetworkMessageJson,
                         RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
