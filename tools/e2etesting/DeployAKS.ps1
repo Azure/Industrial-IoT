@@ -93,6 +93,7 @@ if (!$aksCluster) {
     Write-Error "Failed to create AKS cluster."
 }else{
     Write-Host "Cluster $aksName created"
+    $aksCluster | Format-Table | Out-String | % {Write-Host $_}
 }
 
 ## Install kubectl
