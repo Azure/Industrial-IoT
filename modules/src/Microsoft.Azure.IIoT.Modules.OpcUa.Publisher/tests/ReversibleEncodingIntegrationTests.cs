@@ -23,18 +23,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         private const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
         private const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
 
-        [Theory]
+        // ToDo: Parts of job converter for OpcEvents are commented out for now.
+        [Theory(Skip = "PublishedNodesJobConverter does not parse OpcEvents now.")]
         [InlineData(@"./PublishedNodes/SimpleEvents.json")]
         public async Task CanEncodeWithoutReversibleEncodingTest(string publishedNodesFile) {
             // Arrange
             // Act
-            var result = await ProcessMessagesAsync(publishedNodesFile, arguments: new[] { "--mm=PubSub", "--re=False" });
+            var result = await ProcessMessagesAsync(publishedNodesFile, arguments: new[] { "--mm=PubSub", "--UseReversibleEncoding=False" });
+
+            Assert.Single(result);
+
             var messages = result
                 .SelectMany(x => x.RootElement.EnumerateArray())
                 .SelectMany(x => x.GetProperty("Messages").EnumerateArray())
                 .ToArray();
 
             // Assert
+            Assert.NotEmpty(messages);
             Assert.All(messages, m => {
                 var value = m.GetProperty("Payload").GetProperty("SimpleEvents");
                 var eventId = value.GetProperty(kEventId);
@@ -50,18 +55,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             });
         }
 
-        [Theory]
+        // ToDo: Parts of job converter for OpcEvents are commented out for now.
+        [Theory(Skip = "PublishedNodesJobConverter does not parse OpcEvents now.")]
         [InlineData(@"./PublishedNodes/SimpleEvents.json")]
         public async Task CanEncodeWithReversibleEncodingTest(string publishedNodesFile) {
             // Arrange
             // Act
-            var result = await ProcessMessagesAsync(publishedNodesFile, arguments: new[] { "--mm=PubSub", "--re=True" });
+            var result = await ProcessMessagesAsync(publishedNodesFile, arguments: new[] { "--mm=PubSub", "--UseReversibleEncoding=True" });
+
+            Assert.Single(result);
+
             var messages = result
                 .SelectMany(x => x.RootElement.EnumerateArray())
                 .SelectMany(x => x.GetProperty("Messages").EnumerateArray())
                 .ToArray();
 
             // Assert
+            Assert.NotEmpty(messages);
             Assert.All(messages, m => {
                 var value = m.GetProperty("Payload").GetProperty("SimpleEvents");
                 var type = value.GetProperty("Type").GetString();
@@ -97,18 +107,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             });
         }
 
-        [Theory]
+        // ToDo: Parts of job converter for OpcEvents are commented out for now.
+        [Theory(Skip = "PublishedNodesJobConverter does not parse OpcEvents now.")]
         [InlineData(@"./PublishedNodes/SimpleEvents.json")]
         public async Task CanDecodeWithReversibleEncodingTest(string publishedNodesFile) {
             // Arrange
             // Act
-            var result = await ProcessMessagesAsync(publishedNodesFile, arguments: new[] { "--mm=PubSub", "--re=True" });
+            var result = await ProcessMessagesAsync(publishedNodesFile, arguments: new[] { "--mm=PubSub", "--UseReversibleEncoding=True" });
+
+            Assert.Single(result);
+
             var messages = result
                 .SelectMany(x => x.RootElement.EnumerateArray())
                 .SelectMany(x => x.GetProperty("Messages").EnumerateArray())
                 .ToArray();
 
             // Assert
+            Assert.NotEmpty(messages);
             Assert.All(messages, m => {
                 var json = m.GetProperty("Payload")
                     .GetProperty("SimpleEvents")
