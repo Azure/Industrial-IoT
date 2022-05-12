@@ -53,7 +53,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
         public PublisherIntegrationTestBase() {
             // This is a fake but correctly formatted connection string.
-            var connectionString = $"HostName=dummy.azure-devices.net; DeviceId={Utils.GetHostName()};SharedAccessKeyName=iothubowner;SharedAccessKey=aXRpc25vdGFuYWNjZXNza2V5";
+            var connectionString = $"HostName=dummy.azure-devices.net;" +
+                $"DeviceId={Utils.GetHostName()};" +
+                $"SharedAccessKeyName=iothubowner;" +
+                $"SharedAccessKey=aXRpc25vdGFuYWNjZXNza2V5";
             var config = connectionString.ToIoTHubConfig();
 
             _typedConnectionString = ConnectionString.Parse(config.IoTHubConnString);
@@ -62,10 +65,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
         protected Task<List<JsonDocument>> ProcessMessagesAsync(string publishedNodesFile, string[] arguments = default) {
             // Collect messages from server with default settings
-            return ProcessMessagesAsync(publishedNodesFile, new TimeSpan(0, 0, 0, 0, 500), new TimeSpan(0, 0, 2, 0, 0), 1, arguments);
+            return ProcessMessagesAsync(
+                publishedNodesFile,
+                new TimeSpan(0, 0, 0, 0, 500),
+                new TimeSpan(0, 0, 2, 0, 0),
+                1,
+                arguments
+            );
         }
 
-        protected async Task<List<JsonDocument>> ProcessMessagesAsync(string publishedNodesFile, TimeSpan messageCheckingDelay, TimeSpan messageCollectionTimeout, int messageCount, string[] arguments = default) {
+        protected async Task<List<JsonDocument>> ProcessMessagesAsync(
+            string publishedNodesFile,
+            TimeSpan messageCheckingDelay,
+            TimeSpan messageCollectionTimeout,
+            int messageCount,
+            string[] arguments = default) {
 
             // publishedNodesFile points to the local server on the same machine and port currently as tests are run one at a time (not parallel) it does not need randomly generated port numbers.
             _ = Task.Run(() => HostPublisherAsync(Mock.Of<ILogger>(), publishedNodesFile, arguments = arguments ?? Array.Empty<string>()));

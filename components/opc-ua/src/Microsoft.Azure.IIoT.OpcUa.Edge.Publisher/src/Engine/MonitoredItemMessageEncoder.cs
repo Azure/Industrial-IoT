@@ -79,6 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger = logger;
             _jsonContentType = ContentMimeType.Json;
             _enableRoutingInfo = engineConfig.EnableRoutingInfo.GetValueOrDefault(false);
+            _useReversibleEncoding = engineConfig.UseReversibleEncoding.GetValueOrDefault(false);
         }
 
         /// <inheritdoc/>
