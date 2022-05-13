@@ -54,7 +54,8 @@ $resourceGroup = Get-AzResourceGroup -Name $resourceGroupName -ErrorAction Silen
 if (!$resourceGroup) {
     Write-Host "Creating Resource Group $($ResourceGroupName) in $($Region)..."
     $resourceGroup = New-AzResourceGroup -Name $ResourceGroupName -Location $Region
-}else{
+}
+else {
     Write-Host "Using resource Group: $($resourceGroup.ResourceGroupName)"
 }
 
@@ -71,29 +72,32 @@ if (!$testSuffix) {
     $testSuffix = Get-Random -Minimum 10000 -Maximum 99999
 
     $tags = $resourceGroup.Tags
-    $tags+= @{"TestingResourcesSuffix" = $testSuffix}
+    $tags += @{"TestingResourcesSuffix" = $testSuffix }
     Set-AzResourceGroup -Name $resourceGroup.ResourceGroupName -Tag $tags | Out-Null
     $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
-}
 
-$aksName = "aksCluster_$($testSuffix)"
 
-# Create ssh keys
-Write-Host "Creating ssh key"
-ssh-keygen -m PEM -t rsa -b 4096 -f ssh -q -N '""'
+    $aksName = "aksCluster_$($testSuffix)"
 
-Get-Content ssh.pub
+    # Create ssh keys
+    Write-Host "Creating ssh key"
+    ssh-keygen -m PEM -t rsa -b 4096 -f ssh -q -N '""'
 
-## Create AKS Cluster
-Write-Host "Creating cluster $aksName"
+    Get-Content ssh.pub
 
-$aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -SshKeyPath ssh.pub -Force 
+    ## Create AKS Cluster
+    Write-Host "Creating cluster $aksName"
 
-if (!$aksCluster) {
-    Write-Error "Failed to create AKS cluster."
-}else{
-    Write-Host "Cluster $aksName created"
-    $aksCluster | Format-Table | Out-String | % {Write-Host $_}
+    $aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -SshKeyPath ssh.pub -Force 
+
+    if (!$aksCluster) {
+        Write-Error "Failed to create AKS cluster."
+    }
+    else {
+        Write-Host "Cluster $aksName created"
+        $aksCluster | Format-Table | Out-String | % { Write-Host $_ }
+    }
+
 }
 
 ## Install kubectl
@@ -122,7 +126,8 @@ if (![string]::IsNullOrEmpty($ContainerRegistryUsername) && $ContainerRegistryPa
     # $temp = ConvertFrom-SecureString -SecureString $ContainerRegistryPassword -AsPlainText
     kubectl create secret docker-registry dev-registry-pull-secret --docker-server=$ContainerRegistryServer --docker-username=$ContainerRegistryUsername --namespace=e2etesting --docker-password=$ContainerRegistryPassword
     $temp = $null
-} else {
+}
+else {
     $withImagePullSecret = $false
 }
 
@@ -134,7 +139,8 @@ $fileContent = $fileContent -replace "{{PublisherImageTag}}", $PublisherImageTag
 $fileContent = $fileContent -replace "{{DeviceId}}", $deviceId
 if ($withImagePullSecret) {
     $fileContent = $fileContent -replace "{{ImagePullSecret}}", ""
-} else {
+}
+else {
     $fileContent = $fileContent -replace "{{ImagePullSecret}}", "#"
 }
 $fileContent | Out-File $PublisherDeploymentFile -Force -Encoding utf8
@@ -144,7 +150,8 @@ kubectl apply -f ./tools/e2etesting/K8s-Standalone/publisher
 $fileContent = Get-Content './tools/e2etesting/K8s-Standalone/verifier/deployment.yaml' -Raw
 if ($withImagePullSecret) {
     $fileContent = $fileContent -replace "{{ImagePullSecret}}", ""
-} else {
+}
+else {
     $fileContent = $fileContent -replace "{{ImagePullSecret}}", "#"
 }
 $fileContent | Out-File './tools/e2etesting/K8s-Standalone/verifier/deployment.yaml' -Force -Encoding utf8
