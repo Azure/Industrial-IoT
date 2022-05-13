@@ -11,10 +11,10 @@ parameters:
   type: string
 
 steps:
-  # - task: PowerShell@2
-  #   inputs:
-  #     targetType: 'inline'
-  #     script: 'Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"'
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: 'Write-Host "$Verifier_Endpoint"'
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
