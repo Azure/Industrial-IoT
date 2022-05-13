@@ -98,6 +98,8 @@ if (!$testSuffix) {
         $aksCluster | Format-Table | Out-String | % { Write-Host $_ }
     }
 
+}else{
+    $aksName = "aksCluster_$($testSuffix)"
 }
 
 ## Install kubectl
