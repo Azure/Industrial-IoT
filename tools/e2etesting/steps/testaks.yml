@@ -23,7 +23,7 @@ steps:
         Write-Host "##vso[task.setvariable variable=Broker_Endpoint]${{parameters.Broker_Endpoint}}"
         Write-Host "##vso[task.setvariable variable=Broker_Port]${{parameters.Broker_Port}}"
         Write-Host "##vso[task.setvariable variable=Topic]${{parameters.Topic}}"
-        Write-Host "##vso[task.setvariable variable=- name: Time_To_Observe]${{parameters.- name: Time_To_Observe}}"
+        Write-Host "##vso[task.setvariable variable=Time_To_Observe]${{parameters.Time_To_Observe}}"
 
   - task: DotNetCoreCLI@2
     inputs:
