@@ -47,10 +47,6 @@ steps:
       -PublisherDeploymentFile '$(System.DefaultWorkingDirectory)/tools/e2etesting/K8s-Standalone/publisher/deployment.yaml'
       -PublisherImagePath '$(PublisherImagePath)'
 
-- task: Delay@1
-  inputs:
-    delayForMinutes: '2' 
-
 - task: AzureCLI@2
   displayName: 'Resolve Verifier Public IP'
   name: resolveverifierip
