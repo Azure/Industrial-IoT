@@ -63,9 +63,4 @@ steps:
         $verifierIp = kubectl get services/verifier -n e2etesting -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
       }
       Write-Host "resolved public verifier IP: $verifierIp"
-      Write-Host "##vso[task.setvariable variable=VerifierIp;]$verifierIp"
-- task: PowerShell@2
-  inputs:
-    targetType: 'inline'
-    script: 'Get-ChildItem -Path Env:'
-
+      Write-Host "##vso[task.setvariable variable=VerifierIp;isOutput=true]$verifierIp"

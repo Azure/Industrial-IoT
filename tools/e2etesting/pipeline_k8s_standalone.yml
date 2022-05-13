@@ -12,7 +12,7 @@ variables:
   value: mqtt-publisher
 - name: ContainerRegistryServer
   value: edgeappmodel.azurecr.io
-     
+    
 
 stages:
 # build test resource
@@ -23,7 +23,7 @@ stages:
   jobs:
   - job: deployaks
     displayName: 'Deploy aks cluster'
-    timeoutInMinutes: 180
+    timeoutInMinutes: 30
     steps: 
     - template: steps/deployaks.yml
 
@@ -39,7 +39,7 @@ stages:
     steps:
     - template: steps/testaks.yml
       parameters:
-        Verifier_Endpoint: $($env:VerifierIp)
+        Verifier_Endpoint: $[ dependencies.deployAKS.outputs['resolveverifierip.VerifierIp'] ]
         Broker_Endpoint: mosquitto
         Broker_Port: 1883
         Topic: "devices/#"
