@@ -61,5 +61,10 @@ steps:
     scriptType: 'pscore'
     inlineScript: |
       $verifierIp = kubectl get services/verifier -n e2etesting -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+      while(!$verifierIp){
+        Write-Host "verifierIp not found. sleeping"
+        Start-Sleep -Seconds 30
+        $verifierIp = kubectl get services/verifier -n e2etesting -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+      }
       Write-Host "resolved public verifier IP: $verifierIp"
-      Write-Host "##vso[task.setvariable variable=VerifierIp;]$verifierIp"
+      Write-Host "##vso[task.setvariable variable=VerifierIp;]'$($verifierIp)'"
