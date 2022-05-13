@@ -14,7 +14,7 @@ steps:
   - task: PowerShell@2
     inputs:
       targetType: 'inline'
-      script: 'Write-Host "Testing mqtt publishing using: $Verifier_Endpoint, $Broker_Endpoint:$Broker_Port"'
+      script: 'Write-Host "Testing mqtt publishing using: $(Verifier_Endpoint), $(Broker_Endpoint) : $(Broker_Port)"'
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
@@ -22,6 +22,7 @@ steps:
   - task: DotNetCoreCLI@2
     inputs:
       command: 'test'
+      # env
       projects: './tools/e2etesting/MqttTestValidator/MqttValidation/MqttValidation.csproj'
       publishTestResults: false
       testRunTitle: 'Sanity Test'
