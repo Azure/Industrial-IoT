@@ -519,10 +519,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
                 // Get callback and user context.
                 var callback = _defaultMethodCallback;
-                var userContext = _defaultMethodCallbackUserContext;
                 if (_methodCallbacks.ContainsKey(methodName)) {
                     callback = _methodCallbacks[methodName].methodCallback;
-                    userContext = _methodCallbacks[methodName].userContext;
                 }
 
                 if (callback == null) {
