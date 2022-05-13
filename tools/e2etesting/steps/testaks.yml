@@ -5,7 +5,7 @@ parameters:
   type: string
 - name: Broker_Port 
   type: string
-- name: Topic_Key 
+- name: Topic 
   type: string
 - name: Time_To_Observe 
   type: string
