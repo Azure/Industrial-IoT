@@ -1,0 +1,11 @@
+﻿<RunSettings>
+	<RunConfiguration>
+		<EnvironmentVariables>
+			<Verifier_Endpoint>https://localhost:7199</Verifier_Endpoint>
+			<Broker_Endpoint>20.123.119.24</Broker_Endpoint>
+			<Broker_Port>1883</Broker_Port>
+			<Topic>devices/#</Topic>
+			<Time_To_Observe>10000</Time_To_Observe>
+		</EnvironmentVariables>
+	</RunConfiguration>
+</RunSettings>

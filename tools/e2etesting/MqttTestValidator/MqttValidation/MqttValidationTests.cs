@@ -1,15 +1,16 @@
+using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace MqttValidation {
-    public class Tests {
+    public class MqttValidationTests {
 
         private const string EndpointKey = "Verifier_Endpoint";
         private const string BrokerEndpointKey = "Broker_Endpoint";
         private const string BrokerPortKey = "Broker_Port";
-        private const string TopicKey = "Topic_Key";
+        private const string TopicKey = "Topic";
         private const string TimeToObserveKey = "Time_To_Observe";
 
         private swaggerClient? _swaggerClient;
@@ -21,13 +22,14 @@ namespace MqttValidation {
                 Assert.Ignore($"Environment variable '{EndpointKey}' not specified!");
 
             }
+
             HttpClient httpClient = new HttpClient();
-            _swaggerClient = new swaggerClient(TestContext.Parameters[EndpointKey], httpClient);
+            _swaggerClient = new swaggerClient(endpoint, httpClient);
 
         }
 
         [Test]
-        public async Task Test1() {
+        public async Task SimpleVerification() {
             ArgumentNullException.ThrowIfNull(_swaggerClient);
 
             void SetFromEnv(Action<string> setter, string key) {
@@ -59,6 +61,9 @@ namespace MqttValidation {
                     await Task.Delay(1000);
                 }
             } while (true);
+
+            result.Error.Should().BeNullOrEmpty();
+            result.NumberOfMessages.Should().BeGreaterThan(8);
 
 
 
