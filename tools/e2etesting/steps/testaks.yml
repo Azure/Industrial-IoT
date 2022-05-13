@@ -14,7 +14,17 @@ steps:
   - task: PowerShell@2
     inputs:
       targetType: 'inline'
-      script: 'Write-Host "Testing mqtt publishing using: $($Verifier_Endpoint), $($Broker_Endpoint) : $($Broker_Port)"'
+      script: 'Write-Host "Testing mqtt publishing using: ${{parameters.Verifier_Endpoint}}, ${{parameters.Broker_Endpoint}} : ${{parameters.Broker_Port}}"'
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "##vso[task.setvariable variable=Verifier_Endpoint]${{parameters.Verifier_Endpoint}}"
+        Write-Host "##vso[task.setvariable variable=Broker_Endpoint]${{parameters.Broker_Endpoint}}"
+        Write-Host "##vso[task.setvariable variable=Broker_Port]${{parameters.Broker_Port}}"
+        Write-Host "##vso[task.setvariable variable=Topic]${{parameters.Topic}}"
+        Write-Host "##vso[task.setvariable variable=- name: Time_To_Observe]${{parameters.- name: Time_To_Observe}}"
+
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
