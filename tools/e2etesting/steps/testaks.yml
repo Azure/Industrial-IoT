@@ -14,7 +14,7 @@ steps:
   - task: PowerShell@2
     inputs:
       targetType: 'inline'
-      script: 'Write-Host "Testing mqtt publishing using: ${{parameters.Verifier_Endpoint}}, ${{parameters.Broker_Endpoint}} : ${{parameters.Broker_Port}}"'
+      script: 'Write-Host "Testing mqtt publishing using: ${{parameters.Verifier_Endpoint}}, ${{parameters.Broker_Endpoint}} : ${{parameters.Broker_Port}} on topic ${{parameters.Topic}} with timeout ${{parameters.Time_To_Observe}}"'
   - task: PowerShell@2
     inputs:
       targetType: 'inline'

@@ -39,7 +39,7 @@ stages:
     steps:
     - template: steps/testaks.yml
       parameters:
-        Verifier_Endpoint: $($VerifierIp)
+        Verifier_Endpoint: $($env:VerifierIp)
         Broker_Endpoint: mosquitto
         Broker_Port: 1883
         Topic: "devices/#"
