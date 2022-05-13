@@ -16,15 +16,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
     /// Wraps a configuration root
     /// </summary>
     public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig {
-
         /// <inheritdoc/>
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
         /// <inheritdoc/>
         public string MqttClientConnectionString => _module.MqttClientConnectionString;
-
         /// <inheritdoc/>
         public string TelemetryTopicTemplate => _module.TelemetryTopicTemplate;
-
         /// <inheritdoc/>
         public bool BypassCertVerification => _module.BypassCertVerification;
         /// <inheritdoc/>
