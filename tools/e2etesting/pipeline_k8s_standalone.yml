@@ -39,7 +39,7 @@ stages:
     steps:
     - template: steps/testaks.yml
       parameters:
-        Verifier_Endpoint: "http://20.54.92.222:80" #$($[ dependencies.deployAKS.outputs['resolveverifierip.VerifierIp'] ])
+        Verifier_Endpoint: "http://$($[dependencies.deployAKS.outputs['resolveverifierip.VerifierIp']]):80"
         Broker_Endpoint: mosquitto
         Broker_Port: 1883
         Topic: "devices/#"
