@@ -63,7 +63,7 @@ namespace MqttValidation {
             } while (true);
 
             result.Error.Should().BeNullOrEmpty();
-            result.NumberOfMessages.Should().BeGreaterThan(8);
+            result.NumberOfMessages.Should().BeGreaterThan(5);
 
 
 
