@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace MqttValidation {
     public class MqttValidationTests {
 
-        private const string EndpointKey = "Verifier_Endpoint";
-        private const string BrokerEndpointKey = "Broker_Endpoint";
-        private const string BrokerPortKey = "Broker_Port";
-        private const string TopicKey = "Topic";
-        private const string TimeToObserveKey = "Time_To_Observe";
+        private const string EndpointKey = "VERIFIER_ENDPOINT";
+        private const string BrokerEndpointKey = "BROKER_ENDPOINT";
+        private const string BrokerPortKey = "BROKER_PORT";
+        private const string TopicKey = "TOPIC";
+        private const string TimeToObserveKey = "TIME_TO_OBSERVE";
 
         private swaggerClient? _swaggerClient;
 
