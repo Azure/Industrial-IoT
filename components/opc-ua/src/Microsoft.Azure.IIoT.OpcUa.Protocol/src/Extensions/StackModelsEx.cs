@@ -422,7 +422,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         public static IUserIdentity ToStackModel(this CredentialModel authentication) {
             switch (authentication?.Type ?? CredentialType.None) {
                 case CredentialType.UserName:
-                    if (authentication.Value.IsObject &&
+                    if (authentication.Value != null && 
+                        authentication.Value.IsObject &&
                         authentication.Value.TryGetProperty("user", out var user) &&
                             user.IsString &&
                         authentication.Value.TryGetProperty("password", out var password) &&
