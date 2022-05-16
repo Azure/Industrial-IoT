@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             Assert.NotNull(payload);
             Assert.NotNull(result.Headers);
             Assert.True(result.Headers.Any());
-            Assert.Contains("<!DOCTYPE html>", payload);
+            Assert.Contains("Microsoft", payload);
         }
 
 
