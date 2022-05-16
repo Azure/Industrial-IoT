@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// <summary>
     /// Injectable factory that creates clients
     /// </summary>
-    public sealed partial class IoTSdkFactory : IClientFactory, IDisposable {
+    public sealed class IoTSdkFactory : IClientFactory, IDisposable {
 
         /// <inheritdoc />
         public string DeviceId { get; }
