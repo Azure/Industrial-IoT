@@ -35,7 +35,13 @@ stages:
   condition: not(canceled())
   jobs:
   - job: debug
+    variables:
+      verifierIp:  $[ stageDependencies.deployAKS.deployaks.outputs['resolveverifierip.VerifierIp'] ]
     steps:
+      - task: PowerShell@2
+        inputs:
+          targetType: 'inline'
+          script: Write-Host $(verifierIp)
       - task: PowerShell@2
         inputs:
           targetType: 'inline'
