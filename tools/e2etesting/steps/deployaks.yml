@@ -14,7 +14,7 @@ steps:
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: 'Install-Module -Name Az.ContainerRegistry -RequiredVersion 2.2.2 -Force'
+    script: 'Install-Module -Name Az.ContainerRegistry -Force'
 
 - task: AzurePowerShell@5
   displayName: "Deploy AKS"
