@@ -401,7 +401,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 IDictionary<string, string> userProperties = null,
                 CancellationToken cancellationToken = default) {
 
-                _logger.Debug("Publishing {ByteCount} bytes to {Topic}", payload.Length, topic);
+                _logger.Debug("Publishing {ByteCount} bytes to {Topic}", payload != null ? payload.Length : 0, topic);
                 // Check topic length.
                 var topicLength = Encoding.UTF8.GetByteCount(topic);
                 if (topicLength > kMaxTopicLength) {
