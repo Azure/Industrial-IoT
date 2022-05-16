@@ -209,10 +209,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { $"lc|legacycompatibility=|{StandaloneCliConfigKeys.LegacyCompatibility}=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
                         "Default is 'false'.",
                         (bool b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b.ToString() },
-                    { $"rs|runtimestatereporting|{StandaloneCliConfigKeys.RuntimeStateReporting}", "The publisher reports its restarts. By default this is disabled.",
-                        b => this[StandaloneCliConfigKeys.RuntimeStateReporting] = (b != null).ToString()},
-                    { $"{StandaloneCliConfigKeys.EnableRoutingInfo}", "Enable adding routing info to telemetry.",
-                        b => this[StandaloneCliConfigKeys.EnableRoutingInfo] = (b != null).ToString() },
+                    { $"rs|runtimestatereporting=|{StandaloneCliConfigKeys.RuntimeStateReporting}=", "The publisher reports its restarts. By default this is disabled.",
+                        (bool b) => this[StandaloneCliConfigKeys.RuntimeStateReporting] = b.ToString()},
+                    { $"ri|enableroutinginfo=|{StandaloneCliConfigKeys.EnableRoutingInfo}=", "Enable adding routing info to telemetry. By default this is disabled.",
+                        (bool b) => this[StandaloneCliConfigKeys.EnableRoutingInfo] = b.ToString() },
                     { $"{StandaloneCliConfigKeys.UseReversibleEncoding}=", "Use reversible encoding in JSON encoders. Default is false.",
                         (bool b) => this[StandaloneCliConfigKeys.UseReversibleEncoding] = b.ToString() },
 
