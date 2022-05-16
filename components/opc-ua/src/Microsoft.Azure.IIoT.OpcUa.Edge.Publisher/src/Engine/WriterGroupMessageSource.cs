@@ -54,19 +54,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 true : false;
 
         /// <inheritdoc/>
-        public OpcAuthenticationMode AuthenticationMode =>_subscriptions?.First()?.Subscription?.Connection.User != null ?
-                OpcAuthenticationMode.UsernamePassword : OpcAuthenticationMode.Anonymous;
+        public OpcAuthenticationMode AuthenticationMode =>
+            _subscriptions?.First()?.Subscription?.Connection?.User?.Value != null
+            ? OpcAuthenticationMode.UsernamePassword 
+            : OpcAuthenticationMode.Anonymous;
 
         /// <inheritdoc/>
-        public string AuthenticationUsername =>_subscriptions?.First()?.Subscription?.Connection.User != null ?
-                _serializer.Deserialize<cred>(_subscriptions?
-                    .First()?
-                    .Subscription?
-                    .Connection
-                    .User
-                    .Value
-                    .ToJson())
-                    .user : null;
+        public string AuthenticationUsername =>
+            _subscriptions?.First()?.Subscription?.Connection?.User?.Value != null 
+            ? _serializer.Deserialize<cred>(_subscriptions
+                .First()
+                .Subscription
+                .Connection
+                .User
+                .Value
+                .ToJson())?
+                .user
+            : null;
 
         /// <inheritdoc/>
         public ulong ValueChangesCountLastMinute {
