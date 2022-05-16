@@ -34,12 +34,22 @@ stages:
   dependsOn: deployAKS
   condition: not(canceled())
   jobs:
+  - job: debug
+    steps:
+      - task: PowerShell@2
+        inputs:
+          targetType: 'inline'
+          script: Write-Host $[ stageDependencies.deployAKS.deployaks.outputs]
+      - task: PowerShell@2
+        inputs:
+          targetType: 'inline'
+          script: Write-Host $[ dependencies.deployAKS.outputs]
   - job: test
     displayName: Test
     steps:
     - template: steps/testaks.yml
       parameters:
-        Verifier_Endpoint: $[ dependencies.deployAKS.outputs['deployaks.resolveverifierip.VerifierIp'] ]
+        Verifier_Endpoint: $[ stageDependencies.deployAKS.deployaks.outputs['resolveverifierip.VerifierIp'] ]
         # Verifier_Endpoint: "http://$[stageDependencies.deployAKS.deployaks.outputs['resolveverifierip.VerifierIp']]):80"
         Broker_Endpoint: mosquitto
         Broker_Port: 1883
