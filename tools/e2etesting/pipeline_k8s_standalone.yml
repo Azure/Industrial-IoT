@@ -34,34 +34,18 @@ stages:
   dependsOn: deployAKS
   condition: not(canceled())
   jobs:
-  - job: debug
+  - job: test
+    displayName: Test
     variables:
       verifierIp:  $[ stageDependencies.deployAKS.deployaks.outputs['resolveverifierip.VerifierIp'] ]
     steps:
-      - task: PowerShell@2
-        inputs:
-          targetType: 'inline'
-          script: Write-Host $(verifierIp)
-      - task: PowerShell@2
-        inputs:
-          targetType: 'inline'
-          script: Write-Host $[ stageDependencies.deployAKS.deployaks.outputs]
-      - task: PowerShell@2
-        inputs:
-          targetType: 'inline'
-          script: Write-Host $[ dependencies.deployAKS.outputs]
-  - job: test
-    displayName: Test
-    steps:
     - template: steps/testaks.yml
       parameters:
-        Verifier_Endpoint: $[ stageDependencies.deployAKS.deployaks.outputs['resolveverifierip.VerifierIp'] ]
-        # Verifier_Endpoint: "http://$[stageDependencies.deployAKS.deployaks.outputs['resolveverifierip.VerifierIp']]):80"
+        Verifier_Endpoint: "http://$(verifierIp):80"
         Broker_Endpoint: mosquitto
         Broker_Port: 1883
         Topic: "devices/#"
         Time_To_Observe: "5000" 
-
 
 - stage: cleanup
   displayName: Cleanup resources
