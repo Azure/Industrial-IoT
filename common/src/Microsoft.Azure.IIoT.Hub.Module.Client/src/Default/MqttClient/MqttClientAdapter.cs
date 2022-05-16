@@ -149,10 +149,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     retry,
                     onConnectionLost,
                     cs.MessageExpiryInterval,
-                    cs.UsingIoTHub ? MqttQualityOfServiceLevel.AtLeastOnce : MqttQualityOfServiceLevel.ExactlyOnce,
-                    cs.UsingIoTHub,
+                    qualityOfServiceLevel: MqttQualityOfServiceLevel.AtLeastOnce,
+                    useIoTHubTopics: cs.UsingIoTHub,
                     telemetryTopicTemplate,
                     logger);
+
                 client.UseConnectedHandler(adapter.OnConnected);
                 client.UseDisconnectedHandler(adapter.OnDisconnected);
                 client.UseApplicationMessageReceivedHandler(adapter.OnApplicationMessageReceivedHandler);
@@ -399,6 +400,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 Stream payload = null,
                 IDictionary<string, string> userProperties = null,
                 CancellationToken cancellationToken = default) {
+
+                _logger.Debug("Publishing {ByteCount} bytes to {Topic}", payload.Length, topic);
                 // Check topic length.
                 var topicLength = Encoding.UTF8.GetByteCount(topic);
                 if (topicLength > kMaxTopicLength) {
