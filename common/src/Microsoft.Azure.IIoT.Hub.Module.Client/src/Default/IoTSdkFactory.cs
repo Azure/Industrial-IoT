@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Diagnostics.Tracing;
     using Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient;
     using static Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient.IoTSdkFactory;
+    using System.Threading;
 
     /// <summary>
     /// Injectable factory that creates clients
@@ -224,11 +225,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="onError"></param>
         /// <param name="transportSetting"></param>
         /// <returns></returns>
-        private Task<IClient> CreateAdapterAsync(string product, Action onError,
+        private Task<IClient> CreateAdapterAsync(
+            string product,
+            Action onError,
             ITransportSettings transportSetting = null) {
-
-            var timeout = TimeSpan.FromSeconds(15);
-
             if (string.IsNullOrEmpty(ModuleId)) {
                 if (_mqttClientCs != null) {
                     return MqttClientAdapter.CreateAsync(
@@ -236,14 +236,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                         _mqttClientCs,
                         DeviceId,
                         _telemetryTopicTemplate,
-                        timeout,
+                        timeout: TimeSpan.FromSeconds(15),
                         RetryPolicy,
                         onError,
                         _logger);
                 }
                 else if (_deviceClientCs != null) {
                     return DeviceClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId,
-                        transportSetting, timeout, RetryPolicy, onError, _logger);
+                        transportSetting, timeout: TimeSpan.FromMinutes(5), RetryPolicy, onError, _logger);
                 }
                 else {
                     throw new InvalidConfigurationException(
@@ -251,7 +251,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
             }
             return ModuleClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId, ModuleId,
-                transportSetting, timeout, RetryPolicy, onError, _logger);
+                transportSetting, timeout: TimeSpan.FromMinutes(5), RetryPolicy, onError, _logger);
         }
 
         /// <summary>
