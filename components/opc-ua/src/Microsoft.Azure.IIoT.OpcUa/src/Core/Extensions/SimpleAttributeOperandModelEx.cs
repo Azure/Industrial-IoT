@@ -57,9 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             if (model.DisplayName != other.DisplayName) {
                 return false;
             }
-
             return true;
         }
-
     }
 }

@@ -125,27 +125,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 MaxKeepAliveCount = _clientConfig.MaxKeepAliveCount
                             },
                             PublishedVariables = new PublishedDataItemsModel {
-                                PublishedData = opcNodes.Select(node => new PublishedDataSetVariableModel {
-                                    //  Identifier to show for notification in payload of IoT Hub method
-                                    //  Prio 1: DataSetFieldId (need to be read from message)
-                                    //  Prio 2: DisplayName - nothing to do, because notification.Id
-                                    //                        already contains DisplayName
-                                    //  Prio 3: NodeId as configured; Id remains null in this case
-                                    Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId)
+                                PublishedData = opcNodes.Where(node => node.Item2.EventFilter == null)
+                                    .Select(node => new PublishedDataSetVariableModel {
+                                        //  Identifier to show for notification in payload of IoT Hub method
+                                        //  Prio 1: DataSetFieldId (need to be read from message)
+                                        //  Prio 2: DisplayName - nothing to do, because notification.Id
+                                        //                        already contains DisplayName
+                                        //  Prio 3: NodeId as configured; Id remains null in this case
+                                        Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId)
                                             ? node.Item2.DataSetFieldId
                                             : node.Item2.DisplayName,
-                                    PublishedVariableNodeId = node.Item2.Id,
+                                        PublishedVariableNodeId = node.Item2.Id,
 
-                                    // At this point in time the next values are ensured to be filled in with
-                                    // the appropriate value: configured or default
-                                    PublishedVariableDisplayName = node.Item2.DisplayName,
-                                    SamplingInterval = node.Item2.OpcSamplingIntervalTimespan,
-                                    HeartbeatInterval = node.Item2.HeartbeatIntervalTimespan,
-                                    QueueSize = node.Item2.QueueSize,
-                                    // ToDo: Implement mechanism for SkipFirst.
-                                    SkipFirst = node.Item2.SkipFirst,
-                                }).ToList()
-                            }
+                                        // At this point in time the next values are ensured to be filled in with
+                                        // the appropriate value: configured or default
+                                        PublishedVariableDisplayName = node.Item2.DisplayName,
+                                        SamplingInterval = node.Item2.OpcSamplingIntervalTimespan,
+                                        HeartbeatInterval = node.Item2.HeartbeatIntervalTimespan,
+                                        QueueSize = node.Item2.QueueSize,
+                                        // ToDo: Implement mechanism for SkipFirst.
+                                        SkipFirst = node.Item2.SkipFirst,
+                                    }).ToList(),
+                            },
+                            PublishedEvents = new PublishedEventItemsModel {
+                                PublishedData = opcNodes.Where(node => node.Item2.EventFilter != null)
+                                    .Select(node => new PublishedDataSetEventModel {
+                                        //  Identifier to show for notification in payload of IoT Hub method
+                                        //  Prio 1: DataSetFieldId (need to be read from message)
+                                        //  Prio 2: DisplayName - nothing to do, because notification.Id
+                                        //                        already contains DisplayName
+                                        //  Prio 3: NodeId as configured; Id remains null in this case
+                                        Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId)
+                                            ? node.Item2.DataSetFieldId
+                                            : node.Item2.DisplayName,
+                                        EventNotifier = node.Item2.Id,
+                                        QueueSize = node.Item2.QueueSize,
+                                        TypeDefinitionId = node.Item2.EventFilter.TypeDefinitionId,
+                                        SelectClauses = node.Item2.EventFilter.SelectClauses?.Select(s => s.Clone()).ToList(),
+                                        WhereClause = node.Item2.EventFilter.WhereClause?.Clone(),
+                                        PendingAlarms = node.Item2.EventFilter.PendingAlarms?.Clone(),
+                                    }).ToList(),
+                            },
                         }
                     ).ToList()
                 ).ToList();
@@ -277,7 +297,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 result += !string.IsNullOrEmpty(result) ? "_" : string.Empty;
                 result += $"{model.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds}";
                 if (subset.Where(x => x.SubscriptionSettings.PublishingInterval == model.SubscriptionSettings.PublishingInterval).Count() > 1) {
-                    result += $"_{model.PublishedVariables.PublishedData.First().PublishedVariableNodeId}";
+                    if (!string.IsNullOrEmpty(model.PublishedVariables?.PublishedData?.First()?.PublishedVariableNodeId)) {
+                        result += $"_{model.PublishedVariables.PublishedData.First().PublishedVariableNodeId}";
+                    }
+                    else if (!string.IsNullOrEmpty(model.PublishedEvents?.PublishedData?.First()?.EventNotifier)) {
+                        result += $"_{model.PublishedEvents.PublishedData.First().EventNotifier}";
+                    }
+                    else {
+                        result += $"_{Guid.NewGuid()}";
+                    }
                 }
             }
             else {
@@ -311,7 +339,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             if (item.OpcNodes != null) {
                 foreach (var node in item.OpcNodes) {
                     if (standaloneCliModel.ScaleTestCount.GetValueOrDefault(1) == 1) {
-                        yield return ( item.DataSetWriterId,  new OpcNodeModel {
+                        yield return (item.DataSetWriterId, new OpcNodeModel {
                             Id = !string.IsNullOrEmpty(node.Id) ? node.Id : node.ExpandedNodeId,
                             DisplayName = node.DisplayName,
                             DataSetFieldId = node.DataSetFieldId,
@@ -326,6 +354,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                             // ToDo: Implement mechanism for SkipFirst.
                             SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
+                            EventFilter = node.EventFilter,
+                            DataFilter = node.DataFilter,
                         });
                     }
                     else {
@@ -349,41 +379,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                                 // ToDo: Implement mechanism for SkipFirst.
                                 SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
+                                EventFilter = node.EventFilter,
+                                DataFilter = node.DataFilter,
                             });
                         }
                     }
                 }
-            }
-
-            if (item.OpcEvents != null) {
-
-/*
-                foreach (var node in item.OpcEvents) {
-                    if (string.IsNullOrEmpty(node.Id)) {
-                        node.Id = node.ExpandedNodeId;
-                    }
-                    if (scaleTestCount == 1) {
-                        node.OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval;
-                        yield return node;
-                    }
-                    else {
-                        for (var i = 0; i < scaleTestCount; i++) {
-                            yield return new OpcEventNodeModel {
-                                Id = string.IsNullOrEmpty(node.DisplayName) ?
-                                                string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
-                                DisplayName = string.IsNullOrEmpty(node.DisplayName) ?
-                                    $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
-                                DataSetFieldId = node.DataSetFieldId,
-                                ExpandedNodeId = node.ExpandedNodeId,
-                                OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval,
-                                SelectClauses = node.SelectClauses.Select(x => x.Clone()).ToList(),
-                                WhereClause = node.WhereClause.Clone(),
-                                PendingAlarms = node.PendingAlarms?.Clone() ?? null,
-                            };
-                        }
-                    }
-                }
-*/
             }
 
             if (item.NodeId?.Identifier != null) {

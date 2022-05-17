@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
+namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -12,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
     /// Describing an event entry in the configuration.
     /// </summary>
     [DataContract]
-    public class OpcEventNodeModel : OpcBaseNodeModel {
+    public class EventFilterModel {
         /// <summary>
         /// Select clauses
         /// </summary>
