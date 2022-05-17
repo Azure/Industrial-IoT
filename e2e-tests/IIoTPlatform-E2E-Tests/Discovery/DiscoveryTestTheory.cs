@@ -33,7 +33,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
         }
 
         [Fact, PriorityOrder(0)]
-        public async Task Test_Discover_All_OPC_UA_Endpoints() {
+        public async Task TestDiscoverAllOpcUaEndpoints() {
             // Add 5 servers
             var endpointUrls = TestHelper.GetSimulatedOpcServerUrls(_context).Take(5).ToList();
             AddTestOpcServers(endpointUrls, _cancellationTokenSource.Token);
@@ -59,7 +59,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
         }
 
         [Fact, PriorityOrder(1)]
-        public async Task Test_Discover_OPC_UA_Endpoints_IpAddress() {
+        public async Task TestDiscoverOpcUaEndpointsIpAddress() {
             // Add 1 server
             var ipAddress = _context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator).First();
             var url = $"opc.tcp://{ipAddress}:50000";
@@ -91,7 +91,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
         }
 
         [Fact, PriorityOrder(2)]
-        public async Task Test_Discover_OPC_UA_Endpoints_PortRange() {
+        public async Task TestDiscoverOpcUaEndpointsPortRange() {
             // Add 5 servers
             var urls = TestHelper.GetSimulatedOpcServerUrls(_context).Take(5).ToList();
             AddTestOpcServers(urls, _cancellationTokenSource.Token);
