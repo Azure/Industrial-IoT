@@ -339,11 +339,6 @@ namespace IIoTPlatform_E2E_Tests {
             public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG";
 
             /// <summary>
-            /// Tenant Id
-            /// </summary>
-            public const string PCS_TENANT_ID = "PCS_TENANT_ID";
-
-            /// <summary>
             /// Resource group name
             /// </summary>
             public const string PCS_RESOURCE_GROUP = "PCS_RESOURCE_GROUP";
