@@ -61,11 +61,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public uint? QueueSize { get; set; }
 
-        /// <summary>Event Filter </summary>
+        /// <summary>Event Filter</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public EventFilterModel EventFilter { get; set; }
 
-        /// <summary>Event Filter </summary>
+        /// <summary>Data Filter</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public DataFilterModel DataFilter { get; set; }
     }

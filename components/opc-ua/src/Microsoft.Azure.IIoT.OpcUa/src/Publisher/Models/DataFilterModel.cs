@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         // TODO: INCOMPLETE add the rest of the properties!
 
         /// <summary>
-        /// Deadband filter 
+        /// Deadband filter
         /// </summary>
         [DataMember(EmitDefaultValue = false)]
         public string Deadband { get; set; }
