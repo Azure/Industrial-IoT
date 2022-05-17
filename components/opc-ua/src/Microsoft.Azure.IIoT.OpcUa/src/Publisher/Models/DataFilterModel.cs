@@ -7,17 +7,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Describing an event entry in the configuration.
+    /// Describing an data related filter for the OpcNode
     /// </summary>
     [DataContract]
     public class DataFilterModel {
 
+        // TODO: INCOMPLETE add the rest of the properties!
+
         /// <summary>
-        /// Simple event Type id
+        /// Deadband filter 
         /// </summary>
         [DataMember(EmitDefaultValue = false)]
         public string Deadband { get; set; }
-
-        // TODO: INCOMPLETE add the rest of the properties!
     }
 }
