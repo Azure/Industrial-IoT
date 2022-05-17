@@ -39,7 +39,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             AddTestOpcServers(endpointUrls, _cancellationTokenSource.Token);
 
             // Discover all servers
-            dynamic result = await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
+            var result = await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
                 _context, _cancellationTokenSource.Token, endpointUrls).ConfigureAwait(false);
 
             // Validate that all servers are discovered
