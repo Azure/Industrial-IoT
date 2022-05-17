@@ -96,6 +96,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _device.Id, _device.ModuleId, _device.Authentication.PrimaryKey)
                 .ToString();
 
+            public string MqttClientConnectionString => null;
+
+            public string TelemetryTopicTemplate => null;
+
             public bool BypassCertVerification => true;
 
             public TransportOption Transport => TransportOption.Any;
