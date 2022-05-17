@@ -27,7 +27,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         }
 
         // ToDo: Enable the test once PublishedNodesJobConverter parses OpcEvents.
-        [Theory(Skip = "PublishedNodesJobConverter does not parse OpcEvents now.")]
+        //[Theory(Skip = "PublishedNodesJobConverter does not parse OpcEvents now.")]
+        [Theory]
         [InlineData(@"./PublishedNodes/SimpleEvents.json")]
         public async Task CanSendEventToIoTHubTest(string publishedNodesFile) {
             // Arrange
