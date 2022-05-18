@@ -94,12 +94,12 @@ az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-ap
 echo "IIoT - OpcPlc server ..."
 az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-plc:latest --image opc-plc:latest
 echo "IIoT - OPC Publisher..."
-az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-publisher:2.7.206 --image opc-publisher:2.7.206
-az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-publisher:2.7.206 --image iotedge/opc-publisher:2.7.206
+az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-publisher:2.8.2 --image opc-publisher:2.8.2
+az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-publisher:2.8.2 --image iotedge/opc-publisher:2.8.2
 echo "IIoT - Twin..."
-az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-twin:2.7.206 --image opc-twin:2.7.206
+az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-twin:2.8.2 --image opc-twin:2.8.2
 echo "IIoT - Discovery ..."
-az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/discovery:2.7.206 --image discovery:2.7.206
+az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/discovery:2.8.2 --image discovery:2.8.2
 
 echo "...done"
 echo ""
