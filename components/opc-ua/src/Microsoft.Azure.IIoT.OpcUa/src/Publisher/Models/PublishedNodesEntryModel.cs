@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Data;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -71,9 +69,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> Nodes defined in the collection. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public List<OpcNodeModel> OpcNodes { get; set; }
-
-        /// <summary> Event Nodes defined in the collection. </summary>
-        [DataMember(EmitDefaultValue = false)]
-        public List<OpcEventNodeModel> OpcEvents { get; set; }
     }
 }

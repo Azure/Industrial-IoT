@@ -60,5 +60,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> Queue Size for the monitored item </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public uint? QueueSize { get; set; }
+
+        /// <summary>Event Filter</summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public EventFilterModel EventFilter { get; set; }
+
+        /// <summary>Data Filter</summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public DataFilterModel DataFilter { get; set; }
     }
 }
