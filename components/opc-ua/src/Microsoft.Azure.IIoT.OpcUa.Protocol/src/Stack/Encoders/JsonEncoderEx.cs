@@ -274,7 +274,8 @@ namespace Opc.Ua.Encoders {
                 }
                 _writer.WritePropertyName(property);
             }
-            _writer.WriteValue(value);
+            var s = value.ToString("G9", CultureInfo.InvariantCulture);
+            _writer.WriteRawValue(s);
         }
 
         /// <inheritdoc/>
@@ -285,7 +286,8 @@ namespace Opc.Ua.Encoders {
                 }
                 _writer.WritePropertyName(property);
             }
-            _writer.WriteValue(value);
+            var s = value.ToString("G17", CultureInfo.InvariantCulture);
+            _writer.WriteRawValue(s);
         }
 
         /// <inheritdoc/>

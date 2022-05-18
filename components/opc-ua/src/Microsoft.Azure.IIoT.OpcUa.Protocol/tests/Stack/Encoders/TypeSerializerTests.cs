@@ -589,6 +589,46 @@ namespace Opc.Ua.Encoders {
             Assert.Equal(expected, result);
         }
 
+        [Theory]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
+        public void ReadWriteFloat(string encoderType, string decoderType) {
+            float expected = 0.446998596191406f;
+            CreateSerializers(out var encoder, out var decoder);
+
+            var buffer = encoder.Encode(encoderType, e => e.WriteFloat("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadFloat("test"));
+
+            Assert.Equal(expected, result);
+        }
+
+        [Theory]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
+        [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
+        public void ReadWriteDouble(string encoderType, string decoderType) {
+            double expected = 0.446998596191406d;
+            CreateSerializers(out var encoder, out var decoder);
+
+            var buffer = encoder.Encode(encoderType, e => e.WriteDouble("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
+            var result = decoder.Decode(decoderType, buffer, d => d.ReadDouble("test"));
+
+            Assert.Equal(expected, result);
+        }
+
         /// <summary>
         /// Test encode string variant - cannot do this on binary
         /// </summary>
