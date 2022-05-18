@@ -599,7 +599,7 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
         [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteFloat(string encoderType, string decoderType) {
-            float expected = 0.446998596191406f;
+            float expected = 44.446998599f;
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteFloat("test", expected));
@@ -619,7 +619,7 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
         [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteDouble(string encoderType, string decoderType) {
-            double expected = 0.446998596191406d;
+            double expected = 44.446998599191406d;
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteDouble("test", expected));
