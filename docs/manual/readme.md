@@ -686,13 +686,13 @@ cd Industrial-IoT
 On Windows:
 
 ```bash
-.\deploy
+.\Microsoft.Azure.IIoT.Deployment.Web
 ```
 
 On Linux or Mac:
 
 ```bash
-./deploy.sh
+./Microsoft.Azure.IIoT.Deployment.Web.sh
 ```
 
 The script will collect the required information, such as Azure account, subscription, target resource group and application name.
@@ -703,12 +703,12 @@ The microservices and the UI are web applications that require authentication, t
 
 - Ask the AAD admin to grant tenant-wide admin consent for the application.
 
-- An AAD admin can create the AAD applications. The deploy/scripts folder contains the aad-register.ps1 script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the deploy.ps1 script in the same folder using the -aadConfig argument.
+- An AAD admin can create the AAD applications. The deploy/scripts folder contains the aad-register.ps1 script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the Microsoft.Azure.IIoT.Deployment.Web.ps1 script in the same folder using the -aadConfig argument.
 
     ```powershell
     cd deploy/scripts
     ./aad-register.ps1 -Name &lt;application-name> -Output aad.json
-    ./deploy.ps1 -aadConfig aad.json
+    ./Microsoft.Azure.IIoT.Deployment.Web.ps1 -aadConfig aad.json
     ```
 
 #### Azure Kubernetes Service
@@ -873,7 +873,7 @@ auth:
     secret: <ClientsAppSecret>
 ```
 
-As an alternative to specifying all details of Azure resources through command line (or the YAML file), we support loading them from Azure Key Vault. In this case, only minimal configuration is required to enable microservices to fetch configuration secrets from Azure Key Vault. This option can be used in cases where Azure resources have been bootstrapped using a scripts that also pushed Azure resource details as secrets into Azure Key Vault, such as our deploy.ps1 PowerShell script. For more details about this option please check [Load Configuration From Azure Key Vault](../../deploy/helm/azure-industrial-iot/README.md#load-configuration-from-azure-key-vault).
+As an alternative to specifying all details of Azure resources through command line (or the YAML file), we support loading them from Azure Key Vault. In this case, only minimal configuration is required to enable microservices to fetch configuration secrets from Azure Key Vault. This option can be used in cases where Azure resources have been bootstrapped using a scripts that also pushed Azure resource details as secrets into Azure Key Vault, such as our Microsoft.Azure.IIoT.Deployment.Web.ps1 PowerShell script. For more details about this option please check [Load Configuration From Azure Key Vault](../../deploy/helm/azure-industrial-iot/README.md#load-configuration-from-azure-key-vault).
 
 For all configuration options that are available for azure-industrial-iot Helm chart please check its [documentation](../../deploy/helm/azure-industrial-iot/README.md) and [values.yaml](../../deploy/helm/azure-industrial-iot/values.yaml) file of the chart itself.
 

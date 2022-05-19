@@ -558,8 +558,8 @@ values.
 
 ### Load Configuration From Azure Key Vault
 
-If you are deploying this chart to an Azure environment that has been created by either `deploy.ps1` script
-or `Microsoft.Azure.IIoT.Deployment` application then you can use the fact that both of those methods push
+If you are deploying this chart to an Azure environment that has been created by either `Microsoft.Azure.IIoT.Deployment.Web.ps1` script
+or `Microsoft.Azure.IIoT.Deployment.AKS` application then you can use the fact that both of those methods push
 secrets to Azure Key Vault describing Azure resources IDs and connection details. Those secrets can be
 consumed by components of Azure Industrial IoT solution as configuration parameters similar to configuration
 environment variables that are injected to the Pods. To facilitate this method of configuration management

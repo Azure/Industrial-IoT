@@ -74,7 +74,7 @@ Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
 If you see a message in PowerShell
 
 `Security warning
-Run only scripts that you trust. While scripts from the internet can be useful, this script can potentially harm your computer. If you trust this script, use the Unblock-File cmdlet to allow the script to run without this warning message. Do you want to run <...> deploy.ps1?
+Run only scripts that you trust. While scripts from the internet can be useful, this script can potentially harm your computer. If you trust this script, use the Unblock-File cmdlet to allow the script to run without this warning message. Do you want to run <...> Microsoft.Azure.IIoT.Deployment.Web.ps1?
 [D] Do not run [R] Run once [S] Suspend [?] Help (default is "D"):
 Do you want to run this script?`
 
@@ -99,12 +99,12 @@ If the deployment fails or if you see the following error when trying to sign-in
 
 **Option 1** (recommended for production): Ask your AAD admin to grant tenant-wide admin consent for your application, there might be a process or tool for this in your enterprise environment.
 
-**Option 2** (recommended for production): An AAD admin can create the AAD applications for you. The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
+**Option 2** (recommended for production): An AAD admin can create the AAD applications for you. The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the `Microsoft.Azure.IIoT.Deployment.Web.ps1` script in the same folder using the `-aadConfig` argument.
 
    ```pwsh
    cd deploy/scripts
    ./aad-register.ps1 -Name <application-name> -ReplyUrl https://<application-name>.azurewebsites.net/ -Output aad.json
-   ./deploy.ps1 -aadConfig aad.json
+   ./Microsoft.Azure.IIoT.Deployment.Web.ps1 -aadConfig aad.json
    ```
 
 If you need additional reply URLs, you may add them manually as this does not require AAD admin rights. The script `aad-register.ps1` also supports the parameter `-TenantId`, which can be used to explicitly select an AAD tenant, and can be executed from the [Cloud Shell](https://docs.microsoft.com/azure/cloud-shell/overview).
@@ -160,9 +160,9 @@ To install all necessary requirements on other Linux distributions, follow these
 
 ## Deployment script options
 
-Using the `deploy/scripts/deploy.ps1` script you can deploy several configurations including deploying images from a private Azure Container Registry (ACR).
+Using the `deploy/scripts/Microsoft.Azure.IIoT.Deployment.Web.ps1` script you can deploy several configurations including deploying images from a private Azure Container Registry (ACR).
 
-To support these scenarios, the `deploy.ps1` takes the following parameters:
+To support these scenarios, the `Microsoft.Azure.IIoT.Deployment.Web.ps1` takes the following parameters:
 
 ```bash
  .PARAMETER type

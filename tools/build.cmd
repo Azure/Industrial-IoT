@@ -139,7 +139,7 @@ set __args=%__args% -ResourceGroupLocation %_location%
 set __args=%__args% -ResourceGroupName %_resourceGroup% 
 set __args=%__args% -ApplicationName %_resourceGroup%
 pushd %build_root%\deploy\scripts
-powershell ./deploy.ps1 -type all %__args% 
+powershell ./Microsoft.Azure.IIoT.Deployment.Web.ps1 -type all %__args% 
 popd
 if !ERRORLEVEL! == 0 goto :done
 echo Deploy failed.

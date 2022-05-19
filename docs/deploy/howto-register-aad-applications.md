@@ -16,7 +16,7 @@ Components of the Azure Industrial IoT platform require several App Registration
 * providing identity for back-end microservices to run
 * defining authentication methods and details for client applications
 
-Both of our deployment methods (`deploy.ps1` script and the `Microsoft.Azure.IIoT.Deployment` application) create
+Both of our deployment methods (`Microsoft.Azure.IIoT.Deployment.Web.ps1` script and the `Microsoft.Azure.IIoT.Deployment.AKS` application) create
 those App Registrations for you by default. But they both require user to have `Administrator` role in the AAD
 for deployment to succeed. In cases when the user does not have the `Administrator` role, the process of
 deployment can be separated into 2 distinct states:
@@ -29,7 +29,7 @@ of App Registrations which can then be passed to a user for running the second s
 
 ## PowerShell scripts
 
-`deploy.ps1` PowerShell script calls `aad-register.ps1` for creating the following App Registrations:
+`Microsoft.Azure.IIoT.Deployment.Web.ps1` PowerShell script calls `aad-register.ps1` for creating the following App Registrations:
 
 * `<application-name>-service`: used for providing identity for back-end microservices
 * `<application-name>-client`: used for authentication of native clients, such as CLI tool
@@ -48,16 +48,16 @@ cd deploy/scripts
 ```
 
 The output of the script is a JSON file containing the relevant information to be used as part of the
-deployment and must be passed to the `deploy.ps1` script in the same folder using `-aadConfig` argument.
+deployment and must be passed to the `Microsoft.Azure.IIoT.Deployment.Web.ps1` script in the same folder using `-aadConfig` argument.
 
 Use the following command to deploy the Azure Industrial IoT platform with pre-created App Registrations.
 Follow the script commands and provide additional details where needed.
 
 ```bash
-./deploy.ps1 -aadConfig aad.json -applicationName <application-name>
+./Microsoft.Azure.IIoT.Deployment.Web.ps1 -aadConfig aad.json -applicationName <application-name>
 ```
 
-You can find all configuration options for `deploy.ps` [here](./howto-deploy-all-in-one.md#deployment-script-options).
+You can find all configuration options for `Microsoft.Azure.IIoT.Deployment.Web.ps` [here](./howto-deploy-all-in-one.md#deployment-script-options).
 
 ## Microsoft.Azure.IIoT.Deployment
 

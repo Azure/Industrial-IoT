@@ -24,7 +24,7 @@ image:
 # When loadConfFromKeyVault is set to true, the chart will loosen requirement on provided values. And only values necessary to connect to Azure Key Vault will be required.
 # As reading secrets from Azure Key Vault requires some permissions, you would have to make sure that servicesApp has enough permissions to access your Azure Key Vault instance.
 #
-# This can be used if Azure infrastructure has been bootstraped either by deploy.ps1 script or Microsoft.Azure.IIoT.Deployment
+# This can be used if Azure infrastructure has been bootstraped either by Microsoft.Azure.IIoT.Deployment.Web.ps1 script or Microsoft.Azure.IIoT.Deployment.AKS
 # application as they push application configuration parameters of microservices to Azure Key Vault as secrets.
 #
 # Note that additional values provided through the chart will override those coming from Azure Key Vault.
