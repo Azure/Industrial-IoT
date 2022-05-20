@@ -45,7 +45,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         public async Task CanSendPendingAlarmsToIoTHubTest(string publishedNodesFile) {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(publishedNodesFile, new TimeSpan(0, 0, 1), new TimeSpan(0, 2, 0), 1);
+            var messages = await ProcessMessagesAsync(
+                publishedNodesFile,
+                new TimeSpan(0, 0, 1),
+                new TimeSpan(0, 2, 0),
+                1
+            );
 
             // Assert
             Assert.Single(messages);

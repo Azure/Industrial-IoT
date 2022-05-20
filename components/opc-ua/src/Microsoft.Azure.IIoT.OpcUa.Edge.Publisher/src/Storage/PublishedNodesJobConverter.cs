@@ -175,14 +175,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
 
                 var result = flattenedGroups.Select(dataSetSourceBatches => dataSetSourceBatches.Any() ? new WriterGroupJobModel {
                     MessagingMode = standaloneCliModel.MessagingMode,
-                    Engine = _engineConfig == null ? null : new EngineConfigurationModel {
-                        BatchSize = _engineConfig.BatchSize,
-                        BatchTriggerInterval = _engineConfig.BatchTriggerInterval,
-                        DiagnosticsInterval = _engineConfig.DiagnosticsInterval,
-                        MaxMessageSize = _engineConfig.MaxMessageSize,
-                        MaxOutgressMessages = _engineConfig.MaxOutgressMessages,
-                        EnableRoutingInfo = _engineConfig.EnableRoutingInfo,
-                    },
+                    Engine = _engineConfig == null
+                        ? null
+                        : new EngineConfigurationModel {
+                            BatchSize = _engineConfig.BatchSize,
+                            BatchTriggerInterval = _engineConfig.BatchTriggerInterval,
+                            DiagnosticsInterval = _engineConfig.DiagnosticsInterval,
+                            MaxMessageSize = _engineConfig.MaxMessageSize,
+                            MaxOutgressMessages = _engineConfig.MaxOutgressMessages,
+                            UseReversibleEncoding = _engineConfig.UseReversibleEncoding,
+                            EnableRoutingInfo = _engineConfig.EnableRoutingInfo,
+                        },
                     WriterGroup = new WriterGroupModel {
                         MessageType = standaloneCliModel.MessageEncoding,
                         WriterGroupId = dataSetSourceBatches.First().Connection.Group,

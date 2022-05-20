@@ -6,6 +6,7 @@
       {
         "Id": "i=2253",
         "DisplayName": "SimpleEvents",
+        "QueueSize": 10,
         "EventFilter": {
           "SelectClauses": [
             {
