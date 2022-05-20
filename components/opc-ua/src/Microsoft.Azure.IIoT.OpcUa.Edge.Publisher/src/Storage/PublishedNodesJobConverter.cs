@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -131,7 +131,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         //  Prio 1: DataSetFieldId (need to be read from message)
                                         //  Prio 2: DisplayName - nothing to do, because notification.Id
                                         //                        already contains DisplayName
-                                        //  Prio 3: NodeId as configured; Id remains null in this case
                                         Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId)
                                             ? node.Item2.DataSetFieldId
                                             : node.Item2.DisplayName,
@@ -154,7 +153,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         //  Prio 1: DataSetFieldId (need to be read from message)
                                         //  Prio 2: DisplayName - nothing to do, because notification.Id
                                         //                        already contains DisplayName
-                                        //  Prio 3: NodeId as configured; Id remains null in this case
                                         Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId)
                                             ? node.Item2.DataSetFieldId
                                             : node.Item2.DisplayName,
