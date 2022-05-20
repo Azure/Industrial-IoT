@@ -29,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                    .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                    .AddCommandLine(args)
                    // making sure the standalone arguments are processed at last so they are not overriden
-
                    .AddStandalonePublisherCommandLine(args);
             // additional required configuration
             var configFiles = args
@@ -40,7 +39,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         string.Compare(i.value.TrimStart('-'), "AdditionalRequiredConfiguration", StringComparison.InvariantCultureIgnoreCase) == 0);
 
             foreach (var configFile in configFiles) {
-                // todo: read config from file
                 var filePath = args[configFile.index + 1];
 
                 Console.WriteLine($"Looking for configuration file '{filePath}'...");
