@@ -19,14 +19,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         public bool IsEnabled { get; set; } = false;
 
         /// <summary>
-        /// Update interval for pending alarm
+        /// Update interval for pending alarm in seconds.
         /// </summary>
         [DataMember(Name = "updateInterval", Order = 1,
             EmitDefaultValue = false)]
         public int? UpdateInterval { get; set; }
 
         /// <summary>
-        /// Snapshot interval for pending alarm
+        /// Snapshot interval for pending alarm in seconds.
         /// </summary>
         [DataMember(Name = "snapshotInterval", Order = 2,
             EmitDefaultValue = false)]
