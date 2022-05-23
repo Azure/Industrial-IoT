@@ -2153,7 +2153,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
         ""EndpointUrl"": ""opc.tcp://localhost3:50000"",
         ""OpcNodes"": [
             {
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
+                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"",
+                ""DisplayName"": ""AlternatingBoolean""
             },
             {
                 ""Id"": ""i=2253"",
@@ -2235,19 +2236,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Empty(jobs[3].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
             var dataItemModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
-            //Assert.Equal("i=2258", dataItemModel.Id);
             Assert.Equal("i=2258", dataItemModel.PublishedVariableNodeId);
 
             dataItemModel = jobs[1].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
-            //Assert.Equal("ns=0;i=2261", dataItemModel.Id);
             Assert.Equal("ns=0;i=2261", dataItemModel.PublishedVariableNodeId);
 
             dataItemModel = jobs[2].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
-            //Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean", dataItemModel.Id);
+            Assert.Equal("AlternatingBoolean", dataItemModel.Id);
             Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean", dataItemModel.PublishedVariableNodeId);
 
             var eventModel = jobs[2].WriterGroup.DataSetWriters[1].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
-            //Assert.Equal("i=2253", eventModel.Id);
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Single(eventModel.SelectClauses);
             Assert.Equal("i=2041", eventModel.SelectClauses[0].TypeDefinitionId);
@@ -2270,6 +2268,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
         ""OpcNodes"": [
             {
                 ""Id"": ""i=2253"",
+                ""DisplayName"": ""DisplayName2253"",
                 ""OpcPublishingInterval"": 5000,
                 ""EventFilter"": {
                     ""SelectClauses"": [
@@ -2387,7 +2386,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
 
             var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
-            //Assert.Equal("i=2253", eventModel.Id);
+            Assert.Equal("DisplayName2253", eventModel.Id);
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal(11, eventModel.SelectClauses.Count);
             Assert.All(eventModel.SelectClauses, x => {
@@ -2462,7 +2461,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
 
             var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
-            //Assert.Equal("i=2253", eventModel.Id);
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal("ns=2;i=235", eventModel.TypeDefinitionId);
             Assert.NotNull(eventModel.PendingAlarms);
