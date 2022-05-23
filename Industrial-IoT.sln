@@ -178,7 +178,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{8D316DA2-FC23-4F5A-ABE0-725C6E9653EC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Deployment", "deploy\src\Microsoft.Azure.IIoT.Deployment\Microsoft.Azure.IIoT.Deployment.csproj", "{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Deployment.AKS", "deploy\src\Microsoft.Azure.IIoT.Deployment.AKS\Microsoft.Azure.IIoT.Deployment.AKS.csproj", "{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{24CC83C2-F144-4EB9-9C7E-48406B1E2932}"
 EndProject
