@@ -2076,7 +2076,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
     }
 ]
 ");
-            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
 
             // ToDo: Add definition for events in schema validator.
             //using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
