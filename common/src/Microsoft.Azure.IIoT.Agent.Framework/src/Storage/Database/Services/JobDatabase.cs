@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             var dbs = databaseServer.OpenAsync(databaseJobRepositoryConfig.DatabaseName).Result;
             var cont = dbs.OpenContainerAsync(databaseJobRepositoryConfig.ContainerName).Result;
             _documents = cont.AsDocuments();
+            _client = _documents.OpenSqlClient();
         }
 
         /// <inheritdoc/>
@@ -134,10 +135,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// <inheritdoc/>
         public async Task<JobInfoListModel> QueryAsync(JobInfoQueryModel query,
             string continuationToken, int? maxResults, CancellationToken ct) {
-            var client = _documents.OpenSqlClient();
             var results = continuationToken != null ?
-                client.Continue<JobDocument>(continuationToken, maxResults) :
-                client.Query<JobDocument>(CreateQuery(query, out var queryParameters),
+                _client.Continue<JobDocument>(continuationToken, maxResults) :
+                _client.Query<JobDocument>(CreateQuery(query, out var queryParameters),
                     queryParameters, maxResults);
             if (!results.HasMore()) {
                 return new JobInfoListModel();
@@ -206,5 +206,6 @@ $"r.{nameof(JobDocument.ClassType)} = '{JobDocument.ClassTypeName}'";
         }
 
         private readonly IDocuments _documents;
+        private readonly ISqlClient _client;
     }
 }

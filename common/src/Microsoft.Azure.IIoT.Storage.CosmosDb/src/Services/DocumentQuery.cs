@@ -60,7 +60,8 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
                     EnableCrossPartitionQuery = pk == null
                 });
-            return new DocumentInfoFeed<T>(query.AsDocumentQuery(), _logger);
+            _query = query.AsDocumentQuery();
+            return new DocumentInfoFeed<T>(_query, _logger);
         }
 
         /// <inheritdoc/>
@@ -69,18 +70,11 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             if (string.IsNullOrEmpty(continuationToken)) {
                 throw new ArgumentNullException(nameof(continuationToken));
             }
-            var pk = _partitioned || string.IsNullOrEmpty(partitionKey) ? null :
-                new PartitionKey(partitionKey);
-            var query = _client.CreateDocumentQuery<Document>(
-                UriFactory.CreateDocumentCollectionUri(_databaseId, _id),
-                new FeedOptions {
-                    MaxDegreeOfParallelism = 8,
-                    MaxItemCount = pageSize ?? -1,
-                    PartitionKey = pk,
-                    RequestContinuation = continuationToken,
-                    EnableCrossPartitionQuery = pk == null
-                });
-            return new DocumentInfoFeed<T>(query.AsDocumentQuery(), _logger);
+            if (_query == null || !_query.HasMoreResults) {
+                throw new InvalidOperationException("Initial query not available or reports no more results.");
+            }
+
+            return new DocumentInfoFeed<T>(_query, _logger);
         }
 
         /// <inheritdoc/>
@@ -123,5 +117,6 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         private readonly string _id;
         private readonly bool _partitioned;
         private readonly ILogger _logger;
+        private IDocumentQuery<Document> _query;
     }
 }
