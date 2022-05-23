@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         public async Task CanSendDataItemToIoTHubTest(string publishedNodesFile) {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(publishedNodesFile);
+            var messages = await ProcessMessagesAsync(publishedNodesFile).ConfigureAwait(false);
 
             // Assert
             Assert.Single(messages);
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         public async Task CanSendEventToIoTHubTest(string publishedNodesFile) {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(publishedNodesFile);
+            var messages = await ProcessMessagesAsync(publishedNodesFile).ConfigureAwait(false);
 
             // Assert
             Assert.Single(messages);
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 new TimeSpan(0, 0, 1),
                 new TimeSpan(0, 2, 0),
                 1
-            );
+            ).ConfigureAwait(false);
 
             // Assert
             Assert.Single(messages);

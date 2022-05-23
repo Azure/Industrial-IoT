@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             var result = await ProcessMessagesAsync(
                 publishedNodesFile,
                 new[] { "--mm=PubSub", "--UseReversibleEncoding=False" }
-            );
+            ).ConfigureAwait(false);
 
             Assert.Single(result);
 
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             var result = await ProcessMessagesAsync(
                 publishedNodesFile,
                 new[] { "--mm=PubSub", "--UseReversibleEncoding=True" }
-            );
+            ).ConfigureAwait(false);
 
             Assert.Single(result);
 
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             var result = await ProcessMessagesAsync(
                 publishedNodesFile,
                 new[] { "--mm=PubSub", "--UseReversibleEncoding=True" }
-            );
+            ).ConfigureAwait(false);
 
             Assert.Single(result);
 
