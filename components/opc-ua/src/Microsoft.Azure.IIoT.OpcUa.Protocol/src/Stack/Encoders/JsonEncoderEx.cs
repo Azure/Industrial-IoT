@@ -105,7 +105,7 @@ namespace Opc.Ua.Encoders {
                 AutoCompleteOnClose = true,
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
                 FloatFormatHandling = FloatFormatHandling.String,
-                Formatting = formatting
+                Formatting = formatting,
             }, context, encoding) {
         }
 
@@ -274,7 +274,7 @@ namespace Opc.Ua.Encoders {
                 }
                 _writer.WritePropertyName(property);
             }
-            var s = value.ToString("G9", CultureInfo.InvariantCulture);
+            var s = EnsureDecimalPlace(value, value.ToString("G9", CultureInfo.InvariantCulture));
             _writer.WriteRawValue(s);
         }
 
@@ -286,8 +286,29 @@ namespace Opc.Ua.Encoders {
                 }
                 _writer.WritePropertyName(property);
             }
-            var s = value.ToString("G17", CultureInfo.InvariantCulture);
+            var s = EnsureDecimalPlace(value, value.ToString("G17", CultureInfo.InvariantCulture));
             _writer.WriteRawValue(s);
+        }
+
+        private static string EnsureDecimalPlace(double value, string text) {
+            if (double.IsNaN(value) || double.IsInfinity(value)) {
+                return $"\"{text}\"";
+            }
+            if (text.IndexOf('.') != -1 || text.IndexOf('E') != -1 || text.IndexOf('e') != -1) {
+                return text;
+            }
+            return text + ".0";
+        }
+
+        private static string EnsureDecimalPlace(float value, string text) {
+            if (float.IsNaN(value) || float.IsInfinity(value)) {
+                return $"\"{text}\"";
+            }
+            if(text.IndexOf('.') != -1 || text.IndexOf('E') != -1 || text.IndexOf('e') != -1) {
+                return text;
+            }
+
+            return text + ".0";
         }
 
         /// <inheritdoc/>

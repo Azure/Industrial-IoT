@@ -14,9 +14,64 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
     using System;
     using System.Buffers;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text;
+
+    internal class FullPrecisionDoubleConverter : JsonConverter<double> {
+
+        /// <inheritdoc/>
+        public override bool CanRead => false;
+
+        /// <inheritdoc/>
+        public override void WriteJson(JsonWriter writer, double value, JsonSerializer serializer) {
+            var s = EnsureDecimalPlace(value, value.ToString("G17", CultureInfo.InvariantCulture));
+            writer.WriteRawValue(s);
+        }
+
+        /// <inheritdoc/>
+        public override double ReadJson(JsonReader reader, Type objectType, double existingValue, bool hasExistingValue, JsonSerializer serializer) {
+            return ReadJson(reader, objectType, existingValue, hasExistingValue, serializer);
+        }
+
+        private static string EnsureDecimalPlace(double value, string text) {
+            if (double.IsNaN(value) || double.IsInfinity(value)) {
+                return $"\"{text}\"";
+            }
+            if (text.IndexOf('.') != -1 || text.IndexOf('E') != -1 || text.IndexOf('e') != -1) {
+                return text;
+            }
+            return text + ".0";
+        }
+    }
+
+    internal class FullPrecisionFloatConverter : JsonConverter<float> {
+
+        /// <inheritdoc/>
+        public override bool CanRead => false;
+
+        /// <inheritdoc/>
+        public override void WriteJson(JsonWriter writer, float value, JsonSerializer serializer) {
+            var s = EnsureDecimalPlace(value, value.ToString("G9", CultureInfo.InvariantCulture));
+            writer.WriteRawValue(s);
+        }
+
+        /// <inheritdoc/>
+        public override float ReadJson(JsonReader reader, Type objectType, float existingValue, bool hasExistingValue, JsonSerializer serializer) {
+            return ReadJson(reader, objectType, existingValue, hasExistingValue, serializer);
+        }
+
+        private static string EnsureDecimalPlace(float value, string text) {
+            if (float.IsNaN(value) || float.IsInfinity(value)) {
+                return $"\"{text}\"";
+            }
+            if(text.IndexOf('.') != -1 || text.IndexOf('E') != -1 || text.IndexOf('e') != -1) {
+                return text;
+            }
+            return text + ".0";
+        }
+    }
 
     /// <summary>
     /// Newtonsoft json serializer
@@ -67,6 +122,10 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
                 AllowIntegerValues = true,
                 NamingStrategy = new CamelCaseNamingStrategy()
             });
+
+            settings.Converters.Add(new FullPrecisionFloatConverter());
+            settings.Converters.Add(new FullPrecisionDoubleConverter());
+
             settings.FloatFormatHandling = FloatFormatHandling.String;
             settings.FloatParseHandling = FloatParseHandling.Double;
             settings.DateParseHandling = DateParseHandling.DateTime;
