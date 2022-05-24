@@ -49,6 +49,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
             do {
                 var jobList = await _jobRepository.QueryAsync(query, continuationToken, null, ct);
                 if (jobList?.Jobs == null) {
+                    continuationToken = null;
                     continue;
                 }
                 System.Diagnostics.Debug
