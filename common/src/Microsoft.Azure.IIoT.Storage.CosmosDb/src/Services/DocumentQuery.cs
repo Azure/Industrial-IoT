@@ -60,21 +60,36 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
                     EnableCrossPartitionQuery = pk == null
                 });
-            _query = query.AsDocumentQuery();
-            return new DocumentInfoFeed<T>(_query, _logger);
+
+            return new DocumentInfoFeed<T>(query.AsDocumentQuery(), _logger);
         }
 
         /// <inheritdoc/>
-        public IResultFeed<IDocumentInfo<T>> Continue<T>(string continuationToken,
+        public IResultFeed<IDocumentInfo<T>> Continue<T>(string queryString,
+            string continuationToken, IDictionary<string, object> parameters,
             int? pageSize, string partitionKey) {
             if (string.IsNullOrEmpty(continuationToken)) {
                 throw new ArgumentNullException(nameof(continuationToken));
             }
-            if (_query == null) {
-                throw new InvalidOperationException("Initial query not available.");
-            }
+            var pk = _partitioned || string.IsNullOrEmpty(partitionKey) ? null :
+                            new PartitionKey(partitionKey);
+            var query = _client.CreateDocumentQuery<Document>(
+                UriFactory.CreateDocumentCollectionUri(_databaseId, _id),
+                new SqlQuerySpec {
+                    QueryText = queryString,
+                    Parameters = new SqlParameterCollection(parameters?
+                        .Select(kv => new SqlParameter(kv.Key, kv.Value)) ??
+                            Enumerable.Empty<SqlParameter>())
+                },
+                new FeedOptions {
+                    MaxDegreeOfParallelism = 8,
+                    MaxItemCount = pageSize ?? -1,
+                    PartitionKey = pk,
+                    RequestContinuation = continuationToken,
+                    EnableCrossPartitionQuery = pk == null
+                });
 
-            return new DocumentInfoFeed<T>(_query, _logger);
+            return new DocumentInfoFeed<T>(query.AsDocumentQuery(), _logger);
         }
 
         /// <inheritdoc/>
@@ -117,6 +132,5 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         private readonly string _id;
         private readonly bool _partitioned;
         private readonly ILogger _logger;
-        private IDocumentQuery<Document> _query;
     }
 }
