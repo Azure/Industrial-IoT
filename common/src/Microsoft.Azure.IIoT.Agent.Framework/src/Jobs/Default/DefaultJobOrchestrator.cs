@@ -49,8 +49,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
             do {
                 var jobList = await _jobRepository.QueryAsync(query, continuationToken, null, ct);
                 if (jobList?.Jobs == null) {
-                    continuationToken = null;
-                    continue;
+                    break;
                 }
                 System.Diagnostics.Debug
                     .Assert(!jobList.Jobs.Any(j => j.LifetimeData.Status != JobStatus.Active));
