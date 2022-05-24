@@ -70,8 +70,8 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             if (string.IsNullOrEmpty(continuationToken)) {
                 throw new ArgumentNullException(nameof(continuationToken));
             }
-            if (_query == null || !_query.HasMoreResults) {
-                throw new InvalidOperationException("Initial query not available or reports no more results.");
+            if (_query == null) {
+                throw new InvalidOperationException("Initial query not available.");
             }
 
             return new DocumentInfoFeed<T>(_query, _logger);
