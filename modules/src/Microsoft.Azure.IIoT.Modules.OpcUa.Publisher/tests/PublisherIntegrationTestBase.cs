@@ -82,7 +82,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             string[] arguments = default) {
 
             // publishedNodesFile points to the local server on the same machine and port currently as tests are run one at a time (not parallel) it does not need randomly generated port numbers.
-            _ = Task.Run(() => HostPublisherAsync(Mock.Of<ILogger>(), publishedNodesFile, arguments = arguments ?? Array.Empty<string>()));
+            _ = Task.Run(() => HostPublisherAsync(
+                Mock.Of<ILogger>(),
+                publishedNodesFile,
+                arguments ?? Array.Empty<string>()
+            ));
 
             var stopWatch = new Stopwatch();
             stopWatch.Start();

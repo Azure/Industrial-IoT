@@ -2029,52 +2029,60 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
 
-        // ToDo: Add definition for OpcEvents in publishednodesschema.json.
-        [Fact(Skip = "publishednodesschema.json does not contain definition for OpcEvents.")]
-        public async Task PnPlcJobWithAllEventPropertiesTest() {
+        [Fact]
+        public void PnPlcJobWithAllEventPropertiesTest() {
             var pn = new StringBuilder(@"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcEvents"": [
+        ""OpcNodes"": [
             {
                 ""Id"": ""i=2258"",
-                ""SelectClauses"": [
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""EventId""
-                        ],
-                        ""AttributeId"": ""BrowseName"",
-                        ""IndexRange"": ""5:20""
-                    }
-                ],
-                ""WhereClause"": {
-                    ""Elements"": [
+                ""DisplayName"": ""TestingDisplayName"",
+                ""EventFilter"": {
+                    ""SelectClauses"": [
                         {
-                            ""FilterOperator"": ""OfType"",
-                            ""FilterOperands"": [
-                                {
-                                    ""NodeId"": ""i=2041"",
-                                    ""BrowsePath"": [
-                                        ""EventId""
-                                    ],
-                                    ""AttributeId"": ""BrowseName"",
-                                    ""Value"": ""ns=2;i=235"",
-                                    ""IndexRange"": ""5:20"",
-                                    ""Index"": 10,
-                                    ""Alias"": ""Test"",
-                                }
-                            ]
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""EventId""
+                            ],
+                            ""AttributeId"": ""BrowseName"",
+                            ""IndexRange"": ""5:20""
                         }
-                    ]
+                    ],
+                    ""WhereClause"": {
+                        ""Elements"": [
+                            {
+                                ""FilterOperator"": ""OfType"",
+                                ""FilterOperands"": [
+                                    {
+                                        ""NodeId"": ""i=2041"",
+                                        ""BrowsePath"": [
+                                            ""EventId""
+                                        ],
+                                        ""AttributeId"": ""BrowseName"",
+                                        ""Value"": ""ns=2;i=235"",
+                                        ""IndexRange"": ""5:20"",
+                                        ""Index"": 10,
+                                        ""Alias"": ""Test"",
+                                    }
+                                ]
+                            }
+                        ]
+                    }
                 }
             }
         ]
     }
 ]
 ");
-            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            // ToDo: Add definition for events in schema validator.
+            //using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            //var publishedNodesSchemaContent = await schemaReader.ReadToEndAsync().ConfigureAwait(false);
+            //using var publishedNodesSchemaFile = new StringReader(publishedNodesSchemaContent);
+
+            TextReader publishedNodesSchemaFile = null;
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -2084,7 +2092,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                 engineConfigMock.Object, clientConfignMock.Object);
 
             var standaloneCli = new StandaloneCliModel();
-            var entries = converter.Read(pn.ToString(), new StringReader(await schemaReader.ReadToEndAsync()));
+            var entries = converter.Read(pn.ToString(), publishedNodesSchemaFile);
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
 
             // Check jobs
@@ -2098,7 +2106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
 
             // Check model
             var model = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
-            Assert.Equal("i=2258", model.Id);
+            Assert.Equal("TestingDisplayName", model.Id);
             Assert.Equal("i=2258", model.EventNotifier);
 
             // Check select clauses
@@ -2125,9 +2133,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Equal("Test", model.WhereClause.Elements[0].FilterOperands[0].Alias);
         }
 
-        // ToDo: Parts of job converter for OpcEvents are commented out for now. So parts of the test that check this bellow are also commented out.
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now.")]
-        public async Task PnPlcMultiJob1TestWithDataItemsAndEvents() {
+        [Fact]
+        public void PnPlcMultiJob1TestWithDataItemsAndEvents() {
             var pn = @"
 [
     {
@@ -2146,32 +2153,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
         ""EndpointUrl"": ""opc.tcp://localhost3:50000"",
         ""OpcNodes"": [
             {
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
-            }
-        ],
-        ""OpcEvents"": [
+                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"",
+                ""DisplayName"": ""AlternatingBoolean""
+            },
             {
                 ""Id"": ""i=2253"",
                 ""OpcPublishingInterval"": 5000,
-                ""SelectClauses"": [
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""EventId""
-                        ]
-                    }
-                ],
-                ""WhereClause"": {
-                    ""Elements"": [
+                ""EventFilter"": {
+                    ""SelectClauses"": [
                         {
-                            ""FilterOperator"": ""OfType"",
-                            ""FilterOperands"": [
-                                {
-                                    ""Value"": ""ns=2;i=235""
-                                }
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""EventId""
                             ]
                         }
-                    ]
+                    ],
+                    ""WhereClause"": {
+                        ""Elements"": [
+                            {
+                                ""FilterOperator"": ""OfType"",
+                                ""FilterOperands"": [
+                                    {
+                                        ""Value"": ""ns=2;i=235""
+                                    }
+                                ]
+                            }
+                        ]
+                    }
                 }
             }
         ]
@@ -2192,7 +2200,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
     }
 ]
 ";
-            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+
+            // ToDo: Add definition for events in schema validator.
+            //using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            //var publishedNodesSchemaContent = await schemaReader.ReadToEndAsync().ConfigureAwait(false);
+            //using var publishedNodesSchemaFile = new StringReader(publishedNodesSchemaContent);
+
+            TextReader publishedNodesSchemaFile = null;
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -2202,7 +2216,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                 engineConfigMock.Object, clientConfignMock.Object);
 
             var standaloneCli = new StandaloneCliModel();
-            var entries = converter.Read(pn.ToString(), new StringReader(await schemaReader.ReadToEndAsync()));
+            var entries = converter.Read(pn, publishedNodesSchemaFile);
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
 
             Assert.Equal(4, jobs.Count);
@@ -2222,19 +2236,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Empty(jobs[3].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
             var dataItemModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
-            Assert.Equal("i=2258", dataItemModel.Id);
             Assert.Equal("i=2258", dataItemModel.PublishedVariableNodeId);
 
             dataItemModel = jobs[1].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
-            Assert.Equal("ns=0;i=2261", dataItemModel.Id);
             Assert.Equal("ns=0;i=2261", dataItemModel.PublishedVariableNodeId);
 
             dataItemModel = jobs[2].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
-            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean", dataItemModel.Id);
+            Assert.Equal("AlternatingBoolean", dataItemModel.Id);
             Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean", dataItemModel.PublishedVariableNodeId);
 
             var eventModel = jobs[2].WriterGroup.DataSetWriters[1].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
-            Assert.Equal("i=2253", eventModel.Id);
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Single(eventModel.SelectClauses);
             Assert.Equal("i=2041", eventModel.SelectClauses[0].TypeDefinitionId);
@@ -2247,97 +2258,99 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Equal("ns=2;i=235", eventModel.WhereClause.Elements[0].FilterOperands[0].Value);
         }
 
-        // ToDo: Add definition for OpcEvents in publishednodesschema.json.
-        [Fact (Skip = "publishednodesschema.json does not contain definition for OpcEvents.")]
-        public async Task PnPlcJobTestWithEvents() {
+        [Fact]
+        public void PnPlcJobTestWithEvents() {
             var pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
         ""UseSecurity"": false,
-        ""OpcEvents"": [
+        ""OpcNodes"": [
             {
                 ""Id"": ""i=2253"",
+                ""DisplayName"": ""DisplayName2253"",
                 ""OpcPublishingInterval"": 5000,
-                ""SelectClauses"": [
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""EventId""
-                        ]
-                    },
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""EventType""
-                        ]
-                    },
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""SourceNode""
-                        ]
-                    },
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""SourceName""
-                        ]
-                    },
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""Time""
-                        ]
-                    },
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""ReceiveTime""
-                        ]
-                    },
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""LocalTime""
-                        ]
-                    },
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""Message""
-                        ]
-                    },
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""Severity""
-                        ]
-                    },
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""2:CycleId""
-                        ]
-                    },
-                    {
-                        ""TypeDefinitionId"": ""i=2041"",
-                        ""BrowsePath"": [
-                            ""2:CurrentStep""
-                        ]
-                    }
-                ],
-                ""WhereClause"": {
-                    ""Elements"": [
+                ""EventFilter"": {
+                    ""SelectClauses"": [
                         {
-                            ""FilterOperator"": ""OfType"",
-                            ""FilterOperands"": [
-                                {
-                                    ""Value"": ""ns=2;i=235""
-                                }
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""EventId""
+                            ]
+                        },
+                        {
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""EventType""
+                            ]
+                        },
+                        {
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""SourceNode""
+                            ]
+                        },
+                        {
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""SourceName""
+                            ]
+                        },
+                        {
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""Time""
+                            ]
+                        },
+                        {
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""ReceiveTime""
+                            ]
+                        },
+                        {
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""LocalTime""
+                            ]
+                        },
+                        {
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""Message""
+                            ]
+                        },
+                        {
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""Severity""
+                            ]
+                        },
+                        {
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""2:CycleId""
+                            ]
+                        },
+                        {
+                            ""TypeDefinitionId"": ""i=2041"",
+                            ""BrowsePath"": [
+                                ""2:CurrentStep""
                             ]
                         }
-                    ]
+                    ],
+                    ""WhereClause"": {
+                        ""Elements"": [
+                            {
+                                ""FilterOperator"": ""OfType"",
+                                ""FilterOperands"": [
+                                    {
+                                        ""Value"": ""ns=2;i=235""
+                                    }
+                                ]
+                            }
+                        ]
+                    }
                 }
             }
         ]
@@ -2345,7 +2358,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
 ]
 ";
 
-            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            // ToDo: Add definition for events in schema validator.
+            //using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            //var publishedNodesSchemaContent = await schemaReader.ReadToEndAsync().ConfigureAwait(false);
+            //using var publishedNodesSchemaFile = new StringReader(publishedNodesSchemaContent);
+
+            TextReader publishedNodesSchemaFile = null;
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -2355,7 +2373,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                 engineConfigMock.Object, clientConfignMock.Object);
 
             var standaloneCli = new StandaloneCliModel();
-            var entries = converter.Read(pn.ToString(), new StringReader(await schemaReader.ReadToEndAsync()));
+            var entries = converter.Read(pn, publishedNodesSchemaFile);
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
 
             Assert.NotEmpty(jobs);
@@ -2368,7 +2386,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
 
             var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
-            Assert.Equal("i=2253", eventModel.Id);
+            Assert.Equal("DisplayName2253", eventModel.Id);
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal(11, eventModel.SelectClauses.Count);
             Assert.All(eventModel.SelectClauses, x => {
@@ -2390,23 +2408,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             }, eventModel.SelectClauses.Select(x => x.BrowsePath[0]));
         }
 
-        // ToDo: Add definition for OpcEvents in publishednodesschema.json.
-        [Fact(Skip = "publishednodesschema.json does not contain definition for OpcEvents.")]
-        public async Task PnPlcJobTestWithPendingAlarms() {
+        [Fact]
+        public void PnPlcJobTestWithPendingAlarms() {
             var pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
         ""UseSecurity"": false,
-        ""OpcEvents"": [
+        ""OpcNodes"": [
             {
                 ""Id"": ""i=2253"",
                 ""OpcPublishingInterval"": 5000,
-                ""TypeDefinitionId"": ""ns=2;i=235"",
-                ""PendingAlarms"": {
-                    ""IsEnabled"": true,
-                    ""UpdateInterval"": 10000,
-                    ""SnapshotInterval"": 20000
+                ""EventFilter"": {
+                    ""TypeDefinitionId"": ""ns=2;i=235"",
+                    ""PendingAlarms"": {
+                        ""IsEnabled"": true,
+                        ""UpdateInterval"": 10000,
+                        ""SnapshotInterval"": 20000
+                    }
                 }
             }
         ]
@@ -2414,7 +2433,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
 ]
 ";
 
-            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            // ToDo: Add definition for events in schema validator.
+            //using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            //var publishedNodesSchemaContent = await schemaReader.ReadToEndAsync().ConfigureAwait(false);
+            //using var publishedNodesSchemaFile = new StringReader(publishedNodesSchemaContent);
+
+            TextReader publishedNodesSchemaFile = null;
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -2424,7 +2448,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                 engineConfigMock.Object, clientConfignMock.Object);
 
             var standaloneCli = new StandaloneCliModel();
-            var entries = converter.Read(pn.ToString(), new StringReader(await schemaReader.ReadToEndAsync()));
+            var entries = converter.Read(pn, publishedNodesSchemaFile);
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
 
             Assert.NotEmpty(jobs);
@@ -2437,7 +2461,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
 
             var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
-            Assert.Equal("i=2253", eventModel.Id);
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal("ns=2;i=235", eventModel.TypeDefinitionId);
             Assert.NotNull(eventModel.PendingAlarms);
