@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 $"WHERE a.{nameof(ApplicationRegistration.DeviceType)} = '{IdentityType.Application}' ";
             var client = _applications.OpenSqlClient();
             var compiled = continuation != null ?
-                client.Continue<string>(continuation, pageSize) :
+                client.Continue<string>(query, continuation, null, pageSize) :
                 client.Query<string>(query, null, pageSize);
             // Read results
             var results = await compiled.ReadAsync(ct);
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 $"WHERE a.{nameof(ApplicationRegistration.DeviceType)} = '{IdentityType.Application}' ";
             var client = _applications.OpenSqlClient();
             var compiled = continuation != null ?
-                client.Continue<ApplicationRegistration>(continuation, pageSize) :
+                client.Continue<ApplicationRegistration>(query, continuation, null, pageSize) :
                 client.Query<ApplicationRegistration>(query, null, pageSize);
             // Read results
             var results = await compiled.ReadAsync(ct);
