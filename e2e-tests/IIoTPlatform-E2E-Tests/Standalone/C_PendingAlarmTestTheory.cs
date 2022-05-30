@@ -24,14 +24,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         : base(context, output) {
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(10)]
+        [Fact, PriorityOrder(10)]
         public async void Test_VerifyDataAvailableAtIoTHub_Expect_PendingAlarmsView() {
 
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --alm --pn=50000"},
-                _timeoutToken);
+                _timeoutToken).ConfigureAwait(false);
 
             var messages = _consumer.ReadPendingAlarmMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken);
 
@@ -41,7 +40,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView()
             );
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken).ConfigureAwait(false);
             // take any message
             var ev = await messages
                 .FirstAsync(_timeoutToken);

@@ -22,8 +22,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             : base(context, output) {
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(10)]
+        [Fact, PriorityOrder(10)]
         public async void TestACI_VerifyEnd2EndThroughputAndLatency() {
 
             // Settings
@@ -38,7 +37,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.CreateSimulationContainerAsync(_context,
                 new List<string> { "/bin/sh", "-c", $"./opcplc --autoaccept --ei={eventInstances} --er={eventIntervalPerInstanceMs} --pn=50000" },
                 _timeoutToken,
-                numInstances: instances);
+                numInstances: instances).ConfigureAwait(false);
 
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemEventTypePayload>(_writerId, _timeoutToken);
 
@@ -47,7 +46,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken).ConfigureAwait(false);
 
             const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
             var fullData = await messages

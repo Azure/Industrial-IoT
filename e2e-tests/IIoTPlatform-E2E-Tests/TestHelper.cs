@@ -872,7 +872,7 @@ namespace IIoTPlatform_E2E_Tests {
                         new JProperty("EndpointUrl", $"opc.tcp://{host}:{port}"),
                         new JProperty("UseSecurity", false),
                         new JProperty("DataSetWriterId", writerId),
-                        new JProperty("OpcEvents", opcEvents)))
+                        new JProperty("OpcNodes", opcEvents)))
                 ), Formatting.Indented);
         }
 

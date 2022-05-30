@@ -492,48 +492,52 @@ namespace IIoTPlatform_E2E_Tests {
                         ""EndpointUrl"": ""opc.tcp://{host}:{port}"",
                         ""UseSecurity"": false,
                         ""DataSetWriterId"":""{writerId}"",
-                        ""OpcEvents"": [
+                        ""OpcNodes"": [
                             {{
                                 ""Id"": ""ns=0;i=2253"",
                                 ""DisplayName"": ""SimpleEvents"",
-                                ""SelectClauses"": [
-                                    {{
-                                        ""TypeDefinitionId"": ""i=2041"",
-                                        ""BrowsePath"": [
-                                            ""EventId""
-                                        ]
-                                    }},
-                                    {{
-                                        ""TypeDefinitionId"": ""i=2041"",
-                                        ""BrowsePath"": [
-                                            ""Message""
-                                        ]
-                                    }},
-                                    {{
-                                        ""TypeDefinitionId"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"",
-                                        ""BrowsePath"": [
-                                            ""http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId""
-                                        ]
-                                    }},
-                                    {{
-                                        ""TypeDefinitionId"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"",
-                                        ""BrowsePath"": [
-                                            ""http://microsoft.com/Opc/OpcPlc/SimpleEvents#CurrentStep""
-                                        ]
-                                    }}
-                                ],
-                                ""WhereClause"": {{
-                                    ""Elements"": [
+                                ""QueueSize"": 10,
+                                ""EventFilter"": {{
+                                    ""SelectClauses"": [
                                         {{
-                                            ""FilterOperator"": ""OfType"",
-                                            ""FilterOperands"": [
-                                                {{
-                                                    ""Value"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2""
-                                                }}
+                                            ""TypeDefinitionId"": ""i=2041"",
+                                            ""BrowsePath"": [
+                                                ""EventId""
+                                            ]
+                                        }},
+                                        {{
+                                            ""TypeDefinitionId"": ""i=2041"",
+                                            ""BrowsePath"": [
+                                                ""Message""
+                                            ]
+                                        }},
+                                        {{
+                                            ""TypeDefinitionId"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"",
+                                            ""BrowsePath"": [
+                                                ""http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId""
+                                            ]
+                                        }},
+                                        {{
+                                            ""TypeDefinitionId"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"",
+                                            ""BrowsePath"": [
+                                                ""http://microsoft.com/Opc/OpcPlc/SimpleEvents#CurrentStep""
                                             ]
                                         }}
-                                    ]
+                                    ],
+                                    ""WhereClause"": {{
+                                        ""Elements"": [
+                                            {{
+                                                ""FilterOperator"": ""OfType"",
+                                                ""FilterOperands"": [
+                                                    {{
+                                                        ""Value"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2""
+                                                    }}
+                                                ]
+                                            }}
+                                        ]
+                                    }}
                                 }}
+
                             }}
                         ]
                     }}
@@ -545,19 +549,22 @@ namespace IIoTPlatform_E2E_Tests {
                 return new JArray(
                     new JObject(
                         new JProperty("Id", "i=2253"),
-                        new JProperty("TypeDefinitionId", typeDefinitionId)));
+                        new JProperty("QueueSize", 150),
+                        new JProperty("EventFilter", new JObject(
+                                new JProperty("TypeDefinitionId", typeDefinitionId)))));
             }
 
             public static JArray PendingAlarmsForAlarmsView() {
                 return new JArray(
                     new JObject(
                         new JProperty("Id", "i=2253"),
-                        new JProperty("TypeDefinitionId", "i=2915"),
-                        new JProperty("PendingAlarms", new JObject(
-                            new JProperty("IsEnabled", "true"),
-                            new JProperty("UpdateInterval", 10),
-                            new JProperty("SnapshotInterval", 20)
-                        ))));
+                        new JProperty("EventFilter", new JObject(
+                            new JProperty("TypeDefinitionId", "i=2915"),
+                            new JProperty("PendingAlarms", new JObject(
+                                new JProperty("IsEnabled", "true"),
+                                new JProperty("UpdateInterval", 10),
+                                new JProperty("SnapshotInterval", 20)
+                            ))))));
             }
         }
     }
