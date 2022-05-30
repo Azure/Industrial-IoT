@@ -73,10 +73,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             int? maxResults, CancellationToken ct) {
 
             var client = _documents.OpenSqlClient();
+            var queryName = CreateQuery(out var queryParameters);
             var results = continuationToken != null ?
-                client.Continue<WorkerDocument>(continuationToken, maxResults) :
-                client.Query<WorkerDocument>(CreateQuery(out var queryParameters),
-                    queryParameters, maxResults);
+                client.Continue<WorkerDocument>(queryName, continuationToken, queryParameters, maxResults) :
+                client.Query<WorkerDocument>(queryName, queryParameters, maxResults);
             if (!results.HasMore()) {
                 return new WorkerInfoListModel();
             }

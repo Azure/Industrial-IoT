@@ -135,10 +135,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         public async Task<JobInfoListModel> QueryAsync(JobInfoQueryModel query,
             string continuationToken, int? maxResults, CancellationToken ct) {
             var client = _documents.OpenSqlClient();
+            var queryName = CreateQuery(query, out var queryParameters);
             var results = continuationToken != null ?
-                client.Continue<JobDocument>(continuationToken, maxResults) :
-                client.Query<JobDocument>(CreateQuery(query, out var queryParameters),
-                    queryParameters, maxResults);
+                client.Continue<JobDocument>(queryName, continuationToken, queryParameters, maxResults) :
+                client.Query<JobDocument>(queryName, queryParameters, maxResults);
             if (!results.HasMore()) {
                 return new JobInfoListModel();
             }

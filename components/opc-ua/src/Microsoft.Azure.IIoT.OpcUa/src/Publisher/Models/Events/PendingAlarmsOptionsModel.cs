@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         public bool IsEnabled { get; set; } = false;
 
         /// <summary>
-        /// Time interval for sending pending interval updates
+        /// Time interval for sending pending interval updates in seconds.
         /// </summary>
         [DataMember(EmitDefaultValue = true)]
         public int? UpdateInterval { get; set; } = 30000;
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         }
 
         /// <summary>
-        /// Time interval for sending pending interval snapshot
+        /// Time interval for sending pending interval snapshot in seconds.
         /// </summary>
         [DataMember(EmitDefaultValue = true)]
         public int? SnapshotInterval { get; set; } = 60000;
