@@ -29,7 +29,7 @@ steps:
 
 - task: AzureCLI@2
   displayName: 'Set Service Principal Environment Variables for Azure'
-  name: promoteserviceprincipal
+  name: setEnvVariableForAzure
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
