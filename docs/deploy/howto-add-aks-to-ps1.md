@@ -180,7 +180,7 @@ defaultBackend:
 Install `ingress-nginx/ingress-nginx` Helm chart using `ingress-nginx.yaml` file created above.
 
 ```bash
-helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 4.0.6 -f ingress-nginx.yaml
+helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 4.0.19 -f ingress-nginx.yaml
 ```
 
 Documentation for `ingress-nginx/ingress-nginx` Helm chart can be found [here](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx).
