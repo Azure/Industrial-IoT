@@ -1145,7 +1145,6 @@ namespace IIoTPlatform_E2E_Tests {
             return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken)
                 .Select(x =>
                     new PendingAlarmEventData<T> {
-                        IsPayloadCompressed = x.isPayloadCompressed,
                         Messages = x.messages.ToObject<PendingAlarmMessages<T>>()
                     }
                 );
@@ -1166,7 +1165,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{JObject}"/> to be used for iterating over messages.</returns>
-        public static async IAsyncEnumerable<(DateTime enqueuedTime, string publisherId, JObject messages, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(
+        public static async IAsyncEnumerable<(DateTime enqueuedTime, string publisherId, JObject messages)> ReadMessagesFromWriterIdAsync(
             this EventHubConsumerClient consumer,
             string dataSetWriterId,
             [EnumeratorCancellation] CancellationToken cancellationToken) {
@@ -1174,20 +1173,7 @@ namespace IIoTPlatform_E2E_Tests {
             await foreach (var partitionEvent in events.WithCancellation(cancellationToken)) {
                 var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[MessageSystemPropertyNames.EnqueuedTime];
                 JArray batchedMessages = null;
-                bool isPayloadCompressed = (string)partitionEvent.Data.Properties["$$ContentEncoding"] == "gzip";
-                if (isPayloadCompressed) {
-                    var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
-                    using (var input = new MemoryStream(compressedPayload)) {
-                        using (var gs = new GZipStream(input, CompressionMode.Decompress)) {
-                            using (var textReader = new StreamReader(gs)) {
-                                batchedMessages = JsonConvert.DeserializeObject<JArray>(await textReader.ReadToEndAsync());
-                            }
-                        }
-                    }
-                }
-                else {
-                    batchedMessages = partitionEvent.DeserializeJson<JArray>();
-                }
+                batchedMessages = partitionEvent.DeserializeJson<JArray>();
 
                 // Expect all messages to be the same
                 var messageIds = new HashSet<string>();
@@ -1208,7 +1194,7 @@ namespace IIoTPlatform_E2E_Tests {
                         Assert.Equal(1, innerMessage.MetaDataVersion.MajorVersion.Value);
                         Assert.Equal(0, innerMessage.MetaDataVersion.MinorVersion.Value);
 
-                        yield return (enqueuedTime, publisherId, (JObject)innerMessage.Payload, isPayloadCompressed);
+                        yield return (enqueuedTime, publisherId, (JObject)innerMessage.Payload);
                     }
                 }
             }
