@@ -30,13 +30,15 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// Continue a previously run query using continuation token
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="queryString"></param>
         /// <param name="continuationToken"></param>
+        /// <param name="parameters"></param>
         /// <param name="pageSize"></param>
         /// <param name="partitionKey"></param>
         /// <returns></returns>
-        IResultFeed<IDocumentInfo<T>> Continue<T>(
-            string continuationToken, int? pageSize = null,
-            string partitionKey = null);
+        IResultFeed<IDocumentInfo<T>> Continue<T>(string queryString,
+            string continuationToken,IDictionary<string, object> parameters = null,
+            int? pageSize = null,string partitionKey = null);
 
         /// <summary>
         /// Drop all items that match the query
