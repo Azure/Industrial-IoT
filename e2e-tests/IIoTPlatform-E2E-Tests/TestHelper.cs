@@ -1114,7 +1114,7 @@ namespace IIoTPlatform_E2E_Tests {
         public static IAsyncEnumerable<EventData<T>> ReadMessagesFromWriterIdAsync<T>(
             this EventHubConsumerClient consumer,
             string dataSetWriterId,
-            [EnumeratorCancellation] CancellationToken cancellationToken) where T : BaseEventTypePayload
+            CancellationToken cancellationToken) where T : BaseEventTypePayload
             => ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken)
                 .Select(x =>
                     new EventData<T> {
@@ -1141,7 +1141,7 @@ namespace IIoTPlatform_E2E_Tests {
         public static IAsyncEnumerable<PendingAlarmEventData<T>> ReadPendingAlarmMessagesFromWriterIdAsync<T>(
             this EventHubConsumerClient consumer,
             string dataSetWriterId,
-            [EnumeratorCancellation] CancellationToken cancellationToken) where T : BaseEventTypePayload {
+            CancellationToken cancellationToken) where T : BaseEventTypePayload {
             return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken)
                 .Select(x =>
                     new PendingAlarmEventData<T> {
