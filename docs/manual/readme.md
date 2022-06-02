@@ -2274,9 +2274,9 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    `helm get values azure-industrial-iot --namespace azure-industrial-iot > values.yaml`
 
-3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from `2.7.206` version to `2.8.2`.
+3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from `2.7.206` version to `2.8.3`.
 
-   Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to `2.8.2` from `2.7.206`. If there isn’t one, please add it.
+   Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to `2.8.3` from `2.7.206`. If there isn’t one, please add it.
 
 4. After that we can update the existing release with new images. For that we will use `values.yaml` that we modified previously:
 
@@ -2284,7 +2284,7 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    This command will keep existing setup unchanged, except for the version of docker images that are deployed.
 
-It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is `0.4.2` which by default deploys `2.8.2` version of the components. The same version can be used for deployment of `2.8.0` and higher `2.8.x` versions. For the version compatibility matrix, please check out [how to deplyo using Helm](../deploy/howto-deploy-helm.md).
+It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is `0.4.2` which by default deploys `2.8.3` version of the components. The same version can be used for deployment of `2.8.0` and higher `2.8.x` versions. For the version compatibility matrix, please check out [how to deplyo using Helm](../deploy/howto-deploy-helm.md).
 
 #### IoT Edge Modules
 
@@ -2308,7 +2308,7 @@ Here are resources of a sample deployment:
 
 <img src="media/image52.png" style="width:6.29166in;height:2.54316in" />
 
-Then, go to one of those resources in Azure Portal, then to Container Settings under Settings on left pane, then change tag of the image specified in "Full Image Name and Tag" to the version that is desired, let’s say `2.8.2`, and then click on Save.
+Then, go to one of those resources in Azure Portal, then to Container Settings under Settings on left pane, then change tag of the image specified in "Full Image Name and Tag" to the version that is desired, let’s say `2.8.3`, and then click on Save.
 
 <img src="media/image53.png" style="width:6.29166in;height:4.23536in" />
 
