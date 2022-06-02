@@ -66,7 +66,7 @@ stages:
     - template: steps/deploynestededgeresources.yml
 
   - job: deploytestresources
-    condition: and(not(canceled()), or(eq(dependencies.deploynestedtestresources.result, 'Succeeded'), eq(dependencies.deploynestedtestresources.result, 'Skipped')))
+    condition: and(and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded')), or(eq(dependencies.deploynestedtestresources.result, 'Succeeded'), eq(dependencies.deploynestedtestresources.result, 'Skipped')))
     dependsOn: deploynestedtestresources
     displayName: 'Deploy Test Resources'
     steps:
