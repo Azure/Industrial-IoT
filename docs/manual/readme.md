@@ -2284,7 +2284,7 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    This command will keep existing setup unchanged, except for the version of docker images that are deployed.
 
-It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is `0.4.2` which by default deploys `2.8.3` version of the components. The same version can be used for deployment of `2.8.0` and higher `2.8.x` versions. For the version compatibility matrix, please check out [how to deplyo using Helm](../deploy/howto-deploy-helm.md).
+It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is `0.4.2` which by default deploys `2.8.2` version of the components. The same version can be used for deployment of `2.8.0` and higher `2.8.x` versions. For the version compatibility matrix, please check out [how to deplyo using Helm](../deploy/howto-deploy-helm.md).
 
 #### IoT Edge Modules
 
