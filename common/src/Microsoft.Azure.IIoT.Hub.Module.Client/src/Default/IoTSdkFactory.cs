@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Microsoft.Azure.Devices.Shared;
+    using Prometheus;
     using Serilog;
     using Serilog.Events;
     using System;
@@ -21,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Threading.Tasks;
     using System.Threading;
     using System.Diagnostics.Tracing;
-    using Prometheus;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
@@ -316,6 +316,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
+            public async Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.SendEventBatchAsync(outputName, messages);
+            }
+
+            /// <inheritdoc />
             public Task SetMethodHandlerAsync(string methodName,
                 MethodCallback methodHandler, object userContext) {
                 return _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
@@ -385,11 +393,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (status == ConnectionStatus.Connected) {
                     logger.Information("{counter}: Module {deviceId}_{moduleId} reconnected " +
                         "due to {reason}.", _reconnectCounter, deviceId, moduleId, reason);
-                    kReconnectionStatus.WithLabels(moduleId, deviceId, DateTime.UtcNow.ToString()).Set(_reconnectCounter);
+                    kReconnectionStatus.WithLabels(moduleId, deviceId).Set(_reconnectCounter);
                     _reconnectCounter++;
                     return;
                 }
-                kDisconnectionStatus.WithLabels(moduleId, deviceId, DateTime.UtcNow.ToString()).Set(_reconnectCounter);
+                kDisconnectionStatus.WithLabels(moduleId, deviceId).Set(_reconnectCounter);
                 logger.Information("{counter}: Module {deviceId}_{moduleId} disconnected " +
                     "due to {reason} - now {status}...", _reconnectCounter, deviceId, moduleId,
                         reason, status);
@@ -431,12 +439,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             private static readonly Gauge kReconnectionStatus = Metrics
                 .CreateGauge("iiot_edge_reconnected", "reconnected count",
                     new GaugeConfiguration {
-                        LabelNames = new[] { "module", "device", "timestamp_utc"}
+                        LabelNames = new[] { "module", "device"}
                     });
             private static readonly Gauge kDisconnectionStatus = Metrics
                 .CreateGauge("iiot_edge_disconnected", "reconnected count",
                     new GaugeConfiguration {
-                        LabelNames = new[] { "module", "device", "timestamp_utc"}
+                        LabelNames = new[] { "module", "device"}
                     });
         }
 
@@ -454,9 +462,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// Create client
             /// </summary>
             /// <param name="client"></param>
-            internal DeviceClientAdapter(DeviceClient client) {
-                _client = client ??
-                    throw new ArgumentNullException(nameof(client));
+            /// <param name="logger"></param>
+            internal DeviceClientAdapter(DeviceClient client, ILogger logger) {
+                _client = client ?? throw new ArgumentNullException(nameof(client));
+                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             }
 
             /// <summary>
@@ -476,7 +485,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 ITransportSettings transportSetting, TimeSpan timeout,
                 IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
                 var client = Create(cs, transportSetting);
-                var adapter = new DeviceClientAdapter(client);
+                var adapter = new DeviceClientAdapter(client, logger);
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
@@ -511,9 +520,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(string outputName, Message message) {
-                throw new InvalidOperationException(
-                    "DeviceClient does not support specifying output target.");
+            public async Task SendEventAsync(string outputName, Message message) {
+                if (IsClosed) {
+                    return;
+                }
+                _logger.Debug("DeviceClientAdapter does not support output routing. Falling back to regular SendEventAsync()");
+                await _client.SendEventAsync(message);
             }
 
             /// <inheritdoc />
@@ -521,6 +533,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (IsClosed) {
                     return;
                 }
+                await _client.SendEventBatchAsync(messages);
+            }
+
+            /// <inheritdoc />
+            public async Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
+                if (IsClosed) {
+                    return;
+                }
+                _logger.Debug("DeviceClientAdapter does not support output routing. Falling back to regular SendEventBatchAsync()");
                 await _client.SendEventBatchAsync(messages);
             }
 
@@ -598,14 +619,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (status == ConnectionStatus.Connected) {
                     logger.Information("{counter}: Device {deviceId} reconnected " +
                         "due to {reason}.", _reconnectCounter, deviceId, reason);
-                    kReconnectionStatus.WithLabels(deviceId, DateTime.UtcNow.ToString()).Set(_reconnectCounter);
+                    kReconnectionStatus.WithLabels(deviceId).Set(_reconnectCounter);
                     _reconnectCounter++;
                     return;
                 }
                 logger.Information("{counter}: Device {deviceId} disconnected " +
                     "due to {reason} - now {status}...", _reconnectCounter, deviceId,
                         reason, status);
-                kDisconnectionStatus.WithLabels(deviceId, DateTime.UtcNow.ToString()).Set(_reconnectCounter);
+                kDisconnectionStatus.WithLabels(deviceId).Set(_reconnectCounter);
                 if (IsClosed) {
                     // Already closed - nothing to do
                     return;
@@ -637,16 +658,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             private readonly DeviceClient _client;
+            private readonly ILogger _logger;
             private int _reconnectCounter;
             private static readonly Gauge kReconnectionStatus = Metrics
                 .CreateGauge("iiot_edge_device_reconnected", "reconnected count",
                     new GaugeConfiguration {
-                        LabelNames = new[] { "device", "timestamp_utc" }
+                        LabelNames = new[] { "device"}
                     });
             private static readonly Gauge kDisconnectionStatus = Metrics
                 .CreateGauge("iiot_edge_device_disconnected", "disconnected count",
                     new GaugeConfiguration {
-                        LabelNames = new[] { "device", "timestamp_utc" }
+                        LabelNames = new[] { "device"}
                     });
         }
 

@@ -57,7 +57,7 @@
         "modules": {
           "discovery": {
             "settings": {
-              "image": "$upstream:443/discovery:2.7.206",
+              "image": "$upstream:443/discovery:2.8.2",
               "createOptions": "{\"Hostname\":\"discovery\",\"Cmd\":[\"PkiRootPath=/mount/pki\"],\"HostConfig\":{\"Binds\":[\"/mount:/mount\"]}}"
             },
             "type": "docker",
@@ -67,7 +67,7 @@
           },
           "publisher": {
             "settings": {
-              "image": "$upstream:443/opc-publisher:2.7.206",
+              "image": "$upstream:443/opc-publisher:2.8.2",
               "createOptions": "{\"Hostname\":\"publisher\",\"Cmd\":[\"PkiRootPath=/mount/pki\",\"--pf=/mount/published_nodes.json\",\"--lf=/mount/publisher.log\",\"--mm=Samples\",\"--me=Json\",\"--fm=true\",\"--fd=false\",\"--bs=100\",\"--BatchTriggerInterval=00:00:00.500\",\"--di=20\",\"--sc=1\",\"--aa\"],\"HostConfig\":{\"PortBindings\":{\"9702/tcp\":[{\"HostPort\":\"9702\"}]},\"Binds\":[\"/mount:/mount\"]},\"ExposedPorts\": {\"9702/tcp\": {}}}"
             },
             "type": "docker",
@@ -77,7 +77,7 @@
           },
           "twin": {
             "settings": {
-              "image": "$upstream:443/opc-twin:2.7.206",
+              "image": "$upstream:443/opc-twin:2.8.2",
               "createOptions": "{\"Hostname\":\"twin\",\"Cmd\":[\"PkiRootPath=/mount/pki\"],\"HostConfig\":{\"Binds\":[\"/mount:/mount\"]}}"
             },
             "type": "docker",

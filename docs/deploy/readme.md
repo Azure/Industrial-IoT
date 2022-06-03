@@ -44,7 +44,7 @@ The deployment script allows to select which set of components to deploy using d
 
   - [Virtual machine](https://azure.microsoft.com/services/virtual-machines/), Virtual network, IoT Edge used for a factory simulation to show the capabilities of the platform and to generate sample telemetry. By default, 4 [Virtual Machines](https://azure.microsoft.com/services/virtual-machines/), 2 B2 SKU (1 Linux IoT Edge gateway and 1 Windows IoT Edge gateway) and 2 B1 SKU (factory simulation).
 
-- [Azure Kubernetes Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/deploy/howto-deploy-aks.md) should be used to host the cloud microservices
+- [Azure Kubernetes Service](howto-deploy-aks.md) should be used to host the cloud microservices
 
 The types of deployments are the following:
 

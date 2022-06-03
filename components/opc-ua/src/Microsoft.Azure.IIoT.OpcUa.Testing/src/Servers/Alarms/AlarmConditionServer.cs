@@ -38,5 +38,15 @@ namespace Alarms {
             ApplicationConfiguration configuration) {
             return new AlarmConditionServerNodeManager(server, configuration);
         }
+
+        /// <inheritdoc/>
+        public StringCollection NamespacesUris {
+            get {
+                var nameSpaces = new StringCollection {
+                    Namespaces.AlarmCondition
+                };
+                return nameSpaces;
+            }
+        }
     }
 }

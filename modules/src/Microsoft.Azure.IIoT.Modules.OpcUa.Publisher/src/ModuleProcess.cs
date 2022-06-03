@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Autofac;
     using Microsoft.Azure.IIoT.Agent.Framework;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.HealthChecks;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
@@ -27,10 +26,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using Opc.Ua;
     using Prometheus;
     using Serilog;
-    using Serilog.Events;
     using System;
     using System.Diagnostics;
     using System.Runtime.Loader;
@@ -119,7 +116,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
                         healthCheckManager.Start();
-                        SetStackTraceMask();
+
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this).ConfigureAwait(false);
@@ -163,35 +160,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             }
         }
 
-        /// <summary>
-        /// Set stack trace mask based on log level.
-        /// </summary>
-        public void SetStackTraceMask() {
-            switch (LogControl.Level.MinimumLevel) {
-                case LogEventLevel.Fatal:
-                    OpcStackTraceMask = 0;
-                    break;
-                case LogEventLevel.Error:
-                    OpcStackTraceMask = Utils.TraceMasks.Error;
-                    break;
-                case LogEventLevel.Warning:
-                    OpcStackTraceMask = 0;
-                    break;
-                case LogEventLevel.Information:
-                    OpcStackTraceMask = 0;
-                    break;
-                case LogEventLevel.Debug:
-                    OpcStackTraceMask = Utils.TraceMasks.StartStop | Utils.TraceMasks.ExternalSystem | Utils.TraceMasks.Security;
-                    break;
-                case LogEventLevel.Verbose:
-                    OpcStackTraceMask = Utils.TraceMasks.All;
-                    break;
-            }
-            Utils.SetTraceMask(OpcStackTraceMask);
-            Utils.SetTraceOutput(Utils.TraceOutput.DebugAndFile);
-            Utils.SetTraceLog(null, false);
-            Console.WriteLine($"opcstacktracemask set to: 0x{OpcStackTraceMask:X}");
-        }
 
         /// <summary>
         /// Autofac configuration.

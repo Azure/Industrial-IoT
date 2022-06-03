@@ -29,5 +29,10 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// Content encoding of message
         /// </summary>
         public const string ContentEncoding = "$$ContentEncoding";
+
+        /// <summary>
+        /// Custom RoutingInfo for the message
+        /// </summary>
+        public const string RoutingInfo = "$$RoutingInfo";
     }
 }

@@ -121,6 +121,16 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
+            public Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
+                if (!IsClosed) {
+                    foreach (var message in messages) {
+                        Connection.SendEvent(outputName, message);
+                    }
+                }
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc />
             public Task SetMethodHandlerAsync(string methodName,
                 MethodCallback methodHandler, object userContext) {
                 if (!IsClosed) {

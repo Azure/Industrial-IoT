@@ -248,7 +248,7 @@ helm repo update
 kubectl create namespace ingress-nginx
 
 # Install ingress-nginx/ingress-nginx Helm chart
-helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 4.0.6 --timeout 30m0s \
+helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 4.0.19 --timeout 30m0s \
     --set controller.replicaCount=2 \
     --set controller.service.loadBalancerIP=$LOAD_BALANCER_IP \
     --set controller.service.annotations."service\.beta\.kubernetes\.io\/azure-dns-label-name"=$PUBLIC_IP_DNS_LABEL \
@@ -263,7 +263,7 @@ helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingr
 kubectl create namespace cert-manager
 
 # Install jetstack/cert-manager Helm chart
-helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v1.6.1 --timeout 30m0s \
+helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v1.8.0 --timeout 30m0s \
     --set installCRDs=true
 
 # Create Let's Encrypt ClusterIssuer
