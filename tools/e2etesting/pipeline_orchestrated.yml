@@ -27,10 +27,16 @@ schedules:
 #         - refs/heads/release/*
 #         - refs/heads/main
 
+# pool:
+#   name: '$(AgentPool)'
+#   demands:
+#   - agent.os -equals Windows_NT
+
+# pool:
+#   name: Hosted Windows 2019 with VS2019
+
 pool:
-  name: '$(AgentPool)'
-  demands:
-  - agent.os -equals Windows_NT
+  vmImage: 'windows-2019'
 
 variables:
 - template: steps/variables.yml
