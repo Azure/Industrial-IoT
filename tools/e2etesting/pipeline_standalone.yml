@@ -29,9 +29,7 @@ schedules:
 #         - refs/heads/main
 
 pool:
-  name: '$(AgentPool)'
-  demands:
-  - agent.os -equals Windows_NT
+  vmImage: 'windows-2019'
 
 variables:
 - template: steps/variables.yml
