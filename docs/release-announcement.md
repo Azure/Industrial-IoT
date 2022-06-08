@@ -14,6 +14,16 @@ We are pleased to announce the release of version 2.8.2 of our Industrial IoT Pl
 - [OPC Publisher] Added support for setting QueueSize on monitored items for publisher in standalone mode.
 - [OPC Publisher] Hardened the retry mechanism for activating monitored items.
 
+### Backwards Compatibility Notes
+
+- [OPC Publisher] NodeId shows up now in telemetry in the exact format as specified in the configuration. Before 2.8.2, the NodeId was always reported as `Namespace#NodeId`
+    > E.g. : When configuring in pn.json file a NodeId like `nsu=http://mynamespace.com/;i=1`
+    >
+    > - OPC Publisher 2.8.1 telemetry reports `http://mynamespace.com/#i=1`
+    > - OPC Publisher 2.8.2 telemetry reports `nsu=http://mynamespace.com/;i=1`
+    >
+- [OPC Publisher] configuration of duplicate nodeIds in the same data set writer, respectively same subscription is no longer allowed.
+
 ## Azure Industrial IoT Platform Release 2.8.1
 
 We are pleased to announce the release of version 2.8.1 of our Industrial IoT Platform components as the first patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates, bugfixes and performance optimizations.
