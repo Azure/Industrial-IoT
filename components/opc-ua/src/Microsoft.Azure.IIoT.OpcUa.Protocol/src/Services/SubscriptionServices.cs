@@ -859,7 +859,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var publishTime = (notification?.MonitoredItems?.First().Message?.PublishTime).
                         GetValueOrDefault(DateTime.UtcNow);
 
-                    if (_expectedSequenceNumber == sequenceNumber) {
+                    if (isKeepAlive || _expectedSequenceNumber == sequenceNumber) {
+                        // in case of a keepalive,the sequence number is not incremented by the servers
                         _logger.Debug("DataChange for subscription '{subscription}'/'{sessionId}' with sequenceNumber "
                             + "{sequenceNumber}, isKeepAlive {isKeepAlive}, publishTime {PublishTime}",
                             Id, Connection.CreateConnectionId(),
