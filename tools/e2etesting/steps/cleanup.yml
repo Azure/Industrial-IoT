@@ -22,8 +22,8 @@ steps:
     scriptType: 'InlineScript'
     inline: |
       Write-Host "Deleting AD App Registration: '$(ApplicationName)-aks' ..."
-      Remove-AzADApplication -DisplayName "$(ApplicationName)-aks" -Force -ErrorAction SilentlyContinue
+      Remove-AzADApplication -DisplayName "$(ApplicationName)-aks" -ErrorAction SilentlyContinue
       Write-Host "Deleting AD App Registration: '$(ApplicationName)-client' ..."
-      Remove-AzADApplication -DisplayName "$(ApplicationName)-client" -Force -ErrorAction SilentlyContinue
+      Remove-AzADApplication -DisplayName "$(ApplicationName)-client" -ErrorAction SilentlyContinue
       Write-Host "Deleting AD App Registration: '$(ApplicationName)-service' ..."
-      Remove-AzADApplication -DisplayName "$(ApplicationName)-service" -Force -ErrorAction SilentlyContinue
+      Remove-AzADApplication -DisplayName "$(ApplicationName)-service" -ErrorAction SilentlyContinue
