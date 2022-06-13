@@ -72,6 +72,15 @@ steps:
     SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
+- task: AzureKeyVault@1
+  displayName: 'Load secrets from Release Key Vault as variables on Release Branch'
+  condition: startsWith(variables['BranchName'], 'release')
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: '$(ReleaseAcrCredentialsKeyVaultName)'
+    SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
+    RunAsPreJob: true
+
 - task: PowerShell@2
   displayName: Versioning
   name: setVersionInfo
@@ -91,6 +100,18 @@ steps:
     addSpnToEnvironment: true
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
+
+- task: AzureCLI@2
+  displayName: 'Override "ImageNamespace : $(ImageNamespace)" for release branch to "public"'
+  condition: startsWith(variables['BranchName'], 'release')
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ImageNamespace]public"
 
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
