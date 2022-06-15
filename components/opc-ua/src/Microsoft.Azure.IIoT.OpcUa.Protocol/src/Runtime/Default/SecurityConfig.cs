@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
             StoreType = GetStringOrDefault(ApplicationCertificateStoreTypeKey,
                 () => CertificateStoreType.Directory),
             SubjectName = GetStringOrDefault(ApplicationCertificateSubjectNameKey,
-                () => $"CN={GetStringOrDefault(ApplicationNameKey, () => "Micorosft.Azure.IIoT")}," +
+                () => $"CN={GetStringOrDefault(ApplicationNameKey, () => "Microsoft.Azure.IIoT")}," +
                 " C=DE, S=Bav, O=Microsoft, DC=localhost")
         };
 
