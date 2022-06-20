@@ -23,7 +23,7 @@ To deploy all required modules to the Gateway using the Azure Portal...
 6. In the **IoT Edge Custom Module** dialog use `discovery` as name for the module, then specify the container *image URI* as
 
    ```bash
-   mcr.microsoft.com/iotedge/discovery:2.8.2
+   mcr.microsoft.com/iotedge/discovery:2.8.3
    ```
 
    As *create options* use the following JSON:
@@ -40,7 +40,7 @@ To deploy all required modules to the Gateway using the Azure Portal...
 8. In the **IoT Edge Custom Module** dialog use `twin` as name for the module, then specify the container *image URI* as
 
    ```bash
-   mcr.microsoft.com/iotedge/opc-twin:2.8.2
+   mcr.microsoft.com/iotedge/opc-twin:2.8.3
    ```
 
    Leave the *create options* empty.
@@ -50,7 +50,7 @@ To deploy all required modules to the Gateway using the Azure Portal...
 10. In the IoT Edge Custom Module dialog, use `publisher` as name for the module and the container *image URI* as
 
     ```bash
-    mcr.microsoft.com/iotedge/opc-publisher:2.8.2
+    mcr.microsoft.com/iotedge/opc-publisher:2.8.3
     ```
 
     Leave the *create options* empty.
