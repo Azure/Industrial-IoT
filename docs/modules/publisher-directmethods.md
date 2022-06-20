@@ -14,7 +14,7 @@ The following direct methods are exposed:
 - GetDiagnosticInfo_V1
 - AddOrUpdateEndpoints_V1
 
-If you need to migrate your application from OPC Publisher 2.5.x to OPC Publisher 2.8.2, we provide the needed information in a [separate document](./publisher-migrationpath.md).
+If you need to migrate your application from OPC Publisher 2.5.x to OPC Publisher 2.8.2 or latest 2.8.3, we provide the needed information in a [separate document](./publisher-migrationpath.md).
 
 ## Terminology
 
