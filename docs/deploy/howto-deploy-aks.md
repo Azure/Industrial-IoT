@@ -30,7 +30,7 @@
 
 `Microsoft.Azure.IIoT.Deployment` is a command line application for deploying the Azure Industrial IoT solution,
 which deploys the required Azure infrastructure resources and microservices required by the Azure Industrial IoT solution.
-By default, it deploys `2.8.2` version of Azure Industrial IoT microservices.
+By default, it deploys `2.8.3` version of Azure Industrial IoT microservices.
 
 The main difference between the [script based deployment](howto-deploy-all-in-one.md) option is that
 `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
@@ -462,29 +462,29 @@ Command line argument key-value pairs can be specified with:
 
 ### Parameters
 
-| Key                              | Value details                                       | Description                                                                                  | Default                                   |
-|----------------------------------|-----------------------------------------------------|----------------------------------------------------------------------------------------------|-------------------------------------------|
-| `RunMode`                        | Check bellow for list of valid values.              | Determines which steps of Industrial IoT solution deployment will be executed.               | `Full`                                    |
-| `Auth:AzureEnvironment`          | Check bellow for list of valid values.              | Defines which Azure cloud to use.                                                            | `AzureGlobalCloud`                        |
-| `Auth:TenantId`                  | Should be Guid.                                     | Id of the tenant to be used.                                                                 |                                           |
-| `Auth:ClientId`                  | Should be Guid.                                     | ClientId of Service Principal.                                                               |                                           |
-| `Auth:ClientSecret`              | String                                              | ClientSecret of Service Principal.                                                           |                                           |
-| `SubscriptionId`                 | Should be Guid.                                     | Id of Azure Subscription within tenant.                                                      |                                           |
-| `ApplicationName`                | Should be globally unique name.                     | Name of the application deployment.                                                          |                                           |
-| `ApplicationUrl`                 | Used only in `ApplicationRegistration` run mode.    | Base URL that will be used for generating RedirectUris for client application.               |                                           |
-| `ResourceGroup:Name`             |                                                     | Name of the Resource Group where Azure resources will be created.                            |                                           |
-| `ResourceGroup:UseExisting`      | If set, should be `true` or `false`.                | Determines whether an existing Resource Group should be used or a new one should be created. |                                           |
-| `ResourceGroup:Region`           | Check bellow for list of supported Azure regions.   | Region where new Resource Group should be created.                                           |                                           |
-| `Helm:RepoUrl`                   | Should be URL.                                      | Helm repository URL for `azure-industrial-iot` Helm chart.                                   | `https://microsoft.github.io/charts/repo` |
-| `Helm:ChartVersion`              |                                                     | `azure-industrial-iot` Helm chart version to be deployed.                                    | `0.4.2`                                   |
-| `Helm:ImageTag`                  |                                                     | Docker image tag for Azure Industrial IoT components to be deployed.                         | `2.8.2`                                   |
-| `Helm:ImageNamespace`            |                                                     | Docker image namespace for Azure Industrial IoT components to be deployed.                   | `""`                                      |
-| `Helm:ContainerRegistryServer`   |                                                     | Docker container registry server to use for pulling images.                                  | `mcr.microsoft.com`                       |
-| `Helm:ContainerRegistryUsername` |                                                     | Username for Docker container registry.                                                      | `""`                                      |
-| `Helm:ContainerRegistryPassword` |                                                     | Password for Docker container registry.                                                      | `""`                                      |
-| `ApplicationRegistration`        | Object, see [Special Notes](#special-notes) bellow. | Provides definitions of existing Applications and Service Principals to be used.             |                                           |
-| `SaveEnvFile`                    | If set, should be `true` or `false`.                | Defines whether to create .env file after successful deployment or not.                      |                                           |
-| `NoCleanup`                      | If set, should be `true` or `false`.                | Defines whether to perform cleanup if an error occurs during deployment.                     |                                           |
+| Key                              | Value details                                       | Description                                                                                  | Default                                       |
+|----------------------------------|-----------------------------------------------------|----------------------------------------------------------------------------------------------|-----------------------------------------------|
+| `RunMode`                        | Check bellow for list of valid values.              | Determines which steps of Industrial IoT solution deployment will be executed.               | `Full`                                        |
+| `Auth:AzureEnvironment`          | Check bellow for list of valid values.              | Defines which Azure cloud to use.                                                            | `AzureGlobalCloud`                            |
+| `Auth:TenantId`                  | Should be Guid.                                     | Id of the tenant to be used.                                                                 |                                               |
+| `Auth:ClientId`                  | Should be Guid.                                     | ClientId of Service Principal.                                                               |                                               |
+| `Auth:ClientSecret`              | String                                              | ClientSecret of Service Principal.                                                           |                                               |
+| `SubscriptionId`                 | Should be Guid.                                     | Id of Azure Subscription within tenant.                                                      |                                               |
+| `ApplicationName`                | Should be globally unique name.                     | Name of the application deployment.                                                          |                                               |
+| `ApplicationUrl`                 | Used only in `ApplicationRegistration` run mode.    | Base URL that will be used for generating RedirectUris for client application.               |                                               |
+| `ResourceGroup:Name`             |                                                     | Name of the Resource Group where Azure resources will be created.                            |                                               |
+| `ResourceGroup:UseExisting`      | If set, should be `true` or `false`.                | Determines whether an existing Resource Group should be used or a new one should be created. |                                               |
+| `ResourceGroup:Region`           | Check bellow for list of supported Azure regions.   | Region where new Resource Group should be created.                                           |                                               |
+| `Helm:RepoUrl`                   | Should be URL.                                      | Helm repository URL for `azure-industrial-iot` Helm chart.                                   | `https://azure.github.io/Industrial-IoT/helm` |
+| `Helm:ChartVersion`              |                                                     | `azure-industrial-iot` Helm chart version to be deployed.                                    | `0.4.3`                                       |
+| `Helm:ImageTag`                  |                                                     | Docker image tag for Azure Industrial IoT components to be deployed.                         | `2.8.3`                                       |
+| `Helm:ImageNamespace`            |                                                     | Docker image namespace for Azure Industrial IoT components to be deployed.                   | `""`                                          |
+| `Helm:ContainerRegistryServer`   |                                                     | Docker container registry server to use for pulling images.                                  | `mcr.microsoft.com`                           |
+| `Helm:ContainerRegistryUsername` |                                                     | Username for Docker container registry.                                                      | `""`                                          |
+| `Helm:ContainerRegistryPassword` |                                                     | Password for Docker container registry.                                                      | `""`                                          |
+| `ApplicationRegistration`        | Object, see [Special Notes](#special-notes) bellow. | Provides definitions of existing Applications and Service Principals to be used.             |                                               |
+| `SaveEnvFile`                    | If set, should be `true` or `false`.                | Defines whether to create .env file after successful deployment or not.                      |                                               |
+| `NoCleanup`                      | If set, should be `true` or `false`.                | Defines whether to perform cleanup if an error occurs during deployment.                     |                                               |
 
 #### RunMode <!-- omit in toc -->
 
@@ -625,8 +625,8 @@ Kubernetes Dashboard.
 `azure-industrial-iot` Helm chart will be deployed. For more details about the chart please check its
 [documentation](../../deploy/helm/azure-industrial-iot/README.md).
 
-By default, `Microsoft.Azure.IIoT.Deployment` deploys `0.4.2` version of `azure-industrial-iot` Helm chart
-with `2.8.2` version of Azure Industrial IoT components. Both chart version and components version can be
+By default, `Microsoft.Azure.IIoT.Deployment` deploys `0.4.3` version of `azure-industrial-iot` Helm chart
+with `2.8.3` version of Azure Industrial IoT components. Both chart version and components version can be
 changed using configuration parameters. Please check `Helm:ChartVersion` and `Helm:ImageTag` parameters for
 that.
 
