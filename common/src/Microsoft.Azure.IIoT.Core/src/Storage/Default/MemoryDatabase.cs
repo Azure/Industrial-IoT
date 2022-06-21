@@ -251,7 +251,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             }
 
             /// <inheritdoc/>
-            public IResultFeed<IDocumentInfo<T>> Continue<T>(string continuationToken,
+            public IResultFeed<IDocumentInfo<T>> Continue<T>(string queryString,
+                string continuationToken, IDictionary<string, object> parameters,
                 int? pageSize, string partitionKey) {
                 if (_queryStore.TryGetValue(continuationToken, out var feed)) {
                     var result = feed as IResultFeed<IDocumentInfo<T>>;

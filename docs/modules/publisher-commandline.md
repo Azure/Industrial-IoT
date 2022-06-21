@@ -471,7 +471,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       `$$RoutingInfo` and the value is the `DataSetWriterGroup` for that particular message.
                                       When the `DataSetWriterGroup` is not configured, the `$$RoutingInfo` property will
                                       not be added to the message even if this argument is set. 
-                                      Alternative: 
+                                      Alternative: --ri, --enableroutinginfo
                                       Mode: Standalone
                                       Type: boolean
                                       Default: false

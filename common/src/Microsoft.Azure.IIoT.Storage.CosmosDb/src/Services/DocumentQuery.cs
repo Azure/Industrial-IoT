@@ -60,19 +60,27 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
                     EnableCrossPartitionQuery = pk == null
                 });
+
             return new DocumentInfoFeed<T>(query.AsDocumentQuery(), _logger);
         }
 
         /// <inheritdoc/>
-        public IResultFeed<IDocumentInfo<T>> Continue<T>(string continuationToken,
+        public IResultFeed<IDocumentInfo<T>> Continue<T>(string queryString,
+            string continuationToken, IDictionary<string, object> parameters,
             int? pageSize, string partitionKey) {
             if (string.IsNullOrEmpty(continuationToken)) {
                 throw new ArgumentNullException(nameof(continuationToken));
             }
             var pk = _partitioned || string.IsNullOrEmpty(partitionKey) ? null :
-                new PartitionKey(partitionKey);
+                            new PartitionKey(partitionKey);
             var query = _client.CreateDocumentQuery<Document>(
                 UriFactory.CreateDocumentCollectionUri(_databaseId, _id),
+                new SqlQuerySpec {
+                    QueryText = queryString,
+                    Parameters = new SqlParameterCollection(parameters?
+                        .Select(kv => new SqlParameter(kv.Key, kv.Value)) ??
+                            Enumerable.Empty<SqlParameter>())
+                },
                 new FeedOptions {
                     MaxDegreeOfParallelism = 8,
                     MaxItemCount = pageSize ?? -1,
@@ -80,6 +88,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                     RequestContinuation = continuationToken,
                     EnableCrossPartitionQuery = pk == null
                 });
+
             return new DocumentInfoFeed<T>(query.AsDocumentQuery(), _logger);
         }
 
