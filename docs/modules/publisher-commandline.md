@@ -22,6 +22,14 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Type: string 
                                       Default: <not set>
 
+                                      
+            AdditionalRequiredConfiguration  VALUE
+                                      An additional required configuration file that shall be used to configure the publisher. The publisher is not started as long as the file is not available. This is only supported as command line argument.
+                                      Alternative: -arc, --additionalrequiredconfiguration
+                                      Mode: Standalone only
+                                      Type: string 
+                                      Default: <not set>
+
 
 ## OPC Publisher 2.8.2 and above
 

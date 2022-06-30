@@ -22,16 +22,39 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
+            IConfigurationBuilder configBuilder = new ConfigurationBuilder()
+                   .SetBasePath(Directory.GetCurrentDirectory())
+                   .AddJsonFile("appsettings.json", optional: true)
+                   .AddEnvironmentVariables()
+                   .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                   .AddCommandLine(args)
+                   // making sure the standalone arguments are processed at last so they are not overriden
+                   .AddStandalonePublisherCommandLine(args);
+            // additional required configuration
+            var configFiles = args
+                .Select((v, i) => new { value = v, index = i })
+                .Where(
+                    i =>
+                        string.Compare(i.value.TrimStart('-'), "arc", StringComparison.InvariantCultureIgnoreCase) == 0 ||
+                        string.Compare(i.value.TrimStart('-'), "AdditionalRequiredConfiguration", StringComparison.InvariantCultureIgnoreCase) == 0);
 
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true)
-                .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddCommandLine(args)
-                .AddStandalonePublisherCommandLine(args)
-                // making sure the standalone arguments are processed at last so they are not overriden
-                .Build();
+            foreach (var configFile in configFiles) {
+                var filePath = args[configFile.index + 1];
+
+                Console.WriteLine($"Looking for configuration file '{filePath}'...");
+
+                while (!File.Exists(filePath)) {
+                    Console.WriteLine("Configuration file not found, pausing 1 second");
+                    Thread.Sleep(1000);
+                }
+                Console.WriteLine("Configuration file found");
+
+                configBuilder.AddJsonFile(filePath, optional: false);
+            }
+
+
+            var config = configBuilder.Build();
+
 
 #if DEBUG
             if (args.Any(a => a.Contains("wfd", StringComparison.InvariantCultureIgnoreCase) ||
