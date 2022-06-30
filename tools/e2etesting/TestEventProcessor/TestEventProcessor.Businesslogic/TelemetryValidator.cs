@@ -4,11 +4,7 @@
 // ------------------------------------------------------------
 
 namespace TestEventProcessor.BusinessLogic {
-    using AsyncAwaitBestPractices;
-    using Azure.Messaging.EventHubs;
-    using Azure.Messaging.EventHubs.Consumer;
     using Azure.Messaging.EventHubs.Processor;
-    using Azure.Storage.Blobs;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -26,12 +22,12 @@ namespace TestEventProcessor.BusinessLogic {
     /// <summary>
     /// Validates the value changes within IoT Hub Methods
     /// </summary>
-    public class TelemetryValidator : ITelemetryValidator
-    {
+    public class TelemetryValidator : ITelemetryValidator {
         private CancellationTokenSource _cancellationTokenSource;
         private EventProcessorWrapper _clientWrapper;
         private DateTime _startTime = DateTime.MinValue;
         private int _totalValueChangesCount = 0;
+        private readonly JArray _jContents = new JArray();
 
         // Checkers
         private MissingTimestampsChecker _missingTimestampsChecker;
@@ -60,8 +56,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// Create instance of TelemetryValidator
         /// </summary>
         /// <param name="logger">Instance to write logs</param>
-        public TelemetryValidator(ILogger<TelemetryValidator> logger)
-        {
+        public TelemetryValidator(ILogger<TelemetryValidator> logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -72,8 +67,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         /// <param name="token">Token to cancel the operation</param>
         /// <returns>Task that run until token is canceled</returns>
-        public async Task<StartResult> StartAsync(ValidatorConfiguration configuration)
-        {
+        public async Task<StartResult> StartAsync(ValidatorConfiguration configuration) {
             _logger.LogInformation("StartAsync called.");
             var sw = Stopwatch.StartNew();
 
@@ -122,7 +116,10 @@ namespace TestEventProcessor.BusinessLogic {
                     await _clientWrapper.InitializeClient(_cancellationTokenSource.Token).ConfigureAwait(false);
                 }
 
+                _jContents.Clear();
+
                 _clientWrapper.ProcessEventAsync += Client_ProcessEventAsync;
+                _logger.LogInformation("Starting monitoring of events...");
                 await _clientWrapper.StartProcessingAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
 
                 _startTime = DateTime.UtcNow;
@@ -224,7 +221,7 @@ namespace TestEventProcessor.BusinessLogic {
 
                 var incrSequenceResult = _incrementalSequenceChecker.Stop();
 
-                var stopResult =  new StopResult() {
+                var stopResult = new StopResult() {
                     ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
                     AllExpectedValueChanges = allExpectedValueChanges,
                     TotalValueChangesCount = _totalValueChangesCount,
@@ -246,6 +243,14 @@ namespace TestEventProcessor.BusinessLogic {
             finally {
                 _logger.LogInformation("StopAsync finished in {elapsed}", sw.Elapsed);
             }
+        }
+
+        /// <summary>
+        /// This function returns the persisted messages as a JSON object
+        /// </summary>
+        /// <returns></returns>
+        public string GetMessages() {
+            return JsonConvert.SerializeObject(_jContents);
         }
 
         /// <summary>
@@ -277,6 +282,14 @@ namespace TestEventProcessor.BusinessLogic {
                 var body = arg.Data.Body.ToArray();
                 var content = Encoding.UTF8.GetString(body);
                 dynamic json = JsonConvert.DeserializeObject(content);
+
+                lock (_jContents) {
+                    while (_currentConfiguration.MaximalNumberOfMessages > 0 &&
+                        _currentConfiguration.MaximalNumberOfMessages <= _jContents.Count) {
+                        _jContents.RemoveAt(0);
+                    }
+                    _jContents.Add(JArray.Parse(content));
+                }
 
                 if (CheckRestartAnnouncement(json)) {
                     return Task.CompletedTask;
@@ -381,7 +394,7 @@ namespace TestEventProcessor.BusinessLogic {
             }
 
             // Feed data to checkers.
-            _missingTimestampsChecker.ProcessEvent(nodeId, sourceTimestamp, value);
+            _missingTimestampsChecker.ProcessEvent(nodeId, sourceTimestamp);
             _messageProcessingDelayChecker.ProcessEvent(nodeId, sourceTimestamp, receivedTimestamp);
             _messageDeliveryDelayChecker.ProcessEvent(nodeId, sourceTimestamp, enqueuedTimestamp);
             _valueChangeCounterPerNodeId.ProcessEvent(nodeId, sourceTimestamp, value);

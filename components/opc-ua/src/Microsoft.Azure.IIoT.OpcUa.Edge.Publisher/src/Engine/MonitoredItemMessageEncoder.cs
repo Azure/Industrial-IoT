@@ -50,6 +50,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary> Flag to determine if extra routing information is enabled </summary>
         private readonly bool _enableRoutingInfo;
 
+        /// <summary> Flag to use reversible encoding for messages </summary>
+        private readonly bool _useReversibleEncoding;
+
         /// <summary>
         /// Create instance of MonitoredItemMessageEncoder.
         /// </summary>
@@ -64,6 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 ? ContentMimeType.UaLegacyPublisher
                 : ContentMimeType.Json;
             _enableRoutingInfo = engineConfig.EnableRoutingInfo.GetValueOrDefault(false);
+            _useReversibleEncoding = engineConfig.UseReversibleEncoding.GetValueOrDefault(false);
         }
 
         /// <summary>
@@ -75,6 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger = logger;
             _jsonContentType = ContentMimeType.Json;
             _enableRoutingInfo = engineConfig.EnableRoutingInfo.GetValueOrDefault(false);
+            _useReversibleEncoding = engineConfig.UseReversibleEncoding.GetValueOrDefault(false);
         }
 
         /// <inheritdoc/>
@@ -108,8 +113,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Perform DataSetMessageModel to NetworkMessageModel batch using Json encoding
         /// </summary>
-        /// <param name="messages"></param>
-        /// <param name="maxMessageSize"></param>
+        /// <param name="messages">Messages to encode</param>
+        /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeBatchAsJson(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
@@ -136,7 +141,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
-                        UseReversibleEncoding = false
+                        UseReversibleEncoding = _useReversibleEncoding
                     };
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
@@ -163,7 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
-                        UseReversibleEncoding = false
+                        UseReversibleEncoding = _useReversibleEncoding
                     };
                     foreach(var element in chunk) {
                         encoder.WriteEncodeable(null, element);
@@ -177,9 +182,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson,
                         RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
-                    AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
+                    AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
-                    AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
+                    AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) +
                         chunk.Count) / (MessagesProcessedCount + 1);
                     MessagesProcessedCount++;
                     chunk.Clear();
@@ -247,9 +252,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary,
                         RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
-                    AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
+                    AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
-                    AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
+                    AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) +
                         chunk.Count) / (MessagesProcessedCount + 1);
                     MessagesProcessedCount++;
                     chunk.Clear();
@@ -262,8 +267,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Perform event to message Json encoding
         /// </summary>
-        /// <param name="messages"></param>
-        /// <param name="maxMessageSize"></param>
+        /// <param name="messages">Messages to encode</param>
+        /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsJson(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
@@ -282,7 +287,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
                     UseAdvancedEncoding = true,
                     UseUriEncoding = true,
-                    UseReversibleEncoding = false
+                    UseReversibleEncoding = _useReversibleEncoding
                 };
                 networkMessage.Encode(encoder);
                 encoder.Close();
@@ -301,9 +306,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     continue;
                 }
                 NotificationsProcessedCount++;
-                AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
+                AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + encoded.Body.Length) /
                     (MessagesProcessedCount + 1);
-                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
+                AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) + 1) /
                     (MessagesProcessedCount + 1);
                 MessagesProcessedCount++;
                 yield return encoded;
@@ -347,9 +352,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     continue;
                 }
                 NotificationsProcessedCount++;
-                AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
+                AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + encoded.Body.Length) /
                     (MessagesProcessedCount + 1);
-                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
+                AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) + 1) /
                     (MessagesProcessedCount + 1);
                 MessagesProcessedCount++;
                 yield return encoded;

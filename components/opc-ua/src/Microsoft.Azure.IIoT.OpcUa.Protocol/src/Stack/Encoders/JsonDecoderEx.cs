@@ -91,6 +91,27 @@ namespace Opc.Ua.Encoders {
             // No op
         }
 
+        /// <summary>
+        /// Read a decoded JSON field.
+        /// </summary>
+        /// <param name="fieldName">The name of the field.</param>
+        /// <param name="token">The returned object token of the field.</param>
+        public bool ReadField(string fieldName, out object token) {
+            token = null;
+
+            if (String.IsNullOrEmpty(fieldName)) {
+                token = this._stack.Peek();
+                return true;
+            }
+
+            var context = _stack.Peek().ToObject< Dictionary<string, object>>();
+            if (context == null || !context.TryGetValue(fieldName, out token)) {
+                return false;
+            }
+
+            return true;
+        }
+
         /// <inheritdoc/>
         public bool ReadBoolean(string property) {
             return TryGetToken(property, out var value) && (bool)value;
@@ -1845,27 +1866,6 @@ namespace Opc.Ua.Encoders {
             return root as JObject;
         }
 
-        /// <summary>
-        /// Read a decoded JSON field.
-        /// </summary>
-        /// <param name="fieldName">The name of the field.</param>
-        /// <param name="token">The returned object token of the field.</param>
-        private bool ReadField(string fieldName, out object token) {
-            token = null;
-
-            if (String.IsNullOrEmpty(fieldName)) {
-                token = this._stack.Peek();
-                return true;
-            }
-
-            var context = _stack.Peek().ToObject<Dictionary<string, object>>();
-            if (context == null || !context.TryGetValue(fieldName, out token)) {
-                return false;
-            }
-
-            return true;
-        }
-
         private bool ReadArrayField(string fieldName, out List<object> array) {
             array = null;
             object token;
@@ -1917,7 +1917,7 @@ namespace Opc.Ua.Encoders {
                         // read array from one dimension
                         var part = ReadArray(null, ValueRanks.OneDimension, builtInType, null) as System.Collections.IList;
                         if (part != null && part.Count > 0) {
-                            // add part elements to final list
+                            // add part elements to final list 
                             foreach (var item in part) {
                                 elements.Add(item);
                             }

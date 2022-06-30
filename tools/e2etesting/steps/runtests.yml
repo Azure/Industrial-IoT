@@ -24,6 +24,8 @@ steps:
     addSpnToEnvironment: true
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
+      Write-Host "##vso[task.setvariable variable=TenantId]$($env:tenantId)"
 
 - task: AzurePowerShell@5
   displayName: 'Set KeyVaultName-Variable'
@@ -53,7 +55,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
-    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,testeventprocessor-baseurl,testeventprocessor-username,testeventprocessor-password,iothub-eventhub-connectionstring,storageaccount-iothubcheckpoint-connectionstring'
+    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,testeventprocessor-baseurl,testeventprocessor-username,testeventprocessor-password,iothub-eventhub-connectionstring,storageaccount-iothubcheckpoint-connectionstring,PCS-AUTH-TENANT,PCS-SUBSCRIPTION-ID'
 
 - task: AzureKeyVault@1
   displayName: 'Retrieve KeyVault secrets for API tests'
@@ -61,7 +63,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
-    SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
+    SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
 - task: AzureKeyVault@1
   displayName: 'Load secrets from Key Vault as variables by default'
@@ -146,3 +148,5 @@ steps:
     IOT_EDGE_VERSION: "$(EdgeVersion)"
     NESTED_EDGE_FLAG: "$(NestedEdgeFlag)"
     NESTED_EDGE_SSH_CONNECTIONS: "$(NestedEdgeSshConnection)"
+    PCS_SUBSCRIPTION_ID: '$(PCS-SUBSCRIPTION-ID)'
+    PCS_RESOURCE_GROUP: '$(ResourceGroupName)'

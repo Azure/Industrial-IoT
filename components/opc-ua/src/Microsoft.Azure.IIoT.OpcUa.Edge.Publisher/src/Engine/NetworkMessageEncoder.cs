@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Encoders;
+    using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
     using System;
     using System.Collections.Generic;
@@ -48,6 +49,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary> Flag to determine if extra routing information is enabled </summary>
         private readonly bool _enableRoutingInfo;
 
+        /// <summary> Flag to use reversible encoding for messages </summary>
+        private readonly bool _useReversibleEncoding;
+
         /// <summary>
         /// Create instance of NetworkMessageEncoder.
         /// </summary>
@@ -56,6 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public NetworkMessageEncoder(ILogger logger, IEngineConfiguration engineConfig) {
             _logger = logger;
             _enableRoutingInfo = engineConfig.EnableRoutingInfo.GetValueOrDefault(false);
+            _useReversibleEncoding = engineConfig.UseReversibleEncoding.GetValueOrDefault(false);
         }
 
         /// <inheritdoc/>
@@ -91,8 +96,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// DataSetMessage to NetworkMessage Json batched encoding
         /// </summary>
-        /// <param name="messages"></param>
-        /// <param name="maxMessageSize"></param>
+        /// <param name="messages">Messages to encode</param>
+        /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeBatchAsJson(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
@@ -119,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
-                        UseReversibleEncoding = false
+                        UseReversibleEncoding = _useReversibleEncoding
                     };
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
@@ -148,7 +153,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
-                        UseReversibleEncoding = false
+                        UseReversibleEncoding = _useReversibleEncoding
                     };
                     foreach (var element in chunk) {
                         encoder.WriteEncodeable(null, element);
@@ -250,8 +255,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Perform json encoding
         /// </summary>
-        /// <param name="messages"></param>
-        /// <param name="maxMessageSize"></param>
+        /// <param name="messages">Messages to encode</param>
+        /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsJson(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
@@ -271,7 +276,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
                     UseAdvancedEncoding = true,
                     UseUriEncoding = true,
-                    UseReversibleEncoding = false
+                    UseReversibleEncoding = _useReversibleEncoding
                 };
                 networkMessage.Encode(encoder);
                 encoder.Close();

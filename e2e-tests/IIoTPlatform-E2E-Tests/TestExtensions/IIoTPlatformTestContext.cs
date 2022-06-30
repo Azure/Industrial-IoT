@@ -7,6 +7,7 @@
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using Config;
     using Extensions;
+    using Microsoft.Azure.Management.Fluent;
     using Microsoft.Extensions.Configuration;
     using System;
     using Xunit.Abstractions;
@@ -97,6 +98,36 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// </summary>
         public RegistryHelper RegistryHelper { get; }
 
+        /// <summary>
+        /// Azure Context for managament api
+        /// </summary>
+        public IAzure? AzureContext { get; set; }
+
+        /// <summary>
+        /// Urls for the dynamic ACI containers
+        /// </summary>
+        public string[] PlcAciDynamicUrls { get; set; }
+
+        /// <summary>
+        /// Azure Storage Name
+        /// </summary>
+        public string AzureStorageName { get; set; }
+
+        /// <summary>
+        /// Azure Storage Key
+        /// </summary>
+        public string AzureStorageKey { get; set; }
+
+        /// <summary>
+        /// Image that are used for PLC ACI
+        /// </summary>
+        public string PLCImage { get; set; }
+
+        /// <summary>
+        /// Testing suffix for this environment
+        /// </summary>
+        public string TestingSuffix { get; set; }
+
         /// <inheritdoc />
         public void Dispose() {
             Dispose(true);
@@ -162,7 +193,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IIoTEdgeConfig.NestedEdgeFlag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_FLAG,
             () => "Disable");
 
-        string[] IIoTEdgeConfig.NestedEdgeSshConnections => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_SSH_CONNECTIONS, 
+        string[] IIoTEdgeConfig.NestedEdgeSshConnections => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_SSH_CONNECTIONS,
             () => "").Split(",");
 
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
@@ -194,6 +225,14 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new Exception("Semicolon separated list of URLs of OPC-PLCs is not provided."));
+
+        string IOpcPlcConfig.TenantId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
+            () => throw new Exception("Tenant Id is not provided."));
+
+        string IOpcPlcConfig.ResourceGroupName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_RESOURCE_GROUP,
+            () => throw new Exception("Resource Group Name is not provided."));
+
+        string IOpcPlcConfig.SubscriptionId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SUBSCRIPTION_ID, () => string.Empty);
 
         string ITestEventProcessorConfig.TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
             () => throw new Exception("Test Event Processor BaseUrl is not provided."));

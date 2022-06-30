@@ -5,6 +5,8 @@
 
 namespace IIoTPlatform_E2E_Tests {
 
+    using Newtonsoft.Json.Linq;
+
     /// <summary>
     /// Contains constants using for End 2 End testing
     /// </summary>
@@ -80,6 +82,11 @@ namespace IIoTPlatform_E2E_Tests {
         /// Default Microsoft Container Registry
         /// </summary>
         public static readonly string MicrosoftContainerRegistry = "mcr.microsoft.com";
+
+        /// <summary>
+        /// IoT Hub Event Hubs endpoint consumer group for tests
+        /// </summary>
+        public const string TestConsumerGroupName = "TestConsumer";
 
         /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
@@ -180,6 +187,26 @@ namespace IIoTPlatform_E2E_Tests {
             /// of provided (simulated) OPC UA Nodes
             /// </summary>
             public const string PublishedNodesFile = "pn.json";
+
+            /// <summary>
+            /// The share that is created in the pipeline
+            /// </summary>
+            public const string FileShareName = "acishare";
+
+            /// <summary>
+            /// Where to mount the file share in ACI
+            /// </summary>
+            public const string AciMountPath = "/app/files";
+
+            /// <summary>
+            /// This is the first part of the Azure Storage name that is created in pipeline
+            /// </summary>
+            public const string AzureStorageNameWithoutSuffix = "e2etestingstorage";
+
+            /// <summary>
+            /// Name of Tag in Resource Group
+            /// </summary>
+            public const string TestingResourcesSuffixName = "TestingResourcesSuffix";
         }
 
         /// <summary>
@@ -310,6 +337,16 @@ namespace IIoTPlatform_E2E_Tests {
             /// Images tag
             /// </summary>
             public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG";
+
+            /// <summary>
+            /// Resource group name
+            /// </summary>
+            public const string PCS_RESOURCE_GROUP = "PCS_RESOURCE_GROUP";
+
+            /// <summary>
+            /// Subscription Id
+            /// </summary>
+            public const string PCS_SUBSCRIPTION_ID = "PCS_SUBSCRIPTION_ID";
         }
 
         /// <summary>
@@ -445,6 +482,83 @@ namespace IIoTPlatform_E2E_Tests {
             /// GetDiagnosticInfo
             /// </summary>
             public const string GetDiagnosticInfo = "GetDiagnosticInfo";
+        }
+
+        internal static class PublishedNodesConfigurations {
+            public static string SimpleEvents(string host, uint port, string writerId) {
+                return @$"
+                [
+                    {{
+                        ""EndpointUrl"": ""opc.tcp://{host}:{port}"",
+                        ""UseSecurity"": false,
+                        ""DataSetWriterId"":""{writerId}"",
+                        ""OpcEvents"": [
+                            {{
+                                ""Id"": ""ns=0;i=2253"",
+                                ""DisplayName"": ""SimpleEvents"",
+                                ""SelectClauses"": [
+                                    {{
+                                        ""TypeDefinitionId"": ""i=2041"",
+                                        ""BrowsePath"": [
+                                            ""EventId""
+                                        ]
+                                    }},
+                                    {{
+                                        ""TypeDefinitionId"": ""i=2041"",
+                                        ""BrowsePath"": [
+                                            ""Message""
+                                        ]
+                                    }},
+                                    {{
+                                        ""TypeDefinitionId"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"",
+                                        ""BrowsePath"": [
+                                            ""http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId""
+                                        ]
+                                    }},
+                                    {{
+                                        ""TypeDefinitionId"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"",
+                                        ""BrowsePath"": [
+                                            ""http://microsoft.com/Opc/OpcPlc/SimpleEvents#CurrentStep""
+                                        ]
+                                    }}
+                                ],
+                                ""WhereClause"": {{
+                                    ""Elements"": [
+                                        {{
+                                            ""FilterOperator"": ""OfType"",
+                                            ""FilterOperands"": [
+                                                {{
+                                                    ""Value"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2""
+                                                }}
+                                            ]
+                                        }}
+                                    ]
+                                }}
+                            }}
+                        ]
+                    }}
+                ]";
+            }
+
+            public static JArray SimpleEventFilter(
+                string typeDefinitionId = "i=2782") {
+                return new JArray(
+                    new JObject(
+                        new JProperty("Id", "i=2253"),
+                        new JProperty("TypeDefinitionId", typeDefinitionId)));
+            }
+
+            public static JArray PendingAlarmsForAlarmsView() {
+                return new JArray(
+                    new JObject(
+                        new JProperty("Id", "i=2253"),
+                        new JProperty("TypeDefinitionId", "i=2915"),
+                        new JProperty("PendingAlarms", new JObject(
+                            new JProperty("IsEnabled", "true"),
+                            new JProperty("UpdateInterval", 10),
+                            new JProperty("SnapshotInterval", 20)
+                        ))));
+            }
         }
     }
 }

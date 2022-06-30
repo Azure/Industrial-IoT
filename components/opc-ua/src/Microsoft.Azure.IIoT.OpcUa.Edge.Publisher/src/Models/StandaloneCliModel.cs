@@ -112,6 +112,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public int? MaxOutgressMessages { get; set; } = 4096;
 
         /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public bool? UseReversibleEncoding { get; set; } = false;
+
+        /// <summary>
         /// Flag to determine if a telemetry header helper is enabled.
         /// </summary>
         public bool? EnableRoutingInfo { get; set; } = false;

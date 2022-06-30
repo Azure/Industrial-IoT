@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 DeviceId = deviceId,
                 ModuleId = moduleId,
                 EnqueuedTimeUtc = DateTime.UtcNow,
-                Message = new Message(payload)
+                Message = new Message(payload),
             };
             foreach (var item in message.Properties) {
                 ev.Message.Properties.Add(item.Key, item.Value);

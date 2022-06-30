@@ -43,3 +43,4 @@ coverage.cobertura.xml
 /api/csharp-api/_site
 node_modules
 /modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src/Properties/launchSettings.json
+/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/Properties/launchSettings.json

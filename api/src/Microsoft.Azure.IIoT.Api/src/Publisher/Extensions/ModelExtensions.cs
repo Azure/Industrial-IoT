@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Auth.Models;
     using System.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
 
     /// <summary>
     /// Api model extensions
@@ -919,6 +920,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxMessageSize = model.MaxMessageSize,
                 MaxOutgressMessages = model.MaxOutgressMessages,
+                UseReversibleEncoding = model.UseReversibleEncoding,
                 EnableRoutingInfo = model.EnableRoutingInfo,
             };
         }
@@ -937,6 +939,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 MaxMessageSize = model.MaxMessageSize,
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxOutgressMessages = model.MaxOutgressMessages,
+                UseReversibleEncoding = model.UseReversibleEncoding,
                 EnableRoutingInfo = model.EnableRoutingInfo,
             };
         }
@@ -1203,6 +1206,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         }
 
         /// <summary>
+        /// Create api model from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static PublishedEventItemsApiModel ToApiModel(
+            this PublishedEventItemsModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PublishedEventItemsApiModel {
+                PublishedData = model.PublishedData?
+                    .Select(d => d.ToApiModel())
+                    .ToList()
+            };
+        }
+
+        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static PublishedDataItemsModel ToServiceModel(
@@ -1211,6 +1230,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 return null;
             }
             return new PublishedDataItemsModel {
+                PublishedData = model.PublishedData?
+                    .Select(d => d.ToServiceModel())
+                    .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Create service model from api model
+        /// </summary>
+        public static PublishedEventItemsModel ToServiceModel(
+            this PublishedEventItemsApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PublishedEventItemsModel {
                 PublishedData = model.PublishedData?
                     .Select(d => d.ToServiceModel())
                     .ToList()
@@ -1256,49 +1290,83 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public static PublishedDataSetEventsApiModel ToApiModel(
-            this PublishedDataSetEventsModel model) {
+        public static PublishedDataSetEventApiModel ToApiModel(
+            this PublishedDataSetEventModel model) {
             if (model == null) {
                 return null;
             }
-            return new PublishedDataSetEventsApiModel {
+            return new PublishedDataSetEventApiModel {
                 Id = model.Id,
                 DiscardNew = model.DiscardNew,
                 EventNotifier = model.EventNotifier,
                 BrowsePath = model.BrowsePath,
-                Filter = model.Filter.ToApiModel(),
+                WhereClause = model.WhereClause.ToApiModel(),
                 QueueSize = model.QueueSize,
                 MonitoringMode = (Models.MonitoringMode?)model.MonitoringMode,
                 TriggerId = model.TriggerId,
-                SelectedFields = model.SelectedFields?
+                SelectClauses = model.SelectClauses?
                     .Select(f => f.ToApiModel())
-                    .ToList()
+                    .ToList(),
+                PendingAlarms = model.PendingAlarms.ToApiModel(),
+                TypeDefinitionId = model.TypeDefinitionId,
             };
         }
 
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public static PublishedDataSetEventsModel ToServiceModel(
-            this PublishedDataSetEventsApiModel model) {
+        public static PublishedDataSetEventModel ToServiceModel(
+            this PublishedDataSetEventApiModel model) {
             if (model == null) {
                 return null;
             }
-            return new PublishedDataSetEventsModel {
+            return new PublishedDataSetEventModel {
                 Id = model.Id,
                 DiscardNew = model.DiscardNew,
                 EventNotifier = model.EventNotifier,
                 BrowsePath = model.BrowsePath,
-                Filter = model.Filter.ToServiceModel(),
+                WhereClause = model.WhereClause.ToServiceModel(),
                 QueueSize = model.QueueSize,
                 MonitoringMode = (OpcUa.Publisher.Models.MonitoringMode?)model.MonitoringMode,
                 TriggerId = model.TriggerId,
-                SelectedFields = model.SelectedFields?
+                SelectClauses = model.SelectClauses?
                     .Select(f => f.ToServiceModel())
-                    .ToList()
+                    .ToList(),
+                PendingAlarms = model.PendingAlarms.ToServiceModel(),
+                TypeDefinitionId = model.TypeDefinitionId,
             };
         }
 
+        /// <summary>
+        /// Create api model from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static PendingAlarmsOptionsApiModel ToApiModel(
+            this PendingAlarmsOptionsModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PendingAlarmsOptionsApiModel {
+                IsEnabled = model.IsEnabled,
+                UpdateInterval = model.UpdateInterval,
+                SnapshotInterval = model.SnapshotInterval,
+            };
+        }
+
+        /// <summary>
+        /// Create service model from api model
+        /// </summary>
+        public static PendingAlarmsOptionsModel ToServiceModel(
+            this PendingAlarmsOptionsApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PendingAlarmsOptionsModel {
+                IsEnabled = model.IsEnabled,
+                UpdateInterval = model.UpdateInterval,
+                SnapshotInterval = model.SnapshotInterval,
+            };
+        }
 
         /// <summary>
         /// Create api model from service model
@@ -1479,10 +1547,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 return null;
             }
             return new SimpleAttributeOperandApiModel {
-                NodeId = model.NodeId,
+                TypeDefinitionId = model.TypeDefinitionId,
                 AttributeId = (Core.Models.NodeAttribute?)model.AttributeId,
                 BrowsePath = model.BrowsePath,
-                IndexRange = model.IndexRange
+                IndexRange = model.IndexRange,
+                DisplayName = model.DisplayName
             };
         }
 
@@ -1495,10 +1564,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 return null;
             }
             return new SimpleAttributeOperandModel {
-                NodeId = model.NodeId,
+                TypeDefinitionId = model.TypeDefinitionId,
                 AttributeId = (OpcUa.Core.Models.NodeAttribute?)model.AttributeId,
                 BrowsePath = model.BrowsePath,
-                IndexRange = model.IndexRange
+                IndexRange = model.IndexRange,
+                DisplayName = model.DisplayName
             };
         }
 

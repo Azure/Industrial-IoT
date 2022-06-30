@@ -42,12 +42,15 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <summary>
         /// Method that should be called for processing of events.
         /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="sourceTimestamp"></param>
-        /// <param name="_"></param>
+        /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
         public void ProcessEvent(DateTime sourceTimestamp) {
             // Do not process events after Stop() has been called.
             if (_isStopped) {
+                return;
+            }
+
+            // do not process if no source timestamp
+            if (sourceTimestamp == default(DateTime)) {
                 return;
             }
 

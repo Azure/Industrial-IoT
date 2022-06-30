@@ -63,16 +63,19 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <summary>
         /// Method that should be called for processing of events.
         /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="sourceTimestamp"></param>
-        /// <param name="_"></param>
+        /// <param name="nodeId">Identifeir of the data source.</param>
+        /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
         public void ProcessEvent(
             string nodeId,
-            DateTime sourceTimestamp,
-            object _
+            DateTime sourceTimestamp
         ) {
             // Do not process events after Stop() has been called.
             if (_isStopped) {
+                return;
+            }
+
+            // Do not process if we don't have nodeId
+            if (string.IsNullOrEmpty(nodeId)) {
                 return;
             }
 
@@ -148,7 +151,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         private void CheckForMissingTimestamps() {
             _lock.Wait();
             try {
-                foreach(var kvp in _sourceTimestamps) {
+                foreach (var kvp in _sourceTimestamps) {
                     if (kvp.Value.Count < 2) {
                         // Nothing to check as there are no enough timestamps to compare.
                         continue;

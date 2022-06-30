@@ -175,6 +175,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 TriggerKeepAlive();
             }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to register subscription");
+            }
             finally {
                 _lock.Release();
             }

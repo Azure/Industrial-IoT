@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Encoders;
     using Opc.Ua.Extensions;
     using Prometheus;
     using Serilog;
@@ -19,6 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Timer = System.Timers.Timer;
 
     /// <summary>
     /// Subscription services implementation
@@ -50,6 +52,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public void Dispose() {
+        }
+
+        /// <summary>
+        /// Function to retrieve display name for a field in the select clause
+        /// </summary>
+        /// <param name="monitoredItem"></param>
+        /// <param name="index"></param>
+        /// <returns>The display name, if defined</returns>
+        public static string GetFieldDisplayName(MonitoredItem monitoredItem, int index) {
+            return (monitoredItem.Handle as MonitoredItemWrapper)?.FieldNames[index];
         }
 
         /// <summary>
@@ -98,7 +110,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public ConnectionModel Connection => _subscription.Connection;
 
             /// <inheritdoc/>
-            public event EventHandler<SubscriptionNotificationModel> OnSubscriptionChange;
+            public event EventHandler<SubscriptionNotificationModel> OnSubscriptionDataChange;
+
+            /// <inheritdoc/>
+            public event EventHandler<SubscriptionNotificationModel> OnSubscriptionEventChange;
+
+            /// <inheritdoc/>
+            public event EventHandler<int> OnSubscriptionDataDiagnosticsChange;
+
+            ///  <inheritdoc/>
+            public event EventHandler<int> OnSubscriptionEventDiagnosticsChange;
 
             /// <inheritdoc/>
             public event EventHandler<SubscriptionNotificationModel> OnMonitoredItemChange;
@@ -115,6 +136,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger = logger?.ForContext<SubscriptionWrapper>() ??
                     throw new ArgumentNullException(nameof(logger));
                 _lock = new SemaphoreSlim(1, 1);
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionStateChanged(bool online) {
+                if (_currentlyMonitored == null) {
+                    return;
+                }
+                foreach (var monitoredItem in _currentlyMonitored) {
+                    monitoredItem.OnMonitoredItemStateChanged(online);
+                }
             }
 
             /// <inheritdoc/>
@@ -186,7 +217,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <inheritdoc/>
-            public async Task ApplyAsync(IEnumerable<MonitoredItemModel> monitoredItems,
+            public async Task ApplyAsync(IEnumerable<BaseMonitoredItemModel> monitoredItems,
                 SubscriptionConfigurationModel configuration) {
                 await _lock.WaitAsync().ConfigureAwait(false);
                 try {
@@ -295,6 +326,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 var unresolvedMonitoredItems = _subscription.MonitoredItems
+                    .OfType<DataMonitoredItemModel>()
                     .Where(mi => string.IsNullOrEmpty(mi.DisplayName));
                 if (!unresolvedMonitoredItems.Any()) {
                     return;
@@ -347,7 +379,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Synchronize monitored items and triggering configuration in subscription
             /// </summary>
             private async Task<bool> SetMonitoredItemsAsync(Subscription rawSubscription,
-                IEnumerable<MonitoredItemModel> monitoredItems, bool activate) {
+                IEnumerable<BaseMonitoredItemModel> monitoredItems, bool activate) {
 
                 var currentState = rawSubscription.MonitoredItems
                     .Select(m => m.Handle)
@@ -442,6 +474,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                         try {
                             toAdd.Create(rawSubscription.Session, codec, activate);
+                            if (toAdd.EventTemplate != null) {
+                                toAdd.Item.AttributeId = Attributes.EventNotifier;
+                            }
                             toAdd.Item.Notification += OnMonitoredItemChanged;
                             nowMonitored.Add(toAdd);
                             count++;
@@ -602,6 +637,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 noErrorFound = false;
                             }
                         }
+						if (change.Where(x => x.EventTemplate != null).Any()) {
+                            _logger.Information("Now issuing ConditionRefresh for item {item} on subscription " +
+                                "{subscription}", change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
+                            try {
+                                rawSubscription.ConditionRefresh();
+                            }
+                            catch (ServiceResultException e) {
+                                _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                    "{subscription} failed with a ServiceResultException '{message}'",
+                                    change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName, e.Message);
+                                noErrorFound = false;
+                            }
+                            catch (Exception e) {
+                                _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                    "{subscription} failed with an exception '{message}'",
+                                    change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName, e.Message);
+                                noErrorFound = false;
+
+                            }
+                            if (noErrorFound) {
+                                _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                    "{subscription} has completed",
+                                    change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
+                            }
+						}
                     }
                     foreach (var item in validItems) {
                         if (item.Item.SamplingInterval != item.Item.Status.SamplingInterval ||
@@ -691,10 +751,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     .GetValueOrDefault(_outer._clientConfig.MaxKeepAliveCount);
 
                 _subscription.MonitoredItems?.ForEach(m => {
-                    var heartbeat = (uint)(m?.HeartbeatInterval).GetValueOrDefault(TimeSpan.Zero).TotalMilliseconds;
-                    if (heartbeat != 0) {
-                        var itemKeepAliveCount = heartbeat / normedPublishingInterval;
-                        revisedKeepAliveCount = GreatCommonDivisor(revisedKeepAliveCount, itemKeepAliveCount);
+                    if (m is DataMonitoredItemModel dataItem){
+                        var heartbeat = (uint)(dataItem?.HeartbeatInterval).GetValueOrDefault(TimeSpan.Zero).TotalMilliseconds;
+                        if (heartbeat != 0) {
+                            var itemKeepAliveCount = heartbeat / normedPublishingInterval;
+                            revisedKeepAliveCount = GreatCommonDivisor(revisedKeepAliveCount, itemKeepAliveCount);
+                        }
                     }
                 });
 
@@ -712,14 +774,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (subscription == null) {
                     subscription = new Subscription(session.DefaultSubscription) {
                         Handle = this,
-                        FastDataChangeCallback = OnSubscriptionDataChanged,
                         DisplayName = Id,
                         PublishingEnabled = activate, // false on initialization
                         KeepAliveCount = revisedKeepAliveCount,
                         PublishingInterval = configuredPublishingInterval,
                         MaxNotificationsPerPublish = configuredMaxNotificationsPerPublish,
                         LifetimeCount = configuredLifetimeCount,
-                        Priority = configuredPriority
+                        Priority = configuredPriority,
+                        FastDataChangeCallback = OnSubscriptionDataChanged,
+                        FastEventCallback = OnSubscriptionEventChanged,
                     };
                     ReapplySessionOperationTimeout(session, subscription);
 
@@ -825,13 +888,93 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return subscription;
             }
 
+            private void OnSubscriptionEventChanged(Subscription subscription, EventNotificationList notification, IList<string> stringTable) {
+                try {
+                    if (OnSubscriptionEventChange == null) {
+                        return;
+                    }
+
+                    if (subscription == null) {
+                        _logger.Warning(
+                            "EventChange for subscription: Subscription is null");
+                        return;
+                    }
+
+                    if (notification == null) {
+                        _logger.Warning(
+                            "EventChange for subscription: {Subscription} having empty notification",
+                            subscription.DisplayName);
+                        return;
+                    }
+
+                    if (notification.Events.Count == 0) {
+                        _logger.Warning(
+                            "EventChange for subscription: {Subscription} having no events",
+                            subscription.DisplayName);
+                        return;
+                    }
+
+                    if (_currentlyMonitored == null) {
+                        _logger.Information(
+                            "EventChange for subscription: {Subscription} having no monitored items yet",
+                            subscription.DisplayName);
+                        return;
+                    }
+
+                    // check if notification is a keep alive
+                    var isKeepAlive = notification.Events.First().ClientHandle == 0 &&
+                                      notification.Events.First().Message?.NotificationData?.Count == 0;
+                    var sequenceNumber = notification.Events.First().Message?.SequenceNumber;
+                    var publishTime = (notification.Events.First().Message?.PublishTime).
+                        GetValueOrDefault(DateTime.UtcNow);
+                    var numOfEvents = 0;
+
+                    _logger.Debug("Event for subscription: {Subscription}, sequence#: " +
+                        "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
+                        subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
+
+                    if (notification?.Events != null) {
+                        for (var i = 0; i < notification.Events.Count; i++) {
+                            var monitoredItem = subscription.MonitoredItems.SingleOrDefault(
+                                    m => m.ClientHandle == notification.Events[i].ClientHandle);
+                            if (monitoredItem == null) {
+                                continue;
+                            }
+
+                            var message = new SubscriptionNotificationModel {
+                                ServiceMessageContext = subscription.Session?.MessageContext,
+                                ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
+                                EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
+                                SubscriptionId = Id,
+                                Timestamp = publishTime,
+                                Notifications = new List<MonitoredItemNotificationModel>()
+                            };
+
+                            if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
+                                itemWrapper.ProcessMonitoredItemNotification(message, notification.Events[i]);
+                            }
+
+                            if (message.Notifications.Any()) {
+                                OnSubscriptionEventChange.Invoke(this, message);
+                                numOfEvents++;
+                            }
+                        }
+                    }
+
+                    OnSubscriptionEventDiagnosticsChange.Invoke(this, numOfEvents);
+                }
+                catch (Exception e) {
+                    _logger.Warning(e, "Exception processing subscription notification");
+                }
+            }
+
             /// <summary>
             /// Subscription data changed
             /// </summary>
             private void OnSubscriptionDataChanged(Subscription subscription,
                 DataChangeNotification notification, IList<string> stringTable) {
                 try {
-                    if (OnSubscriptionChange == null) {
+                    if (OnSubscriptionDataChange == null) {
                         return;
                     }
                     if (notification == null) {
@@ -929,7 +1072,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     heartbeatValue.SequenceNumber = sequenceNumber;
                                     heartbeatValue.IsHeartbeat = true;
                                     heartbeatValue.PublishTime = publishTime;
-                                    message.Notifications?.Add(heartbeatValue);
+                                    if (message.Notifications == null) {
+                                        message.Notifications =
+                                            new List<MonitoredItemNotificationModel>();
+                                    }
+                                   message.Notifications.Add(heartbeatValue);
                                 }
                                 continue;
                             }
@@ -953,7 +1100,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     if (message.Notifications?.Any() == true) {
-                        OnSubscriptionChange?.Invoke(this, message);
+                        OnSubscriptionDataChange.Invoke(this, message);
+                        OnSubscriptionDataDiagnosticsChange.Invoke(this, message.Notifications.Count);
                     }
                 }
                 catch (Exception e) {
@@ -996,6 +1144,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
+            public void SendMessage(SubscriptionNotificationModel message) {
+                OnSubscriptionEventChange.Invoke(this, message);
+            }
+
             private readonly SubscriptionModel _subscription;
             private readonly SubscriptionServices _outer;
             private readonly ILogger _logger;
@@ -1012,7 +1164,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Monitored item
         /// </summary>
-        internal class MonitoredItemWrapper {
+        public class MonitoredItemWrapper {
 
             /// <summary>
             /// Assigned monitored item id on server
@@ -1022,7 +1174,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Monitored item
             /// </summary>
-            public MonitoredItemModel Template { get; }
+            public BaseMonitoredItemModel Template { get; }
+
+            /// <summary>
+            /// Monitored item as data
+            /// </summary>
+            public DataMonitoredItemModel DataTemplate { get { return Template as DataMonitoredItemModel; } }
+
+            /// <summary>
+            /// Monitored item as event
+            /// </summary>
+            public EventMonitoredItemModel EventTemplate { get { return Template as EventMonitoredItemModel; } }
 
             /// <summary>
             /// Monitored item created from template
@@ -1035,28 +1197,66 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public DateTime NextHeartbeat { get; private set; }
 
             /// <summary>
+            /// List of field names. Only used for events
+            /// </summary>
+            public List<string> FieldNames { get; } = new List<string>();
+
+            /// <summary>
+            /// Cache of the latest events for the pending alarms optionally monitored
+            /// </summary>
+            public Dictionary<string, MonitoredItemNotificationModel> PendingAlarmEvents { get; } = new Dictionary<string, MonitoredItemNotificationModel>();
+
+            /// <summary>
+            /// Property setter that gets indication if item is online or not.
+            /// </summary>
+            public void OnMonitoredItemStateChanged(bool online) {
+                if (EventTemplate?.PendingAlarms?.IsEnabled == true && online) {
+                    _pendingAlarmsTimer.Start();
+                }
+                else {
+                    _pendingAlarmsTimer.Stop();
+                    lock (_lock) {
+                        PendingAlarmEvents.Clear();
+                    }
+                }
+            }
+
+            private readonly Object _lock = new object();
+
+            /// <summary>
+            /// Destructor for this class
+            /// </summary>
+            ~MonitoredItemWrapper() {
+                _pendingAlarmsTimer.Stop();
+                _pendingAlarmsTimer.Dispose();
+            }
+
+            /// <summary>
             /// validates if a heartbeat is required.
             /// A heartbeat will be forced for the very first time
             /// </summary>
             public bool ValidateHeartbeat(DateTime currentPublish) {
+                if (DataTemplate == null) {
+                    return false;
+                }
                 if (NextHeartbeat == DateTime.MaxValue) {
                     return false;
                 }
                 if (NextHeartbeat > currentPublish + TimeSpan.FromMilliseconds(50)) {
                     return false;
                 }
-                NextHeartbeat = TimeSpan.Zero < Template.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ?
-                    currentPublish + Template.HeartbeatInterval.Value : DateTime.MaxValue;
+                NextHeartbeat = TimeSpan.Zero < DataTemplate.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ?
+                    currentPublish + DataTemplate.HeartbeatInterval.Value : DateTime.MaxValue;
                 return true;
             }
 
             /// <summary>
             /// Create wrapper
             /// </summary>
-            public MonitoredItemWrapper(MonitoredItemModel template, ILogger logger) {
+            public MonitoredItemWrapper(BaseMonitoredItemModel template, ILogger logger) {
                 _logger = logger?.ForContext<MonitoredItemWrapper>() ??
                     throw new ArgumentNullException(nameof(logger));
-                Template = template.Clone() ??
+                Template = template?.Clone() ??
                     throw new ArgumentNullException(nameof(template));
             }
 
@@ -1108,31 +1308,173 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Create new stack monitored item
             /// </summary>
-            internal void Create(Session session, IVariantEncoder codec, bool activate) {
+
+            public void Create(Session session, IVariantEncoder codec, bool activate) {
+                Create(session.MessageContext as ServiceMessageContext, session.NodeCache, codec, activate);
+            }
+
+            /// <summary>
+            /// Create new stack monitored item
+            /// </summary>
+            public void Create(ServiceMessageContext messageContext, INodeCache nodeCache, IVariantEncoder codec, bool activate) {
                 Item = new MonitoredItem {
                     Handle = this,
-                    DisplayName = Template.DisplayName,
+                    DisplayName = Template.DisplayName ?? Template.Id,
                     AttributeId = (uint)Template.AttributeId.GetValueOrDefault((NodeAttribute)Attributes.Value),
                     IndexRange = Template.IndexRange,
                     RelativePath = Template.RelativePath?
-                                .ToRelativePath(session.MessageContext)?
-                                .Format(session.NodeCache.TypeTree),
+                                .ToRelativePath(messageContext)?
+                                .Format(nodeCache.TypeTree),
                     MonitoringMode = activate
                         ? Template.MonitoringMode.ToStackType().
                             GetValueOrDefault(Opc.Ua.MonitoringMode.Reporting)
                         : Opc.Ua.MonitoringMode.Disabled,
-                    StartNodeId = Template.StartNodeId.ToNodeId(session.MessageContext),
+                    StartNodeId = Template.StartNodeId.ToNodeId(messageContext),
                     // TODO apply & propagate the default values configured, available for standalone only
                     QueueSize = Template.QueueSize.GetValueOrDefault(1),
                     SamplingInterval = (int)Template.SamplingInterval.
                         GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
                     DiscardOldest = !Template.DiscardNew.GetValueOrDefault(false),
-                    Filter =
-                        Template.DataChangeFilter.ToStackModel() ??
-                        codec.Decode(Template.EventFilter, true) ??
-                        ((MonitoringFilter)Template.AggregateFilter
-                            .ToStackModel(session.MessageContext))
                 };
+
+                if (DataTemplate != null) {
+                    Item.Filter = DataTemplate.DataChangeFilter.ToStackModel() ??
+                        ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(messageContext));
+                }
+                else if (EventTemplate != null) {
+                    var eventFilter = new EventFilter();
+                    if (EventTemplate.EventFilter != null) {
+                        if (!string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId)) {
+                            eventFilter = GetSimpleEventFilter(nodeCache, messageContext);
+                        }
+                        else {
+                            eventFilter = codec.Decode(EventTemplate.EventFilter, true);
+                        }
+                    }
+
+                    Task.Run(() => {
+                        foreach (var element in eventFilter.WhereClause.Elements) {
+                            if (element.FilterOperator == FilterOperator.OfType) {
+                                foreach (var filterOperand in element.FilterOperands) {
+                                    var nodeId = default(NodeId);
+                                    try {
+                                        nodeId = (filterOperand.Body as LiteralOperand).Value.ToString().ToNodeId(messageContext);
+                                        nodeCache.FetchNode(nodeId.ToExpandedNodeId(messageContext.NamespaceUris)); // it will throw an exception if it doesn't work
+                                    }
+                                    catch (Exception ex) {
+                                        _logger.Warning($"Where clause is doing OfType({nodeId}) and we got this message {ex.Message} while looking it up");
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // let's keep track of the internal fields we add so that they don't show up in the output
+                    var internalSelectClauses = new List<SimpleAttributeOperand>();
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType)) {
+                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.EventType);
+                        eventFilter.SelectClauses.Add(selectClause);
+                        internalSelectClauses.Add(selectClause);
+                    }
+
+                    if (EventTemplate.PendingAlarms?.IsEnabled == true) {
+                        var conditionIdClause = eventFilter.SelectClauses
+                            .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId);
+                        if (conditionIdClause != null) {
+                            EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.IndexOf(conditionIdClause);
+                        }
+                        else {
+                            EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.Count();
+                            var selectClause = new SimpleAttributeOperand() {
+                                BrowsePath = new QualifiedNameCollection(),
+                                TypeDefinitionId = ObjectTypeIds.ConditionType,
+                                AttributeId = Attributes.NodeId
+                            };
+                            eventFilter.SelectClauses.Add(selectClause);
+                            internalSelectClauses.Add(selectClause);
+                        }
+
+                        var retainClause = eventFilter.SelectClauses
+                            .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.BrowsePath?.FirstOrDefault() == BrowseNames.Retain);
+                        if (retainClause != null) {
+                            EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.IndexOf(retainClause);
+                        }
+                        else {
+                            EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.Count();
+                            var selectClause = new SimpleAttributeOperand(ObjectTypeIds.ConditionType, BrowseNames.Retain);
+                            eventFilter.SelectClauses.Add(selectClause);
+                            internalSelectClauses.Add(selectClause);
+                        }
+
+                        // set up the timer
+                        _pendingAlarmsTimer.Interval = 1000;
+                        _pendingAlarmsTimer.Elapsed += OnPendingAlarmsTimerElapsed;
+                        _pendingAlarmsTimer.AutoReset = false;
+                    }
+
+                    var sb = new StringBuilder();
+
+                    // let's loop thru the select clause and setup the field names
+                    foreach (var selectClause in eventFilter.SelectClauses) {
+                        if (!internalSelectClauses.Any(x => x == selectClause)) {
+                            sb.Clear();
+                            for (var i = 0; i < selectClause.BrowsePath?.Count; i++) {
+                                if (i == 0) {
+                                    if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
+                                        if (selectClause.BrowsePath[i].NamespaceIndex < nodeCache.NamespaceUris.Count) {
+                                            sb.Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
+                                            sb.Append("#");
+                                        }
+                                        else {
+                                            sb.Append($"{selectClause.BrowsePath[i].NamespaceIndex}:");
+                                        }
+                                    }
+                                }
+                                else {
+                                    sb.Append("/");
+                                }
+                                sb.Append(selectClause.BrowsePath[i].Name);
+                            }
+
+                            if (sb.Length == 0) {
+                                if (selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                                    selectClause.AttributeId == Attributes.NodeId) {
+                                    sb.Append("ConditionId");
+                                }
+                            }
+                            FieldNames.Add(sb.ToString());
+                        }
+                        else {
+                            // if a field's nameis empty, it's not written to the output
+                            FieldNames.Add("");
+                        }
+                    }
+
+                    Item.Filter = eventFilter;
+                }
+            }
+
+            private void OnPendingAlarmsTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
+                var now = DateTime.UtcNow;
+                var pendingAlarmsOptions = EventTemplate.PendingAlarms;
+                if (pendingAlarmsOptions?.IsEnabled == true) {
+                    try {
+                        // is it time to send anything?
+                        if (Item.Created && pendingAlarmsOptions.IsEnabled == true &&
+                            (((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.SnapshotIntervalTimespan ?? TimeSpan.MaxValue))) ||
+                                ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) &&
+                                pendingAlarmsOptions.Dirty)))) {
+                            SendPendingAlarms();
+                            _lastSentPendingAlarms = now;
+                        }
+                    }
+                    catch (Exception ex) {
+                        _logger.Error("SendPendingAlarms failed with exception {message}.", ex.Message);
+                    }
+                    finally {
+                        _pendingAlarmsTimer.Start();
+                    }
+                }
             }
 
             /// <summary>
@@ -1233,6 +1575,202 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return Item.MonitoringMode == change ? null : change;
             }
 
+            /// <summary>
+            /// Builds select clause and where clause by using OPC UA reflection
+            /// </summary>
+            /// <param name="nodeCache"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            public EventFilter GetSimpleEventFilter(INodeCache nodeCache, ServiceMessageContext context) {
+                var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(context);
+                var nodes = new List<Node>();
+                ExpandedNodeId superType = null;
+                nodes.Insert(0, nodeCache.FetchNode(typeDefinitionId));
+                do {
+                    superType = nodes[0].GetSuperType(nodeCache.TypeTree);
+                    if (superType != null) {
+                        nodes.Insert(0, nodeCache.FetchNode(superType));
+                    }
+                }
+                while (superType != null);
+
+                var fieldNames = new List<QualifiedName>();
+                foreach (var node in nodes) {
+                    ParseFields(nodeCache, fieldNames, node);
+                }
+                fieldNames = fieldNames
+                    .Distinct()
+                    .OrderBy(x => x.Name).ToList();
+
+                var eventFilter = new EventFilter();
+                // Let's add ConditionId manually first if event is derived from ConditionType
+                if (nodes.Any(x => x.NodeId == ObjectTypeIds.ConditionType)) {
+                    eventFilter.SelectClauses.Add(new SimpleAttributeOperand() {
+                        BrowsePath = new QualifiedNameCollection(),
+                        TypeDefinitionId = ObjectTypeIds.ConditionType,
+                        AttributeId = Attributes.NodeId
+                    });
+                }
+
+                foreach (var fieldName in fieldNames) {
+                    var selectClause = new SimpleAttributeOperand() {
+                        TypeDefinitionId = ObjectTypeIds.BaseEventType,
+                        AttributeId = Attributes.Value,
+                        BrowsePath = fieldName.Name
+                            .Split('|')
+                            .Select(x => new QualifiedName(x, fieldName.NamespaceIndex))
+                            .ToArray()
+                    };
+                    eventFilter.SelectClauses.Add(selectClause);
+                }
+                eventFilter.WhereClause = new ContentFilter();
+                eventFilter.WhereClause.Push(FilterOperator.OfType, typeDefinitionId);
+
+                return eventFilter;
+            }
+
+            /// <summary>
+            /// Processing the monitored item notification
+            /// </summary>
+            /// <param name="message"></param>
+            /// <param name="notification"></param>
+            public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message, EventFieldList notification) {
+                var pendingAlarmsOptions = EventTemplate?.PendingAlarms;
+                var evFilter = Item.Filter as EventFilter;
+                var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
+                    evFilter?.SelectClauses
+                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
+
+                // now, is this a regular event or RefreshStartEventType/RefreshEndEventType?
+                if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1) {
+                    var eventType = notification.EventFields[eventTypeIndex.Value].Value as NodeId;
+                    if (eventType == ObjectTypeIds.RefreshStartEventType) {
+                        // stop the timers during condition refresh
+                        if (pendingAlarmsOptions?.IsEnabled == true) {
+                            _pendingAlarmsTimer.Stop();
+                            lock (_lock) {
+                                PendingAlarmEvents.Clear();
+                            }
+                        }
+                        return;
+                    }
+                    else if (eventType == ObjectTypeIds.RefreshEndEventType) {
+                        if (pendingAlarmsOptions?.IsEnabled == true) {
+                            // restart the timers once condition refresh is done.
+                            _pendingAlarmsTimer.Start();
+                        }
+                        return;
+                    }
+                    else if (eventType == ObjectTypeIds.RefreshRequiredEventType) {
+                        var noErrorFound = true;
+
+                        // issue a condition refresh to make sure we are in a correct state
+                        _logger.Information("Now issuing ConditionRefresh for item {item} on subscription " +
+                            "{subscription} due to receiving a RefreshRequired event",
+                            Item.DisplayName ?? "", Item.Subscription.DisplayName);
+                        try {
+                            Item.Subscription.ConditionRefresh();
+                        }
+                        catch (ServiceResultException e) {
+                            _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                "{subscription} failed with a ServiceResultException '{message}'",
+                                Item.DisplayName ?? "", Item.Subscription.DisplayName, e.Message);
+                            noErrorFound = false;
+                        }
+                        catch (Exception e) {
+                            _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                "{subscription} failed with an exception '{message}'",
+                                Item.DisplayName ?? "", Item.Subscription.DisplayName, e.Message);
+                            noErrorFound = false;
+                        }
+                        if (noErrorFound) {
+                            _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                "{subscription} has completed",
+                                Item.DisplayName ?? "", Item.Subscription.DisplayName);
+                        }
+                        return;
+                    }
+                }
+
+                var monitoredItemNotification = notification
+                .ToMonitoredItemNotification(Item);
+                if (message == null) {
+                    return;
+                }
+                if (pendingAlarmsOptions?.IsEnabled == true && monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
+                    if (pendingAlarmsOptions.ConditionIdIndex.HasValue && pendingAlarmsOptions.RetainIndex.HasValue) {
+                        var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
+                        var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue<bool>(false);
+                        lock (_lock) {
+                            if (PendingAlarmEvents.ContainsKey(conditionId) && !retain) {
+                                PendingAlarmEvents.Remove(conditionId, out var monitoredItemNotificationModel);
+                                pendingAlarmsOptions.Dirty = true;
+                            }
+                            else if (retain) {
+                                pendingAlarmsOptions.Dirty = true;
+                                PendingAlarmEvents[conditionId] = monitoredItemNotification;
+                            }
+                        }
+                    }
+                }
+                else {
+                    message.Notifications?.Add(monitoredItemNotification);
+                }
+            }
+
+            private void SendPendingAlarms() {
+                List<MonitoredItemNotificationModel> notifications = null;
+                lock (_lock) {
+                    notifications = new List<MonitoredItemNotificationModel>(PendingAlarmEvents.Values);
+                    EventTemplate.PendingAlarms.Dirty = false;
+                }
+
+                var firstNotification = notifications.FirstOrDefault();
+                var pendingAlarmsNotification = new MonitoredItemNotificationModel() {
+                    AttributeId = Item.AttributeId,
+                    ClientHandle = firstNotification?.ClientHandle ?? 0,
+                    DiagnosticInfo = null,
+                    DisplayName = Item.DisplayName,
+                    Id = Item.DisplayName,
+                    IsHeartbeat = false,
+                    SequenceNumber = null,
+                    NodeId = Item.StartNodeId.ToString(),
+                    StringTable = null,
+                    Value = new DataValue(notifications.Select(x => x.Value.Value).OfType<ExtensionObject>().ToArray())
+                };
+
+                var message = new SubscriptionNotificationModel {
+                    ServiceMessageContext = Item.Subscription?.Session?.MessageContext,
+                    ApplicationUri = Item.Subscription?.Session?.Endpoint?.Server?.ApplicationUri,
+                    EndpointUrl = Item.Subscription?.Session?.Endpoint?.EndpointUrl,
+                    SubscriptionId = (Item.Subscription?.Handle as SubscriptionWrapper)?.Id,
+                    Timestamp = DateTime.UtcNow,
+                    Notifications = new List<MonitoredItemNotificationModel>()
+                };
+                message.Notifications.Add(pendingAlarmsNotification);
+                (Item.Subscription?.Handle as SubscriptionWrapper)?.SendMessage(message);
+            }
+
+            private void ParseFields(INodeCache nodeCache, List<QualifiedName> fieldNames, Node node, string browsePathPrefix = "") {
+                foreach (var reference in node.ReferenceTable) {
+                    if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent && !reference.IsInverse) {
+                        var componentNode = nodeCache.FetchNode(reference.TargetId);
+                        if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable) {
+                            var fieldName = $"{browsePathPrefix}{componentNode.BrowseName.Name}";
+                            fieldNames.Add(new QualifiedName(fieldName, componentNode.BrowseName.NamespaceIndex));
+                            ParseFields(nodeCache, fieldNames, componentNode, $"{fieldName}|");
+                        }
+                    }
+                    else if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty) {
+                        var propertyNode = nodeCache.FetchNode(reference.TargetId);
+                        var fieldName = $"{browsePathPrefix}{propertyNode.BrowseName.Name}";
+                        fieldNames.Add(new QualifiedName(fieldName, propertyNode.BrowseName.NamespaceIndex));
+                    }
+                }
+            }
+
+            private readonly Timer _pendingAlarmsTimer = new Timer();
+            private DateTime _lastSentPendingAlarms = DateTime.UtcNow;
             private HashSet<uint> _newTriggers = new HashSet<uint>();
             private HashSet<uint> _triggers = new HashSet<uint>();
             private Publisher.Models.MonitoringMode? _modeChange;

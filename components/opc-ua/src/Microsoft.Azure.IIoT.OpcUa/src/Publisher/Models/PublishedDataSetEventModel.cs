@@ -5,12 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
     using System.Collections.Generic;
 
     /// <summary>
     /// Describes event fields to be published
     /// </summary>
-    public class PublishedDataSetEventsModel {
+    public class PublishedDataSetEventModel {
 
         /// <summary>
         /// Identifier of event in the dataset.
@@ -30,12 +31,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Fields to select
         /// </summary>
-        public List<SimpleAttributeOperandModel> SelectedFields { get; set; }
+        public List<SimpleAttributeOperandModel> SelectClauses { get; set; }
 
         /// <summary>
         /// Filter to use
         /// </summary>
-        public ContentFilterModel Filter { get; set; }
+        public ContentFilterModel WhereClause { get; set; }
 
         /// <summary>
         /// Queue size (Publisher extension)
@@ -57,5 +58,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// (Publisher extension)
         /// </summary>
         public string TriggerId { get; set; }
+
+        /// <summary>
+        /// Pending alarm settings
+        /// </summary>
+        public PendingAlarmsOptionsModel PendingAlarms { get; set; }
+
+        /// <summary>
+        /// Simple event Type id
+        /// </summary>
+        public string TypeDefinitionId { get; set; }
     }
 }

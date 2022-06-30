@@ -3,9 +3,9 @@ Param(
     $ResourceGroupName,
     [Guid]
     $TenantId,
-    [String]
+    [string]
     $Region = "EastUS",
-    [String]
+    [string]
     $ServicePrincipalId
 )
 
@@ -26,12 +26,18 @@ if (!$ServicePrincipalId) {
 
 ## Login if required
 
+Write-Host "Getting Azure Context..."
 $context = Get-AzContext
 
 if (!$context) {
     Write-Host "Logging in..."
     Login-AzAccount -Tenant $TenantId
     $context = Get-AzContext
+}
+
+if (!$TenantId) {
+    $TenantId = $context.Tenant.Id
+    Write-Host "Using TenantId $($TenantId)."
 }
 
 ## Check if resource group exists
@@ -78,6 +84,16 @@ if (!$iotHub) {
     $iotHub = New-AzIotHub -ResourceGroupName $ResourceGroupName -Name $iotHubName -SkuName S1 -Units 1 -Location $resourceGroup.Location
 }
 
+# Ensure Event Hub additional consumer group for tests
+
+$cgName = "TestConsumer"
+$iotHubCg = Get-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $iotHubName | Where-Object Name -eq $cgName
+
+if (!$iotHubCg) {
+    Write-Host "Creating IoT Hub Event Hub Consumer Group $($cgName)..."
+    $iotHubCg = Add-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $iotHubName -EventHubConsumerGroupName $cgName
+}
+
 ## Ensure KeyVault
 
 $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -ErrorAction SilentlyContinue
@@ -93,8 +109,12 @@ if ($ServicePrincipalId) {
 }
 
 $connectionString = Get-AzIotHubConnectionString $ResourceGroupName -Name $iothub.Name -KeyName "iothubowner"
+$SubscriptionId = $context.Subscription.Id
 
 Write-Host "Adding/Updating KeyVault-Secret 'PCS-IOTHUB-CONNSTRING' with value '***'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IOTHUB-CONNSTRING' -SecretValue (ConvertTo-SecureString $connectionString.PrimaryConnectionString -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-AUTH-TENANT' -SecretValue (ConvertTo-SecureString $TenantId -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-SUBSCRIPTION-ID' -SecretValue (ConvertTo-SecureString $SubscriptionId -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-RESOURCE-GROUP' -SecretValue (ConvertTo-SecureString $ResourceGroupName -AsPlainText -Force) | Out-Null
 
 Write-Host "Deployment finished."
