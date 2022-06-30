@@ -24,11 +24,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(10)]
         public Task Test_DeployAci() {
-            return TestHelper.CreateSimulationContainerAsync(_context, new List<string> { "/bin/sh", "-c", "./opcplc --autoaccept -ses --pn=50000" }, _timeoutToken);
+            return TestHelper.CreateSimulationContainerAsync(_context, new List<string> { "/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000" }, _timeoutToken);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(11)]
+        [Fact, PriorityOrder(11)]
         public async Task Test_VerifyIntegerNamespace_Expect_SimpleEvents_InHub() {
             // Arrange
             var pnJson = SimpleEvents(
@@ -38,7 +37,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 "5:CycleId",
                 "ns=5;i=2");
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken).ConfigureAwait(false);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -48,8 +47,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             VerifyPayloads(payloads.Messages);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(12)]
+        [Fact, PriorityOrder(12)]
         public async Task Test_VerifyStringNamespace_Expect_SimpleEvents_InHub() {
             // Arrange
             var pnJson = SimpleEvents(
@@ -59,7 +57,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 "http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId",
                 "nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2");
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken).ConfigureAwait(false);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -69,8 +67,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             VerifyPayloads(payloads.Messages);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(13)]
+        [Fact, PriorityOrder(13)]
         public async Task Test_VerifyIntegerNamespace_Expect_FilteredSimpleEvents_InHub() {
             // Arrange
             var pnJson = _context.PublishedNodesJson(
@@ -78,7 +75,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("ns=5;i=2"));
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken).ConfigureAwait(false);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -88,8 +85,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             VerifyPayloads(payloads.Messages);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(14)]
+        [Fact, PriorityOrder(14)]
         public async Task Test_VerifyStringNamespace_Expect_FilteredSimpleEvents_InHub() {
             // Arrange
             var pnJson = _context.PublishedNodesJson(
@@ -97,7 +93,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"));
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken).ConfigureAwait(false);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -122,22 +118,24 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                             new JObject(
                               new JProperty("Id", "ns=0;i=2253"),
                               new JProperty("DisplayName", "SimpleEvents"),
-                              new JProperty("SelectClauses", new JArray(
+                              new JProperty("QueueSize", 10),
+                              new JProperty("EventFilter", new JObject(
+                                new JProperty("SelectClauses", new JArray(
                                     new JObject(
-                                      new JProperty("TypeDefinitionId", messageTypeDefinitionId),
-                                      new JProperty("BrowsePath", new JArray(
-                                          new JValue(messageBrowsePath)))),
+                                        new JProperty("TypeDefinitionId", messageTypeDefinitionId),
+                                        new JProperty("BrowsePath", new JArray(
+                                            new JValue(messageBrowsePath)))),
                                     new JObject(
-                                      new JProperty("TypeDefinitionId", cycleIdDefinitionId),
-                                      new JProperty("BrowsePath", new JArray(
-                                          new JValue(cycleIdBrowsePath)))))),
-                              new JProperty("WhereClause", new JObject(
-                                  new JProperty("Elements", new JArray(
+                                        new JProperty("TypeDefinitionId", cycleIdDefinitionId),
+                                        new JProperty("BrowsePath", new JArray(
+                                            new JValue(cycleIdBrowsePath)))))),
+                                new JProperty("WhereClause", new JObject(
+                                    new JProperty("Elements", new JArray(
                                         new JObject(
-                                          new JProperty("FilterOperator", new JValue("OfType")),
-                                          new JProperty("FilterOperands", new JArray(
+                                            new JProperty("FilterOperator", new JValue("OfType")),
+                                            new JProperty("FilterOperands", new JArray(
                                                 new JObject(
-                                                  new JProperty("Value", filterTypeDefinitionId))))))))))));
+                                                    new JProperty("Value", filterTypeDefinitionId))))))))))))));
         }
     }
 }

@@ -19,14 +19,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             : base(context, output) {
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(10)]
+        [Fact, PriorityOrder(10)]
         public async void Test_VerifyDataAvailableAtIoTHub_Expect_FieldsToMatchSimpleFilter() {
 
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
-                _timeoutToken);
+                _timeoutToken).ConfigureAwait(false);
 
             var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, _timeoutToken);
 
@@ -35,7 +34,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken).ConfigureAwait(false);
 
             // take any message
             var ev = await messages
@@ -45,14 +44,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ValidateBaseEventTypeFields(ev.messages);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(11)]
+        [Fact, PriorityOrder(11)]
         public async void Test_VerifyDataAvailableAtIoTHub_Expect_FieldsToMatchEventFilter() {
 
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
-                _timeoutToken);
+                _timeoutToken).ConfigureAwait(false);
 
             var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, _timeoutToken);
 
@@ -61,7 +59,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken).ConfigureAwait(false);
             // take any message
             var ev = await messages
                 .FirstAsync(_timeoutToken);
@@ -70,14 +68,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ValidateBaseEventTypeFields(ev.messages);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(12)]
+        [Fact, PriorityOrder(12)]
         public async void Test_VerifyDataAvailableAtIoTHub_Expect_FieldsToSimpleEvents() {
 
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
-                _timeoutToken);
+                _timeoutToken).ConfigureAwait(false);
 
             var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, _timeoutToken);
 
@@ -85,7 +82,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var pnJson = TestConstants.PublishedNodesConfigurations.SimpleEvents(_context.PlcAciDynamicUrls[0],
                 50000,
                 _writerId);
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken).ConfigureAwait(false);
             // take any message
             var ev = await messages
                 .FirstAsync(_timeoutToken);

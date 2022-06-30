@@ -106,27 +106,27 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <summary>
         /// Urls for the dynamic ACI containers
         /// </summary>
-        public string[] PlcAciDynamicUrls { get; set; }
+        public string[]? PlcAciDynamicUrls { get; set; }
 
         /// <summary>
         /// Azure Storage Name
         /// </summary>
-        public string AzureStorageName { get; set; }
+        public string? AzureStorageName { get; set; }
 
         /// <summary>
         /// Azure Storage Key
         /// </summary>
-        public string AzureStorageKey { get; set; }
+        public string? AzureStorageKey { get; set; }
 
         /// <summary>
         /// Image that are used for PLC ACI
         /// </summary>
-        public string PLCImage { get; set; }
+        public string? PLCImage { get; set; }
 
         /// <summary>
         /// Testing suffix for this environment
         /// </summary>
-        public string TestingSuffix { get; set; }
+        public string? TestingSuffix { get; set; }
 
         /// <inheritdoc />
         public void Dispose() {
