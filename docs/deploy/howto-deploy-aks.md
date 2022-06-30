@@ -609,7 +609,7 @@ The following Azure regions are supported by `Microsoft.Azure.IIoT.Deployment` f
 ### AKS
 
 All cloud microservices of Azure Industrial IoT solution are deployed to an AKS Kubernetes cluster.
-`Microsoft.Azure.IIoT.Deployment` deploys latest available patch version of `1.21` Kubernetes.
+`Microsoft.Azure.IIoT.Deployment` deploys latest available patch version of `1.22` Kubernetes.
 
 #### Kubernetes Dashboard
 
