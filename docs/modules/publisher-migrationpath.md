@@ -132,7 +132,8 @@ The Azure Industrial IoT platform connects to OPC UA servers built into machines
 
 However, the biggest hurdle most OT admins need to overcome when deploying the Azure Industrial IoT platform is to accept the Azure Industrial IoT platform X.509 certificate in the OPC UA server the platform tries to connect to. There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted.
 For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf).
-f using the [OPC PLC Server Simulator](https://docs.microsoft.com/en-us/samples/azure-samples/iot-edge-opc-plc/azure-iot-sample-opc-ua-server/), be sure to include the “–autoaccept” switch or copy the server.der to the pki.
+To use the [OPC PLC Server Simulator](https://docs.microsoft.com/en-us/samples/azure-samples/iot-edge-opc-plc/azure-iot-sample-opc-ua-server/), be sure to include the “–autoaccept” switch or copy the server.der to the pki.
+The pki path can be configured using the `PkiRootPath` command line argument.
 
 By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
 
