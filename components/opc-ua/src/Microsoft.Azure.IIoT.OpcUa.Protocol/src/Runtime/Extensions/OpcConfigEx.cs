@@ -194,8 +194,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 int certNum = 1;
                 logger.Information("Rejected certificate store contains {count} certs.", certs.Count);
                 foreach (var cert in certs) {
-                    logger.Information($"{certNum++:D2}:" + " Subject '{subject}' (thumbprint: {thumbprint})",
-                        cert.Subject, cert.Thumbprint);
+                    logger.Information("{certNum:D2}:" + " Subject '{subject}' (thumbprint: {thumbprint})",
+                        certNum++, cert.Subject, cert.Thumbprint);
                 }
             }
             catch (Exception e) {

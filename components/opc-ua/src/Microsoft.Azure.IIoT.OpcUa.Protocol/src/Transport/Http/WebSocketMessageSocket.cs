@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
     using Opc.Ua.Bindings;
     using Serilog;
     using System;
+    using System.Net;
     using System.Net.WebSockets;
     using System.Threading;
     using System.Threading.Tasks;
@@ -46,6 +47,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
 
         /// <inheritdoc/>
         public TransportChannelFeatures MessageSocketFeatures => throw new NotImplementedException();
+
+        /// <inheritdoc/>
+        public EndPoint LocalEndpoint => throw new NotImplementedException();
 
         /// <inheritdoc/>
         public void Close() {
