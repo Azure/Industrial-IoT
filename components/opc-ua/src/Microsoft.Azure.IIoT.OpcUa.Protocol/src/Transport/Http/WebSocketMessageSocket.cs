@@ -46,7 +46,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         public int Handle => _socket.GetHashCode();
 
         /// <inheritdoc/>
-        public TransportChannelFeatures MessageSocketFeatures => throw new NotImplementedException();
+        public TransportChannelFeatures MessageSocketFeatures =>
+            TransportChannelFeatures.Open |
+            TransportChannelFeatures.Reconnect |
+            TransportChannelFeatures.BeginSendRequest |
+            TransportChannelFeatures.SendRequestAsync;
+
+        /// <inheritdoc/>
+        public EndPoint LocalEndpoint => throw new NotImplementedException();
 
         /// <inheritdoc/>
         public EndPoint LocalEndpoint => throw new NotImplementedException();

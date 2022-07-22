@@ -65,6 +65,7 @@ namespace Opc.Ua.Sample {
             m_nextSampleTime = DateTime.UtcNow.Ticks;
             m_readyToPublish = false;
             m_readyToTrigger = false;
+            m_resendData = false;
             m_alwaysReportUpdates = alwaysReportUpdates;
         }
 
@@ -100,6 +101,7 @@ namespace Opc.Ua.Sample {
             m_nextSampleTime = DateTime.UtcNow.Ticks;
             m_readyToPublish = false;
             m_readyToTrigger = false;
+            m_resendData = false;
             m_queue = null;
             m_filter = filter;
             m_range = 0;
@@ -407,6 +409,18 @@ namespace Opc.Ua.Sample {
             }
         }
 
+        /// <inheritdoc/>
+        public bool IsResendData
+        {
+            get
+            {
+                lock (m_lock)
+                {
+                    return m_resendData;
+                }
+            }
+        }
+
         /// <summary>
         /// Returns the results for the create request.
         /// </summary>
@@ -445,6 +459,18 @@ namespace Opc.Ua.Sample {
                 }
 
                 return ServiceResult.Good;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void SetupResendDataTrigger()
+        {
+            lock (m_lock)
+            {
+                if (m_monitoringMode == MonitoringMode.Reporting)
+                {
+                    m_resendData = true;
+                }
             }
         }
         #endregion
@@ -606,17 +632,29 @@ namespace Opc.Ua.Sample {
                 m_readyToTrigger = false;
 
                 // check if queuing is enabled.
-                if (m_queue == null) {
-                    Publish(context, m_lastValue, m_lastError, notifications, diagnostics);
-                }
-                else {
+                if (m_queue != null && (!m_resendData || m_queue.ItemsInQueue != 0))
+                {
                     DataValue value = null;
                     ServiceResult error = null;
 
-                    while (m_queue.Publish(out value, out error)) {
+                    while (m_queue.Publish(out value, out error))
+                    {
                         Publish(context, value, error, notifications, diagnostics);
+
+                        if (m_resendData)
+                        {
+                            m_readyToPublish = m_queue.ItemsInQueue > 0;
+                            break;
+                        }
                     }
                 }
+                else
+                {
+                    Publish(context, m_lastValue, m_lastError, notifications, diagnostics);
+                }
+
+                // update flags
+                m_resendData = false;
 
                 return true;
             }
@@ -728,6 +766,7 @@ namespace Opc.Ua.Sample {
         private bool m_alwaysReportUpdates;
         private bool m_semanticsChanged;
         private bool m_structureChanged;
+        private bool m_resendData;
         #endregion
     }
 }
