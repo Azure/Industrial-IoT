@@ -589,9 +589,6 @@ namespace Opc.Ua.Sample {
             get { return m_filter; }
         }
 
-        /// <inheritdoc/>
-        public bool IsResendData => throw new NotImplementedException();
-
         /// <summary>
         /// Increments the sample time to the next interval.
         /// </summary>
@@ -734,11 +731,6 @@ namespace Opc.Ua.Sample {
             }
 
             diagnostics.Enqueue(diagnosticInfo);
-        }
-
-        /// <inheritdoc/>
-        public void SetupResendDataTrigger() {
-            throw new NotImplementedException();
         }
         #endregion
 

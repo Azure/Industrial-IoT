@@ -320,7 +320,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
                                 RelativePath = new RelativePath(
                                     BrowseNames.HistoricalEventFilter)
                             }
-                    });
+                    }, ct);
                     if (!filterNode.Results.Any() || !filterNode.Results[0].Targets.Any()) {
                         return null;
                     }
@@ -355,7 +355,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
                                 NodeId = nodeId,
                                 ContinuationPoint = continuationToken
                             }
-                        });
+                        }, ct);
                     SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
                     OperationResultEx.Validate("HistoryRead_" + nodeId, _diagnostics,
                         response.Results.Select(r => r.StatusCode), null, false);

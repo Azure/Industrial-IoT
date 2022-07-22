@@ -56,9 +56,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         public EndPoint LocalEndpoint => throw new NotImplementedException();
 
         /// <inheritdoc/>
-        public EndPoint LocalEndpoint => throw new NotImplementedException();
-
-        /// <inheritdoc/>
         public void Close() {
             if (_open.IsCancellationRequested) {
                 return;
