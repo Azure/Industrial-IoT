@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// <param name="uri"></param>
             /// <param name="resourceId"></param>
             public HttpRequest(Uri uri, string resourceId) {
-                Options = new HttpRequestOptions();
+                Options = new Http.HttpRequestOptions();
                 Request = new HttpRequestMessage();
                 if (!uri.Scheme.EqualsIgnoreCase("http") && !uri.Scheme.EqualsIgnoreCase("https")) {
                     // Need a way to work around request uri validation - add uds path to header.
@@ -199,7 +199,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             public HttpRequestHeaders Headers => Request.Headers;
 
             /// <inheritdoc/>
-            public HttpRequestOptions Options { get; }
+            public Http.HttpRequestOptions Options { get; }
 
             /// <inheritdoc/>
             public HttpContent Content {

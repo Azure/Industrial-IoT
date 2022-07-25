@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _session = null;
             _acquired = new TaskCompletionSource<Session>();
             _urlQueue = new ConcurrentQueue<string>(_connection.Endpoint.GetAllUrls());
-            _queue = new PriorityQueue<int, SessionOperation>();
+            _queue = new System.Collections.Concurrent.PriorityQueue<int, SessionOperation>();
             _enqueueEvent = new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
 #pragma warning disable RECS0002 // Convert anonymous method to method group
@@ -1009,7 +1009,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly Task _processor;
         private readonly CancellationTokenSource _cts;
         private readonly ConcurrentQueue<string> _urlQueue;
-        private readonly PriorityQueue<int, SessionOperation> _queue;
+        private readonly System.Collections.Concurrent.PriorityQueue<int, SessionOperation> _queue;
         private volatile TaskCompletionSource<bool> _enqueueEvent;
         private readonly Func<ConnectionModel, EndpointConnectivityState, Task> _statusCb;
     }

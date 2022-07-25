@@ -30,7 +30,7 @@
   </PropertyGroup>
   <ItemGroup Condition="$(NO_GIT) == ''">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.255" PrivateAssets="All"/>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.108" PrivateAssets="All"/>
   </ItemGroup>
   <ItemGroup Condition="'$(FX_COP)' != ''">
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.3" />

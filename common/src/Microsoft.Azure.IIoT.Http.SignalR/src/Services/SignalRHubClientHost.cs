@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
     using System.Threading.Tasks;
     using System.Threading;
     using System.Linq;
+    using MessagePack.Resolvers;
 
     /// <summary>
     /// SignalR hub client
@@ -135,7 +136,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
                 .WithAutomaticReconnect();
             if (_useMessagePack && _msgPack != null) {
                 builder = builder.AddMessagePackProtocol(options => {
-                    options.FormatterResolvers = _msgPack.GetResolvers().ToList();
+                    options.SerializerOptions.WithResolver(CompositeResolver.Create(_msgPack.GetResolvers().ToArray()));
                 });
             }
             else {
@@ -170,12 +171,12 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
         /// Close connection
         /// </summary>
         /// <returns></returns>
-        private async Task DisposeAsync(HubConnection connection) {
+        private static async Task DisposeAsync(HubConnection connection) {
             if (connection == null) {
                 return;
             }
             await Try.Async(() => connection?.StopAsync());
-            await Try.Async(() => connection?.DisposeAsync());
+            await Try.Async(() => connection?.DisposeAsync().AsTask());
         }
 
         /// <summary>

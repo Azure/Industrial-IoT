@@ -11,6 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection {
     using System;
     using System.Linq;
     using Newtonsoft.Json;
+    using MessagePack.Resolvers;
 
     /// <summary>
     /// SignalR setup extensions
@@ -73,7 +74,7 @@ namespace Microsoft.Extensions.DependencyInjection {
                     var provider = services.GetService<IMessagePackSerializerOptionsProvider>();
                     var resolvers = provider?.Resolvers;
                     if (resolvers != null) {
-                        options.FormatterResolvers = resolvers.ToList();
+                        options.SerializerOptions.WithResolver(CompositeResolver.Create(resolvers.ToArray()));
                     }
                 }));
             return builder;
