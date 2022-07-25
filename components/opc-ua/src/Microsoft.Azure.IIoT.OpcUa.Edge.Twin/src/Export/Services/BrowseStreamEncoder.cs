@@ -162,7 +162,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
                         _encoder.Context.UpdateFromSession(session);
                         return session.BrowseAsync(_diagnostics.ToStackModel(), null,
                             nodeModel.NodeId, 0u, Opc.Ua.BrowseDirection.Both,
-                            ReferenceTypeIds.References, true, 0u);
+                            ReferenceTypeIds.References, true, 0u, BrowseResultMask.All, ct);
                     });
 
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
@@ -177,15 +177,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services {
                     if (response.Results[0].ContinuationPoint == null) {
                         break;
                     }
-                    response = await _client.ExecuteServiceAsync(_endpoint, _elevation,
+                    var responseNext = await _client.ExecuteServiceAsync(_endpoint, _elevation,
                     _priority, ct, session => {
                         _encoder.Context.UpdateFromSession(session);
                         return session.BrowseNextAsync(_diagnostics.ToStackModel(), false,
-                            new ByteStringCollection { response.Results[0].ContinuationPoint });
+                            new ByteStringCollection { response.Results[0].ContinuationPoint }, ct);
                     });
-                    SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
+                    SessionClientEx.Validate(responseNext.Results, responseNext.DiagnosticInfos);
                     OperationResultEx.Validate("BrowseNext_" + nodeModel.NodeId, Diagnostics,
-                        response.Results.Select(r => r.StatusCode), null, false);
+                        responseNext.Results.Select(r => r.StatusCode), null, false);
                 }
             }
             catch (Exception ex) {

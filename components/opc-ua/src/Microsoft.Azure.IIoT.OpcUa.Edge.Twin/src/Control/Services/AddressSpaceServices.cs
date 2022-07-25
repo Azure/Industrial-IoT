@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// This class provides access to a servers address space providing node
@@ -115,7 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 };
                 var response = await session.BrowseNextAsync(
                     (request.Header?.Diagnostics).ToStackModel(),
-                    request.Abort ?? false, new ByteStringCollection { continuationPoint });
+                    request.Abort ?? false, new ByteStringCollection { continuationPoint }, CancellationToken.None);
                 OperationResultEx.Validate("BrowseNext_" + request.ContinuationToken,
                     diagnostics, response.Results.Select(r => r.StatusCode),
                     response.DiagnosticInfos, false);
@@ -156,7 +157,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         RelativePath = p.ToRelativePath(session.MessageContext)
                     }));
                 var response = await session.TranslateBrowsePathsToNodeIdsAsync(
-                    (request.Header?.Diagnostics).ToStackModel(), requests);
+                    (request.Header?.Diagnostics).ToStackModel(), requests, CancellationToken.None);
                 OperationResultEx.Validate("Translate" + request.NodeId,
                     diagnostics, response.Results.Select(r => r.StatusCode),
                     response.DiagnosticInfos, requests, false);
@@ -386,7 +387,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
 
                 // Call method
                 var response = await session.CallAsync(
-                    (request.Header?.Diagnostics).ToStackModel(), requests);
+                    (request.Header?.Diagnostics).ToStackModel(), requests, CancellationToken.None);
                 OperationResultEx.Validate("Call" + methodId, diagnostics,
                     response.Results.Select(r => r.StatusCode), response.DiagnosticInfos,
                     false);
@@ -457,7 +458,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         //
                         DataEncoding = null
                     }
-                });
+                }, CancellationToken.None);
                 OperationResultEx.Validate("ReadValue_" + readNode, diagnostics,
                     response.Results.Select(r => r.StatusCode), response.DiagnosticInfos, false);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
@@ -529,7 +530,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 };
                 var result = new ValueWriteResultModel();
                 var response = await session.WriteAsync(
-                    (request.Header?.Diagnostics).ToStackModel(), nodesToWrite);
+                    (request.Header?.Diagnostics).ToStackModel(), nodesToWrite, CancellationToken.None);
                 OperationResultEx.Validate("WriteValue_" + writeNode, diagnostics, response.Results,
                     response.DiagnosticInfos, false);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
@@ -560,7 +561,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         }));
                     var response = await session.ReadAsync(
                         (request.Header?.Diagnostics).ToStackModel(), 0, TimestampsToReturn.Both,
-                        requests);
+                        requests, CancellationToken.None);
                     SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
                     return new ReadResultModel {
                         Results = response.Results
@@ -601,7 +602,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                                 AttributeMap.GetBuiltInType((uint)a.Attribute)))
                         }));
                     var response = await session.WriteAsync(
-                        (request.Header?.Diagnostics).ToStackModel(), requests);
+                        (request.Header?.Diagnostics).ToStackModel(), requests, CancellationToken.None);
                     SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
                     return new WriteResultModel {
                         Results = response.Results
@@ -655,7 +656,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                             NodeId = nodeId,
                             DataEncoding = null // TODO
                         }
-                    });
+                    }, CancellationToken.None);
                 OperationResultEx.Validate("HistoryRead_" + nodeId,
                     diagnostics, response.Results.Select(r => r.StatusCode),
                     response.DiagnosticInfos, false);
@@ -689,7 +690,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                             ContinuationPoint = request.ContinuationToken.DecodeAsBase64(),
                             DataEncoding = null // TODO
                         }
-                    });
+                    }, CancellationToken.None);
                     OperationResultEx.Validate("HistoryReadNext_" + request.ContinuationToken,
                         diagnostics, response.Results.Select(r => r.StatusCode),
                         response.DiagnosticInfos, false);
@@ -736,7 +737,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 }
                 var response = await session.HistoryUpdateAsync(
                     (request.Header?.Diagnostics).ToStackModel(),
-                    new ExtensionObjectCollection { extensionObject });
+                    new ExtensionObjectCollection { extensionObject }, CancellationToken.None);
                 OperationResultEx.Validate("HistoryUpdate",
                     diagnostics, response.Results.Select(r => r.StatusCode),
                     response.DiagnosticInfos, false);
@@ -868,7 +869,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                                     await session.BrowseNextAsync(header, true,
                                         new ByteStringCollection {
                                             response.Results[0].ContinuationPoint
-                                        });
+                                        }, CancellationToken.None);
                                 }
                             }
                         }
@@ -974,7 +975,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                         StartingNode = rootId,
                         RelativePath = paths.ToRelativePath(session.MessageContext)
                     }
-                });
+                }, CancellationToken.None);
             OperationResultEx.Validate($"Resolve_" + paramName, operations,
                 response.Results.Select(r => r.StatusCode), response.DiagnosticInfos,
                 false);

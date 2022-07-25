@@ -505,7 +505,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (item.GetTriggeringLinks(out var added, out var removed)) {
                             var response = await rawSubscription.Session.SetTriggeringAsync(
                                 null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
-                                new UInt32Collection(added), new UInt32Collection(removed))
+                                new UInt32Collection(added), new UInt32Collection(removed), CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }

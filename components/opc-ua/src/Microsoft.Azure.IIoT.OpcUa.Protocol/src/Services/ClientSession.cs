@@ -832,7 +832,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 NodeId = Variables.Server_ServerStatus_State,
                                 AttributeId = Attributes.Value
                             }
-                        });
+                        }, CancellationToken.None);
                     _failures = 0;
                 }
                 catch {
