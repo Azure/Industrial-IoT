@@ -309,16 +309,16 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
 
         [Fact]
         public void TestDataContractEnum1() {
-            var str = Serializer.SerializeToBytes(DataContractEnum.Test1 | DataContractEnum.Test2);
-            Assert.True(str.SequenceEqual(new byte[] { 3 }));
+            var str = Serializer.SerializeToBytes(DataContractEnum.Test1 | DataContractEnum.Test2).ToArray();
+            Assert.True(str.SequenceEqual(new byte[] { 210, 0, 0, 0, 3 }));
             var result = Serializer.Deserialize<DataContractEnum>(str.ToArray());
             Assert.Equal(DataContractEnum.Test1 | DataContractEnum.Test2, result);
         }
 
         [Fact]
         public void TestDataContractEnum2() {
-            var str = Serializer.SerializeToBytes(DataContractEnum.All);
-            Assert.True(str.SequenceEqual(new byte[] { 7 }));
+            var str = Serializer.SerializeToBytes(DataContractEnum.All).ToArray();
+            Assert.True(str.SequenceEqual(new byte[] { 210, 0, 0, 0, 7 }));
             var result = Serializer.Deserialize<DataContractEnum>(str.ToArray());
             Assert.Equal(DataContractEnum.All, result);
         }

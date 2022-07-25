@@ -383,14 +383,9 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
                     return null;
                 }
                 try {
-#if MessagePack2
                     var mem = new ArrayBufferWriter<byte>();
                     MsgPack.Serialize(mem, value, _options);
                     var buffer = mem.WrittenMemory;
-#else
-                    var buffer = MsgPack.Serialize(
-                        value?.GetType() ?? typeof(object), value, _options);
-#endif
                     return MsgPack.Deserialize(typeof(object), buffer, _options);
                 }
                 catch (MessagePackSerializationException ex) {
@@ -447,7 +442,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
                             writer.WriteNil();
                     }
                     else if (value is VariantValue variant) {
-                        if (variant.IsNull()) {
+                        if (VariantValueEx.IsNull(variant)) {
                             writer.WriteNil();
                         }
                         else if (variant.IsListOfValues) {
@@ -516,24 +511,15 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
                 }
 #endif
 
-#if MessagePack2
                 /// <inheritdoc/>
                 public T Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options) {
                     // Read variant from reader
                     var o = MsgPack.Deserialize<object>(ref reader, options);
-                    return new MessagePackVariantValue(o, options, false) as T;
-                }
-#else
-                /// <inheritdoc/>
-                public T Deserialize(byte[] bytes, int offset, MessagePackSerializerOptions options,
-                    out int readSize) {
-                    var o = MsgPack.Deserialize(typeof(object), bytes, offset, options, out readSize);
                     if (o == null) {
                         return default;
                     }
                     return new MessagePackVariantValue(o, options, false) as T;
                 }
-#endif
             }
 
             private readonly ConcurrentDictionary<Type, IMessagePackFormatter> _cache =
@@ -573,33 +559,16 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             private sealed class ExceptionFormatter<T> : IMessagePackFormatter<T>
                 where T : Exception, new() {
 
-#if MessagePack2
                 /// <inheritdoc/>
                 public void Serialize(ref MessagePackWriter writer, T value,
                     MessagePackSerializerOptions options) {
                 }
-#else
-                /// <inheritdoc/>
-                public int Serialize(ref byte[] bytes, int offset, T value,
-                    MessagePackSerializerOptions options) {
-                    return offset;
-                }
-#endif
 
-#if MessagePack2
                 /// <inheritdoc/>
                 public T Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options) {
                     // Read variant from reader
                     return new T();
                 }
-#else
-                /// <inheritdoc/>
-                public T Deserialize(byte[] bytes, int offset, MessagePackSerializerOptions options,
-                    out int readSize) {
-                    readSize = 0;
-                    return new T();
-                }
-#endif
             }
 
             private readonly ConcurrentDictionary<Type, IMessagePackFormatter> _cache =
