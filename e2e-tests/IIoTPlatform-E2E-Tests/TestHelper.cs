@@ -704,7 +704,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="transportType"></param>
         public static ServiceClient DeviceServiceClient(
             string iotHubConnectionString,
-            TransportType transportType = TransportType.Amqp_WebSocket_Only
+            Microsoft.Azure.Devices.TransportType transportType = Microsoft.Azure.Devices.TransportType.Amqp_WebSocket_Only
         ) {
             ServiceClient iotHubClient;
 
