@@ -32,11 +32,13 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             else
                 logEventLevel = LogEventLevel.Information;
 
+#pragma warning disable CS0618 // Type or member is obsolete
             Logger = (log ?? new LoggerConfiguration()).Configure((c, m) => c
-                .WriteTo.ApplicationInsights(config?.InstrumentationKey,
+                .WriteTo.ApplicationInsights(new ApplicationInsights.Extensibility.TelemetryConfiguration(config?.InstrumentationKey),
                     TelemetryConverter.Traces,
                     logEventLevel), addConsole)
                 .CreateLogger();
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

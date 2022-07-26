@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Accelist.FluentValidation.Blazor" Version="4.0.0" />
-    <PackageReference Include="Blazored.Modal" Version="6.0.1" />
+    <PackageReference Include="Blazored.Modal" Version="4.1.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="2.2.0" />
     <PackageReference Include="FluentValidation" Version="11.1.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.1.0" />
@@ -13,9 +13,6 @@
     <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="6.0.7" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="bundleconfig.json" />
@@ -36,8 +33,5 @@
     <Content Remove="bundleconfig.json" />
     <Content Remove="container.json" />
     <None Include="container.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Connected Services" />
   </ItemGroup>
 </Project>

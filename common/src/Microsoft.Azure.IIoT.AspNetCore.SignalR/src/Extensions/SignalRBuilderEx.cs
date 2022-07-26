@@ -57,7 +57,7 @@ namespace Microsoft.Extensions.DependencyInjection {
         }
 
         /// <summary>
-        /// Add json serializer
+        /// Add message pack serializer
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
@@ -74,7 +74,7 @@ namespace Microsoft.Extensions.DependencyInjection {
                     var provider = services.GetService<IMessagePackSerializerOptionsProvider>();
                     var resolvers = provider?.Resolvers;
                     if (resolvers != null) {
-                        options.SerializerOptions.WithResolver(CompositeResolver.Create(resolvers.ToArray()));
+                        options.SerializerOptions = options.SerializerOptions.WithResolver(CompositeResolver.Create(resolvers.ToArray()));
                     }
                 }));
             return builder;

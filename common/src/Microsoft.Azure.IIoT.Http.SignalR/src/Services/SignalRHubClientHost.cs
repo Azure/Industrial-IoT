@@ -136,7 +136,8 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
                 .WithAutomaticReconnect();
             if (_useMessagePack && _msgPack != null) {
                 builder = builder.AddMessagePackProtocol(options => {
-                    options.SerializerOptions.WithResolver(CompositeResolver.Create(_msgPack.GetResolvers().ToArray()));
+                    options.SerializerOptions = options.SerializerOptions.WithResolver(
+                        CompositeResolver.Create(_msgPack.GetResolvers().ToArray()));
                 });
             }
             else {
