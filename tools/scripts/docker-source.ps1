@@ -61,11 +61,8 @@ if ($projFile) {
     Remove-Item $output -Recurse -ErrorAction SilentlyContinue
 
     $runtimes = @(
-        "linux-arm",
         "linux-musl-arm",
-        "linux-arm64",
         "linux-musl-arm64",
-        "linux-x64",
         "linux-musl-x64",
         "win-x64",
         ""
@@ -121,22 +118,22 @@ if ($projFile) {
     # Default platform definitions
     $platforms = @{
         "linux/arm" = @{
-            runtimeId = "linux-arm"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
+            runtimeId = "linux-musl-arm"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:6.0-alpine"
             platformTag = "linux-arm32v7"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/arm64" = @{
             runtimeId = "linux-musl-arm64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine-arm64v8"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:6.0-alpine"
             platformTag = "linux-arm64v8"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/amd64" = @{
             runtimeId = "linux-musl-x64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:6.0-alpine"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
