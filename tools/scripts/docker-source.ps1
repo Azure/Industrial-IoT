@@ -90,7 +90,7 @@ if ($projFile) {
         if (![string]::IsNullOrEmpty($runtimeId)) {
             $argumentList += "-r"
             $argumentList += $runtimeId
-            $argumentList += "/p:TargetLatestRuntimePatch=true"
+            $argumentList += "--self-contained /p:TargetLatestRuntimePatch=true"
         }
         else {
             $runtimeId = "portable"
