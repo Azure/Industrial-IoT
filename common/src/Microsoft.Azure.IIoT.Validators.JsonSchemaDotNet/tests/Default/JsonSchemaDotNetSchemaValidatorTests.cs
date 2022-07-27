@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests {
             var validator = new JsonSchemaDotNetSchemaValidator();
             var results = validator.Validate(Encoding.UTF8.GetBytes(pn), new StringReader(schema));
             Assert.True(results.All(r => !r.IsValid));
-            Assert.Equal("Value is number but should be string", results.First().Message);
+            Assert.Equal("Value is \"integer\" but should be \"string\"", results.First().Message);
         }
 
         [Fact]
@@ -102,12 +102,12 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests {
                 !r.IsValid &&
                 r.InstanceLocation == "#/prop" &&
                 r.SchemaLocation == "#/properties/prop/type" &&
-                r.Message == "Value is number but should be string").Take(3).Count());
+                r.Message == "Value is \"integer\" but should be \"string\"").Take(3).Count());
             Assert.Equal(1, results.Where(r =>
                 !r.IsValid &&
                 r.InstanceLocation == "#/prop2" &&
                 r.SchemaLocation == "#/properties/prop2/type" &&
-                r.Message == "Value is string but should be integer").Take(3).Count());
+                r.Message == "Value is \"string\" but should be \"integer\"").Take(3).Count());
         }
     }
 }
