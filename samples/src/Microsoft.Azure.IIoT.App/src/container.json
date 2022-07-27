@@ -1,6 +1,6 @@
 {
     "name": "iot/industrial-iot-frontend",
     "exposes": [443, 80],
-    "base": "mcr.microsoft.com/dotnet/core/aspnet:6.0",
+    "base": "mcr.microsoft.com/dotnet/aspnet:6.0",
     "buildAlways": true
 }
