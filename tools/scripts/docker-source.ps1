@@ -88,7 +88,8 @@ if ($projFile) {
         # Create dotnet command line 
         $argumentList = @("publish", "-c", $configuration, "--force")
         if (![string]::IsNullOrEmpty($runtimeId)) {
-            $argumentList += "--self-contained -r"
+            $argumentList += "--self-contained"
+            $argumentList += "-r"
             $argumentList += $runtimeId
             $argumentList += "/p:TargetLatestRuntimePatch=true"
             $argumentList += "/p:PublishSingleFile=true"
