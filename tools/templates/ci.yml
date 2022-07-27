@@ -5,7 +5,7 @@ jobs:
 - job: buildprep
   displayName: Prepare Build Jobs
   pool:
-    vmImage: 'windows-2019'
+    vmImage: 'windows-latest'
   variables:
     runCodesignValidationInjection: false
     skipComponentGovernanceDetection: true
@@ -85,7 +85,7 @@ jobs:
 - job: testprep
   displayName: Prepare Test Jobs
   pool:
-    vmImage: 'windows-2019'
+    vmImage: 'windows-latest'
   variables:
     runCodesignValidationInjection: false
     skipComponentGovernanceDetection: true

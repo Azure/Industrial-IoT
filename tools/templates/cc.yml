@@ -11,7 +11,7 @@ jobs:
     disable.coverage.autogenerate: true
     runCodesignValidationInjection: false
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-latest'
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'

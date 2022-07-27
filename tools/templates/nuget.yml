@@ -7,7 +7,7 @@ jobs:
 - job: nuget
   displayName: Pack Nugets
   pool:
-    vmImage: 'windows-2019'
+    vmImage: 'windows-latest'
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK for signing'

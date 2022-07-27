@@ -37,7 +37,7 @@ if (![string]::IsNullOrEmpty($JobPrefix)) {
 }
 
 $agents = @{
-    windows = "windows-2019"
+    windows = "windows-latest"
     linux = "ubuntu-18.04"
     # mac = "macOS-10.15"
 }
