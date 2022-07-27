@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net60</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="..\..\..\..\..\modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\src\Schemas\publishednodesschema.json" Link="Storage\publishednodesschema.json">
