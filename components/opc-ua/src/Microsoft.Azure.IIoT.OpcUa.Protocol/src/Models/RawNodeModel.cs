@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using System.Linq;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Represents a in memory node for remote reading and writing.
@@ -135,7 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             bool skipAttributeIdInvalid, bool traceOnly) {
 
             var readResponse = await session.ReadAsync(requestHeader, 0,
-                TimestampsToReturn.Both, readValueCollection);
+                TimestampsToReturn.Both, readValueCollection, CancellationToken.None);
 
             OperationResultEx.Validate("Read_" + LocalId, operations,
                 readResponse.Results
@@ -173,7 +174,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 }));
 
             var writeResponse = await session.WriteAsync(requestHeader,
-                writeValueCollection);
+                writeValueCollection, CancellationToken.None);
             OperationResultEx.Validate("Write_" + LocalId, operations, writeResponse.Results
                     .Select(code => skipAttributeIdInvalid &&
                         code == StatusCodes.BadAttributeIdInvalid ? StatusCodes.Good : code),
