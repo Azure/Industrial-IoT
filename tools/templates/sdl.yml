@@ -40,8 +40,8 @@ jobs:
     continueOnError: true
   - task: RoslynAnalyzers@2
     displayName: 'Run Roslyn Analyzers'
-    userProvideBuildInfo: msBuildInfo
-    msBuildArchitecture: DotNetCore
+#    userProvideBuildInfo: msBuildInfo
+#    msBuildArchitecture: DotNetCore
     continueOnError: true
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
