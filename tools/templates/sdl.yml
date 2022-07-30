@@ -40,8 +40,8 @@ jobs:
     continueOnError: true
   - task: RoslynAnalyzers@3
     displayName: 'Run Roslyn Analyzers'
-    userProvideBuildInfo: 'autoMsBuildInfo'
-    setupCommandlinePicker: 'vs2022'
+#    userProvideBuildInfo: 'autoMsBuildInfo'
+#    setupCommandlinePicker: 'vs2022'
     continueOnError: true
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
