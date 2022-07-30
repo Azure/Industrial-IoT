@@ -18,6 +18,9 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <LangVersion>8.0</LangVersion>
     <IsPackable>false</IsPackable>
+	<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+	<ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+	<RuntimeIdentifiers>win-x64;linux-x64;linux-musl-x64;linux-musl-arm;linux-musl-arm64</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
     <None Include="$(MSBuildThisFileDirectory)/docs/media/icon.png" Pack="true" PackagePath="\"/>
