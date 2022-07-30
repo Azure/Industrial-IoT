@@ -38,10 +38,10 @@ jobs:
     inputs:
       toolMajorVersion: V2
     continueOnError: true
-  - task: RoslynAnalyzers@2
+  - task: RoslynAnalyzers@3
     displayName: 'Run Roslyn Analyzers'
-#    userProvideBuildInfo: msBuildInfo
-#    msBuildArchitecture: DotNetCore
+    userProvideBuildInfo: 'autoMsBuildInfo'
+    setupCommandlinePicker: 'vs2022'
     continueOnError: true
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
