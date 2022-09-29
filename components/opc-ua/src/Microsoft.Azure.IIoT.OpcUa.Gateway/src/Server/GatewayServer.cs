@@ -1632,7 +1632,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     MinimumCertificateKeySize = 1024,
                     RejectSHA1SignedCertificates = false,
                     AddAppCertToTrustedStore = true,
-                    AutoAcceptUntrustedCertificates = false
+                    AutoAcceptUntrustedCertificates = false,
+                    RejectUnknownRevocationStatus = true,
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
                 TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),

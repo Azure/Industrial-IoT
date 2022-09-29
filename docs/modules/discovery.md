@@ -203,6 +203,13 @@ The following list of module parametrization settings can be provided either as 
                                       Type: boolean
                                       Default: true
 
+            RejectUnknownRevocationStatus=VALUE
+                                      OPC UA Client Security Config - aReject chain validation 
+                                      with CA certs with unknown revocation status, e.g.when the
+                                      CRL is not available or the OCSP provider is offline.
+                                      Type: boolean
+                                      Default: true
+
             SecurityTokenLifetime=VALUE
                                       OPC UA Stack Transport Secure Channel - Security token lifetime in milliseconds
                                       Type: integer (milliseconds)
