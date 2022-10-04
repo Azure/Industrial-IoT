@@ -259,13 +259,13 @@ Function Select-RepositoryAndBranch() {
         if ([string]::IsNullOrEmpty($script:branchName)) {
             try {
                 $argumentList = @("rev-parse", "--abbrev-ref", "@{upstream}")
-                $symbolic = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+                $symbolic = (& "git" @argumentList 2>&1 | ForEach-Object { "$_" });
                 if ($LastExitCode -ne 0) {
                     throw "git $($argumentList) failed with $($LastExitCode)."
                 }
                 $remote = $symbolic.Split('/')[0]
                 $argumentList = @("remote", "get-url", $remote)
-                $giturl = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+                $giturl = (& "git" @argumentList 2>&1 | ForEach-Object { "$_" });
                 if ($LastExitCode -ne 0) {
                     throw "git $($argumentList) failed with $($LastExitCode)."
                 }

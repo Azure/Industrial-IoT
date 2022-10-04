@@ -29,7 +29,7 @@ Param(
 if (![string]::IsNullOrEmpty($script:Subscription)) {
     Write-Debug "Setting subscription to $($script:Subscription)"
     $argumentList = @("account", "set", "--subscription", $script:Subscription, "-ojson")
-    & "az" $argumentList 2`>`&1 | ForEach-Object { "$_" }
+    & "az" @argumentList 2`>`&1 | ForEach-Object { "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
     }
@@ -37,7 +37,7 @@ if (![string]::IsNullOrEmpty($script:Subscription)) {
 
 # get registry resource info
 $argumentList = @("acr", "show", "--name", $script:Registry, "-ojson")
-$result = (& "az" $argumentList)
+$result = (& "az" @argumentList)
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
 }
@@ -49,7 +49,7 @@ $argumentList = @("security", "sub-assessment", "list", "-ojson",
     "--assessment-name", "dbd0cb49-b563-45e7-9724-889e799fa648"
 )
 $realVulnerabilities = @()
-$vulnerabilities = (& "az" $argumentList) | ConvertFrom-Json
+$vulnerabilities = (& "az" @argumentList) | ConvertFrom-Json
 $defunct = @{ }
 foreach ($vulnerability in $vulnerabilities) {
     $imageId = $vulnerability.resourceDetails.id
@@ -65,7 +65,7 @@ foreach ($vulnerability in $vulnerabilities) {
         "--name", $script:Registry,
         "--image", $imageId
     )
-    $result = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" })
+    $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
     if ($LastExitCode -ne 0) {
         if (!$result.StartsWith("ERROR: ResourceNotFoundError")) {
             Write-Error "$result"
@@ -85,7 +85,7 @@ foreach ($vulnerability in $vulnerabilities) {
             "--repository", $repository,
             "--query", """[?digest=='$($digest)'].tags"""
         )
-        $tags = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertTo-Json
+        $tags = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertTo-Json
         
         Add-Member -in $image -MemberType NoteProperty -name "tags" -value $tags
         Add-Member -in $vulnerability -MemberType NoteProperty -name "image" -value $image
