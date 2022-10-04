@@ -204,8 +204,8 @@ The following list of module parametrization settings can be provided either as 
                                       Default: true
 
             RejectUnknownRevocationStatus=VALUE
-                                      OPC UA Client Security Config - aReject chain validation 
-                                      with CA certs with unknown revocation status, e.g.when the
+                                      OPC UA Client Security Config - reject chain validation 
+                                      with CA certs with unknown revocation status, e.g. when the
                                       CRL is not available or the OCSP provider is offline.
                                       Type: boolean
                                       Default: true
