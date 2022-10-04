@@ -54,6 +54,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <inheritdoc/>
         public bool AddAppCertToTrustedStore => _opc.AddAppCertToTrustedStore;
         /// <inheritdoc/>
+        public bool RejectUnknownRevocationStatus => _opc.RejectUnknownRevocationStatus;
+        /// <inheritdoc/>
         public CertificateStore TrustedIssuerCertificates => _opc.TrustedIssuerCertificates;
         /// <inheritdoc/>
         public CertificateStore TrustedPeerCertificates => _opc.TrustedPeerCertificates;

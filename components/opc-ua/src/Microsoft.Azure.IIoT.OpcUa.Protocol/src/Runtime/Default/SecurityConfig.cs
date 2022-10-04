@@ -33,6 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public const string RejectSha1SignedCertificatesKey = "RejectSha1SignedCertificates";
         public const string MinimumCertificateKeySizeKey = "MinimumCertificateKeySize";
         public const string AddAppCertToTrustedStoreKey = "AddAppCertToTrustedStore";
+        public const string RejectUnknownRevocationStatusKey = "RejectUnknownRevocationStatus";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -86,6 +87,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// <inheritdoc/>
         public bool AddAppCertToTrustedStore =>
             GetBoolOrDefault(AddAppCertToTrustedStoreKey, () => true);
+        /// <inheritdoc/>
+        public bool RejectUnknownRevocationStatus =>
+            GetBoolOrDefault(RejectUnknownRevocationStatusKey, () => true);
 
         /// <summary>
         /// Create configuration

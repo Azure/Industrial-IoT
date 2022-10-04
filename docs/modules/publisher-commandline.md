@@ -379,6 +379,14 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Mode: Standalone and Orchestrated
                                       Type: boolean
                                       Default: true
+            RejectUnknownRevocationStatus=VALUE
+                                      OPC UA Client Security Config - reject chain validation 
+                                      with CA certs with unknown revocation status, e.g. when the
+                                      CRL is not available or the OCSP provider is offline.
+                                      Alternative: N/A
+                                      Mode: Standalone and Orchestrated
+                                      Type: boolean
+                                      Default: true
 
             SecurityTokenLifetime=VALUE
                                       OPC UA Stack Transport Secure Channel - Security token lifetime in milliseconds

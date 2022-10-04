@@ -62,6 +62,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// <inheritdoc/>
         public bool AddAppCertToTrustedStore => _security.AddAppCertToTrustedStore;
         /// <inheritdoc/>
+        public bool RejectUnknownRevocationStatus => _security.RejectUnknownRevocationStatus;
+        /// <inheritdoc/>
         public CertificateStore TrustedIssuerCertificates => _security.TrustedIssuerCertificates;
         /// <inheritdoc/>
         public CertificateStore TrustedPeerCertificates => _security.TrustedPeerCertificates;

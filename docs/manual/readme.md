@@ -1331,13 +1331,13 @@ A sample configuration for setting a resource requests and limits using `values.
 deployment:
   microServices:
     edgeJobs:
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "200m"
-    limits:
-      memory: "2Gi"
-      cpu: "1000m"
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "200m"
+        limits:
+          memory: "2Gi"
+          cpu: "1000m"
 ```
 
 Please be sure to monitor both memory and CPU consumption of those microservices and update their limits accordingly considering as-deployed behavior.
