@@ -41,7 +41,7 @@ if ([string]::IsNullOrEmpty($script:Path)) {
 
 if ([string]::IsNullOrEmpty($script:Subscription)) {
     $argumentList = @("account", "show")
-    $account = & "az" $argumentList 2>$null | ConvertFrom-Json
+    $account = & "az" @argumentList 2>$null | ConvertFrom-Json
     if (!$account) {
         throw "Failed to retrieve account information."
     }
@@ -54,7 +54,7 @@ if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
     # check if group exists and if not create it.
     $argumentList = @("group", "show", "-g", $script:ResourceGroupName,
         "--subscription", $script:Subscription)
-    $group = & "az" $argumentList 2>$null | ConvertFrom-Json
+    $group = & "az" @argumentList 2>$null | ConvertFrom-Json
     if (!$group) {
         if ([string]::IsNullOrEmpty($script:ResourceGroupLocation)) {
             throw "Need a resource group location to create the resource group."
@@ -62,7 +62,7 @@ if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
         $argumentList = @("group", "create", "-g", $script:ResourceGroupName, `
             "-l", $script:ResourceGroupLocation, 
             "--subscription", $script:Subscription)
-        $group = & "az" $argumentList | ConvertFrom-Json
+        $group = & "az" @argumentList | ConvertFrom-Json
         if ($LastExitCode -ne 0) {
             throw "az $($argumentList) failed with $($LastExitCode)."
         }
@@ -74,14 +74,14 @@ if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
     # check if acr exist and if not create it
     $argumentList = @("acr", "list", "-g", $script:ResourceGroupName,
         "--subscription", $script:Subscription)
-    $registries = & "az" $argumentList 2>$null | ConvertFrom-Json
+    $registries = & "az" @argumentList 2>$null | ConvertFrom-Json
     $registry = if ($registries) { $registries[0] } else { $null }
     if (!$registry) {
         $argumentList = @("acr", "create", "-g", $script:ResourceGroupName, "-n", `
             "acr$script:ResourceGroupName", "-l", $script:ResourceGroupLocation, `
             "--sku", "Basic", "--admin-enabled", "true", 
             "--subscription", $script:Subscription)
-        $registry = & "az" $argumentList | ConvertFrom-Json
+        $registry = & "az" @argumentList | ConvertFrom-Json
         if ($LastExitCode -ne 0) {
             throw "az $($argumentList) failed with $($LastExitCode)."
         }
