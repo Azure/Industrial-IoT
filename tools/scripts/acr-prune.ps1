@@ -31,7 +31,7 @@ Param(
 if (![string]::IsNullOrEmpty($script:Subscription)) {
     Write-Debug "Setting subscription to $($script:Subscription)"
     $argumentList = @("account", "set", "--subscription", $script:Subscription, "-ojson")
-    & "az" $argumentList 2`>`&1 | ForEach-Object { "$_" }
+    & "az" @argumentList 2`>`&1 | ForEach-Object { "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
     }
@@ -40,7 +40,7 @@ if (![string]::IsNullOrEmpty($script:Subscription)) {
 if (-not $script:All.IsPresent) {
     # get build registry credentials
     $argumentList = @("acr", "credential", "show", "--name", $script:Registry, "-ojson")
-    $result = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" })
+    $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
     }
@@ -51,7 +51,7 @@ if (-not $script:All.IsPresent) {
 
 # get list of repositories
 $argumentList = @("acr", "repository", "list", "--name", $script:Registry, "-ojson")
-$repositories = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
+$repositories = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 foreach ($repository in $repositories) {
     
     if ($script:All.IsPresent) {
@@ -64,7 +64,7 @@ foreach ($repository in $repositories) {
             "Would have deleted $($repository). Uses -Yes option."
         }
         else {
-            (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | Out-Host
+            (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | Out-Host
         }
     }
     else {
@@ -80,7 +80,7 @@ foreach ($repository in $repositories) {
         if (-not $script:Yes.IsPresent) {
             $argumentList += "--dry-run"
         }
-        (& "docker" $argumentList 2>&1 | ForEach-Object { "$_" }) | Out-Host
+        (& "docker" @argumentList 2>&1 | ForEach-Object { "$_" }) | Out-Host
     }
 }
 
