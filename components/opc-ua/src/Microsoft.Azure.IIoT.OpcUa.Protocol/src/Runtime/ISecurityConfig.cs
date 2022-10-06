@@ -55,5 +55,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Automatically add application certificate to the trusted store
         /// </summary>
         bool AddAppCertToTrustedStore { get; }
+
+        /// <summary>
+        /// Reject chain validation with CA certs with unknown revocation status,
+        /// e.g.when the CRL is not available or the OCSP provider is offline.
+        /// </summary>
+        bool RejectUnknownRevocationStatus { get; }
     }
 }
