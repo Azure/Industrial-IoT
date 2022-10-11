@@ -3,9 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     using System;
     using System.Runtime.Serialization;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Describing an entry in the node list
@@ -60,5 +62,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> Queue Size for the monitored item </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public uint? QueueSize { get; set; }
+        
+        /// <summary>
+        /// Data change filter
+        /// </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public DataChangeTriggerType? DataChangeFilter { get; set; }
     }
 }

@@ -3,6 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+
 namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
 
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
@@ -28,7 +30,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 OpcSamplingInterval = 2500,
                 HeartbeatInterval = 35,
                 SkipFirst = true,
-                QueueSize = 123
+                QueueSize = 123,
+                DataChangeFilter = DataChangeTriggerType.Status
             };
 
             opcNode2 = new OpcNodeModel {
@@ -37,7 +40,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 OpcSamplingIntervalTimespan = TimeSpan.Parse("00:00:02.500"),
                 HeartbeatIntervalTimespan = TimeSpan.Parse("00:00:35"),
                 SkipFirst = true,
-                QueueSize = 123
+                QueueSize = 123,
+                DataChangeFilter = DataChangeTriggerType.Status
             };
 
             Assert.True(comparer.Equals(opcNode1, opcNode2));
@@ -54,9 +58,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
 
             Assert.False(comparer.Equals(opcNode1, opcNode2));
             Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
+            
+            opcNode2.SkipFirst = true;
+            opcNode2.QueueSize = 123;
+            opcNode2.DataChangeFilter = DataChangeTriggerType.StatusValue;
+
+            Assert.False(comparer.Equals(opcNode1, opcNode2));
+            Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
 
             opcNode2.SkipFirst = null;
             opcNode2.QueueSize = null;
+            opcNode2.DataChangeFilter = null;
 
             Assert.False(comparer.Equals(opcNode1, opcNode2));
             Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));

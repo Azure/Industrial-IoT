@@ -90,6 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         QueueSize = initialNode.QueueSize,
                         // ToDo: Implement mechanism for SkipFirst.
                         SkipFirst = initialNode.SkipFirst,
+                        DataChangeFilter = initialNode.DataChangeFilter
                     });
                 }
 
@@ -185,6 +186,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         QueueSize = initialNode.QueueSize,
                         // ToDo: Implement mechanism for SkipFirst.
                         SkipFirst = initialNode.SkipFirst,
+                        DataChangeFilter = initialNode.DataChangeFilter
                     });
                 }
 
