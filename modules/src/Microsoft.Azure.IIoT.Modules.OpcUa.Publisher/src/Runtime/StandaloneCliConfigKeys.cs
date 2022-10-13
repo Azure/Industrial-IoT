@@ -76,6 +76,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the default queue size fro monitored items
         /// </summary>
         public const string DefaultQueueSize = "DefaultQueueSize";
+        
+        /// <summary>
+        /// Key for the default data change filter for monitored items.
+        /// </summary>
+        public const string DefaultDataChangeFilter = "DefaulDataChangeFilter";
 
         /// <summary>
         /// Key for the flag whether to fetch the display names of the nodes.

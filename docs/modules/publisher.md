@@ -118,8 +118,7 @@ The simplest way to configure OPC Publisher is via a configuration file. A basic
 ]
 ```
 
-Another example configuration files are provided via [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1),
-[`publishednodes_2.8.json`](publishednodes_2.8.json?raw=1) and [`publishednodes_2.9.json`](publishednodes_2.9.json?raw=1) files.
+Another example configuration files are provided via [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1) and [`publishednodes_2.8.json`](publishednodes_2.8.json?raw=1).
 
 The configuration file syntax has been enhanced over time. OPC Publisher read old formats and converts them into the current format when persisting the configuration. OPC Publisher regularly persists the configuration file.
 When OPC Publisher reads the file, it's validated against the [reference schema](https://raw.githubusercontent.com/Azure/Industrial-IoT/main/modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src/Schemas/publishednodesschema.json). Refer to the [OPC Publisher manual](https://github.com/Azure/Industrial-IoT/blob/main/docs/manual/readme.md) for schema validation details.

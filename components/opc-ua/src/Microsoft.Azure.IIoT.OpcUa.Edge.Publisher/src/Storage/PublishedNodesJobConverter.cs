@@ -327,7 +327,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                             // ToDo: Implement mechanism for SkipFirst.
                             SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
-                            DataChangeFilter = node.DataChangeFilter ?? DataChangeTriggerType.StatusValue
+                            DataChangeFilter = node.DataChangeFilter
                         });
                     }
                     else {
@@ -351,7 +351,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                                 // ToDo: Implement mechanism for SkipFirst.
                                 SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
-                                DataChangeFilter = node.DataChangeFilter ?? DataChangeTriggerType.StatusValue
+                                DataChangeFilter = node.DataChangeFilter
                             });
                         }
                     }

@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using System.Runtime.Serialization;
     using System;
     using System.ComponentModel.DataAnnotations;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// A monitored and published node api model
