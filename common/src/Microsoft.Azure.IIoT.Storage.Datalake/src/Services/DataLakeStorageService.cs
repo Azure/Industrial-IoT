@@ -249,7 +249,9 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
                     using (var buffer = new MemoryStream(stream, 0, count)) {
                         var offset = properties.ContentLength;
                         await _file.AppendAsync(buffer, offset,
-                            leaseId: _conditions?.LeaseId, cancellationToken: ct);
+                            new DataLakeFileAppendOptions {
+                                LeaseId = _conditions?.LeaseId
+                            }, cancellationToken: ct);
                         await _file.FlushAsync(offset + count,
                             conditions: _conditions, cancellationToken: ct);
                     }
@@ -275,7 +277,9 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// <inheritdoc/>
             public async Task DownloadAsync(Stream stream, CancellationToken ct) {
                 try {
-                    await _file.ReadToAsync(stream, _conditions, cancellationToken: ct);
+                    await _file.ReadToAsync(stream, new DataLakeFileReadToOptions {
+                        Conditions = _conditions
+                    }, cancellationToken: ct);
                 }
                 catch (RequestFailedException ex) {
                     if (ex.Status == (int)HttpStatusCode.RequestedRangeNotSatisfiable &&
@@ -524,7 +528,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// <inheritdoc/>
             public override AccessToken GetToken(
                 TokenRequestContext requestContext, CancellationToken ct) {
-                return GetTokenAsync(requestContext, ct).Result;
+                return GetTokenAsync(requestContext, ct).AsTask().GetAwaiter().GetResult();
             }
 
             /// <inheritdoc/>
