@@ -143,9 +143,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
                     { $"mq|monitoreditemqueuecapacity=|{StandaloneCliConfigKeys.DefaultQueueSize}=", "Default queue size for monitored items.",
                         (uint u) => this[StandaloneCliConfigKeys.DefaultQueueSize] = u.ToString() },
-                    { $"mc|monitoreditemdatachangefilter=|{StandaloneCliConfigKeys.DefaultDataChangeFilter}=", "Default data change filter for the monitored items " +
+                    { $"mc|monitoreditemdatachangetrigger=|{StandaloneCliConfigKeys.DefaultDataChangeTrigger}=", "Default data change trigger for the monitored items " +
                        $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(DataChangeTriggerType)))}).",
-                        (DataChangeTriggerType t) => this[StandaloneCliConfigKeys.DefaultDataChangeFilter] = t.ToString() },
+                        (DataChangeTriggerType t) => this[StandaloneCliConfigKeys.DefaultDataChangeTrigger] = t.ToString() },
 
                     // cert store option
                     { $"aa|autoaccept", "The publisher trusts all servers it is establishing a connection to.",

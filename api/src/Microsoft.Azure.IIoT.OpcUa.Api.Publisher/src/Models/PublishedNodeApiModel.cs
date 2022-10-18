@@ -79,9 +79,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public uint? QueueSize { get; set; }
         
-        /// <summary> Data change filter </summary>
-        [DataMember(Name = "dataChangeFilter", Order = 12,
+        /// <summary> Data change trigger </summary>
+        [DataMember(Name = "dataChangeTrigger", Order = 12,
             EmitDefaultValue = false)]
-        public DataChangeTriggerType? DataChangeFilter { get; set; }
+        public DataChangeTriggerType? DataChangeTrigger { get; set; }
     }
 }

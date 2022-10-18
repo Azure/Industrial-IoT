@@ -367,7 +367,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     QueueSize = standaloneCliModel.DefaultQueueSize,
                     // ToDo: Implement mechanism for SkipFirst.
                     SkipFirst = standaloneCliModel.DefaultSkipFirst,
-                    DataChangeFilter = standaloneCliModel.DefaultDataChangeFilter
+                    DataChangeFilter = standaloneCliModel.DefaultDataChangeTrigger
                 });
             }
         }

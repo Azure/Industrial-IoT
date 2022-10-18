@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the default data change filter for monitored items.
         /// </summary>
-        public const string DefaultDataChangeFilter = "DefaulDataChangeFilter";
+        public const string DefaultDataChangeTrigger = "DefaulDataChangeTrigger";
 
         /// <summary>
         /// Key for the flag whether to fetch the display names of the nodes.
