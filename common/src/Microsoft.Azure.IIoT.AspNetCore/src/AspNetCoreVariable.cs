@@ -21,5 +21,17 @@ namespace Microsoft.Azure.IIoT.AspNetCore {
         /// </summary>
         public const string ASPNETCORE_FORWARDEDHEADERS_FORWARDLIMIT =
             "ASPNETCORE_FORWARDEDHEADERS_FORWARDLIMIT";
+
+        /// <summary>
+        /// Set the max number of concurrent requests to the api
+        /// </summary>
+        public const string ASPNETCORE_RATELIMITING_MAX_CONCURRENT_REQUESTS =
+            "ASPNETCORE_RATELIMITING_MAX_CONCURRENT_REQUESTS";
+
+        /// <summary>
+        /// Set the path excepted by rate limiting
+        /// </summary>
+        public const string ASPNETCORE_RATELIMITING_PATHEXCEPTION =
+            "ASPNETCORE_RATELIMITING_PATHEXCEPTION";
     }
 }

@@ -64,7 +64,6 @@ if ($projFile) {
         "linux-musl-arm",
         "linux-musl-arm64",
         "linux-musl-x64",
-        "win-x64",
         ""
     )
     if (![string]::IsNullOrEmpty($metadata.base)) {
@@ -140,18 +139,6 @@ if ($projFile) {
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
-        "windows/amd64:10.0.17763.1457" = @{
-            runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1809"
-            platformTag = "nanoserver-amd64-1809"
-            entryPoint = "[`"$($assemblyName).exe`"]"
-        }
-        "windows/amd64:10.0.18363.1082" = @{
-            runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1909"
-            platformTag = "nanoserver-amd64-1909"
-            entryPoint = "[`"$($assemblyName).exe`"]"
-        }
     }
 
     # Create dockerfile in publish output and build definitions
@@ -165,12 +152,8 @@ if ($projFile) {
         $environmentVars = @("ENV DOTNET_RUNNING_IN_CONTAINER=true")
 
         if ($script:Fast.IsPresent) {
-            # Only build windows and linux iot edge images in fast mode
-            if (($_ -ne "windows/amd64:10.0.17763.1457") -and ($_ -ne "linux/amd64")) {
-                return;
-            }
-            # if not iot edge, just build linux images.
-            if ((!$metadata.iotedge) -and ($_ -ne "linux/amd64")) {
+            # Just build linux images.
+            if ($_ -ne "linux/amd64") {
                 return;
             }
         }

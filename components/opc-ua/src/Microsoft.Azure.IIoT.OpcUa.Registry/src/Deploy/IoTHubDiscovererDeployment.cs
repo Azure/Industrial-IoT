@@ -115,21 +115,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 });
             }
             else {
-                // Windows
+                // Windows (Eflow)
                 createOptions = _serializer.SerializeToString(new {
-                    User = "ContainerAdministrator",
                     Hostname = "discovery",
                     Cmd = new[] {
                         "PkiRootPath=/mount/pki",
                     },
                     HostConfig = new {
-                        Mounts = new[] {
-                            new {
-                                Type = "bind",
-                                Source = "C:\\\\ProgramData\\\\iotedge",
-                                Target = "C:\\\\mount"
-                            }
-                        }
+                        Binds = new[] {
+                            "/mount:/mount"
+                        },
                     }
                 });
             }
@@ -143,7 +138,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             var image = $"{server}/{ns}iotedge/discovery:{version}";
 
             _logger.Information("Updating discovery module deployment with image {image} for {os}",
-                image, isLinux ? "Linux" : "Windows");
+                image, isLinux ? "Linux" : "Windows (EFLOW)");
 
             // Return deployment modules object
             var content = @"

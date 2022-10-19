@@ -1,5 +1,24 @@
 # Release announcement
 
+## Azure Industrial IoT Platform Release 2.8.4
+
+We are pleased to announce the release of version 2.8.4 of our Industrial IoT Platform components as latest patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates fixes, performance optimizations and bugfixes.
+
+### Security related fixes
+
+- Updated .net from .net 3.1 LTS which is now EOL to .net 6.0 LTS.
+- Updated most of the nuget dependencies to their .net 6 counterpart or latest release.
+- Updated IoT Edge dependency from IoT Edge 1.1 LTS which is now EOL to 1.4 LTS.
+- Windows container images are out of support and have been removed. Please use IoT Edge EFLOW for a Windows based IoT edge solution.
+
+### Fundamentals related fixes
+
+- None
+
+### Bug fixes
+
+- None
+
 ## Azure Industrial IoT Platform Release 2.8.3
 
 We are pleased to announce the release of version 2.8.3 of our Industrial IoT Platform components as a third patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates fixes, performance optimizations and bugfixes.

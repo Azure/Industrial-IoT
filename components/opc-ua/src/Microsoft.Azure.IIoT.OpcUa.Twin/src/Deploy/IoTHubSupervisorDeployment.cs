@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = "__default-opctwin",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(true)
+                    ModulesContent = CreateLayeredDeployment()
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = "__default-opctwin-windows",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(false)
+                    ModulesContent = CreateLayeredDeployment()
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
         /// Get base edge configuration
         /// </summary>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(bool isLinux) {
+        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment() {
 
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_config.DockerServer) &&
@@ -83,44 +83,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
             }
 
             // Configure create options per os specified
-            string createOptions;
-            if (isLinux) {
-                // Linux
-                createOptions = _serializer.SerializeToString(new {
-                    Hostname = "twin",
-                    Cmd = new[] {
+            var createOptions = _serializer.SerializeToString(new {
+                Hostname = "twin",
+                Cmd = new[] {
                         "PkiRootPath=/mount/pki"
                     },
-                    HostConfig = new {
-                        Binds = new[] {
+                HostConfig = new {
+                    Binds = new[] {
                             "/mount:/mount"
                         },
-                        CapDrop = new[] {
+                    CapDrop = new[] {
                             "CHOWN",
                             "SETUID"
                         }
-                    }
-                });
-            }
-            else {
-                // Windows
-                createOptions = _serializer.SerializeToString(new {
-                    User = "ContainerAdministrator",
-                    Hostname = "twin",
-                    Cmd = new[] {
-                        "PkiRootPath=/mount/pki",
-                    },
-                    HostConfig = new {
-                        Mounts = new[] {
-                            new {
-                                Type = "bind",
-                                Source = "C:\\\\ProgramData\\\\iotedge",
-                                Target = "C:\\\\mount"
-                            }
-                        }
-                    }
-                });
-            }
+                }
+            });
+
             createOptions = createOptions.Replace("\"", "\\\"");
 
             var server = string.IsNullOrEmpty(_config.DockerServer) ?

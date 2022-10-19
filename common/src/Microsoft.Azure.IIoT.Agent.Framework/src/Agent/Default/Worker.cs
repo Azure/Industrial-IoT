@@ -189,7 +189,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
             catch (Exception ex) {
                 _logger.Debug(ex, "Worker {workerId} could not send heartbeat.", WorkerId);
-                kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace, "Could not send worker hearbeat").Inc();
+                kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName,
+                    ex.Message, ex.StackTrace, "Could not send worker hearbeat").Inc();
             }
         }
 
@@ -234,7 +235,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     // TODO: we should notify the exception
                     _logger.Error(ex, "Worker {workerId}, exception during worker processing, wait {delay}...",
                         WorkerId, _jobCheckerInterval);
-                    kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace, "Exception during worker processing").Inc();
+                    kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName,
+                        ex.Message, ex.StackTrace, "Exception during worker processing").Inc();
                     await Task.Delay(_jobCheckerInterval, ct).ConfigureAwait(false);
                 }
             }
@@ -519,6 +521,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                         _logger.Debug("Heartbeat returned job not found - cancelling ...");
                         _cancellationTokenSource.Cancel();
                     }
+                }
+                catch (Exception ex) when (ex is ITransientException) {
+                    _logger.Debug("Heartbeat endpoint busy...");
                 }
                 catch (Exception ex) {
                     _logger.Error(ex, "Could not send worker heartbeat.");

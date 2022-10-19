@@ -6,8 +6,10 @@
 namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -26,11 +28,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         /// <param name="jobOrchestratorConfig"></param>
         /// <param name="jobEventHandler"></param>
         /// <param name="jobService"></param>
+        /// <param name="logger"></param>
         public DefaultJobOrchestrator(IJobRepository jobRepository,
             IWorkerRepository workerRepository, IDemandMatcher demandMatcher,
             IJobOrchestratorConfig jobOrchestratorConfig,
             IJobEventHandler jobEventHandler,
-            IJobService jobService) {
+            IJobService jobService,
+            ILogger logger) {
+            _logger = logger;
             _jobRepository = jobRepository;
             _demandMatcher = demandMatcher;
             _workerRepository = workerRepository;
@@ -51,14 +56,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                 if (jobList?.Jobs == null) {
                     break;
                 }
-                System.Diagnostics.Debug
-                    .Assert(!jobList.Jobs.Any(j => j.LifetimeData.Status != JobStatus.Active));
+                Debug.Assert(!jobList.Jobs.Any(j => j.LifetimeData.Status != JobStatus.Active));
 
                 // Filter demands
                 var demandFilteredJobs = jobList.Jobs
                     .Where(j => _demandMatcher.MatchCapabilitiesAndDemands(j.Demands,
-                        request?.Capabilities))
-                    .ToArray();
+                        request?.Capabilities));
 
                 foreach (var job in demandFilteredJobs) {
                     // Test the listed job first before hitting the database
@@ -73,16 +76,23 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                                 }
                                 return Task.FromResult(jobProcessInstruction != null);
                             }, ct);
-                            return jobProcessInstruction;
+                            if (jobProcessInstruction != null) {
+                                _logger.Information("Assigned new job {jobId} to worker {workerId}", jobProcessInstruction.Job.Id, workerId);
+                                return jobProcessInstruction;
+                            }
+                            _logger.Debug("Job stolen after query, continue.");
                         }
                         catch (ResourceNotFoundException) {
-                            continue; // Job deleted while updating, continue to next job
+                            _logger.Debug("Job deleted after query, continue.");
                         }
                     }
                 }
                 continuationToken = jobList.ContinuationToken;
+                Debug.Assert(continuationToken != string.Empty);
             }
-            while (continuationToken != null);
+            while (!string.IsNullOrEmpty(continuationToken));
+
+            _logger.Debug("No job for worker {workerId}", workerId);
             return null;
         }
 
@@ -166,6 +176,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                 return Task.FromResult(true);
             }, ct);
 
+            _logger.Debug("Worker {workerId} updated heartbeat for job {jobId}.",
+                heartbeat.Worker?.AgentId, heartbeat.Job?.JobId);
             return result;
         }
 
@@ -217,5 +229,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         private readonly IJobRepository _jobRepository;
         private readonly IJobEventHandler _jobEventHandler;
         private readonly IJobService _jobService;
+        private readonly ILogger _logger;
     }
 }

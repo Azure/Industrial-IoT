@@ -125,6 +125,10 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
                 });
                 return token;
             }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to register handler");
+                throw;
+            }
             finally {
                 _lock.Release();
             }

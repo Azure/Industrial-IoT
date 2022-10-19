@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge {
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.RateLimiting;
     using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
@@ -141,6 +142,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge {
             app.UseSwagger();
             app.UseMetricServer();
             app.UseHttpMetrics();
+            app.UseRateLimiting();
+
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");

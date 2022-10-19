@@ -12,7 +12,7 @@ You can purchase industrial gateways compatible with IoT Edge. Please see our [A
 
 ### Create an IoT Edge Instance and Install the IoT Edge Runtime
 
-You can also manually [create an IoT Edge instance for an IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device) and install the IoT Edge runtime following the [IoT Edge setup documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). The IoT Edge Runtime can be installed on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
+You can also manually [create an IoT Edge instance for an IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device) and install the IoT Edge runtime following the [IoT Edge setup documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). The IoT Edge Runtime can be installed on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/iot-edge-for-linux-on-windows).
 
 ### Install the Industrial Modules
 
@@ -24,7 +24,7 @@ The Azure Industrial IoT deployment script will setup IoT Edge Layered Deploymen
 
 3. Insert the following `tags`:
 
-- For Linux (with Linux Containers), set the "os" property to "Linux":
+- For Linux, set the "os" property to "Linux":
 
 ```json
 ...
@@ -38,7 +38,7 @@ The Azure Industrial IoT deployment script will setup IoT Edge Layered Deploymen
 ...
 ```
 
-- For Windows (with Linux or Windows Containers), set the "os" property to "Windows":
+- For Windows, set the "os" property to "Windows":
 
 ```json
 ...
@@ -78,57 +78,11 @@ By default, the same Docker container image version tag from mcr.microsoft.com i
 
 If you need to point to a different Docker container registry or image version tag, you can configure the source using environment variables `PCS_DOCKER_SERVER`, `PCS_DOCKER_USER`, `PCS_DOCKER_PASSWORD`, `PCS_IMAGES_NAMESPACE` and `PCS_IMAGES_TAG`, for example in your .env file (which can also be set during deployment), then restart the edge management or all-in-one service.
 
-## Special Cases for Windows Networking Configuration
-
-When running the Industrial IoT Edge modules in host (transparent) network mode, the container must be on the transparent host network and will require IP addresses assignment if no DNS server is avialable on that network.
-
-- Ensure Hyper-V is enabled in the host OS
-- Create a new virtual switch named **host** and attach it to a network containing the industrial assets you want to connect to (e.g. "Ethernet 2").
-
-    ```bash
-    New-VMSwitch -name host -NetAdapterName "<Adapter Name>" -AllowManagementOS $true
-    ```
-
-- To make sure the container is assigned an IP address it can either obtain:
-
-    1. A Dynamic IP address from a local DHCP server accessible from the host's network interface associated to the container's **host** network  
-
-    2. A Static IP address assigned on the container create options statement
-
-        In order to allow static IP address assignment on a Windows container, the docker network requires to be created having the the subnet specified identical to the host's interface
-
-        ```bash
-        docker -H npipe:////.//pipe//iotedge_moby_engine network create -d transparent -o com.docker.network.windowsshim.interface="Ethernet 2" -o com.docker.network.windowsshim.networkname=host --subnet=192.168.30.0/24 --gateway=192.168.30.1 host
-        ```
-
 ## Troubleshooting
 
 To troubleshoot your IoT Edge installation follow the official [IoT Edge troubleshooting guide](https://docs.microsoft.com/en-us/azure/iot-edge/troubleshoot)
 
 When device discovery operations fail also make sure to validate:
-
-### Host network
-
-Linux containers:
-
-```bash
-docker network ls
-    NETWORK ID          NAME                DRIVER              SCOPE
-    beceb3bd61c4        azure-iot-edge      bridge              local
-    97eccb2b9f82        bridge              bridge              local
-    758d949c5343        host                host                local
-    72fb3597ef74        none                null                local
-```
-
-Windows containers:
-
-```bash
-docker -H npipe:////.//pipe//iotedge_moby_engine network ls
-    NETWORK ID          NAME                DRIVER              SCOPE
-    8e0ea888dbd4        host                transparent         local
-    f3390c998f90        nat                 nat                 local
-    6750449db22d        none                null                local
-```
 
 ## Other Options
 
