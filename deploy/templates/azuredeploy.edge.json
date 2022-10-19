@@ -188,7 +188,7 @@
         "windowsImage": {
             "publisher": "MicrosoftWindowsServer",
             "offer": "WindowsServer",
-            "sku": "2019-Datacenter-Core-with-Containers",
+            "sku": "2022-datacenter-azure-edition-core",
             "version": "latest"
         },
         "linuxImage": {

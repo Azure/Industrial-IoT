@@ -71,7 +71,7 @@ if ($PsVersionTable.Platform -eq "Unix") {
     $configtoml | Out-File $file -Force
 }
 else {
-    Set-ExecutionPolicy -ExecutionPolicy AllSigned -Force
+    # Set-ExecutionPolicy -ExecutionPolicy AllSigned -Force
     Start-Transcript -path (join-path $path "edge-setup.log")
 
     Write-Host "Create new IoT Edge enrollment."

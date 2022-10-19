@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// </summary>
         /// <param name="version"></param>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version = "1.1") {
+        private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version = "1.4") {
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(@"
 {
     ""$edgeAgent"": {
