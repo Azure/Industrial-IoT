@@ -661,8 +661,6 @@ The following information about components and installation types covers only th
 
 #### Requirements
 
-- Supported operating systems for deployment are Windows or Linux
-
 - IoT Edge (1.4 LTS) supports Windows and Linux, see [here](https://docs.microsoft.com/en-us/azure/iot-edge/support)
 
 - Git: <https://git-scm.com/downloads>

@@ -162,6 +162,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         OsType = OSType.Linux,
                         VnetSubnetID = virtualNetworkSubnet.Id,
                         MaxPods = 40,
+                        Mode = AgentPoolMode.System
                     }
                 },
                 LinuxProfile = new ContainerServiceLinuxProfile {
