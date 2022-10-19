@@ -137,7 +137,7 @@ if ($EdgeVmLocation) {
     $edgeParameters["location"] = [string]$EdgeVmLocation
 }
 
-$edgeTemplateUri = "https://aka.ms/iotedge-vm-deploy"
+$edgeTemplateUri = "https://raw.githubusercontent.com/Azure/iotedge-vm-deploy/1.4/edgeDeploy.json"
 
 Write-Host "Running IoT Edge VM Deployment..."
 
@@ -158,6 +158,9 @@ Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey
 
 ## This needs to be refactored. However, currently the SSH-Command is the only output from the Edge deployment script. And that command includes the FQDN of the VM.
 $sshUrl = $edgeDeployment.Outputs["Public_SSH"].Value
+if (!$sshUrl) {
+    Write-Error "Deployment did not provide Public_SSH output."
+}
 $fqdn = $sshUrl.Split("@")[1]
 
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value '$($fqdn)'..."
