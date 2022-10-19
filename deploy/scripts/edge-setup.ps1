@@ -22,18 +22,18 @@ $path = Split-Path $script:MyInvocation.MyCommand.Path
 $enrollPath = join-path $path dps-enroll.ps1
 if ($PsVersionTable.Platform -eq "Unix") {
 
-    $file = "/etc/iotedge/config.yaml"
+    $file = "/etc/aziot/config.yaml"
     if (Test-Path $file) {
         $backup = "$($file)-backup"
         if (Test-Path $backup) {
             Write-Host "Already configured."
             return
         }
-        $configyml = Get-Content $file -Raw
-        if ([string]::IsNullOrWhiteSpace($configyml)) {
+        $configtoml = Get-Content $file -Raw
+        if ([string]::IsNullOrWhiteSpace($configtoml)) {
             throw "$($file) empty."
         }
-        $configyml | Out-File $backup -Force
+        $configtoml | Out-File $backup -Force
     }
     else {
         throw "$($file) does not exist."
@@ -44,48 +44,50 @@ if ($PsVersionTable.Platform -eq "Unix") {
     Write-Host "Configure and initialize IoT Edge on Linux using enrollment information."
 
     # comment out existing 
-    $configyml = $configyml.Replace("`nprovisioning:", "`n#provisioning:")
-    $configyml = $configyml.Replace("`n  source:", "`n#  source:")
-    $configyml = $configyml.Replace("`n  device_connection_string:", "`n#  device_connection_string:")
-    $configyml = $configyml.Replace("`n  dynamic_reprovisioning:", "`n#  dynamic_reprovisioning:")
+    $configtoml = $configtoml.Replace("`n[provisioning]", "`n# [provisioning]")
+    $configtoml = $configtoml.Replace("`nsource", "`n# source")
+    $configtoml = $configtoml.Replace("`ndevice_connection_string", "`n# device_connection_string")
+    $configtoml = $configtoml.Replace("`ndynamic_reprovisioning", "`n# dynamic_reprovisioning")
 
     # add dps setting
-    $configyml += "`n"
-    $configyml += "`n########################################################################"
-    $configyml += "`n# DPS symmetric key provisioning configuration - added by edge-setup.ps1 #"
-    $configyml += "`n########################################################################"
-    $configyml += "`n"
-    $configyml += "`nprovisioning:"
-    $configyml += "`n  source: `"dps`""
-    $configyml += "`n  global_endpoint: `"https://global.azure-devices-provisioning.net`""
-    $configyml += "`n  scope_id: `"$($idScope)`""
-    $configyml += "`n  attestation:"
-    $configyml += "`n    method: `"symmetric_key`""
-    $configyml += "`n    registration_id: `"$($enrollment.registrationId)`""
-    $configyml += "`n    symmetric_key: `"$($enrollment.primaryKey)`""
-    $configyml += "`n"
-    $configyml += "`n########################################################################"
-    $configyml += "`n"
+    $configtoml += "`n"
+    $configtoml += "`n########################################################################"
+    $configtoml += "`n# DPS symmetric key provisioning configuration - added by edge-setup.ps1 #"
+    $configtoml += "`n########################################################################"
+    $configtoml += "`n"
+    $configtoml += "`n[provisioning]"
+    $configtoml += "`nsource = `"dps`""
+    $configtoml += "`nglobal_endpoint = `"https://global.azure-devices-provisioning.net`""
+    $configtoml += "`nscope_id = `"$($idScope)`""
+    $configtoml += "`n"
+    $configtoml += "`n[provisioning.attestation]"
+    $configtoml += "`nmethod = `"symmetric_key`""
+    $configtoml += "`nregistration_id = `"$($enrollment.registrationId)`""
+    $configtoml += "`nsymmetric_key = `"$($enrollment.primaryKey)`""
+    $configtoml += "`n"
+    $configtoml += "`n########################################################################"
+    $configtoml += "`n"
 
-    $configyml | Out-File $file -Force
+    $configtoml | Out-File $file -Force
 }
 else {
+    Set-ExecutionPolicy -ExecutionPolicy AllSigned -Force
     Start-Transcript -path (join-path $path "edge-setup.log")
 
     Write-Host "Create new IoT Edge enrollment."
     $enrollment = & $enrollPath -dpsConnString $dpsConnString -os Windows
-    Write-Host "Add URL resrvation."
-    $domainUser="Everyone"
-    $ports = @('9700', '9701', '9702')
-    foreach ($port in $ports) {
-        netsh http add urlacl url=http://+:$port/metrics user=$domainUser
-    }
-    Write-Host "Configure and initialize IoT Edge on Windows using enrollment information."
-    . { Invoke-WebRequest -useb https://aka.ms/iotedge-win } | Invoke-Expression; `
-        Install-IoTEdge -Dps -ScopeId $idScope -ContainerOs Windows -RegistrationId `
-            $enrollment.registrationId -SymmetricKey $enrollment.primaryKey
-    Write-Host "Updating TLS Settings in Windows VM. Rebooting if required"
-    $tlsScriptPath = join-path $path TLSSettings.ps1
-    & $tlsScriptPath
 
+    Write-Host "Download IoT Edge installer."
+    $msiPath = $([io.Path]::Combine($env:TEMP, 'AzureIoTEdge.msi'))
+    $ProgressPreference = 'SilentlyContinue'
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest "https://aka.ms/AzEFLOWMSI-CR-X64" -OutFile $msiPath
+
+    Write-Host "Run IoT Edge installer."
+    Start-Process -Wait msiexec -ArgumentList "/i","$([io.Path]::Combine($env:TEMP, 'AzureIoTEdge.msi'))","/qn"
+
+    Write-Host "Deploy eflow."
+    Deploy-Eflow -acceptEula Yes -acceptOptionalTelemetry Yes 
+    Write-Host "Provision eflow."
+    Provision-EflowVm -provisioningType DpsSymmetricKey -scopeId $idScope -registrationId $enrollment.registrationId -symmKey $enrollment.primaryKey
 }

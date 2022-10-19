@@ -33,7 +33,7 @@ curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microso
 cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
 apt-get update
 apt-get install -y --no-install-recommends moby-engine moby-cli
-apt-get install -y --no-install-recommends iotedge
+apt-get install -y --no-install-recommends aziot-edge defender-iot-micro-agent-edge
 echo "Iotedge installed."
 
 echo "Provisioning iotedge..."
