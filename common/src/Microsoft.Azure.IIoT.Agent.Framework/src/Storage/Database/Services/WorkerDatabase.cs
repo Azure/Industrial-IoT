@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             var database = databaseServer.OpenAsync(databaseRegistryConfig.DatabaseName).Result;
             var container = database.OpenContainerAsync(databaseRegistryConfig.ContainerName).Result;
             _documents = container.AsDocuments();
+            _lock = new SemaphoreSlim(1, 1);
         }
 
         /// <inheritdoc/>
@@ -35,56 +36,80 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (workerHeartbeat == null) {
                 throw new ArgumentNullException(nameof(workerHeartbeat));
             }
-            while (true) {
-                var workerDocument = new WorkerDocument {
-                    AgentId = workerHeartbeat.AgentId,
-                    Id = workerHeartbeat.WorkerId,
-                    WorkerStatus = workerHeartbeat.Status,
-                    LastSeen = DateTime.UtcNow
-                };
-                var existing = await _documents.FindAsync<WorkerDocument>(
-                    workerHeartbeat.WorkerId);
-                if (existing != null) {
+            var retries = 0;
+            var exceptions = new List<Exception>();
+            while (true && retries < MaxRetries) {
+                await _lock.WaitAsync().ConfigureAwait(false);
+                retries++;
+                try {
+                    var workerDocument = new WorkerDocument {
+                        AgentId = workerHeartbeat.AgentId,
+                        Id = workerHeartbeat.WorkerId,
+                        WorkerStatus = workerHeartbeat.Status,
+                        LastSeen = DateTime.UtcNow
+                    };
+
+                    var existing = await _documents.FindAsync<WorkerDocument>(
+                        workerHeartbeat.WorkerId);
+                    if (existing != null) {
+                        try {
+                            workerDocument.ETag = existing.Etag;
+                            workerDocument.Id = existing.Id;
+                            await _documents.ReplaceAsync(existing, workerDocument);
+                            return;
+                        }
+                        catch (ResourceOutOfDateException ex) {
+                            exceptions.Add(ex);
+                            continue; // try again refreshing the etag
+                        }
+                        catch (ResourceNotFoundException ex) {
+                            exceptions.Add(ex);
+                            continue;
+                        }
+                    }
                     try {
-                        workerDocument.ETag = existing.Etag;
-                        workerDocument.Id = existing.Id;
-                        await _documents.ReplaceAsync(existing, workerDocument);
+                        await _documents.AddAsync(workerDocument);
                         return;
                     }
-                    catch (ResourceOutOfDateException) {
-                        continue; // try again refreshing the etag
-                    }
-                    catch (ResourceNotFoundException) {
+                    catch (ConflictingResourceException ex) {
+                        // Try to update
+                        exceptions.Add(ex);
                         continue;
                     }
                 }
-                try {
-                    await _documents.AddAsync(workerDocument);
-                    return;
-                }
-                catch (ConflictingResourceException) {
-                    // Try to update
-                    continue;
+                finally {
+                    _lock.Release();
                 }
             }
+
+            if (retries >= MaxRetries && exceptions.Count > 0) {
+                throw new AggregateException(exceptions);
+            }
         }
+
         /// <inheritdoc/>
         public async Task<WorkerInfoListModel> ListWorkersAsync(string continuationToken,
             int? maxResults, CancellationToken ct) {
-
-            var client = _documents.OpenSqlClient();
-            var queryName = CreateQuery(out var queryParameters);
-            var results = continuationToken != null ?
-                client.Continue<WorkerDocument>(queryName, continuationToken, queryParameters, maxResults) :
-                client.Query<WorkerDocument>(queryName, queryParameters, maxResults);
-            if (!results.HasMore()) {
-                return new WorkerInfoListModel();
+            
+            await _lock.WaitAsync().ConfigureAwait(false);
+            try {
+                var client = _documents.OpenSqlClient();
+                var queryName = CreateQuery(out var queryParameters);
+                var results = continuationToken != null ?
+                    client.Continue<WorkerDocument>(queryName, continuationToken, queryParameters, maxResults) :
+                    client.Query<WorkerDocument>(queryName, queryParameters, maxResults);
+                if (!results.HasMore()) {
+                    return new WorkerInfoListModel();
+                }
+                var documents = await results.ReadAsync(ct);
+                return new WorkerInfoListModel {
+                    ContinuationToken = results.ContinuationToken,
+                    Workers = documents.Select(r => r.Value.ToFrameworkModel()).ToList()
+                };
             }
-            var documents = await results.ReadAsync(ct);
-            return new WorkerInfoListModel {
-                ContinuationToken = results.ContinuationToken,
-                Workers = documents.Select(r => r.Value.ToFrameworkModel()).ToList()
-            };
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <inheritdoc/>
@@ -92,11 +117,17 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(workerId)) {
                 throw new ArgumentNullException(nameof(workerId));
             }
-            var document = await _documents.FindAsync<WorkerDocument>(workerId, ct);
-            if (document == null) {
-                throw new ResourceNotFoundException("Worker not found");
+            await _lock.WaitAsync().ConfigureAwait(false);
+            try {
+                var document = await _documents.FindAsync<WorkerDocument>(workerId, ct);
+                if (document == null) {
+                    throw new ResourceNotFoundException("Worker not found");
+                }
+                return document.Value.ToFrameworkModel();
             }
-            return document.Value.ToFrameworkModel();
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <inheritdoc/>
@@ -104,7 +135,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(workerId)) {
                 throw new ArgumentNullException(nameof(workerId));
             }
-            await _documents.DeleteAsync(workerId, ct);
+            await _lock.WaitAsync().ConfigureAwait(false);
+            try {
+                await _documents.DeleteAsync(workerId, ct);
+            }
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <summary>
@@ -121,5 +158,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         }
 
         private readonly IDocuments _documents;
+        private readonly SemaphoreSlim _lock;
+        private const int MaxRetries = 10;
     }
 }
