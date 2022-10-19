@@ -275,7 +275,7 @@
             "comments": "Virtual machine hosting the IoT Edge installation.",
             "name": "[variables('vmName')]",
             "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2019-03-01",
+            "apiVersion": "2022-03-01",
             "location": "[resourceGroup().location]",
             "tags": "[parameters('tags')]",
             "identity": "[if(not(empty(parameters('managedIdentityResourceId'))), variables('identity'), '')]",
