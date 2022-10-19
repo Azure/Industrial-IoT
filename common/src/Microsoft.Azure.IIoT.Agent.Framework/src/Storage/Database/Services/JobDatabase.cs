@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             var dbs = databaseServer.OpenAsync(databaseJobRepositoryConfig.DatabaseName).Result;
             var cont = dbs.OpenContainerAsync(databaseJobRepositoryConfig.ContainerName).Result;
             _documents = cont.AsDocuments();
+            _lock = new SemaphoreSlim(1, 1);
         }
 
         /// <inheritdoc/>
@@ -34,24 +35,38 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (job == null) {
                 throw new ArgumentNullException(nameof(job));
             }
-            while (true) {
-                var document = await _documents.FindAsync<JobDocument>(job.Id, ct);
-                if (document != null) {
-                    throw new ConflictingResourceException($"Job {job.Id} already exists.");
-                }
-                job.LifetimeData.Created = job.LifetimeData.Updated = DateTime.UtcNow;
+            var retries = 0;
+            var exceptions = new List<Exception>();
+            while (retries < MaxRetries) {
+                await _lock.WaitAsync().ConfigureAwait(false);
+                retries++;
                 try {
-                    var result = await _documents.AddAsync(job.ToDocumentModel(), ct);
-                    return result.Value.ToFrameworkModel();
+                    ct.ThrowIfCancellationRequested();
+
+                    var document = await _documents.FindAsync<JobDocument>(job.Id, ct);
+                    if (document != null) {
+                        throw new ConflictingResourceException($"Job {job.Id} already exists.");
+                    }
+                    job.LifetimeData.Created = job.LifetimeData.Updated = DateTime.UtcNow;
+                    try {
+                        var result = await _documents.AddAsync(job.ToDocumentModel(), ct);
+                        return result.Value.ToFrameworkModel();
+                    }
+                    catch (ConflictingResourceException ex) {
+                        // Try again
+                        exceptions.Add(ex);
+                        continue;
+                    }
+                    catch {
+                        throw;
+                    }
                 }
-                catch (ConflictingResourceException) {
-                    // Try again
-                    continue;
-                }
-                catch {
-                    throw;
+                finally {
+                    _lock.Release();
                 }
             }
+
+            throw new AggregateException(exceptions);
         }
 
         /// <inheritdoc/>
@@ -60,35 +75,49 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(jobId)) {
                 throw new ArgumentNullException(nameof(jobId));
             }
-            while (true) {
-                var document = await _documents.FindAsync<JobDocument>(jobId, ct);
-                var updateOrAdd = document?.Value.ToFrameworkModel();
-                var job = await predicate(updateOrAdd);
-                if (job == null) {
-                    return updateOrAdd;
-                }
-                job.LifetimeData.Updated = DateTime.UtcNow;
-                var updated = job.ToDocumentModel(document?.Value?.ETag);
-                if (document == null) {
+            var retries = 0;
+            var exceptions = new List<Exception>();
+            while (retries < MaxRetries) {
+                await _lock.WaitAsync().ConfigureAwait(false);
+                retries++;
+                try {
+                    ct.ThrowIfCancellationRequested();
+
+                    var document = await _documents.FindAsync<JobDocument>(jobId, ct);
+                    var updateOrAdd = document?.Value.ToFrameworkModel();
+                    var job = await predicate(updateOrAdd);
+                    if (job == null) {
+                        return updateOrAdd;
+                    }
+                    job.LifetimeData.Updated = DateTime.UtcNow;
+                    var updated = job.ToDocumentModel(document?.Value?.ETag);
+                    if (document == null) {
+                        try {
+                            // Add document
+                            var result = await _documents.AddAsync(updated, ct);
+                            return result.Value.ToFrameworkModel();
+                        }
+                        catch (ConflictingResourceException ex) {
+                            // Conflict - try update now
+                            exceptions.Add(ex);
+                            continue;
+                        }
+                    }
+                    // Try replacing
                     try {
-                        // Add document
-                        var result = await _documents.AddAsync(updated, ct);
+                        var result = await _documents.ReplaceAsync(document, updated, ct);
                         return result.Value.ToFrameworkModel();
                     }
-                    catch (ConflictingResourceException) {
-                        // Conflict - try update now
+                    catch (ResourceOutOfDateException ex) {
+                        exceptions.Add(ex);
                         continue;
                     }
                 }
-                // Try replacing
-                try {
-                    var result = await _documents.ReplaceAsync(document, updated, ct);
-                    return result.Value.ToFrameworkModel();
-                }
-                catch (ResourceOutOfDateException) {
-                    continue;
+                finally {
+                    _lock.Release();
                 }
             }
+            throw new AggregateException(exceptions);
         }
 
         /// <inheritdoc/>
@@ -98,25 +127,38 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(jobId)) {
                 throw new ArgumentNullException(nameof(jobId));
             }
-            while (true) {
-                var document = await _documents.FindAsync<JobDocument>(jobId, ct);
-                if (document == null) {
-                    throw new ResourceNotFoundException("Job not found");
-                }
-                var job = document.Value.ToFrameworkModel();
-                if (!await predicate(job)) {
-                    return job;
-                }
-                job.LifetimeData.Updated = DateTime.UtcNow;
-                var updated = job.ToDocumentModel(document.Value.ETag);
+            var retries = 0;
+            var exceptions = new List<Exception>();
+            while (retries < MaxRetries) {
+                await _lock.WaitAsync().ConfigureAwait(false);
+                retries++;
                 try {
-                    var result = await _documents.ReplaceAsync(document, updated, ct);
-                    return result.Value.ToFrameworkModel();
+                    ct.ThrowIfCancellationRequested();
+
+                    var document = await _documents.FindAsync<JobDocument>(jobId, ct);
+                    if (document == null) {
+                        throw new ResourceNotFoundException("Job not found");
+                    }
+                    var job = document.Value.ToFrameworkModel();
+                    if (!await predicate(job)) {
+                        return job;
+                    }
+                    job.LifetimeData.Updated = DateTime.UtcNow;
+                    var updated = job.ToDocumentModel(document.Value.ETag);
+                    try {
+                        var result = await _documents.ReplaceAsync(document, updated, ct);
+                        return result.Value.ToFrameworkModel();
+                    }
+                    catch (ResourceOutOfDateException ex) {
+                        exceptions.Add(ex);
+                        continue;
+                    }
                 }
-                catch (ResourceOutOfDateException) {
-                    continue;
+                finally {
+                    _lock.Release();
                 }
             }
+            throw new AggregateException(exceptions);
         }
 
         /// <inheritdoc/>
@@ -124,29 +166,41 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(jobId)) {
                 throw new ArgumentNullException(nameof(jobId));
             }
-            var document = await _documents.FindAsync<JobDocument>(jobId, ct);
-            if (document == null) {
-                throw new ResourceNotFoundException("Job not found");
+            await _lock.WaitAsync().ConfigureAwait(false);
+            try {
+                var document = await _documents.FindAsync<JobDocument>(jobId, ct);
+                if (document == null) {
+                    throw new ResourceNotFoundException("Job not found");
+                }
+                return document.Value.ToFrameworkModel();
             }
-            return document.Value.ToFrameworkModel();
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <inheritdoc/>
         public async Task<JobInfoListModel> QueryAsync(JobInfoQueryModel query,
             string continuationToken, int? maxResults, CancellationToken ct) {
-            var client = _documents.OpenSqlClient();
-            var queryName = CreateQuery(query, out var queryParameters);
-            var results = continuationToken != null ?
-                client.Continue<JobDocument>(queryName, continuationToken, queryParameters, maxResults) :
-                client.Query<JobDocument>(queryName, queryParameters, maxResults);
-            if (!results.HasMore()) {
-                return new JobInfoListModel();
+            await _lock.WaitAsync().ConfigureAwait(false);
+            try {
+                var client = _documents.OpenSqlClient();
+                var queryName = CreateQuery(query, out var queryParameters);
+                var results = continuationToken != null ?
+                    client.Continue<JobDocument>(queryName, continuationToken, queryParameters, maxResults) :
+                    client.Query<JobDocument>(queryName, queryParameters, maxResults);
+                if (!results.HasMore()) {
+                    return new JobInfoListModel();
+                }
+                var documents = await results.ReadAsync(ct);
+                return new JobInfoListModel {
+                    ContinuationToken = results.ContinuationToken,
+                    Jobs = documents.Select(r => r.Value.ToFrameworkModel()).ToList()
+                };
             }
-            var documents = await results.ReadAsync(ct);
-            return new JobInfoListModel {
-                ContinuationToken = results.ContinuationToken,
-                Jobs = documents.Select(r => r.Value.ToFrameworkModel()).ToList()
-            };
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <inheritdoc/>
@@ -155,24 +209,35 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(jobId)) {
                 throw new ArgumentNullException(nameof(jobId));
             }
-            while (true) {
-                var document = await _documents.FindAsync<JobDocument>(
-                    jobId);
-                if (document == null) {
-                    return null;
-                }
-                var job = document.Value.ToFrameworkModel();
-                if (!await predicate(job)) {
+            var retries = 0;
+            var exceptions = new List<Exception>();
+            while (retries < MaxRetries) {
+                await _lock.WaitAsync().ConfigureAwait(false);
+                retries++;
+                try {
+                    ct.ThrowIfCancellationRequested();
+                    var document = await _documents.FindAsync<JobDocument>(jobId);
+                    if (document == null) {
+                        return null;
+                    }
+                    var job = document.Value.ToFrameworkModel();
+                    if (!await predicate(job)) {
+                        return job;
+                    }
+                    try {
+                        await _documents.DeleteAsync(document, ct);
+                    }
+                    catch (ResourceOutOfDateException ex) {
+                        exceptions.Add(ex);
+                        continue;
+                    }
                     return job;
                 }
-                try {
-                    await _documents.DeleteAsync(document, ct);
+                finally {
+                    _lock.Release();
                 }
-                catch (ResourceOutOfDateException) {
-                    continue;
-                }
-                return job;
             }
+            throw new AggregateException(exceptions);
         }
 
         /// <summary>
@@ -206,5 +271,7 @@ $"r.{nameof(JobDocument.ClassType)} = '{JobDocument.ClassTypeName}'";
         }
 
         private readonly IDocuments _documents;
+        private readonly SemaphoreSlim _lock;
+        private const int MaxRetries = 10;
     }
 }

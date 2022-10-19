@@ -38,10 +38,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             }
             var retries = 0;
             var exceptions = new List<Exception>();
-            while (true && retries < MaxRetries) {
+            while (retries < MaxRetries) {
                 await _lock.WaitAsync().ConfigureAwait(false);
                 retries++;
                 try {
+                    ct.ThrowIfCancellationRequested();
+
                     var workerDocument = new WorkerDocument {
                         AgentId = workerHeartbeat.AgentId,
                         Id = workerHeartbeat.WorkerId,
@@ -55,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                         try {
                             workerDocument.ETag = existing.Etag;
                             workerDocument.Id = existing.Id;
-                            await _documents.ReplaceAsync(existing, workerDocument);
+                            await _documents.ReplaceAsync(existing, workerDocument, ct);
                             return;
                         }
                         catch (ResourceOutOfDateException ex) {
@@ -68,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                         }
                     }
                     try {
-                        await _documents.AddAsync(workerDocument);
+                        await _documents.AddAsync(workerDocument, ct);
                         return;
                     }
                     catch (ConflictingResourceException ex) {
@@ -81,10 +83,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     _lock.Release();
                 }
             }
-
-            if (retries >= MaxRetries && exceptions.Count > 0) {
-                throw new AggregateException(exceptions);
-            }
+            throw new AggregateException(exceptions);
         }
 
         /// <inheritdoc/>
