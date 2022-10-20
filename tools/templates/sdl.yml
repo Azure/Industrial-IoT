@@ -37,7 +37,7 @@ jobs:
     displayName: Build Release
     inputs:
       command: build 
-      projects: 'Industrial-IoT.sln'
+      projects: 'Industrial-IoT-No-Samples.sln'
       # note: /p:SDL=true is used to enable build analyzers
       arguments: '--configuration Release /p:SDL=true'
   - task: DotNetCoreCLI@2
