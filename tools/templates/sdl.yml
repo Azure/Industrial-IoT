@@ -13,6 +13,7 @@ jobs:
     runCodesignValidationInjection: false
     DOTNET_CLI_TELEMETRY_OPTOUT: true
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    system_accesstoken: $(System.AccessToken)
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
@@ -26,6 +27,10 @@ jobs:
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/set-version.ps1
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+    displayName: 'Credential Scanner'
+    inputs:
+      toolMajorVersion: V2
   - task: DotNetCoreCLI@2
     displayName: Build Release
     inputs:
@@ -33,15 +38,14 @@ jobs:
       projects: 'Industrial-IoT.sln'
       # note: /p:SDL=true is used to enable build analyzers
       arguments: '--configuration Release /p:SDL=true'
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
-    displayName: 'Credential Scanner'
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish Release'
     inputs:
-      toolMajorVersion: V2
-    continueOnError: true
+      command: 'publish'
+      arguments: '--configuration Release'
   - task: RoslynAnalyzers@3
     displayName: 'Run Roslyn Analyzers'
-#    userProvideBuildInfo: 'autoMsBuildInfo'
-#    setupCommandlinePicker: 'vs2022'
+    userProvideBuildInfo: 'auto'
     continueOnError: true
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
