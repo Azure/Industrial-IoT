@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string versionMajorMinor,
             IList<string> kubernetesVersions
         ) {
-            if (kubernetesVersions is null || kubernetesVersions.Count() == 0) {
+            if (kubernetesVersions is null || kubernetesVersions.Count == 0) {
                 throw new ArgumentNullException(nameof(kubernetesVersions));
             }
 
