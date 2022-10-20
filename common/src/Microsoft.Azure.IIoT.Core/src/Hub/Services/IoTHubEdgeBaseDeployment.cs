@@ -125,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
 ");
         }
 
-        private const string kDefaultSchemaVersion = "1.0";
+        private const string kDefaultSchemaVersion = "1.1";
         private readonly IIoTHubConfigurationServices _service;
         private readonly IJsonSerializer _serializer;
     }

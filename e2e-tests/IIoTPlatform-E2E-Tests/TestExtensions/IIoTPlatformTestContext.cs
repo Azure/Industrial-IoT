@@ -157,7 +157,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             () => throw new Exception("IoT Hub Checkpoint Storage connection string is not provided."));
 
         string IIoTEdgeConfig.EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
-            () => "1.1");
+            () => "1.4");
 
         string IIoTEdgeConfig.NestedEdgeFlag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_FLAG,
             () => "Disable");
