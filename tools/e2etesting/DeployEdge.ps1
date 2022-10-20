@@ -157,7 +157,7 @@ Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
 
 ## This needs to be refactored. However, currently the SSH-Command is the only output from the Edge deployment script. And that command includes the FQDN of the VM.
-$sshUrl = $edgeDeployment.Outputs["Public_SSH"].Value
+$sshUrl = $edgeDeployment.Outputs["public_SSH"].Value
 $fqdn = $sshUrl.Split("@")[1]
 
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value '$($fqdn)'..."
