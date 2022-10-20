@@ -85,6 +85,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                         continue;
                     }
                 }
+                catch (OperationCanceledException) {
+                    _logger.Warning("Failed to add document for worker {workerId} because of cancelation", workerHeartbeat.WorkerId);
+                    throw;
+                }
                 finally {
                     _lock.Release();
                 }
