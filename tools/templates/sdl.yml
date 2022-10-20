@@ -45,7 +45,8 @@ jobs:
       arguments: '--configuration Release'
   - task: RoslynAnalyzers@3
     displayName: 'Run Roslyn Analyzers'
-    userProvideBuildInfo: 'auto'
+    inputs:
+      userProvideBuildInfo: 'auto'
     continueOnError: true
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
