@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Storage;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -23,7 +24,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// </summary>
         /// <param name="databaseServer"></param>
         /// <param name="databaseRegistryConfig"></param>
-        public WorkerDatabase(IDatabaseServer databaseServer, IWorkerDatabaseConfig databaseRegistryConfig) {
+        /// <param name="logger"></param>
+        public WorkerDatabase(IDatabaseServer databaseServer, IWorkerDatabaseConfig databaseRegistryConfig, ILogger logger) {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             var database = databaseServer.OpenAsync(databaseRegistryConfig.DatabaseName).Result;
             var container = database.OpenContainerAsync(databaseRegistryConfig.ContainerName).Result;
             _documents = container.AsDocuments();
@@ -39,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             var retries = 0;
             var exceptions = new List<Exception>();
             while (retries < MaxRetries) {
-                await _lock.WaitAsync().ConfigureAwait(false);
+                await _lock.WaitAsync(ct).ConfigureAwait(false);
                 retries++;
                 try {
                     ct.ThrowIfCancellationRequested();
@@ -52,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     };
 
                     var existing = await _documents.FindAsync<WorkerDocument>(
-                        workerHeartbeat.WorkerId);
+                        workerHeartbeat.WorkerId, ct);
                     if (existing != null) {
                         try {
                             workerDocument.ETag = existing.Etag;
@@ -61,10 +64,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                             return;
                         }
                         catch (ResourceOutOfDateException ex) {
+                            _logger.Warning(ex, "Failed to find document for worker {workerId} with ResourceOutOfDate", workerHeartbeat.WorkerId);
                             exceptions.Add(ex);
                             continue; // try again refreshing the etag
                         }
                         catch (ResourceNotFoundException ex) {
+                            _logger.Warning(ex, "Failed to find document for worker {workerId} with ResourceNotFoundException", workerHeartbeat.WorkerId);
                             exceptions.Add(ex);
                             continue;
                         }
@@ -75,6 +80,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     }
                     catch (ConflictingResourceException ex) {
                         // Try to update
+                        _logger.Warning(ex, "Failed to add document for worker {workerId} with ResourceNotFoundException", workerHeartbeat.WorkerId);
                         exceptions.Add(ex);
                         continue;
                     }
@@ -89,8 +95,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// <inheritdoc/>
         public async Task<WorkerInfoListModel> ListWorkersAsync(string continuationToken,
             int? maxResults, CancellationToken ct) {
-            
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 var client = _documents.OpenSqlClient();
                 var queryName = CreateQuery(out var queryParameters);
@@ -116,7 +121,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(workerId)) {
                 throw new ArgumentNullException(nameof(workerId));
             }
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 var document = await _documents.FindAsync<WorkerDocument>(workerId, ct);
                 if (document == null) {
@@ -134,7 +139,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(workerId)) {
                 throw new ArgumentNullException(nameof(workerId));
             }
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 await _documents.DeleteAsync(workerId, ct);
             }
@@ -156,6 +161,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             return queryString;
         }
 
+        private readonly ILogger _logger;
         private readonly IDocuments _documents;
         private readonly SemaphoreSlim _lock;
         private const int MaxRetries = 10;
