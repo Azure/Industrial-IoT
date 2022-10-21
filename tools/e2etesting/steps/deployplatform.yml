@@ -98,7 +98,7 @@ steps:
   displayName: 'Run deployment with IAI'
   timeoutInMinutes: 90
   inputs:
-    script: '$(IAILocalFilename)'
+    script: 'type appsettings.json && $(IAILocalFilename)'
     workingDirectory: '$(BasePath)\IAI'
 
 - task: AzurePowerShell@5
