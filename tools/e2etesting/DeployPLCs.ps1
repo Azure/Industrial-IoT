@@ -18,7 +18,7 @@ Param(
     [string]
     $FastNodeType = "uint",
     [string]
-    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:latest",
+    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0",
     [string]
     $ResourcesPrefix = "e2etesting",
     [Double]
