@@ -25,6 +25,7 @@ jobs:
     matrix: $[ dependencies.imagesprep.outputs['acrmatrix.acrMatrix'] ]
   variables:
     skipComponentGovernanceDetection: true
+    runCodesignValidationInjection: false
   steps:
   - task: PowerShell@2
     displayName: Versioning
