@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
     /// <summary>
     /// Database job repository
     /// </summary>
-    public class JobDatabase : IJobRepository {
+    public class JobDatabase : IJobRepository, IDisposable {
 
         /// <summary>
         /// Create
@@ -246,6 +246,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                 }
             }
             throw new AggregateException(exceptions);
+        }
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        public void Dispose() {
+            _lock?.Dispose();
         }
 
         /// <summary>

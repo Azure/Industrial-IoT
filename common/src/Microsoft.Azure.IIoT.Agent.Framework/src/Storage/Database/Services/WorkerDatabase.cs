@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
     /// <summary>
     /// Database based worker registry
     /// </summary>
-    public class WorkerDatabase : IWorkerRegistry, IWorkerRepository {
+    public class WorkerDatabase : IWorkerRegistry, IWorkerRepository, IDisposable {
 
         /// <summary>
         /// Create worker registry
@@ -163,6 +163,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             queryString +=
                 $"r.{nameof(WorkerDocument.ClassType)} = '{WorkerDocument.ClassTypeName}'";
             return queryString;
+        }
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        public void Dispose() {
+            _lock?.Dispose();
         }
 
         private readonly ILogger _logger;
