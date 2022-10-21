@@ -2,11 +2,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=main)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=main)
 
-## IMPORTANT NOTICE
-
-* Official support for the Azure Industrial IoT platform and its components [will end in July 2023](#supported-releases-and-support-policy).
-* Support for the [OPC Publisher IoT Edge module](#opc-publisher---standalone) **will be extended until December 2024**.
-
 ## Discover, register and manage your industrial assets with Azure
 
 The Azure Industrial IoT Platform allows you to discover industrial assets on-site and automatically registers them in the cloud for easy access there. It leverages managed Azure PaaS services. On top of the Azure PaaS services, we have built a number of edge and cloud micro-services that must be used together, leveraging OPC UA as the data model. This is also the first cloud platform to leverage the OPC UA PubSub telemetry format (both JSON and binary, on top of MQTT). If your assets don't support OPC UA as an interface, we have worked with our large partner network to support all types of industrial interfaces through the use of adapters, fully integrated with our platform. Please check out the [Azure IoT Edge Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/category/internet-of-things?page=1&subcategories=iot-edge-modules). So far, we support modules from Softing and CopaData.
@@ -49,6 +44,11 @@ If you are an Azure customer, please create an Azure Support Request. More infor
 Otherwise, please report bugs, feature requests, or suggestions as [GitHub issues](https://github.com/Azure/Industrial-IoT/issues). (No SLA available).
 
 ## Supported releases and support policy
+
+### IMPORTANT NOTICE
+
+* Official support for the Azure Industrial IoT platform and its components [will end in July 2023](#supported-releases-and-support-policy).
+* Support for the [OPC Publisher IoT Edge module](#opc-publisher---standalone) **will be extended until December 2024**.
 
 Our releases are tagged following semantic versioning (“semver”) conventions. Minor and patch releases do not break backwards compatibility. Minor releases and patch releases address customer reported issues and receive security updates. Minor releases are either regular releases or LTS (Long term support) releases. Currently only the 2.8 release is receiving long-term support (2 years of support after release, only security fixes in the second year). Regular (non-LTS) releases are supported for 6 months after the subsequent major.minor release, or for 1 year after its release whichever comes first. This is reflected in the following table. Releases not shown in the table (e.g., 2.3, 2.4, or 2.6) are out of support already.
 
