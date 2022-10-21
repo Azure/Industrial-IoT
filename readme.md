@@ -5,7 +5,7 @@
 ## IMPORTANT NOTICE
 
 * Official support for the Azure Industrial IoT platform and its components [will end in July 2023](#supported-releases-and-support-policy).
-* Support for just the [OPC Publisher IoT Edge module](#opc-publisher---standalone) **will be extended until July 2024**.
+* Support for the [OPC Publisher IoT Edge module](#opc-publisher---standalone) **will be extended until December 2024**.
 
 ## Discover, register and manage your industrial assets with Azure
 
@@ -57,7 +57,7 @@ Our releases are tagged following semantic versioning (“semver”) conventions
 | 2.5                                         | 2.5.5                      | 12/1/2021      | 2.8 (LTS) (>= 2.8.2) | [Migration Path](docs/modules/publisher-migrationpath.md) |
 | 2.7                                         | 2.7.206                    | 1/15/2022      | 2.8 (LTS) (>= 2.8.0) | N/A                                                       |
 | 2.8 (LTS)                                   | 2.8.4                      | **7/15/2023**  | N/A                  | N/A                                                       |
-| 2.8 (LTS) - **OPC Publisher Standalone**    | 2.8.4                      | 7/15/2024      | TBA                  | N/A                                                       |
+| 2.8 (LTS) - **OPC Publisher Standalone**    | 2.8.4                      | 12/31/2024     | TBA                  | N/A                                                       |
 
 We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string. If you are using a container image with a major.minor version tag that is supported per above table, but a patch version lower than the latest patch version, you need to update your images to the latest version to ensure secure operation and take advantage of the latest fixes. If you unexpectedly encounter bugs and require help, please ensure you are running the latest patch release as we might already have addressed the issue you are seeing. If you are not, please update first and try to reproduce the issue on the latest patch version.
 
