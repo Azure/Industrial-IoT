@@ -19,6 +19,7 @@ steps:
   inputs:
     contents: "$(Build.SourcesDirectory)/tools/e2etesting/appSettings.json"
     targetFolder: "$(Build.ArtifactStagingDirectory)/IAI"
+    overWrite: true
     flattenFolders: true
 
 - task: PublishPipelineArtifact@1
