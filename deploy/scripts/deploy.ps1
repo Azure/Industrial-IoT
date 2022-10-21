@@ -820,12 +820,14 @@ Function New-Deployment() {
         else {
             $templateParameters.Add("numberOfLinuxGateways", $script:numberOfLinuxGateways)
         }
-        if ((-not $script:numberOfWindowsGateways) -or ($script:numberOfWindowsGateways -eq 0)) {
-            $templateParameters.Add("numberOfWindowsGateways", 1)
-        }
-        else {
-            $templateParameters.Add("numberOfWindowsGateways", $script:numberOfWindowsGateways)
-        }
+        #if ((-not $script:numberOfWindowsGateways) -or ($script:numberOfWindowsGateways -eq 0)) {
+        #    $templateParameters.Add("numberOfWindowsGateways", 1)
+        #}
+        #else {
+        #    $templateParameters.Add("numberOfWindowsGateways", $script:numberOfWindowsGateways)
+        #}
+        # TODO: Fix windows simulation
+        $templateParameters.Add("numberOfWindowsGateways", 0)
         if ((-not $script:numberOfSimulationsPerEdge) -or ($script:numberOfSimulationsPerEdge -eq 0)) {
             $templateParameters.Add("numberOfSimulations", 1)
         }
