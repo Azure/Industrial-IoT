@@ -41,10 +41,5 @@ sleep 3
 pwsh -File $curdir/edge-setup.ps1 -dpsConnString $dpsConnString -idScope $idScope
 echo "Iotedge provisioned."
 
-echo "Restarting iotedge runtime..."
-sleep 3
-systemctl daemon-reload
-systemctl restart iotedge
-sleep 3
-systemctl status iotedge
-echo "Iotedge running."
+iotedge config apply
+

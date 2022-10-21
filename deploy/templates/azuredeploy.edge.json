@@ -177,18 +177,18 @@
             "settings": {
                 "fileUris": [
                     "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-config.ps1')]",
                     "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/TLSSettings.ps1')]"
                 ]
             },
             "protectedSettings": {
-                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./edge-setup.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
+                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./edge-config.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
             }
         },
         "windowsImage": {
             "publisher": "MicrosoftWindowsServer",
             "offer": "WindowsServer",
-            "sku": "2019-Datacenter-Core-with-Containers",
+            "sku": "2022-datacenter-azure-edition-core",
             "version": "latest"
         },
         "linuxImage": {
