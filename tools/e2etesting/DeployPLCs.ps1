@@ -98,6 +98,7 @@ if ($aciNamesToCreate.Length -gt 0) {
         $script = {
             Param($Name)
             $aciCommand = "/bin/sh -c './opcplc --ses --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            $ports = @(50000, 80)
 
             if ($using:PLCUsername -or $using:PLCPassword) {
                 az container create `
@@ -108,7 +109,7 @@ if ($aciNamesToCreate.Length -gt 0) {
                 --registry-password "$using:PLCPassword" `
                 --os-type Linux `
                 --command $aciCommand `
-                --ports @(50000,80) `
+                --ports @ports `
                 --cpu $using:CpuCount `
                 --memory $using:MemoryInGb `
                 --ip-address Public `
@@ -121,7 +122,7 @@ if ($aciNamesToCreate.Length -gt 0) {
                 --image $using:PLCImage `
                 --os-type Linux `
                 --command $aciCommand `
-                --ports @(50000,80) `
+                --ports @ports `
                 --cpu $using:CpuCount `
                 --memory $using:MemoryInGb `
                 --ip-address Public `
@@ -144,6 +145,7 @@ if ($aciNamesToCreate.Length -gt 0) {
         $script = {
             Param($Name)
             $aciCommand = "/bin/sh -c './opcplc --ses --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            $ports = @(50000, 80)
 
             if ($using:PLCUsername -or $using:PLCPassword) {
                 az container create `
@@ -154,7 +156,7 @@ if ($aciNamesToCreate.Length -gt 0) {
                 --registry-password "$using:PLCPassword" `
                 --os-type Linux `
                 --command $aciCommand `
-                --ports @(50000,80) `
+                --ports @ports `
                 --cpu $using:CpuCount `
                 --memory $using:MemoryInGb `
                 --ip-address Private `
@@ -168,7 +170,7 @@ if ($aciNamesToCreate.Length -gt 0) {
                 --image $using:PLCImage `
                 --os-type Linux `
                 --command $aciCommand `
-                --ports @(50000,80) `
+                --ports @ports `
                 --cpu $using:CpuCount `
                 --memory $using:MemoryInGb `
                 --ip-address Private `
