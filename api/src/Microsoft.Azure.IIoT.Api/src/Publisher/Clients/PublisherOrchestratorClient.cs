@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             }
             finally {
                 var elapsed = sw.Elapsed;
-                kAvailableJobCallDuration.WithLabels(workerId).Set(elapsed.TotalMilliseconds);
+                kAvailableJobCallDuration.WithLabels(workerId).Observe(elapsed.TotalMilliseconds);
                 if (elapsed > TimeSpan.FromSeconds(30)) {
                     _logger.Warning("Getting job instructions for worker {worker} took longer than {elapsed}", workerId, sw.Elapsed);
                 }
@@ -150,7 +150,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             finally {
                 var elapsed = sw.Elapsed;
                 var workerId = heartbeat.Worker.WorkerId;
-                kHeartbeatCallDuration.WithLabels(workerId).Set(elapsed.TotalMilliseconds);
+                kHeartbeatCallDuration.WithLabels(workerId).Observe(elapsed.TotalMilliseconds);
                 if (elapsed > TimeSpan.FromSeconds(30)) {
                     _logger.Warning("Sending worker {worker} heartbeat took longer than {elapsed}", workerId, sw.Elapsed);
                 }
@@ -166,14 +166,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
 
-        private static readonly Gauge kHeartbeatCallDuration = Metrics.CreateGauge(
+        private static readonly Histogram kHeartbeatCallDuration = Metrics.CreateHistogram(
                 "iiot_edge_publisher_heartbeat_call_duration",
-                "Duration of heartbeat call", new GaugeConfiguration {
+                "Duration of heartbeat call", new HistogramConfiguration {
                     LabelNames = new[] { "workerid" }
                 });
-        private static readonly Gauge kAvailableJobCallDuration = Metrics.CreateGauge(
+        private static readonly Histogram kAvailableJobCallDuration = Metrics.CreateHistogram(
                 "iiot_edge_publisher_available_job_call_duration",
-                "Duration of job call", new GaugeConfiguration {
+                "Duration of job call", new HistogramConfiguration {
                     LabelNames = new[] { "workerid" }
                 });
     }
