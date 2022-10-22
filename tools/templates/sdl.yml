@@ -116,7 +116,7 @@ jobs:
       projectNameMSAZURE: One
       areaPath: 'One\IoT\Platform and Devices\IoT Devices\Industrial\Community'
       iterationPath: 'One\Custom\IoT\Industrial\Backlog'
-      uploadAPIScan: true
+      uploadAPIScan: false
       uploadBinSkim: true
       uploadCredScan: true
       uploadFortifySCA: false
