@@ -75,7 +75,8 @@ $configtoml += "`n"
 $configtoml += "`n[provisioning.attestation]"
 $configtoml += "`nmethod = `"symmetric_key`""
 $configtoml += "`nregistration_id = `"$($enrollment.registrationId)`""
-$configtoml += "`nsymmetric_key = `"$($enrollment.primaryKey)`""
+$configtoml += "`nsymmetric_key = { value = `"$($enrollment.primaryKey)`" }"
 $configtoml += "`n"
 
+$configtoml | Out-Host 
 $configtoml | Out-File $file -Force
