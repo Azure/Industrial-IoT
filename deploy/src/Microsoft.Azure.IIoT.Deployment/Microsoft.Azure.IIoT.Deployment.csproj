@@ -35,7 +35,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="6.0.0" />
 
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.14.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.14.1" />
 
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
 
