@@ -91,7 +91,7 @@ namespace TestEventProcessor
                 throw new ArgumentNullException(nameof(optionSet));
             }
 
-            Console.WriteLine("Usage: TesEventProcessor");
+            Console.WriteLine("Usage: TestEventProcessor");
             Console.WriteLine();
             Console.WriteLine("Options:");
             optionSet.WriteOptionDescriptions(Console.Out);
