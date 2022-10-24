@@ -1,4 +1,4 @@
-﻿param(
+﻿Param(
     [string] $BranchName,
     [string] $Region,
     [string] $ImageTag,
@@ -6,8 +6,10 @@
     [string] $ContainerRegistryServer
 )
 
+# Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
 Set-PSDebug -Trace 2
+
 Import-Module Az.Accounts -MinimumVersion 2.9.0
 Import-Module Az.ContainerRegistry
 

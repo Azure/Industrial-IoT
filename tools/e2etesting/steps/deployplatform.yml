@@ -60,7 +60,7 @@ steps:
     scriptArguments: >
       -BranchName "$(BranchName)"
       -Region "$(Region)"
-      -ImageTag "$(ImageTag)"
+      -ImageTag "$(PlatformVersion)"
       -ImageNamespace "$(ImageNamespace)"
       -ContainerRegistryServer "$(ContainerRegistryServer)"
 
@@ -78,7 +78,7 @@ steps:
       -AppSettingsFilename "$(BasePath)\IAI\appsettings.json"
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
-      -ImageTag "$(PlatformVersion)"
+      -ImageTag "$(ImageTag)"
       -ImageNamespace "$(ImageNamespace)"
       -ContainerRegistryServer "$(ContainerRegistryServer)"
       -ContainerRegistryUsername "$(ContainerRegistryUsername)"
