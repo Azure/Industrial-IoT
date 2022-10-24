@@ -107,11 +107,17 @@ if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
         $script:ContainerRegistryServer = "mcr.microsoft.com"
     }
 }
+else
+{
+    $registry = $script:ContainerRegistryServer
+}
 
-Write-Host "########################################################################################"
-Write-Host "Will use $($script:ImageTag) images in namespace $($script:ImageNamespace) from $($script:ContainerRegistryServer)."
-Write-Host "########################################################################################"
+Write-Host "=============================================================================="
+Write-Host "Use $($script:ImageTag) images in namespace $($script:ImageNamespace) from $($registry)."
+Write-Host "=============================================================================="
 Write-Host ""
+
+
 Write-Host "##vso[task.setvariable variable=ImageTag]$($script:ImageTag)"
 Write-Host "##vso[task.setvariable variable=ImageNamespace]$($script:ImageNamespace)"
 Write-Host "##vso[task.setvariable variable=ContainerRegistryServer]$($script:ContainerRegistryServer)"
