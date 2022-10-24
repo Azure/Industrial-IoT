@@ -323,7 +323,7 @@ if [ "$is_private_repo" = true ] ; then
     echo $setsvc
 
     # Install aiiot/azure-industrial-iot Helm chart
-    helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
+    helm install azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
         --set image.tag=$AIIOT_IMAGE_TAG \
         --set image.registry="$registryserver" \
         --set image.pullSecrets[0].name=$AIIOT_CONTAINER_REGISTRY_USERNAME \
@@ -349,7 +349,7 @@ if [ "$is_private_repo" = true ] ; then
         $setsvc
 else
     # Install aiiot/azure-industrial-iot Helm chart
-    helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
+    helm install azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
         --set image.tag=$AIIOT_IMAGE_TAG \
         --set loadConfFromKeyVault=true \
         --set azure.tenantId=$AIIOT_TENANT_ID \
