@@ -166,7 +166,16 @@
             "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]",
             "windowsConfiguration": {
                 "enableAutomaticUpdates": true,
-                "provisionVmAgent": true
+                "provisionVmAgent": true,
+                "enableVMAgentPlatformUpdates": true,
+                "patchSettings": {
+                    "enableHotpatching": true,
+                    "assessmentMode": "AutomaticByPlatform",
+                    "patchMode": "AutomaticByPlatform",
+                    "automaticByPlatformSettings": {
+                        "rebootSetting": "IfRequired"
+                    }
+                }
             }
         },
         "windowsVmExtension": {
