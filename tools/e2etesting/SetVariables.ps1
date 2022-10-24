@@ -104,7 +104,7 @@ if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
     }
 }
 
-Write-Host "Will use $script:ImageTag images in namespace $script:ImageNamespace from $script:ContainerRegistryServer."
+Write-Host "Will use $($script:ImageTag) images in namespace $($script:ImageNamespace) from $($script:ContainerRegistryServer)."
 
 Write-Host "##vso[task.setvariable variable=ImageTag]$($script:ImageTag)"
 Write-Host "##vso[task.setvariable variable=ImageNamespace]$($script:ImageNamespace)"
