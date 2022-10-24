@@ -200,7 +200,7 @@ if ($projFile) {
 FROM $($baseImage)
 
 # TODO Remove after moving to latest messaging nugets
-apk add icu-libs
+RUN apk add icu-libs
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 $($exposes)
