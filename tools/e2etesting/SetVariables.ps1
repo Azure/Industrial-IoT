@@ -7,10 +7,12 @@
 )
 
 $ErrorActionPreference = "Stop"
+Set-PSDebug -Trace 2
 Import-Module Az.Accounts -MinimumVersion 2.9.0
 Import-Module Az.ContainerRegistry
 
-if (![string]::IsNullOrEmpty($script:BranchName)) {
+if (![string]::IsNullOrEmpty($script:BranchName))
+{
     if ($script:BranchName.StartsWith("refs/heads/")) 
     {
         $script:BranchName = $script:BranchName.Replace("refs/heads/", "")
@@ -21,11 +23,11 @@ else
     $script:BranchName = "main"
 }
 
-if ([string]::IsNullOrEmpty($script:ImageTag)) 
+if ([string]::IsNullOrEmpty($script:ImageTag))
 {
     $script:ImageTag = "$($env:Version_Prefix)$($env:Version_Prerelease)"
 }
-if ([string]::IsNullOrEmpty($script:ImageTag)) 
+if ([string]::IsNullOrEmpty($script:ImageTag))
 {
     try 
     {
@@ -52,7 +54,7 @@ if ([string]::IsNullOrEmpty($script:ImageTag))
     }    
 }
 
-if ([string]::IsNullOrEmpty($script:ImageNamespace)) 
+if ([string]::IsNullOrEmpty($script:ImageNamespace))
 {
     # Set namespace name based on branch name
     $script:ImageNamespace = $script:BranchName
@@ -68,7 +70,7 @@ if ([string]::IsNullOrEmpty($script:ImageNamespace))
     $script:ImageNamespace = $script:ImageNamespace.Replace("_", "/").Substring(0, [Math]::Min($script:ImageNamespace.Length, 24))
 }
 
-if ([string]::IsNullOrEmpty($script:ContainerRegistryServer)) 
+if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
 {
     if ($script:ImageNamespace -eq "public") 
     {
@@ -104,8 +106,10 @@ if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
     }
 }
 
+Write-Host "########################################################################################"
 Write-Host "Will use $($script:ImageTag) images in namespace $($script:ImageNamespace) from $($script:ContainerRegistryServer)."
-
+Write-Host "########################################################################################"
+Write-Host ""
 Write-Host "##vso[task.setvariable variable=ImageTag]$($script:ImageTag)"
 Write-Host "##vso[task.setvariable variable=ImageNamespace]$($script:ImageNamespace)"
 Write-Host "##vso[task.setvariable variable=ContainerRegistryServer]$($script:ContainerRegistryServer)"
