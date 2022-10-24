@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     QueueSize = node.Item2.QueueSize,
                                     // ToDo: Implement mechanism for SkipFirst.
                                     SkipFirst = node.Item2.SkipFirst,
-                                    DataChangeFilter = node.Item2.DataChangeTrigger
+                                    DataChangeTrigger = node.Item2.DataChangeTrigger
                                 }).ToList()
                             }
                         }

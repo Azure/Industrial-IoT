@@ -3,8 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-
 namespace IIoTPlatform_E2E_Tests {
     using Newtonsoft.Json;
     using Renci.SshNet;
@@ -28,6 +26,7 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Text.RegularExpressions;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using IIoTPlatform_E2E_Tests.TestEventProcessor;
 
     internal static partial class TestHelper {
@@ -629,7 +628,7 @@ namespace IIoTPlatform_E2E_Tests {
                     opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
                     opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
                     opcNode.QueueSize = 4;
-                    opcNode.DataChangeTrigger = dataChangeTrigger.ToString();
+                    opcNode.DataChangeTrigger = dataChangeTrigger == null ? null : dataChangeTrigger.ToString();
                     return opcNode;
                 })
                 .ToArray();

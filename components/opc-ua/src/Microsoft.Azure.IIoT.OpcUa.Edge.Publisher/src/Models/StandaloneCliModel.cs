@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// set the default data change filter for monitored items
         /// </summary>
-        public DataChangeTriggerType? DefaultDataChangeTrigger { get; set; } = null;
+        public DataChangeTriggerType? DefaultDataChangeTrigger { get; set; }
 
         /// <summary>
         /// The interval to show diagnostics information.

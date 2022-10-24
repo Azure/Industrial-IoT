@@ -3,8 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-
 namespace IIoTPlatform_E2E_Tests.Standalone {
     using IIoTPlatform_E2E_Tests.Deploy;
     using System;
@@ -14,6 +12,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node

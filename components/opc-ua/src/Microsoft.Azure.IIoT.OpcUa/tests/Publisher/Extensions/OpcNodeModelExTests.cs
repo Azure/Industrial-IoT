@@ -3,11 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-
 namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
 
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using Xunit;
 
