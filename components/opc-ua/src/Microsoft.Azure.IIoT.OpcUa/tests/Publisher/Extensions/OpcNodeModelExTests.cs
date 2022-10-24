@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 HeartbeatInterval = 35,
                 SkipFirst = true,
                 QueueSize = 123,
-                DataChangeFilter = DataChangeTriggerType.Status
+                DataChangeTrigger = DataChangeTriggerType.Status
             };
 
             opcNode2 = new OpcNodeModel {
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 HeartbeatIntervalTimespan = TimeSpan.Parse("00:00:35"),
                 SkipFirst = true,
                 QueueSize = 123,
-                DataChangeFilter = DataChangeTriggerType.Status
+                DataChangeTrigger = DataChangeTriggerType.Status
             };
 
             Assert.True(comparer.Equals(opcNode1, opcNode2));
@@ -61,14 +61,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             
             opcNode2.SkipFirst = true;
             opcNode2.QueueSize = 123;
-            opcNode2.DataChangeFilter = DataChangeTriggerType.StatusValue;
+            opcNode2.DataChangeTrigger = DataChangeTriggerType.StatusValue;
 
             Assert.False(comparer.Equals(opcNode1, opcNode2));
             Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
 
             opcNode2.SkipFirst = null;
             opcNode2.QueueSize = null;
-            opcNode2.DataChangeFilter = null;
+            opcNode2.DataChangeTrigger = null;
 
             Assert.False(comparer.Equals(opcNode1, opcNode2));
             Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));

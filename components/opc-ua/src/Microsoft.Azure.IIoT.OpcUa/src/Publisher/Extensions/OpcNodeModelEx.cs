@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
             
-            if (model.DataChangeFilter != that.DataChangeFilter) {
+            if (model.DataChangeTrigger != that.DataChangeTrigger) {
                 return false;
             }
 
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.GetNormalizedHeartbeatInterval());
             hash.Add(model.SkipFirst);
             hash.Add(model.QueueSize);
-            hash.Add(model.DataChangeFilter);
+            hash.Add(model.DataChangeTrigger);
             return hash.ToHashCode();
         }
 

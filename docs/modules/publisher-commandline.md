@@ -104,6 +104,14 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Mode: Standalone only
                                       Type: integer
                                       Default: 1
+            
+            DefaultDataChangeTrigger=VALUE
+                                      Default setting value for the monitored item's data change trigger to be used when
+                                      not explicitly specified in pn.json file
+                                      Alternative: --mc, --monitoreditemdatachangetrigger
+                                      Mode: Standalone only
+                                      Type: string
+                                      Default: null
 
             DefaultHeartbeatInterval=VALUE
                                       Default value for the heartbeat interval setting of published nodes
@@ -527,6 +535,10 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                    can not be sent quick enough to IoTHub
                                    Min: 1024
                                    Default: 8192
+          --mc, --monitoreditemdatachangetrigger=VALUE
+                                   specify the data change trigger for monitored items
+                                   (allowed values: null, Status, StatusValue, StatusValueTimestamp)
+                                   Default: null
           --di, --diagnosticsinterval=VALUE
                                    shows publisher diagnostic info at the specified
                                    interval in seconds (need log level info).

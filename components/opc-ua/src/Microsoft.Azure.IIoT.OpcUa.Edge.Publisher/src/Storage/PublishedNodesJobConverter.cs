@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     QueueSize = node.Item2.QueueSize,
                                     // ToDo: Implement mechanism for SkipFirst.
                                     SkipFirst = node.Item2.SkipFirst,
-                                    DataChangeFilter = node.Item2.DataChangeFilter
+                                    DataChangeFilter = node.Item2.DataChangeTrigger
                                 }).ToList()
                             }
                         }
@@ -327,7 +327,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                             // ToDo: Implement mechanism for SkipFirst.
                             SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
-                            DataChangeFilter = node.DataChangeFilter
+                            DataChangeTrigger = node.DataChangeTrigger
                         });
                     }
                     else {
@@ -351,7 +351,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                                 // ToDo: Implement mechanism for SkipFirst.
                                 SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
-                                DataChangeFilter = node.DataChangeFilter
+                                DataChangeTrigger = node.DataChangeTrigger
                             });
                         }
                     }
@@ -367,7 +367,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     QueueSize = standaloneCliModel.DefaultQueueSize,
                     // ToDo: Implement mechanism for SkipFirst.
                     SkipFirst = standaloneCliModel.DefaultSkipFirst,
-                    DataChangeFilter = standaloneCliModel.DefaultDataChangeTrigger
+                    DataChangeTrigger = standaloneCliModel.DefaultDataChangeTrigger
                 });
             }
         }

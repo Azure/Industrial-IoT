@@ -63,10 +63,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public uint? QueueSize { get; set; }
         
-        /// <summary>
-        /// Data change filter
-        /// </summary>
+        /// <summary> Data change filter </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public DataChangeTriggerType? DataChangeFilter { get; set; }
+        public DataChangeTriggerType? DataChangeTrigger { get; set; }
     }
 }
