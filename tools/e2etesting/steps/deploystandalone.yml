@@ -12,6 +12,20 @@ steps:
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
 
 - task: AzurePowerShell@5
+  displayName: 'Auto-Set Variables'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\SetVariables.ps1'
+    scriptArguments: >
+      -BranchName "$(BranchName)"
+      -Region "$(Region)"
+      -ImageTag "$(ImageTag)"
+      -ImageNamespace "$(ImageNamespace)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
+
+- task: AzurePowerShell@5
   displayName: "Deploy standalone resources"
   inputs:
     azureSubscription: '$(AzureSubscription)'
