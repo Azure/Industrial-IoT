@@ -58,8 +58,7 @@ Configuration DeployEflow
     Script Eflow
     {
         TestScript = {
-            $eflowInfo = Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' ´
-                | Get-ItemProperty |  Where-Object { $_.DisplayName -match 'Azure IoT Edge *' }
+            $eflowInfo = Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\' | Get-ItemProperty |  Where-Object { $_.DisplayName -match 'Azure IoT Edge *' }
             # todo test provisioning completed
             return ($null -ne $eflowInfo)
         }

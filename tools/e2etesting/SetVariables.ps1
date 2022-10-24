@@ -8,7 +8,7 @@
 
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
-Set-PSDebug -Trace 2
+# Set-PSDebug -Trace 2
 
 Import-Module Az.Accounts -MinimumVersion 2.9.0
 Import-Module Az.ContainerRegistry
