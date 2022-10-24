@@ -167,6 +167,11 @@ if ($projFile) {
             $baseImage = $metadata.base
             $runtimeId = $null
         }
+        else {
+            # TODO Remove after moving to latest messaging nugets
+            $environmentVars += "RUN apk add icu-libs"
+            $environmentVars += "ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false"
+        }
 
         if ([string]::IsNullOrEmpty($runtimeId)) {
             $runtimeId = "portable"
@@ -198,10 +203,6 @@ if ($projFile) {
         }
         $dockerFileContent = @"
 FROM $($baseImage)
-
-# TODO Remove after moving to latest messaging nugets
-RUN apk add icu-libs
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 $($exposes)
 
