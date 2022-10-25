@@ -56,6 +56,9 @@
  .PARAMETER acrSubscriptionName
     The subscription of the container registry, if different from the specified subscription.
 
+ .PARAMETER acrTenantId
+    The tenant where the container registry resides. If not provided uses all.
+
  .PARAMETER environmentName
     The cloud environment to use, defaults to AzureCloud.
 
@@ -98,6 +101,7 @@ param(
     [string] $aadApplicationName,
     [string] $acrRegistryName,
     [string] $acrSubscriptionName,
+    [string] $acrTenantId,
     [string] $simulationProfile,
     [string] $gatewayVmSku,
     [string] $opcPlcVmSku,
@@ -309,9 +313,9 @@ Function Select-RegistryCredentials() {
     if (![string]::IsNullOrEmpty($script:acrSubscriptionName) `
             -and ($context.Subscription.Name -ne $script:acrSubscriptionName)) {
         $tenantIdArg = @{}
-        if (![string]::IsNullOrEmpty($script:tenantId)) {
+        if (![string]::IsNullOrEmpty($script:acrTenantId)) {
             $tenantIdArg = @{
-                TenantId = $script:tenantId
+                TenantId = $script:acrTenantId
             }
         }
         $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName @tenantIdArg
@@ -774,6 +778,7 @@ Function New-Deployment() {
             $creds = Select-RegistryCredentials
         }
         catch {
+            Write-Warning $_.Exception.Message
             $creds = $null
         }
 
