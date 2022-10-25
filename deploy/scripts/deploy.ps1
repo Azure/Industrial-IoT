@@ -105,9 +105,9 @@ param(
     [string] $simulationProfile,
     [string] $gatewayVmSku,
     [string] $opcPlcVmSku,
-    [int] $numberOfLinuxGateways = 0,
-    [int] $numberOfWindowsGateways = 0,
-    [int] $numberOfSimulationsPerEdge = 0,
+    [int] $numberOfLinuxGateways = 1,
+    [int] $numberOfWindowsGateways = 1,
+    [int] $numberOfSimulationsPerEdge = 1,
     $aadConfig,
     $context = $null,
     [switch] $testAllDeploymentOptions,
@@ -841,7 +841,7 @@ Function New-Deployment() {
                 | Select-Object -ExpandProperty Name -Unique
 
             if (($script:numberOfWindowsGateways -gt 0) -and ($availableVmNames -inotcontains "Standard_D4s_v4")) {
-                Write-Warning "VM with Nested virtualization for Eflow simulationnot available in region/subscription."
+                Write-Warning "VM with Nested virtualization for Eflow simulation not available in region/subscription."
                 $script:numberOfWindowsGateways = 0
             }
 
