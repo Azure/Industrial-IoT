@@ -841,7 +841,7 @@ Function New-Deployment() {
                 | Select-Object -ExpandProperty Name -Unique
 
             if (($script:numberOfWindowsGateways -gt 0) -and ($availableVmNames -inotcontains "Standard_D4s_v4")) {
-                Write-Warning "VM with Nested virtualization for Eflow simulation not available in region/subscription."
+Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow simulation not available in selected region or your subscription."
                 $script:numberOfWindowsGateways = 0
             }
 
@@ -859,7 +859,7 @@ Function New-Deployment() {
             # Pick top
             if ($edgeVmSizes.Count -ne 0) {
                 $edgeVmSize = $edgeVmSizes[0].Name
-                Write-Host "Using $($edgeVmSize) as VM size for all edge simulation gateway hosts..."
+                Write-Host "Using $($edgeVmSize) as VM size for Linux IoT Edge gateway simulations..."
                 $templateParameters.Add("edgeVmSize", $edgeVmSize)
             }
         }
@@ -896,7 +896,7 @@ Function New-Deployment() {
             # Pick top
             if ($simulationVmSizes.Count -ne 0) {
                 $simulationVmSize = $simulationVmSizes[0].Name
-                Write-Host "Using $($simulationVmSize) as VM size for all edge simulation hosts..."
+                Write-Host "Using $($simulationVmSize) as VM size for all OPC PLC simulation host machines..."
                 $templateParameters.Add("simulationVmSize", $simulationVmSize)
             }
         }    

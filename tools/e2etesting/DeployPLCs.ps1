@@ -97,7 +97,7 @@ if ($aciNamesToCreate.Length -gt 0) {
     if ($UsePrivateIp -eq $false) {
         $script = {
             Param($Name)
-            $aciCommand = "/bin/sh -c './opcplc --cdn `$(hostname -I) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            $aciCommand = "/bin/sh -c './opcplc --cdn `$(hostname -I) --ph $($Name).azurecontainer.io --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
             $ports = @(50000, 80)
             az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name
             if ($LASTEXITCODE -ne 0) {
