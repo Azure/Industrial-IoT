@@ -819,18 +819,6 @@ Function New-Deployment() {
         else {
             $templateParameters.Add("simulationProfile", $script:simulationProfile)
         }
-        if ((-not $script:numberOfLinuxGateways) -or ($script:numberOfLinuxGateways -eq 0)) {
-            $templateParameters.Add("numberOfLinuxGateways", 1)
-        }
-        else {
-            $templateParameters.Add("numberOfLinuxGateways", $script:numberOfLinuxGateways)
-        }
-        if ((-not $script:numberOfWindowsGateways) -or ($script:numberOfWindowsGateways -eq 0)) {
-            $templateParameters.Add("numberOfWindowsGateways", 1)
-        }
-        else {
-            $templateParameters.Add("numberOfWindowsGateways", $script:numberOfWindowsGateways)
-        }
         if ((-not $script:numberOfSimulationsPerEdge) -or ($script:numberOfSimulationsPerEdge -eq 0)) {
             $templateParameters.Add("numberOfSimulations", 1)
         }
@@ -852,6 +840,11 @@ Function New-Deployment() {
             $availableVmNames = $availableVms `
                 | Select-Object -ExpandProperty Name -Unique
 
+            if (($script:numberOfWindowsGateways -gt 0) -and ($availableVmNames -inotcontains "Standard_D4s_v4")) {
+                Write-Warning "VM with Nested virtualization for Eflow simulationnot available in region/subscription."
+                $script:numberOfWindowsGateways = 0
+            }
+
             # We will use VM with at least 2 cores and 8 GB of memory as gateway host.
             $edgeVmSizes = Get-AzVMSize $script:resourceGroupLocation `
                 | Where-Object { $availableVmNames -icontains $_.Name } `
@@ -872,6 +865,19 @@ Function New-Deployment() {
         }
         else {
             $templateParameters.Add("edgeVmSize", $script:gatewayVmSku)
+        }
+
+        if ((-not $script:numberOfLinuxGateways) -or ($script:numberOfLinuxGateways -eq 0)) {
+            $templateParameters.Add("numberOfLinuxGateways", 1)
+        }
+        else {
+            $templateParameters.Add("numberOfLinuxGateways", $script:numberOfLinuxGateways)
+        }
+        if (-not $script:numberOfWindowsGateways) {
+            $templateParameters.Add("numberOfWindowsGateways", 0)
+        }
+        else {
+            $templateParameters.Add("numberOfWindowsGateways", $script:numberOfWindowsGateways)
         }
 
         if ([string]::IsNullOrEmpty($script:opcPlcVmSku)) {

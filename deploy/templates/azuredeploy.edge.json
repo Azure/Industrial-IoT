@@ -199,6 +199,8 @@
             "sku": "2022-datacenter-azure-edition-core",
             "version": "latest"
         },
+        "windowsVmSku": "Standard_D4s_v4",
+        "linuxVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",
         "linuxImage": {
             "publisher": "Canonical",
             "offer": "UbuntuServer",
@@ -226,8 +228,8 @@
                 "commandToExecute": "[concat('sudo bash edge-setup.sh --idScope \"', parameters('dpsIdScope'), '\" --dpsConnString \"', parameters('dpsConnString'), '\"')]"
             }
         },
-        "edgeVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",
-        "simulationVmSku": "[if(not(empty(parameters('simulationVmSize'))), parameters('simulationVmSize'), variables('edgeVmSku'))]"
+        "edgeVmSku": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxVmSku'), variables('windowsVmSku'))]",
+        "simulationVmSku": "[if(not(empty(parameters('simulationVmSize'))), parameters('simulationVmSize'), variables('linuxVmSku'))]"
     },
     "resources": [
         {
