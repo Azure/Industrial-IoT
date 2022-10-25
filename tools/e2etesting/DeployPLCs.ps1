@@ -18,7 +18,7 @@ Param(
     [string]
     $FastNodeType = "uint",
     [string]
-    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:2.5.0",
+    $PLCImage,
     [string]
     $ResourcesPrefix = "e2etesting",
     [Double]
@@ -31,6 +31,10 @@ Param(
 
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
+
+if (!$PLCImage) {
+    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:2.4.2"
+}
 
 if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
