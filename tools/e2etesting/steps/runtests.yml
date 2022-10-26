@@ -119,7 +119,7 @@ steps:
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-    arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal'
+    arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal --logger "console;verbosity=detailed" --logger trx'
   env:
     PCS_SERVICE_URL: '$(pcs-service-url)'
     PCS_AUTH_TENANT: '$(pcs-auth-tenant)'
