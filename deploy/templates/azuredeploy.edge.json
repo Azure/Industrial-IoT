@@ -160,6 +160,36 @@
                 }
             }
         },
+        "windowsDscProperties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "2.77",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "wmfVersion": "latest",
+                "configuration": {
+                    "url": "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dsc-install.zip')]",
+                    "script": "DSCInstallWindowsFeatures.ps1",
+                    "function": "InstallWindowsFeatures"
+                }
+            }
+        },
+        "windowsVmExtension": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.9",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": [
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/eflow-setup.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/TLSSettings.ps1')]"
+                ]
+            },
+            "protectedSettings": {
+                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./eflow-setup.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
+            }
+        },
         "windowsOsProfile": {
             "computerName": "[variables('vmName')]",
             "adminUsername": "[parameters('edgeUsername')]",
@@ -177,29 +207,13 @@
                 }
             }
         },
-        "windowsVmExtension": {
-            "publisher": "Microsoft.Compute",
-            "type": "CustomScriptExtension",
-            "typeHandlerVersion": "1.9",
-            "autoUpgradeMinorVersion": true,
-            "settings": {
-                "fileUris": [
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-config.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/TLSSettings.ps1')]"
-                ]
-            },
-            "protectedSettings": {
-                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./edge-config.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
-            }
-        },
+        "windowsVmSku": "Standard_D4s_v4",
         "windowsImage": {
             "publisher": "MicrosoftWindowsServer",
             "offer": "WindowsServer",
             "sku": "2022-datacenter-azure-edition-core",
             "version": "latest"
         },
-        "windowsVmSku": "Standard_D4s_v4",
         "linuxVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",
         "linuxImage": {
             "publisher": "Canonical",
@@ -313,6 +327,18 @@
             ]
         },
         {
+            "comments": "Install required windows features for eflow installtion on vm.",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2021-03-01",
+            "condition": "[not(equals(parameters('edgeOs'), 'linux'))]",
+            "name": "[concat(variables('vmName'), '/', 'InstallWindowsFeatures')]",
+            "location": "[resourceGroup().location]",
+            "properties": "[variables('windowsDscProperties')]",
+            "dependsOn": [
+                "[variables('vmResourceId')]"
+            ]
+        },
+        {
             "comments": "One time script execution to install and onboard IoT Edge and deploy workloads",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('vmName'), '/', 'scriptextensions')]",
@@ -321,7 +347,8 @@
             "tags": "[parameters('tags')]",
             "properties": "[if (equals(parameters('edgeOs'), 'linux'), variables('linuxVmExtension'), variables('windowsVmExtension'))]",
             "dependsOn": [
-                "[variables('vmResourceId')]"
+                "[variables('vmResourceId')]",
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('vmName'), 'InstallWindowsFeatures')]"
             ]
         },
         {

@@ -97,7 +97,7 @@ if ($aciNamesToCreate.Length -gt 0) {
     if ($UsePrivateIp -eq $false) {
         $script = {
             Param($Name)
-            $aciCommand = "/bin/sh -c './opcplc --cdn `$(hostname -I) --ph $($Name).azurecontainer.io --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            $aciCommand = "/bin/sh -c './opcplc --ph $($Name).azurecontainer.io --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
             $ports = @(50000, 80)
             az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name
             if ($LASTEXITCODE -ne 0) {
@@ -115,7 +115,7 @@ if ($aciNamesToCreate.Length -gt 0) {
 
         $script = {
             Param($Name)
-            $aciCommand = "/bin/sh -c './opcplc --cdn `$(hostname -I) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            $aciCommand = "/bin/sh -c './opcplc --ph `$(hostname -I) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
             $ports = @(50000, 80)
             az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:vNet --subnet $using:subNet
             if ($LASTEXITCODE -ne 0) {
@@ -158,19 +158,27 @@ if ($aciNamesToCreate.Length -gt 0) {
 }
 
 ## Write ACI FQDNs to KeyVault ##
-
 Write-Host
-Write-Host "Getting IPs of ACIs for simulated PLCs..."
-
-$ipList = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].ipAddress.ip"  | ConvertFrom-Json
-
-if ($ipList.Count -eq 0) {
-    Write-Error "No Azure Container Instances have been deployed. Please check that quota is not exceeded for this region."
+if ($UsePrivateIp -eq $false) {
+    Write-Host "Using Dns names for public PLCs"
+    foreach ($aciNameToCreate in $aciNamesToCreate) {
+        $hostName = "$($aciNameToCreate).azurecontainer.io"
+        Write-Host $hostName
+        $plcSimNames += $hostName + ";"
+    }
 }
+else {
+    Write-Host "Getting IPs of ACIs for simulated PLCs..."
+    $ipList = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].ipAddress.ip"  | ConvertFrom-Json
 
-foreach ($ip in $ipList) {
-    Write-Host $ip
-    $plcSimNames += $ip + ";"
+    if ($ipList.Count -eq 0) {
+        Write-Error "No Azure Container Instances have been deployed. Please check that quota is not exceeded for this region."
+    }
+
+    foreach ($ip in $ipList) {
+        Write-Host $ip
+        $plcSimNames += $ip + ";"
+    }
 }
 
 try {
