@@ -127,3 +127,6 @@ if ([string]::IsNullOrEmpty($script:Region))
     $script:Region = "westus"
 }
 Write-Host "##vso[task.setvariable variable=Region]$($script:Region)"
+
+Write-Host $env:BasePath
+Write-Host "=============================================================================="
