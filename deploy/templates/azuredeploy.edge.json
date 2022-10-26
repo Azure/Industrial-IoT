@@ -169,7 +169,7 @@
                 "wmfVersion": "latest",
                 "configuration": {
                     "url": "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dsc-install.zip')]",
-                    "script": "DSCInstallWindowsFeatures.ps1",
+                    "script": "dsc-install.ps1",
                     "function": "InstallWindowsFeatures"
                 }
             }
@@ -203,7 +203,7 @@
         "windowsImage": {
             "publisher": "MicrosoftWindowsServer",
             "offer": "WindowsServer",
-            "sku": "2016-Datacenter",
+            "sku": "2022-Datacenter",
             "version": "latest"
         },
         "linuxVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",

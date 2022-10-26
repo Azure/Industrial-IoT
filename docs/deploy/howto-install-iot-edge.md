@@ -38,7 +38,7 @@ The Azure Industrial IoT deployment script will setup IoT Edge Layered Deploymen
 ...
 ```
 
-- For Windows, set the "os" property to "Windows":
+- For Windows (EFLOW), set the "os" property to "Windows":
 
 ```json
 ...

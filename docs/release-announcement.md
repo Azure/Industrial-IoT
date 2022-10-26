@@ -4,12 +4,25 @@
 
 We are pleased to announce the release of version 2.8.4 of our Industrial IoT Platform components as latest patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates fixes, performance optimizations and bugfixes.
 
+### IMPORTANT
+
+- IoT Edge 1.1 LTS is out of support, please [update your IoT Edge gateways to IoT Edge 1.4 LTS](https://learn.microsoft.com/en-us/azure/iot-edge/how-to-update-iot-edge).
+- Windows container images are no longer supported in IoT Edge 1.4 LTS and have been removed from this release. Please use [IoT Edge EFLOW](https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/azure-iot-edge-for-linux-on-windows) for a Windows based IoT edge solution.
+- Simulation deployed as part of the ./deploy.ps1 script now deploys EFLOW on Windows VM Host.
+    > Your Azure subscription and chosen region must support Standard_D4_v4 VM which supports nested virtualization or deployment of Windows gatewaay will be skipped.
+
 ### Changes in this release
 
 - Updated .net from .net 3.1 LTS which is now EOL to .net 6.0 LTS.
 - Updated most of the nuget dependencies to their .net 6 counterpart or latest release.
 - Updated IoT Edge dependency from IoT Edge 1.1 LTS which is now EOL to 1.4 LTS.
-- Windows container images are no longer supported and have been removed. Please use IoT Edge EFLOW for a Windows based IoT edge solution.
+- [OPC Publisher] Fix for orchestrator infinite loop on publisher worker document update (#1870)
+- [OPC Publisher] Rate limit OPC Publisher orchestrator requests.
+- [Deployment] IAI: Upgraded Kubernetes version in AKS from 1.22.6 to 1.23.12. (#1885)
+- [Deployment] Increased proxy-connect-timeout of NGINX from default 5 seconds to 30. (#1871)
+- [OPC Publisher] (Preview) User can set the Data change trigger value of the Data change filter type either as a default for all or per subscription (#1830).
+- Add a configuration option to set security option RejectUnknownRevocationStatus (#1777)
+- Add mandatory field for edgeHub in the base deployment template to support cloning deployments (#1764)
 
 ## Azure Industrial IoT Platform Release 2.8.3
 
