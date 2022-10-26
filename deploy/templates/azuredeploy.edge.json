@@ -196,22 +196,14 @@
             "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]",
             "windowsConfiguration": {
                 "enableAutomaticUpdates": true,
-                "provisionVmAgent": true,
-                "enableVMAgentPlatformUpdates": true,
-                "patchSettings": {
-                    "enableHotpatching": true,
-                    "patchMode": "AutomaticByPlatform",
-                    "automaticByPlatformSettings": {
-                        "rebootSetting": "IfRequired"
-                    }
-                }
+                "provisionVmAgent": true
             }
         },
         "windowsVmSku": "Standard_D4s_v4",
         "windowsImage": {
             "publisher": "MicrosoftWindowsServer",
             "offer": "WindowsServer",
-            "sku": "2022-datacenter-azure-edition-core",
+            "sku": "2016-Datacenter",
             "version": "latest"
         },
         "linuxVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",
