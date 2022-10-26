@@ -63,6 +63,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             // Add 1 server
             var ipAddress = _context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator).First();
             var url = $"opc.tcp://{ipAddress}:50000";
+            var urls = new List<string> { url };
 
             // Registers servers by running a discovery scan over the single IP address (/32)
             var cidr = ipAddress + "/32";
