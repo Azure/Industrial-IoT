@@ -101,16 +101,15 @@ if ($aciNamesToCreate.Length -gt 0) {
             # create
             $ports = @(50000, 80)
             az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name
-            if ($LASTEXITCODE -ne 0) {
+            $container = az container show --resource-group $using:ResourceGroupName --name $Name | ConvertFrom-Json
+            if (!$container.ipAddress.ip) {
                 throw "Create container failed with exit code: $LASTEXITCODE"
             }
-
-            $container = az container list --resource-group $ResourceGroupName --name $Name | ConvertFrom-Json
-
             # update
             $aciCommand = "/bin/sh -c './opcplc --ph $($container.ipAddress.ip) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
-            az container create --resource-group $using:ResourceGroupName --name $Name --command $aciCommand
+            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name --command $aciCommand
             if ($LASTEXITCODE -ne 0) {
+                az container delete -y --resource-group $using:ResourceGroupName --name $Name
                 throw "Update container failed with exit code: $LASTEXITCODE"
             }
         }
@@ -129,17 +128,17 @@ if ($aciNamesToCreate.Length -gt 0) {
             #create
             $ports = @(50000, 80)
             az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:vNet --subnet $using:subNet
-            if ($LASTEXITCODE -ne 0) {
+            $container = az container show --resource-group $using:ResourceGroupName --name $Name | ConvertFrom-Json
+            if (!$container.ipAddress.ip) {
                 throw "Create container failed with exit code: $LASTEXITCODE"
             }
-            
-            $container = az container list --resource-group $ResourceGroupName --name $Name | ConvertFrom-Json
 
             # update
             $aciCommand = "/bin/sh -c './opcplc --ph $($container.ipAddress.ip) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
             $ports = @(50000, 80)
-            az container create --resource-group $using:ResourceGroupName --name $Name --command $aciCommand
+            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:vNet --subnet $using:subNet --command $aciCommand
             if ($LASTEXITCODE -ne 0) {
+                az container delete -y --resource-group $using:ResourceGroupName --name $Name
                 throw "Update container failed with exit code: $LASTEXITCODE"
             }
         }
