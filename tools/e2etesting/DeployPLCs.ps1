@@ -106,7 +106,7 @@ if ($aciNamesToCreate.Length -gt 0) {
                 throw "Create container failed with exit code: $LASTEXITCODE"
             }
             # update
-            $aciCommand = "/bin/sh -c './opcplc --ph $($container.ipAddress.ip) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            $aciCommand = "/bin/sh -c './opcplc --ph $($container.ipAddress.fqdn) --cdn $($container.ipAddress.ip) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
             az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name --command $aciCommand
             if ($LASTEXITCODE -ne 0) {
                 az container delete -y --resource-group $using:ResourceGroupName --name $Name
@@ -134,8 +134,7 @@ if ($aciNamesToCreate.Length -gt 0) {
             }
 
             # update
-            $aciCommand = "/bin/sh -c './opcplc --ph $($container.ipAddress.ip) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
-            $ports = @(50000, 80)
+            $aciCommand = "/bin/sh -c './opcplc --ph $($container.ipAddress.fqdn) --cdn $($container.ipAddress.ip) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
             az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:vNet --subnet $using:subNet --command $aciCommand
             if ($LASTEXITCODE -ne 0) {
                 az container delete -y --resource-group $using:ResourceGroupName --name $Name
