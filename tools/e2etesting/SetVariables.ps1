@@ -10,8 +10,8 @@
 $ErrorActionPreference = "Stop"
 # Set-PSDebug -Trace 2
 
-Import-Module Az.Accounts -MinimumVersion 2.9.0
-Import-Module Az.ContainerRegistry
+#Import-Module Az.Accounts -MinimumVersion 2.9.0
+#Import-Module Az.ContainerRegistry
 
 if (![string]::IsNullOrEmpty($script:BranchName))
 {
@@ -46,7 +46,7 @@ if ([string]::IsNullOrEmpty($script:ImageTag))
         $prerelease = $props.CloudBuildAllVars.NBGV_PrereleaseVersion
         $script:ImageTag = "$($version)$($prerelease)"
 
-        Remove-Item "./tools" -Recurse
+        # Remove-Item "./tools" -Recurse
     }
     catch 
     {
@@ -127,6 +127,3 @@ if ([string]::IsNullOrEmpty($script:Region))
     $script:Region = "westus"
 }
 Write-Host "##vso[task.setvariable variable=Region]$($script:Region)"
-
-Write-Host $env:BasePath
-Write-Host "=============================================================================="
