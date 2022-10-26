@@ -540,7 +540,7 @@ namespace IIoTPlatform_E2E_Tests {
                         tasks.Add(client.ExecuteAsync(request, ct));
                     }
 
-                    Task.WaitAll(tasks.ToArray());
+                    await Task.WhenAll(tasks.ToArray());
 
                     var healthyServices = tasks
                         .Where(task => task.Result.StatusCode == HttpStatusCode.OK)
@@ -555,9 +555,10 @@ namespace IIoTPlatform_E2E_Tests {
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
                 }
             }
-            catch (Exception) {
+            catch (OperationCanceledException) {}
+            catch (Exception e) {
                 context.OutputHelper?.WriteLine("Error: not all API microservices of IIoT " +
-                    "platform are in healthy state.");
+                    $"platform are in healthy state ({e.Message}).");
                 throw;
             }
         }
