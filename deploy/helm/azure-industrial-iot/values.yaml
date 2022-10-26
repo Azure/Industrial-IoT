@@ -600,6 +600,7 @@ deployment:
     #   nginx.ingress.kubernetes.io/session-cookie-max-age: "14400"
     #   nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     #   nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    #   nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
     annotations: {}
 
     # host for the Ingress. We do not support multiple hosts at the moment.
