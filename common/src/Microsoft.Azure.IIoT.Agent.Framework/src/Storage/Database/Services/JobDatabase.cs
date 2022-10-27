@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     return result.Value.ToFrameworkModel();
                 }
                 catch (ConflictingResourceException ex) {
-                    _logger.Warning(ex, "Failed to add document for job {jobId} with ConflictingResourceException", job.Id);
+                    _logger.Warning(ex, "Failed to add document for job {jobId}", job.Id);
                     // Try again
                     exceptions.Add(ex);
                     continue;
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     throw;
                 }
             }
-
+            _logger.Warning("Failed to add document for job {jobId} because of too many retries", job.Id);
             throw new AggregateException(exceptions);
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     }
                     catch (ConflictingResourceException ex) {
                         // Conflict - try update now
-                        _logger.Warning(ex, "Failed to add document for job {jobId} with ConflictingResourceException", job.Id);
+                        _logger.Warning(ex, "Failed to add document for job {jobId} - retrying", jobId);
                         exceptions.Add(ex);
                         continue;
                     }
@@ -104,10 +104,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     return result.Value.ToFrameworkModel();
                 }
                 catch (ResourceOutOfDateException ex) {
+                    _logger.Warning(ex, "Failed to update document for job {jobId} - retrying", jobId);
                     exceptions.Add(ex);
                     continue;
                 }
             }
+            _logger.Warning("Failed to add or update document for job {jobId} because of too many retries", jobId);
             throw new AggregateException(exceptions);
         }
 
@@ -138,10 +140,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                 }
                 catch (ResourceOutOfDateException ex) {
                     exceptions.Add(ex);
-                    _logger.Warning(ex, "Failed to replace document for job {jobId} with ResourceOutOfDateException", job.Id);
+                    _logger.Warning(ex, "Failed to update document for job {jobId}", jobId);
                     continue;
                 }
             }
+            _logger.Warning("Failed to update document for job {jobId} because of too many retries", jobId);
             throw new AggregateException(exceptions);
         }
 
@@ -201,12 +204,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     await _documents.DeleteAsync(document, ct);
                 }
                 catch (ResourceOutOfDateException ex) {
-                    _logger.Warning(ex, "Failed to delete document for job {jobId} with ResourceOutOfDateException", job.Id);
+                    _logger.Warning(ex, "Failed to delete document for job {jobId} - retrying", jobId);
                     exceptions.Add(ex);
                     continue;
                 }
                 return job;
             }
+            _logger.Warning("Failed to delete document for job {jobId} because of too many retries", jobId);
             throw new AggregateException(exceptions);
         }
 
