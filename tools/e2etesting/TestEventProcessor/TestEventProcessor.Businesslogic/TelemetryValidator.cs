@@ -4,13 +4,8 @@
 // ------------------------------------------------------------
 
 namespace TestEventProcessor.BusinessLogic {
-    using AsyncAwaitBestPractices;
-    using Azure.Messaging.EventHubs;
-    using Azure.Messaging.EventHubs.Consumer;
     using Azure.Messaging.EventHubs.Processor;
-    using Azure.Storage.Blobs;
     using Microsoft.Extensions.Logging;
-    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -26,8 +21,7 @@ namespace TestEventProcessor.BusinessLogic {
     /// <summary>
     /// Validates the value changes within IoT Hub Methods
     /// </summary>
-    public class TelemetryValidator : ITelemetryValidator
-    {
+    public class TelemetryValidator : ITelemetryValidator {
         private CancellationTokenSource _cancellationTokenSource;
         private EventProcessorWrapper _clientWrapper;
         private DateTime _startTime = DateTime.MinValue;
@@ -42,6 +36,7 @@ namespace TestEventProcessor.BusinessLogic {
         private IncrementalIntValueChecker _incrementalIntValueChecker;
         private SequenceNumberChecker _incrementalSequenceChecker;
 
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private bool _restartAnnouncementReceived;
 
         /// <summary>
@@ -60,8 +55,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// Create instance of TelemetryValidator
         /// </summary>
         /// <param name="logger">Instance to write logs</param>
-        public TelemetryValidator(ILogger<TelemetryValidator> logger)
-        {
+        public TelemetryValidator(ILogger<TelemetryValidator> logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -72,11 +66,11 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         /// <param name="token">Token to cancel the operation</param>
         /// <returns>Task that run until token is canceled</returns>
-        public async Task<StartResult> StartAsync(ValidatorConfiguration configuration)
-        {
+        public async Task<StartResult> StartAsync(ValidatorConfiguration configuration) {
             _logger.LogInformation("StartAsync called.");
             var sw = Stopwatch.StartNew();
 
+            await _lock.WaitAsync();
             try {
                 // Check if already started.
                 if (_cancellationTokenSource != null) {
@@ -116,17 +110,6 @@ namespace TestEventProcessor.BusinessLogic {
 
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                //// Initialize EventProcessorWrapper
-                if (_clientWrapper == null || _clientWrapper.GetHashCode() != EventProcessorWrapper.GetHashCode(_currentConfiguration)) {
-                    _clientWrapper = new EventProcessorWrapper(_currentConfiguration, _logger);
-                    await _clientWrapper.InitializeClient(_cancellationTokenSource.Token).ConfigureAwait(false);
-                }
-
-                _clientWrapper.ProcessEventAsync += Client_ProcessEventAsync;
-                await _clientWrapper.StartProcessingAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
-
-                _startTime = DateTime.UtcNow;
-
                 // Initialize checkers.
                 _missingTimestampsChecker = new MissingTimestampsChecker(
                     TimeSpan.FromMilliseconds(_currentConfiguration.ExpectedIntervalOfValueChanges),
@@ -165,10 +148,30 @@ namespace TestEventProcessor.BusinessLogic {
 
                 _restartAnnouncementReceived = false;
 
+                //// Initialize EventProcessorWrapper
+                if (_clientWrapper == null || _clientWrapper.GetHashCode() != EventProcessorWrapper.GetHashCode(_currentConfiguration)) {
+                    _clientWrapper = new EventProcessorWrapper(_currentConfiguration, _logger);
+                    await _clientWrapper.InitializeClient(_cancellationTokenSource.Token).ConfigureAwait(false);
+                }
+
+                _clientWrapper.ProcessEventAsync += Client_ProcessEventAsync;
+                await _clientWrapper.StartProcessingAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
+
+                _startTime = DateTime.UtcNow;
+
                 return new StartResult();
+            }
+            catch {
+                try {
+                    // Cleanup
+                    await StopAsync();
+                }
+                catch { }
+                throw;
             }
             finally {
                 _logger.LogInformation("StartAsync finished in {elapsed}", sw.Elapsed);
+                _lock.Release();
             }
         }
 
@@ -176,17 +179,11 @@ namespace TestEventProcessor.BusinessLogic {
         /// Stop monitoring of events.
         /// </summary>
         /// <returns></returns>
-        public Task<StopResult> StopAsync()
-        {
+        public async Task<StopResult> StopAsync() {
             _logger.LogInformation("StopAsync called.");
             var sw = Stopwatch.StartNew();
-
+            await _lock.WaitAsync();
             try {
-                // Check if already stopped.
-                if (_cancellationTokenSource == null) {
-                    return Task.FromResult(new StopResult());
-                }
-
                 var endTime = DateTime.UtcNow;
 
                 if (_cancellationTokenSource != null) {
@@ -201,30 +198,30 @@ namespace TestEventProcessor.BusinessLogic {
                 }
 
                 // Stop checkers and collect resutls.
-                var missingTimestampsCounter = _missingTimestampsChecker.Stop();
-                var maxMessageProcessingDelay = _messageProcessingDelayChecker.Stop();
-                var maxMessageDeliveryDelay = _messageDeliveryDelayChecker.Stop();
+                var missingTimestampsCounter = _missingTimestampsChecker?.Stop() ?? 0;
+                var maxMessageProcessingDelay = _messageProcessingDelayChecker?.Stop() ?? TimeSpan.Zero;
+                var maxMessageDeliveryDelay = _messageDeliveryDelayChecker?.Stop() ?? TimeSpan.Zero;
 
-                var valueChangesPerNodeId = _valueChangeCounterPerNodeId.Stop();
+                var valueChangesPerNodeId = _valueChangeCounterPerNodeId?.Stop();
                 var allExpectedValueChanges = true;
-                if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
+                if (_currentConfiguration?.ExpectedValueChangesPerTimestamp > 0) {
 
                     // TODO collect "expected" parameter as groups related to OPC UA nodes
                     allExpectedValueChanges = valueChangesPerNodeId?
-                        .All(kvp => (_totalValueChangesCount / kvp.Value ) ==
+                        .All(kvp => (_totalValueChangesCount / kvp.Value) ==
                             _currentConfiguration.ExpectedValueChangesPerTimestamp
                         ) ?? false;
                     _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}",
                         allExpectedValueChanges);
                 }
 
-                var incompleteTimestamps = _missingValueChangesChecker.Stop();
+                var incompleteTimestamps = _missingValueChangesChecker?.Stop() ?? 0;
 
-                var incrCheckerResult = _incrementalIntValueChecker.Stop();
+                var incrCheckerResult = _incrementalIntValueChecker?.Stop();
 
-                var incrSequenceResult = _incrementalSequenceChecker.Stop();
+                var incrSequenceResult = _incrementalSequenceChecker?.Stop();
 
-                var stopResult =  new StopResult() {
+                var stopResult = new StopResult() {
                     ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
                     AllExpectedValueChanges = allExpectedValueChanges,
                     TotalValueChangesCount = _totalValueChangesCount,
@@ -233,18 +230,19 @@ namespace TestEventProcessor.BusinessLogic {
                     EndTime = endTime,
                     MaxDelayToNow = maxMessageProcessingDelay.ToString(),
                     MaxDeliveyDuration = maxMessageDeliveryDelay.ToString(),
-                    DroppedValueCount = incrCheckerResult.DroppedValueCount,
-                    DuplicateValueCount = incrCheckerResult.DuplicateValueCount,
-                    DroppedSequenceCount = incrSequenceResult.DroppedValueCount,
-                    DuplicateSequenceCount = incrSequenceResult.DuplicateValueCount,
-                    ResetSequenceCount = incrSequenceResult.ResetsValueCount,
+                    DroppedValueCount = incrCheckerResult?.DroppedValueCount ?? 0,
+                    DuplicateValueCount = incrCheckerResult?.DuplicateValueCount ?? 0,
+                    DroppedSequenceCount = incrSequenceResult?.DroppedValueCount ?? 0,
+                    DuplicateSequenceCount = incrSequenceResult?.DuplicateValueCount ?? 0,
+                    ResetSequenceCount = incrSequenceResult?.ResetsValueCount ?? 0,
                     RestartAnnouncementReceived = _restartAnnouncementReceived,
                 };
 
-                return Task.FromResult(stopResult);
+                return stopResult;
             }
             finally {
                 _logger.LogInformation("StopAsync finished in {elapsed}", sw.Elapsed);
+                _lock.Release();
             }
         }
 
@@ -253,8 +251,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         /// <param name="arg"></param>
         /// <returns>Task that run until token is canceled</returns>
-        private Task Client_ProcessEventAsync(ProcessEventArgs arg)
-        {
+        private Task Client_ProcessEventAsync(ProcessEventArgs arg) {
             var sw = Stopwatch.StartNew();
 
             var eventReceivedTimestamp = DateTime.UtcNow;
@@ -276,54 +273,103 @@ namespace TestEventProcessor.BusinessLogic {
 
                 var body = arg.Data.Body.ToArray();
                 var content = Encoding.UTF8.GetString(body);
-                dynamic json = JsonConvert.DeserializeObject(content);
+                var json = JToken.Parse(content);
 
-                if (CheckRestartAnnouncement(json)) {
+                if (json is JObject o && CheckRestartAnnouncement(o)) {
                     return Task.CompletedTask;
                 }
 
                 var valueChangesCount = 0;
 
-                foreach (dynamic entry in json) {
+                if (json is JArray batch) {
+                    foreach (var entry in batch) {
+                        ProcessMessage(entry);
+                    }
+                }
+                else {
+                    ProcessMessage(json);
+                }
+
+                void ProcessMessage(JToken messageToken) {
+                    if (messageToken is not JObject entry) {
+                        return;
+                    }
                     try {
                         // validate if the message has an OPC UA PubSub message type signature
-                        if (entry.MessageType == "ua-data") {
+                        if (entry.TryGetValue("MessageType", out var messageType) && ((string)messageType) == "ua-data") {
                             if (!hasPubSubJsonHeader) {
-                                _logger.LogInformation("Received event with \"ua-data\" signature but invalid content type header");
+                                _logger.LogInformation("Received {item} with \"ua-data\" signature but invalid content type header",
+                                    entry.ToString());
                             }
 
-                            foreach (dynamic message in entry.Messages) {
-                                var dataSetWriterId = message.DataSetWriterId.ToObject<string>();
-                                var sequenceNumber = message.SequenceNumber.ToObject<uint?>();
-                                FeedDataChangeCheckers(dataSetWriterId, sequenceNumber);
+                            if (!entry.TryGetValue("Messages", out var a) || a is not JArray messages) {
+                                _logger.LogInformation("Received {item} without messages.", entry.ToString());
+                                return;
+                            }
 
-                                var payload = message.Payload as JObject;
+                            foreach (var token in messages) {
+                                if (token is not JObject message) {
+                                    _logger.LogInformation("Message {message} is not an object.", token.ToString());
+                                    continue;
+                                }
+                                if (!message.TryGetValue("DataSetWriterId", out var dataSetWriterId)) {
+                                    _logger.LogInformation("Message {message} does not contain writer id.", message.ToString());
+                                    continue;
+                                }
+                                if (!message.TryGetValue("SequenceNumber", out var sequenceNumber)) {
+                                    _logger.LogInformation("Message {message} does not contain sequence number.", message.ToString());
+                                    sequenceNumber = JValue.CreateNull();
+                                }
+
+                                FeedDataChangeCheckers((string)dataSetWriterId, sequenceNumber.ToObject<uint?>());
+
+                                if (!message.TryGetValue("Payload", out var p) || p is not JObject payload) {
+                                    _logger.LogInformation("Message {item} does not have any 'Payload' object.", entry.ToString());
+                                    continue;
+                                }
                                 foreach (JProperty property in payload.Properties()) {
-                                    dynamic propertyValue = property.Value.ToObject<dynamic>();
+                                    if (property.Value is not JObject dataValue) {
+                                        _logger.LogInformation("Payload property {Property} does not have data value.",
+                                            property.Value.ToString());
+                                        continue;
+                                    }
+                                    if (!dataValue.TryGetValue("Value", out var value)) {
+                                        value = JValue.CreateNull();
+                                    }
                                     FeedDataCheckers(
-                                        (string)property.Name,
-                                        (DateTime)propertyValue.SourceTimestamp,
+                                        property.Name,
+                                        dataValue["SourceTimestamp"].ToObject<DateTime>(),
                                         arg.Data.EnqueuedTime.UtcDateTime,
                                         eventReceivedTimestamp,
-                                        propertyValue.Value);
+                                        value);
                                     valueChangesCount++;
                                 }
                             }
                         }
-                        else {
+                        else if (entry.TryGetValue("NodeId", out var nodeId)) {
+                            if (!entry.TryGetValue("Value", out var v) || v is not JObject dataValue) {
+                                _logger.LogInformation("Message {Message} does not have data value.", entry.ToString());
+                                return;
+                            }
+                            if (!dataValue.TryGetValue("Value", out var value)) {
+                                value = JValue.CreateNull();
+                            }
                             FeedDataCheckers(
-                                (string)entry.NodeId,
-                                (DateTime)entry.Value.SourceTimestamp,
+                                (string)nodeId,
+                                dataValue["SourceTimestamp"].ToObject<DateTime>(),
                                 arg.Data.EnqueuedTime.UtcDateTime,
                                 eventReceivedTimestamp,
-                                entry.Value.Value);
+                                value);
                             valueChangesCount++;
+                        }
+                        else {
+                            _logger.LogInformation("Message {Message} not a publisher message.", entry.ToString());
                         }
                     }
                     catch (Exception ex) {
                         _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from " +
                             "message. Please make sure that publisher is running with samples format and with " +
-                            "--fm parameter set.");
+                            "--fm parameter set. Message: {Content}", content);
                     }
                 }
 
@@ -336,26 +382,23 @@ namespace TestEventProcessor.BusinessLogic {
             }
         }
 
-        private bool CheckRestartAnnouncement(dynamic json) {
-            if (json is JObject jsonObj) {
-                try {
-                    if (!jsonObj.TryGetValue("MessageType", out var messageType)) {
-                        return false;
-                    }
-                    if (!jsonObj.TryGetValue("MessageVersion", out var messageVersion)) {
-                        return false;
-                    }
-
-                    if (messageType.Value<string>() == "RestartAnnouncement" && messageVersion.Value<int>() == 1) {
-                        _restartAnnouncementReceived = true;
-                        return true;
-                    }
+        private bool CheckRestartAnnouncement(JObject jsonObj) {
+            try {
+                if (!jsonObj.TryGetValue("MessageType", out var messageType)) {
+                    return false;
                 }
-                catch (Exception ex) {
-                    _logger.LogError(ex, "Error during deserialization of restart announcement.");
+                if (!jsonObj.TryGetValue("MessageVersion", out var messageVersion)) {
+                    return false;
+                }
+
+                if (messageType.Value<string>() == "RestartAnnouncement" && messageVersion.Value<int>() == 1) {
+                    _restartAnnouncementReceived = true;
+                    return true;
                 }
             }
-
+            catch (Exception ex) {
+                _logger.LogError(ex, "Error during deserialization of restart announcement.");
+            }
             return false;
         }
 
@@ -372,11 +415,11 @@ namespace TestEventProcessor.BusinessLogic {
             DateTime sourceTimestamp,
             DateTime enqueuedTimestamp,
             DateTime receivedTimestamp,
-            object value) {
+            JToken value) {
 
             // OPC PLC contains bad fast and slow nodes that drop messages by design.
             // We will ignore entries that do not have a value.
-            if (value is null) {
+            if (value is null || value.Type == JTokenType.Null) {
                 return;
             }
 

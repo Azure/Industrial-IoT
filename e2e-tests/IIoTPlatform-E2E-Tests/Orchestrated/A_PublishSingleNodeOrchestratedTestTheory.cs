@@ -22,6 +22,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Multiple Nodes Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeOrchestratedTraitValue)]
+    [Trait(TestConstants.TraitConstants.TestModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
     public class A_PublishSingleNodeOrchestratedTestTheory
     {
         private readonly ITestOutputHelper _output;
@@ -205,7 +206,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
 
             // Wait some time to generate events to process
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 2, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
@@ -245,7 +246,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             // Wait some time to generate events to process
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True(json.TotalValueChangesCount == 0, "Messages received at IoT Hub");
+            Assert.True(json.TotalValueChangesCount == 0, $"{json.TotalValueChangesCount} Messages received at IoT Hub");
         }
 
         [Fact, PriorityOrder(13)]

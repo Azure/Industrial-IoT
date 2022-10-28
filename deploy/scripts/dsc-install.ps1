@@ -17,7 +17,7 @@ Configuration InstallWindowsFeatures {
 
         WindowsOptionalFeature VirtualMachinePlatform {
             Name   = "VirtualMachinePlatform"
-            Ensure = "Present"
+            Ensure = "Enable"
         }
 
         WindowsFeature Hyper-V-Management-Tools {
@@ -27,7 +27,7 @@ Configuration InstallWindowsFeatures {
 
         WindowsOptionalFeature Microsoft-Hyper-V-Management-PowerShell {
             Name   = "Microsoft-Hyper-V-Management-PowerShell"
-            Ensure = "Present"
+            Ensure = "Enable"
         }
 
         WindowsFeature DHCP {
@@ -49,7 +49,7 @@ Configuration InstallWindowsFeatures {
 
         WindowsOptionalFeature Microsoft-Windows-Subsystem-Linux {
             Name   = "Microsoft-Windows-Subsystem-Linux"
-            Ensure = "Present"
+            Ensure = "Enable"
         }
     }
 }

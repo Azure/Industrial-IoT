@@ -5,6 +5,7 @@
 
 namespace TestEventProcessor.BusinessLogic.Checkers {
     using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -44,12 +45,12 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         public void ProcessEvent(
             string nodeId,
             DateTime sourceTimestamp,
-            object value
+            JToken value
         ) {
             int curValue;
 
             try {
-                curValue = Convert.ToInt32(value);
+                curValue = value.ToObject<int>();
             }
             catch (Exception) {
                 _logger.LogError("Failed to extract int value from {value}", value);

@@ -19,6 +19,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
+    [Trait(TestConstants.TraitConstants.TestModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
     public class A_PublishSingleNodeStandaloneTestTheory {
 
         private readonly ITestOutputHelper _output;
@@ -36,7 +37,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [Theory]
         [InlineData(MessagingMode.Samples)]
         [InlineData(MessagingMode.PubSub)]
-        async Task SubscribeUnsubscribeTest(MessagingMode messagingMode) {
+        public async Task SubscribeUnsubscribeTest(MessagingMode messagingMode) {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
 

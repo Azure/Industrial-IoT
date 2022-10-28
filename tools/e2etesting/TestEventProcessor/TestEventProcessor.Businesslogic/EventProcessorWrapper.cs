@@ -27,7 +27,7 @@ namespace TestEventProcessor.Businesslogic {
         private bool _monitoringEnabled = false;
 
         private EventProcessorClient _client;
-        private Dictionary<string, bool> _initializedPartitions;
+        private Dictionary<string, TaskCompletionSource<bool>> _initializedPartitions;
         private SemaphoreSlim _lockInitializedPartitions;
 
         public event Func<ProcessEventArgs, Task> ProcessEventAsync;
@@ -97,7 +97,7 @@ namespace TestEventProcessor.Businesslogic {
             var partitions = await eventHubConsumerClient
                 .GetPartitionIdsAsync(ct)
                 .ConfigureAwait(false);
-            _initializedPartitions = partitions.ToDictionary(item => item, _ => false);
+            _initializedPartitions = partitions.ToDictionary(item => item, _ => new TaskCompletionSource<bool>());
             _lockInitializedPartitions = new SemaphoreSlim(1, 1);
 
             _logger.LogInformation("Connecting to IoT Hub...");
@@ -120,19 +120,6 @@ namespace TestEventProcessor.Businesslogic {
         public async Task StartProcessingAsync(CancellationToken ct) {
             if (_client == null) {
                 throw new InvalidOperationException("EventProcessorWrapper has not been initialized.");
-            }
-
-            // If processing is active for all partitions then we only need to enable message propagation.
-            await _lockInitializedPartitions.WaitAsync(ct).ConfigureAwait(false);
-            try {
-                if (_initializedPartitions.Count(kvp => kvp.Value) == _initializedPartitions.Count) {
-                    _logger.LogInformation("Enabling monitoring of events...");
-                    _monitoringEnabled = true;
-                    return;
-                }
-            }
-            finally {
-                _lockInitializedPartitions.Release();
             }
 
             if (!_client.IsRunning) {
@@ -160,19 +147,18 @@ namespace TestEventProcessor.Businesslogic {
         private async Task WaitForPartitionInitialization(CancellationToken ct) {
             var sw = Stopwatch.StartNew();
 
-            while (!ct.IsCancellationRequested) {
-                await _lockInitializedPartitions.WaitAsync(ct).ConfigureAwait(false);
-                try {
-                    if (_initializedPartitions.Count(kvp => kvp.Value) == _initializedPartitions.Count) {
-                        _logger.LogInformation("Partition initialization took: {elapsed}", sw.Elapsed);
-                        return;
-                    }
-                }
-                finally {
-                    _lockInitializedPartitions.Release();
-                }
-
-                await Task.Delay(1000).ConfigureAwait(false);
+            Task[] partitions;
+            await _lockInitializedPartitions.WaitAsync(ct).ConfigureAwait(false);
+            try {
+                partitions = _initializedPartitions.Values.Select(v => v.Task).ToArray();
+            }
+            finally {
+                _lockInitializedPartitions.Release();
+            }
+            var waitOrTimeout = Task.Delay(TimeSpan.FromMinutes(5), ct);
+            var result = await Task.WhenAny(waitOrTimeout, Task.WhenAll(partitions));
+            if (result == waitOrTimeout) {
+                throw new OperationCanceledException("Cancelled waiting for partitions to initialize.");
             }
         }
 
@@ -184,7 +170,8 @@ namespace TestEventProcessor.Businesslogic {
 
             await _lockInitializedPartitions.WaitAsync().ConfigureAwait(false);
             try {
-                _initializedPartitions[arg.PartitionId] = false;
+                _initializedPartitions[arg.PartitionId].TrySetException(new Exception("Partition closed"));
+                _initializedPartitions[arg.PartitionId] = new TaskCompletionSource<bool>();
             }
             finally {
                 _lockInitializedPartitions.Release();
@@ -202,7 +189,7 @@ namespace TestEventProcessor.Businesslogic {
 
             await _lockInitializedPartitions.WaitAsync().ConfigureAwait(false);
             try {
-                _initializedPartitions[arg.PartitionId] = true;
+                _initializedPartitions[arg.PartitionId].TrySetResult(true);
             }
             finally {
                 _lockInitializedPartitions.Release();

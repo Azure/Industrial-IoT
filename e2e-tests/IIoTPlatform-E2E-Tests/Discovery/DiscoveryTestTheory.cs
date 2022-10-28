@@ -17,6 +17,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection(DiscoveryTestCollection.CollectionName)]
     [Trait(TestConstants.TraitConstants.DiscoveryModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
+    [Trait(TestConstants.TraitConstants.TestModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
     public class DiscoveryTestTheory {
         private readonly DiscoveryTestContext _context;
         private readonly CancellationTokenSource _cancellationTokenSource;
