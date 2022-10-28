@@ -46,10 +46,5 @@ Configuration InstallWindowsFeatures {
             TestScript = { (Get-WindowsCapability -Online -Name "OpenSSH.Client*").State -eq "Installed" }
             GetScript = { @{ Result = (Get-WindowsCapability -Online -Name "OpenSSH.Client*").State } }
         }
-
-        WindowsOptionalFeature Microsoft-Windows-Subsystem-Linux {
-            Name   = "Microsoft-Windows-Subsystem-Linux"
-            Ensure = "Enable"
-        }
     }
 }
