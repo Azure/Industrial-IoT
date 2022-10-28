@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Controllers {
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Agent heartbeat controller
@@ -34,15 +35,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Controllers {
         /// Allows the agent to post heartbeat information
         /// </remarks>
         /// <param name="heartbeat">The heartbeat information</param>
+        /// <param name="ct">cancellation token</param>
         /// <returns>Result of posting heartbeat information</returns>
         [HttpPost]
         public async Task<HeartbeatResponseApiModel> SendHeartbeatAsync(
-            [FromBody] HeartbeatApiModel heartbeat) {
+            [FromBody] HeartbeatApiModel heartbeat, CancellationToken ct) {
             if (heartbeat == null) {
                 throw new ArgumentNullException(nameof(heartbeat));
             }
             var result = await _orchestrator.SendHeartbeatAsync(
-                heartbeat.ToServiceModel());
+                heartbeat.ToServiceModel(), ct:ct);
             return result.ToApiModel();
         }
 

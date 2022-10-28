@@ -38,44 +38,63 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (workerHeartbeat == null) {
                 throw new ArgumentNullException(nameof(workerHeartbeat));
             }
-            while (true) {
-                var workerDocument = new WorkerDocument {
-                    AgentId = workerHeartbeat.AgentId,
-                    Id = workerHeartbeat.WorkerId,
-                    WorkerStatus = workerHeartbeat.Status,
-                    LastSeen = DateTime.UtcNow
-                };
-                var documents = await GetDocumentsAsync();
-                var existing = await documents.FindAsync<WorkerDocument>(
-                    workerHeartbeat.WorkerId);
-                if (existing != null) {
+            var documents = await GetDocumentsAsync();
+            var retries = 0;
+            var exceptions = new List<Exception>();
+            while (retries < MaxRetries) {
+                retries++;
+                try {
+                    ct.ThrowIfCancellationRequested();
+
+                    var workerDocument = new WorkerDocument {
+                        AgentId = workerHeartbeat.AgentId,
+                        Id = workerHeartbeat.WorkerId,
+                        WorkerStatus = workerHeartbeat.Status,
+                        LastSeen = DateTime.UtcNow
+                    };
+
+                    var existing = await documents.FindAsync<WorkerDocument>(workerHeartbeat.WorkerId, ct);
+                    if (existing != null) {
+                        try {
+                            workerDocument.ETag = existing.Etag;
+                            workerDocument.Id = existing.Id;
+                            await documents.ReplaceAsync(existing, workerDocument, ct);
+                            return;
+                        }
+                        catch (ResourceOutOfDateException ex) {
+                            _logger.Warning(ex, "Failed to update document for worker {workerId} - retrying", workerHeartbeat.WorkerId);
+                            exceptions.Add(ex);
+                            continue; // try again refreshing the etag
+                        }
+                        catch (ResourceNotFoundException ex) {
+                            _logger.Warning(ex, "Failed to update document for worker {workerId} - retrying", workerHeartbeat.WorkerId);
+                            exceptions.Add(ex);
+                            continue;
+                        }
+                    }
                     try {
-                        workerDocument.ETag = existing.Etag;
-                        workerDocument.Id = existing.Id;
-                        await documents.ReplaceAsync(existing, workerDocument);
+                        await documents.AddAsync(workerDocument, ct);
                         return;
                     }
-                    catch (ResourceOutOfDateException) {
-                        continue; // try again refreshing the etag
-                    }
-                    catch (ResourceNotFoundException) {
+                    catch (ConflictingResourceException ex) {
+                        // Try to update
+                        _logger.Warning(ex, "Failed to add document for worker {workerId} - retrying", workerHeartbeat.WorkerId);
+                        exceptions.Add(ex);
                         continue;
                     }
                 }
-                try {
-                    await documents.AddAsync(workerDocument);
-                    return;
-                }
-                catch (ConflictingResourceException) {
-                    // Try to update
-                    continue;
+                catch (OperationCanceledException) {
+                    _logger.Warning("Failed to add document for worker {workerId} because of cancelation", workerHeartbeat.WorkerId);
+                    throw;
                 }
             }
+            _logger.Warning("Failed to add or update document for worker {workerId} because of too many retries", workerHeartbeat.WorkerId);
+            throw new AggregateException(exceptions);
         }
+
         /// <inheritdoc/>
         public async Task<WorkerInfoListModel> ListWorkersAsync(string continuationToken,
             int? maxResults, CancellationToken ct) {
-
             var documents = await GetDocumentsAsync();
             var client = documents.OpenSqlClient();
             var queryName = CreateQuery(out var queryParameters);
@@ -146,5 +165,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         private readonly ILogger _logger;
         private readonly IDatabaseServer _databaseServer;
         private readonly IWorkerDatabaseConfig _databaseRegistryConfig;
+        private const int MaxRetries = 10;
     }
 }

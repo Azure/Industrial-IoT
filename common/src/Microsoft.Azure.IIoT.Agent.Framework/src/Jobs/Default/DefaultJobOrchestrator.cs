@@ -68,7 +68,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                     var jobProcessInstruction = CalculateInstructions(job, workerId);
                     if (jobProcessInstruction != null) {
                         try {
-                            await _jobRepository.UpdateAsync(job.Id, existingJob => {
+                            await _jobRepository.UpdateAsync(job.Id, (existingJob, ct) => {
+                                ct.ThrowIfCancellationRequested();
                                 // Try again on the current value in the database
                                 jobProcessInstruction = CalculateInstructions(existingJob, workerId);
                                 if (jobProcessInstruction != null) {
@@ -114,7 +115,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                 return result;
             }
 
-            var job = await _jobRepository.UpdateAsync(heartbeat.Job.JobId, existingJob => {
+            var job = await _jobRepository.UpdateAsync(heartbeat.Job.JobId, (existingJob , ct) => {
+                ct.ThrowIfCancellationRequested();
                 if (existingJob.GetHashSafe() != heartbeat.Job.JobHash) {
 
                     // job was updated - instruct worker to reset
