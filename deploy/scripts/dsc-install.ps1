@@ -1,9 +1,6 @@
-Install-Module -Name ComputerManagementDsc -RequiredVersion 8.5.0
-
 Configuration InstallWindowsFeatures {
 
     Import-DscResource -ModuleName PsDesiredStateConfiguration
-    Import-DscResource -ModuleName ComputerManagementDsc
 
     Node "localhost" {
 
@@ -44,9 +41,10 @@ Configuration InstallWindowsFeatures {
             Ensure = "Present"
         }
 
-        WindowsCapability OpenSSH-Client {
-            Name   = "OpenSSH.Client*"
-            Ensure = "Present"
+        Script OpenSSH-Client-Capability {
+            SetScript = { Add-WindowsCapability -Online -Name "OpenSSH.Client*" }
+            TestScript = { (Get-WindowsCapability -Online -Name "OpenSSH.Client*").State -eq "Installed" }
+            GetScript = { @{ Result = (Get-WindowsCapability -Online -Name "OpenSSH.Client*").State } }
         }
 
         WindowsOptionalFeature Microsoft-Windows-Subsystem-Linux {
