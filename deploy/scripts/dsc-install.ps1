@@ -16,9 +16,9 @@ Configuration InstallWindowsFeatures {
         }
 
         Script VirtualMachinePlatform {
-            SetScript = { Enable-WindowsOptionalFeature -Online -Name "VirtualMachinePlatform" }
-            TestScript = { (Get-WindowsOptionalFeature -Online -Name "VirtualMachinePlatform").State -eq "Enabled" }
-            GetScript = { @{ Result = Get-WindowsOptionalFeature -Online -Name "VirtualMachinePlatform" } }
+            SetScript = { Enable-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform" }
+            TestScript = { (Get-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform").State -eq "Enabled" }
+            GetScript = { @{ Result = Get-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform" } }
         }
 
         WindowsFeature Hyper-V-Management-Tools {
@@ -27,9 +27,9 @@ Configuration InstallWindowsFeatures {
         }
 
         Script Microsoft-Hyper-V-Management-PowerShell {
-            SetScript = { Enable-WindowsOptionalFeature -Online -Name "Microsoft-Hyper-V-Management-PowerShell" }
-            TestScript = { (Get-WindowsOptionalFeature -Online -Name "Microsoft-Hyper-V-Management-PowerShell").State -eq "Enabled" }
-            GetScript = { @{ Result = Get-WindowsOptionalFeature -Online -Name "Microsoft-Hyper-V-Management-PowerShell" } }
+            SetScript = { Enable-WindowsOptionalFeature -Online -FeatureName "Microsoft-Hyper-V-Management-PowerShell" }
+            TestScript = { (Get-WindowsOptionalFeature -Online -FeatureName "Microsoft-Hyper-V-Management-PowerShell").State -eq "Enabled" }
+            GetScript = { @{ Result = Get-WindowsOptionalFeature -Online -FeatureName "Microsoft-Hyper-V-Management-PowerShell" } }
         }
 
         WindowsFeature DHCP {

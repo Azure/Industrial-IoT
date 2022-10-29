@@ -257,7 +257,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         public void Test_RemoveAllApplications() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var route = TestConstants.APIRoutes.RegistryApplications;
-            TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            var response = TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            Assert.True(response.IsSuccessful);
         }
     }
 }
