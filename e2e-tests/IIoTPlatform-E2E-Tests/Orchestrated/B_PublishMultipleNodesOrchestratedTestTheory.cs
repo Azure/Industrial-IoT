@@ -17,6 +17,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     using System.Threading;
     using Newtonsoft.Json.Converters;
     using System.Collections.Generic;
+    using Azure;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -66,7 +67,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             };
 
             var route = TestConstants.APIRoutes.RegistryApplications;
-            TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
+            var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
+            // Assert.True(response.IsSuccessful);
 
             // Check that Application was registered
             cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
@@ -109,7 +111,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             };
 
             var route = string.Format(TestConstants.APIRoutes.PublisherBulkFormat, _context.OpcUaEndpointId);
-            TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
+            var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
+            Assert.True(response.IsSuccessful);
         }
 
         [Fact, PriorityOrder(53)]
@@ -124,6 +127,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var route = TestConstants.APIRoutes.PublisherJobs;
             var response = TestHelper.CallRestApi(_context, Method.Get, route, ct: cts.Token);
+            Assert.True(response.IsSuccessful);
             dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
 
             bool found = false;
@@ -205,7 +209,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             };
 
             var route = string.Format(TestConstants.APIRoutes.PublisherBulkFormat, _context.OpcUaEndpointId);
-            TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
+            var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
+            Assert.True(response.IsSuccessful);
         }
 
         [Fact, PriorityOrder(56)]
@@ -237,14 +242,16 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var route = string.Format(TestConstants.APIRoutes.PublisherJobsFormat, _context.OpcUaEndpointId);
-            TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            var response = TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            Assert.True(response.IsSuccessful);
         }
 
         [Fact, PriorityOrder(58)]
         public void Test_RemoveAllApplications() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var route = TestConstants.APIRoutes.RegistryApplications;
-            TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            var response = TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            Assert.True(response.IsSuccessful);
         }
     }
 }

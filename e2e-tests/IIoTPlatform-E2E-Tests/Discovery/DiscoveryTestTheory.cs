@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.Discovery {
+    using Azure;
     using RestSharp;
     using System;
     using System.Collections.Generic;
@@ -74,13 +75,14 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
                     addressRangesToScan = cidr
                 }
             };
-            TestHelper.CallRestApi(
+            var response = TestHelper.CallRestApi(
                 _context,
                 Method.Post,
                 TestConstants.APIRoutes.RegistryDiscover,
                 body,
                 ct: _cancellationTokenSource.Token
             );
+            Assert.True(response.IsSuccessful);
 
             // Validate that the endpoint can be found
             var result = await TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(
@@ -103,13 +105,14 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
                     portRangesToScan = "50000:51000"
                 }
             };
-            TestHelper.CallRestApi(
+            var response = TestHelper.CallRestApi(
                 _context,
                 Method.Post,
                 TestConstants.APIRoutes.RegistryDiscover,
                 body,
                 ct: _cancellationTokenSource.Token
             );
+            Assert.True(response.IsSuccessful);
 
             // Validate that all endpoints are found
             var result = await TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(
@@ -131,13 +134,20 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
                 var body = new {
                     discoveryUrl = endpointUrl
                 };
-                TestHelper.CallRestApi(_context, Method.Post, TestConstants.APIRoutes.RegistryApplications, body, ct: ct);
+                var response = TestHelper.CallRestApi(_context, Method.Post, TestConstants.APIRoutes.RegistryApplications, body, ct: ct);
+                Assert.True(response.IsSuccessful);
             }
         }
 
         private void RemoveApplication(string applicationId, CancellationToken ct) {
             var route = $"{TestConstants.APIRoutes.RegistryApplications}/{applicationId}";
-            TestHelper.CallRestApi(_context, Method.Delete, route, ct: ct);
+            var response = TestHelper.CallRestApi(_context, Method.Delete, route, ct: ct);
+            if (response.ErrorException != null) {
+                throw response.ErrorException;
+            }
+            if (!response.IsSuccessStatusCode) {
+                throw new Exception(response.ToString());
+            }
         }
     }
 }

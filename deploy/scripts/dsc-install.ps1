@@ -15,9 +15,10 @@ Configuration InstallWindowsFeatures {
             IncludeAllSubFeature = $true
         }
 
-        WindowsOptionalFeature VirtualMachinePlatform {
-            Name   = "VirtualMachinePlatform"
-            Ensure = "Enable"
+        Script VirtualMachinePlatform {
+            SetScript = { Enable-WindowsOptionalFeature -Online -Name "VirtualMachinePlatform" }
+            TestScript = { (Get-WindowsOptionalFeature -Online -Name "VirtualMachinePlatform").State -eq "Enabled" }
+            GetScript = { @{ Result = Get-WindowsOptionalFeature -Online -Name "VirtualMachinePlatform" } }
         }
 
         WindowsFeature Hyper-V-Management-Tools {
@@ -25,9 +26,10 @@ Configuration InstallWindowsFeatures {
             Ensure = "Present"
         }
 
-        WindowsOptionalFeature Microsoft-Hyper-V-Management-PowerShell {
-            Name   = "Microsoft-Hyper-V-Management-PowerShell"
-            Ensure = "Enable"
+        Script Microsoft-Hyper-V-Management-PowerShell {
+            SetScript = { Enable-WindowsOptionalFeature -Online -Name "Microsoft-Hyper-V-Management-PowerShell" }
+            TestScript = { (Get-WindowsOptionalFeature -Online -Name "Microsoft-Hyper-V-Management-PowerShell").State -eq "Enabled" }
+            GetScript = { @{ Result = Get-WindowsOptionalFeature -Online -Name "Microsoft-Hyper-V-Management-PowerShell" } }
         }
 
         WindowsFeature DHCP {
@@ -44,7 +46,7 @@ Configuration InstallWindowsFeatures {
         Script OpenSSH-Client-Capability {
             SetScript = { Add-WindowsCapability -Online -Name "OpenSSH.Client*" }
             TestScript = { (Get-WindowsCapability -Online -Name "OpenSSH.Client*").State -eq "Installed" }
-            GetScript = { @{ Result = (Get-WindowsCapability -Online -Name "OpenSSH.Client*").State } }
+            GetScript = { @{ Result = Get-WindowsCapability -Online -Name "OpenSSH.Client*" } }
         }
     }
 }

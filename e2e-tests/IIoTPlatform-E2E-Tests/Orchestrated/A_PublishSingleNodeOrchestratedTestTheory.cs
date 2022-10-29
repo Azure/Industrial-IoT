@@ -15,6 +15,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     using Xunit.Abstractions;
     using System.Threading;
     using System.Collections.Generic;
+    using Azure;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -158,6 +159,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             };
 
             var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
+            Assert.True(response.IsSuccessful);
             Assert.Equal("{}",response.Content);
         }
 
@@ -173,6 +175,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
             var route = TestConstants.APIRoutes.PublisherJobs;
             var response = TestHelper.CallRestApi(_context, Method.Get, route, ct: cts.Token);
+            Assert.True(response.IsSuccessful);
             dynamic json = JsonConvert.DeserializeObject(response.Content);
 
             Assert.NotEqual(0, json.jobs.Count);
@@ -227,7 +230,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var route = string.Format(TestConstants.APIRoutes.PublisherJobsFormat, _context.OpcUaEndpointId);
-            TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            var response = TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            Assert.True(response.IsSuccessful);
         }
 
         [Fact, PriorityOrder(12)]
