@@ -58,12 +58,18 @@ $itf | Out-Host
 
 $ifIndex = $itf.ifIndex
 $virtualSwitchIp = Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $ifIndex
+while (!$virtualSwitchIp) 
+{
+   Start-Sleep -Seconds 3
+   $virtualSwitchIp = Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $ifIndex
+}
 $subnet = Get-Subnet -IP $virtualSwitchIp -MaskBits 24
 Write-Host "Create new ip address $($subnet.HostAddresses[0])/$($subnet.MaskBits)"
 New-NetIPAddress -IPAddress $subnet.HostAddresses[0] -PrefixLength $subnet.MaskBits -InterfaceIndex  $ifIndex
 Write-Host "Create NAT $($subnet.NetworkAddress)}/$($subnet.MaskBits)"
 New-NetNat -Name $switch -InternalIPInterfaceAddressPrefix "$($subnet.NetworkAddress)/$($subnet.MaskBits)"
 
+Start-Sleep -Seconds 10
 Write-Host "Configure DHCP"
 cmd.exe /c "netsh dhcp add securitygroups"
 Restart-Service dhcpserver
