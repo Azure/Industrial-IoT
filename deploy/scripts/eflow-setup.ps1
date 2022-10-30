@@ -19,7 +19,7 @@ param(
     [string] $idScope
 )
 
-
+$ErrorActionPreference = "Stop"
 $path = Split-Path $script:MyInvocation.MyCommand.Path
 $enrollPath = join-path $path dps-enroll.ps1
 
@@ -39,15 +39,30 @@ Invoke-WebRequest "https://aka.ms/AzEFLOWMSI-CR-X64" -OutFile $msiPath
 Write-Host "Run IoT Edge installer."
 Start-Process -Wait msiexec -ArgumentList "/i","$([io.Path]::Combine($env:TEMP, 'AzureIoTEdge.msi'))","/qn"
 
+Write-Host "Existing virtual switches:"
 Get-VmSwitch
+
 $switch = "NestedSwitch"
 Write-Host "Add virtual switch $($switch)..."
 New-VMSwitch -Name $switch -SwitchType Internal
-$ifIndex = (Get-NetAdapter -Name "vEthernet ($($switch))").ifIndex
+
+$switchAlias = "vEthernet ($($switch))"
+Write-Host "Network Adapter for '$($switchAlias)'"
+$itf = Get-NetAdapter -Name $switchAlias
+while (!$itf) 
+{
+   Start-Sleep -Seconds 3
+   $itf = Get-NetAdapter -Name $switchAlias
+}
+$itf | Out-Host
+
+$ifIndex = $itf.ifIndex
 $virtualSwitchIp = Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $ifIndex
 $subnet = Get-Subnet -IP $virtualSwitchIp -MaskBits 24
+Write-Host "Create new ip address $($subnet.HostAddresses[0])/$($subnet.MaskBits)"
 New-NetIPAddress -IPAddress $subnet.HostAddresses[0] -PrefixLength $subnet.MaskBits -InterfaceIndex  $ifIndex
-New-NetNat -Name $switch -InternalIPInterfaceAddressPrefix "{$($subnet.NetworkAddress)}/$($subnet.MaskBits)"
+Write-Host "Create NAT $($subnet.NetworkAddress)}/$($subnet.MaskBits)"
+New-NetNat -Name $switch -InternalIPInterfaceAddressPrefix "$($subnet.NetworkAddress)/$($subnet.MaskBits)"
 
 Write-Host "Configure DHCP"
 cmd.exe /c "netsh dhcp add securitygroups"
@@ -55,10 +70,12 @@ Restart-Service dhcpserver
 # select a set of 100 addresses
 $startIp = $subnet.HostAddresses[100]
 $endIp = $subnet.HostAddresses[200]
+Write-Host "Add DHCP scope to $startIp - $endIp ..."
 Add-DhcpServerV4Scope -Name "AzureIoTEdgeScope" -StartRange $startIp -EndRange $endIp -SubnetMask $subnet.SubnetMask -State Active
 Set-DhcpServerV4OptionValue -ScopeID $subnet.NetworkAddress -Router $subnet.HostAddresses[0]
 Restart-service dhcpserver
 
+Write-Host "ipconfig:"
 ipconfig /all
 
 Write-Host "Deploy eflow with switch $($switch)."
@@ -72,7 +89,9 @@ Write-Host "Create new IoT Edge enrollment in DPS."
 $enrollment = & $enrollPath -dpsConnString $dpsConnString -os Windows
 
 Write-Host "Provision eflow with DPS registration $($enrollment.registrationId) in DPS scope $($idScope)."
-Provision-EflowVm -provisioningType DpsSymmetricKey -scopeId $idScope ´
-    -registrationId $enrollment.registrationId -symmKey $enrollment.primaryKey
+Provision-EflowVm -provisioningType DpsSymmetricKey -scopeId $idScope -registrationId $enrollment.registrationId -symmKey $enrollment.primaryKey
+Write-Host "Eflow provisioned."
 
-Write-Host "Eflow provisioned and running."
+Start-EflowVm
+Verify-EflowVm
+Write-Host "Eflow running."
