@@ -343,6 +343,7 @@ namespace TestEventProcessor.BusinessLogic {
                                         eventReceivedTimestamp,
                                         value);
                                     valueChangesCount++;
+                                    _logger.LogInformation("Message processed {changes}", valueChangesCount);
                                 }
                             }
                         }
@@ -361,6 +362,7 @@ namespace TestEventProcessor.BusinessLogic {
                                 eventReceivedTimestamp,
                                 value);
                             valueChangesCount++;
+                            _logger.LogInformation("Message processed {changes}", valueChangesCount);
                         }
                         else {
                             _logger.LogInformation("Message {Message} not a publisher message.", entry.ToString());

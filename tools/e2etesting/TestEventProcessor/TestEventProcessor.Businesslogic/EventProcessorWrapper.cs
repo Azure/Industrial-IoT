@@ -129,6 +129,7 @@ namespace TestEventProcessor.Businesslogic {
 
             await WaitForPartitionInitialization(ct).ConfigureAwait(false);
 
+            _logger.LogInformation("Enabling monitoring of events...");
             _monitoringEnabled = true;
         }
 

@@ -50,7 +50,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                     _valueChangesPerNodeId[nodeId]++;
                 }
                 else {
-                    _valueChangesPerNodeId[nodeId] = 1;
+                    _valueChangesPerNodeId.Add(nodeId, 1);
                 }
             }
             finally {
