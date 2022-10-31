@@ -63,7 +63,8 @@ while (!$virtualSwitchIp)
    Start-Sleep -Seconds 3
    $virtualSwitchIp = Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $ifIndex -ErrorAction SilentlyContinue
 }
-$subnet = Get-Subnet -IP $virtualSwitchIp -MaskBits 24
+$virtualSwitchIp | Out-Host
+$subnet = Get-Subnet -IP $virtualSwitchIp.IPAddress -MaskBits 24
 Write-Host "Create new ip address $($subnet.HostAddresses[0])/$($subnet.MaskBits)"
 New-NetIPAddress -IPAddress $subnet.HostAddresses[0] -PrefixLength $subnet.MaskBits -InterfaceIndex  $ifIndex
 Write-Host "Create NAT $($subnet.NetworkAddress)}/$($subnet.MaskBits)"
