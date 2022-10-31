@@ -19,6 +19,10 @@ param(
     [string] $idScope
 )
 
+$eflowMsiUri = "https://aka.ms/AzEFLOW-X64-1_3_1_02092"
+# TODO: Update this once 1.4 LTS is released
+# $eflowMsiUri = "https://aka.ms/AzEFLOWMSI-CR-X64"
+
 $ErrorActionPreference = "Stop"
 $path = Split-Path $script:MyInvocation.MyCommand.Path
 $enrollPath = join-path $path dps-enroll.ps1
@@ -34,7 +38,7 @@ Write-Host "Download IoT Edge installer."
 $msiPath = $([io.Path]::Combine($env:TEMP, 'AzureIoTEdge.msi'))
 $ProgressPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Invoke-WebRequest "https://aka.ms/AzEFLOWMSI-CR-X64" -OutFile $msiPath
+Invoke-WebRequest $eflowMsiUri -OutFile $msiPath
 
 Write-Host "Run IoT Edge installer."
 Start-Process -Wait msiexec -ArgumentList "/i","$([io.Path]::Combine($env:TEMP, 'AzureIoTEdge.msi'))","/qn"
