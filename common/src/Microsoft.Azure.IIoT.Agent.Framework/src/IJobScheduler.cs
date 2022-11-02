@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<JobInfoModel> NewOrUpdateJobAsync(string jobId,
-            Func<JobInfoModel, Task<bool>> predicate,
+            Func<JobInfoModel, CancellationToken, Task<bool>> predicate,
             CancellationToken ct = default);
     }
 }
