@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = "__default-opcpublisher",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment()
+                    ModulesContent = CreateLayeredDeployment(true)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = "__default-opcpublisher-windows",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment()
+                    ModulesContent = CreateLayeredDeployment(false)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
@@ -67,8 +67,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         /// <summary>
         /// Get base edge configuration
         /// </summary>
+        /// <param name="isLinux"></param>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment() {
+        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(bool isLinux) {
 
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_config.DockerServer) &&
@@ -84,22 +85,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             }
 
             // Configure create options per os specified
-            var createOptions = _serializer.SerializeToString(new {
-                Hostname = "publisher",
-                Cmd = new[] {
-                    "PkiRootPath=/mount/pki",
-                    "AutoAcceptUntrustedCertificates=true"
-                },
-                HostConfig = new {
-                    Binds = new [] {
-                        "/mount:/mount"
+            string createOptions;
+            if (isLinux) {
+                createOptions = _serializer.SerializeToString(new {
+                    Hostname = "publisher",
+                    Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                        "AutoAcceptUntrustedCertificates=true"
                     },
-                    CapDrop = new[] {
-                        "CHOWN",
-                        "SETUID"
+                    HostConfig = new {
+                        Binds = new[] {
+                            "/mount:/mount"
+                        },
+                        CapDrop = new[] {
+                            "CHOWN",
+                            "SETUID"
+                        }
                     }
-                }
-            }).Replace("\"", "\\\"");
+                }).Replace("\"", "\\\"");
+            }
+            else {
+                createOptions = _serializer.SerializeToString(new {
+                    Hostname = "publisher",
+                    Cmd = new[] {
+                     //   "PkiRootPath=/mount/pki",
+                        "AutoAcceptUntrustedCertificates=true"
+                    },
+                  //  HostConfig = new {
+                  //      Mounts = new[] {
+                  //          new {
+                  //              Type = "bind",
+                  //              Source = "C:\\\\ProgramData\\\\iotedge",
+                  //              Target = "C:\\\\mount"
+                  //          }
+                  //      }
+                  //  }
+                }).Replace("\"", "\\\"");
+            }
 
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
