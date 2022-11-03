@@ -81,7 +81,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             // Configure create options and version per os specified
             var createOptions = "{}";
             var image = "mcr.microsoft.com/azureiotedge-metrics-collector:1.0";
-            _logger.Information("Updating metrics collector module deployment for {os}", isLinux ? "Linux" : "Windows");
+            _logger.Information("Updating metrics collector module deployment for {os}",
+                isLinux ? "Linux" : "Windows (Eflow)");
 
             // Return deployment modules object
             var content = @"

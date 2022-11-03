@@ -118,14 +118,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 // Windows (Eflow)
                 createOptions = _serializer.SerializeToString(new {
                     Hostname = "discovery",
-                 //   Cmd = new[] {
-                 //   //    "PkiRootPath=/mount/pki",
-                 //   },
-                 // // HostConfig = new {
-                  //     Binds = new[] {
-                  //         "/mount:/mount"
-                  //     },
-                  // }
+                    Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                    },
+                    HostConfig = new {
+                        Binds = new[] {
+                            "/home/iotedge:/mount"
+                        },
+                        CapDrop = new[] {
+                            "CHOWN",
+                            "SETUID"
+                        }
+                    }
                 });
             }
             createOptions = createOptions.Replace("\"", "\\\"");

@@ -104,21 +104,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                 });
             }
             else {
-                // Windows
+                // Eflow
                 createOptions = _serializer.SerializeToString(new {
                     Hostname = "twin",
-                 //  Cmd = new[] {
-                 //      "PkiRootPath=/mount/pki",
-                 //  },
-                 //  HostConfig = new {
-                 //      Mounts = new[] {
-                 //          new {
-                 //              Type = "bind",
-                 //              Source = "C:\\\\ProgramData\\\\iotedge",
-                 //              Target = "C:\\\\mount"
-                 //          }
-                 //      }
-                 //  }
+                    Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                    },
+                    HostConfig = new {
+                        Binds = new[] {
+                            "/home/iotedge:/mount"
+                        },
+                        CapDrop = new[] {
+                            "CHOWN",
+                            "SETUID"
+                        }
+                    }
                 });
             }
             createOptions = createOptions.Replace("\"", "\\\"");

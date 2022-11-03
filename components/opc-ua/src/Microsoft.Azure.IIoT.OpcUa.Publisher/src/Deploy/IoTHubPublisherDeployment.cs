@@ -108,18 +108,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                 createOptions = _serializer.SerializeToString(new {
                     Hostname = "publisher",
                     Cmd = new[] {
-                     //   "PkiRootPath=/mount/pki",
+                        "PkiRootPath=/mount/pki",
                         "AutoAcceptUntrustedCertificates=true"
                     },
-                  //  HostConfig = new {
-                  //      Mounts = new[] {
-                  //          new {
-                  //              Type = "bind",
-                  //              Source = "C:\\\\ProgramData\\\\iotedge",
-                  //              Target = "C:\\\\mount"
-                  //          }
-                  //      }
-                  //  }
+                    HostConfig = new {
+                        Binds = new[] {
+                            "/home/iotedge:/mount"
+                        },
+                        CapDrop = new[] {
+                            "CHOWN",
+                            "SETUID"
+                        }
+                    }
                 }).Replace("\"", "\\\"");
             }
 
