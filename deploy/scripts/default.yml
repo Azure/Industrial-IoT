@@ -1,19 +1,19 @@
 version: '3'
 services:
   opcserver0:
-    image: mcr.microsoft.com/iotedge/opc-plc:latest
+    image: mcr.microsoft.com/iotedge/opc-plc:2.2.0
     restart: always
     command: --aa -pn 51200
     ports:
       - "51200:51200"
   opcserver1:
-    image: mcr.microsoft.com/iotedge/opc-plc:latest
+    image: mcr.microsoft.com/iotedge/opc-plc:2.2.0
     restart: always
     command: --aa -pn 51201    
     ports:
       - "51201:51201"
   opcserver2:
-    image: mcr.microsoft.com/iotedge/opc-plc:latest
+    image: mcr.microsoft.com/iotedge/opc-plc:2.2.0
     restart: always
     command: --aa -pn 51202
     ports:
