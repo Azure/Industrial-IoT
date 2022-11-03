@@ -85,7 +85,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             _lock.Wait();
             try {
                 if (!_sourceTimestamps.ContainsKey(nodeId)) {
-                    _sourceTimestamps[nodeId] = new List<DateTime>();
+                    _sourceTimestamps.Add(nodeId, new List<DateTime>());
                 }
                 _sourceTimestamps[nodeId].Add(sourceTimestamp);
             }

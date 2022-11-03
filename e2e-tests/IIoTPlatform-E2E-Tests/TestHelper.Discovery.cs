@@ -99,7 +99,8 @@ namespace IIoTPlatform_E2E_Tests {
             public static async Task<dynamic> WaitForEndpointDiscoveryToBeCompleted(
                 IIoTPlatformTestContext context,
                 CancellationToken ct = default,
-                HashSet<string> requestedEndpointUrls = null) {
+                HashSet<string> requestedEndpointUrls = null,
+                string securityMode = null) {
 
                 ct.ThrowIfCancellationRequested();
 
@@ -121,9 +122,11 @@ namespace IIoTPlatform_E2E_Tests {
                                 var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpoint.url).TrimEnd('/');
 
                                 if (requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
-                                    if (!foundEndpoints.Contains(endpoint)) {
-                                        context.OutputHelper?.WriteLine($"Found {endpoint}...");
-                                        foundEndpoints.Add(endpoint);
+                                    if (securityMode == null || securityMode == json.items[indexOfOpcUaEndpoint].registration.endpoint.securityMode) {
+                                        if (!foundEndpoints.Contains(endpoint)) {
+                                            context.OutputHelper?.WriteLine($"Found {endpoint}...");
+                                            foundEndpoints.Add(endpoint);
+                                        }
                                     }
                                 }
                             }
@@ -162,8 +165,9 @@ namespace IIoTPlatform_E2E_Tests {
             public static async Task<string> GetOpcUaEndpointId(
                     IIoTPlatformTestContext context,
                     string requestedEndpointUrl,
-                    CancellationToken ct) {
-                var json = await WaitForEndpointDiscoveryToBeCompleted(context, ct, new HashSet<string> { requestedEndpointUrl });
+                    CancellationToken ct,
+                    string securityMode = null) {
+                var json = await WaitForEndpointDiscoveryToBeCompleted(context, ct, new HashSet<string> { requestedEndpointUrl }, securityMode);
 
                 int numberOfItems = json.items.Count;
 

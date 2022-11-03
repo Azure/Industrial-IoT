@@ -38,12 +38,12 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             await TestHelper.Registry.RemoveAllApplicationsAsync(_context, _cancellationTokenSource.Token);
 
             // Add 5 servers
-            var endpointUrls = TestHelper.GetSimulatedOpcServerUrls(_context).Take(5).ToHashSet();
-            AddTestOpcServers(endpointUrls, _cancellationTokenSource.Token);
+            var urls = TestHelper.GetSimulatedOpcServerUrls(_context).Take(5).ToHashSet();
+            AddTestOpcServers(urls, _cancellationTokenSource.Token);
 
             // Discover all servers
             await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
-                _context, _cancellationTokenSource.Token, endpointUrls).ConfigureAwait(false);
+                _context, _cancellationTokenSource.Token, urls).ConfigureAwait(false);
         }
 
         [Fact, PriorityOrder(1)]
@@ -56,8 +56,8 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             var urls = new HashSet<string> { url };
             AddTestOpcServers(urls, _cancellationTokenSource.Token);
 
-            // Validate that the endpoint can be found
-            await TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(
+            // Discover all servers
+            await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
                 _context, _cancellationTokenSource.Token, urls).ConfigureAwait(false);
         }
 
@@ -69,8 +69,8 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             var urls = TestHelper.GetSimulatedOpcServerUrls(_context).Take(2).ToHashSet();
             AddTestOpcServers(urls, _cancellationTokenSource.Token);
 
-            // Validate that all endpoints are found
-            await TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(
+            // Discover all servers
+            await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
                 _context, _cancellationTokenSource.Token, urls).ConfigureAwait(false);
         }
 

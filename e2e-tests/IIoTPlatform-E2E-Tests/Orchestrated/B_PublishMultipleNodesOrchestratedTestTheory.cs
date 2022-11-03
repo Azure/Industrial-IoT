@@ -76,7 +76,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             Assert.True(json != null, "OPC Application not activated");
 
             // Read OPC UA Endpoint ID
-            var endpointId = await TestHelper.Discovery.GetOpcUaEndpointId(_context, _context.OpcServerUrl, cts.Token);
+            var endpointId = await TestHelper.Discovery.GetOpcUaEndpointId(_context, _context.OpcServerUrl, cts.Token, "SignAndEncrypt");
             Assert.True(endpointId != null, "Could not find endpoints of OPC Application");
             _context.OpcUaEndpointId = endpointId;
 
@@ -154,8 +154,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             // Wait some time to generate events to process
             // On VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
-            var delay = TestConstants.DefaultTimeoutInMilliseconds * 4;
-            await Task.Delay(delay, cts.Token);
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
@@ -216,7 +215,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         [Fact, PriorityOrder(56)]
         public async Task Test_VerifyNoDataIncomingAtIoTHub() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token); //wait till the publishing has stopped
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token); //wait till the publishing has stopped
 
             // Make sure that there is no active monitoring.
             await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);

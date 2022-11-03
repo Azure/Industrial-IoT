@@ -333,12 +333,22 @@ namespace TestEventProcessor.BusinessLogic {
                                             property.Value.ToString());
                                         continue;
                                     }
+                                    if (!dataValue.TryGetValue("SourceTimestamp", out var st) || st is not JValue sourceTimeStamp) {
+                                        _logger.LogInformation("Value is missing source timestamp.", dataValue.ToString());
+                                        continue;
+                                    }
+                                    dynamic propertyValue = property.Value.ToObject<dynamic>();
+                                    var stdyn = (DateTime)propertyValue.SourceTimestamp;
+                                    var stj = sourceTimeStamp.ToObject<DateTime>();
+                                    if (stdyn != stj) {
+                                        _logger.LogError("=====================  dyn {dyn} != json {j} ({json}) ================.", stdyn, stj, st.ToString());
+                                    }
                                     if (!dataValue.TryGetValue("Value", out var value)) {
                                         value = JValue.CreateNull();
                                     }
                                     FeedDataCheckers(
                                         property.Name,
-                                        dataValue["SourceTimestamp"].ToObject<DateTime>(),
+                                        sourceTimeStamp.ToObject<DateTime>(),
                                         arg.Data.EnqueuedTime.UtcDateTime,
                                         eventReceivedTimestamp,
                                         value);
@@ -352,12 +362,16 @@ namespace TestEventProcessor.BusinessLogic {
                                 _logger.LogInformation("Message {Message} does not have data value.", entry.ToString());
                                 return;
                             }
+                            if (!dataValue.TryGetValue("SourceTimestamp", out var st) || st is not JValue sourceTimeStamp) {
+                                _logger.LogInformation("Value is missing source timestamp.", dataValue.ToString());
+                                return;
+                            }
                             if (!dataValue.TryGetValue("Value", out var value)) {
                                 value = JValue.CreateNull();
                             }
                             FeedDataCheckers(
                                 (string)nodeId,
-                                dataValue["SourceTimestamp"].ToObject<DateTime>(),
+                                sourceTimeStamp.ToObject<DateTime>(),
                                 arg.Data.EnqueuedTime.UtcDateTime,
                                 eventReceivedTimestamp,
                                 value);
