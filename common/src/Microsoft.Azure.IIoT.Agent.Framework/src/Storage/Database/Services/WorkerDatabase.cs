@@ -62,12 +62,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                             return;
                         }
                         catch (ResourceOutOfDateException ex) {
-                            _logger.Warning(ex, "Failed to update document for worker {workerId} - retrying", workerHeartbeat.WorkerId);
                             exceptions.Add(ex);
                             continue; // try again refreshing the etag
                         }
                         catch (ResourceNotFoundException ex) {
-                            _logger.Warning(ex, "Failed to update document for worker {workerId} - retrying", workerHeartbeat.WorkerId);
                             exceptions.Add(ex);
                             continue;
                         }
@@ -78,17 +76,19 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     }
                     catch (ConflictingResourceException ex) {
                         // Try to update
-                        _logger.Warning(ex, "Failed to add document for worker {workerId} - retrying", workerHeartbeat.WorkerId);
                         exceptions.Add(ex);
                         continue;
                     }
                 }
                 catch (OperationCanceledException) {
-                    _logger.Warning("Failed to add document for worker {workerId} because of cancelation", workerHeartbeat.WorkerId);
+                    _logger.Warning("Failed to add document for worker {workerId} because of cancelation",
+                        workerHeartbeat.WorkerId);
                     throw;
                 }
             }
-            _logger.Warning("Failed to add or update document for worker {workerId} because of too many retries", workerHeartbeat.WorkerId);
+            var aggregateException = new AggregateException(exceptions);
+            _logger.Warning(aggregateException,
+                "Failed to add or update document for worker {workerId} because of too many retries", workerHeartbeat.WorkerId);
             throw new AggregateException(exceptions);
         }
 

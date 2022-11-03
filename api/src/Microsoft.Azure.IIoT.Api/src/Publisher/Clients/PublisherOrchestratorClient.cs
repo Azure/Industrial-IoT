@@ -84,8 +84,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                         throw;
                     }
                 }, ex => {
-                    _logger.Verbose("Attempt to get job instructions for {worker} failed: {message} - try again...",
-                       workerId, ex.Message);
+                    if (!(ex is UnauthorizedAccessException) && !(ex is InvalidConfigurationException)) {
+                        _logger.Debug("Attempt to get job instructions for {worker} failed: {message} - try again...",
+                           workerId, ex.Message);
+                    }
                     return true;
                 }, 20);
             }
@@ -137,8 +139,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                         throw;
                     }
                 }, ex => {
-                    _logger.Verbose("Attempt to send worker {worker} heartbeat failed: {message} - try again...",
-                       heartbeat.Worker.WorkerId, ex.Message);
+                    if (!(ex is UnauthorizedAccessException) && !(ex is InvalidConfigurationException)) {
+                        _logger.Debug("Attempt to send worker {worker} heartbeat failed: {message} - try again...",
+                           heartbeat.Worker.WorkerId, ex.Message);
+                    }
                     return true;
                 }, 20);
             }

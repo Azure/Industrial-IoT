@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.RateLimiting {
         private readonly int _maxConcurrentCalls;
         private readonly string _pathException;
         private volatile int _concurrentCalls;
+        private volatile int _throttling;
 
         /// <summary>
         /// Default constructor
@@ -47,11 +48,16 @@ namespace Microsoft.Azure.IIoT.AspNetCore.RateLimiting {
             else {
                 try {
                     if (Interlocked.Increment(ref _concurrentCalls) > _maxConcurrentCalls) {
-                        _logger.Verbose("Throttling request due to too many concurrent calls.");
+                        if (0 == Interlocked.CompareExchange(ref _throttling, 1, 0)) {
+                            _logger.Information("Start throttling requests due to too many concurrent calls.");
+                        }
                         kRateLimitedCalls.Inc();
                         context.Response.StatusCode = 429;
                     }
                     else {
+                        if (1 == Interlocked.Exchange(ref _throttling, 0)) {
+                            _logger.Information("Stop throttling requests.");
+                        }
                         await _next.Invoke(context);
                     }
                 }

@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
                 LogControl.Level.MinimumLevel = (LogEventLevel)Enum.Parse(typeof(LogEventLevel), config.LogLevel);
             }
             else {
-#if DEBUG
+#if LOGLEVEL_DEBUG
                 LogControl.Level.MinimumLevel = LogEventLevel.Debug;
 #else
                 LogControl.Level.MinimumLevel = LogEventLevel.Information;
