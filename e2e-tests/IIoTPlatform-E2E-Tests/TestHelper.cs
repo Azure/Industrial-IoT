@@ -724,7 +724,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
-        private static async Task<dynamic> GetEndpointInternalAsync(IIoTPlatformTestContext context, CancellationToken ct) {
+        private static async Task<dynamic> GetEndpointsInternalAsync(IIoTPlatformTestContext context, CancellationToken ct) {
             var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
             var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
@@ -740,6 +740,32 @@ namespace IIoTPlatform_E2E_Tests {
                 context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
                 context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                 Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
+            }
+
+            return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
+        }
+
+        /// <summary>
+        /// Gets applications from registry
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        private static async Task<dynamic> GetApplicationsInternalAsync(IIoTPlatformTestContext context, CancellationToken ct) {
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+
+            var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Get) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+            };
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+
+            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+            Assert.NotNull(response);
+
+            if (!response.IsSuccessful) {
+                context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "GET /registry/v2/applications failed!");
             }
 
             return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());

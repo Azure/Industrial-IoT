@@ -12,6 +12,7 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Collections.Generic;
     using System.Dynamic;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -32,18 +33,16 @@ namespace IIoTPlatform_E2E_Tests {
             public static async Task<dynamic> WaitForDiscoveryToBeCompletedAsync(
                 IIoTPlatformTestContext context,
                 CancellationToken ct = default,
-                IEnumerable<string> requestedEndpointUrls = null
+                HashSet<string> requestedEndpointUrls = null
             ) {
                 ct.ThrowIfCancellationRequested();
 
                 try {
                     dynamic json;
-                    int foundEndpoints = 0;
+                    var foundEndpoints = new HashSet<string>();
                     int numberOfItems;
                     bool shouldExit = false;
                     do {
-                        foundEndpoints = 0;
-
                         var route = TestConstants.APIRoutes.RegistryApplications;
                         var response = CallRestApi(context, Method.Get, route, ct: ct);
                         Assert.True(response.IsSuccessful);
@@ -59,7 +58,10 @@ namespace IIoTPlatform_E2E_Tests {
                                 var endpoint = "opc.tcp://" +((string)json.items[i].hostAddresses[0]).TrimEnd('/');
 
                                 if (requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
-                                    foundEndpoints++;
+                                    if (!foundEndpoints.Contains(endpoint)) {
+                                        context.OutputHelper?.WriteLine($"Found {endpoint}...");
+                                        foundEndpoints.Add(endpoint);
+                                    }
                                 }
                             }
 
@@ -67,10 +69,11 @@ namespace IIoTPlatform_E2E_Tests {
                                                             ? requestedEndpointUrls.Count()
                                                             : 1;
 
-                            if (foundEndpoints < expectedNumberOfEndpoints) {
+                            if (foundEndpoints.Count < expectedNumberOfEndpoints) {
                                 await Task.Delay(TestConstants.DefaultDelayMilliseconds);
                             }
                             else {
+                                context.OutputHelper?.WriteLine($"Found all endpoints!");
                                 shouldExit = true;
                             }
                         }
@@ -96,19 +99,17 @@ namespace IIoTPlatform_E2E_Tests {
             public static async Task<dynamic> WaitForEndpointDiscoveryToBeCompleted(
                 IIoTPlatformTestContext context,
                 CancellationToken ct = default,
-                IEnumerable<string> requestedEndpointUrls = null) {
+                HashSet<string> requestedEndpointUrls = null) {
 
                 ct.ThrowIfCancellationRequested();
 
                 try {
                     dynamic json;
-                    int foundEndpoints = 0;
+                    var foundEndpoints = new HashSet<string>();
                     int numberOfItems;
                     bool shouldExit = false;
                     do {
-                        json = await GetEndpointInternalAsync(context, ct).ConfigureAwait(false);
-
-                        foundEndpoints = 0;
+                        json = await GetEndpointsInternalAsync(context, ct).ConfigureAwait(false);
 
                         Assert.NotNull(json);
                         numberOfItems = (int)json.items.Count;
@@ -120,7 +121,10 @@ namespace IIoTPlatform_E2E_Tests {
                                 var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpoint.url).TrimEnd('/');
 
                                 if (requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
-                                    foundEndpoints++;
+                                    if (!foundEndpoints.Contains(endpoint)) {
+                                        context.OutputHelper?.WriteLine($"Found {endpoint}...");
+                                        foundEndpoints.Add(endpoint);
+                                    }
                                 }
                             }
 
@@ -128,10 +132,11 @@ namespace IIoTPlatform_E2E_Tests {
                                                             ? requestedEndpointUrls.Count()
                                                             : 1;
 
-                            if (foundEndpoints < expectedNumberOfEndpoints) {
+                            if (foundEndpoints.Count < expectedNumberOfEndpoints) {
                                 await Task.Delay(TestConstants.DefaultDelayMilliseconds);
                             }
                             else {
+                                context.OutputHelper?.WriteLine($"Found all endpoints!");
                                 shouldExit = true;
                             }
                         }
@@ -158,7 +163,7 @@ namespace IIoTPlatform_E2E_Tests {
                     IIoTPlatformTestContext context,
                     string requestedEndpointUrl,
                     CancellationToken ct) {
-                var json = await WaitForEndpointDiscoveryToBeCompleted(context, ct, new List<string> { requestedEndpointUrl });
+                var json = await WaitForEndpointDiscoveryToBeCompleted(context, ct, new HashSet<string> { requestedEndpointUrl });
 
                 int numberOfItems = json.items.Count;
 

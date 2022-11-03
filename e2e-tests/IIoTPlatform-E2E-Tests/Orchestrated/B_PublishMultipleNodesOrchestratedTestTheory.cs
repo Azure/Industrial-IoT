@@ -72,7 +72,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             // Check that Application was registered
             cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            dynamic json = await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, new List<string> { _context.OpcServerUrl });
+            dynamic json = await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, new HashSet<string> { _context.OpcServerUrl });
             Assert.True(json != null, "OPC Application not activated");
 
             // Read OPC UA Endpoint ID
@@ -247,11 +247,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(58)]
-        public void Test_RemoveAllApplications() {
+        public async Task Test_RemoveAllApplications() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var route = TestConstants.APIRoutes.RegistryApplications;
-            var response = TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
-            Assert.True(response.IsSuccessful);
+            await TestHelper.Registry.RemoveAllApplicationsAsync(_context, ct: cts.Token);
         }
     }
 }
