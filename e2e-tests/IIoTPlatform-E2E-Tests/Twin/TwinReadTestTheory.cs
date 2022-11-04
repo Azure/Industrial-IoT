@@ -14,7 +14,6 @@ namespace IIoTPlatform_E2E_Tests.Twin {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection(TwinTestCollection.CollectionName)]
     [Trait(TestConstants.TraitConstants.TwinModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
-    [Trait(TestConstants.TraitConstants.TestModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
     public class TwinReadTestTheory {
         private readonly TwinTestContext _context;
 

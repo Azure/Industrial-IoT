@@ -25,7 +25,6 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Multiple Nodes Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeOrchestratedTraitValue)]
-    [Trait(TestConstants.TraitConstants.TestModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
     public class B_PublishMultipleNodesOrchestratedTestTheory {
         private readonly ITestOutputHelper _output;
         private readonly IIoTMultipleNodesTestContext _context;

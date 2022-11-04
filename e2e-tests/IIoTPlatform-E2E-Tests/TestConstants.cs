@@ -342,11 +342,6 @@ namespace IIoTPlatform_E2E_Tests {
             public const string DiscoveryModeTraitName = "DiscoveryMode";
 
             /// <summary>
-            /// The trait name of the Test Mode
-            /// </summary>
-            public const string TestModeTraitName = "TestMode";
-
-            /// <summary>
             /// The trait value for default trait
             /// </summary>
             public const string DefaultTraitValue = "default";

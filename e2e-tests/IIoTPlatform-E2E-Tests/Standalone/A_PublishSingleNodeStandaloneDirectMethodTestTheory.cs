@@ -25,7 +25,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Direct Methods Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
-    [Trait(TestConstants.TraitConstants.TestModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
     public class A_PublishSingleNodeStandaloneDirectMethodTestTheory : DirectMethodTestBase {
 
         public A_PublishSingleNodeStandaloneDirectMethodTestTheory(
