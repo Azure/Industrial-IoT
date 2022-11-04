@@ -33,15 +33,11 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
 #pragma warning restore CS0618 // Type or member is obsolete
 
             var configLevel = config?.LogLevel ?? Environment.GetEnvironmentVariable("LOG_LEVEL");
-            if (!string.IsNullOrEmpty(configLevel) && Enum.IsDefined(typeof(LogEventLevel), config.LogLevel)) {
-                LogControl.Level.MinimumLevel = (LogEventLevel)Enum.Parse(typeof(LogEventLevel), config.LogLevel);
+            if (!string.IsNullOrEmpty(configLevel) && Enum.IsDefined(typeof(LogEventLevel), configLevel)) {
+                LogControl.Level.MinimumLevel = (LogEventLevel)Enum.Parse(typeof(LogEventLevel), configLevel);
             }
             else {
-#if LOGLEVEL_DEBUG
-                LogControl.Level.MinimumLevel = LogEventLevel.Debug;
-#else
                 LogControl.Level.MinimumLevel = LogEventLevel.Information;
-#endif
             }
         }
     }
