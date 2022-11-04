@@ -14,11 +14,11 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// Indicates number of dropped messages that were observed. It is calculated by detecting
         /// gaps in the value changes.
         /// </summary>
-        public uint DroppedValueCount { get; set; } = 0;
+        public uint DroppedValueCount { get; set; }
 
         /// <summary>
         /// Indicates number of duplicate messages that were observed.
         /// </summary>
-        public uint DuplicateValueCount { get; set; } = 0;
+        public uint DuplicateValueCount { get; set; }
     }
 }

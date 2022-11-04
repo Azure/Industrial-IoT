@@ -103,10 +103,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (!results.HasMore()) {
                 return new WorkerInfoListModel();
             }
-            var docs = await results.ReadAsync(ct);
+            var documents = await results.ReadAsync(ct);
             return new WorkerInfoListModel {
                 ContinuationToken = results.ContinuationToken,
-                Workers = docs.Select(r => r.Value.ToFrameworkModel()).ToList()
+                Workers = documents.Select(r => r.Value.ToFrameworkModel()).ToList()
             };
         }
 

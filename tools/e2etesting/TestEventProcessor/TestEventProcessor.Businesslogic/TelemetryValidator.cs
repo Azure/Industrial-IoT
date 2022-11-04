@@ -95,11 +95,18 @@ namespace TestEventProcessor.BusinessLogic {
                     throw new ArgumentNullException("Invalid configuration detected, threshold can't be negative or zero");
                 }
 
-                if (string.IsNullOrWhiteSpace(configuration.IoTHubEventHubEndpointConnectionString)) throw new ArgumentNullException(nameof(configuration.IoTHubEventHubEndpointConnectionString));
-                if (string.IsNullOrWhiteSpace(configuration.StorageConnectionString)) throw new ArgumentNullException(nameof(configuration.StorageConnectionString));
-                if (string.IsNullOrWhiteSpace(configuration.BlobContainerName)) throw new ArgumentNullException(nameof(configuration.BlobContainerName));
-                if (string.IsNullOrWhiteSpace(configuration.EventHubConsumerGroup)) throw new ArgumentNullException(nameof(configuration.EventHubConsumerGroup));
-
+                if (string.IsNullOrWhiteSpace(configuration.IoTHubEventHubEndpointConnectionString)) {
+                    throw new ArgumentNullException(nameof(configuration.IoTHubEventHubEndpointConnectionString));
+                }
+                if (string.IsNullOrWhiteSpace(configuration.StorageConnectionString)) {
+                    throw new ArgumentNullException(nameof(configuration.StorageConnectionString));
+                }
+                if (string.IsNullOrWhiteSpace(configuration.BlobContainerName)) {
+                    throw new ArgumentNullException(nameof(configuration.BlobContainerName));
+                }
+                if (string.IsNullOrWhiteSpace(configuration.EventHubConsumerGroup)) {
+                    throw new ArgumentNullException(nameof(configuration.EventHubConsumerGroup));
+                }
                 if (configuration.ExpectedMaximalDuration == 0) {
                     configuration.ExpectedMaximalDuration = uint.MaxValue;
                 }
@@ -337,15 +344,10 @@ namespace TestEventProcessor.BusinessLogic {
                                         _logger.LogInformation("Value is missing source timestamp.", dataValue.ToString());
                                         continue;
                                     }
-                                    dynamic propertyValue = property.Value.ToObject<dynamic>();
-                                    var stdyn = (DateTime)propertyValue.SourceTimestamp;
-                                    var stj = sourceTimeStamp.ToObject<DateTime>();
-                                    if (stdyn != stj) {
-                                        _logger.LogError("=====================  dyn {dyn} != json {j} ({json}) ================.", stdyn, stj, st.ToString());
-                                    }
                                     if (!dataValue.TryGetValue("Value", out var value)) {
                                         value = JValue.CreateNull();
                                     }
+                                    _logger.LogInformation("Message Property: {Message}", property.ToString());
                                     FeedDataCheckers(
                                         property.Name,
                                         sourceTimeStamp.ToObject<DateTime>(),
@@ -353,7 +355,6 @@ namespace TestEventProcessor.BusinessLogic {
                                         eventReceivedTimestamp,
                                         value);
                                     valueChangesCount++;
-                                    _logger.LogInformation("Message processed {changes}", valueChangesCount);
                                 }
                             }
                         }
@@ -366,15 +367,10 @@ namespace TestEventProcessor.BusinessLogic {
                                 _logger.LogInformation("Value is missing source timestamp.", dataValue.ToString());
                                 return;
                             }
-                            dynamic propertyValue = dataValue.ToObject<dynamic>();
-                            var stdyn = (DateTime)propertyValue.SourceTimestamp;
-                            var stj = sourceTimeStamp.ToObject<DateTime>();
-                            if (stdyn != stj) {
-                                _logger.LogError("=====================  dyn {dyn} != json {j} ({json}) ================.", stdyn, stj, st.ToString());
-                            }
                             if (!dataValue.TryGetValue("Value", out var value)) {
                                 value = JValue.CreateNull();
                             }
+                            _logger.LogInformation("Simple Message: {Message}", entry.ToString());
                             FeedDataCheckers(
                                 (string)nodeId,
                                 sourceTimeStamp.ToObject<DateTime>(),
@@ -382,7 +378,6 @@ namespace TestEventProcessor.BusinessLogic {
                                 eventReceivedTimestamp,
                                 value);
                             valueChangesCount++;
-                            _logger.LogInformation("Message processed {changes}", valueChangesCount);
                         }
                         else {
                             _logger.LogInformation("Message {Message} not a publisher message.", entry.ToString());

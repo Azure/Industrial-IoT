@@ -61,8 +61,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             try {
                 if (!_latestValuePerNodeId.ContainsKey(nodeId)) {
                     // There is no previous value.
-                    _latestValuePerNodeId[nodeId] = curValue;
-                    _latestDateTimePerNodeId[nodeId] = sourceTimestamp;
+                    _latestValuePerNodeId.Add(nodeId, curValue);
+                    _latestDateTimePerNodeId.Add(nodeId, sourceTimestamp);
                     return;
                 }
 

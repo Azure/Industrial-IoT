@@ -175,10 +175,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (!results.HasMore()) {
                 return new JobInfoListModel();
             }
-            var docs= await results.ReadAsync(ct);
+            var documents = await results.ReadAsync(ct);
             return new JobInfoListModel {
                 ContinuationToken = results.ContinuationToken,
-                Jobs = docs.Select(r => r.Value.ToFrameworkModel()).ToList()
+                Jobs = documents.Select(r => r.Value.ToFrameworkModel()).ToList()
             };
         }
 
