@@ -24,13 +24,12 @@ namespace TestEventProcessor.Businesslogic {
 
         private readonly ILogger _logger;
         private readonly IEventProcessorConfig _config;
-        private bool _monitoringEnabled = false;
 
         private EventProcessorClient _client;
         private Dictionary<string, TaskCompletionSource<bool>> _initializedPartitions;
         private SemaphoreSlim _lockInitializedPartitions;
 
-        public event Func<ProcessEventArgs, Task> ProcessEventAsync;
+        public event Action<ProcessEventArgs> ProcessEvent;
 
         public EventProcessorWrapper(
             IEventProcessorConfig configuration,
@@ -130,16 +129,6 @@ namespace TestEventProcessor.Businesslogic {
             await WaitForPartitionInitialization(ct).ConfigureAwait(false);
 
             _logger.LogInformation("Enabling monitoring of events...");
-            _monitoringEnabled = true;
-        }
-
-        /// <summary>
-        /// Stop propagation of messages to downstream event handler.
-        /// This will not close connection to EventHub.
-        /// </summary>
-        public void StopProcessing() {
-            _logger.LogInformation("Disabling monitoring of events...");
-            _monitoringEnabled = false;
         }
 
         /// <summary>
@@ -200,14 +189,11 @@ namespace TestEventProcessor.Businesslogic {
         /// <summary>
         /// Event handler for processing IoT Hub messages.
         /// </summary>
-        private async Task Client_ProcessEventAsync(ProcessEventArgs arg) {
-            if (!_monitoringEnabled) {
-                return;
+        private Task Client_ProcessEventAsync(ProcessEventArgs arg) {
+            if (ProcessEvent != null) {
+                ProcessEvent.Invoke(arg);
             }
-
-            if (ProcessEventAsync != null) {
-                await ProcessEventAsync.Invoke(arg).ConfigureAwait(false);
-            }
+            return Task.CompletedTask;
         }
 
         /// <summary>

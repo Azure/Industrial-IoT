@@ -57,14 +57,14 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                 // Check and report if processing delay has changed considerably, meaning more that the threshold.
                 var newOpcDiffToNow = receivedTimestamp - sourceTimestamp;
                 if (!_lastOpcDiffToNow.ContainsKey(nodeId)) {
-                    _lastOpcDiffToNow[nodeId] = TimeSpan.Zero;
+                    _lastOpcDiffToNow.Add(nodeId, TimeSpan.Zero);
                 }
                 var diffDelta = newOpcDiffToNow - _lastOpcDiffToNow[nodeId];
 
                 if (diffDelta.Duration() > _threshold) {
-                    _logger.LogWarning("The difference between time of arrival to the telemetry processor " +
-                        "and Opc Source Timestamp for {nodeId} node has changed by {diff}",
-                        nodeId, diffDelta);
+                //    _logger.LogWarning("The difference between time of arrival to the telemetry processor " +
+                //       "and Opc Source Timestamp for {nodeId} node has changed by {diff}",
+                //       nodeId, diffDelta);
                 }
 
                 _lastOpcDiffToNow[nodeId] = newOpcDiffToNow;

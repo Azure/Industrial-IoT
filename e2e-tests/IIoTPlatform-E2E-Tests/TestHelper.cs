@@ -127,7 +127,7 @@ namespace IIoTPlatform_E2E_Tests {
                         using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile, ct)) {
                             Assert.NotNull(response);
                             Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
-                            var json = await response.Content.ReadAsStringAsync();
+                            var json = await response.Content.ReadAsStringAsync(ct);
                             Assert.NotEmpty(json);
                             var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
 
