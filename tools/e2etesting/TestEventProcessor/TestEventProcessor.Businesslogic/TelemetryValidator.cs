@@ -366,6 +366,12 @@ namespace TestEventProcessor.BusinessLogic {
                                 _logger.LogInformation("Value is missing source timestamp.", dataValue.ToString());
                                 return;
                             }
+                            dynamic propertyValue = dataValue.ToObject<dynamic>();
+                            var stdyn = (DateTime)propertyValue.SourceTimestamp;
+                            var stj = sourceTimeStamp.ToObject<DateTime>();
+                            if (stdyn != stj) {
+                                _logger.LogError("=====================  dyn {dyn} != json {j} ({json}) ================.", stdyn, stj, st.ToString());
+                            }
                             if (!dataValue.TryGetValue("Value", out var value)) {
                                 value = JValue.CreateNull();
                             }

@@ -30,6 +30,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             _logger = logger;
             _databaseServer = databaseServer;
             _databaseRegistryConfig = databaseRegistryConfig;
+            _documents = GetDocumentsAsync().GetAwaiter().GetResult();
         }
 
         /// <inheritdoc/>
@@ -38,7 +39,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (workerHeartbeat == null) {
                 throw new ArgumentNullException(nameof(workerHeartbeat));
             }
-            var documents = await GetDocumentsAsync();
             var retries = 0;
             var exceptions = new List<Exception>();
             while (retries < MaxRetries) {
@@ -53,12 +53,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                         LastSeen = DateTime.UtcNow
                     };
 
-                    var existing = await documents.FindAsync<WorkerDocument>(workerHeartbeat.WorkerId, ct);
+                    var existing = await _documents.FindAsync<WorkerDocument>(workerHeartbeat.WorkerId, ct);
                     if (existing != null) {
                         try {
                             workerDocument.ETag = existing.Etag;
                             workerDocument.Id = existing.Id;
-                            await documents.ReplaceAsync(existing, workerDocument, ct);
+                            await _documents.ReplaceAsync(existing, workerDocument, ct);
                             return;
                         }
                         catch (ResourceOutOfDateException ex) {
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                         }
                     }
                     try {
-                        await documents.AddAsync(workerDocument, ct);
+                        await _documents.AddAsync(workerDocument, ct);
                         return;
                     }
                     catch (ConflictingResourceException ex) {
@@ -95,8 +95,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// <inheritdoc/>
         public async Task<WorkerInfoListModel> ListWorkersAsync(string continuationToken,
             int? maxResults, CancellationToken ct) {
-            var documents = await GetDocumentsAsync();
-            var client = documents.OpenSqlClient();
+            var client = _documents.OpenSqlClient();
             var queryName = CreateQuery(out var queryParameters);
             var results = continuationToken != null ?
                 client.Continue<WorkerDocument>(queryName, continuationToken, queryParameters, maxResults) :
@@ -116,8 +115,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(workerId)) {
                 throw new ArgumentNullException(nameof(workerId));
             }
-            var documents = await GetDocumentsAsync();
-            var document = await documents.FindAsync<WorkerDocument>(workerId, ct);
+            var document = await _documents.FindAsync<WorkerDocument>(workerId, ct);
             if (document == null) {
                 throw new ResourceNotFoundException("Worker not found");
             }
@@ -129,8 +127,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(workerId)) {
                 throw new ArgumentNullException(nameof(workerId));
             }
-            var documents = await GetDocumentsAsync();
-            await documents.DeleteAsync(workerId, ct);
+            await _documents.DeleteAsync(workerId, ct);
         }
 
         /// <summary>
@@ -147,21 +144,18 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         }
 
         private async Task<IDocuments> GetDocumentsAsync() {
-            if (_documents == null) {
-                try {
-                    var database = await _databaseServer.OpenAsync(_databaseRegistryConfig.DatabaseName);
-                    var container = await database.OpenContainerAsync(_databaseRegistryConfig.ContainerName);
-                    _documents = container.AsDocuments();
-                }
-                catch (Exception ex) {
-                    _logger.Error(ex, "Failed to open document collection.");
-                    throw;
-                }
+            try {
+                var database = await _databaseServer.OpenAsync(_databaseRegistryConfig.DatabaseName);
+                var container = await database.OpenContainerAsync(_databaseRegistryConfig.ContainerName);
+                return container.AsDocuments();
             }
-            return _documents;
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to open document collection.");
+                throw;
+            }
         }
 
-        private IDocuments _documents;
+        private readonly IDocuments _documents;
         private readonly ILogger _logger;
         private readonly IDatabaseServer _databaseServer;
         private readonly IWorkerDatabaseConfig _databaseRegistryConfig;
