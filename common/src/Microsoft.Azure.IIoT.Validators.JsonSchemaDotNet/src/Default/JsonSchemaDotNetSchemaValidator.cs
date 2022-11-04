@@ -45,11 +45,15 @@ namespace Microsoft.Azure.IIoT.Validators {
             // Run validation ensuring that trailing commas are supported
             // as it appears trailing commas have been allowable in the
             // configuration files for some time.
+            // Allow but Skip Commends
             var validationResults =  schema.Validate(
                                         JsonDocument.Parse(
                                         jsonStringWithoutBom,
-                                        new JsonDocumentOptions() { AllowTrailingCommas = true, }
-                                        ).RootElement,
+                                        new JsonDocumentOptions() 
+                                        { 
+                                            AllowTrailingCommas = true, 
+                                            CommentHandling = JsonCommentHandling.Skip 
+                                        }).RootElement,
                                         validationOptions);
 
             var jsonSchemaValidationResultCollection = new List<JsonSchemaValidationResult>();
