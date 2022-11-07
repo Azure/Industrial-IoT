@@ -58,6 +58,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
             _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
             _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
+            _exitHeartbeat = true;
 
             _lock = new SemaphoreSlim(1, 1);
         }
