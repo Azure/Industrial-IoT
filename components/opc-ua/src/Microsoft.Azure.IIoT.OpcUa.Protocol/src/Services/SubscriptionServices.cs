@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             ILogger logger) {
             _sessionManager = sessionManager ?? throw new ArgumentNullException(nameof(sessionManager));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
-            _clientConfig = clientConfig ?? throw new ArgumentNullException(nameof(codec)); ;
+            _clientConfig = clientConfig ?? throw new ArgumentNullException(nameof(codec));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
