@@ -316,7 +316,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     else {
                         _jobProcess.ProcessNewInstruction(currentProcessInstruction);
                     }
-                    await _jobProcess.WaitAsync(ct).ConfigureAwait(false); // Does not throw
+                    await _jobProcess.WaitAsync().ConfigureAwait(false); // Does not throw
+                    ct.ThrowIfCancellationRequested();
 
                     // Check if the job is to be continued with new configuration settings
                     if (_jobProcess?.JobContinuation?.Job?.JobConfiguration == null ||
@@ -411,13 +412,17 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 _currentProcessingEngine = _jobScope.Resolve<IProcessingEngine>();
 
                 // Continuously send job status heartbeats
-                _processor = Task.Run(() => ProcessAsync());
+                _processor = Task.Run(() => ProcessAsync(_cancellationTokenSource.Token));
             }
 
             /// <summary>
             /// Reconfigure the existing process
             /// </summary>
             public void ProcessNewInstruction(JobProcessingInstructionModel jobProcessInstruction) {
+                _cancellationTokenSource.Cancel();
+                _processor.Wait();
+                _cancellationTokenSource.Dispose();
+
                 _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                     _outer._cts.Token);
                 _currentJobProcessInstruction = jobProcessInstruction;
@@ -426,7 +431,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
                 _currentProcessingEngine.ReconfigureTrigger(jobConfig);
                 JobContinuation = null;
-                _processor = Task.Run(() => ProcessAsync());
+                _processor = Task.Run(() => ProcessAsync(_cancellationTokenSource.Token));
             }
 
             /// <summary>
@@ -450,8 +455,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// <summary>
             /// Wait till completion or heartbeat cancelling
             /// </summary>
-            public Task WaitAsync(CancellationToken ct) {
-                return _processor.ContinueWith(_ => Task.CompletedTask, ct);
+            public Task WaitAsync() {
+                return _processor;
             }
 
             /// <inheritdoc/>
@@ -480,7 +485,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// <summary>
             /// Processor
             /// </summary>
-            private async Task ProcessAsync() {
+            private async Task ProcessAsync(CancellationToken ct) {
                 try {
                     Status = WorkerStatus.ProcessingJob;
                     _outer.OnJobStarted?.Invoke(this, new JobInfoEventArgs(Job));
@@ -490,9 +495,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     StartSendingHeartBeat();
 
                     await _currentProcessingEngine.RunAsync(_currentJobProcessInstruction.ProcessMode.Value,
-                        _cancellationTokenSource.Token).ConfigureAwait(false);
+                        ct).ConfigureAwait(false);
 
-                    _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                    ct.ThrowIfCancellationRequested();
                 }
                 catch (OperationCanceledException) {
                     _logger.Information("Job {job} cancelled.", Job.Id);

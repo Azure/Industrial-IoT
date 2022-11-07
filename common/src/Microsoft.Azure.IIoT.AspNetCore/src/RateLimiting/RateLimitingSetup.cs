@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.RateLimiting {
     using Microsoft.AspNetCore.Http;
     using Prometheus;
     using Serilog;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -52,7 +53,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.RateLimiting {
                             _logger.Information("Start throttling requests due to too many concurrent calls.");
                         }
                         kRateLimitedCalls.Inc();
-                        context.Response.StatusCode = 429;
+                        context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
                     }
                     else {
                         if (1 == Interlocked.Exchange(ref _throttling, 0)) {
