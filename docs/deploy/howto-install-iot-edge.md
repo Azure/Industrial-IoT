@@ -82,7 +82,18 @@ If you need to point to a different Docker container registry or image version t
 
 To troubleshoot your IoT Edge installation follow the official [IoT Edge troubleshooting guide](https://docs.microsoft.com/en-us/azure/iot-edge/troubleshoot)
 
-When device discovery operations fail also make sure to validate:
+### Host network
+
+When device discovery operations fail on Linux gateways (where the discovery module by default is attached to the host network) make sure to validate the host network is available:
+
+```bash
+docker network ls
+    NETWORK ID          NAME                DRIVER              SCOPE
+    beceb3bd61c4        azure-iot-edge      bridge              local
+    97eccb2b9f82        bridge              bridge              local
+    758d949c5343        host                host                local
+    72fb3597ef74        none                null                local
+```
 
 ## Other Options
 
