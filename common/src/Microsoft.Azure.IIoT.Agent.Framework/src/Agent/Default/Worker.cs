@@ -78,7 +78,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
                 _logger.Information("Starting worker {WorkerId}: {@Capabilities}",
                     WorkerId, _agentConfigProvider.Config.Capabilities);
-                _worker = Task.Run(() => RunAsync(_cts.Token));
+                _worker = Task.Factory.StartNew(() => RunAsync(_cts.Token), 
+                    TaskCreationOptions.LongRunning | TaskCreationOptions.RunContinuationsAsynchronously);
             }
             finally {
                 _lock.Release();
@@ -171,7 +172,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             if (_exitHeartbeat) {
                 _exitHeartbeat = false;
                 _resetTimer = new CancellationTokenSource();
-                _heartbeatTimerTask = SendHeartbeatsAsync();
+                _heartbeatTimerTask = Task.Factory.StartNew(() => SendHeartbeatsAsync(), 
+                    TaskCreationOptions.RunContinuationsAsynchronously | TaskCreationOptions.LongRunning);
             }
         }
 
@@ -413,7 +415,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 _currentProcessingEngine = _jobScope.Resolve<IProcessingEngine>();
 
                 // Continuously send job status heartbeats
-                _processor = Task.Run(() => ProcessAsync(_cancellationTokenSource.Token));
+                _processor = Task.Factory.StartNew(() => ProcessAsync(_cancellationTokenSource.Token),
+                    TaskCreationOptions.LongRunning | TaskCreationOptions.RunContinuationsAsynchronously);
             }
 
             /// <summary>
@@ -432,7 +435,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
                 _currentProcessingEngine.ReconfigureTrigger(jobConfig);
                 JobContinuation = null;
-                _processor = Task.Run(() => ProcessAsync(_cancellationTokenSource.Token));
+                _processor = Task.Factory.StartNew(() => ProcessAsync(_cancellationTokenSource.Token),
+                    TaskCreationOptions.LongRunning | TaskCreationOptions.RunContinuationsAsynchronously);
             }
 
             /// <summary>
@@ -471,7 +475,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 System.Diagnostics.Debug.Assert(_heartbeatTimerTask == null);
                 _exitHeartbeat = false;
                 _resetTimer = new CancellationTokenSource();
-                _heartbeatTimerTask = SendHeartbeatsAsync();
+                _heartbeatTimerTask = Task.Factory.StartNew(() => SendHeartbeatsAsync(),
+                    TaskCreationOptions.RunContinuationsAsynchronously | TaskCreationOptions.LongRunning);
             }
 
             private async Task StopSendingHeartbeatAsync() {
