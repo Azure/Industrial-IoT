@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// </summary>
     public class WriterGroupMessageTrigger : IMessageTrigger, IDisposable {
         /// <inheritdoc/>
-        public string Id => _subscriptions?.First()?.Subscription?.Connection?.CreateConnectionId() ?? _writerGroup.WriterGroupId;
+        public string Id => _subscriptions?.FirstOrDefault()?.Subscription?.Connection?.CreateConnectionId() ?? _writerGroup.WriterGroupId;
 
         /// <inheritdoc/>
         public int NumberOfConnectionRetries => _subscriptions?.Sum(x => x.Subscription?.NumberOfConnectionRetries) ?? 0;
