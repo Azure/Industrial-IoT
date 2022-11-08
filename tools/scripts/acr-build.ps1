@@ -57,7 +57,7 @@ else {
     if ([string]::IsNullOrEmpty($branchName)) {
         try {
             $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
-            $branchName = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+            $branchName = (& "git" @argumentList 2>&1 | ForEach-Object { "$_" });
             if ($LastExitCode -ne 0) {
                 throw "git $($argumentList) failed with $($LastExitCode)."
             }
@@ -127,7 +127,7 @@ else {
         # Try get current tag
         try {
             $argumentList = @("tag", "--points-at", $env:BUILD_SOURCEVERSION)
-            $sourceTag = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+            $sourceTag = (& "git" @argumentList 2>&1 | ForEach-Object { "$_" });
             if ($LastExitCode -ne 0) {
                 throw "git $($argumentList) failed with $($LastExitCode)."
             }
@@ -162,7 +162,7 @@ if ($definitions.Count -eq 0) {
 
 if ([string]::IsNullOrEmpty($script:Subscription)) {
     $argumentList = @("account", "show")
-    $account = & "az" $argumentList 2>$null | ConvertFrom-Json
+    $account = & "az" @argumentList 2>$null | ConvertFrom-Json
     if (!$account) {
         throw "Failed to retrieve account information."
     }
@@ -173,7 +173,7 @@ if ([string]::IsNullOrEmpty($script:Subscription)) {
 # get registry information
 $argumentList = @("acr", "show", "--name", $script:Registry, 
     "--subscription", $script:Subscription)
-$script:RegistryInfo = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
+$script:RegistryInfo = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
 }
@@ -182,7 +182,7 @@ Write-Debug "Using resource group $($resourceGroup)"
 # get credentials
 $argumentList = @("acr", "credential", "show", "--name", $script:Registry, 
     "--subscription", $script:Subscription)
-$credentials = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
+$credentials = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
 }
@@ -273,10 +273,10 @@ $definitions | ForEach-Object {
         if ($argumentList -contains "--verbose") {
             Write-Host "Building ... az $($argumentList | Out-String)..."
         }
-        & az $argumentList 2>&1 | ForEach-Object { "$_" }
+        & az @argumentList 2>&1 | ForEach-Object { "$_" }
         if ($LastExitCode -ne 0) {
             Write-Warning "az $($argumentList | Out-String) failed with $($LastExitCode) - 2nd attempt..."
-            & az $argumentList 2>&1 | ForEach-Object { "$_" }
+            & az @argumentList 2>&1 | ForEach-Object { "$_" }
             if ($LastExitCode -ne 0) {
                 throw "Error: 'az $($argumentList | Out-String)' 2nd attempt failed with $($LastExitCode)."
             }

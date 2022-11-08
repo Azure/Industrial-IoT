@@ -341,6 +341,7 @@ deployment:
       nginx.ingress.kubernetes.io/session-cookie-max-age: "14400"
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
       nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
       cert-manager.io/cluster-issuer: letsencrypt-prod
     tls:
     - hosts:
@@ -472,6 +473,7 @@ deployment:
       nginx.ingress.kubernetes.io/session-cookie-max-age: "14400"
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
       nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
       cert-manager.io/cluster-issuer: letsencrypt-prod
     tls:
     - hosts:

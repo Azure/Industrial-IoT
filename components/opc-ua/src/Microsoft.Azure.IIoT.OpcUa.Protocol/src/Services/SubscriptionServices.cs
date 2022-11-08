@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             ILogger logger) {
             _sessionManager = sessionManager ?? throw new ArgumentNullException(nameof(sessionManager));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
-            _clientConfig = clientConfig ?? throw new ArgumentNullException(nameof(codec)); ;
+            _clientConfig = clientConfig ?? throw new ArgumentNullException(nameof(codec));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -505,7 +505,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (item.GetTriggeringLinks(out var added, out var removed)) {
                             var response = await rawSubscription.Session.SetTriggeringAsync(
                                 null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
-                                new UInt32Collection(added), new UInt32Collection(removed))
+                                new UInt32Collection(added), new UInt32Collection(removed), CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -1131,7 +1131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Template.DataChangeFilter.ToStackModel() ??
                         codec.Decode(Template.EventFilter, true) ??
                         ((MonitoringFilter)Template.AggregateFilter
-                            .ToStackModel(session.MessageContext))
+                            .ToStackModel(session.MessageContext)),
                 };
             }
 

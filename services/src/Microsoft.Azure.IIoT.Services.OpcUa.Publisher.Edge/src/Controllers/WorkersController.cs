@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Controllers {
     using Microsoft.AspNetCore.Mvc;
     using System.Threading.Tasks;
     using System;
+    using System.Threading;
 
     /// <summary>
     /// Workers jobs controller
@@ -32,10 +33,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Controllers {
         /// </summary>
         /// <param name="workerId"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPost("{workerId}")]
         public async Task<JobProcessingInstructionApiModel> GetAvailableJobAsync(
-            string workerId, [FromBody] JobRequestApiModel request) {
+            string workerId, [FromBody] JobRequestApiModel request, CancellationToken ct) {
             if (string.IsNullOrEmpty(workerId)) {
                 throw new ArgumentNullException(nameof(workerId));
             }
@@ -43,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Controllers {
                 throw new ArgumentNullException(nameof(request));
             }
             var job = await _orchestrator.GetAvailableJobAsync(
-                workerId, request.ToServiceModel());
+                workerId, request.ToServiceModel(), ct);
             return job.ToApiModel();
         }
 

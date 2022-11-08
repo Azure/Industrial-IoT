@@ -116,6 +116,8 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
             ""schemaVersion"": """ + kDefaultSchemaVersion + @""",
             ""storeAndForwardConfiguration"": {
                 ""timeToLiveSecs"": 7200
+            },
+            ""routes"" : {
             }
         }
     }
