@@ -23,13 +23,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// Create
         /// </summary>
         /// <param name="databaseServer"></param>
-        /// <param name="databaseJobRepositoryConfig"></param>
+        /// <param name="databaseRegistryConfig"></param>
         /// <param name="logger"></param>
-        public JobDatabase(IDatabaseServer databaseServer, IJobDatabaseConfig databaseJobRepositoryConfig, ILogger logger) {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            var dbs = databaseServer.OpenAsync(databaseJobRepositoryConfig.DatabaseName).Result;
-            var cont = dbs.OpenContainerAsync(databaseJobRepositoryConfig.ContainerName).Result;
-            _documents = cont.AsDocuments();
+        public JobDatabase(IDatabaseServer databaseServer,
+            IJobDatabaseConfig databaseRegistryConfig, ILogger logger) {
+            _logger = logger;
+            _databaseServer = databaseServer;
+            _databaseRegistryConfig = databaseRegistryConfig;
+            _documents = GetDocumentsAsync().GetAwaiter().GetResult();
         }
 
         /// <inheritdoc/>
@@ -53,7 +54,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     return result.Value.ToFrameworkModel();
                 }
                 catch (ConflictingResourceException ex) {
-                    _logger.Warning(ex, "Failed to add document for job {jobId}", job.Id);
                     // Try again
                     exceptions.Add(ex);
                     continue;
@@ -62,8 +62,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     throw;
                 }
             }
-            _logger.Warning("Failed to add document for job {jobId} because of too many retries", job.Id);
-            throw new AggregateException(exceptions);
+            var aggregateException = new AggregateException(exceptions);
+            _logger.Warning(aggregateException,
+                "Failed to add document for job {jobId} because of too many retries", job.Id);
+            throw aggregateException;
         }
 
         /// <inheritdoc/>
@@ -93,7 +95,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     }
                     catch (ConflictingResourceException ex) {
                         // Conflict - try update now
-                        _logger.Warning(ex, "Failed to add document for job {jobId} - retrying", jobId);
                         exceptions.Add(ex);
                         continue;
                     }
@@ -104,13 +105,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     return result.Value.ToFrameworkModel();
                 }
                 catch (ResourceOutOfDateException ex) {
-                    _logger.Warning(ex, "Failed to update document for job {jobId} - retrying", jobId);
                     exceptions.Add(ex);
                     continue;
                 }
             }
-            _logger.Warning("Failed to add or update document for job {jobId} because of too many retries", jobId);
-            throw new AggregateException(exceptions);
+            var aggregateException = new AggregateException(exceptions);
+            _logger.Warning(aggregateException,
+                "Failed to add or update document for job {jobId} because of too many retries", jobId);
+            throw aggregateException;
         }
 
         /// <inheritdoc/>
@@ -140,12 +142,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                 }
                 catch (ResourceOutOfDateException ex) {
                     exceptions.Add(ex);
-                    _logger.Warning(ex, "Failed to update document for job {jobId}", jobId);
                     continue;
                 }
             }
-            _logger.Warning("Failed to update document for job {jobId} because of too many retries", jobId);
-            throw new AggregateException(exceptions);
+            var aggregateException = new AggregateException(exceptions);
+            _logger.Warning(aggregateException,
+                "Failed to update document for job {jobId} because of too many retries", jobId);
+            throw aggregateException;
         }
 
         /// <inheritdoc/>
@@ -153,7 +156,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (string.IsNullOrEmpty(jobId)) {
                 throw new ArgumentNullException(nameof(jobId));
             }
-
             var document = await _documents.FindAsync<JobDocument>(jobId, ct);
             if (document == null) {
                 _logger.Warning("Failed to find document for job {jobId}", jobId);
@@ -165,7 +167,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// <inheritdoc/>
         public async Task<JobInfoListModel> QueryAsync(JobInfoQueryModel query,
             string continuationToken, int? maxResults, CancellationToken ct) {
-
             var client = _documents.OpenSqlClient();
             var queryName = CreateQuery(query, out var queryParameters);
             var results = continuationToken != null ?
@@ -204,14 +205,15 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     await _documents.DeleteAsync(document, ct);
                 }
                 catch (ResourceOutOfDateException ex) {
-                    _logger.Warning(ex, "Failed to delete document for job {jobId} - retrying", jobId);
                     exceptions.Add(ex);
                     continue;
                 }
                 return job;
             }
-            _logger.Warning("Failed to delete document for job {jobId} because of too many retries", jobId);
-            throw new AggregateException(exceptions);
+            var aggregateException = new AggregateException(exceptions);
+            _logger.Warning(aggregateException,
+                "Failed to delete document for job {jobId} because of too many retries", jobId);
+            throw aggregateException;
         }
 
         /// <summary>
@@ -244,8 +246,22 @@ $"r.{nameof(JobDocument.ClassType)} = '{JobDocument.ClassTypeName}'";
             return queryString;
         }
 
-        private readonly ILogger _logger;
+        private async Task<IDocuments> GetDocumentsAsync() {
+            try {
+                var database = await _databaseServer.OpenAsync(_databaseRegistryConfig.DatabaseName);
+                var container = await database.OpenContainerAsync(_databaseRegistryConfig.ContainerName);
+                return container.AsDocuments();
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to open document collection.");
+                throw;
+            }
+        }
+
         private readonly IDocuments _documents;
+        private readonly ILogger _logger;
+        private readonly IDatabaseServer _databaseServer;
+        private readonly IJobDatabaseConfig _databaseRegistryConfig;
         private const int MaxRetries = 10;
     }
 }

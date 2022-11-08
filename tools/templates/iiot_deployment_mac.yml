@@ -3,7 +3,7 @@
 #
 parameters:
   runtime: 'osx-x64'
-  vmImage: macOS-10.15
+  vmImage: macOS-latest
 
 jobs:
 - job: iiot_deployment_mac

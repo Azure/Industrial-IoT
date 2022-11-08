@@ -70,9 +70,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             // Verify correct message is provided in exception.
             Assert.Equal(
                 "Validation failed with error: Expected 1 matching subschema but found 0 at schema path: #/items/oneOf, and configuration file location #/0; " +
-                "Validation failed with error: Required properties [Id] were not present at schema path: #/items/oneOf/0/properties/OpcNodes/items/required, and configuration file location #/0/OpcNodes/0; " +
-                "Validation failed with error: Required properties [ExpandedNodeId] were not present at schema path: #/items/oneOf/1/properties/OpcNodes/items/required, and configuration file location #/0/OpcNodes/0; " +
-                "Validation failed with error: Required properties [NodeId] were not present at schema path: #/items/oneOf/2/required, and configuration file location #/0",
+                "Validation failed with error: Required properties [\"Id\"] were not present at schema path: #/items/oneOf/0/properties/OpcNodes/items/required, and configuration file location #/0/OpcNodes/0; " +
+                "Validation failed with error: Required properties [\"ExpandedNodeId\"] were not present at schema path: #/items/oneOf/1/properties/OpcNodes/items/required, and configuration file location #/0/OpcNodes/0; " +
+                "Validation failed with error: Required properties [\"NodeId\"] were not present at schema path: #/items/oneOf/2/required, and configuration file location #/0",
                 exception.Message);
         }
 

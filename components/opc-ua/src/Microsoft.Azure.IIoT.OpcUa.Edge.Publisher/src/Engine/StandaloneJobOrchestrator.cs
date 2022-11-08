@@ -245,7 +245,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (string.IsNullOrEmpty(content)) {
                 return null;
             }
-            using (var sha = new SHA256Managed()) {
+            using (var sha = SHA256.Create()) {
                 var checksum = sha.ComputeHash(Encoding.UTF8.GetBytes(content));
                 return BitConverter.ToString(checksum).Replace("-", string.Empty);
             }

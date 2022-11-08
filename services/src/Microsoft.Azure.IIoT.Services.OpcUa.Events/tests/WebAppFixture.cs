@@ -39,6 +39,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
         public WebAppFixture() {
             _server = Host.CreateDefaultBuilder()
                 .UseAutofac()
+                .UseSerilog()
                 .ConfigureWebHostDefaults(builder => builder
                     .UseContentRoot(".")
                     .UseUrls("http://*:" + Port)
@@ -50,7 +51,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
                         }
                     )
                     .UseStartup<TestStartup>()
-                    .UseSerilog()
                     .UseKestrel(o => o.AddServerHeader = false))
                 .Build();
             _server.Start();

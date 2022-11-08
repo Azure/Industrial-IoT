@@ -15,5 +15,10 @@ namespace Microsoft.Azure.IIoT.Http {
         /// Request timeout
         /// </summary>
         public TimeSpan? Timeout { get; set; }
+
+        /// <summary>
+        /// Suppress non debug logging in the client
+        /// </summary>
+        public bool SuppressHttpClientLogging { get; set; }
     }
 }

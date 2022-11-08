@@ -8,7 +8,6 @@ namespace IIoTPlatform_E2E_Tests.Extensions {
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -26,6 +25,9 @@ namespace IIoTPlatform_E2E_Tests.Extensions {
             this IConfigurationBuilder configurationBuilder
         ) {
             const string launchSettingsPath = "Properties/launchSettings.json";
+            if (!File.Exists(launchSettingsPath)) {
+                return configurationBuilder;
+            }
             using (var file = File.OpenText(launchSettingsPath)) {
                 var reader = new JsonTextReader(file);
                 var jObject = JObject.Load(reader);

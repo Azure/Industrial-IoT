@@ -25,6 +25,7 @@ jobs:
     matrix: $[ dependencies.imagesprep.outputs['acrmatrix.acrMatrix'] ]
   variables:
     skipComponentGovernanceDetection: true
+    runCodesignValidationInjection: false
   steps:
   - task: PowerShell@2
     displayName: Versioning
@@ -35,7 +36,7 @@ jobs:
     displayName: 'Install .NET Core SDK'
     inputs:
       packageType: sdk
-      version: 3.1.x
+      version: 6.0.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: AzureCLI@1

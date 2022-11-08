@@ -5,7 +5,7 @@ jobs:
 - job: buildprep
   displayName: Prepare Build Jobs
   pool:
-    vmImage: 'windows-2019'
+    vmImage: 'windows-latest'
   variables:
     runCodesignValidationInjection: false
     skipComponentGovernanceDetection: true
@@ -36,7 +36,7 @@ jobs:
     displayName: 'Install .NET Core SDK'
     inputs:
       packageType: sdk
-      version: 3.1.x
+      version: 6.0.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2
@@ -85,7 +85,7 @@ jobs:
 - job: testprep
   displayName: Prepare Test Jobs
   pool:
-    vmImage: 'windows-2019'
+    vmImage: 'windows-latest'
   variables:
     runCodesignValidationInjection: false
     skipComponentGovernanceDetection: true
@@ -117,7 +117,7 @@ jobs:
     displayName: 'Install .NET Core SDK'
     inputs:
       packageType: sdk
-      version: 3.1.x
+      version: 6.0.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2

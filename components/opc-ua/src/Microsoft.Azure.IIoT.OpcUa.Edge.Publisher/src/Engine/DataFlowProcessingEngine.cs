@@ -155,6 +155,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public JobDiagnosticInfoModel GetDiagnosticInfo() {
+            if (_messageTrigger.EndpointUrl == null) {
+                return null;
+            }
             var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
             double totalDuration = _diagnosticStart != DateTime.MinValue ? totalSeconds : 0;
             double chunkSizeAverage = _messageEncoder.AvgMessageSize / (4 * 1024);

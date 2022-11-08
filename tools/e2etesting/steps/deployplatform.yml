@@ -3,7 +3,7 @@ steps:
   displayName: 'Install .NET Core SDK for building'
   inputs:
     packageType: sdk
-    version: 3.1.x
+    version: 6.0.x
     includePreviewVersions: false
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
@@ -50,29 +50,19 @@ steps:
     targetType: filePath
     filePath: $(BasePath)\..\scripts\set-version.ps1
 
-- task: AzureCLI@2
-  displayName: 'Override platform version if necessary'
-  condition: eq(variables['PlatformVersion'], '')
+- task: AzurePowerShell@5
+  displayName: 'Auto-Set Variables'
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
-    scriptLocation: 'InlineScript'
-    scriptType: 'ps'
-    addSpnToEnvironment: true
-    inlineScript: |
-      Write-Host "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
-
-- task: AzureCLI@2
-  displayName: 'Override "ImageNamespace : $(ImageNamespace)" for release branch to "public"'
-  condition: startsWith(variables['BranchName'], 'release')
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
-    scriptLocation: 'InlineScript'
-    scriptType: 'ps'
-    addSpnToEnvironment: true
-    inlineScript: |
-      Write-Host "##vso[task.setvariable variable=ImageNamespace]public"
+    scriptType: filePath
+    scriptPath: '$(BasePath)\SetVariables.ps1'
+    scriptArguments: >
+      -BranchName "$(BranchName)"
+      -Region "$(Region)"
+      -ImageTag "$(PlatformVersion)"
+      -ImageNamespace "$(ImageNamespace)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
 
 - task: AzurePowerShell@5
   displayName: "Replace parameters in appSettings.json (for IAI)"
@@ -88,7 +78,7 @@ steps:
       -AppSettingsFilename "$(BasePath)\IAI\appsettings.json"
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
-      -ImageTag "$(PlatformVersion)"
+      -ImageTag "$(ImageTag)"
       -ImageNamespace "$(ImageNamespace)"
       -ContainerRegistryServer "$(ContainerRegistryServer)"
       -ContainerRegistryUsername "$(ContainerRegistryUsername)"
@@ -98,7 +88,7 @@ steps:
   displayName: 'Run deployment with IAI'
   timeoutInMinutes: 90
   inputs:
-    script: '$(IAILocalFilename)'
+    script: 'type appsettings.json && $(IAILocalFilename)'
     workingDirectory: '$(BasePath)\IAI'
 
 - task: AzurePowerShell@5

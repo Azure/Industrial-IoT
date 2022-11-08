@@ -160,13 +160,18 @@
                 }
             }
         },
-        "windowsOsProfile": {
-            "computerName": "[variables('vmName')]",
-            "adminUsername": "[parameters('edgeUsername')]",
-            "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]",
-            "windowsConfiguration": {
-                "enableAutomaticUpdates": true,
-                "provisionVmAgent": true
+        "windowsDscProperties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "2.77",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "wmfVersion": "latest",
+                "configuration": {
+                    "url": "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dsc-install.zip')]",
+                    "script": "dsc-install.ps1",
+                    "function": "InstallWindowsFeatures"
+                }
             }
         },
         "windowsVmExtension": {
@@ -177,20 +182,31 @@
             "settings": {
                 "fileUris": [
                     "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/eflow-setup.ps1')]",
                     "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/TLSSettings.ps1')]"
                 ]
             },
             "protectedSettings": {
-                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./edge-setup.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
+                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./eflow-setup.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
             }
         },
+        "windowsOsProfile": {
+            "computerName": "[variables('vmName')]",
+            "adminUsername": "[parameters('edgeUsername')]",
+            "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]",
+            "windowsConfiguration": {
+                "enableAutomaticUpdates": true,
+                "provisionVmAgent": true
+            }
+        },
+        "windowsVmSku": "Standard_D4s_v4",
         "windowsImage": {
             "publisher": "MicrosoftWindowsServer",
             "offer": "WindowsServer",
-            "sku": "2019-Datacenter-Core-with-Containers",
+            "sku": "2022-Datacenter",
             "version": "latest"
         },
+        "linuxVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",
         "linuxImage": {
             "publisher": "Canonical",
             "offer": "UbuntuServer",
@@ -218,8 +234,8 @@
                 "commandToExecute": "[concat('sudo bash edge-setup.sh --idScope \"', parameters('dpsIdScope'), '\" --dpsConnString \"', parameters('dpsConnString'), '\"')]"
             }
         },
-        "edgeVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",
-        "simulationVmSku": "[if(not(empty(parameters('simulationVmSize'))), parameters('simulationVmSize'), variables('edgeVmSku'))]"
+        "edgeVmSku": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxVmSku'), variables('windowsVmSku'))]",
+        "simulationVmSku": "[if(not(empty(parameters('simulationVmSize'))), parameters('simulationVmSize'), variables('linuxVmSku'))]"
     },
     "resources": [
         {
@@ -275,7 +291,7 @@
             "comments": "Virtual machine hosting the IoT Edge installation.",
             "name": "[variables('vmName')]",
             "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2019-03-01",
+            "apiVersion": "2022-03-01",
             "location": "[resourceGroup().location]",
             "tags": "[parameters('tags')]",
             "identity": "[if(not(empty(parameters('managedIdentityResourceId'))), variables('identity'), '')]",
@@ -303,6 +319,18 @@
             ]
         },
         {
+            "comments": "Install required windows features for eflow installtion on vm.",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2021-03-01",
+            "condition": "[not(equals(parameters('edgeOs'), 'linux'))]",
+            "name": "[concat(variables('vmName'), '/', 'InstallWindowsFeatures')]",
+            "location": "[resourceGroup().location]",
+            "properties": "[variables('windowsDscProperties')]",
+            "dependsOn": [
+                "[variables('vmResourceId')]"
+            ]
+        },
+        {
             "comments": "One time script execution to install and onboard IoT Edge and deploy workloads",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('vmName'), '/', 'scriptextensions')]",
@@ -311,7 +339,8 @@
             "tags": "[parameters('tags')]",
             "properties": "[if (equals(parameters('edgeOs'), 'linux'), variables('linuxVmExtension'), variables('windowsVmExtension'))]",
             "dependsOn": [
-                "[variables('vmResourceId')]"
+                "[variables('vmResourceId')]",
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('vmName'), 'InstallWindowsFeatures')]"
             ]
         },
         {

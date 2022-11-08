@@ -29,7 +29,7 @@ schedules:
 #         - refs/heads/main
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'windows-latest'
 
 variables:
 - template: steps/variables.yml

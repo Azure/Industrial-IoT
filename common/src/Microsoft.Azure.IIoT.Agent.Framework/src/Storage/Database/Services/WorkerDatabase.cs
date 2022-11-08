@@ -25,11 +25,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// <param name="databaseServer"></param>
         /// <param name="databaseRegistryConfig"></param>
         /// <param name="logger"></param>
-        public WorkerDatabase(IDatabaseServer databaseServer, IWorkerDatabaseConfig databaseRegistryConfig, ILogger logger) {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            var database = databaseServer.OpenAsync(databaseRegistryConfig.DatabaseName).Result;
-            var container = database.OpenContainerAsync(databaseRegistryConfig.ContainerName).Result;
-            _documents = container.AsDocuments();
+        public WorkerDatabase(IDatabaseServer databaseServer,
+            IWorkerDatabaseConfig databaseRegistryConfig, ILogger logger) {
+            _logger = logger;
+            _databaseServer = databaseServer;
+            _databaseRegistryConfig = databaseRegistryConfig;
+            _documents = GetDocumentsAsync().GetAwaiter().GetResult();
         }
 
         /// <inheritdoc/>
@@ -61,12 +62,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                             return;
                         }
                         catch (ResourceOutOfDateException ex) {
-                            _logger.Warning(ex, "Failed to update document for worker {workerId} - retrying", workerHeartbeat.WorkerId);
                             exceptions.Add(ex);
                             continue; // try again refreshing the etag
                         }
                         catch (ResourceNotFoundException ex) {
-                            _logger.Warning(ex, "Failed to update document for worker {workerId} - retrying", workerHeartbeat.WorkerId);
                             exceptions.Add(ex);
                             continue;
                         }
@@ -77,17 +76,19 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     }
                     catch (ConflictingResourceException ex) {
                         // Try to update
-                        _logger.Warning(ex, "Failed to add document for worker {workerId} - retrying", workerHeartbeat.WorkerId);
                         exceptions.Add(ex);
                         continue;
                     }
                 }
                 catch (OperationCanceledException) {
-                    _logger.Warning("Failed to add document for worker {workerId} because of cancelation", workerHeartbeat.WorkerId);
+                    _logger.Warning("Failed to add document for worker {workerId} because of cancelation",
+                        workerHeartbeat.WorkerId);
                     throw;
                 }
             }
-            _logger.Warning("Failed to add or update document for worker {workerId} because of too many retries", workerHeartbeat.WorkerId);
+            var aggregateException = new AggregateException(exceptions);
+            _logger.Warning(aggregateException,
+                "Failed to add or update document for worker {workerId} because of too many retries", workerHeartbeat.WorkerId);
             throw new AggregateException(exceptions);
         }
 
@@ -142,8 +143,22 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             return queryString;
         }
 
-        private readonly ILogger _logger;
+        private async Task<IDocuments> GetDocumentsAsync() {
+            try {
+                var database = await _databaseServer.OpenAsync(_databaseRegistryConfig.DatabaseName);
+                var container = await database.OpenContainerAsync(_databaseRegistryConfig.ContainerName);
+                return container.AsDocuments();
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to open document collection.");
+                throw;
+            }
+        }
+
         private readonly IDocuments _documents;
+        private readonly ILogger _logger;
+        private readonly IDatabaseServer _databaseServer;
+        private readonly IWorkerDatabaseConfig _databaseRegistryConfig;
         private const int MaxRetries = 10;
     }
 }

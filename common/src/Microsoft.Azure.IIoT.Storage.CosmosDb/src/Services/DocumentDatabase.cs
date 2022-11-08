@@ -103,9 +103,15 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                 id = "default";
             }
             if (!_collections.TryGetValue(id, out var collection)) {
-                var coll = await EnsureCollectionExistsAsync(id, options);
-                collection = _collections.GetOrAdd(id, k =>
-                    new DocumentCollection(this, coll, _logger, _jsonConfig));
+                try {
+                    var coll = await EnsureCollectionExistsAsync(id, options);
+                    collection = _collections.GetOrAdd(id, k =>
+                        new DocumentCollection(this, coll, _logger, _jsonConfig));
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Failed to create collection {id}.", id);
+                    throw;
+                }
             }
             return collection;
         }
