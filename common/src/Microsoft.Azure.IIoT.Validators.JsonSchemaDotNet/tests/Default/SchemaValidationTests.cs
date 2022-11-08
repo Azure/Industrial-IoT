@@ -304,6 +304,34 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
             }
         }
 
+        [Fact]
+        public void ConfigurationFileWithCommendIsAllowed() {
+            using var schemaReader = new StreamReader(PublishedNodesSchema);
+            var configFileShell = @"
+// This header commend does not throws validation error
+[
+  {
+    /* This endpoint is simulated */
+    ""EndpointUrl"": ""opc.tcp://20.185.195.172:53530/OPCUA/SimulationServer"",
+    // No Security 😉
+    ""UseSecurity"": false,
+    ""OpcNodes"": [
+      {
+        // First Node
+        ""Id"": ""i=1001"",
+        ""OpcSamplingInterval"": 2000,
+        ""OpcPublishingInterval"": 5000,
+      }
+    ]
+  }
+]
+";
+            var validator = new JsonSchemaDotNetSchemaValidator();
+            var results = validator.Validate(Encoding.UTF8.GetBytes(configFileShell), schemaReader);
+
+            Assert.True(results.First().IsValid);
+        }
+
         private string testConfiguration = @"
 [
   {
