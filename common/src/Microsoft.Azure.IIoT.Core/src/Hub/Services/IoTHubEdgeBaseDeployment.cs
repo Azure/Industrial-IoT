@@ -19,13 +19,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// Target condition for gateways
         /// </summary>
         public static readonly string TargetCondition =
-            $"(tags.__type__ = '{IdentityType.Gateway}' AND NOT IS_DEFINED(tags.unmanaged) AND NOT IS_DEFINED(tags.use_1_1_LTS))";
-
-        /// <summary>
-        /// Target condition for 1.1 LTS gateways (Out of support)
-        /// </summary>
-        public static readonly string TargetCondition_1_1_LTS_out_of_support =
-            $"(tags.__type__ = '{IdentityType.Gateway}' AND NOT IS_DEFINED(tags.unmanaged) AND IS_DEFINED(tags.use_1_1_LTS))";
+            $"(tags.__type__ = '{IdentityType.Gateway}' AND NOT IS_DEFINED(tags.unmanaged))";
 
         /// <summary>
         /// Create edge base deployer
@@ -46,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                     ModulesContent = GetEdgeBase("1.4")
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = TargetCondition,
+                TargetCondition = TargetCondition + " AND NOT IS_DEFINED(tags.use_1_1_LTS)",
                 Priority = 0
             }, true);
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
@@ -55,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                     ModulesContent = GetEdgeBase("1.1")
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = TargetCondition_1_1_LTS_out_of_support,
+                TargetCondition = TargetCondition + " AND IS_DEFINED(tags.use_1_1_LTS)",
                 Priority = 0
             }, true);
         }
