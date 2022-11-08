@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                 Priority = 0
             }, true);
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = $"{IdentityType.Gateway}_1_1_LTS_out_of_support",
+                Id = $"{IdentityType.Gateway}__outofsupport",
                 Content = new ConfigurationContentModel {
                     ModulesContent = GetEdgeBase("1.1")
                 },
