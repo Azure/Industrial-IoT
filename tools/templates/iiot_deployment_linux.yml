@@ -3,7 +3,7 @@
 #
 parameters:
   runtime: linux-x64
-  vmImage: ubuntu-18.04
+  vmImage: ubuntu-latest
 
 jobs:
 - job: iiot_deployment_linux

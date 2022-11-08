@@ -1503,12 +1503,12 @@ namespace Microsoft.Azure.IIoT.Serializers {
                 case float _:
                 case double _:
                 case decimal _:
-                case BigInteger b:
+                case BigInteger _:
                     if (strict) {
                         return false;
                     }
                     try {
-                        o = (byte)b;
+                        o = (byte)((BigInteger)raw);
                         return true;
                     }
                     catch {

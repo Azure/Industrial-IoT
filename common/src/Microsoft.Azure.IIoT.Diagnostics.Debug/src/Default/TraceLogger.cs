@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Diagnostics {
     using Serilog;
     using Serilog.Events;
+    using System;
 
     /// <summary>
     /// Trace logger
@@ -18,16 +19,31 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// <summary>
         /// Create console logger
         /// </summary>
-        /// <param name="config"></param>
+        /// <param name="loggerConfiguration"></param>
         /// <param name="addConsole"></param>
-        public TraceLogger(LoggerConfiguration config = null, bool addConsole = true) {
-            Logger = (config ?? new LoggerConfiguration())
+        /// <param name="config"></param>
+        public TraceLogger(LoggerConfiguration loggerConfiguration = null, bool addConsole = true,
+            IDiagnosticsConfig config = null) {
+
+            Logger = (loggerConfiguration ?? new LoggerConfiguration())
 #if DEBUG
                 .Debug(addConsole)
 #else
                 .Trace(addConsole)
 #endif
                 .CreateLogger();
+
+            var configLevel = config?.LogLevel ?? Environment.GetEnvironmentVariable("LOG_LEVEL");
+            if (!string.IsNullOrEmpty(configLevel) && Enum.IsDefined(typeof(LogEventLevel), configLevel)) {
+                LogControl.Level.MinimumLevel = (LogEventLevel)Enum.Parse(typeof(LogEventLevel), configLevel);
+            }
+            else {
+#if DEBUG
+                LogControl.Level.MinimumLevel = LogEventLevel.Debug;
+#else
+                LogControl.Level.MinimumLevel = LogEventLevel.Information;
+#endif
+            }
         }
 
         /// <summary>

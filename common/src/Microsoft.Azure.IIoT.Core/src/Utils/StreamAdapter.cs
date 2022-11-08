@@ -57,11 +57,6 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <inheritdoc/>
-        public override object InitializeLifetimeService() {
-            return _inner.InitializeLifetimeService();
-        }
-
-        /// <inheritdoc/>
         public override long Seek(long offset, SeekOrigin origin) {
             return _inner.Seek(offset, origin);
         }

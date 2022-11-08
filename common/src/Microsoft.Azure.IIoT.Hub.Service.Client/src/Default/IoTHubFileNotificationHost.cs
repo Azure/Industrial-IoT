@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <returns></returns>
         private async Task RunAsync(FileNotificationReceiver<FileNotification> receiver) {
             while (!_cts.IsCancellationRequested) {
-                var notification = await receiver.ReceiveAsync();
+                var notification = await receiver.ReceiveAsync(_cts.Token);
                 if (notification == null) {
                     continue;
                 }
@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     .Select(h => h.HandleAsync(notification.DeviceId, null,
                         blobName, contentType, notification.BlobUri,
                         notification.EnqueuedTimeUtc, _cts.Token))));
-                await receiver.CompleteAsync(notification);
+                await receiver.CompleteAsync(notification, _cts.Token);
             }
         }
 

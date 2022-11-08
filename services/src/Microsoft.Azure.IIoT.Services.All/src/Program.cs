@@ -34,9 +34,9 @@ namespace Microsoft.Azure.IIoT.Services.All {
         public static IHostBuilder CreateHostBuilder(string[] args) {
             return Host.CreateDefaultBuilder(args)
                 .UseAutofac()
+                .UseSerilog()
                 .ConfigureWebHostDefaults(builder => builder
                     .UseUrls("http://*:9080")
-                    .UseSerilog()
                     .UseStartup<Startup>()
                     .UseKestrel(o => o.AddServerHeader = false));
         }

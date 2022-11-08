@@ -38,7 +38,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [InlineData(MessagingMode.Samples, true)]
         [InlineData(MessagingMode.PubSub, false)]
         [InlineData(MessagingMode.PubSub, true)]
-        async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode, bool useAddOrUpdate) {
+        public async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode, bool useAddOrUpdate) {
             // When useAddOrUpdate is true, all publishing and unpublishing operations
             // will be performed through AddOrUpdateEndpoints direct method.
 
@@ -395,7 +395,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [Theory]
         [InlineData(MessagingMode.Samples)]
         [InlineData(MessagingMode.PubSub)]
-        async Task AddOrUpdateEndpointsTest(MessagingMode messagingMode) {
+        public async Task AddOrUpdateEndpointsTest(MessagingMode messagingMode) {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
 
@@ -736,7 +736,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact]
-        async Task SubscribeUnsubscribeDirectMethodLegacyPublisherTest() {
+        public async Task SubscribeUnsubscribeDirectMethodLegacyPublisherTest() {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubLegacyPublisherDeployment = new IoTHubLegacyPublisherDeployments(_context);
 

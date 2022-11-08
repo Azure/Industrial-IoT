@@ -18,8 +18,10 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// </summary>
         /// <param name="config"></param>
         public ApplicationInsightsMetrics(IDiagnosticsConfig config) {
+#pragma warning disable CS0618 // Type or member is obsolete
             _telemetryClient = new TelemetryClient(
                 new TelemetryConfiguration(config.InstrumentationKey));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
          /// <inheritdoc/>

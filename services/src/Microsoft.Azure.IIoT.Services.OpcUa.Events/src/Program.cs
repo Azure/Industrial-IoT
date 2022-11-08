@@ -30,9 +30,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
         public static IHostBuilder CreateHostBuilder(string[] args) {
             return Host.CreateDefaultBuilder(args)
                 .UseAutofac()
+                .UseSerilog()
                 .ConfigureWebHostDefaults(builder => builder
                     .UseUrls("http://*:9050")
-                    .UseSerilog()
                     .UseStartup<Startup>()
                     .UseKestrel(o => o.AddServerHeader = false));
         }

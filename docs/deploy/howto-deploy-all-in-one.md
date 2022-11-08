@@ -11,6 +11,9 @@ The ARM deployment templates included in the repository deploy the platform and 
 - The Industrial IoT Platform
 - The Industrial IoT Engineering tool
 
+**This deployment option is not supported for production workloads**, it is used to quickly demonstrate the platform and includes simulation gateways and devices.
+Use [AKS](howto-deploy-aks.md) to host services in a production deployment.  
+
 ## Running the script
 
 The latest platform and simulation can also be deployed using the deploy script.

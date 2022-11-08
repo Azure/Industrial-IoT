@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Description>Contains fixtures and tests executing against reference servers</Description>
   </PropertyGroup>
   <ItemGroup>
@@ -49,7 +49,7 @@
     <EmbeddedResource Include="Servers\Views\Design\Operations.PredefinedNodes.uanodes" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="xunit.assert" Version="2.4.1" />
+    <PackageReference Include="xunit.assert" Version="2.4.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Protocol\src\Microsoft.Azure.IIoT.OpcUa.Protocol.csproj" />

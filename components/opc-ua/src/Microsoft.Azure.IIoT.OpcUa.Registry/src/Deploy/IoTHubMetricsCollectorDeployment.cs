@@ -79,21 +79,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             bool isLinux) {
 
             // Configure create options and version per os specified
-            string createOptions;
-
-            if (isLinux) {
-                // Linux
-                createOptions = "{}";
-           }
-            else {
-                // Windows
-                createOptions = _serializer.SerializeToString(new {
-                    User = "ContainerAdministrator"
-                });
-            }
-            createOptions = createOptions.Replace("\"", "\\\"");
+            var createOptions = "{}";
             var image = "mcr.microsoft.com/azureiotedge-metrics-collector:1.0";
-            _logger.Information("Updating metrics collector module deployment for {os}", isLinux ? "Linux" : "Windows");
+            _logger.Information("Updating metrics collector module deployment for {os}",
+                isLinux ? "Linux" : "Windows (Eflow)");
 
             // Return deployment modules object
             var content = @"
