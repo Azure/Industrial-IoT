@@ -72,6 +72,22 @@ However, sometimes it is desirable to not have layered deployments manage your G
 
 This will cause that no modules are automatically deployed and thus you must deploy all modules using a module deployment manifest via [Az](howto-deploy-modules-az.md), or [Portal](howto-deploy-modules-portal.md).
 
+### Temporarily continue deploying out of support 1.1 LTS modules to an 1.1 IoT Edge device
+
+To continue deploying the 1.1 LTS modules to a 1.1 LTS IoT Edge gateway device until you are able to upgrade the device to 1.4, add a tag to your gateway device's twin with the name `use_1_1_LTS` and remove it once you have upgraded your edge gateway to 1.4 LTS. This operation can be automated using the az CLI. It should be done ahead of deploying the 2.8.4 release to Azure to avoid outages.
+
+```json
+...
+"tags": {
+    "__type__": "iiotedge",
+    // ...
+    "use_1_1_LTS": true
+}
+...
+```
+
+> IMPORTANT: Setting the tag to `false` or any other value has no effect.  Once you upgrade your IoT Edge device to 1.4 you must remove the tag to ensure the 1.4 modules are deployed to it. 
+
 ### Module Versions
 
 By default, the same Docker container image version tag from mcr.microsoft.com is deployed that corresponds to the corresponding micro-service's version.

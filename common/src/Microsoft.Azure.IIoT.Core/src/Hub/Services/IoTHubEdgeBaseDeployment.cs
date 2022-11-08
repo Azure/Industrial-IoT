@@ -19,7 +19,13 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// Target condition for gateways
         /// </summary>
         public static readonly string TargetCondition =
-            $"(tags.__type__ = '{IdentityType.Gateway}' AND NOT IS_DEFINED(tags.unmanaged))";
+            $"(tags.__type__ = '{IdentityType.Gateway}' AND NOT IS_DEFINED(tags.unmanaged) AND NOT IS_DEFINED(tags.use_1_1_LTS))";
+
+        /// <summary>
+        /// Target condition for 1.1 LTS gateways (Out of support)
+        /// </summary>
+        public static readonly string TargetCondition_1_1_LTS_out_of_support =
+            $"(tags.__type__ = '{IdentityType.Gateway}' AND NOT IS_DEFINED(tags.unmanaged) AND IS_DEFINED(tags.use_1_1_LTS))";
 
         /// <summary>
         /// Create edge base deployer
@@ -33,14 +39,23 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         }
 
         /// <inheritdoc/>
-        public Task StartAsync() {
-           return _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
+        public async Task StartAsync() {
+            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = IdentityType.Gateway,
                 Content = new ConfigurationContentModel {
-                    ModulesContent = GetEdgeBase()
+                    ModulesContent = GetEdgeBase("1.4")
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = TargetCondition,
+                Priority = 0
+            }, true);
+            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
+                Id = $"{IdentityType.Gateway}_1_1_LTS_out_of_support",
+                Content = new ConfigurationContentModel {
+                    ModulesContent = GetEdgeBase("1.1")
+                },
+                SchemaVersion = kDefaultSchemaVersion,
+                TargetCondition = TargetCondition_1_1_LTS_out_of_support,
                 Priority = 0
             }, true);
         }
@@ -55,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// </summary>
         /// <param name="version"></param>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version = "1.4") {
+        private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version) {
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(@"
 {
     ""$edgeAgent"": {
@@ -74,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                 ""edgeAgent"": {
                     ""type"": ""docker"",
                     ""settings"": {
-                        ""image"": ""mcr.microsoft.com/azureiotedge-agent:" + version+ @""",
+                        ""image"": ""mcr.microsoft.com/azureiotedge-agent:" + version + @""",
                         ""createOptions"": ""{}""
                     },
                     ""env"": {
