@@ -18,6 +18,9 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <LangVersion>8.0</LangVersion>
     <IsPackable>false</IsPackable>
+	<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+	<ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+	<RuntimeIdentifiers>win-x64;linux-x64;linux-musl-x64;linux-musl-arm;linux-musl-arm64</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
     <None Include="$(MSBuildThisFileDirectory)/docs/media/icon.png" Pack="true" PackagePath="\"/>
@@ -30,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup Condition="$(NO_GIT) == ''">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.255" PrivateAssets="All"/>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.113" PrivateAssets="All"/>
   </ItemGroup>
   <ItemGroup Condition="'$(FX_COP)' != ''">
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.3" />

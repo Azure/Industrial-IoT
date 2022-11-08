@@ -56,6 +56,9 @@
  .PARAMETER acrSubscriptionName
     The subscription of the container registry, if different from the specified subscription.
 
+ .PARAMETER acrTenantId
+    The tenant where the container registry resides. If not provided uses all.
+
  .PARAMETER environmentName
     The cloud environment to use, defaults to AzureCloud.
 
@@ -98,12 +101,13 @@ param(
     [string] $aadApplicationName,
     [string] $acrRegistryName,
     [string] $acrSubscriptionName,
+    [string] $acrTenantId,
     [string] $simulationProfile,
     [string] $gatewayVmSku,
     [string] $opcPlcVmSku,
-    [int] $numberOfLinuxGateways = 0,
-    [int] $numberOfWindowsGateways = 0,
-    [int] $numberOfSimulationsPerEdge = 0,
+    [int] $numberOfLinuxGateways = 1,
+    [int] $numberOfWindowsGateways = 1,
+    [int] $numberOfSimulationsPerEdge = 1,
     $aadConfig,
     $context = $null,
     [switch] $testAllDeploymentOptions,
@@ -309,9 +313,9 @@ Function Select-RegistryCredentials() {
     if (![string]::IsNullOrEmpty($script:acrSubscriptionName) `
             -and ($context.Subscription.Name -ne $script:acrSubscriptionName)) {
         $tenantIdArg = @{}
-        if (![string]::IsNullOrEmpty($script:tenantId)) {
+        if (![string]::IsNullOrEmpty($script:acrTenantId)) {
             $tenantIdArg = @{
-                TenantId = $script:tenantId
+                TenantId = $script:acrTenantId
             }
         }
         $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName @tenantIdArg
@@ -774,6 +778,7 @@ Function New-Deployment() {
             $creds = Select-RegistryCredentials
         }
         catch {
+            Write-Warning $_.Exception.Message
             $creds = $null
         }
 
@@ -814,18 +819,6 @@ Function New-Deployment() {
         else {
             $templateParameters.Add("simulationProfile", $script:simulationProfile)
         }
-        if ((-not $script:numberOfLinuxGateways) -or ($script:numberOfLinuxGateways -eq 0)) {
-            $templateParameters.Add("numberOfLinuxGateways", 1)
-        }
-        else {
-            $templateParameters.Add("numberOfLinuxGateways", $script:numberOfLinuxGateways)
-        }
-        if ((-not $script:numberOfWindowsGateways) -or ($script:numberOfWindowsGateways -eq 0)) {
-            $templateParameters.Add("numberOfWindowsGateways", 1)
-        }
-        else {
-            $templateParameters.Add("numberOfWindowsGateways", $script:numberOfWindowsGateways)
-        }
         if ((-not $script:numberOfSimulationsPerEdge) -or ($script:numberOfSimulationsPerEdge -eq 0)) {
             $templateParameters.Add("numberOfSimulations", 1)
         }
@@ -847,6 +840,11 @@ Function New-Deployment() {
             $availableVmNames = $availableVms `
                 | Select-Object -ExpandProperty Name -Unique
 
+            if (($script:numberOfWindowsGateways -gt 0) -and ($availableVmNames -inotcontains "Standard_D4s_v4")) {
+Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow simulation not available in selected region or your subscription."
+                $script:numberOfWindowsGateways = 0
+            }
+
             # We will use VM with at least 2 cores and 8 GB of memory as gateway host.
             $edgeVmSizes = Get-AzVMSize $script:resourceGroupLocation `
                 | Where-Object { $availableVmNames -icontains $_.Name } `
@@ -861,12 +859,25 @@ Function New-Deployment() {
             # Pick top
             if ($edgeVmSizes.Count -ne 0) {
                 $edgeVmSize = $edgeVmSizes[0].Name
-                Write-Host "Using $($edgeVmSize) as VM size for all edge simulation gateway hosts..."
+                Write-Host "Using $($edgeVmSize) as VM size for Linux IoT Edge gateway simulations..."
                 $templateParameters.Add("edgeVmSize", $edgeVmSize)
             }
         }
         else {
             $templateParameters.Add("edgeVmSize", $script:gatewayVmSku)
+        }
+
+        if ((-not $script:numberOfLinuxGateways) -or ($script:numberOfLinuxGateways -eq 0)) {
+            $templateParameters.Add("numberOfLinuxGateways", 1)
+        }
+        else {
+            $templateParameters.Add("numberOfLinuxGateways", $script:numberOfLinuxGateways)
+        }
+        if (-not $script:numberOfWindowsGateways) {
+            $templateParameters.Add("numberOfWindowsGateways", 0)
+        }
+        else {
+            $templateParameters.Add("numberOfWindowsGateways", $script:numberOfWindowsGateways)
         }
 
         if ([string]::IsNullOrEmpty($script:opcPlcVmSku)) {
@@ -885,7 +896,7 @@ Function New-Deployment() {
             # Pick top
             if ($simulationVmSizes.Count -ne 0) {
                 $simulationVmSize = $simulationVmSizes[0].Name
-                Write-Host "Using $($simulationVmSize) as VM size for all edge simulation hosts..."
+                Write-Host "Using $($simulationVmSize) as VM size for all OPC PLC simulation host machines..."
                 $templateParameters.Add("simulationVmSize", $simulationVmSize)
             }
         }    

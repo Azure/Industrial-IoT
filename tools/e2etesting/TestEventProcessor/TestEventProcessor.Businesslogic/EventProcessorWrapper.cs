@@ -24,13 +24,12 @@ namespace TestEventProcessor.Businesslogic {
 
         private readonly ILogger _logger;
         private readonly IEventProcessorConfig _config;
-        private bool _monitoringEnabled = false;
 
         private EventProcessorClient _client;
-        private Dictionary<string, bool> _initializedPartitions;
+        private Dictionary<string, TaskCompletionSource<bool>> _initializedPartitions;
         private SemaphoreSlim _lockInitializedPartitions;
 
-        public event Func<ProcessEventArgs, Task> ProcessEventAsync;
+        public event Action<ProcessEventArgs> ProcessEvent;
 
         public EventProcessorWrapper(
             IEventProcessorConfig configuration,
@@ -97,7 +96,7 @@ namespace TestEventProcessor.Businesslogic {
             var partitions = await eventHubConsumerClient
                 .GetPartitionIdsAsync(ct)
                 .ConfigureAwait(false);
-            _initializedPartitions = partitions.ToDictionary(item => item, _ => false);
+            _initializedPartitions = partitions.ToDictionary(item => item, _ => new TaskCompletionSource<bool>());
             _lockInitializedPartitions = new SemaphoreSlim(1, 1);
 
             _logger.LogInformation("Connecting to IoT Hub...");
@@ -122,19 +121,6 @@ namespace TestEventProcessor.Businesslogic {
                 throw new InvalidOperationException("EventProcessorWrapper has not been initialized.");
             }
 
-            // If processing is active for all partitions then we only need to enable message propagation.
-            await _lockInitializedPartitions.WaitAsync(ct).ConfigureAwait(false);
-            try {
-                if (_initializedPartitions.Count(kvp => kvp.Value) == _initializedPartitions.Count) {
-                    _logger.LogInformation("Enabling monitoring of events...");
-                    _monitoringEnabled = true;
-                    return;
-                }
-            }
-            finally {
-                _lockInitializedPartitions.Release();
-            }
-
             if (!_client.IsRunning) {
                 _logger.LogInformation("Starting monitoring of events...");
                 await _client.StartProcessingAsync(ct).ConfigureAwait(false);
@@ -142,16 +128,7 @@ namespace TestEventProcessor.Businesslogic {
 
             await WaitForPartitionInitialization(ct).ConfigureAwait(false);
 
-            _monitoringEnabled = true;
-        }
-
-        /// <summary>
-        /// Stop propagation of messages to downstream event handler.
-        /// This will not close connection to EventHub.
-        /// </summary>
-        public void StopProcessing() {
-            _logger.LogInformation("Disabling monitoring of events...");
-            _monitoringEnabled = false;
+            _logger.LogInformation("Enabling monitoring of events...");
         }
 
         /// <summary>
@@ -160,19 +137,18 @@ namespace TestEventProcessor.Businesslogic {
         private async Task WaitForPartitionInitialization(CancellationToken ct) {
             var sw = Stopwatch.StartNew();
 
-            while (!ct.IsCancellationRequested) {
-                await _lockInitializedPartitions.WaitAsync(ct).ConfigureAwait(false);
-                try {
-                    if (_initializedPartitions.Count(kvp => kvp.Value) == _initializedPartitions.Count) {
-                        _logger.LogInformation("Partition initialization took: {elapsed}", sw.Elapsed);
-                        return;
-                    }
-                }
-                finally {
-                    _lockInitializedPartitions.Release();
-                }
-
-                await Task.Delay(1000).ConfigureAwait(false);
+            Task[] partitions;
+            await _lockInitializedPartitions.WaitAsync(ct).ConfigureAwait(false);
+            try {
+                partitions = _initializedPartitions.Values.Select(v => v.Task).ToArray();
+            }
+            finally {
+                _lockInitializedPartitions.Release();
+            }
+            var waitOrTimeout = Task.Delay(TimeSpan.FromMinutes(5), ct);
+            var result = await Task.WhenAny(waitOrTimeout, Task.WhenAll(partitions));
+            if (result == waitOrTimeout) {
+                throw new OperationCanceledException("Cancelled waiting for partitions to initialize.");
             }
         }
 
@@ -184,7 +160,8 @@ namespace TestEventProcessor.Businesslogic {
 
             await _lockInitializedPartitions.WaitAsync().ConfigureAwait(false);
             try {
-                _initializedPartitions[arg.PartitionId] = false;
+                _initializedPartitions[arg.PartitionId].TrySetException(new Exception("Partition closed"));
+                _initializedPartitions[arg.PartitionId] = new TaskCompletionSource<bool>();
             }
             finally {
                 _lockInitializedPartitions.Release();
@@ -202,7 +179,7 @@ namespace TestEventProcessor.Businesslogic {
 
             await _lockInitializedPartitions.WaitAsync().ConfigureAwait(false);
             try {
-                _initializedPartitions[arg.PartitionId] = true;
+                _initializedPartitions[arg.PartitionId].TrySetResult(true);
             }
             finally {
                 _lockInitializedPartitions.Release();
@@ -212,14 +189,11 @@ namespace TestEventProcessor.Businesslogic {
         /// <summary>
         /// Event handler for processing IoT Hub messages.
         /// </summary>
-        private async Task Client_ProcessEventAsync(ProcessEventArgs arg) {
-            if (!_monitoringEnabled) {
-                return;
+        private Task Client_ProcessEventAsync(ProcessEventArgs arg) {
+            if (ProcessEvent != null) {
+                ProcessEvent.Invoke(arg);
             }
-
-            if (ProcessEventAsync != null) {
-                await ProcessEventAsync.Invoke(arg).ConfigureAwait(false);
-            }
+            return Task.CompletedTask;
         }
 
         /// <summary>

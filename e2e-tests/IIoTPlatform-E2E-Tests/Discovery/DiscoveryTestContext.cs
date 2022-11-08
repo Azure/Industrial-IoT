@@ -22,7 +22,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             if (!disposing) {
                 return;
             }
-            
+
             // OutputHelper cannot be used outside of test calls, we get rid of it before a helper method would use it
             OutputHelper = null;
 

@@ -25,18 +25,20 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         public ApplicationInsightsLogger(IDiagnosticsConfig config,
             LoggerConfiguration log = null, bool addConsole = true) {
 
-            LogEventLevel logEventLevel;
-
-            if (config?.LogLevel != null && Enum.IsDefined(typeof(LogEventLevel), config.LogLevel))
-                logEventLevel = (LogEventLevel)Enum.Parse(typeof(LogEventLevel), config.LogLevel);
-            else
-                logEventLevel = LogEventLevel.Information;
-
+#pragma warning disable CS0618 // Type or member is obsolete
             Logger = (log ?? new LoggerConfiguration()).Configure((c, m) => c
-                .WriteTo.ApplicationInsights(config?.InstrumentationKey,
-                    TelemetryConverter.Traces,
-                    logEventLevel), addConsole)
+                .WriteTo.ApplicationInsights(new ApplicationInsights.Extensibility.TelemetryConfiguration(config?.InstrumentationKey),
+                    TelemetryConverter.Traces), addConsole)
                 .CreateLogger();
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            var configLevel = config?.LogLevel ?? Environment.GetEnvironmentVariable("LOG_LEVEL");
+            if (!string.IsNullOrEmpty(configLevel) && Enum.IsDefined(typeof(LogEventLevel), configLevel)) {
+                LogControl.Level.MinimumLevel = (LogEventLevel)Enum.Parse(typeof(LogEventLevel), configLevel);
+            }
+            else {
+                LogControl.Level.MinimumLevel = LogEventLevel.Information;
+            }
         }
     }
 }

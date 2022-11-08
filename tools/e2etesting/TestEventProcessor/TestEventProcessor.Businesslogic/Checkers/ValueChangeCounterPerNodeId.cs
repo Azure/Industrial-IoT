@@ -5,6 +5,7 @@
 
 namespace TestEventProcessor.BusinessLogic.Checkers {
     using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -41,7 +42,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         public void ProcessEvent(
             string nodeId,
             DateTime _0,
-            object _1
+            JToken _1
         ) {
             _lock.Wait();
             try {
@@ -49,7 +50,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                     _valueChangesPerNodeId[nodeId]++;
                 }
                 else {
-                    _valueChangesPerNodeId[nodeId] = 1;
+                    _valueChangesPerNodeId.Add(nodeId, 1);
                 }
             }
             finally {
