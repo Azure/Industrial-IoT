@@ -194,7 +194,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int i) => this[StandaloneCliConfigKeys.BatchSize] = i.ToString() },
                     { $"bi|batchtriggerinterval=|{StandaloneCliConfigKeys.BatchTriggerInterval}=", "The trigger batching interval in milliseconds.",
                         (int k) => this[StandaloneCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromMilliseconds(k).ToString() },
-                    { $"si|iothubsendinterval=|{StandaloneCliConfigKeys.BatchTriggerInterval}=", "The trigger batching interval in seconds.",
+                    { $"si|iothubsendinterval=", "The trigger batching interval in seconds.",
                         (int k) => this[StandaloneCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
                     { $"ms|iothubmessagesize=|{StandaloneCliConfigKeys.IoTHubMaxMessageSize}=", "The maximum size of the (IoT D2C) message.",
                         (int i) => this[StandaloneCliConfigKeys.IoTHubMaxMessageSize] = i.ToString() },
