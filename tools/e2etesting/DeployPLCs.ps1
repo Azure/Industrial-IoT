@@ -18,7 +18,7 @@ Param(
     [string]
     $FastNodeType = "uint",
     [string]
-    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:latest",
+    $PLCImage,
     [string]
     $ResourcesPrefix = "e2etesting",
     [Double]
@@ -31,6 +31,10 @@ Param(
 
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
+
+if (!$PLCImage) {
+    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:2.5.2"
+}
 
 if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
@@ -93,11 +97,20 @@ if ($aciNamesToCreate.Length -gt 0) {
     if ($UsePrivateIp -eq $false) {
         $script = {
             Param($Name)
-            $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+
+            # create
             $ports = @(50000, 80)
-            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name
+            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name
+            $container = az container show --resource-group $using:ResourceGroupName --name $Name | ConvertFrom-Json
+            if (!$container.ipAddress.ip) {
+                throw "Create container failed with exit code: $LASTEXITCODE"
+            }
+            # update
+            $aciCommand = "/bin/sh -c './opcplc --ph $($container.ipAddress.fqdn) --cdn $($container.ipAddress.ip) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name --command $aciCommand
             if ($LASTEXITCODE -ne 0) {
-                throw "Job failed with exit code: $LASTEXITCODE"
+                az container delete -y --resource-group $using:ResourceGroupName --name $Name
+                throw "Update container failed with exit code: $LASTEXITCODE"
             }
         }
     }
@@ -111,11 +124,21 @@ if ($aciNamesToCreate.Length -gt 0) {
 
         $script = {
             Param($Name)
-            $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+
+            #create
             $ports = @(50000, 80)
-            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:vNet --subnet $using:subNet
+            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:vNet --subnet $using:subNet
+            $container = az container show --resource-group $using:ResourceGroupName --name $Name | ConvertFrom-Json
+            if (!$container.ipAddress.ip) {
+                throw "Create container failed with exit code: $LASTEXITCODE"
+            }
+
+            # update
+            $aciCommand = "/bin/sh -c './opcplc --ph $($container.ipAddress.fqdn) --cdn $($container.ipAddress.ip) --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --ports @ports --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:vNet --subnet $using:subNet --command $aciCommand
             if ($LASTEXITCODE -ne 0) {
-                throw "Job failed with exit code: $LASTEXITCODE"
+                az container delete -y --resource-group $using:ResourceGroupName --name $Name
+                throw "Update container failed with exit code: $LASTEXITCODE"
             }
         }
     }
@@ -154,10 +177,8 @@ if ($aciNamesToCreate.Length -gt 0) {
 }
 
 ## Write ACI FQDNs to KeyVault ##
-
 Write-Host
 Write-Host "Getting IPs of ACIs for simulated PLCs..."
-
 $ipList = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].ipAddress.ip"  | ConvertFrom-Json
 
 if ($ipList.Count -eq 0) {

@@ -236,13 +236,13 @@ namespace Opc.Ua.PubSub {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.Timestamp;
             }
             Value = decoder.ReadDataValue("Value");
-            if (Value.ServerTimestamp != null) {
+            if (Value.ServerTimestamp != DateTime.MinValue) {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.ServerTimestamp;
             }
             if (Value.ServerPicoseconds != 0) {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.ServerPicoSeconds;
             }
-            if (Value.SourceTimestamp != null) {
+            if (Value.SourceTimestamp != DateTime.MinValue) {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.SourceTimestamp;
             }
             if (Value.SourcePicoseconds != 0) {

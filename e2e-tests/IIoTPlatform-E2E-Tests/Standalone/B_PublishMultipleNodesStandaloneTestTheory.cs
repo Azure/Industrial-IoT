@@ -38,7 +38,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [Theory]
         [InlineData(MessagingMode.Samples)]
         [InlineData(MessagingMode.PubSub)]
-        async Task SubscribeUnsubscribeTest(MessagingMode messagingMode) {
+        public async Task SubscribeUnsubscribeTest(MessagingMode messagingMode) {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
 
@@ -86,11 +86,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             // Wait some time till the updated pn.json is reflected.
-            await Task.Delay(3 * TestConstants.DefaultTimeoutInMilliseconds);
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 250, 10_000, 90_000_000, cts.Token);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 250, 1000, 90_000_000, cts.Token);
 
             // Wait some time to generate events to process.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);

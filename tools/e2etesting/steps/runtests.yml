@@ -5,14 +5,6 @@ parameters:
   type: string
 
 steps:
-- task: UseDotNet@2
-  displayName: 'Install .NET Core SDK'
-  inputs:
-    packageType: sdk
-    version: 3.1.x
-    includePreviewVersions: false
-    installationPath: $(Agent.ToolsDirectory)/dotnet
-
 - task: AzureCLI@2
   displayName: 'Set Service Principal Environment Variables'
   name: promoteserviceprincipal
@@ -89,37 +81,45 @@ steps:
     targetType: filePath
     filePath: $(BasePath)\..\scripts\set-version.ps1
 
-- task: AzureCLI@2
-  displayName: 'Override platform version if necessary'
-  condition: eq(variables['PlatformVersion'], '')
+- task: AzurePowerShell@5
+  displayName: 'Auto-Set Variables'
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
-    scriptLocation: 'InlineScript'
-    scriptType: 'ps'
-    addSpnToEnvironment: true
-    inlineScript: |
-      Write-Host "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
+    scriptType: filePath
+    scriptPath: '$(BasePath)\SetVariables.ps1'
+    scriptArguments: >
+      -BranchName "$(BranchName)"
+      -Region "$(Region)"
+      -ImageTag "$(PlatformVersion)"
+      -ImageNamespace "$(ImageNamespace)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
 
-- task: AzureCLI@2
-  displayName: 'Override "ImageNamespace : $(ImageNamespace)" for release branch to "public"'
-  condition: startsWith(variables['BranchName'], 'release')
+- task: UseDotNet@2
+  displayName: 'Install .NET Core SDK'
   inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
-    scriptLocation: 'InlineScript'
-    scriptType: 'ps'
-    addSpnToEnvironment: true
-    inlineScript: |
-      Write-Host "##vso[task.setvariable variable=ImageNamespace]public"
-
+    packageType: sdk
+    version: 6.0.x
+    includePreviewVersions: false
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+- task: DotNetCoreCLI@2
+  displayName: 'Restore xUnit tests'
+  inputs:
+    command: restore
+    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
+- task: DotNetCoreCLI@2
+  displayName: 'Build xUnit tests'
+  inputs:
+    command: build
+    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
+    arguments: '--configuration Release'
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
   timeoutInMinutes: 150
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-    arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal'
+    arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal --logger "console;verbosity=detailed" --logger trx'
   env:
     PCS_SERVICE_URL: '$(pcs-service-url)'
     PCS_AUTH_TENANT: '$(pcs-auth-tenant)'
@@ -138,7 +138,7 @@ steps:
     TESTEVENTPROCESSOR_BASEURL: '$(testeventprocessor-baseurl)'
     TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
     TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
-    PCS_IMAGES_TAG: '$(PlatformVersion)'
+    PCS_IMAGES_TAG: '$(ImageTag)'
     PCS_CONTAINER_REGISTRY_SERVER: "$(ContainerRegistryServer)"
     PCS_CONTAINER_REGISTRY_USER: "$(ContainerRegistryUsername)"
     PCS_CONTAINER_REGISTRY_PASSWORD: "$(ContainerRegistryPassword)"

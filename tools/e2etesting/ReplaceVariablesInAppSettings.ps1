@@ -107,3 +107,4 @@ $fileContent = $fileContent -replace "{{ContainerRegistryServer}}", $ContainerRe
 $fileContent = $fileContent -replace "{{ContainerRegistryUsername}}", $ContainerRegistryUsername
 $fileContent = $fileContent -replace "{{ContainerRegistryPassword}}", $ContainerRegistryPassword
 $fileContent | Out-File $AppSettingsFilename -Force -Encoding utf8
+$fileContent | Out-Host

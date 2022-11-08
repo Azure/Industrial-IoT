@@ -50,7 +50,7 @@ namespace TestEventProcessor.Service.Controllers
             switch (command.CommandType)
             {
                 case CommandEnum.Start:
-                    result= await _validator.StartAsync(command.Configuration);
+                    result = await _validator.StartAsync(command.Configuration);
                     break;
                 case CommandEnum.Stop:
                     result = await _validator.StopAsync();

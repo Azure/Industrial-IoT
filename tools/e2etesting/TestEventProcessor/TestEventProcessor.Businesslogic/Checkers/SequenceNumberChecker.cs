@@ -49,10 +49,10 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             try {
                 if (!_latestValue.ContainsKey(dataSetWriterId)) {
                     // There is no previous value.
-                    _latestValue[dataSetWriterId] = curValue;
-                    _duplicateValues[dataSetWriterId] = 0;
-                    _droppedValues[dataSetWriterId] = 0;
-                    _resetValues[dataSetWriterId] = 0;
+                    _latestValue.Add(dataSetWriterId, curValue);
+                    _duplicateValues.Add(dataSetWriterId, 0);
+                    _droppedValues.Add(dataSetWriterId, 0);
+                    _resetValues.Add(dataSetWriterId, 0);
                     return;
                 }
 

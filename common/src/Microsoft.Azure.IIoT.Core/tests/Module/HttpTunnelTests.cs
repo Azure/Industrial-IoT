@@ -219,7 +219,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
 
             Assert.NotNull(result);
             Assert.Equal(System.Net.HttpStatusCode.OK, result.StatusCode);
-            Assert.Null(result.Content);
+            Assert.Empty(result.Content.ReadAsByteArrayAsync().Result);
             Assert.NotNull(result.Headers);
             Assert.Empty(result.Headers);
         }
@@ -266,7 +266,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
 
             Assert.NotNull(result);
             Assert.Equal(System.Net.HttpStatusCode.OK, result.StatusCode);
-            Assert.Null(result.Content);
+            Assert.Empty(result.Content.ReadAsByteArrayAsync().Result);
             Assert.NotNull(result.Headers);
             Assert.Empty(result.Headers);
         }

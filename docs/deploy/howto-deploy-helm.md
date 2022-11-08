@@ -19,7 +19,7 @@ of our microservices:
   Platform microservices.
 - `0.4.2` version of `azure-industrial-iot` Helm chart to deploy `2.8.2` version of Azure Industrial IoT
   Platform microservices.
-- `0.4.3` version of `azure-industrial-iot` Helm chart to deploy `2.8.3` version of Azure Industrial IoT
+- `0.4.3` version of `azure-industrial-iot` Helm chart to deploy `2.8.3` and later version of Azure Industrial IoT
   Platform microservices.
 
 ## Installing The Chart

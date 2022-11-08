@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// </summary>
     public class WriterGroupMessageTrigger : IMessageTrigger, IDisposable {
         /// <inheritdoc/>
-        public string Id => _subscriptions?.First()?.Subscription?.Connection?.CreateConnectionId() ?? _writerGroup.WriterGroupId;
+        public string Id => _subscriptions?.FirstOrDefault()?.Subscription?.Connection?.CreateConnectionId() ?? _writerGroup.WriterGroupId;
 
         /// <inheritdoc/>
         public int NumberOfConnectionRetries => _subscriptions?.Sum(x => x.Subscription?.NumberOfConnectionRetries) ?? 0;
@@ -43,25 +43,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public int NumberOfBadNodes => _subscriptions?.Sum(x => x.Subscription?.NumberOfBadNodes) ?? 0;
 
         /// <inheritdoc/>
-        public Uri EndpointUrl => new Uri(_subscriptions?.First()?.Subscription?.Connection.Endpoint.Url);
+        public Uri EndpointUrl => _subscriptions?.Count == 0 ? null : new Uri(_subscriptions?.First()?.Subscription?.Connection.Endpoint.Url);
 
         /// <inheritdoc/>
-        public string DataSetWriterGroup => _subscriptions?.First()?.Subscription?.Connection.Group;
+        public string DataSetWriterGroup => _subscriptions?.FirstOrDefault()?.Subscription?.Connection.Group;
 
         /// <inheritdoc/>
         public bool UseSecurity =>
-            _subscriptions?.First()?.Subscription?.Connection.Endpoint.SecurityMode != SecurityMode.None ?
+            _subscriptions?.FirstOrDefault()?.Subscription?.Connection.Endpoint.SecurityMode != SecurityMode.None ?
                 true : false;
 
         /// <inheritdoc/>
         public OpcAuthenticationMode AuthenticationMode =>
-            _subscriptions?.First()?.Subscription?.Connection?.User?.Value != null
-            ? OpcAuthenticationMode.UsernamePassword 
+            _subscriptions?.FirstOrDefault()?.Subscription?.Connection?.User?.Value != null
+            ? OpcAuthenticationMode.UsernamePassword
             : OpcAuthenticationMode.Anonymous;
 
         /// <inheritdoc/>
         public string AuthenticationUsername =>
-            _subscriptions?.First()?.Subscription?.Connection?.User?.Value != null 
+            _subscriptions?.FirstOrDefault()?.Subscription?.Connection?.User?.Value != null
             ? _serializer.Deserialize<cred>(_subscriptions
                 .First()
                 .Subscription

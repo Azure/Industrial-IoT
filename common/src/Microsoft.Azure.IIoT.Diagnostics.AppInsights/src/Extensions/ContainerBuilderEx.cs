@@ -66,7 +66,9 @@ namespace Autofac {
             var telemetryInitializer = new ApplicationInsightsTelemetryInitializer(processIdentity);
 
             var telemetryConfig = TelemetryConfiguration.CreateDefault();
+#pragma warning disable CS0618 // Type or member is obsolete
             telemetryConfig.InstrumentationKey = diagnosticsConfig.InstrumentationKey;
+#pragma warning restore CS0618 // Type or member is obsolete
             telemetryConfig.TelemetryInitializers.Add(telemetryInitializer);
 
             var depModule = new DependencyTrackingTelemetryModule();

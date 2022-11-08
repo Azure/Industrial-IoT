@@ -102,9 +102,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             yield return (Guid.Empty, Guid.Empty);
             var now1 = DateTime.UtcNow;
             yield return (now1, now1);
-#if MessagePack2
             yield return (DateTime.MaxValue, DateTime.MaxValue);
-#endif
             yield return (DateTime.MinValue, DateTime.MinValue);
             yield return ((DateTime?)null, (DateTime?)null);
             var now2 = DateTimeOffset.UtcNow;

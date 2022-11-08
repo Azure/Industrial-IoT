@@ -33,14 +33,23 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         }
 
         /// <inheritdoc/>
-        public Task StartAsync() {
-           return _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
+        public async Task StartAsync() {
+            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = IdentityType.Gateway,
                 Content = new ConfigurationContentModel {
-                    ModulesContent = GetEdgeBase()
+                    ModulesContent = GetEdgeBase("1.4")
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = TargetCondition,
+                TargetCondition = TargetCondition + " AND NOT IS_DEFINED(tags.use_1_1_LTS)",
+                Priority = 0
+            }, true);
+            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
+                Id = $"{IdentityType.Gateway}__outofsupport",
+                Content = new ConfigurationContentModel {
+                    ModulesContent = GetEdgeBase("1.1")
+                },
+                SchemaVersion = kDefaultSchemaVersion,
+                TargetCondition = TargetCondition + " AND IS_DEFINED(tags.use_1_1_LTS)",
                 Priority = 0
             }, true);
         }
@@ -55,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// </summary>
         /// <param name="version"></param>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version = "1.1") {
+        private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version) {
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(@"
 {
     ""$edgeAgent"": {
@@ -74,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                 ""edgeAgent"": {
                     ""type"": ""docker"",
                     ""settings"": {
-                        ""image"": ""mcr.microsoft.com/azureiotedge-agent:" + version+ @""",
+                        ""image"": ""mcr.microsoft.com/azureiotedge-agent:" + version + @""",
                         ""createOptions"": ""{}""
                     },
                     ""env"": {
@@ -125,7 +134,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
 ");
         }
 
-        private const string kDefaultSchemaVersion = "1.0";
+        private const string kDefaultSchemaVersion = "1.1";
         private readonly IIoTHubConfigurationServices _service;
         private readonly IJsonSerializer _serializer;
     }

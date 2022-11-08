@@ -67,6 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         /// <summary>
         /// Get base edge configuration
         /// </summary>
+        /// <param name="isLinux"></param>
         /// <returns></returns>
         private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(bool isLinux) {
 
@@ -93,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                         "AutoAcceptUntrustedCertificates=true"
                     },
                     HostConfig = new {
-                        Binds = new [] {
+                        Binds = new[] {
                             "/mount:/mount"
                         },
                         CapDrop = new[] {
@@ -105,19 +106,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             }
             else {
                 createOptions = _serializer.SerializeToString(new {
-                    User = "ContainerAdministrator",
                     Hostname = "publisher",
                     Cmd = new[] {
                         "PkiRootPath=/mount/pki",
                         "AutoAcceptUntrustedCertificates=true"
                     },
                     HostConfig = new {
-                        Mounts = new[] {
-                            new {
-                                Type = "bind",
-                                Source = "C:\\\\ProgramData\\\\iotedge",
-                                Target = "C:\\\\mount"
-                            }
+                        Binds = new[] {
+                            "/home/iotedge:/mount"
+                        },
+                        CapDrop = new[] {
+                            "CHOWN",
+                            "SETUID"
                         }
                     }
                 }).Replace("\"", "\\\"");

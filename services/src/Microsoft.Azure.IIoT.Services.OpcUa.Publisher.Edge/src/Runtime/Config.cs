@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.RateLimiting;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
@@ -23,6 +24,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Runtime {
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
+    using Microsoft.Azure.IIoT.AspNetCore.RateLimiting.Runtime;
 
     /// <summary>
     /// Common web service configuration aggregation
@@ -30,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Runtime {
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
         ICorsConfig, IOpenApiConfig, IJobOrchestratorConfig, ICosmosDbConfig,
         IJobDatabaseConfig, IWorkerDatabaseConfig, IForwardedHeadersConfig,
-        IRoleConfig {
+        IRoleConfig, IRateLimitingConfig {
 
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
@@ -83,6 +85,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Runtime {
         /// <inheritdoc/>
         public int AspNetCoreForwardedHeadersForwardLimit =>
             _fh.AspNetCoreForwardedHeadersForwardLimit;
+        /// <inheritdoc/>
+        public int AspNetCoreRateLimitingMaxConcurrentRequests =>
+            _rc.AspNetCoreRateLimitingMaxConcurrentRequests;
+        /// <inheritdoc/>
+        public string AspNetCoreRateLimitingPathException => "/healthz";
 
         /// <summary>
         /// Configuration constructor
@@ -98,6 +105,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Runtime {
             _cosmos = new CosmosDbConfig(configuration);
             _jobs = new JobOrchestratorConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
+            _rc = new RateLimitingConfig(configuration);
         }
 
         private readonly OpenApiConfig _openApi;
@@ -107,5 +115,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Runtime {
         private readonly JobOrchestratorConfig _jobs;
         private readonly IoTHubConfig _hub;
         private readonly ForwardedHeadersConfig _fh;
+        private readonly RateLimitingConfig _rc;
     }
 }

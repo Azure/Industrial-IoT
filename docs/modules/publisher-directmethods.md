@@ -2,7 +2,7 @@
 
 # Configuration via IoT Hub Direct methods
 
-OPC Publisher version 2.8.2 implements [IoT Hub Direct Methods](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-direct-methods), which can be called from an application using the [IoT Hub Device SDK](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks).
+OPC Publisher version 2.8.2 and later implements [IoT Hub Direct Methods](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-direct-methods), which can be called from an application using the [IoT Hub Device SDK](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks).
 
 The following direct methods are exposed:
 
@@ -14,7 +14,7 @@ The following direct methods are exposed:
 - GetDiagnosticInfo_V1
 - AddOrUpdateEndpoints_V1
 
-If you need to migrate your application from OPC Publisher 2.5.x to OPC Publisher 2.8.2 or latest 2.8.3, we provide the needed information in a [separate document](./publisher-migrationpath.md).
+If you need to migrate your application from OPC Publisher 2.5.x to OPC Publisher 2.8.2 or later, we provide the needed information in a [separate document](./publisher-migrationpath.md).
 
 ## Terminology
 
