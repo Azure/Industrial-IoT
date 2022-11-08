@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge {
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.RateLimiting;
     using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
@@ -111,7 +112,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge {
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
 
             // Enable Application Insights telemetry collection.
+#pragma warning disable CS0618 // Type or member is obsolete
             services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
+#pragma warning restore CS0618 // Type or member is obsolete
             services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
         }
 
@@ -139,6 +142,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge {
             app.UseSwagger();
             app.UseMetricServer();
             app.UseHttpMetrics();
+            app.UseRateLimiting();
+
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");

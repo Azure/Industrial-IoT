@@ -81,10 +81,12 @@ namespace System {
             if (bytestr == null) {
                 return null;
             }
+#pragma warning disable SYSLIB0021 // Type or member is obsolete
             using (var sha1 = new SHA1Managed()) {
                 var hash = sha1.ComputeHash(bytestr);
                 return hash.ToBase16String(false);
             }
+#pragma warning restore SYSLIB0021 // Type or member is obsolete
         }
 
         /// <summary>

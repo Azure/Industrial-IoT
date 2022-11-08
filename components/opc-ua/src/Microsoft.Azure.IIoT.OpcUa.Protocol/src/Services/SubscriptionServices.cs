@@ -859,22 +859,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var publishTime = (notification?.MonitoredItems?.First().Message?.PublishTime).
                         GetValueOrDefault(DateTime.UtcNow);
 
-                    if (isKeepAlive || _expectedSequenceNumber == sequenceNumber) {
+                    if (isKeepAlive) {
                         // in case of a keepalive,the sequence number is not incremented by the servers
-                        _logger.Debug("DataChange for subscription '{subscription}'/'{sessionId}' with sequenceNumber "
-                            + "{sequenceNumber}, isKeepAlive {isKeepAlive}, publishTime {PublishTime}",
-                            Id, Connection.CreateConnectionId(),
-                            sequenceNumber, isKeepAlive, publishTime);
+                        _logger.Information("Keep alive for subscription '{subscription}'/'{sessionId}' with sequenceNumber "
+                            + "{sequenceNumber}, publishTime {PublishTime}",
+                            Id, Connection.CreateConnectionId(), sequenceNumber, publishTime);
                     }
                     else {
-                        _logger.Warning("DataChange for subscription '{subscription}'/'{sessionId}' has unexpected sequenceNumber "
-                            + "{sequenceNumber} vs expected {expectedSequenceNumber}, isKeepAlive {isKeepAlive}, publishTime {PublishTime}",
-                            Id, Connection.CreateConnectionId(),
-                            sequenceNumber, _expectedSequenceNumber, isKeepAlive, publishTime);
+                        if (_expectedSequenceNumber != sequenceNumber) {
+                            _logger.Warning("DataChange for subscription '{subscription}'/'{sessionId}' has unexpected sequenceNumber "
+                                + "{sequenceNumber} vs expected {expectedSequenceNumber}, publishTime {PublishTime}",
+                                Id, Connection.CreateConnectionId(),
+                                sequenceNumber, _expectedSequenceNumber, publishTime);
+                        }
+                        _expectedSequenceNumber = sequenceNumber + 1;
                     }
-                    _expectedSequenceNumber = sequenceNumber + 1;
 
-                   var message = new SubscriptionNotificationModel {
+                    var message = new SubscriptionNotificationModel {
                         ServiceMessageContext = subscription?.Session?.MessageContext,
                         ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
                         EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,

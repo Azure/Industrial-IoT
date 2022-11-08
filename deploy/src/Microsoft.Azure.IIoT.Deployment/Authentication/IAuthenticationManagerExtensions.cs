@@ -135,7 +135,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             TokenCredentials tokenCredentials;
 
             // Some authentication flows result in null account.
-            if (null != tenantId && null != account?.Username) {
+            if (account?.Username != null) {
                 tokenCredentials = new TokenCredentials(
                     tokenProvider,
                     tenantId.ToString(),
@@ -175,7 +175,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             TokenCredentials tokenCredentials;
 
             // Some authentication flows result in null account.
-            if (null != tenantId && null != account?.Username) {
+            if (account?.Username != null) {
                 tokenCredentials = new TokenCredentials(
                     tokenProvider,
                     tenantId.ToString(),

@@ -61,13 +61,9 @@ if ($projFile) {
     Remove-Item $output -Recurse -ErrorAction SilentlyContinue
 
     $runtimes = @(
-        "linux-arm",
         "linux-musl-arm",
-        "linux-arm64",
         "linux-musl-arm64",
-        "linux-x64",
         "linux-musl-x64",
-        "win-x64",
         ""
     )
     if (![string]::IsNullOrEmpty($metadata.base)) {
@@ -91,9 +87,11 @@ if ($projFile) {
         # Create dotnet command line 
         $argumentList = @("publish", "-c", $configuration, "--force")
         if (![string]::IsNullOrEmpty($runtimeId)) {
+            $argumentList += "--self-contained"
             $argumentList += "-r"
             $argumentList += $runtimeId
             $argumentList += "/p:TargetLatestRuntimePatch=true"
+            $argumentList += "/p:PublishSingleFile=true"
         }
         else {
             $runtimeId = "portable"
@@ -121,37 +119,25 @@ if ($projFile) {
     # Default platform definitions
     $platforms = @{
         "linux/arm" = @{
-            runtimeId = "linux-arm"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
+            runtimeId = "linux-musl-arm"
+            image = "mcr.microsoft.com/dotnet/runtime-deps:6.0-alpine"
             platformTag = "linux-arm32v7"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/arm64" = @{
             runtimeId = "linux-musl-arm64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine-arm64v8"
+            image = "mcr.microsoft.com/dotnet/runtime-deps:6.0-alpine"
             platformTag = "linux-arm64v8"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/amd64" = @{
             runtimeId = "linux-musl-x64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine"
+            image = "mcr.microsoft.com/dotnet/runtime-deps:6.0-alpine"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
-        }
-        "windows/amd64:10.0.17763.1457" = @{
-            runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1809"
-            platformTag = "nanoserver-amd64-1809"
-            entryPoint = "[`"$($assemblyName).exe`"]"
-        }
-        "windows/amd64:10.0.18363.1082" = @{
-            runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1909"
-            platformTag = "nanoserver-amd64-1909"
-            entryPoint = "[`"$($assemblyName).exe`"]"
         }
     }
 
@@ -166,12 +152,8 @@ if ($projFile) {
         $environmentVars = @("ENV DOTNET_RUNNING_IN_CONTAINER=true")
 
         if ($script:Fast.IsPresent) {
-            # Only build windows and linux iot edge images in fast mode
-            if (($_ -ne "windows/amd64:10.0.17763.1457") -and ($_ -ne "linux/amd64")) {
-                return;
-            }
-            # if not iot edge, just build linux images.
-            if ((!$metadata.iotedge) -and ($_ -ne "linux/amd64")) {
+            # Just build linux images.
+            if ($_ -ne "linux/amd64") {
                 return;
             }
         }
@@ -184,6 +166,11 @@ if ($projFile) {
         if (![string]::IsNullOrEmpty($metadata.base)) {
             $baseImage = $metadata.base
             $runtimeId = $null
+        }
+        else {
+            # TODO Remove after moving to latest messaging nugets
+            $environmentVars += "RUN apk add icu-libs"
+            $environmentVars += "ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false"
         }
 
         if ([string]::IsNullOrEmpty($runtimeId)) {

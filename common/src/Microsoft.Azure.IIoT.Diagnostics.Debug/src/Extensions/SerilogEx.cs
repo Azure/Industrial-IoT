@@ -8,7 +8,7 @@ namespace Serilog {
     /// <summary>
     /// Serilog extensions
     /// </summary>
-    public static class SerilogEx {
+    internal static class SerilogEx {
 
         /// <summary>
         /// Create trace logger

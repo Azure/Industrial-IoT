@@ -37,7 +37,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [InlineData(MessagingMode.PubSub, false)]
         [InlineData(MessagingMode.Samples, true)]
         [InlineData(MessagingMode.PubSub, true)]
-        async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode, bool incremental) {
+        public async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode, bool incremental) {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
 
@@ -242,7 +242,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact]
-        async Task SubscribeUnsubscribeDirectMethodLegacyPublisherTest() {
+        public async Task SubscribeUnsubscribeDirectMethodLegacyPublisherTest() {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubLegacyPublisherDeployment = new IoTHubLegacyPublisherDeployments(_context);
 
@@ -419,7 +419,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact]
-        async Task RestartAnnouncementTest() {
+        public async Task RestartAnnouncementTest() {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, MessagingMode.PubSub);
 

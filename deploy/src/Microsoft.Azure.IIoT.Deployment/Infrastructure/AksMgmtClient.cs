@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string versionMajorMinor,
             IList<string> kubernetesVersions
         ) {
-            if (kubernetesVersions is null || kubernetesVersions.Count() == 0) {
+            if (kubernetesVersions is null || kubernetesVersions.Count == 0) {
                 throw new ArgumentNullException(nameof(kubernetesVersions));
             }
 
@@ -162,6 +162,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         OsType = OSType.Linux,
                         VnetSubnetID = virtualNetworkSubnet.Id,
                         MaxPods = 40,
+                        Mode = AgentPoolMode.System
                     }
                 },
                 LinuxProfile = new ContainerServiceLinuxProfile {
