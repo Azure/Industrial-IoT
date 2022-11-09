@@ -450,7 +450,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 foreach (var endpointUrl in endpointUrlCandidates) {
                     try {
                         if (!ct.IsCancellationRequested) {
-                            var session = await CreateSessionAsync(endpointUrl, id, wrapper).ConfigureAwait(false);
+                            var session = await CreateSessionAsync(endpointUrl, id, ct).ConfigureAwait(false);
                             if (session != null) {
                                 _logger.Information("Connected to '{endpointUrl}'", endpointUrl);
                                 session.Handle = wrapper;
@@ -624,10 +624,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="endpointUrl"></param>
         /// <param name="id"></param>
-        /// <param name="wrapper"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private async Task<Session> CreateSessionAsync(string endpointUrl, ConnectionIdentifier id,
-            SessionWrapper wrapper) {
+            CancellationToken ct) {
             var sessionName = $"Azure IIoT {id}";
 
             var endpointDescription = SelectEndpoint(
@@ -661,27 +661,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _applicationConfiguration, configuredEndpoint,
                     true, sessionName, _clientConfig.DefaultSessionTimeout,
                     userIdentity, null).ConfigureAwait(false);
-                session.Handle = wrapper;
-                wrapper.Session = session;
                 session.OperationTimeout = _clientConfig.OperationTimeout;
                 session.KeepAliveInterval = _clientConfig.KeepAliveInterval;
-
-                session.KeepAlive += Session_KeepAlive;
-                session.Notification += Session_Notification;
 
                 // TODO - store the created session id (node id)?
                 if (sessionName != session.SessionName) {
                     _logger.Warning("Session '{id}' created with a revised name '{name}'",
                         id, session.SessionName);
                 }
-                _logger.Information("Session '{id}' created, loading complex type system ... ", id);
+
                 try {
-                    var complexTypeSystem = new ComplexTypeSystem(session);
-                    await complexTypeSystem.Load().ConfigureAwait(false);
-                    _logger.Information("Session '{id}' complex type system loaded", id);
+                    if (!ct.IsCancellationRequested) {
+                        _logger.Information("Session '{id}' created, loading complex type system ... ", id);
+                        var complexTypeSystem = new ComplexTypeSystem(session);
+                        await complexTypeSystem.Load().ConfigureAwait(false);
+                        _logger.Information("Session '{id}' complex type system loaded", id);
+                    }
                 }
                 catch (Exception ex) {
                     _logger.Error(ex, "Failed to load complex type system for session '{id}'", id);
+                }
+                finally {
+                    // now that the complex type is handled, register the stack notifiers.
+                    session.KeepAlive += Session_KeepAlive;
+                    session.Notification += Session_Notification;
                 }
 
                 return session;
@@ -694,7 +697,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="session"></param>
         /// <param name="e"></param>
         private void Session_Notification(Session session, NotificationEventArgs e) {
-
             try {
                 _logger.Debug("Notification for session '{id}', subscription '{displayName}' - sequence# {sequence}-{publishTime}",
                     session?.Handle is SessionWrapper wrapper ? wrapper?.Id : session?.SessionName,
@@ -724,7 +726,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="session"></param>
         /// <param name="e"></param>
         private void Session_KeepAlive(Session session, KeepAliveEventArgs e) {
-
             try {
                 if (session?.Handle is SessionWrapper wrapper) {
 
