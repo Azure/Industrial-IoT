@@ -3,6 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+
 namespace IIoTPlatform_E2E_Tests.TestModels {
 
     /// <summary>
@@ -54,5 +55,10 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
         /// QueueSize value
         /// </summary>
         public uint QueueSize { get; set; }
+        
+        /// <summary>
+        /// Data change trigger type
+        /// </summary>
+        public string? DataChangeTrigger { get; set; }
     }
 }

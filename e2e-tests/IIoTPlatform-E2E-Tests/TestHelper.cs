@@ -26,6 +26,7 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Text.RegularExpressions;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using IIoTPlatform_E2E_Tests.TestEventProcessor;
 
     internal static partial class TestHelper {
@@ -588,7 +589,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="IIoTMultipleNodesTestContext">context</param>
         /// <param name="CancellationTokenSource">cancellation token</param>
-        public static async Task<PublishedNodesEntryModel> CreateSingleNodeModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct) {
+        public static async Task<PublishedNodesEntryModel> CreateSingleNodeModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct, DataChangeTriggerType? dataChangeTrigger = null) {
             IDictionary<string, PublishedNodesEntryModel> simulatedPublishedNodesConfiguration =
                 new Dictionary<string, PublishedNodesEntryModel>(0);
 
@@ -628,6 +629,7 @@ namespace IIoTPlatform_E2E_Tests {
                     opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
                     opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
                     opcNode.QueueSize = 4;
+                    opcNode.DataChangeTrigger = dataChangeTrigger == null ? null : dataChangeTrigger.ToString();
                     return opcNode;
                 })
                 .ToArray();
