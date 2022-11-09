@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public bool? UseReversibleEncoding { get; set; }
 
         /// <summary>
-        /// /// Flag to determine if a telemetry routing info is enabled.
+        /// Flag to determine if a telemetry routing info is enabled.
         /// </summary>
         [DataMember(Name = "enableRoutingInfo", Order = 5,
             EmitDefaultValue = false)]
