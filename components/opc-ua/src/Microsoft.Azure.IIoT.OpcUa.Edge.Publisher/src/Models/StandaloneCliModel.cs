@@ -57,6 +57,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public uint DefaultQueueSize { get; set; } = 1;
 
         /// <summary>
+        /// set the default data change filter for monitored items
+        /// </summary>
+        public DataChangeTriggerType? DefaultDataChangeTrigger { get; set; }
+
+        /// <summary>
         /// The interval to show diagnostics information.
         /// </summary>
         public TimeSpan? DiagnosticsInterval { get; set; } = TimeSpan.FromSeconds(60);
