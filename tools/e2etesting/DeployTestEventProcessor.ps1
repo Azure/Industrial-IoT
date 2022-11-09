@@ -180,6 +180,8 @@ Compress-Archive -Path ($PackageDirectory.TrimEnd("\\") + "\\*") -DestinationPat
 Write-Host "Publishing Archive from '$($packageFilename)'to WebApp '$($WebAppName)'..."
 $webApp = Publish-AzWebApp -ResourceGroupName $resourceGroup.ResourceGroupName -Name $WebAppName -ArchivePath $packageFilename -Force
 
+Write-Host "Published Archive to WebApp '$($WebAppName)'..."
+
 Get-Item $temp.FullName | Remove-Item -Force -Recurse
 
 ## Set AppSettings ##

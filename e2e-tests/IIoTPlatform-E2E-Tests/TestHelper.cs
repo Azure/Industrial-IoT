@@ -142,7 +142,7 @@ namespace IIoTPlatform_E2E_Tests {
                         using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile, ct)) {
                             Assert.NotNull(response);
                             Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
-                            var json = await response.Content.ReadAsStringAsync();
+                            var json = await response.Content.ReadAsStringAsync(ct);
                             Assert.NotEmpty(json);
                             var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
 
@@ -638,7 +638,7 @@ namespace IIoTPlatform_E2E_Tests {
                         tasks.Add(client.ExecuteAsync(request, ct));
                     }
 
-                    Task.WaitAll(tasks.ToArray());
+                    await Task.WhenAll(tasks.ToArray());
 
                     var healthyServices = tasks
                         .Where(task => task.Result.StatusCode == HttpStatusCode.OK)
@@ -653,9 +653,10 @@ namespace IIoTPlatform_E2E_Tests {
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
                 }
             }
-            catch (Exception) {
+            catch (OperationCanceledException) {}
+            catch (Exception e) {
                 context.OutputHelper?.WriteLine("Error: not all API microservices of IIoT " +
-                    "platform are in healthy state.");
+                    $"platform are in healthy state ({e.Message}).");
                 throw;
             }
         }
@@ -685,7 +686,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="IIoTMultipleNodesTestContext">context</param>
         /// <param name="CancellationTokenSource">cancellation token</param>
-        public static async Task<PublishedNodesEntryModel> CreateSingleNodeModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct) {
+        public static async Task<PublishedNodesEntryModel> CreateSingleNodeModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct, DataChangeTriggerType? dataChangeTrigger = null) {
             IDictionary<string, PublishedNodesEntryModel> simulatedPublishedNodesConfiguration =
                 new Dictionary<string, PublishedNodesEntryModel>(0);
 
@@ -725,6 +726,7 @@ namespace IIoTPlatform_E2E_Tests {
                     opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
                     opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
                     opcNode.QueueSize = 4;
+                    opcNode.DataChangeTrigger = dataChangeTrigger == null ? null : dataChangeTrigger.ToString();
                     return opcNode;
                 })
                 .ToArray();
@@ -821,7 +823,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
-        private static async Task<dynamic> GetEndpointInternalAsync(IIoTPlatformTestContext context, CancellationToken ct) {
+        private static async Task<dynamic> GetEndpointsInternalAsync(IIoTPlatformTestContext context, CancellationToken ct) {
             var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
             var client = new RestSharp.RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
 
@@ -837,6 +839,32 @@ namespace IIoTPlatform_E2E_Tests {
                 context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
                 context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                 Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
+            }
+
+            return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
+        }
+
+        /// <summary>
+        /// Gets applications from registry
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        private static async Task<dynamic> GetApplicationsInternalAsync(IIoTPlatformTestContext context, CancellationToken ct) {
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
+
+            var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Get) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
+            };
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+
+            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+            Assert.NotNull(response);
+
+            if (!response.IsSuccessful) {
+                context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "GET /registry/v2/applications failed!");
             }
 
             return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());

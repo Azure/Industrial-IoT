@@ -5,6 +5,7 @@
 
 namespace TestEventProcessor.BusinessLogic.Checkers {
     using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -40,21 +41,16 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <param name="value">The actual value of the data change.</param>
         public void ProcessEvent(
             string nodeId,
-            DateTime sourceTimestamp,
-            object value
+            DateTime _0,
+            JToken _1
         ) {
-            // do not process if we are missing data
-            if (string.IsNullOrEmpty(nodeId) || sourceTimestamp == default(DateTime) || value == null) {
-                return;
-            }
-
             _lock.Wait();
             try {
                 if (_valueChangesPerNodeId.ContainsKey(nodeId)) {
                     _valueChangesPerNodeId[nodeId]++;
                 }
                 else {
-                    _valueChangesPerNodeId[nodeId] = 1;
+                    _valueChangesPerNodeId.Add(nodeId, 1);
                 }
             }
             finally {

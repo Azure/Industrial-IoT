@@ -62,7 +62,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             _lock.Wait();
             try {
                 if (!_valueChangesPerTimestamp.ContainsKey(sourceTimestamp)) {
-                    _valueChangesPerTimestamp[sourceTimestamp] = 0;
+                    _valueChangesPerTimestamp.Add(sourceTimestamp, 0);
                 }
 
                 _valueChangesPerTimestamp[sourceTimestamp]++;

@@ -120,7 +120,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
 
             // Enable Application Insights telemetry collection.
+#pragma warning disable CS0618 // Type or member is obsolete
             services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
+#pragma warning restore CS0618 // Type or member is obsolete
             services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
         }
 

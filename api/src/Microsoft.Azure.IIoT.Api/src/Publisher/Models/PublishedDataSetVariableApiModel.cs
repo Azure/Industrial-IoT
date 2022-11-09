@@ -68,11 +68,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public TimeSpan? SamplingInterval { get; set; }
 
         /// <summary>
-        /// Data change filter
+        /// Data change trigger
         /// </summary>
-        [DataMember(Name = "dataChangeFilter", Order = 7,
+        [DataMember(Name = "dataChangeTrigger", Order = 7,
             EmitDefaultValue = false)]
-        public DataChangeTriggerType? DataChangeFilter { get; set; }
+        public DataChangeTriggerType? DataChangeTrigger { get; set; }
 
         /// <summary>
         /// Deadband type

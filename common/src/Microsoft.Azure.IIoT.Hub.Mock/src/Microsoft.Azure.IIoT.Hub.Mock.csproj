@@ -1,20 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT common IoT Hub twin registry mocking tool used in testing</Description>
-    <Antlr4UseCSharpGenerator>True</Antlr4UseCSharpGenerator>
+	<Antlr4UseCSharpGenerator>True</Antlr4UseCSharpGenerator>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Antlr4" Version="4.6.6" />
+	<PackageReference Include="Antlr4" Version="4.6.6" />
   </ItemGroup>
   <ItemGroup>
-    <Antlr4 Update="**/*.g4">
-      <Generator>MSBuild:Compile</Generator>
-      <CustomToolNamespace>$(RootNamespace).SqlParser</CustomToolNamespace>
-      <Listener>False</Listener>
-      <Visitor>False</Visitor>
-    </Antlr4>
+	<Antlr4 Update="**/*.g4">
+	  <Generator>MSBuild:Compile</Generator>
+	  <CustomToolNamespace>$(RootNamespace).SqlParser</CustomToolNamespace>
+	  <Listener>False</Listener>
+	  <Visitor>False</Visitor>
+	</Antlr4>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Hub.Service.Client\src\Microsoft.Azure.IIoT.Hub.Service.Client.csproj" />

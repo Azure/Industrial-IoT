@@ -4,7 +4,7 @@
 parameters:
   sign: 'False'
   runtime: win-x64
-  vmImage: windows-2019
+  vmImage: windows-latest
 
 jobs:
 - job: iiot_deployment_win

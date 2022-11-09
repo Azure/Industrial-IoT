@@ -131,11 +131,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         //  Prio 1: DataSetFieldId (need to be read from message)
                                         //  Prio 2: DisplayName - nothing to do, because notification.Id
                                         //                        already contains DisplayName
+                                        //  Prio 3: NodeId as configured; Id remains null in this case
                                         Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId)
                                             ? node.Item2.DataSetFieldId
                                             : node.Item2.DisplayName,
                                         PublishedVariableNodeId = node.Item2.Id,
-
+                                        
                                         // At this point in time the next values are ensured to be filled in with
                                         // the appropriate value: configured or default
                                         PublishedVariableDisplayName = node.Item2.DisplayName,
@@ -144,6 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         QueueSize = node.Item2.QueueSize,
                                         // ToDo: Implement mechanism for SkipFirst.
                                         SkipFirst = node.Item2.SkipFirst,
+                                        DataChangeTrigger = node.Item2.DataChangeTrigger,
                                     }).ToList(),
                             },
                             PublishedEvents = new PublishedEventItemsModel {
@@ -356,7 +358,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             // ToDo: Implement mechanism for SkipFirst.
                             SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                             EventFilter = node.EventFilter,
-                            DataFilter = node.DataFilter,
+                            DataChangeTrigger = node.DataChangeTrigger
                         });
                     }
                     else {
@@ -381,7 +383,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 // ToDo: Implement mechanism for SkipFirst.
                                 SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
                                 EventFilter = node.EventFilter,
-                                DataFilter = node.DataFilter,
+                                DataChangeTrigger = node.DataChangeTrigger
                             });
                         }
                     }
@@ -398,6 +400,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     QueueSize = standaloneCliModel.DefaultQueueSize,
                     // ToDo: Implement mechanism for SkipFirst.
                     SkipFirst = standaloneCliModel.DefaultSkipFirst,
+                    DataChangeTrigger = standaloneCliModel.DefaultDataChangeTrigger
                 });
             }
         }

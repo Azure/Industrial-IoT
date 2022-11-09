@@ -30,9 +30,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         public static IHostBuilder CreateHostBuilder(string[] args) {
             return Host.CreateDefaultBuilder(args)
                 .UseAutofac()
+                .UseSerilog()
                 .ConfigureWebHostDefaults(builder => builder
                     .UseUrls("http://*:9041")
-                    .UseSerilog()
                     .UseStartup<Startup>()
                     .UseKestrel(o => o.AddServerHeader = false));
         }

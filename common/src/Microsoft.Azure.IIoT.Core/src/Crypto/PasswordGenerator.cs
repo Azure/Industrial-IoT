@@ -51,11 +51,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         /// <param name="asBase64"></param>
         /// <returns></returns>
         private Task<string> GeneratePassword(int length, string allowedChars, bool asBase64) {
-            var pw = new byte[length];
-
-            using (var crypto = new RNGCryptoServiceProvider()) {
-                crypto.GetBytes(pw);
-            }
+            var pw = RandomNumberGenerator.GetBytes(length);
 
             var result = new StringBuilder(length);
 

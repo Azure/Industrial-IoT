@@ -5,6 +5,7 @@
 
 namespace TestEventProcessor.BusinessLogic.Checkers {
     using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -45,7 +46,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         public void ProcessEvent(
             string nodeId,
             DateTime sourceTimestamp,
-            object value
+            JToken value
         ) {
             int curValue;
 
@@ -55,7 +56,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             }
 
             try {
-                curValue = Convert.ToInt32(value);
+                curValue = value.ToObject<int>();
             }
             catch (Exception) {
                 _logger.LogError("Failed to extract int value from {value}", value);
@@ -66,8 +67,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             try {
                 if (!_latestValuePerNodeId.ContainsKey(nodeId)) {
                     // There is no previous value.
-                    _latestValuePerNodeId[nodeId] = curValue;
-                    _latestDateTimePerNodeId[nodeId] = sourceTimestamp;
+                    _latestValuePerNodeId.Add(nodeId, curValue);
+                    _latestDateTimePerNodeId.Add(nodeId, sourceTimestamp);
                     return;
                 }
 

@@ -49,13 +49,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <returns></returns>
         private static DataChangeFilterModel ToDataChangeFilter(
             this PublishedDataSetVariableModel publishedVariable) {
-            if (publishedVariable?.DataChangeFilter == null &&
+            if (publishedVariable?.DataChangeTrigger == null &&
                 publishedVariable?.DeadbandType == null &&
                 publishedVariable?.DeadbandValue == null) {
                 return null;
             }
             return new DataChangeFilterModel {
-                DataChangeTrigger = publishedVariable.DataChangeFilter,
+                DataChangeTrigger = publishedVariable.DataChangeTrigger,
                 DeadBandType = publishedVariable.DeadbandType,
                 DeadBandValue = publishedVariable.DeadbandValue,
             };

@@ -178,7 +178,9 @@ namespace Microsoft.Azure.IIoT.App {
                 ;
 
             // Enable Application Insights telemetry collection.
+#pragma warning disable CS0618 // Type or member is obsolete
             services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
+#pragma warning restore CS0618 // Type or member is obsolete
             services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
 
             services.AddServerSideBlazor();

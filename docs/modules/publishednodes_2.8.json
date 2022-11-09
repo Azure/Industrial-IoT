@@ -56,7 +56,10 @@
         // Value expressed in Timespan string({d.hh:mm:dd.fff}).
         "HeartbeatIntervalTimespan": "00:01:00",
         // The desired QueueSize for the monitored item to be published.
-        "QueueSize": 10
+        "QueueSize": 10,
+        // Report a notification on status, value or timestamp node change. It can take the values
+        // "Status", "StatusValue" and "StatusValueTimestamp". If null, the OPC UA Specification defaults to "StatusValue".
+        "DataChangeTrigger": "StatusValueTimestamp"
       }
     ]
   },

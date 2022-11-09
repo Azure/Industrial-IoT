@@ -57,7 +57,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             var endpointUrl = TestHelper.GetSimulatedOpcServerUrls(this).First();
             TestHelper.Registry.RegisterServerAsync(this, endpointUrl, cts.Token).GetAwaiter().GetResult();
 
-            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, cts.Token, new List<string> { endpointUrl }).GetAwaiter().GetResult();
+            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, cts.Token, new HashSet<string> { endpointUrl }).GetAwaiter().GetResult();
 
             if (string.IsNullOrWhiteSpace(OpcUaEndpointId)) {
                 OpcUaEndpointId = TestHelper.Discovery.GetOpcUaEndpointId(this, endpointUrl, cts.Token).GetAwaiter().GetResult();

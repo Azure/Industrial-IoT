@@ -5,6 +5,7 @@
 
 namespace TestEventProcessor.BusinessLogic.Checkers {
     using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -67,7 +68,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <param name="sourceTimestamp">Timestamp at the Data Source.</param>
         public void ProcessEvent(
             string nodeId,
-            DateTime sourceTimestamp
+            DateTime sourceTimestamp,
+            JToken _
         ) {
             // Do not process events after Stop() has been called.
             if (_isStopped) {
@@ -87,7 +89,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             _lock.Wait();
             try {
                 if (!_sourceTimestamps.ContainsKey(nodeId)) {
-                    _sourceTimestamps[nodeId] = new List<DateTime>();
+                    _sourceTimestamps.Add(nodeId, new List<DateTime>());
                 }
                 _sourceTimestamps[nodeId].Add(sourceTimestamp);
             }

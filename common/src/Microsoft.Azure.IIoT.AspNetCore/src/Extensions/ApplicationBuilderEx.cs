@@ -83,11 +83,11 @@ namespace Microsoft.AspNetCore.Hosting {
             var branch = branchBuilder.Build();
 
             // Map the route to the branch
-            app.Map(path, builder => {
-                builder.Use(async (context, next) => {
-                    await branch.Invoke(context);
-                });
-            });
+            app.Map(path, builder => builder.Use(InvokeAsync));
+
+            Task InvokeAsync(HttpContext context, RequestDelegate del) {
+                return branch.Invoke(context);
+            }
             return app;
         }
 

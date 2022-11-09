@@ -6,6 +6,7 @@
 namespace Serilog {
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog.Events;
     using System;
     using System.Diagnostics;
     using System.IO;

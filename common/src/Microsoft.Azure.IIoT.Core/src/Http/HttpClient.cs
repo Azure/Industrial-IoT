@@ -108,13 +108,15 @@ namespace Microsoft.Azure.IIoT.Http.Default {
 
                 // We will use this local function for Exception formatting
                 HttpRequestException generateHttpRequestException(Exception e) {
-                    var errorMessage = e.Message;
+                    var errorMessage = $"{e.GetType()}: {e.Message}";
                     if (e.InnerException != null) {
                         errorMessage += " - " + e.InnerException.Message;
                     }
-                    _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
-                        httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
-                    _logger.Verbose(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
+                    if (!httpRequest.Options.SuppressHttpClientLogging) {
+                        _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                            httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
+                    }
+                    _logger.Debug(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
                         httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
                     return new HttpRequestException(errorMessage, e);
                 }
@@ -128,12 +130,18 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                                 StatusCode = response.StatusCode,
                                 Headers = response.Headers,
                                 ContentHeaders = response.Content.Headers,
-                                Content = await response.Content.ReadAsByteArrayAsync()
+                                Content = await response.Content.ReadAsByteArrayAsync(ct)
                             };
                             if (result.IsError()) {
-                                _logger.Warning("{method} to {uri} returned {code} (took {elapsed}).",
-                                    httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
-                                     result.GetContentAsString(Encoding.UTF8));
+                                if (!httpRequest.Options.SuppressHttpClientLogging) {
+                                    _logger.Warning("{method} to {uri} returned {code} (took {elapsed}) {error}.",
+                                        httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
+                                         result.GetContentAsString(Encoding.UTF8));
+                                }
+                                else {
+                                    _logger.Debug("{method} to {uri} returned {code} (took {elapsed}).",
+                                        httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
+                                }
                             }
                             else {
                                 _logger.Verbose("{method} to {uri} returned {code} (took {elapsed}).",
@@ -158,6 +166,13 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                         var requestEx = generateHttpRequestException(e);
                         throw requestEx;
                     }
+                    catch (Exception ex) {
+                        if (!httpRequest.Options.SuppressHttpClientLogging) {
+                            _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                                httpMethod, httpRequest.Uri, sw.Elapsed, ex.Message);
+                        }
+                        throw;
+                    }
                 }
             }
         }
@@ -173,7 +188,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// <param name="uri"></param>
             /// <param name="resourceId"></param>
             public HttpRequest(Uri uri, string resourceId) {
-                Options = new HttpRequestOptions();
+                Options = new Http.HttpRequestOptions();
                 Request = new HttpRequestMessage();
                 if (!uri.Scheme.EqualsIgnoreCase("http") && !uri.Scheme.EqualsIgnoreCase("https")) {
                     // Need a way to work around request uri validation - add uds path to header.
@@ -199,7 +214,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             public HttpRequestHeaders Headers => Request.Headers;
 
             /// <inheritdoc/>
-            public HttpRequestOptions Options { get; }
+            public Http.HttpRequestOptions Options { get; }
 
             /// <inheritdoc/>
             public HttpContent Content {

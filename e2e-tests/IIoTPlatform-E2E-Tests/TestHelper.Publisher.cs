@@ -5,6 +5,8 @@
 
 namespace IIoTPlatform_E2E_Tests {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Xunit;
 
     internal static partial class TestHelper {
@@ -13,6 +15,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// Publisher related helper methods
         /// </summary>
         public static class Publisher {
+
             /// <summary>
             /// Compare PublishNodesEndpointApiModel with PublishedNodeApiModel
             /// </summary>
