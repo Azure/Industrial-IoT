@@ -55,10 +55,10 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
         /// QueueSize value
         /// </summary>
         public uint QueueSize { get; set; }
-        
+
         /// <summary>
         /// Data change trigger type
         /// </summary>
-        public string? DataChangeTrigger { get; set; }
+        public string DataChangeTrigger { get; set; }
     }
 }

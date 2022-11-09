@@ -156,10 +156,11 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
             BatchTriggerInterval=VALUE
                                       The batching trigger interval.
                                       When BatchSize is 1 or TriggerInterval is set to 0 batching is disabled.
-                                      Alternative: --si, --iothubsendinterval
+                                      Alternative: --bi, --batchtriggerinterval <integer in milliseconds>
+                                                   --si, --iothubsendinterval <integer in seconds>
                                       Mode: Standalone and Orchestrated
                                       Environment variable type: time span string {[d.]hh:mm:ss[.fffffff]}
-                                      Alternative argument type: integer in seconds
+                                      Alternative argument type: integer in milliseconds (--bi) or seconds (--si)
                                       Default: {00:00:10}
 
             IoTHubMaxMessageSize=VALUE
