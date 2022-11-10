@@ -11,9 +11,9 @@ steps:
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     workingDirectory: '$(System.DefaultWorkingDirectory)/tools/e2etesting/NestedEdge'
-    inlineScript: |
+    inlineScript: | 
       find  -name '*.sh' -print0 | xargs -0 chmod +x
-
+      
 - task: AzurePowerShell@5
   displayName: "Prepare for nested edge deployment"
   timeoutInMinutes: 30
@@ -25,7 +25,7 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -KeysPath "$(System.DefaultWorkingDirectory)"
-
+      
 - task: AzureCLI@2
   displayName: "Deploy nested edge"
   inputs:

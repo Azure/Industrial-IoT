@@ -56,27 +56,22 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         public void ProcessEvent(
             string nodeId,
             DateTime sourceTimestamp,
-            DateTime enqueuedTimestamp
+            DateTime enqueuedimestamp
         ) {
-            // do not process if no source timestamp
-            if (string.IsNullOrEmpty(nodeId) || sourceTimestamp == default(DateTime)) {
-                return;
-            }
-
             // Do not process if _expectedMaximalDuration is set to zero.
             if (_expectedMaximalDuration.Equals(TimeSpan.Zero)) {
                 return;
             }
 
             // Check the total duration from OPC UA Server until IoT Hub
-            var messageDeliveryDuration = enqueuedTimestamp - sourceTimestamp;
+            var messageDeliveryDuration = enqueuedimestamp - sourceTimestamp;
 
             if (messageDeliveryDuration.TotalMilliseconds < 0) {
                 _logger.LogWarning("Total duration is negative number for {nodeId} node, " +
                     "OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                     nodeId,
                     sourceTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
-                    enqueuedTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
+                    enqueuedimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
                     messageDeliveryDuration);
             }
 
@@ -85,7 +80,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                     "OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                     nodeId,
                     sourceTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
-                    enqueuedTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
+                    enqueuedimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
                     messageDeliveryDuration);
             }
 

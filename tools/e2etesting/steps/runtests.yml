@@ -55,7 +55,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
-    SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
+    SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
 - task: AzureKeyVault@1
   displayName: 'Load secrets from Key Vault as variables by default'

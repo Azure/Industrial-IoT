@@ -16,9 +16,6 @@ steps:
     arguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -UsePrivateIp $false
-      -PLCImage "$(PLCImage)"
-      -PLCUsername "$(PLCUsername)"
-      -PLCPassword "$(PLCPassword)"
 
 - task: AzureCLI@2
   displayName: "Deploy containers with simulated PLCs with private ips"
@@ -32,9 +29,6 @@ steps:
     arguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -UsePrivateIp $true
-      -PLCImage "$(PLCImage)"
-      -PLCUsername "$(PLCUsername)"
-      -PLCPassword "$(PLCPassword)"
 
 - task: AzurePowerShell@5
   displayName: "Deploy VM with IoT Edge Runtime"

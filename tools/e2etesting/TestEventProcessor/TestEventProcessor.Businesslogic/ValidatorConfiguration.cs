@@ -3,13 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic {
+namespace TestEventProcessor.BusinessLogic
+{
     using TestEventProcessor.Businesslogic;
 
     /// <summary>
     /// Model class to encapsule the configuration required to monitor and validate IoT Hub events.
     /// </summary>
-    public class ValidatorConfiguration : IEventProcessorConfig {
+    public class ValidatorConfiguration : IEventProcessorConfig
+    {
         /// <inheritdoc/>
         public string IoTHubEventHubEndpointConnectionString { get; set; }
 
@@ -42,11 +44,5 @@ namespace TestEventProcessor.BusinessLogic {
         /// Current Value need to be within range of Expected Value +/- threshold
         /// </summary>
         public int ThresholdValue { get; set; } = 100;
-
-        /// <summary>
-        /// Gets or sets the value sets the maximum number of messages we persist. We will only keep the most recent messages.
-        /// If this is set to 0, no maximum number is enforced
-        /// </summary>
-        public uint MaximalNumberOfMessages { get; set; } = 0;
     }
 }

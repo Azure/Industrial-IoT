@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using System.Runtime.Serialization;
     using System;
     using System.ComponentModel.DataAnnotations;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
 
     /// <summary>
     /// A monitored and published node api model
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "queueSize", Order = 11,
             EmitDefaultValue = false)]
         public uint? QueueSize { get; set; }
-        
+
         /// <summary> Data change trigger </summary>
         [DataMember(Name = "dataChangeTrigger", Order = 12,
             EmitDefaultValue = false)]

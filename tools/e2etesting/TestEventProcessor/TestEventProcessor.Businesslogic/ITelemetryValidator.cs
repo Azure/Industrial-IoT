@@ -3,13 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic {
+namespace TestEventProcessor.BusinessLogic
+{
+    using System;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Interface to validate incoming message on an IoT Hub.
     /// </summary>
-    public interface ITelemetryValidator {
+    public interface ITelemetryValidator
+    {
         /// <summary>
         /// Method that runs asynchronously to connect to event hub and check
         /// a) if all expected value changes are delivered
