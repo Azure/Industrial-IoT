@@ -43,6 +43,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     _logger.Error(ex, "Failed to load MQTT state.");
                 }
             }
+            else {
+                _logger.Debug("MQTT state file {StateFile} not found, starting empty.", _stateFile);
+            }
             return new List<ManagedMqttApplicationMessage>();
         }
 
