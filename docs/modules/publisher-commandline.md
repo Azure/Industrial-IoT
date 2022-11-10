@@ -3,7 +3,9 @@
 # OPC Publisher configuration via command line options and environment variables
 
 The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings.
-The `Alternative` field, where present, refers to the CLI argument applicable in **standalone mode only**. When both environment variable and CLI argument are provided, the latest will overrule the env variable.
+The `Alternative` field, where present, refers to the CLI argument applicable in **standalone mode only**.
+ When both environment variable and CLI argument are provided, the latest will overrule the env variable.
+
 
             PublishedNodesFile=VALUE
                                       The file used to store the configuration of the nodes to be published
@@ -304,8 +306,8 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       store type
                                       Alternative: N/A
                                       Mode: Standalone and Orchestrated
-                                      Type: enum string : Directory, X509Store
-                                      Default: Directory
+                                      Type: enum string : "Directory", "X509Store"
+                                      Default: "Directory"
 
             TrustedPeerCertificatesPath=VALUE
                                       OPC UA Client Security Config - trusted peer certificates
@@ -440,7 +442,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
             RuntimeStateReporting=VALUE
                                       Enables reporting of OPC Publisher restarts.
                                       Alternative: --rs, --runtimestatereporting
-                                      Mode: Standalone
+                                      Mode: Standalone only
                                       Type: boolean
                                       Default: false
 
@@ -450,24 +452,38 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       When the `DataSetWriterGroup` is not configured, the `$$RoutingInfo` property will
                                       not be added to the message even if this argument is set. 
                                       Alternative: --ri, --enableroutinginfo
-                                      Mode: Standalone
+                                      Mode: Standalone only
                                       Type: boolean
                                       Default: false
 
-            MqttClientConnectionString=VALUE
-                                      Publisher connects as IoT Device to a MQTT V5 Broker or to IoT Hub MQTT broker endpoint.
-                                      Alternative: -mc, --mqttclientconnectionstring
-                                      Mode: Standalone only
-                                      Type: connection string 
-                                          for MQTT Broker: `HostName=<IPorDnsName>;Port=<Port>;DeviceId=<IoTDeviceId>`
-                                          for IoT Hub: `HostName=<IoTHubName>.azure-devices.net;DeviceId=<IoTDeviceId>;SharedAccessSignature=<SharedAccessSignature>` 
-                                            Please refer to https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#using-the-mqtt-protocol-directly-as-a-device for generating SharedAccessSignature. 
-                                      Default: <not set>
+            DefaultDataChangeTrigger=VALUE
+                                      [Preview feature]
+                                      Default data change trigger for all monitored items configured in the 
+                                      published nodes configuration unless explicitly overridden.
+                                      Alternative: --mc, --monitoreditemdatachangetrigger
+                                      Mode: Standalone and Orchestrated
+                                      Type: enum string : "Status", "StatusValue", "StatusValueTimestamp"
+                                      Default: "Status"
 
             TelemetryTopicTemplate=VALUE
-                                      A template that shall be used to build the topic for outgoing telemetry messages. If no template is defined an IoT Hub compatible topic is used. The placeholder ```{device_id}``` can be used to inject the device id into the topic.
-                                      Alternative: -ttt, --telemetrytopictemplate
+                                      [Preview feature]
+                                      A template that shall be used to build the topic for outgoing telemetry messages. 
+                                      If no template is defined an IoT Hub compatible topic is used. 
+                                      The placeholder ```{device_id}``` can be used to inject the device id into the topic.
+                                      Alternative: --ttt, --telemetrytopictemplate
                                       Mode: Standalone only
                                       Type: string 
                                       Default: <not set>
 
+            MqttClientConnectionString=VALUE
+                                      [Preview feature]
+                                      Publisher connects as IoT Device to a MQTT V5 Broker or to IoT Hub MQTT broker 
+                                      endpoint. Cannot be set together with --ec or --dc options.
+                                      Alternative: --mqc, --mqttclientconnectionstring
+                                      Mode: Standalone only
+                                      Type: connection string 
+                                          for MQTT Broker: `HostName=<IPorDnsName>;Port=<Port>;DeviceId=<IoTDeviceId>`
+                                          for IoT Hub use a regular device connection string (*)
+                                      Default: <not set>
+
+(*) Check [here](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#using-the-mqtt-protocol-directly-as-a-device) and [here](https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#for-azure-iot-tools) how to retrieve the device connection string or generate a SharedAccessSignature for one.
