@@ -49,17 +49,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public int? MaxOutgressMessages { get; set; }
 
         /// <summary>
-        /// Flag to use reversible encoding for messages
-        /// </summary>
-        [DataMember(Name = "useReversibleEncoding", Order = 5,
-            EmitDefaultValue = false)]
-        public bool? UseReversibleEncoding { get; set; }
-
-        /// <summary>
         /// Flag to determine if a telemetry routing info is enabled.
         /// </summary>
         [DataMember(Name = "enableRoutingInfo", Order = 5,
             EmitDefaultValue = false)]
         public bool? EnableRoutingInfo { get; set; }
+
+        /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        [DataMember(Name = "useReversibleEncoding", Order = 6,
+            EmitDefaultValue = false)]
+        public bool? UseReversibleEncoding { get; set; }
     }
 }
