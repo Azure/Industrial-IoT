@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone {
-    using IIoTPlatform_E2E_Tests.TestExtensions;
+namespace OpcPublisher_AE_E2E_Tests.Standalone {
+    using OpcPublisher_AE_E2E_Tests.TestExtensions;
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
     using System.Linq;
@@ -15,12 +15,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
     /// </summary>
     public class C_WhereClauseTestTheory : DynamicAciTestBase {
-        public C_WhereClauseTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output)
+        public C_WhereClauseTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(10)]
+        [Fact, PriorityOrder(10)]
         public async void Test_VerifyDataAvailableAtIoTHub_Expect_FieldsToMatchSimpleFilter() {
 
             // Arrange
@@ -35,7 +34,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             // take any message
             var ev = await messages
@@ -45,8 +44,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ValidateBaseEventTypeFields(ev.messages);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(11)]
+        [Fact, PriorityOrder(11)]
         public async void Test_VerifyDataAvailableAtIoTHub_Expect_FieldsToMatchEventFilter() {
 
             // Arrange
@@ -61,7 +59,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             // take any message
             var ev = await messages
                 .FirstAsync(_timeoutToken);
@@ -70,8 +68,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ValidateBaseEventTypeFields(ev.messages);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(12)]
+        [Fact, PriorityOrder(12)]
         public async void Test_VerifyDataAvailableAtIoTHub_Expect_FieldsToSimpleEvents() {
 
             // Arrange
@@ -85,7 +82,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var pnJson = TestConstants.PublishedNodesConfigurations.SimpleEvents(_context.PlcAciDynamicUrls[0],
                 50000,
                 _writerId);
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             // take any message
             var ev = await messages
                 .FirstAsync(_timeoutToken);
@@ -100,7 +97,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 .First()
                     .Children()
                         .First()
-                            .Children();
+                            .Children()
+                                .First()
+                                    .Children()
+                                        .First();
             Assert.NotNull(fields);
             Assert.Equal(8, fields.Count());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventId")).Any());
@@ -119,7 +119,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 .First()
                     .Children()
                         .First()
-                            .Children();
+                            .Children()
+                                .First()
+                                    .Children()
+                                        .First();
             Assert.NotNull(fields);
             Assert.Equal(4, fields.Count());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventId")).Any());

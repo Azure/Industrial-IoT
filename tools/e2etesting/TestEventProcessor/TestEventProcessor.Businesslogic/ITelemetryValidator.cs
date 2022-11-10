@@ -24,11 +24,5 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         /// <returns></returns>
         Task<StopResult> StopAsync();
-
-        /// <summary>
-        /// This function returns the persisted messages as a JSON object
-        /// </summary>
-        /// <returns></returns>
-        string GetMessages();
     }
 }

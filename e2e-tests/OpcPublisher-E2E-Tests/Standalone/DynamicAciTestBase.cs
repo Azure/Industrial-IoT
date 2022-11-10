@@ -3,10 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone {
+namespace OpcPublisher_AE_E2E_Tests.Standalone {
     using Azure.Messaging.EventHubs.Consumer;
-    using IIoTPlatform_E2E_Tests.Deploy;
-    using IIoTPlatform_E2E_Tests.TestExtensions;
+    using OpcPublisher_AE_E2E_Tests.TestExtensions;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,17 +17,17 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// Base class for standalone tests using dynamic ACI
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
-    [Collection("IIoT Multiple Nodes Test Collection")]
+    [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
     public abstract class DynamicAciTestBase : IDisposable {
         protected readonly ITestOutputHelper _output;
-        protected readonly IIoTMultipleNodesTestContext _context;
+        protected readonly IIoTStandaloneTestContext _context;
         protected readonly CancellationToken _timeoutToken;
         protected readonly EventHubConsumerClient _consumer;
         protected readonly string _writerId;
         private readonly CancellationTokenSource _timeoutTokenSource;
 
-        protected DynamicAciTestBase(IIoTMultipleNodesTestContext context, ITestOutputHelper output) {
+        protected DynamicAciTestBase(IIoTStandaloneTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
@@ -45,16 +44,14 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(1)]
         public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
-            var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
-            var result = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
+            var result = await _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
             _output.WriteLine("Created/Updated new EdgeBase deployment");
             Assert.True(result);
         }
 
         [Fact, PriorityOrder(2)]
         public async Task Test_CreatePublisherLayeredDeployment_Expect_Success() {
-            var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, MessagingMode.PubSub);
-            var result = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
+            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
             _output.WriteLine("Created/Updated layered deployment for publisher module");
             Assert.True(result);
         }
@@ -68,7 +65,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(998)]
         public async Task Test_StopPublishingAllNodes_Expect_Success() {
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, new PublishedNodesEntryModel[0], _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new PublishedNodesEntryModel[0], _context, _timeoutToken);
         }
 
         [Fact, PriorityOrder(999)]

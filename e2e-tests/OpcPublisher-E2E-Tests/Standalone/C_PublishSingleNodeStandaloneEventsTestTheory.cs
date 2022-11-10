@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone {
+namespace OpcPublisher_AE_E2E_Tests.Standalone {
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -21,7 +21,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     public class C_PublishSingleNodeStandaloneEventsTestTheory : DynamicAciTestBase {
         private static readonly TimeSpan Precision = FromMilliseconds(500);
 
-        public C_PublishSingleNodeStandaloneEventsTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output)
+        public C_PublishSingleNodeStandaloneEventsTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }
 
@@ -32,14 +32,14 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var plcUrl = _context.OpcPlcConfig.Urls.Split(";")[0];
             var pnJson = TestConstants.PublishedNodesConfigurations.SimpleEvents(plcUrl, 50000, _writerId);
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             // Read one payload from IoT Hub
             var firstMessage = await messages
                 .FirstAsync(_timeoutToken);
 
             var payload = firstMessage.Messages["SimpleEvents"];
-            var data = payload;
+            var data = payload.Value;
             Assert.NotEmpty(data.EventId);
             Assert.StartsWith("The system cycle '", data.Message);
             Assert.EndsWith("' has started.", data.Message);
@@ -64,11 +64,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter());
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             const int nMessages = 6;
             var payloads = await messages
-                .Select(e => e.Messages["i=2253"])
+                .Select(e => e.Messages["i=2253"].Value)
                 .Skip(nMessages) // First batch of alarms are from a ConditionRefresh, therefore not in order
                 .SkipWhile(c => !c.Message.Contains("LAST EVENT IN LOOP"))
                 .Skip(1)
@@ -170,7 +170,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 opt => opt // ignore non-constant properties
                     .Excluding(c => c.EventId)
                     .Excluding(c => c.ConditionId)
-                    .Excluding(m => m.RuntimeType == typeof(DateTime) || m.RuntimeType == typeof(DateTime?)));
+                    .Excluding(m => m.Type == typeof(DateTime) || m.Type == typeof(DateTime?)));
 
             p.ConditionId.Should().StartWith("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#i=");
 

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone {
+namespace OpcPublisher_AE_E2E_Tests.Standalone {
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -18,12 +18,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// The test theory submitting a high load of event messages
     /// </summary>
     public class C_EventsStressTestTheory : DynamicAciTestBase {
-        public C_EventsStressTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output)
+        public C_EventsStressTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(10)]
+        [Fact, PriorityOrder(10)]
         public async void TestACI_VerifyEnd2EndThroughputAndLatency() {
 
             // Settings
@@ -36,7 +35,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context,
-                new List<string> { "/bin/sh", "-c", $"./opcplc --autoaccept --ei={eventInstances} --er={eventIntervalPerInstanceMs} --pn=50000" },
+                new List<string> {"/bin/sh", "-c", $"./opcplc --autoaccept --ei={eventInstances} --er={eventIntervalPerInstanceMs} --pn=50000"},
                 _timeoutToken,
                 numInstances: instances);
 
@@ -47,28 +46,28 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 50000,
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("i=2041")); // OPC-UA BaseEventType
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
             const int nSecondsTotal = nSeconds + nSecondSkipFirst + nSecondSkipLast;
             var fullData = await messages
                 .ConsumeDuring(_context, FromSeconds(nSecondsTotal))
 
                 // Get time of event attached Server node
-                .Select(e => (e.EnqueuedTime, e.Messages["i=2253"].ReceiveTime))
+                .Select(e => (e.EnqueuedTime, e.Messages["i=2253"].SourceTimestamp))
                 .ToListAsync(_timeoutToken);
-
+            
             // Assert throughput
 
             // Trim first few and last seconds of data, since Publisher polls PLCs
             // at different times
-            var intervalStart = fullData.Select(d => d.ReceiveTime.Value).Min() + FromSeconds(nSecondSkipFirst);
-            var intervalEnd = fullData.Select(d => d.ReceiveTime.Value).Max() - FromSeconds(nSecondSkipLast);
+            var intervalStart = fullData.Select(d => d.SourceTimestamp).Min() + FromSeconds(nSecondSkipFirst);
+            var intervalEnd = fullData.Select(d => d.SourceTimestamp).Max() - FromSeconds(nSecondSkipLast);
             var intervalDuration = intervalEnd - intervalStart;
-            var eventData = fullData.Where(d => d.ReceiveTime > intervalStart && d.ReceiveTime < intervalEnd).ToList();
-
+            var eventData = fullData.Where(d => d.SourceTimestamp > intervalStart && d.SourceTimestamp < intervalEnd).ToList();
+            
             // Bin events by 1-second interval to compute event rate histogram
             var eventRatesBySecond = eventData
-                .GroupBy(s => s.ReceiveTime.Value.Truncate(FromSeconds(1)))
+                .GroupBy(s => s.SourceTimestamp.Truncate(FromSeconds(1)))
                 .Select(g => g.Count())
                 .ToList();
 
@@ -84,7 +83,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 expectedEventsPerSecond,
                 expectedEventsPerSecond / 10d,
                 "Publisher should match PLC event rate");
-
+            
             var (average, stDev) = DescriptiveStats(eventRatesBySecond);
 
             average.Should().BeApproximately(
@@ -93,10 +92,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 "Publisher should match PLC event rate");
 
             stDev.Should().BeLessThan(expectedEventsPerSecond / 3d, "Publisher should sustain PLC event rate");
-
+            
             // Assert latency
             var end2EndLatency = eventData
-                .Select(v => v.EnqueuedTime - v.ReceiveTime.Value)
+                .Select(v => v.EnqueuedTime - v.SourceTimestamp)
                 .ToList();
             end2EndLatency.Min().Should().BePositive();
             end2EndLatency.Average(v => v.TotalMilliseconds).Should().BeLessThan(8000);

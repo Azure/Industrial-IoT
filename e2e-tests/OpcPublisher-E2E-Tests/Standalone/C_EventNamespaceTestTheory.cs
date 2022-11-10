@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Standalone {
+namespace OpcPublisher_AE_E2E_Tests.Standalone {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -18,7 +18,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
     /// </summary>
     public class C_EventNamespaceTestTheory : DynamicAciTestBase {
-        public C_EventNamespaceTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output)
+        public C_EventNamespaceTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }
 
@@ -27,8 +27,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             return TestHelper.CreateSimulationContainerAsync(_context, new List<string> { "/bin/sh", "-c", "./opcplc --autoaccept -ses --pn=50000" }, _timeoutToken);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(11)]
+        [Fact, PriorityOrder(11)]
         public async Task Test_VerifyIntegerNamespace_Expect_SimpleEvents_InHub() {
             // Arrange
             var pnJson = SimpleEvents(
@@ -38,7 +37,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 "5:CycleId",
                 "ns=5;i=2");
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -48,8 +47,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             VerifyPayloads(payloads.Messages);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(12)]
+        [Fact, PriorityOrder(12)]
         public async Task Test_VerifyStringNamespace_Expect_SimpleEvents_InHub() {
             // Arrange
             var pnJson = SimpleEvents(
@@ -59,7 +57,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 "http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId",
                 "nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2");
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -69,8 +67,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             VerifyPayloads(payloads.Messages);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(13)]
+        [Fact, PriorityOrder(13)]
         public async Task Test_VerifyIntegerNamespace_Expect_FilteredSimpleEvents_InHub() {
             // Arrange
             var pnJson = _context.PublishedNodesJson(
@@ -78,7 +75,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("ns=5;i=2"));
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -88,8 +85,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             VerifyPayloads(payloads.Messages);
         }
 
-        // ToDo: remove ´skip test´ when event and alarm are fully implemented
-        [Fact(Skip = "PublishedNodesJobConverter does not parse OpcEvents now."), PriorityOrder(14)]
+        [Fact, PriorityOrder(14)]
         public async Task Test_VerifyStringNamespace_Expect_FilteredSimpleEvents_InHub() {
             // Arrange
             var pnJson = _context.PublishedNodesJson(
@@ -97,7 +93,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"));
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(_context, TestConstants.PublishedNodesFullName, pnJson, _timeoutToken);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
@@ -108,7 +104,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         private static void VerifyPayloads(PubSubMessages<SystemCycleStatusEventTypePayload> payloads) {
-            foreach (var payload in payloads.Select(x => x.Value)) {
+            foreach (var payload in payloads.Select(x => x.Value.Value)) {
                 payload.Message.Should().Match("The system cycle '*' has started.");
                 payload.CycleId.Should().MatchRegex("^\\d+$");
             }

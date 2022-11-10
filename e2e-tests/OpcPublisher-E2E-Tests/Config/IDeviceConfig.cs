@@ -3,13 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Config {
+namespace OpcPublisher_AE_E2E_Tests.Config {
 
-    public interface IOpcPlcConfig {
+    /// <summary>
+    /// IoT Edge device configuration
+    /// </summary>
+    public interface IDeviceConfig {
 
         /// <summary>
-        /// Semicolon separated URLs to load published_nodes.json from OPC-PLCs
+        /// IoT Edge device id
         /// </summary>
-        string Urls { get; }
+        string DeviceId { get; }
     }
 }

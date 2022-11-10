@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.TestModels {
+namespace OpcPublisher_AE_E2E_Tests.TestModels {
     using System;
     using System.Collections.Generic;
     using Newtonsoft.Json;
@@ -34,7 +34,17 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
 
     /// <summary>Message sent by Publisher to IoT Hub.</summary>
     /// <typeparam name="T">Payload type.</typeparam>
-    public class PubSubMessages<T> : Dictionary<string, T> where T : BaseEventTypePayload {
+    public class PubSubMessages<T> : Dictionary<string, PubSubMessage<T>> where T : BaseEventTypePayload {
+    }
+
+    /// <summary>Container for payload.</summary>
+    /// <typeparam name="T">Payload type.</typeparam>
+    public class PubSubMessage<T> {
+        /// <summary>Message payload.</summary>
+        public T Value { get; set; }
+
+        /// <summary>Source timestamp.</summary>
+        public DateTime SourceTimestamp { get; set; }
     }
 
     /// <summary>Base class for payload types.</summary>
@@ -65,6 +75,7 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
 
         /// <summary>Gets or sets the receive time.</summary>
         public DateTime? ReceiveTime { get; set; }
+
 
         /// <summary>Gets or sets the local time.</summary>
         public DateTime? LocalTime { get; set; }

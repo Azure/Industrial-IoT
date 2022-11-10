@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-#nullable enable
-namespace IIoTPlatform_E2E_Tests.TestExtensions {
+namespace OpcPublisher_AE_E2E_Tests.TestExtensions {
     using Config;
     using Extensions;
+    using Microsoft.Azure.Management.Fluent;
     using Microsoft.Extensions.Configuration;
     using System;
     using Xunit.Abstractions;
@@ -14,7 +14,8 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     /// <summary>
     /// Context to pass data between test cases
     /// </summary>
-    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig, IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig {
+    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig,
+        IIoTEdgeConfig, ISshConfig, IOpcPlcConfig, IContainerRegistryConfig {
 
         /// <summary>
         /// Configuration
@@ -30,27 +31,27 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <summary>
         /// Save the identifier of OPC server endpoints
         /// </summary>
-        public string? OpcUaEndpointId { get; set; }
+        public string OpcUaEndpointId { get; set; }
 
         /// <summary>
         /// Save the identfier of the opc ua application
         /// </summary>
-        public string? ApplicationId { get; set; }
+        public string ApplicationId { get; set; }
 
         /// <summary>
         /// Folder path where PublishedNodes file is saved during the test
         /// </summary>
-        public string? PublishedNodesFileInternalFolder { get; set; }
+        public string PublishedNodesFileInternalFolder { get; set; }
 
         /// <summary>
         /// Helper to write output, need to be set from constructor of test class
         /// </summary>
-        public ITestOutputHelper? OutputHelper { get; set; }
+        public ITestOutputHelper OutputHelper { get; set; }
 
         /// <summary>
         /// Gets or sets the OPC server url
         /// </summary>
-        public string? OpcServerUrl { get; set; }
+        public string OpcServerUrl { get; set; }
 
         /// <summary>
         /// IoT Device Configuration
@@ -68,11 +69,6 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public IIoTEdgeConfig IoTEdgeConfig { get { return this; } }
 
         /// <summary>
-        /// IoT Hub Configuration
-        /// </summary>
-        public IIIoTPlatformConfig IIoTPlatformConfigHubConfig { get { return this; } }
-
-        /// <summary>
         /// SSH Configuration
         /// </summary>
         public ISshConfig SshConfig { get { return this; } }
@@ -83,11 +79,6 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public IOpcPlcConfig OpcPlcConfig { get { return this; } }
 
         /// <summary>
-        /// TestEventProcessor configuration
-        /// </summary>
-        public ITestEventProcessorConfig TestEventProcessorConfig { get { return this; } }
-
-        /// <summary>
         /// ContainerRegistry Configuration
         /// </summary>
         public IContainerRegistryConfig ContainerRegistryConfig { get { return this; } }
@@ -96,6 +87,36 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Helper to work with Azure.Devices.RegistryManager
         /// </summary>
         public RegistryHelper RegistryHelper { get; }
+
+        /// <summary>
+        /// Azure Context for managament api
+        /// </summary>
+        public IAzure AzureContext { get; set; }
+
+        /// <summary>
+        /// Urls for the dynamic ACI containers
+        /// </summary>
+        public string[] PlcAciDynamicUrls { get; set; }
+
+        /// <summary>
+        /// Azure Storage Name
+        /// </summary>
+        public string AzureStorageName { get; set; }
+
+        /// <summary>
+        /// Azure Storage Key
+        /// </summary>
+        public string AzureStorageKey { get; set; }
+
+        /// <summary>
+        /// Image that are used for PLC ACI
+        /// </summary>
+        public string PLCImage { get; set; }
+
+        /// <summary>
+        /// Testing suffix for this environment
+        /// </summary>
+        public string TestingSuffix { get; set; }
 
         /// <inheritdoc />
         public void Dispose() {
@@ -119,7 +140,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        private string GetStringOrDefault(string key, Func<string>? defaultValue) {
+        private string GetStringOrDefault(string key, Func<string> defaultValue) {
             var value = Configuration.GetValue<string>(key);
             if (string.IsNullOrEmpty(value)) {
                 return defaultValue?.Invoke() ?? string.Empty;
@@ -153,32 +174,14 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IIoTHubConfig.IoTHubEventHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING,
             () => throw new Exception("IoT Hub EventHub connection string is not provided."));
 
-        string IIoTHubConfig.CheckpointStorageConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING,
-            () => throw new Exception("IoT Hub Checkpoint Storage connection string is not provided."));
-
         string IIoTEdgeConfig.EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
-            () => "1.4");
+            () => "1.1");
 
         string IIoTEdgeConfig.NestedEdgeFlag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_FLAG,
             () => "Disable");
 
         string[] IIoTEdgeConfig.NestedEdgeSshConnections => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_SSH_CONNECTIONS,
             () => "").Split(",");
-
-        string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
-            () => { return string.Empty; });
-
-        string IIIoTPlatformConfig.AuthTenant => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
-            () => { return string.Empty; });
-
-        string IIIoTPlatformConfig.AuthClientId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID,
-            () => { return string.Empty; });
-
-        string IIIoTPlatformConfig.AuthClientSecret => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET,
-            () => { return string.Empty; });
-
-        string IIIoTPlatformConfig.ApplicationName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.ApplicationName,
-            () => throw new Exception("ApplicationName is not provided."));
 
         string ISshConfig.Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_USERNAME,
             () => throw new Exception("Username of iot edge device is not provided."));
@@ -195,14 +198,19 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new Exception("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
-        string ITestEventProcessorConfig.TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
-            () => throw new Exception("Test Event Processor BaseUrl is not provided."));
+        string IOpcPlcConfig.TenantId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SP_TENANT_ID,
+            () => throw new Exception("Tenant Id is not provided."));
 
-        string ITestEventProcessorConfig.TestEventProcessorUsername => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_USERNAME,
-            () => throw new Exception("Test Event Processor Username is not provided."));
+        string IOpcPlcConfig.ServicePrincipalId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SP_ID,
+            () => throw new Exception("Service Principal Id is not provided."));
 
-        string ITestEventProcessorConfig.TestEventProcessorPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_PASSWORD,
-            () => throw new Exception("Test Event Processor Password is not provided."));
+        string IOpcPlcConfig.ResourceGroupName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.RESOURCE_GROUP_NAME,
+            () => throw new Exception("Resource Group Name is not provided."));
+
+        string IOpcPlcConfig.Region => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.REGION,
+            () => throw new Exception("Region is not provided."));
+
+        string IOpcPlcConfig.SubscriptionId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SUBSCRIPTION_ID, () => string.Empty);
 
         string IContainerRegistryConfig.ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_SERVER,
             () => string.Empty);
