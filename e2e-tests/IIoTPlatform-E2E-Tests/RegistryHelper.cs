@@ -56,7 +56,12 @@ namespace IIoTPlatform_E2E_Tests {
                         return;
                     }
 
-                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
+                    // We've observed situations when even after the above waits the module did not yet restart.
+                    // That leads to situations where the publishing of nodes happens just before the restart to apply
+                    // new container creation options. After restart persisted nodes are picked up, but on the telemetry side
+                    // the restart causes dropped messages to be detected. That happens because just before the restart OPC Publisher
+                    // manages to send some telemetry. This wait makes sure that we do not run the test while restart is happening.
+                    await Task.Delay(TestConstants.AwaitInitInMilliseconds, ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) {
