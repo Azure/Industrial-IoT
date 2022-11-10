@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Auth.Models;
     using System.Linq;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
 
     /// <summary>
     /// Api model extensions

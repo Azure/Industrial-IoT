@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -105,10 +104,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         public void SetupSimpleFilterForConditionTypeWithPendingAlarmsEnabled() {
             // Arrange
             var template = new EventMonitoredItemModel {
-                EventFilter = new EventFilterModel() {
+                EventFilter = new EventFilterModel {
                     TypeDefinitionId = ObjectTypeIds.ConditionType.ToString(),
                 },
-                PendingAlarms = new PendingAlarmsOptionsModel() {
+                PendingAlarms = new PendingAlarmsOptionsModel {
                     IsEnabled = true
                 }
             };
