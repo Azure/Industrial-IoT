@@ -1,10 +1,15 @@
-using FluentAssertions;
-using NUnit.Framework;
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace MqttValidation {
+    using FluentAssertions;
+    using NUnit.Framework;
+    using System;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+
     public class MqttValidationTests {
 
         private const string EndpointKey = "VERIFIER_ENDPOINT";
@@ -64,9 +69,6 @@ namespace MqttValidation {
 
             result.Error.Should().BeNullOrEmpty();
             result.NumberOfMessages.Should().BeGreaterThan(5);
-
-
-
         }
     }
 }

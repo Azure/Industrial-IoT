@@ -42,7 +42,7 @@ namespace MqttTestValidator.BusinessLogic {
             _startUpDelay = startUpDelay;
             _observationTime = observationTime;
             _logger = logger;
-            
+
             _result = new MqttVerificationDetailedResponse {
                 IsFinished = false
             };
@@ -73,25 +73,25 @@ namespace MqttTestValidator.BusinessLogic {
 
                     var mqttClientOptions = GetMqttClientOptions();
 
-                    _logger.LogInformation($"Connecting to {_mqttBroker} on port {_mqttPort} with {_clientId} as clean session");
+                    _logger.LogInformation("Connecting to {MqttBroker} on port {MqttPort} with {ClientId} as clean session", _mqttBroker, _mqttPort, _clientId);
                     var connectionResult = mqttClient.ConnectAsync(mqttClientOptions, cts.Token).ConfigureAwait(false).GetAwaiter().GetResult();
                     if (connectionResult.ResultCode != MqttClientConnectResultCode.Success)  {
-                        _logger.LogError($"Can't connect to MQTT broker: {connectionResult.ReasonString}: {connectionResult.ResultCode}");
+                        _logger.LogError("Can't connect to MQTT broker: {ReasonString}: {ResultCode}", connectionResult.ReasonString, connectionResult.ResultCode);
                         throw new InvalidProgramException("Can't connect to MQTT Broker");
                     }
                     _logger.LogInformation("Connected!");
-                       
+
                     var mqttSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder()
                         .WithTopicFilter(f => { f.WithTopic(_mqttTopic).WithAtLeastOnceQoS(); })
                         .Build();
 
-                    _logger.LogInformation($"Subscribing to topic {_mqttTopic} with QoS 1");
+                    _logger.LogInformation("Subscribing to topic {MqttTopic} with QoS 1", _mqttTopic);
                     var subscriptionResult =  mqttClient.SubscribeAsync(mqttSubscribeOptions, cts.Token).ConfigureAwait(false).GetAwaiter().GetResult();
                     if (subscriptionResult.Items[0].ResultCode != MqttClientSubscribeResultCode.GrantedQoS1) {
                         _logger.LogError("Can't subscribe to topic: {subscriptionResult.Items[0].ResultCode}");
                         throw new InvalidProgramException("Can't subscribe to topic");
                     }
-                    _logger.LogInformation($"Subscribed");
+                    _logger.LogInformation("Subscribed");
 
                     Task.Delay(_observationTime).ConfigureAwait(false).GetAwaiter().GetResult();
                     _mqttClient = null;
@@ -110,7 +110,7 @@ namespace MqttTestValidator.BusinessLogic {
                 }
             });
         }
-        
+
         /// <inheritdoc />
         public MqttVerificationDetailedResponse GetResult()
         {
@@ -121,12 +121,14 @@ namespace MqttTestValidator.BusinessLogic {
         }
 
         Task IMqttClientConnectedHandler.HandleConnectedAsync(MqttClientConnectedEventArgs eventArgs) {
-            _logger.LogInformation($"Connected to MQTT Broker ({_mqttBroker} on {_mqttPort}): {eventArgs.ConnectResult.ReasonString}:{eventArgs.ConnectResult.ResultCode}");
+            _logger.LogInformation("Connected to MQTT Broker ({MqttBroker} on {MqttPort}): {ReasonString}:{ResultCode}",
+                 _mqttBroker, _mqttPort, eventArgs.ConnectResult.ReasonString, eventArgs.ConnectResult.ResultCode);
             return Task.CompletedTask;
         }
 
         async Task IMqttClientDisconnectedHandler.HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs) {
-            _logger.LogInformation($"Disconnected from MQTT Broker ({_mqttBroker} on {_mqttPort}): {eventArgs.Reason}:{eventArgs.ReasonCode}");
+            _logger.LogInformation("Disconnected from MQTT Broker ({MqttBroker} on {MqttPort}): {Reason}",
+                _mqttBroker, _mqttPort, eventArgs.Reason);
             if (_mqttClient == null) {
                 return;
             }
@@ -137,13 +139,14 @@ namespace MqttTestValidator.BusinessLogic {
 
             var clientOptions = GetMqttClientOptions();
             while (!_mqttClient.IsConnected && numberOfRetries > 0) {
-                _logger.LogInformation($"Reconnecting to MQTT Broker {++currentRetries} of {maxNumberOfRetries} with backoff: {backoffTimeInMilliseconds}");
+                _logger.LogInformation("Reconnecting to MQTT Broker {CurrentRetries} of {MaxNumberOfRetries} with backoff: {BackoffTimeInMilliseconds}",
+                    ++currentRetries, maxNumberOfRetries, backoffTimeInMilliseconds);
 
                 await Task.Delay(backoffTimeInMilliseconds).ConfigureAwait(false);
 
                 var result = await _mqttClient.ConnectAsync(clientOptions).ConfigureAwait(false);
                 if (result.ResultCode != MqttClientConnectResultCode.Success) {
-                    _logger.LogError($"Failed to reconnect to MQTT Broker, {result.ReasonString}: {result.ResultCode}");
+                    _logger.LogError("Failed to reconnect to MQTT Broker, {ReasonString}: {ResultCode}", result.ReasonString, result.ResultCode);
                     numberOfRetries--;
                 }
                 else {
@@ -154,17 +157,17 @@ namespace MqttTestValidator.BusinessLogic {
         }
 
         Task IMqttApplicationMessageReceivedHandler.HandleApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs eventArgs) {
-            
+
             eventArgs.AutoAcknowledge = true;
             Interlocked.Increment(ref _messageCounter);
-            
+
             try {
                 var message = Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload);
                 _logger.LogTrace(message);
 
                 var matches = _messageIdRegEx.Matches(message);
                 foreach(Match match in matches.Where(m => m.Success)) {
-                    if (uint.TryParse(match.Groups[2].Value, out var messageId)) 
+                    if (uint.TryParse(match.Groups[2].Value, out var messageId))
                     {
                         if (messageId > _highestMessageId) {
                             _highestMessageId = messageId;
@@ -177,10 +180,10 @@ namespace MqttTestValidator.BusinessLogic {
                 }
             }
             catch (Exception ex) {
-                _logger.LogError($"Error while processing MQTT message: {ex.Message}");
-                new AggregateException("Internal error processing MQTT message", ex);
+                _logger.LogError(ex, "Error while processing MQTT message.");
+                throw new AggregateException("Internal error processing MQTT message", ex);
             }
-            
+
             return Task.CompletedTask;
         }
 

@@ -4,24 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
-    using Microsoft.Azure.IIoT.Abstractions;
-    using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
+    using Microsoft.Azure.IIoT.Abstractions;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Utils;
     using Serilog;
     using Serilog.Events;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.Tracing;
     using System.IO;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
-    using System.Diagnostics.Tracing;
-    using Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient;
-    using static Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient.IoTSdkFactory;
-    using System.Threading;
 
     /// <summary>
     /// Injectable factory that creates clients
@@ -80,6 +78,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
                     deviceId = _mqttClientCs.DeviceId;
                     moduleId = _mqttClientCs.ModuleId;
+                    _timeout = TimeSpan.FromSeconds(15);
                 }
                 else if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
                     _deviceClientCs = IotHubConnectionStringBuilder.Create(config.EdgeHubConnectionString);
@@ -104,6 +103,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                         _logger.Information($"Details of gateway host are added to IoT Hub connection string: " +
                             $"GatewayHostName={ehubHost}");
                     }
+                    _timeout = TimeSpan.FromMinutes(5);
                 }
             }
             catch (Exception e) {
@@ -225,25 +225,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="onError"></param>
         /// <param name="transportSetting"></param>
         /// <returns></returns>
-        private Task<IClient> CreateAdapterAsync(
-            string product,
-            Action onError,
+        private Task<IClient> CreateAdapterAsync(string product, Action onError,
             ITransportSettings transportSetting = null) {
             if (string.IsNullOrEmpty(ModuleId)) {
                 if (_mqttClientCs != null) {
-                    return MqttClientAdapter.CreateAsync(
-                        product,
-                        _mqttClientCs,
-                        DeviceId,
-                        _telemetryTopicTemplate,
-                        timeout: TimeSpan.FromSeconds(15),
-                        RetryPolicy,
-                        onError,
-                        _logger);
+                    return MqttClientAdapter.CreateAsync(product, _mqttClientCs, DeviceId,
+                        _telemetryTopicTemplate, timeout: _timeout, RetryPolicy, onError, _logger);
                 }
                 else if (_deviceClientCs != null) {
                     return DeviceClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId,
-                        transportSetting, timeout: TimeSpan.FromMinutes(5), RetryPolicy, onError, _logger);
+                        transportSetting, timeout: _timeout, RetryPolicy, onError, _logger);
                 }
                 else {
                     throw new InvalidConfigurationException(
@@ -251,7 +242,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
             }
             return ModuleClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId, ModuleId,
-                transportSetting, timeout: TimeSpan.FromMinutes(5), RetryPolicy, onError, _logger);
+                transportSetting, timeout: _timeout, RetryPolicy, onError, _logger);
         }
 
         /// <summary>
@@ -302,6 +293,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             public const string EventSource = "Microsoft-Azure-Devices-Device-Client";
         }
 
+        private readonly TimeSpan _timeout;
         private readonly TransportOption _transport;
         private readonly IotHubConnectionStringBuilder _deviceClientCs;
         private readonly MqttClientConnectionStringBuilder _mqttClientCs;

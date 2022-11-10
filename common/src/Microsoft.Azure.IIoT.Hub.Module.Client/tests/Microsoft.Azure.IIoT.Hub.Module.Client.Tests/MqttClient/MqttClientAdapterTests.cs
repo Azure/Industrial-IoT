@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
     using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient;
+    using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
     using Moq;
     using MQTTnet;
     using MQTTnet.Client;
@@ -25,7 +25,6 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using static Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient.IoTSdkFactory;
 
     [Collection("MqttClientTests")]
     public class MqttClientAdapterTests : MqttClientConnectionStringBuilderTestsBase {

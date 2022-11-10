@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using MQTTnet.Extensions.ManagedClient;
     using Newtonsoft.Json;
     using Serilog;
@@ -36,11 +36,11 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
                try {
                     var content = await File.ReadAllTextAsync(_stateFile, Encoding.UTF8);
                     var messages = JsonConvert.DeserializeObject<List<ManagedMqttApplicationMessage>>(content);
-                    _logger.Information($"Loaded MQTT state from: {_stateFile}");
+                    _logger.Information("Loaded MQTT state from: {StateFile}", _stateFile);
                     return messages;
                 }
                 catch (IOException ex) {
-                    _logger.Error($"Failed to load MQTT state: {ex.Message}");
+                    _logger.Error(ex, "Failed to load MQTT state.");
                 }
             }
             return new List<ManagedMqttApplicationMessage>();
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient {
                     await File.WriteAllTextAsync(_stateFile, content, Encoding.UTF8);
                 }
                 catch (IOException ex) {
-                    _logger.Error($"Failed to save MQTT state: {ex.Message}");
+                    _logger.Error(ex, "Failed to save MQTT state.");
                 }
             }
         }

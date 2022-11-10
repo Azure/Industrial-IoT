@@ -12,7 +12,7 @@ namespace MqttTestValidator.Repositories {
     internal sealed class TaskRepository : ITaskRepository {
 
         private readonly IDictionary<ulong, IVerificationTask> _store = new Dictionary<ulong, IVerificationTask>(20);
-        
+
         /// <inheritdoc />
         public bool Contains(ulong id) {
             return _store.ContainsKey(id);
@@ -72,7 +72,7 @@ namespace MqttTestValidator.Repositories {
         /// <inheritdoc />
         public void RemoveRange(IEnumerable<IVerificationTask> entities) {
             ArgumentNullException.ThrowIfNull(entities, nameof(entities));
-            
+
             foreach (var entity in entities) {
                 Remove(entity);
             }
