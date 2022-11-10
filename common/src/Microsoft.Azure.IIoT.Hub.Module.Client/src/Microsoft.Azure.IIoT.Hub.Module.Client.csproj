@@ -5,8 +5,8 @@
     <Description>Azure Industrial IoT edge module service framework</Description>
   </PropertyGroup>
   <ItemGroup>
-	  <PackageReference Include="MQTTnet" Version="3.0.16" />
-	  <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.0.16" />
+    <PackageReference Include="MQTTnet" Version="3.1.2" />
+    <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.1.2" />
     <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.41.2" />
     <PackageReference Include="System.Net.Security" Version="4.3.2" />
     <PackageReference Include="System.Net.WebSockets.Client" Version="4.3.2" />
