@@ -182,9 +182,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson,
                         RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
-                    AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + encoded.Body.Length) /
+                    AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
-                    AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) +
+                    AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
                         chunk.Count) / (MessagesProcessedCount + 1);
                     MessagesProcessedCount++;
                     chunk.Clear();
@@ -252,9 +252,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary,
                         RoutingInfo = _enableRoutingInfo ? routingInfo : null,
                     };
-                    AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + encoded.Body.Length) /
+                    AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
-                    AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) +
+                    AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
                         chunk.Count) / (MessagesProcessedCount + 1);
                     MessagesProcessedCount++;
                     chunk.Clear();
@@ -306,9 +306,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     continue;
                 }
                 NotificationsProcessedCount++;
-                AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + encoded.Body.Length) /
+                AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                     (MessagesProcessedCount + 1);
-                AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) + 1) /
+                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
                     (MessagesProcessedCount + 1);
                 MessagesProcessedCount++;
                 yield return encoded;
@@ -352,9 +352,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     continue;
                 }
                 NotificationsProcessedCount++;
-                AvgMessageSize = ((AvgMessageSize * MessagesProcessedCount) + encoded.Body.Length) /
+                AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                     (MessagesProcessedCount + 1);
-                AvgNotificationsPerMessage = ((AvgNotificationsPerMessage * MessagesProcessedCount) + 1) /
+                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
                     (MessagesProcessedCount + 1);
                 MessagesProcessedCount++;
                 yield return encoded;

@@ -111,7 +111,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns>If the objects are equal</returns>
-        public static bool operator ==(PendingAlarmsOptionsModel left, PendingAlarmsOptionsModel right) => EqualityComparer<PendingAlarmsOptionsModel>.Default.Equals(left, right);
+        public static bool operator ==(PendingAlarmsOptionsModel left, PendingAlarmsOptionsModel right)
+            => EqualityComparer<PendingAlarmsOptionsModel>.Default.Equals(left, right);
 
         /// <summary>
         /// operator!=
@@ -119,6 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns>If the objects are not equal</returns>
-        public static bool operator !=(PendingAlarmsOptionsModel left, PendingAlarmsOptionsModel right) => !(left == right);
+        public static bool operator !=(PendingAlarmsOptionsModel left, PendingAlarmsOptionsModel right)
+            => !(left == right);
     }
 }

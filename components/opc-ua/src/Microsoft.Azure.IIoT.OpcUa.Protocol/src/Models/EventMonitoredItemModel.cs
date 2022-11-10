@@ -75,7 +75,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns>If the objects are equal</returns>
-        public static bool operator ==(EventMonitoredItemModel left, EventMonitoredItemModel right) => EqualityComparer<EventMonitoredItemModel>.Default.Equals(left, right);
+        public static bool operator ==(EventMonitoredItemModel left, EventMonitoredItemModel right)
+            => EqualityComparer<EventMonitoredItemModel>.Default.Equals(left, right);
 
         /// <summary>
         /// operator!=
@@ -83,6 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns>If the objects are not equal</returns>
-        public static bool operator !=(EventMonitoredItemModel left, EventMonitoredItemModel right) => !(left == right);
+        public static bool operator !=(EventMonitoredItemModel left, EventMonitoredItemModel right)
+            => !(left == right);
     }
 }

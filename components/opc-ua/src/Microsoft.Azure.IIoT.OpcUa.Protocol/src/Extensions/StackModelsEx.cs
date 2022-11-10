@@ -262,7 +262,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
                     Enumerable.Empty<QualifiedName>() :
                     model.BrowsePath?.Select(n => n.ToQualifiedName(context))),
-                IndexRange = model.IndexRange,
+                IndexRange = model.IndexRange
             };
         }
 
@@ -422,7 +422,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         public static IUserIdentity ToStackModel(this CredentialModel authentication) {
             switch (authentication?.Type ?? CredentialType.None) {
                 case CredentialType.UserName:
-                    if (authentication.Value != null && 
+                    if (authentication.Value != null &&
                         authentication.Value.IsObject &&
                         authentication.Value.TryGetProperty("user", out var user) &&
                             user.IsString &&

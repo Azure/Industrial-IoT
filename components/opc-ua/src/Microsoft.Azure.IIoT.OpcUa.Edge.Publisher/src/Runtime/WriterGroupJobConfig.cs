@@ -15,9 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
         IEngineConfiguration {
 
         /// <inheritdoc/>
-        public string PublisherId { get; set; }
-
-        /// <inheritdoc/>
         public WriterGroupModel WriterGroup { get; set; }
 
         /// <inheritdoc/>
@@ -33,12 +30,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
         public TimeSpan? DiagnosticsInterval { get; set; }
 
         /// <inheritdoc/>
+        public string PublisherId { get; set; }
+
+        /// <inheritdoc/>
         public int? MaxOutgressMessages { get; set; }
 
         /// <inheritdoc/>
-        public bool? UseReversibleEncoding { get; set; }
+        public bool? EnableRoutingInfo { get; set; }
 
         /// <inheritdoc/>
-        public bool? EnableRoutingInfo { get; set; }
+        public bool? UseReversibleEncoding { get; set; }
     }
 }

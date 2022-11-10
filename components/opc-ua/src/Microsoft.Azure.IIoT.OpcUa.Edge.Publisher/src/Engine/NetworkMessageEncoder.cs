@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Encoders;
-    using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
     using System;
     using System.Collections.Generic;

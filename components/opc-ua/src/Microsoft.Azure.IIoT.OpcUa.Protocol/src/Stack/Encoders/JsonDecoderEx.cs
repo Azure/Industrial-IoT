@@ -99,7 +99,7 @@ namespace Opc.Ua.Encoders {
         public bool ReadField(string fieldName, out object token) {
             token = null;
 
-            if (String.IsNullOrEmpty(fieldName)) {
+            if (string.IsNullOrEmpty(fieldName)) {
                 token = this._stack.Peek();
                 return true;
             }

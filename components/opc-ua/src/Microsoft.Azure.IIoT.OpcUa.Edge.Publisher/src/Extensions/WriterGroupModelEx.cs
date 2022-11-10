@@ -20,17 +20,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public static IWriterGroupConfig ToWriterGroupJobConfiguration(
             this WriterGroupJobModel model, string publisherId) {
             return new WriterGroupJobConfig {
-                // IWriterGroupConfig
-                PublisherId = publisherId,
-                WriterGroup = model.WriterGroup,
-                // IEngineConfiguration
                 BatchSize = model.Engine?.BatchSize,
                 BatchTriggerInterval = model.Engine?.BatchTriggerInterval,
+                PublisherId = publisherId,
                 DiagnosticsInterval = model.Engine?.DiagnosticsInterval,
+                WriterGroup = model.WriterGroup,
                 MaxMessageSize = model.Engine?.MaxMessageSize,
                 MaxOutgressMessages = model.Engine?.MaxOutgressMessages,
-                UseReversibleEncoding = model.Engine?.UseReversibleEncoding,
                 EnableRoutingInfo = model.Engine?.EnableRoutingInfo,
+                UseReversibleEncoding = model.Engine?.UseReversibleEncoding,
             };
         }
     }
