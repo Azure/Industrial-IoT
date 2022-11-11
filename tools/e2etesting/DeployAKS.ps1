@@ -62,7 +62,7 @@ else {
 ## Build verifier
 $registryName = "$($ResourceGroupName)acr"
 
-$registry = Get-AzContainerRegistry -ResourceGroupName $ResourceGroupName -Name $registryName
+$registry = Get-AzContainerRegistry -ResourceGroupName $ResourceGroupName -Name $registryName -ErrorAction SilentlyContinue
 if (!$registry) {
     Write-Host "Creating container registry $($registryName) in $($Region) ..."
     $registry = New-AzContainerRegistry -ResourceGroupName $ResourceGroupName -Name $registryName -EnableAdminUser -Sku Standard -Location $Region
@@ -72,9 +72,6 @@ else {
 }
 
 $registrySecret = Get-AzContainerRegistryCredential -ResourceGroupName $ResourceGroupName -Name $registryName
-if (!$registrySecret) {
-    throw "Failed to get image pull secret for $($registryName) registry."
-}
 
 Connect-AzContainerRegistry -Name $registryName
 $verifierImageName = "$($registry.LoginServer)/mqtt-verifier:latest"
