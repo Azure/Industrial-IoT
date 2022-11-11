@@ -1,18 +1,9 @@
+name: $(Date:yyyyMMdd)$(Rev:rr)
 trigger: none
+pr: none
 
 variables:
 - template: steps/variables.yml
-- name: ResourceGroupName
-  value: publisher-mqtt-k8s
-- name: Region
-  value: northeurope
-- name: Cleanup
-  value: false
-- name: PublisherImagePath
-  value: mqtt-publisher
-- name: ContainerRegistryServer
-  value: edgeappmodel.azurecr.io
-    
 
 stages:
 # build test resource

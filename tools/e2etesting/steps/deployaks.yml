@@ -17,6 +17,20 @@ steps:
     script: 'Install-Module -Name Az.ContainerRegistry -Force'
 
 - task: AzurePowerShell@5
+  displayName: 'Auto-Set Variables'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(System.DefaultWorkingDirectory)/tools/e2etesting/SetVariables.ps1'
+    scriptArguments: >
+      -BranchName "$(BranchName)"
+      -Region "$(Region)"
+      -ImageTag "$(PlatformVersion)"
+      -ImageNamespace "$(ImageNamespace)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
+
+- task: AzurePowerShell@5
   displayName: "Deploy AKS"
   inputs:
     azureSubscription: '$(AzureSubscription)'
@@ -31,7 +45,8 @@ steps:
       -ContainerRegistryUsername '$(ContainerRegistryUsername)'
       -ContainerRegistryPassword '$(ContainerRegistryPassword)'
       -PublisherDeploymentFile '$(System.DefaultWorkingDirectory)/tools/e2etesting/K8s-Standalone/publisher/deployment.yaml'
-      -PublisherImagePath '$(PublisherImagePath)'
+      -ImageNamespace '$(ImageNamespace)'
+      -ImageTag '$(ImageTag)'
 
 - task: AzureCLI@2
   displayName: 'Resolve Verifier Public IP'

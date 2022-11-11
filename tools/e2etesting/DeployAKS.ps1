@@ -14,9 +14,9 @@ Param(
     [string]
     $ContainerRegistryPassword,
     [string]
-    $PublisherImagePath = "/main/iotedge/opc-publisher",
+    $ImageNamespace = "",
     [string]
-    $PublisherImageTag = "latest"
+    $ImageTag = "latest"
 )
 
 # Stop execution when an error occurs.
@@ -136,8 +136,8 @@ else {
 ### Replace placeholder in deployment file
 $fileContent = Get-Content $PublisherDeploymentFile -Raw
 $fileContent = $fileContent -replace "{{ContainerRegistryServer}}", $ContainerRegistryServer
-$fileContent = $fileContent -replace "{{PublisherImagePath}}", $PublisherImagePath
-$fileContent = $fileContent -replace "{{PublisherImageTag}}", $PublisherImageTag
+$fileContent = $fileContent -replace "{{ImageNamespace}}", $ImageNamespace
+$fileContent = $fileContent -replace "{{PublisherImageTag}}", $ImageTag
 $fileContent = $fileContent -replace "{{DeviceId}}", $deviceId
 if ($withImagePullSecret) {
     $fileContent = $fileContent -replace "{{ImagePullSecret}}", ""

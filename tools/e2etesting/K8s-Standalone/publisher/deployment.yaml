@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: opcpublisher
-        image: {{ContainerRegistryServer}}/{{PublisherImagePath}}:{{PublisherImageTag}}
+        image: {{ContainerRegistryServer}}/{{ImageNamespace}}iotedge/opc-publisher:{{ImageTag}}
         args: [
           "--mc=HostName=mosquitto;Port=1883;DeviceId={{DeviceId}}",
           "--PkiRootPath=/mount/pki",   # Path to PKI folders
