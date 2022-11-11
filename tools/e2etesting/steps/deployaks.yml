@@ -1,4 +1,4 @@
-steps:
+
 - task: AzureCLI@2
   displayName: 'Set Service Principal Environment Variables'
   name: promoteserviceprincipal
@@ -6,10 +6,11 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     scriptLocation: 'InlineScript'
-    scriptType: 'pscore'
+    scriptType: 'ps'
     addSpnToEnvironment: true
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
 
 - task: PowerShell@2
   inputs:
