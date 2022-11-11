@@ -3,7 +3,8 @@
     [string] $Region,
     [string] $ImageTag,
     [string] $ImageNamespace,
-    [string] $ContainerRegistryServer
+    [string] $ContainerRegistryServer,
+    [string] $ServicePrincipalId
 )
 
 # Stop execution when an error occurs.
@@ -83,6 +84,7 @@ if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
     }
 
     Write-Host "Looking up credentials for $($registry) registry."
+    Login-AzAccount -Tenant "72f988bf-86f1-41af-91ab-2d7cd011db47" 
     $containerContext = Get-AzContext -ListAvailable | Where-Object { $_.Subscription.Name -eq "IOT_GERMANY" }
     if ($containerContext.Length -gt 1) 
     {
