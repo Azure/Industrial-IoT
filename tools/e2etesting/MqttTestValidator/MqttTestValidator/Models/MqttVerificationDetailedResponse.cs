@@ -20,14 +20,14 @@ namespace MqttTestValidator.Models {
         /// <summary>
         /// Total number if messages received on the topic
         /// </summary>
-        public ulong NumberOfMessages { get; set; }
+        public long NumberOfMessages { get; set; }
         /// <summary>
         /// Minimal message id received 
         /// </summary>
-        public uint LowestMessageId { get; set; }
+        public int LowestMessageId { get; set; }
         /// <summary>
         /// Maximal message id received 
         /// </summary>
-        public uint HighestMessageId { get; set; }
+        public int HighestMessageId { get; set; }
     }
 }
