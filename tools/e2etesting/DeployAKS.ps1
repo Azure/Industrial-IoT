@@ -35,8 +35,7 @@ if (!(Microsoft.PowerShell.Management\Test-Path -Path $PublisherDeploymentFile -
 }
 
 ## show installed az.aks module
-Get-Module -listAvailable -Name Az.Aks
-Get-Moduie -listAvailable -Name Az.ContainerRegistry
+Get-Module -listAvailable -Name Az.Aks, Az.ContainerRegistry
 
 ## Login if required
 
