@@ -75,7 +75,7 @@ $registrySecret = Get-AzContainerRegistryCredential -ResourceGroupName $Resource
 
 Connect-AzContainerRegistry -Name $registryName
 $verifierImageName = "$($registry.LoginServer)/mqtt-verifier:latest"
-Write-Host "Build and push verifier image $($verifierImageName) created."
+Write-Host "Build and push verifier image $($verifierImageName)..."
 docker build -t mqtt-verifier -f ./tools/e2etesting/MqttTestValidator/MqttTestValidator/Dockerfile ./tools/e2etesting/MqttTestValidator/MqttTestValidator
 docker image tag mqtt-verifier $verifierImageName
 docker push $verifierImageName
@@ -143,11 +143,9 @@ kubectl apply -f ./tools/e2etesting/K8s-Standalone/opcplc/
 $deviceId = "device_$($testSuffix)"
 
 ### Create Image Pull Secret if required
-if (![string]::IsNullOrEmpty($ContainerRegistryUsername) && $ContainerRegistryPassword.Length -ne 0) {
+if (![string]::IsNullOrEmpty($ContainerRegistryUsername) -and ($ContainerRegistryPassword.Length -ne 0)) {
     $withImagePullSecret = $true
-    # $temp = ConvertFrom-SecureString -SecureString $ContainerRegistryPassword -AsPlainText
     kubectl create secret docker-registry dev-registry-pull-secret --docker-server=$ContainerRegistryServer --docker-username=$ContainerRegistryUsername --namespace=e2etesting --docker-password=$ContainerRegistryPassword
-    $temp = $null
 }
 else {
     $withImagePullSecret = $false
@@ -171,7 +169,7 @@ kubectl apply -f ./tools/e2etesting/K8s-Standalone/publisher
 
 $fileContent = Get-Content './tools/e2etesting/K8s-Standalone/verifier/deployment.yaml' -Raw
 $fileContent = $fileContent -replace "{{VerifierImage}}", $verifierImageName
-$fileContent = $fileContent -replace "{{ImagePullSecret}}", $registrySecret.Password
 $fileContent | Out-File './tools/e2etesting/K8s-Standalone/verifier/deployment.yaml' -Force -Encoding utf8
 
+kubectl create secret docker-registry verifier-pull-secret --docker-server=$registry.LoginServer --docker-username=$registrySecret.Username --namespace=e2etesting --docker-password=$registrySecret.Password
 kubectl apply -f ./tools/e2etesting/K8s-Standalone/verifier

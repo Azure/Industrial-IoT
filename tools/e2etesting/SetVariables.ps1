@@ -10,9 +10,6 @@
 $ErrorActionPreference = "Stop"
 # Set-PSDebug -Trace 2
 
-#Import-Module Az.Accounts -MinimumVersion 2.9.0
-#Import-Module Az.ContainerRegistry
-
 if (![string]::IsNullOrEmpty($script:BranchName))
 {
     if ($script:BranchName.StartsWith("refs/heads/")) 
@@ -84,28 +81,20 @@ if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
         # Feature builds by default into dev registry
         $registry = "industrialiotdev"
     }
-    try 
-    {
-        Write-Host "Looking up credentials for $($registry) registry."
-        $containerContext = Get-AzContext -ListAvailable | Where-Object { $_.Subscription.Name -eq "IOT_GERMANY" }
-        if ($containerContext.Length -gt 1) 
-        {
-            $containerContext = $containerContext[0]
-        }
-        Set-AzContext $containerContext | Out-Null
-        $registry = Get-AzContainerRegistry | Where-Object { $_.Name -eq $registry }
-        $creds = Get-AzContainerRegistryCredential -Registry $registry 
 
-        $script:ContainerRegistryServer = $registry.LoginServer
-        Write-Host "##vso[task.setvariable variable=ContainerRegistryUsername]$($creds.Username)"
-        Write-Host "##vso[task.setvariable variable=ContainerRegistryPassword]$($creds.Password)"
-    }
-    catch 
+    Write-Host "Looking up credentials for $($registry) registry."
+    $containerContext = Get-AzContext -ListAvailable | Where-Object { $_.Subscription.Name -eq "IOT_GERMANY" }
+    if ($containerContext.Length -gt 1) 
     {
-        Write-Warning "Failed to get credentials for $($registry)."
-        Write-Warning "Using official container registry."
-        $script:ContainerRegistryServer = "mcr.microsoft.com"
+        $containerContext = $containerContext[0]
     }
+    Set-AzContext $containerContext | Out-Null
+    $registry = Get-AzContainerRegistry | Where-Object { $_.Name -eq $registry }
+    $creds = Get-AzContainerRegistryCredential -Registry $registry 
+
+    $script:ContainerRegistryServer = $registry.LoginServer
+    Write-Host "##vso[task.setvariable variable=ContainerRegistryUsername]$($creds.Username)"
+    Write-Host "##vso[task.setvariable variable=ContainerRegistryPassword]$($creds.Password)"
 }
 else
 {

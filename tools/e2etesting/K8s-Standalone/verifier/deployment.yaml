@@ -18,5 +18,5 @@ spec:
         ports:
         - containerPort: 80
         - containerPort: 443
-{{ImagePullSecret}}      imagePullSecrets:
-{{ImagePullSecret}}        - name: dev-registry-pull-secret 
+      imagePullSecrets:
+        - name: verifier-pull-secret
