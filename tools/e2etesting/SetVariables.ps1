@@ -88,13 +88,21 @@ if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
     {
         $containerContext = $containerContext[0]
     }
-    Set-AzContext $containerContext | Out-Null
-    $registry = Get-AzContainerRegistry | Where-Object { $_.Name -eq $registry }
-    $creds = Get-AzContainerRegistryCredential -Registry $registry 
+    if (!$containerContext)
+    {
+        Write-Host "No context to get container registry"
+        Get-AzContext -ListAvailable
+    }
+    else 
+    {
+        Set-AzContext $containerContext | Out-Null
+        $registry = Get-AzContainerRegistry | Where-Object { $_.Name -eq $registry }
+        $creds = Get-AzContainerRegistryCredential -Registry $registry 
 
-    $script:ContainerRegistryServer = $registry.LoginServer
-    Write-Host "##vso[task.setvariable variable=ContainerRegistryUsername]$($creds.Username)"
-    Write-Host "##vso[task.setvariable variable=ContainerRegistryPassword]$($creds.Password)"
+        $script:ContainerRegistryServer = $registry.LoginServer
+        Write-Host "##vso[task.setvariable variable=ContainerRegistryUsername]$($creds.Username)"
+        Write-Host "##vso[task.setvariable variable=ContainerRegistryPassword]$($creds.Password)"
+    }
 }
 else
 {
