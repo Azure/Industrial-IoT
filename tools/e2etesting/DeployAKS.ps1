@@ -36,6 +36,7 @@ if (!(Microsoft.PowerShell.Management\Test-Path -Path $PublisherDeploymentFile -
 
 ## show installed az.aks module
 Get-Module -listAvailable -Name Az.Aks
+Get-Moduie -listAvailable -Name Az.ContainerRegistry
 
 ## Login if required
 
@@ -59,9 +60,32 @@ else {
     Write-Host "Using resource Group: $($resourceGroup.ResourceGroupName)"
 }
 
+## Build verifier
+$registryName = "$($ResourceGroupName)acr"
+
+$registry = Get-AzContainerRegistry -ResourceGroupName $ResourceGroupName -Name $registryName
+if (!$registry) {
+    Write-Host "Creating container registry $($registryName) in $($Region) ..."
+    $registry = New-AzContainerRegistry -ResourceGroupName $ResourceGroupName -Name $registryName -EnableAdminUser -Sku Standard -Location $Region
+}
+else {
+    Write-Host "Using conainer registry: $($registry.Name)"
+}
+
+$registrySecret = Get-AzContainerRegistryCredential -ResourceGroupName $ResourceGroupName -Name $registryName
+if (!$registrySecret) {
+    throw "Failed to get image pull secret for $($registryName) registry."
+}
+
+Connect-AzContainerRegistry -Name $registryName
+$verifierImageName = "$($registry.LoginServer)/mqtt-verifier:latest"
+Write-Host "Build and push verifier image $($verifierImageName) created."
+docker build -t mqtt-verifier -f ./tools/e2etesting/MqttTestValidator/MqttTestValidator/Dockerfile ./tools/e2etesting/MqttTestValidator/MqttTestValidator
+docker image tag mqtt-verifier $verifierImageName
+docker push $verifierImageName
+Write-Host "Verifier image $($verifierImageName) created."
 
 ## Determine suffix for testing resources
-
 if (!$resourceGroup.Tags) {
     $resourceGroup.Tags = @{}
 }
@@ -137,7 +161,7 @@ else {
 $fileContent = Get-Content $PublisherDeploymentFile -Raw
 $fileContent = $fileContent -replace "{{ContainerRegistryServer}}", $ContainerRegistryServer
 $fileContent = $fileContent -replace "{{ImageNamespace}}", $ImageNamespace
-$fileContent = $fileContent -replace "{{PublisherImageTag}}", $ImageTag
+$fileContent = $fileContent -replace "{{ImageTag}}", $ImageTag
 $fileContent = $fileContent -replace "{{DeviceId}}", $deviceId
 if ($withImagePullSecret) {
     $fileContent = $fileContent -replace "{{ImagePullSecret}}", ""
@@ -150,12 +174,8 @@ $fileContent | Out-File $PublisherDeploymentFile -Force -Encoding utf8
 kubectl apply -f ./tools/e2etesting/K8s-Standalone/publisher
 
 $fileContent = Get-Content './tools/e2etesting/K8s-Standalone/verifier/deployment.yaml' -Raw
-if ($withImagePullSecret) {
-    $fileContent = $fileContent -replace "{{ImagePullSecret}}", ""
-}
-else {
-    $fileContent = $fileContent -replace "{{ImagePullSecret}}", "#"
-}
+$fileContent = $fileContent -replace "{{VerifierImage}}", $verifierImageName
+$fileContent = $fileContent -replace "{{ImagePullSecret}}", $registrySecret.Password
 $fileContent | Out-File './tools/e2etesting/K8s-Standalone/verifier/deployment.yaml' -Force -Encoding utf8
 
 kubectl apply -f ./tools/e2etesting/K8s-Standalone/verifier
