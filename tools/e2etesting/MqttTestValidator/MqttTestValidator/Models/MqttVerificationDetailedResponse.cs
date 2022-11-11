@@ -24,10 +24,10 @@ namespace MqttTestValidator.Models {
         /// <summary>
         /// Minimal message id received 
         /// </summary>
-        public int LowestMessageId { get; set; }
+        public long LowestMessageId { get; set; }
         /// <summary>
         /// Maximal message id received 
         /// </summary>
-        public int HighestMessageId { get; set; }
+        public long HighestMessageId { get; set; }
     }
 }
