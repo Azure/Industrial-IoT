@@ -29,8 +29,8 @@ namespace MqttTestValidator.BusinessLogic {
         private MqttVerificationDetailedResponse _result;
         private static object _lock = new object();
         private long _messageCounter;
-        private int _lowestMessageId;
-        private int _highestMessageId;
+        private long _lowestMessageId;
+        private long _highestMessageId;
         private IMqttClient? _mqttClient;
 
 
@@ -47,7 +47,7 @@ namespace MqttTestValidator.BusinessLogic {
                 IsFinished = false
             };
             _messageCounter = 0;
-            _lowestMessageId = int.MaxValue;
+            _lowestMessageId = long.MaxValue;
             _highestMessageId = 0;
             _clientId = $"validator_{Id}";
         }
@@ -167,7 +167,7 @@ namespace MqttTestValidator.BusinessLogic {
 
                 var matches = _messageIdRegEx.Matches(message);
                 foreach(Match match in matches.Where(m => m.Success)) {
-                    if (int.TryParse(match.Groups[2].Value, out var messageId))
+                    if (long.TryParse(match.Groups[2].Value, out var messageId))
                     {
                         if (messageId > _highestMessageId) {
                             _highestMessageId = messageId;
