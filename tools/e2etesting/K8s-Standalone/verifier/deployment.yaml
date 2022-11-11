@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: verifier
-        image: edgeappmodel.azurecr.io/mqtt-verifier:latest
+        image: {{VerifierImage}}
         ports:
         - containerPort: 80
         - containerPort: 443
