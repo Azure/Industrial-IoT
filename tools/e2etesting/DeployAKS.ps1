@@ -154,6 +154,9 @@ else {
 ### Replace placeholder in deployment file
 $fileContent = Get-Content $PublisherDeploymentFile -Raw
 $fileContent = $fileContent -replace "{{ContainerRegistryServer}}", $ContainerRegistryServer
+if (![string]::IsNullOrEmpty($ImageNamespace)) {
+    $ImageNamespace = "$($ImageNamespace)/"
+}
 $fileContent = $fileContent -replace "{{ImageNamespace}}", $ImageNamespace
 $fileContent = $fileContent -replace "{{ImageTag}}", $ImageTag
 $fileContent = $fileContent -replace "{{DeviceId}}", $deviceId
