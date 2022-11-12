@@ -55,24 +55,6 @@ steps:
     KeyVaultName: '$(KeyVaultName)'
     SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
-- task: AzureKeyVault@1
-  displayName: 'Load secrets from Key Vault as variables by default'
-  condition: and(eq(variables['ContainerRegistryServer'], ''), eq(variables['ContainerRegistryUsername'], ''), eq(variables['ContainerRegistryPassword'], ''))
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    KeyVaultName: '$(DevAcrCredentialsKeyVaultName)'
-    SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
-    RunAsPreJob: true
-
-- task: AzureKeyVault@1
-  displayName: 'Load secrets from Release Key Vault as variables on Release Branch'
-  condition: startsWith(variables['BranchName'], 'release')
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    KeyVaultName: '$(ReleaseAcrCredentialsKeyVaultName)'
-    SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
-    RunAsPreJob: true
-
 - task: PowerShell@2
   displayName: Versioning
   name: setVersionInfo

@@ -1,8 +1,5 @@
 variables:
   BasePath: $(System.DefaultWorkingDirectory)\tools\e2etesting
-  ClientCredentialsKeyVaultName: automatedtesting
-  DevAcrCredentialsKeyVaultName: kv-developer-pipeline
-  ReleaseAcrCredentialsKeyVaultName: kv-release-pipeline
   AzureSubscription: IIOT_TEST-SP # Use Services-Connection with Service-Principal-Authentication as subscription
   IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
   TestPath: $(System.DefaultWorkingDirectory)\e2e-tests\IIoTPlatform-E2E-Tests
