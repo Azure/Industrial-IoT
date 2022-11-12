@@ -167,12 +167,14 @@ else {
     $fileContent = $fileContent -replace "{{ImagePullSecret}}", "#"
 }
 $fileContent | Out-File $PublisherDeploymentFile -Force -Encoding utf8
+$fileContent | Out-Host
 
 kubectl apply -f ./tools/e2etesting/K8s-Standalone/publisher
 
 $fileContent = Get-Content './tools/e2etesting/K8s-Standalone/verifier/deployment.yaml' -Raw
 $fileContent = $fileContent -replace "{{VerifierImage}}", $verifierImageName
 $fileContent | Out-File './tools/e2etesting/K8s-Standalone/verifier/deployment.yaml' -Force -Encoding utf8
+$fileContent | Out-Host
 
 kubectl create secret docker-registry verifier-pull-secret --docker-server=$registry.LoginServer --docker-username=$registrySecret.Username --namespace=e2etesting --docker-password=$registrySecret.Password
 kubectl apply -f ./tools/e2etesting/K8s-Standalone/verifier
