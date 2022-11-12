@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: opcplc
-        image: mcr.microsoft.com/iotedge/opc-plc:latest
+        image: mcr.microsoft.com/iotedge/opc-plc:2.2.0
         ports:
         - containerPort: 50000
         - containerPort: 8080
