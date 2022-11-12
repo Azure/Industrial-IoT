@@ -3,8 +3,7 @@
     [string] $Region,
     [string] $ImageTag,
     [string] $ImageNamespace,
-    [string] $ContainerRegistryServer,
-    [string] $ServicePrincipalId
+    [string] $ContainerRegistryServer
 )
 
 # Stop execution when an error occurs.
@@ -70,23 +69,6 @@ if ([string]::IsNullOrEmpty($script:ImageNamespace))
     $script:ImageNamespace = $script:ImageNamespace.Replace("_", "/").Substring(0, [Math]::Min($script:ImageNamespace.Length, 24))
 }
 
-
-Write-Host "=============================================================================="
-Write-Host "Use $($script:ImageTag) images in namespace $($script:ImageNamespace) from $($registry)."
-Write-Host "=============================================================================="
-Write-Host ""
-
-
-Write-Host "##vso[task.setvariable variable=ImageTag]$($script:ImageTag)"
-Write-Host "##vso[task.setvariable variable=ImageNamespace]$($script:ImageNamespace)"
-
-if ([string]::IsNullOrEmpty($script:Region)) 
-{
-    $script:Region = "westus"
-}
-Write-Host "##vso[task.setvariable variable=Region]$($script:Region)"
-
-
 function Get-ContainerRegistrySecret 
 {
     param(
@@ -129,3 +111,22 @@ if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
     Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryServer"
     Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryUsername"
 }
+else 
+{
+    $registry = $script:ContainerRegistryServer
+}
+
+Write-Host "=============================================================================="
+Write-Host "Use $($script:ImageTag) images in namespace $($script:ImageNamespace) from $($registry)."
+Write-Host "=============================================================================="
+Write-Host ""
+
+Write-Host "##vso[task.setvariable variable=ImageTag]$($script:ImageTag)"
+Write-Host "##vso[task.setvariable variable=ImageNamespace]$($script:ImageNamespace)"
+
+if ([string]::IsNullOrEmpty($script:Region)) 
+{
+    $script:Region = "westus"
+}
+Write-Host "##vso[task.setvariable variable=Region]$($script:Region)"
+
