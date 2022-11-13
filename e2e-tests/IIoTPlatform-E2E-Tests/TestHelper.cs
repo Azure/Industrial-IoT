@@ -800,29 +800,20 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="ct">Cancellation token</param>
         public static async Task<MethodResultModel> CallMethodAsync(ServiceClient serviceClient, string deviceId, string moduleId,
             MethodParameterModel parameters, IIoTPlatformTestContext context, CancellationToken ct) {
-            var attempt = 0;
-            while (true) {
-                try {
-                    var methodInfo = new CloudToDeviceMethod(parameters.Name);
-                    methodInfo.SetPayloadJson(parameters.JsonPayload);
-                    var result = await (string.IsNullOrEmpty(moduleId) ?
-                         serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
-                         serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct));
-                    return new MethodResultModel {
-                        JsonPayload = result.GetPayloadAsJson(),
-                        Status = result.Status
-                    };
-                }
-                catch (Exception e) {
-                    PrettyPrintException(e, context.OutputHelper);
-                    if (e.Message.Contains("The operation failed because the requested device isn't online") && ++attempt < 3) {
-                        // Try again twice after waiting
-                        context.OutputHelper.WriteLine("Device is not online, trying again to call device after delay...");
-                        await Task.Delay(TestConstants.AwaitInitInMilliseconds, ct).ConfigureAwait(false);
-                        continue;
-                    }
-                    throw;
-                }
+            try {
+                var methodInfo = new CloudToDeviceMethod(parameters.Name);
+                methodInfo.SetPayloadJson(parameters.JsonPayload);
+                var result = await (string.IsNullOrEmpty(moduleId) ?
+                     serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
+                     serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct));
+                return new MethodResultModel {
+                    JsonPayload = result.GetPayloadAsJson(),
+                    Status = result.Status
+                };
+            }
+            catch (Exception e) {
+                PrettyPrintException(e, context.OutputHelper);
+                return null;
             }
         }
     }
