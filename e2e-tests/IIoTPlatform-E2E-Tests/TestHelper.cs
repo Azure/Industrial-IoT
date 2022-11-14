@@ -814,13 +814,12 @@ namespace IIoTPlatform_E2E_Tests {
                     };
                 }
                 catch (Exception e) {
-                    PrettyPrintException(e, context.OutputHelper);
-                    if (e.Message.Contains("The operation failed because the requested device isn't online") && ++attempt < 3) {
-                        // Try again twice after waiting
+                    if (e.Message.Contains("The operation failed because the requested device isn't online") && ++attempt < 60) {
                         context.OutputHelper.WriteLine("Device is not online, trying again to call device after delay...");
-                        await Task.Delay(TestConstants.AwaitInitInMilliseconds, ct).ConfigureAwait(false);
+                        await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                         continue;
                     }
+					PrettyPrintException(e, context.OutputHelper);
                     throw;
                 }
             }
