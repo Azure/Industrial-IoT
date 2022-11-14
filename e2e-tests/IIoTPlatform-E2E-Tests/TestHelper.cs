@@ -219,11 +219,11 @@ namespace IIoTPlatform_E2E_Tests {
             string publishedNodesFullPath,
             IEnumerable<PublishedNodesEntryModel> entries
         ) {
-            var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
-            context.OutputHelper?.WriteLine(json);
+            context.OutputHelper?.WriteLine(JsonConvert.SerializeObject(entries));
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
             using var scpClient = CreateScpClientAndConnect(context);
+            var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
             scpClient.Upload(stream, publishedNodesFullPath);
