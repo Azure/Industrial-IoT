@@ -131,8 +131,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
         [Fact, PriorityOrder(7)]
         public async Task Test_CheckIfEndpointWasActivated_Expect_ActivatedAndConnected() {
+            Assert.False(string.IsNullOrWhiteSpace(_context.OpcUaEndpointId));
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var json = await TestHelper.Registry.WaitForEndpointToBeActivatedAsync(_context, cts.Token, new HashSet<string> { _context.OpcServerUrl });
+            var json = await TestHelper.Registry.WaitForEndpointToBeActivatedAsync(_context, cts.Token, new HashSet<string> { _context.OpcUaEndpointId });
             Assert.True(json!= null, "OPC UA Endpoint not found");
         }
 
