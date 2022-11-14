@@ -67,12 +67,12 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var route = TestConstants.APIRoutes.RegistryApplications;
             var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
-            // Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} calling {route} with {_context.OpcServerUrl} discovery url");
 
             // Check that Application was registered
             cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             dynamic json = await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, new HashSet<string> { _context.OpcServerUrl });
-            Assert.True(json != null, "OPC Application not activated");
+            Assert.True(json != null, $"OPC Application with url {_context.OpcServerUrl} not activated");
 
             // Read OPC UA Endpoint ID
             var endpointId = await TestHelper.Discovery.GetOpcUaEndpointId(_context, _context.OpcServerUrl, cts.Token, "SignAndEncrypt");
@@ -111,7 +111,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var route = string.Format(TestConstants.APIRoutes.PublisherBulkFormat, _context.OpcUaEndpointId);
             var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
-            Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} starting publishing bulk");
         }
 
         [Fact, PriorityOrder(53)]
@@ -126,7 +126,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var route = TestConstants.APIRoutes.PublisherJobs;
             var response = TestHelper.CallRestApi(_context, Method.Get, route, ct: cts.Token);
-            Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} getting publishing jobs");
             dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
 
             bool found = false;
@@ -208,7 +208,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var route = string.Format(TestConstants.APIRoutes.PublisherBulkFormat, _context.OpcUaEndpointId);
             var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
-            Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} starting publishing bulk");
         }
 
         [Fact, PriorityOrder(56)]
@@ -241,7 +241,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var route = string.Format(TestConstants.APIRoutes.PublisherJobsFormat, _context.OpcUaEndpointId);
             var response = TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
-            Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} deleting publishing job");
         }
 
         [Fact, PriorityOrder(58)]

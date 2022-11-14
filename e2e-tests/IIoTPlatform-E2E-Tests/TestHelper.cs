@@ -468,7 +468,7 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddJsonBody(body);
 
             var response = await client.ExecuteAsync(request, ct);
-            Assert.True(response.IsSuccessful, $"Response status code: {response.StatusCode}");
+            Assert.True(response.IsSuccessful, $"Response status code, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
             context.OutputHelper?.WriteLine("Monitoring events started!");
 
             dynamic json = JsonConvert.DeserializeObject(response.Content);
@@ -742,13 +742,7 @@ namespace IIoTPlatform_E2E_Tests {
 
             var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
             Assert.NotNull(response);
-
-            if (!response.IsSuccessful) {
-                context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
-            }
-
+            Assert.True(response.IsSuccessful, $"GET /registry/v2/endpoints failed ({response.StatusCode}, {response.ErrorMessage})!");
             return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
         }
 
@@ -768,12 +762,7 @@ namespace IIoTPlatform_E2E_Tests {
 
             var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
             Assert.NotNull(response);
-
-            if (!response.IsSuccessful) {
-                context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                Assert.True(response.IsSuccessful, "GET /registry/v2/applications failed!");
-            }
+            Assert.True(response.IsSuccessful, $"GET /registry/v2/applications failed ({response.StatusCode}, {response.ErrorMessage})!");
 
             return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
         }

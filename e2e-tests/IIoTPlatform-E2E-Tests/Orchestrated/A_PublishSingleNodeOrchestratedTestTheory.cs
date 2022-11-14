@@ -73,7 +73,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var route = TestConstants.APIRoutes.RegistryApplications;
             var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
-            Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} registering {endpointUrl} discovery url");
         }
 
         [Fact, PriorityOrder(4)]
@@ -81,7 +81,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             dynamic json = await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
                 _context, cts.Token, new HashSet<string> { _context.OpcServerUrl });
-            Assert.True(json != null, "OPC Application not activated");
+            Assert.True(json != null, $"OPC Application with url {_context.OpcServerUrl} not activated");
         }
 
         [Fact, PriorityOrder(5)]
@@ -158,7 +158,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             };
 
             var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
-            Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} starting publishing");
             Assert.Equal("{}",response.Content);
         }
 
@@ -174,7 +174,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
             var route = TestConstants.APIRoutes.PublisherJobs;
             var response = TestHelper.CallRestApi(_context, Method.Get, route, ct: cts.Token);
-            Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} Getting publishing jobs");
             dynamic json = JsonConvert.DeserializeObject(response.Content);
 
             Assert.NotEqual(0, json.jobs.Count);
@@ -230,7 +230,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var route = string.Format(TestConstants.APIRoutes.PublisherJobsFormat, _context.OpcUaEndpointId);
             var response = TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
-            Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} deleting publishing job");
         }
 
         [Fact, PriorityOrder(12)]

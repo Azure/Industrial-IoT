@@ -45,7 +45,7 @@ namespace IIoTPlatform_E2E_Tests {
                     do {
                         var route = TestConstants.APIRoutes.RegistryApplications;
                         var response = CallRestApi(context, Method.Get, route, ct: ct);
-                        Assert.True(response.IsSuccessful);
+                        Assert.True(response.IsSuccessful, $"Got {response.StatusCode} calling {route}.");
                         Assert.NotEmpty(response.Content);
                         json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                         Assert.NotNull(json);

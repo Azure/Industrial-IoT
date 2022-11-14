@@ -51,12 +51,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                         var response = await client.ExecuteAsync(request, ct);
                         Assert.NotNull(response);
-                        Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
-
-                        if (!response.IsSuccessful) {
-                            context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                            context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                        }
+                        Assert.True(response.IsSuccessful, $"GET /registry/v2/endpoints failed ({response.StatusCode}, {response.ErrorMessage})!");
 
                         Assert.NotEmpty(response.Content);
                         json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
@@ -124,12 +119,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
-
-                if (!response.IsSuccessful) {
-                    context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
-                    context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "POST /registry/v2/applications failed!");
-                }
+                Assert.True(response.IsSuccessful, $"POST /registry/v2/applications failed ({response.StatusCode}, {response.ErrorMessage})!");
             }
 
             /// <summary>
@@ -155,11 +145,7 @@ namespace IIoTPlatform_E2E_Tests {
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
 
-                if (!response.IsSuccessful) {
-                    context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                    context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "GET /registry/v2/application failed!");
-                }
+                Assert.True(response.IsSuccessful, $"GET /registry/v2/application failed ({response.StatusCode}, {response.ErrorMessage})!");
 
                 dynamic result = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                 var json = (IDictionary<string, object>)result;
@@ -216,12 +202,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
-
-                if (!response.IsSuccessful) {
-                    context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                    context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "DELETE /registry/v2/application/{applicationId} failed!");
-                }
+                Assert.True(response.IsSuccessful, $"DELETE /registry/v2/application/{applicationId} failed ({response.StatusCode}, {response.ErrorMessage})!");
             }
 
             /// <summary>
@@ -291,7 +272,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                 var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
 
-                Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/deactivate failed!");
+                Assert.True(response.IsSuccessful, $"POST /registry/v2/endpoints/{endpointId}/deactivate failed ({response.StatusCode}, {response.ErrorMessage})!");
                 while (true) {
                     Assert.False(ct.IsCancellationRequested, "Endpoint was not deactivated within the expected timeout");
 
@@ -352,13 +333,13 @@ namespace IIoTPlatform_E2E_Tests {
                         return;
                     }
                     foreach (var item in json.items) {
+                        var id = item.applicationId?.ToString();
                         try {
-                            var id = item.applicationId?.ToString();
                             RemoveApplication(context, id, ct);
                             context.OutputHelper?.WriteLine($"Removed application {id}.");
                         }
                         catch (Exception ex) {
-                            context.OutputHelper?.WriteLine($"Failed to remove application {item} -> {ex}");
+                            context.OutputHelper?.WriteLine($"Failed to remove application {id} -> {ex.Message}");
                         }
                     }
                 }
