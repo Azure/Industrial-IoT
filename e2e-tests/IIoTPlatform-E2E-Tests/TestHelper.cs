@@ -321,19 +321,21 @@ namespace IIoTPlatform_E2E_Tests {
         private static SshClient CreateSshClientAndConnect(IIoTPlatformTestContext context) {
             var privateKeyFile = GetPrivateSshKey(context);
 
-            context.OutputHelper?.WriteLine("Create SSH Client");
-            var client = new SshClient(
-                context.SshConfig.Host,
-                context.SshConfig.Username,
-                privateKeyFile);
+            try {
+                var client = new SshClient(
+                    context.SshConfig.Host,
+                    context.SshConfig.Username,
+                    privateKeyFile);
 
-            context.OutputHelper?.WriteLine("open ssh connection to host {0} with username {1}",
-                context.SshConfig.Host,
-                context.SshConfig.Username);
-            client.Connect();
-            context.OutputHelper?.WriteLine("ssh connection successful established");
-
-            return client;
+                client.Connect();
+                return client;
+            }
+            catch (Exception ex) {
+                context.OutputHelper?.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
+                    context.SshConfig.Host,
+                    context.SshConfig.Username, ex.Message);
+                throw;
+            }
         }
 
         /// <summary>
@@ -344,19 +346,22 @@ namespace IIoTPlatform_E2E_Tests {
         private static ScpClient CreateScpClientAndConnect(IIoTPlatformTestContext context) {
             var privateKeyFile = GetPrivateSshKey(context);
 
-            context.OutputHelper?.WriteLine("Create SCP Client");
-            var client = new ScpClient(
-                context.SshConfig.Host,
-                context.SshConfig.Username,
-                privateKeyFile);
+            try {
+                var client = new ScpClient(
+                    context.SshConfig.Host,
+                    context.SshConfig.Username,
+                    privateKeyFile);
 
-            context.OutputHelper?.WriteLine("open scp connection to host {0} with username {1}",
-                context.SshConfig.Host,
-                context.SshConfig.Username);
-            client.Connect();
-            context.OutputHelper?.WriteLine("scp connection successful established");
+                client.Connect();
 
-            return client;
+                return client;
+            }
+            catch (Exception ex) {
+                context.OutputHelper?.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
+                    context.SshConfig.Host,
+                    context.SshConfig.Username, ex.Message);
+                throw;
+            }
         }
 
         /// <summary>
@@ -366,8 +371,6 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns></returns>
         private static PrivateKeyFile GetPrivateSshKey(IIoTPlatformTestContext context)
         {
-            context.OutputHelper?.WriteLine("Load private key from environment variable");
-
             var buffer = Encoding.Default.GetBytes(context.SshConfig.PrivateKey);
             var privateKeyStream = new MemoryStream(buffer);
 
@@ -466,6 +469,7 @@ namespace IIoTPlatform_E2E_Tests {
 
             var response = await client.ExecuteAsync(request, ct);
             Assert.True(response.IsSuccessful, $"Response status code: {response.StatusCode}");
+            context.OutputHelper?.WriteLine("Monitoring events started!");
 
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
@@ -499,6 +503,7 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddJsonBody(body);
 
             var response = await client.ExecuteAsync(request, ct);
+            context.OutputHelper?.WriteLine("Monitoring events stopped!");
 
             var result = JsonConvert.DeserializeObject<StopResult>(response.Content);
             Assert.NotNull(result);
@@ -808,18 +813,20 @@ namespace IIoTPlatform_E2E_Tests {
                     var result = await (string.IsNullOrEmpty(moduleId) ?
                          serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
                          serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct));
+                    context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
                     return new MethodResultModel {
                         JsonPayload = result.GetPayloadAsJson(),
                         Status = result.Status
                     };
                 }
                 catch (Exception e) {
+                    context.OutputHelper.WriteLine($"Method call {parameters.Name} failed.");
                     if (e.Message.Contains("The operation failed because the requested device isn't online") && ++attempt < 60) {
                         context.OutputHelper.WriteLine("Device is not online, trying again to call device after delay...");
                         await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                         continue;
                     }
-					PrettyPrintException(e, context.OutputHelper);
+                    PrettyPrintException(e, context.OutputHelper);
                     throw;
                 }
             }

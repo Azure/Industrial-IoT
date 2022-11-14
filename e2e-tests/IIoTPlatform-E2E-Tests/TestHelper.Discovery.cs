@@ -66,7 +66,7 @@ namespace IIoTPlatform_E2E_Tests {
                             }
 
                             var expectedNumberOfEndpoints = requestedEndpointUrls != null
-                                                            ? requestedEndpointUrls.Count()
+                                                            ? requestedEndpointUrls.Count
                                                             : 1;
 
                             if (foundEndpoints.Count < expectedNumberOfEndpoints) {
@@ -132,7 +132,7 @@ namespace IIoTPlatform_E2E_Tests {
                             }
 
                             var expectedNumberOfEndpoints = requestedEndpointUrls != null
-                                                            ? requestedEndpointUrls.Count()
+                                                            ? requestedEndpointUrls.Count
                                                             : 1;
 
                             if (foundEndpoints.Count < expectedNumberOfEndpoints) {
