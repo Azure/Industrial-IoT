@@ -98,6 +98,7 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
   timeoutInMinutes: 150
+  retryCountOnTaskFailure: 1
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.sln'
