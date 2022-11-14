@@ -95,12 +95,15 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="ct">Cancellation token</param>
             /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need to be activated and connected</param>
+            /// <param name="securityMode"></param>
+            /// <param name="securityPolicy"></param>
             /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
             public static async Task<dynamic> WaitForEndpointDiscoveryToBeCompleted(
                 IIoTPlatformTestContext context,
                 CancellationToken ct = default,
                 HashSet<string> requestedEndpointUrls = null,
-                string securityMode = null) {
+                string securityMode = null,
+                string securityPolicy = null) {
 
                 ct.ThrowIfCancellationRequested();
 
@@ -122,7 +125,10 @@ namespace IIoTPlatform_E2E_Tests {
                                 var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpoint.url).TrimEnd('/');
 
                                 if (requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
-                                    if (securityMode == null || securityMode == json.items[indexOfOpcUaEndpoint].registration.endpoint.securityMode) {
+                                    if ((securityMode == null ||
+                                        securityMode == json.items[indexOfOpcUaEndpoint].registration.endpoint.securityMode) &&
+                                        (securityPolicy == null ||
+                                        securityPolicy == json.items[indexOfOpcUaEndpoint].registration.endpoint.securityPolicy)) {
                                         if (!foundEndpoints.Contains(endpoint)) {
                                             context.OutputHelper?.WriteLine($"Found {endpoint}...");
                                             foundEndpoints.Add(endpoint);
@@ -161,13 +167,16 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="requestedEndpointUrl">Endpoint URL to get the ID for</param>
             /// <param name="ct">Cancellation token</param>
+            /// <param name="securityMode"></param>
+            /// <param name="securityPolicy"></param>
             /// <returns></returns>
             public static async Task<string> GetOpcUaEndpointId(
                     IIoTPlatformTestContext context,
                     string requestedEndpointUrl,
                     CancellationToken ct,
-                    string securityMode = null) {
-                var json = await WaitForEndpointDiscoveryToBeCompleted(context, ct, new HashSet<string> { requestedEndpointUrl }, securityMode);
+                    string securityMode = null,
+                    string securityPolicy = null) {
+                var json = await WaitForEndpointDiscoveryToBeCompleted(context, ct, new HashSet<string> { requestedEndpointUrl }, securityMode, securityPolicy);
 
                 int numberOfItems = json.items.Count;
 

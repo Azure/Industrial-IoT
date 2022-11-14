@@ -94,7 +94,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var json = await TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(
-                _context, cts.Token, new HashSet<string> { _context.OpcServerUrl }, "SignAndEncrypt");
+                _context, cts.Token, new HashSet<string> { _context.OpcServerUrl },
+                "SignAndEncrypt", "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256");
             Assert.NotNull(json);
 
             var opcServerEndpoints = ((IEnumerable<dynamic>)json.items)
