@@ -24,16 +24,16 @@ namespace IIoTPlatform_E2E_Tests {
         public static class Registry {
 
             /// <summary>
-            /// Wait for first OPC UA endpoint to be activated
+            /// Wait for OPC UA endpoint to be activated
             /// </summary>
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="ct">Cancellation token</param>
-            /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need to be activated and connected</param>
+            /// <param name="requestedEndpointIds">List of OPC UA endpoint Ids that need to be activated and connected</param>
             /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
             public static async Task<dynamic> WaitForEndpointToBeActivatedAsync(
                 IIoTPlatformTestContext context,
                 CancellationToken ct = default,
-                IEnumerable<string> requestedEndpointUrls = null) {
+                HashSet<string> requestedEndpointIds = null) {
 
                 var accessToken = await GetTokenAsync(context, ct);
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl);
@@ -59,15 +59,15 @@ namespace IIoTPlatform_E2E_Tests {
 
                         int count = (int)json.items.Count;
                         Assert.NotEqual(0, count);
-                        if (requestedEndpointUrls == null) {
+                        if (requestedEndpointIds == null) {
                             activationStates.Add((string)json.items[0].activationState);
                         }
                         else {
                             for (int indexOfRequestedOpcServer = 0;
                                 indexOfRequestedOpcServer < count;
                                 indexOfRequestedOpcServer++) {
-                                var endpoint = ((string)json.items[indexOfRequestedOpcServer].registration.endpoint.url).TrimEnd('/');
-                                if (requestedEndpointUrls.Contains(endpoint)) {
+                                var endpoint = (string)json.items[indexOfRequestedOpcServer].registration.id;
+                                if (requestedEndpointIds.Contains(endpoint)) {
                                     activationStates.Add((string)json.items[indexOfRequestedOpcServer].activationState);
                                 }
                             }
