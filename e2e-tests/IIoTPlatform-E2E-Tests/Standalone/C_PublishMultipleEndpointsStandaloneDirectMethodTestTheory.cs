@@ -444,6 +444,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 cts.Token
             ).ConfigureAwait(false);
 
+            Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
+            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
+            Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
+
             // We've observed situations when even after the above waits the module did not yet restart.
             // That leads to situations where the publishing of nodes happens just before the restart to apply
             // new container creation options. After restart persisted nodes are picked up, but on the telemetry side
@@ -452,10 +456,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token).ConfigureAwait(false);
 
             _output.WriteLine("OPC Publisher module is up and running.");
-
-            Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
