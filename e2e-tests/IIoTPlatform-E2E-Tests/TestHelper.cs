@@ -15,7 +15,9 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Sockets;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json.Converters;
@@ -23,7 +25,6 @@ namespace IIoTPlatform_E2E_Tests {
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
-    using System.Text.RegularExpressions;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
@@ -320,15 +321,22 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>Instance of SshClient, that need to be disposed</returns>
         private static SshClient CreateSshClientAndConnect(IIoTPlatformTestContext context) {
             var privateKeyFile = GetPrivateSshKey(context);
-
             try {
                 var client = new SshClient(
                     context.SshConfig.Host,
                     context.SshConfig.Username,
                     privateKeyFile);
 
-                client.Connect();
-                return client;
+                var connectAttempt = 0;
+                while (true) {
+                    try {
+                        client.Connect();
+                        return client;
+                    }
+                    catch (SocketException) when (++connectAttempt < 5) {
+                        Thread.Sleep(1000);
+                    }
+                }
             }
             catch (Exception ex) {
                 context.OutputHelper?.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
@@ -345,16 +353,22 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>Instance of SshClient, that need to be disposed</returns>
         private static ScpClient CreateScpClientAndConnect(IIoTPlatformTestContext context) {
             var privateKeyFile = GetPrivateSshKey(context);
-
             try {
                 var client = new ScpClient(
                     context.SshConfig.Host,
                     context.SshConfig.Username,
                     privateKeyFile);
 
-                client.Connect();
-
-                return client;
+                var connectAttempt = 0;
+                while (true) {
+                    try {
+                        client.Connect();
+                        return client;
+                    }
+                    catch (SocketException) when (++connectAttempt < 5) {
+                        Thread.Sleep(1000);
+                    }
+                }
             }
             catch (Exception ex) {
                 context.OutputHelper?.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
