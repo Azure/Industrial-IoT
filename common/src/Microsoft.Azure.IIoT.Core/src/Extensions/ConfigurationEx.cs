@@ -57,7 +57,9 @@ namespace Microsoft.Extensions.Configuration {
                             continue;
                         }
                         key = key.Replace("__", ConfigurationPath.KeyDelimiter);
-                        values.AddOrUpdate(key, line.Substring(offset + 1));
+                        values.AddOrUpdate(key, line.Substring(offset + 1)
+                            .Replace("\\n", "\n")
+                            .Replace("\\r", "\r"));
                     }
                     builder.AddInMemoryCollection(values);
                 }

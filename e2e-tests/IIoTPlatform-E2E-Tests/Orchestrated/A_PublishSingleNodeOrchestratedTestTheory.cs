@@ -15,7 +15,6 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     using Xunit.Abstractions;
     using System.Threading;
     using System.Collections.Generic;
-    using Azure;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -81,7 +80,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             dynamic json = await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
                 _context, cts.Token, new HashSet<string> { _context.OpcServerUrl });
-            Assert.True(json != null, $"OPC Application with url {_context.OpcServerUrl} not activated");
+            Assert.True(json != null, $"OPC Application with url {_context.OpcServerUrl} not found");
         }
 
         [Fact, PriorityOrder(5)]
@@ -252,12 +251,6 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True(json.TotalValueChangesCount == 0, $"{json.TotalValueChangesCount} Messages received at IoT Hub");
-        }
-
-        [Fact, PriorityOrder(13)]
-        public async Task Test_RemoveAllApplications() {
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            await TestHelper.Registry.RemoveAllApplicationsAsync(_context, ct: cts.Token);
         }
     }
 }

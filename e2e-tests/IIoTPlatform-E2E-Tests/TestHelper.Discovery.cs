@@ -106,10 +106,13 @@ namespace IIoTPlatform_E2E_Tests {
                 string securityPolicy = null) {
 
                 ct.ThrowIfCancellationRequested();
-
+                if (requestedEndpointUrls != null && requestedEndpointUrls.Count > 0) {
+                    context.OutputHelper?.WriteLine($"Waiting for endpoint {requestedEndpointUrls.Aggregate((a, b) => a + ", " + b)}");
+                }
                 try {
                     dynamic json;
                     var foundEndpoints = new HashSet<string>();
+                    var totalEndpoints = new HashSet<string>();
                     int numberOfItems;
                     bool shouldExit = false;
                     do {
@@ -123,6 +126,10 @@ namespace IIoTPlatform_E2E_Tests {
                         else {
                             for (int indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++) {
                                 var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpoint.url).TrimEnd('/');
+                                if (!totalEndpoints.Contains(endpoint)) {
+                                    context.OutputHelper?.WriteLine($"Found {endpoint}.");
+                                    totalEndpoints.Add(endpoint);
+                                }
 
                                 if (requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
                                     if ((securityMode == null ||
@@ -130,7 +137,7 @@ namespace IIoTPlatform_E2E_Tests {
                                         (securityPolicy == null ||
                                         securityPolicy == json.items[indexOfOpcUaEndpoint].registration.endpoint.securityPolicy)) {
                                         if (!foundEndpoints.Contains(endpoint)) {
-                                            context.OutputHelper?.WriteLine($"Found {endpoint}...");
+                                            context.OutputHelper?.WriteLine($"Matched {endpoint}...");
                                             foundEndpoints.Add(endpoint);
                                         }
                                     }
