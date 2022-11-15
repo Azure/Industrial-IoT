@@ -5,11 +5,10 @@
 
 namespace OpcPublisher_AE_E2E_Tests.TestExtensions {
     using Config;
-    using Extensions;
-    using Microsoft.Azure.Management.Fluent;
     using Microsoft.Extensions.Configuration;
     using System;
     using Xunit.Abstractions;
+    using Microsoft.Azure.Management.Fluent;
 
     /// <summary>
     /// Context to pass data between test cases
@@ -159,7 +158,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestExtensions {
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddAllEnvVarsFromLaunchSettings()
+                .AddFromDotEnvFile()
                 .Build();
 
             return configuration;
