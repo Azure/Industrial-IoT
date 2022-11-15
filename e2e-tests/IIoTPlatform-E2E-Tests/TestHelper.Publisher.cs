@@ -47,12 +47,12 @@ namespace IIoTPlatform_E2E_Tests {
                 Assert.Equal(expected.UseSecurity, actual.UseSecurity);
 
                 // Check validity of diagnosticInfo
-                Assert.True(diagnosticInfo.IngressValueChanges > 0);
-                Assert.True(diagnosticInfo.IngressDataChanges > 0);
                 Assert.Equal(0, diagnosticInfo.MonitoredOpcNodesFailedCount);
                 Assert.Equal(expected.OpcNodes.Count, diagnosticInfo.MonitoredOpcNodesSucceededCount);
-                Assert.True(diagnosticInfo.OpcEndpointConnected);
-                Assert.True(diagnosticInfo.OutgressIoTMessageCount > 0);
+                Assert.True(diagnosticInfo.OpcEndpointConnected, "Endpoint not connected");
+                Assert.True(diagnosticInfo.IngressValueChanges > 0, "No ingress value changes");
+                Assert.True(diagnosticInfo.IngressDataChanges > 0, "No ingress data changes");
+                Assert.True(diagnosticInfo.OutgressIoTMessageCount > 0, "No outgress messages sent");
 
                 // Check that we are not dropping anything.
                 Assert.Equal(0U, diagnosticInfo.EncoderNotificationsDropped);

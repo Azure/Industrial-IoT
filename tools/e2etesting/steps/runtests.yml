@@ -88,19 +88,20 @@ steps:
   displayName: 'Restore xUnit tests'
   inputs:
     command: restore
-    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
+    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.sln'
 - task: DotNetCoreCLI@2
   displayName: 'Build xUnit tests'
   inputs:
     command: build
-    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
+    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.sln'
     arguments: '--configuration Release'
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
   timeoutInMinutes: 150
+  retryCountOnTaskFailure: 1
   inputs:
     command: test
-    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
+    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.sln'
     arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal --logger "console;verbosity=detailed" --logger trx'
   env:
     PCS_SERVICE_URL: '$(pcs-service-url)'

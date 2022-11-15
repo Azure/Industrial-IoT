@@ -6,7 +6,6 @@
 #nullable enable
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using Config;
-    using Extensions;
     using Microsoft.Extensions.Configuration;
     using System;
     using Xunit.Abstractions;
@@ -131,14 +130,14 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Get configuration that reads from:
         ///     - environment variables
         ///     - environment variables from user target
-        ///     - environment variables from launchSettings.json
+        ///     - environment variables from .env file
         /// </summary>
         /// <returns></returns>
         private static IConfigurationRoot GetConfiguration() {
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddAllEnvVarsFromLaunchSettings()
+                .AddFromDotEnvFile()
                 .Build();
 
             return configuration;
