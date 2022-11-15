@@ -45,7 +45,7 @@ namespace IIoTPlatform_E2E_Tests {
                     do {
                         var route = TestConstants.APIRoutes.RegistryApplications;
                         var response = CallRestApi(context, Method.Get, route, ct: ct);
-                        Assert.True(response.IsSuccessful);
+                        Assert.True(response.IsSuccessful, $"Got {response.StatusCode} calling {route}.");
                         Assert.NotEmpty(response.Content);
                         json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                         Assert.NotNull(json);
@@ -66,7 +66,7 @@ namespace IIoTPlatform_E2E_Tests {
                             }
 
                             var expectedNumberOfEndpoints = requestedEndpointUrls != null
-                                                            ? requestedEndpointUrls.Count()
+                                                            ? requestedEndpointUrls.Count
                                                             : 1;
 
                             if (foundEndpoints.Count < expectedNumberOfEndpoints) {
@@ -95,18 +95,24 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="ct">Cancellation token</param>
             /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need to be activated and connected</param>
+            /// <param name="securityMode"></param>
+            /// <param name="securityPolicy"></param>
             /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
             public static async Task<dynamic> WaitForEndpointDiscoveryToBeCompleted(
                 IIoTPlatformTestContext context,
                 CancellationToken ct = default,
                 HashSet<string> requestedEndpointUrls = null,
-                string securityMode = null) {
+                string securityMode = null,
+                string securityPolicy = null) {
 
                 ct.ThrowIfCancellationRequested();
-
+                if (requestedEndpointUrls != null && requestedEndpointUrls.Count > 0) {
+                    context.OutputHelper?.WriteLine($"Waiting for endpoint {requestedEndpointUrls.Aggregate((a, b) => a + ", " + b)}");
+                }
                 try {
                     dynamic json;
                     var foundEndpoints = new HashSet<string>();
+                    var totalEndpoints = new HashSet<string>();
                     int numberOfItems;
                     bool shouldExit = false;
                     do {
@@ -120,11 +126,18 @@ namespace IIoTPlatform_E2E_Tests {
                         else {
                             for (int indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++) {
                                 var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpoint.url).TrimEnd('/');
+                                if (!totalEndpoints.Contains(endpoint)) {
+                                    context.OutputHelper?.WriteLine($"Found {endpoint}.");
+                                    totalEndpoints.Add(endpoint);
+                                }
 
                                 if (requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
-                                    if (securityMode == null || securityMode == json.items[indexOfOpcUaEndpoint].registration.endpoint.securityMode) {
+                                    if ((securityMode == null ||
+                                        securityMode == json.items[indexOfOpcUaEndpoint].registration.endpoint.securityMode) &&
+                                        (securityPolicy == null ||
+                                        securityPolicy == json.items[indexOfOpcUaEndpoint].registration.endpoint.securityPolicy)) {
                                         if (!foundEndpoints.Contains(endpoint)) {
-                                            context.OutputHelper?.WriteLine($"Found {endpoint}...");
+                                            context.OutputHelper?.WriteLine($"Matched {endpoint}...");
                                             foundEndpoints.Add(endpoint);
                                         }
                                     }
@@ -132,7 +145,7 @@ namespace IIoTPlatform_E2E_Tests {
                             }
 
                             var expectedNumberOfEndpoints = requestedEndpointUrls != null
-                                                            ? requestedEndpointUrls.Count()
+                                                            ? requestedEndpointUrls.Count
                                                             : 1;
 
                             if (foundEndpoints.Count < expectedNumberOfEndpoints) {
@@ -161,13 +174,16 @@ namespace IIoTPlatform_E2E_Tests {
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="requestedEndpointUrl">Endpoint URL to get the ID for</param>
             /// <param name="ct">Cancellation token</param>
+            /// <param name="securityMode"></param>
+            /// <param name="securityPolicy"></param>
             /// <returns></returns>
             public static async Task<string> GetOpcUaEndpointId(
                     IIoTPlatformTestContext context,
                     string requestedEndpointUrl,
                     CancellationToken ct,
-                    string securityMode = null) {
-                var json = await WaitForEndpointDiscoveryToBeCompleted(context, ct, new HashSet<string> { requestedEndpointUrl }, securityMode);
+                    string securityMode = null,
+                    string securityPolicy = null) {
+                var json = await WaitForEndpointDiscoveryToBeCompleted(context, ct, new HashSet<string> { requestedEndpointUrl }, securityMode, securityPolicy);
 
                 int numberOfItems = json.items.Count;
 

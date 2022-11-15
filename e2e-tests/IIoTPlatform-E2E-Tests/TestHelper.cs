@@ -15,7 +15,9 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Sockets;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json.Converters;
@@ -23,7 +25,6 @@ namespace IIoTPlatform_E2E_Tests {
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
-    using System.Text.RegularExpressions;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
@@ -219,11 +220,11 @@ namespace IIoTPlatform_E2E_Tests {
             string publishedNodesFullPath,
             IEnumerable<PublishedNodesEntryModel> entries
         ) {
-            var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
-            context.OutputHelper?.WriteLine(json);
+            context.OutputHelper?.WriteLine(JsonConvert.SerializeObject(entries));
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
             using var scpClient = CreateScpClientAndConnect(context);
+            var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
             scpClient.Upload(stream, publishedNodesFullPath);
@@ -320,20 +321,29 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>Instance of SshClient, that need to be disposed</returns>
         private static SshClient CreateSshClientAndConnect(IIoTPlatformTestContext context) {
             var privateKeyFile = GetPrivateSshKey(context);
+            try {
+                var client = new SshClient(
+                    context.SshConfig.Host,
+                    context.SshConfig.Username,
+                    privateKeyFile);
 
-            context.OutputHelper?.WriteLine("Create SSH Client");
-            var client = new SshClient(
-                context.SshConfig.Host,
-                context.SshConfig.Username,
-                privateKeyFile);
-
-            context.OutputHelper?.WriteLine("open ssh connection to host {0} with username {1}",
-                context.SshConfig.Host,
-                context.SshConfig.Username);
-            client.Connect();
-            context.OutputHelper?.WriteLine("ssh connection successful established");
-
-            return client;
+                var connectAttempt = 0;
+                while (true) {
+                    try {
+                        client.Connect();
+                        return client;
+                    }
+                    catch (SocketException) when (++connectAttempt < 5) {
+                        Thread.Sleep(1000);
+                    }
+                }
+            }
+            catch (Exception ex) {
+                context.OutputHelper?.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
+                    context.SshConfig.Host,
+                    context.SshConfig.Username, ex.Message);
+                throw;
+            }
         }
 
         /// <summary>
@@ -343,20 +353,29 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>Instance of SshClient, that need to be disposed</returns>
         private static ScpClient CreateScpClientAndConnect(IIoTPlatformTestContext context) {
             var privateKeyFile = GetPrivateSshKey(context);
+            try {
+                var client = new ScpClient(
+                    context.SshConfig.Host,
+                    context.SshConfig.Username,
+                    privateKeyFile);
 
-            context.OutputHelper?.WriteLine("Create SCP Client");
-            var client = new ScpClient(
-                context.SshConfig.Host,
-                context.SshConfig.Username,
-                privateKeyFile);
-
-            context.OutputHelper?.WriteLine("open scp connection to host {0} with username {1}",
-                context.SshConfig.Host,
-                context.SshConfig.Username);
-            client.Connect();
-            context.OutputHelper?.WriteLine("scp connection successful established");
-
-            return client;
+                var connectAttempt = 0;
+                while (true) {
+                    try {
+                        client.Connect();
+                        return client;
+                    }
+                    catch (SocketException) when (++connectAttempt < 5) {
+                        Thread.Sleep(1000);
+                    }
+                }
+            }
+            catch (Exception ex) {
+                context.OutputHelper?.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
+                    context.SshConfig.Host,
+                    context.SshConfig.Username, ex.Message);
+                throw;
+            }
         }
 
         /// <summary>
@@ -366,8 +385,6 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns></returns>
         private static PrivateKeyFile GetPrivateSshKey(IIoTPlatformTestContext context)
         {
-            context.OutputHelper?.WriteLine("Load private key from environment variable");
-
             var buffer = Encoding.Default.GetBytes(context.SshConfig.PrivateKey);
             var privateKeyStream = new MemoryStream(buffer);
 
@@ -465,7 +482,8 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddJsonBody(body);
 
             var response = await client.ExecuteAsync(request, ct);
-            Assert.True(response.IsSuccessful, $"Response status code: {response.StatusCode}");
+            Assert.True(response.IsSuccessful, $"Response status code, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
+            context.OutputHelper?.WriteLine("Monitoring events started!");
 
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
@@ -499,6 +517,7 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddJsonBody(body);
 
             var response = await client.ExecuteAsync(request, ct);
+            context.OutputHelper?.WriteLine("Monitoring events stopped!");
 
             var result = JsonConvert.DeserializeObject<StopResult>(response.Content);
             Assert.NotNull(result);
@@ -737,13 +756,7 @@ namespace IIoTPlatform_E2E_Tests {
 
             var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
             Assert.NotNull(response);
-
-            if (!response.IsSuccessful) {
-                context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
-            }
-
+            Assert.True(response.IsSuccessful, $"GET /registry/v2/endpoints failed ({response.StatusCode}, {response.ErrorMessage})!");
             return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
         }
 
@@ -763,12 +776,7 @@ namespace IIoTPlatform_E2E_Tests {
 
             var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
             Assert.NotNull(response);
-
-            if (!response.IsSuccessful) {
-                context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                Assert.True(response.IsSuccessful, "GET /registry/v2/applications failed!");
-            }
+            Assert.True(response.IsSuccessful, $"GET /registry/v2/applications failed ({response.StatusCode}, {response.ErrorMessage})!");
 
             return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
         }
@@ -808,19 +816,20 @@ namespace IIoTPlatform_E2E_Tests {
                     var result = await (string.IsNullOrEmpty(moduleId) ?
                          serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
                          serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct));
+                    context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
                     return new MethodResultModel {
                         JsonPayload = result.GetPayloadAsJson(),
                         Status = result.Status
                     };
                 }
                 catch (Exception e) {
-                    PrettyPrintException(e, context.OutputHelper);
-                    if (e.Message.Contains("The operation failed because the requested device isn't online") && ++attempt < 3) {
-                        // Try again twice after waiting
+                    context.OutputHelper.WriteLine($"Method call {parameters.Name} failed.");
+                    if (e.Message.Contains("The operation failed because the requested device isn't online") && ++attempt < 60) {
                         context.OutputHelper.WriteLine("Device is not online, trying again to call device after delay...");
-                        await Task.Delay(TestConstants.AwaitInitInMilliseconds, ct).ConfigureAwait(false);
+                        await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                         continue;
                     }
+                    PrettyPrintException(e, context.OutputHelper);
                     throw;
                 }
             }

@@ -19,9 +19,7 @@ param(
     [string] $idScope
 )
 
-$eflowMsiUri = "https://aka.ms/AzEFLOW-X64-1_3_1_02092"
-# TODO: Update this once 1.4 LTS is released
-# $eflowMsiUri = "https://aka.ms/AzEFLOWMSI-CR-X64"
+$eflowMsiUri = "https://aka.ms/AzEFLOWMSI_1_4_LTS_X64"
 
 $ErrorActionPreference = "Stop"
 $path = Split-Path $script:MyInvocation.MyCommand.Path

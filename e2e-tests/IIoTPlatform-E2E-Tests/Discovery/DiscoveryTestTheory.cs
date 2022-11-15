@@ -84,7 +84,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
                     discoveryUrl = endpointUrl
                 };
                 var response = TestHelper.CallRestApi(_context, Method.Post, TestConstants.APIRoutes.RegistryApplications, body, ct: ct);
-                Assert.True(response.IsSuccessful);
+                Assert.True(response.IsSuccessful, $"Got {response.StatusCode} registering {endpointUrl} discovery url");
             }
         }
     }

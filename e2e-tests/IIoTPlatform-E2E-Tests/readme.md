@@ -55,10 +55,10 @@ Follow these steps:
   * at "Select principal" select your principal,
   * press the "Add" button,
   * press the "Save" button.
-* Execute /tools/e2etesting/GetSecrets.ps1 -KeyVaultName &lt;YourKeyVaultName&gt;. You will be asked whether you want to overwrite the settings file or not.
+* Execute /tools/e2etesting/GetSecrets.ps1 -KeyVaultName &lt;YourKeyVaultName&gt;. You will be asked whether you want to overwrite the .env file or not.
   * if you choose 'yes' just wait for the script to finish and no further steps are needed
-  * if you choose 'no' copy the script output to IIoTPlatform-E2E-Tests\Properties\launchSettings.json under environmentVariables
-    > The launchSettings.json file is excluded from git, but ensure you are not committing secrets.
+  * if you choose 'no' copy the script output to *reporoot*/e2etests/.env
+    > The .env file is excluded from git, but double check you are not committing secrets.
 * Now you can use Visual Studio to execute your tests.
 * Don't forget to clean up by executing the pipeline with these variables set:
   * `Cleanup = false`
@@ -69,7 +69,7 @@ Follow these steps:
 
 * Stop the app service instance in the resource group.
 * Start the TestEventProcessor service from the tools\e2etesting\TestEventProcessor\TestEventProcessor.sln solution file
-* Change the launchSettings.json generated from KeyVault and change the TESTEVENTPROCESSOR_* variables to the defaults 
+* Change the .env file generated from KeyVault and change the TESTEVENTPROCESSOR_* variables to the default values found
   in the TestEventProcessor's appsettings.json and launchSettings.json files.
     "TESTEVENTPROCESSOR_BASEURL": "https://localhost:49450",
     "TESTEVENTPROCESSOR_USERNAME": "username",
