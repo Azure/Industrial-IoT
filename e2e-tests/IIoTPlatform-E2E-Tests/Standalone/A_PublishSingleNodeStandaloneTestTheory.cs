@@ -65,7 +65,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 TestConstants.PublishedNodesFullName,
                 new[] { model }
             ).ConfigureAwait(false);
-            
+
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token).ConfigureAwait(false);
 
             // Wait some time till the updated pn.json is reflected.
@@ -101,7 +101,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Uncomment once bug generating duplicate sequence numbers is resolved.
             //Assert.Equal(0U, publishingMonitoringResultJson.DuplicateSequenceCount);
             Assert.Equal(0U, publishingMonitoringResultJson.ResetSequenceCount);
-            
+
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(
                 _context,
@@ -123,7 +123,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
                 $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
-            
+
             // Publish node with data change trigger status only
             model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token, DataChangeTriggerType.Status);
             await TestHelper.PublishNodesAsync(
@@ -131,17 +131,17 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 TestConstants.PublishedNodesFullName,
                 new[] { model }
             ).ConfigureAwait(false);
-            
+
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-            
+
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
-            
+
             // Wait some time to generate events to process
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-            
+
             // Stop monitoring and get the result.
             publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True(publishingMonitoringResultJson.TotalValueChangesCount == 0,
@@ -156,7 +156,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-            
+
             // Publish node with data change trigger status value timestamp
             model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token, DataChangeTriggerType.StatusValueTimestamp);
             await TestHelper.PublishNodesAsync(
@@ -164,17 +164,17 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 TestConstants.PublishedNodesFullName,
                 new[] { model }
             ).ConfigureAwait(false);
-            
+
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-            
+
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
-            
+
             // Wait some time to generate events to process
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-            
+
             // Stop monitoring and get the result.
             publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0,

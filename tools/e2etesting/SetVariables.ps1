@@ -10,9 +10,6 @@
 $ErrorActionPreference = "Stop"
 # Set-PSDebug -Trace 2
 
-#Import-Module Az.Accounts -MinimumVersion 2.9.0
-#Import-Module Az.ContainerRegistry
-
 if (![string]::IsNullOrEmpty($script:BranchName))
 {
     if ($script:BranchName.StartsWith("refs/heads/")) 
@@ -72,42 +69,49 @@ if ([string]::IsNullOrEmpty($script:ImageNamespace))
     $script:ImageNamespace = $script:ImageNamespace.Replace("_", "/").Substring(0, [Math]::Min($script:ImageNamespace.Length, 24))
 }
 
+function Get-ContainerRegistrySecret 
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $keyVaultName,
+
+        [Parameter(Mandatory=$true)]
+        [string] $secret
+    )
+    $secretValueSec = Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $secret
+    $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secretValueSec.SecretValue)
+    try 
+    {
+        $secretValueText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
+    } 
+    finally 
+    {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
+    }
+    Write-Host "##vso[task.setvariable variable=$($secret)]$($secretValueText)"
+}
+
 if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
 {
     if ($script:ImageNamespace -eq "public") 
     {
         # Release and Preview builds are in staging
         $registry = "industrialiot"
+        $KeyVaultName = "kv-release-pipeline"
     }
     else 
     {
         # Feature builds by default into dev registry
         $registry = "industrialiotdev"
+        $KeyVaultName = "kv-developer-pipeline"
     }
-    try 
-    {
-        Write-Host "Looking up credentials for $($registry) registry."
-        $containerContext = Get-AzContext -ListAvailable | Where-Object { $_.Subscription.Name -eq "IOT_GERMANY" }
-        if ($containerContext.Length -gt 1) 
-        {
-            $containerContext = $containerContext[0]
-        }
-        Set-AzContext $containerContext | Out-Null
-        $registry = Get-AzContainerRegistry | Where-Object { $_.Name -eq $registry }
-        $creds = Get-AzContainerRegistryCredential -Registry $registry 
 
-        $script:ContainerRegistryServer = $registry.LoginServer
-        Write-Host "##vso[task.setvariable variable=ContainerRegistryUsername]$($creds.Username)"
-        Write-Host "##vso[task.setvariable variable=ContainerRegistryPassword]$($creds.Password)"
-    }
-    catch 
-    {
-        Write-Warning "Failed to get credentials for $($registry)."
-        Write-Warning "Using official container registry."
-        $script:ContainerRegistryServer = "mcr.microsoft.com"
-    }
+    Write-Host "Looking up credentials for $($registry) registry in KV $KeyVaultName."
+    Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryPassword"
+    Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryServer"
+    Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryUsername"
 }
-else
+else 
 {
     $registry = $script:ContainerRegistryServer
 }
@@ -117,13 +121,12 @@ Write-Host "Use $($script:ImageTag) images in namespace $($script:ImageNamespace
 Write-Host "=============================================================================="
 Write-Host ""
 
-
 Write-Host "##vso[task.setvariable variable=ImageTag]$($script:ImageTag)"
 Write-Host "##vso[task.setvariable variable=ImageNamespace]$($script:ImageNamespace)"
-Write-Host "##vso[task.setvariable variable=ContainerRegistryServer]$($script:ContainerRegistryServer)"
 
 if ([string]::IsNullOrEmpty($script:Region)) 
 {
     $script:Region = "westus"
 }
 Write-Host "##vso[task.setvariable variable=Region]$($script:Region)"
+

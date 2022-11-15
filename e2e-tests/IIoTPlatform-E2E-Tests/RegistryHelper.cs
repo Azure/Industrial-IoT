@@ -10,6 +10,7 @@ namespace IIoTPlatform_E2E_Tests {
     using Microsoft.Azure.Devices.Common.Exceptions;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace IIoTPlatform_E2E_Tests {
             IEnumerable<string> moduleNames = null
         ) {
             moduleNames ??= ModuleNamesDefault;
-
+            var sw = Stopwatch.StartNew();
             try {
                 while (true) {
                     var modules = await RegistryManager.GetModulesOnDeviceAsync(deviceId, ct).ConfigureAwait(false);
@@ -52,25 +53,19 @@ namespace IIoTPlatform_E2E_Tests {
                         .Count();
 
                     if (connectedModulesCout == moduleNames.Count()) {
-                        _context.OutputHelper?.WriteLine("All required IoT Edge modules are loaded!");
+                        _context.OutputHelper?.WriteLine($"All required IoT Edge modules are connected! (took {sw.Elapsed})");
                         return;
                     }
 
-                    // We've observed situations when even after the above waits the module did not yet restart.
-                    // That leads to situations where the publishing of nodes happens just before the restart to apply
-                    // new container creation options. After restart persisted nodes are picked up, but on the telemetry side
-                    // the restart causes dropped messages to be detected. That happens because just before the restart OPC Publisher
-                    // manages to send some telemetry. This wait makes sure that we do not run the test while restart is happening.
-                    await Task.Delay(TestConstants.AwaitInitInMilliseconds, ct).ConfigureAwait(false);
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) {
-                _context.OutputHelper?.WriteLine("Waiting for IoT Edge modules to be loaded timeout - please check iot edge device for details");
+                _context.OutputHelper?.WriteLine($"Waiting for IoT Edge modules to be loaded timeout timeout after {sw.Elapsed} - please check iot edge device for details");
                 throw;
             }
             catch (Exception e) {
-                _context.OutputHelper?.WriteLine("Error occurred while waiting for edge Modules");
-                _context.OutputHelper?.WriteLine(e.Message);
+                _context.OutputHelper?.WriteLine($"Error {e.Message} occurred while waiting for edge Modules after {sw.Elapsed}");
                 throw;
             }
         }
@@ -81,7 +76,7 @@ namespace IIoTPlatform_E2E_Tests {
         public async Task WaitForSuccessfulDeploymentAsync(
             Configuration deploymentConfiguration,
             CancellationToken ct) {
-
+            var sw = Stopwatch.StartNew();
             try {
                 while (true) {
                     ct.ThrowIfCancellationRequested();
@@ -94,7 +89,7 @@ namespace IIoTPlatform_E2E_Tests {
                         && Equals(activeConfiguration, deploymentConfiguration)
                         && activeConfiguration.SystemMetrics.Results.ContainsKey("reportedSuccessfulCount")
                         && activeConfiguration.SystemMetrics.Results["reportedSuccessfulCount"] == 1) {
-                        _context.OutputHelper?.WriteLine("All required IoT Edge modules are loaded!");
+                        _context.OutputHelper?.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
                         return;
                     }
 
@@ -102,12 +97,11 @@ namespace IIoTPlatform_E2E_Tests {
                 }
             }
             catch (OperationCanceledException) {
-                _context.OutputHelper?.WriteLine("Waiting for IoT Edge modules to be loaded timeout - please check iot edge device for details");
+                _context.OutputHelper?.WriteLine($"Waiting for IoT Edge modules to be loaded timeout after {sw.Elapsed} - please check iot edge device for details");
                 throw;
             }
             catch (Exception e) {
-                _context.OutputHelper?.WriteLine("Error occurred while waiting for edge Modules");
-                _context.OutputHelper?.WriteLine(e.Message);
+                _context.OutputHelper?.WriteLine($"Error {e.Message} occurred while waiting for edge Modules after {sw.Elapsed}");
                 throw;
             }
         }

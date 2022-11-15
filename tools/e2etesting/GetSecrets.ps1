@@ -3,7 +3,19 @@ param(
     [string] $KeyVaultName
 )
 
-$confirmation = Read-Host "Do you want to overwrite the IIoTPlatform-E2E-Tests\Properties\launchSettings.json file? yes/no"
+$ErrorActionPreference = "Stop"
+
+# Find the full path of the launchSettings.json file
+$folderName = "e2e-tests"
+$currentPath = (Get-Location).Path
+$path = Get-ChildItem -Path $currentPath $folderName -Recurse
+while (!$path) {
+    $currentPath = $currentPath + '\..'
+    $path = Get-ChildItem -Path $currentPath $folderName
+}
+$settingsFile = $path.FullName + "\.env"
+
+$confirmation = Read-Host "Do you want to overwrite the $($settingsFile) file? yes/no"
 
 $values = @{}
 
@@ -25,28 +37,19 @@ foreach ($secret in $secrets) {
     } finally {
         [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
     }
-    $values[$secret.Name.ToUpperInvariant().Replace("-", "_")] = $secretValueText
+    $values[$secret.Name.ToUpperInvariant().Replace("-", "_")] = $secretValueText.Replace("`n", "\n").Replace("`r", "\r")
 }
 
-# Find the full path of the launchSettings.json file
-$folderName = "e2e-tests"
-$currentPath = (Get-Location).Path
-$path = Get-ChildItem -Path $currentPath $folderName -Recurse
-while (!$path) {
-    $currentPath = $currentPath + '\..'
-    $path = Get-ChildItem -Path $currentPath $folderName
+# Write the secrets to .env
+$content = ""
+foreach ($variable in $values.Keys) {
+    $content += "$($variable)=$($values[$variable])`n"
 }
-$settingsFile = $path.FullName + "\IIoTPlatform-E2E-Tests\Properties\launchSettings.json"
-
-# Write the secrets to launchSettings.json
-$launchSettings = Get-Content $settingsFile  | ConvertFrom-Json
-$launchSettings.profiles.'IIoTPlatform-E2E-Tests'.environmentVariables = [PSCustomObject]($values)
-$json = ConvertTo-Json $launchSettings -Depth 4
 
 if ($confirmation -eq "yes"){
-    Set-Content -Path $settingsFile $json
-    Write-Host "The file launchSettings.json is successfully updated with the secrets from your key vault."
+    Set-Content -Path $settingsFile $content
+    Write-Host "The file $($settingsFile) was successfully updated with the secrets from your key vault."
 }
 else {
-    Write-Host $json
+    Write-Host $content
 }
