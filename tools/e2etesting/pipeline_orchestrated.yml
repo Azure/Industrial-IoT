@@ -101,7 +101,6 @@ stages:
   - job: runtestspublisher
     condition: ne(variables['NestedEdgeFlag'], 'Enable')
     dependsOn: runteststwin
-    timeoutInMinutes: 60
     displayName: 'Execute publisher tests'
     steps:
     - template: steps/runtests.yml
