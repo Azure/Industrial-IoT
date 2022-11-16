@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JsonSchema.Net" Version="3.3.0" />
+    <PackageReference Include="JsonSchema.Net" Version="3.3.2" />
     <!-- Explicit reference to System.Text.Encodings.Web 4.7.2 is required as
     there is a vulnerability in 4.7.1 that is picked up by default.
     This can be removed once JsonSchema.Net references patched version of the package. -->
