@@ -8,22 +8,28 @@ We are pleased to announce the release of version 2.8.4 of our Industrial IoT Pl
 
 - IoT Edge 1.1 LTS is out of support, please [update your IoT Edge gateways to IoT Edge 1.4 LTS](https://learn.microsoft.com/en-us/azure/iot-edge/how-to-update-iot-edge) **ahead of deploying this release**.
     > To continue deploying the 1.1 LTS modules until 1.4 is deployed, add a tag to your gateway device's twin with the name `use_1_1_LTS` and remove it once you have upgraded your edge gateway to 1.4 LTS. This operation can be automated using the az CLI.  See [here](./deploy/howto-install-iot-edge.md) for more information.
-- Windows container images are no longer supported in IoT Edge 1.4 and consequentially have been removed from this release. Please use [IoT Edge EFLOW 1.4 CR](https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/azure-iot-edge-for-linux-on-windows) as your IoT Edge environment on Windows. You must update your Windows based IoT Edge environment to EFLOW **ahead of deploying this release**.
-- Simulation deployed as part of the ./deploy.ps1 script now deploys EFLOW on a Windows VM Host.  This requires nested virtualization.  The Azure subscription and chosen region must support Standard_D4_v4 VM which supports nested virtualization or deployment of simulated Windows gateway will be skipped.
+- Windows container images are no longer supported in IoT Edge 1.4 and consequentially have been removed from this release. Please use [IoT Edge EFLOW 1.4 CR](https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/azure-iot-edge-for-linux-on-windows) as your IoT Edge environment on Windows.  
+  > IoT Edge 1.4 LTS EFLOW is supported as Preview Feature in this release. 
+  - You must update your Windows based IoT Edge environment to EFLOW **ahead of deploying the platform**.  
+  - Simulation deployed as part of the ./deploy.ps1 script now deploys EFLOW on a Windows VM Host (Preview Feature).  This requires nested virtualization.  The Azure subscription and chosen region must support Standard_D4_v4 VM which supports nested virtualization or deployment of simulated Windows gateway will be skipped.
+  - Network scanning on IoT Edge 1.4 LTS EFLOW using OPC Discovery is not supported yet. This applies to the deployed [simulation environment](./deploy/howto-deploy-all-in-one.md) and [engineering tool](./services/engineeringtool.md) experience. You can register servers using a discovery url using the [registry service's registration REST API](./services/registry.md).
 
 ### Changes in this release
 
 - Updated .net to .net 6.0 LTS from .net 3.1 LTS which is EOL December 2022.
 - Updated nuget dependencies to their .net 6 counterpart or to their latest compatible release.
 - [All IoT Edge modules] Updated IoT Edge dependency to IoT Edge 1.4 LTS from 1.1 LTS which is EOL December 2022.
+- [All IoT Edge modules] (Preview) Support deployment to IoT Edge 1.4 LTS EFLOW
 - [OPC Publisher] Fix for orchestrator infinite loop on publisher worker document update (#1870)
 - [OPC Publisher] Rate limit OPC Publisher orchestrator requests.
 - [Deployment] IAI: Upgraded Kubernetes version in AKS from 1.22.6 to 1.23.12. (#1885)
 - [Deployment] Increased proxy-connect-timeout of NGINX from default 5 seconds to 30. (#1871)
 - [OPC Publisher] (Preview) User can set the Data change trigger value of the Data change filter type either as a default for all or per subscription (#1830).
-- [OPC Publisher] (Preview) Allow Comment in OpcPublisher Configuration when Validation is used (#1892)
+- [OPC Publisher] (Preview) Allow comment in OpcPublisher Configuration when Validation is used (#1892)
 - [All IoT Edge modules] Add a configuration option to set security option RejectUnknownRevocationStatus (#1777)
 - [All IoT Edge modules] Add mandatory field for edgeHub in the base deployment template to support cloning deployments (#1764)
+
+For features that are marked as Preview, please report any issues through GitHub issues. 
 
 ## Azure Industrial IoT Platform Release 2.8.3
 
