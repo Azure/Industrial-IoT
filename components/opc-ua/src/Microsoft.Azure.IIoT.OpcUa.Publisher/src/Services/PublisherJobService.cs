@@ -95,7 +95,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 throw new ArgumentException("Invalid endpointId");
             }
 
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
+            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), (job, ct) => {
+                ct.ThrowIfCancellationRequested();
                 var publishJob = AsJob(job);
                 // TODO change to application uri?
                 job.Name = endpoint.ApplicationId;
@@ -131,7 +132,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 throw new ArgumentNullException(nameof(request));
             }
             var endpoint = await _endpoints.GetEndpointAsync(endpointId);
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
+            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), (job, ct) => {
+                ct.ThrowIfCancellationRequested();
                 var publishJob = AsJob(job);
                 var jobChanged = false;
                 var connection = new ConnectionModel {
@@ -192,8 +194,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             if (endpoint == null) {
                 throw new ArgumentException("Invalid endpointId");
             }
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
-
+            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), (job, ct) => {
+                ct.ThrowIfCancellationRequested();
                 // remove from job
                 var publishJob = AsJob(job);
                 var jobChanged = RemoveItemFromJob(publishJob, request.NodeId,
@@ -229,7 +231,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 throw new ArgumentNullException(nameof(request));
             }
             List<PublishedItemModel> list = null;
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
+            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), (job, ct) => {
+                ct.ThrowIfCancellationRequested();
                 var publishJob = AsJob(job);
                 list = publishJob.WriterGroup.DataSetWriters
                     .Select(writer => writer.DataSet.DataSetSource)

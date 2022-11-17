@@ -72,15 +72,15 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var route = TestConstants.APIRoutes.RegistryApplications;
             var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
-            Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} registering {endpointUrl} discovery url");
         }
 
         [Fact, PriorityOrder(4)]
         public async Task Test_GetApplicationsFromRegistry_ExpectOneRegisteredApplication() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             dynamic json = await TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(
-                _context, cts.Token, new List<string> { _context.OpcServerUrl });
-            Assert.True(json != null, "OPC Application not activated");
+                _context, cts.Token, new HashSet<string> { _context.OpcServerUrl });
+            Assert.True(json != null, $"OPC Application with url {_context.OpcServerUrl} not found");
         }
 
         [Fact, PriorityOrder(5)]
@@ -93,7 +93,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var json = await TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(
-                _context, cts.Token, new List<string> { _context.OpcServerUrl });
+                _context, cts.Token, new HashSet<string> { _context.OpcServerUrl },
+                "SignAndEncrypt", "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256");
             Assert.NotNull(json);
 
             var opcServerEndpoints = ((IEnumerable<dynamic>)json.items)
@@ -129,8 +130,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
         [Fact, PriorityOrder(7)]
         public async Task Test_CheckIfEndpointWasActivated_Expect_ActivatedAndConnected() {
+            Assert.False(string.IsNullOrWhiteSpace(_context.OpcUaEndpointId));
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var json = await TestHelper.Registry.WaitForEndpointToBeActivatedAsync(_context, cts.Token, new List<string> { _context.OpcServerUrl });
+            var json = await TestHelper.Registry.WaitForEndpointToBeActivatedAsync(_context, cts.Token, new HashSet<string> { _context.OpcUaEndpointId });
             Assert.True(json!= null, "OPC UA Endpoint not found");
         }
 
@@ -157,6 +159,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             };
 
             var response = TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} starting publishing");
             Assert.Equal("{}",response.Content);
         }
 
@@ -172,6 +175,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
             var route = TestConstants.APIRoutes.PublisherJobs;
             var response = TestHelper.CallRestApi(_context, Method.Get, route, ct: cts.Token);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} Getting publishing jobs");
             dynamic json = JsonConvert.DeserializeObject(response.Content);
 
             Assert.NotEqual(0, json.jobs.Count);
@@ -205,7 +209,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
 
             // Wait some time to generate events to process
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
@@ -226,7 +230,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var route = string.Format(TestConstants.APIRoutes.PublisherJobsFormat, _context.OpcUaEndpointId);
-            TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            var response = TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            Assert.True(response.IsSuccessful, $"Got {response.StatusCode} deleting publishing job");
         }
 
         [Fact, PriorityOrder(12)]
@@ -234,7 +239,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // Wait untill the publishing has stopped
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
 
             // Make sure that there is no active monitoring.
             await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
@@ -245,14 +250,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             // Wait some time to generate events to process
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True(json.TotalValueChangesCount == 0, "Messages received at IoT Hub");
-        }
-
-        [Fact, PriorityOrder(13)]
-        public void Test_RemoveAllApplications() {
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var route = TestConstants.APIRoutes.RegistryApplications;
-            TestHelper.CallRestApi(_context, Method.Delete, route, ct: cts.Token);
+            Assert.True(json.TotalValueChangesCount == 0, $"{json.TotalValueChangesCount} Messages received at IoT Hub");
         }
     }
 }

@@ -661,9 +661,7 @@ The following information about components and installation types covers only th
 
 #### Requirements
 
-- Supported operating systems for deployment are Windows, Linux and Mac
-
-- IoT Edge (1.1 LTS) supports Windows 10 IoT Enterprise LTSC and Ubuntu Linux 18.04 LTS Linux, see [here](https://docs.microsoft.com/en-us/azure/iot-edge/support)
+- IoT Edge (1.4 LTS) supports Windows and Linux, see [here](https://docs.microsoft.com/en-us/azure/iot-edge/support)
 
 - Git: <https://git-scm.com/downloads>
 
@@ -1331,13 +1329,13 @@ A sample configuration for setting a resource requests and limits using `values.
 deployment:
   microServices:
     edgeJobs:
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "200m"
-    limits:
-      memory: "2Gi"
-      cpu: "1000m"
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "200m"
+        limits:
+          memory: "2Gi"
+          cpu: "1000m"
 ```
 
 Please be sure to monitor both memory and CPU consumption of those microservices and update their limits accordingly considering as-deployed behavior.
@@ -2284,7 +2282,7 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    This command will keep existing setup unchanged, except for the version of docker images that are deployed.
 
-It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is `0.4.3` which by default deploys `2.8.3` version of the components. The same version can be used for deployment of `2.8.0` and higher `2.8.x` versions. For the version compatibility matrix, please check out [how to deploy using Helm](../deploy/howto-deploy-helm.md).
+It should be noted that different versions of Helm chart are intended for deploying different versions of the Azure Industrial IoT platform. This stems from the fact that there can be a different number of components in different versions of the Azure Industrial IoT platform, so deployment requirements and configuration parameters differ between versions. Currently, the latest version of the Helm chart is `0.4.3` which by default deploys the latest version of the components. The same version can be used for deployment of `2.8.0` and higher `2.8.x` versions. For the version compatibility matrix, please check out [how to deploy using Helm](../deploy/howto-deploy-helm.md).
 
 #### IoT Edge Modules
 

@@ -50,10 +50,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
         /// <inheritdoc/>
         public async Task<JobInfoModel> NewOrUpdateJobAsync(string jobId,
-            Func<JobInfoModel, Task<bool>> predicate, CancellationToken ct) {
+            Func<JobInfoModel, CancellationToken, Task<bool>> predicate, CancellationToken ct) {
 
             var created = false;
-            var job = await _jobRepository.AddOrUpdateAsync(jobId, async model => {
+            var job = await _jobRepository.AddOrUpdateAsync(jobId, async (model, ct) => {
+                ct.ThrowIfCancellationRequested();
                 if (model == null) {
                     created = true;
                     // Create new job
@@ -61,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                         Id = jobId
                     };
                     SetDefaultValues(model);
-                    if (!await predicate(model)) {
+                    if (!await predicate(model, ct)) {
                         return null;
                     }
 
@@ -73,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
                 created = false;
                 var updated = model.Clone();
-                if (!await predicate(updated)) {
+                if (!await predicate(updated, ct)) {
                     return null;
                 }
                 if (!model.RedundancyConfig.Equals(updated.RedundancyConfig)) {
@@ -115,8 +116,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
         /// <inheritdoc/>
         public async Task DeleteJobAsync(string jobId, CancellationToken ct) {
-            var job = await _jobRepository.DeleteAsync(jobId, async model => {
+            var job = await _jobRepository.DeleteAsync(jobId, async (model, ct) => {
                 foreach (var jreh in _jobRepositoryEventHandlers) {
+                    ct.ThrowIfCancellationRequested();
                     await jreh.OnJobDeletingAsync(this, model);
                 }
                 return true;
@@ -143,7 +145,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
         /// <inheritdoc/>
         public async Task CancelJobAsync(string jobId, CancellationToken ct) {
-            await _jobRepository.UpdateAsync(jobId, job => {
+            await _jobRepository.UpdateAsync(jobId, (job, ct) => {
+                ct.ThrowIfCancellationRequested();
                 if (job.LifetimeData.Status == JobStatus.Deleted ||
                     job.LifetimeData.Status == JobStatus.Canceled) {
                     return Task.FromResult(false); // Nothing to do
@@ -155,7 +158,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
         /// <inheritdoc/>
         public async Task RestartJobAsync(string jobId, CancellationToken ct) {
-            await _jobRepository.UpdateAsync(jobId, job => {
+            await _jobRepository.UpdateAsync(jobId, (job, ct) => {
+                ct.ThrowIfCancellationRequested();
                 if (job.LifetimeData.Status == JobStatus.Deleted ||
                     job.LifetimeData.Status == JobStatus.Active) {
                     return Task.FromResult(false);  // Nothing to do

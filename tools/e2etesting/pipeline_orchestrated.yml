@@ -28,7 +28,7 @@ schedules:
 #         - refs/heads/main
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'windows-latest'
 
 variables:
 - template: steps/variables.yml
@@ -101,7 +101,6 @@ stages:
   - job: runtestspublisher
     condition: ne(variables['NestedEdgeFlag'], 'Enable')
     dependsOn: runteststwin
-    timeoutInMinutes: 60
     displayName: 'Execute publisher tests'
     steps:
     - template: steps/runtests.yml

@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             ILogger logger) {
             _sessionManager = sessionManager ?? throw new ArgumentNullException(nameof(sessionManager));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
-            _clientConfig = clientConfig ?? throw new ArgumentNullException(nameof(codec)); ;
+            _clientConfig = clientConfig ?? throw new ArgumentNullException(nameof(codec));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -505,7 +505,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (item.GetTriggeringLinks(out var added, out var removed)) {
                             var response = await rawSubscription.Session.SetTriggeringAsync(
                                 null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
-                                new UInt32Collection(added), new UInt32Collection(removed))
+                                new UInt32Collection(added), new UInt32Collection(removed), CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -859,22 +859,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var publishTime = (notification?.MonitoredItems?.First().Message?.PublishTime).
                         GetValueOrDefault(DateTime.UtcNow);
 
-                    if (isKeepAlive || _expectedSequenceNumber == sequenceNumber) {
+                    if (isKeepAlive) {
                         // in case of a keepalive,the sequence number is not incremented by the servers
-                        _logger.Debug("DataChange for subscription '{subscription}'/'{sessionId}' with sequenceNumber "
-                            + "{sequenceNumber}, isKeepAlive {isKeepAlive}, publishTime {PublishTime}",
-                            Id, Connection.CreateConnectionId(),
-                            sequenceNumber, isKeepAlive, publishTime);
+                        _logger.Information("Keep alive for subscription '{subscription}'/'{sessionId}' with sequenceNumber "
+                            + "{sequenceNumber}, publishTime {PublishTime}",
+                            Id, Connection.CreateConnectionId(), sequenceNumber, publishTime);
                     }
                     else {
-                        _logger.Warning("DataChange for subscription '{subscription}'/'{sessionId}' has unexpected sequenceNumber "
-                            + "{sequenceNumber} vs expected {expectedSequenceNumber}, isKeepAlive {isKeepAlive}, publishTime {PublishTime}",
-                            Id, Connection.CreateConnectionId(),
-                            sequenceNumber, _expectedSequenceNumber, isKeepAlive, publishTime);
+                        if (_expectedSequenceNumber != sequenceNumber) {
+                            _logger.Warning("DataChange for subscription '{subscription}'/'{sessionId}' has unexpected sequenceNumber "
+                                + "{sequenceNumber} vs expected {expectedSequenceNumber}, publishTime {PublishTime}",
+                                Id, Connection.CreateConnectionId(),
+                                sequenceNumber, _expectedSequenceNumber, publishTime);
+                        }
+                        _expectedSequenceNumber = sequenceNumber + 1;
                     }
-                    _expectedSequenceNumber = sequenceNumber + 1;
 
-                   var message = new SubscriptionNotificationModel {
+                    var message = new SubscriptionNotificationModel {
                         ServiceMessageContext = subscription?.Session?.MessageContext,
                         ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
                         EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
@@ -1131,7 +1132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Template.DataChangeFilter.ToStackModel() ??
                         codec.Decode(Template.EventFilter, true) ??
                         ((MonitoringFilter)Template.AggregateFilter
-                            .ToStackModel(session.MessageContext))
+                            .ToStackModel(session.MessageContext)),
                 };
             }
 

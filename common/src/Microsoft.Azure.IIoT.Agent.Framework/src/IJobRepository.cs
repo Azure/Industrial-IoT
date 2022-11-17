@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="ct"></param>
         /// <returns>The existing or udpated job</returns>
         Task<JobInfoModel> AddOrUpdateAsync(string jobId,
-             Func<JobInfoModel, Task<JobInfoModel>> predicate,
+             Func<JobInfoModel, CancellationToken, Task<JobInfoModel>> predicate,
              CancellationToken ct = default);
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<JobInfoModel> UpdateAsync(string jobId,
-             Func<JobInfoModel, Task<bool>> predicate,
+             Func<JobInfoModel, CancellationToken, Task<bool>> predicate,
              CancellationToken ct = default);
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<JobInfoModel> DeleteAsync(string jobId,
-            Func<JobInfoModel, Task<bool>> predicate,
+            Func<JobInfoModel, CancellationToken, Task<bool>> predicate,
             CancellationToken ct = default);
     }
 }

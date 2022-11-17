@@ -103,9 +103,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             var now1 = DateTime.UtcNow;
             yield return (now1, now1);
             yield return (DateTime.MinValue, DateTime.MinValue);
-#if MessagePack2
-            yield return (DateTime.MaxValue, DateTime.MaxValue); // TODO: Works in 2.0
-#endif
+            yield return (DateTime.MaxValue, DateTime.MaxValue); 
             yield return ((DateTime?)null, (DateTime?)null);
             var now2 = DateTimeOffset.UtcNow;
             yield return (now2, now2);

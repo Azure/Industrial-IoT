@@ -139,7 +139,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                         MinimumCertificateKeySize = 1024,
                         RejectSHA1SignedCertificates = false,
                         AutoAcceptUntrustedCertificates = true,
-                        AddAppCertToTrustedStore = true
+                        AddAppCertToTrustedStore = true,
+                        RejectUnknownRevocationStatus = true,
                     },
                     TransportConfigurations = new TransportConfigurationCollection(),
                     TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),

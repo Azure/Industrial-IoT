@@ -144,6 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     QueueSize = node.Item2.QueueSize,
                                     // ToDo: Implement mechanism for SkipFirst.
                                     SkipFirst = node.Item2.SkipFirst,
+                                    DataChangeTrigger = node.Item2.DataChangeTrigger
                                 }).ToList()
                             }
                         }
@@ -326,6 +327,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                             // ToDo: Implement mechanism for SkipFirst.
                             SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
+                            DataChangeTrigger = node.DataChangeTrigger
                         });
                     }
                     else {
@@ -349,6 +351,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                                 // ToDo: Implement mechanism for SkipFirst.
                                 SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
+                                DataChangeTrigger = node.DataChangeTrigger
                             });
                         }
                     }
@@ -364,6 +367,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     QueueSize = standaloneCliModel.DefaultQueueSize,
                     // ToDo: Implement mechanism for SkipFirst.
                     SkipFirst = standaloneCliModel.DefaultSkipFirst,
+                    DataChangeTrigger = standaloneCliModel.DefaultDataChangeTrigger
                 });
             }
         }

@@ -44,12 +44,18 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                 // Workaround https://github.com/Azure/azure-cosmos-dotnet-v2/issues/351
                 JsonConvert.DefaultSettings = () => _jsonConfig?.Settings;
             }
-            var client = new DocumentClient(new Uri(cs.Endpoint), cs.SharedAccessKey,
-                _jsonConfig?.Settings, null, options?.Consistency.ToConsistencyLevel());
-            await client.CreateDatabaseIfNotExistsAsync(new Database {
-                Id = databaseId
-            });
-            return new DocumentDatabase(client, databaseId, _config.ThroughputUnits, _logger, _jsonConfig);
+            try {
+                var client = new DocumentClient(new Uri(cs.Endpoint), cs.SharedAccessKey,
+                    _jsonConfig?.Settings, null, options?.Consistency.ToConsistencyLevel());
+                await client.CreateDatabaseIfNotExistsAsync(new Database {
+                    Id = databaseId
+                });
+                return new DocumentDatabase(client, databaseId, _config.ThroughputUnits, _logger, _jsonConfig);
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to create database {databaseId}.", databaseId);
+                throw;
+            }
         }
 
         private readonly ICosmosDbConfig _config;

@@ -8,7 +8,7 @@
         /// The base url of the TestEventProcessor service
         /// </summary>
         public string TestEventProcessorBaseUrl { get; }
-        
+
         /// <summary>
         /// The username to authenticate to the TestEventProcessor (Basic Auth)
         /// </summary>

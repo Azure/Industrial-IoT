@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Data change filter
         /// </summary>
-        public DataChangeTriggerType? DataChangeFilter { get; set; }
+        public DataChangeTriggerType? DataChangeTrigger { get; set; }
 
         /// <summary>
         /// Deadband type

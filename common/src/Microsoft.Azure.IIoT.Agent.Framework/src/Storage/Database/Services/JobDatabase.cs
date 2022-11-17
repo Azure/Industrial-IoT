@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Storage;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -22,11 +23,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// Create
         /// </summary>
         /// <param name="databaseServer"></param>
-        /// <param name="databaseJobRepositoryConfig"></param>
-        public JobDatabase(IDatabaseServer databaseServer, IJobDatabaseConfig databaseJobRepositoryConfig) {
-            var dbs = databaseServer.OpenAsync(databaseJobRepositoryConfig.DatabaseName).Result;
-            var cont = dbs.OpenContainerAsync(databaseJobRepositoryConfig.ContainerName).Result;
-            _documents = cont.AsDocuments();
+        /// <param name="databaseRegistryConfig"></param>
+        /// <param name="logger"></param>
+        public JobDatabase(IDatabaseServer databaseServer,
+            IJobDatabaseConfig databaseRegistryConfig, ILogger logger) {
+            _logger = logger;
+            _databaseServer = databaseServer;
+            _databaseRegistryConfig = databaseRegistryConfig;
+            _documents = GetDocumentsAsync().GetAwaiter().GetResult();
         }
 
         /// <inheritdoc/>
@@ -34,9 +38,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             if (job == null) {
                 throw new ArgumentNullException(nameof(job));
             }
-            while (true) {
+            var retries = 0;
+            var exceptions = new List<Exception>();
+            while (retries < MaxRetries) {
+                retries++;
+                ct.ThrowIfCancellationRequested();
                 var document = await _documents.FindAsync<JobDocument>(job.Id, ct);
                 if (document != null) {
+                    _logger.Warning("Failed to add document for job {jobId} - already exist", job.Id);
                     throw new ConflictingResourceException($"Job {job.Id} already exists.");
                 }
                 job.LifetimeData.Created = job.LifetimeData.Updated = DateTime.UtcNow;
@@ -44,26 +53,35 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     var result = await _documents.AddAsync(job.ToDocumentModel(), ct);
                     return result.Value.ToFrameworkModel();
                 }
-                catch (ConflictingResourceException) {
+                catch (ConflictingResourceException ex) {
                     // Try again
+                    exceptions.Add(ex);
                     continue;
                 }
                 catch {
                     throw;
                 }
             }
+            var aggregateException = new AggregateException(exceptions);
+            _logger.Warning(aggregateException,
+                "Failed to add document for job {jobId} because of too many retries", job.Id);
+            throw aggregateException;
         }
 
         /// <inheritdoc/>
         public async Task<JobInfoModel> AddOrUpdateAsync(string jobId,
-            Func<JobInfoModel, Task<JobInfoModel>> predicate, CancellationToken ct) {
+            Func<JobInfoModel, CancellationToken, Task<JobInfoModel>> predicate, CancellationToken ct) {
             if (string.IsNullOrEmpty(jobId)) {
                 throw new ArgumentNullException(nameof(jobId));
             }
-            while (true) {
+            var retries = 0;
+            var exceptions = new List<Exception>();
+            while (retries < MaxRetries) {
+                retries++;
+                ct.ThrowIfCancellationRequested();
                 var document = await _documents.FindAsync<JobDocument>(jobId, ct);
                 var updateOrAdd = document?.Value.ToFrameworkModel();
-                var job = await predicate(updateOrAdd);
+                var job = await predicate(updateOrAdd, ct);
                 if (job == null) {
                     return updateOrAdd;
                 }
@@ -75,8 +93,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                         var result = await _documents.AddAsync(updated, ct);
                         return result.Value.ToFrameworkModel();
                     }
-                    catch (ConflictingResourceException) {
+                    catch (ConflictingResourceException ex) {
                         // Conflict - try update now
+                        exceptions.Add(ex);
                         continue;
                     }
                 }
@@ -85,26 +104,34 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     var result = await _documents.ReplaceAsync(document, updated, ct);
                     return result.Value.ToFrameworkModel();
                 }
-                catch (ResourceOutOfDateException) {
+                catch (ResourceOutOfDateException ex) {
+                    exceptions.Add(ex);
                     continue;
                 }
             }
+            var aggregateException = new AggregateException(exceptions);
+            _logger.Warning(aggregateException,
+                "Failed to add or update document for job {jobId} because of too many retries", jobId);
+            throw aggregateException;
         }
 
         /// <inheritdoc/>
         public async Task<JobInfoModel> UpdateAsync(string jobId,
-            Func<JobInfoModel, Task<bool>> predicate, CancellationToken ct) {
-
+            Func<JobInfoModel,CancellationToken, Task<bool>> predicate, CancellationToken ct) {
             if (string.IsNullOrEmpty(jobId)) {
                 throw new ArgumentNullException(nameof(jobId));
             }
-            while (true) {
+            var retries = 0;
+            var exceptions = new List<Exception>();
+            while (retries < MaxRetries) {
+                retries++;
+                ct.ThrowIfCancellationRequested();
                 var document = await _documents.FindAsync<JobDocument>(jobId, ct);
                 if (document == null) {
                     throw new ResourceNotFoundException("Job not found");
                 }
                 var job = document.Value.ToFrameworkModel();
-                if (!await predicate(job)) {
+                if (!await predicate(job, ct)) {
                     return job;
                 }
                 job.LifetimeData.Updated = DateTime.UtcNow;
@@ -113,10 +140,15 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                     var result = await _documents.ReplaceAsync(document, updated, ct);
                     return result.Value.ToFrameworkModel();
                 }
-                catch (ResourceOutOfDateException) {
+                catch (ResourceOutOfDateException ex) {
+                    exceptions.Add(ex);
                     continue;
                 }
             }
+            var aggregateException = new AggregateException(exceptions);
+            _logger.Warning(aggregateException,
+                "Failed to update document for job {jobId} because of too many retries", jobId);
+            throw aggregateException;
         }
 
         /// <inheritdoc/>
@@ -126,6 +158,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             }
             var document = await _documents.FindAsync<JobDocument>(jobId, ct);
             if (document == null) {
+                _logger.Warning("Failed to find document for job {jobId}", jobId);
                 throw new ResourceNotFoundException("Job not found");
             }
             return document.Value.ToFrameworkModel();
@@ -151,28 +184,36 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
 
         /// <inheritdoc/>
         public async Task<JobInfoModel> DeleteAsync(string jobId,
-            Func<JobInfoModel, Task<bool>> predicate, CancellationToken ct) {
+            Func<JobInfoModel, CancellationToken,Task<bool>> predicate, CancellationToken ct) {
             if (string.IsNullOrEmpty(jobId)) {
                 throw new ArgumentNullException(nameof(jobId));
             }
-            while (true) {
-                var document = await _documents.FindAsync<JobDocument>(
-                    jobId);
+            var retries = 0;
+            var exceptions = new List<Exception>();
+            while (retries < MaxRetries) {
+                retries++;
+                ct.ThrowIfCancellationRequested();
+                var document = await _documents.FindAsync<JobDocument>(jobId);
                 if (document == null) {
                     return null;
                 }
                 var job = document.Value.ToFrameworkModel();
-                if (!await predicate(job)) {
+                if (!await predicate(job, ct)) {
                     return job;
                 }
                 try {
                     await _documents.DeleteAsync(document, ct);
                 }
-                catch (ResourceOutOfDateException) {
+                catch (ResourceOutOfDateException ex) {
+                    exceptions.Add(ex);
                     continue;
                 }
                 return job;
             }
+            var aggregateException = new AggregateException(exceptions);
+            _logger.Warning(aggregateException,
+                "Failed to delete document for job {jobId} because of too many retries", jobId);
+            throw aggregateException;
         }
 
         /// <summary>
@@ -205,6 +246,22 @@ $"r.{nameof(JobDocument.ClassType)} = '{JobDocument.ClassTypeName}'";
             return queryString;
         }
 
+        private async Task<IDocuments> GetDocumentsAsync() {
+            try {
+                var database = await _databaseServer.OpenAsync(_databaseRegistryConfig.DatabaseName);
+                var container = await database.OpenContainerAsync(_databaseRegistryConfig.ContainerName);
+                return container.AsDocuments();
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to open document collection.");
+                throw;
+            }
+        }
+
         private readonly IDocuments _documents;
+        private readonly ILogger _logger;
+        private readonly IDatabaseServer _databaseServer;
+        private readonly IJobDatabaseConfig _databaseRegistryConfig;
+        private const int MaxRetries = 10;
     }
 }

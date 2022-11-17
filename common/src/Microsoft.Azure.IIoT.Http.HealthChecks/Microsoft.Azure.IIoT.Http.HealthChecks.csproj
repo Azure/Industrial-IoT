@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
 	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
 	  <Description>Azure Industrial IoT health checks</Description>
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="Serilog" Version="2.10.0" />
-	<PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+	<PackageReference Include="Serilog" Version="2.12.0" />
+	<PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
 	<PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
   </ItemGroup>
 

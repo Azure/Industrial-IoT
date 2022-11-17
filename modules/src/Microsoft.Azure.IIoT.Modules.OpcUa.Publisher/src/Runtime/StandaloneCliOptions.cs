@@ -143,6 +143,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
                     { $"mq|monitoreditemqueuecapacity=|{StandaloneCliConfigKeys.DefaultQueueSize}=", "Default queue size for monitored items.",
                         (uint u) => this[StandaloneCliConfigKeys.DefaultQueueSize] = u.ToString() },
+                    { $"mc|monitoreditemdatachangetrigger=|{StandaloneCliConfigKeys.DefaultDataChangeTrigger}=", "Default data change trigger for the monitored items " +
+                       $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(DataChangeTriggerType)))}).",
+                        (DataChangeTriggerType t) => this[StandaloneCliConfigKeys.DefaultDataChangeTrigger] = t.ToString() },
 
                     // cert store option
                     { $"aa|autoaccept", "The publisher trusts all servers it is establishing a connection to.",
@@ -192,7 +195,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); } },
                     { $"bs|batchsize=|{StandaloneCliConfigKeys.BatchSize}=", "The size of message batching buffer.",
                         (int i) => this[StandaloneCliConfigKeys.BatchSize] = i.ToString() },
-                    { $"si|iothubsendinterval=|{StandaloneCliConfigKeys.BatchTriggerInterval}=", "The trigger batching interval in seconds.",
+                    { $"bi|batchtriggerinterval=|{StandaloneCliConfigKeys.BatchTriggerInterval}=", "The trigger batching interval in milliseconds.",
+                        (int k) => this[StandaloneCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromMilliseconds(k).ToString() },
+                    { $"si|iothubsendinterval=", "The trigger batching interval in seconds.",
                         (int k) => this[StandaloneCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
                     { $"ms|iothubmessagesize=|{StandaloneCliConfigKeys.IoTHubMaxMessageSize}=", "The maximum size of the (IoT D2C) message.",
                         (int i) => this[StandaloneCliConfigKeys.IoTHubMaxMessageSize] = i.ToString() },

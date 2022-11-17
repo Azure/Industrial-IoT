@@ -12,13 +12,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
-    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
     public class A_PublishSingleNodeStandaloneTestTheory {
 
         private readonly ITestOutputHelper _output;
@@ -36,7 +36,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [Theory]
         [InlineData(MessagingMode.Samples)]
         [InlineData(MessagingMode.PubSub)]
-        async Task SubscribeUnsubscribeTest(MessagingMode messagingMode) {
+        public async Task SubscribeUnsubscribeTest(MessagingMode messagingMode) {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
 
@@ -123,6 +123,62 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
                 $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
+
+            // Publish node with data change trigger status only
+            model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token, DataChangeTriggerType.Status);
+            await TestHelper.PublishNodesAsync(
+                _context,
+                TestConstants.PublishedNodesFullName,
+                new[] { model }
+            ).ConfigureAwait(false);
+
+            // Wait till the publishing has stopped.
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Use test event processor to verify data send to IoT Hub (expected* set to zero
+            // as data gap analysis is not part of this test case).
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+
+            // Wait some time to generate events to process
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Stop monitoring and get the result.
+            publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount == 0,
+                $"Messages received at IoT Hub: {publishingMonitoringResultJson.TotalValueChangesCount}");
+
+            // Stop publishing nodes.
+            await TestHelper.PublishNodesAsync(
+                _context,
+                TestConstants.PublishedNodesFullName,
+                Array.Empty<PublishedNodesEntryModel>()
+            ).ConfigureAwait(false);
+
+            // Wait till the publishing has stopped.
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Publish node with data change trigger status value timestamp
+            model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token, DataChangeTriggerType.StatusValueTimestamp);
+            await TestHelper.PublishNodesAsync(
+                _context,
+                TestConstants.PublishedNodesFullName,
+                new[] { model }
+            ).ConfigureAwait(false);
+
+            // Wait till the publishing has stopped.
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Use test event processor to verify data send to IoT Hub (expected* set to zero
+            // as data gap analysis is not part of this test case).
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+
+            // Wait some time to generate events to process
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Stop monitoring and get the result.
+            publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0,
+                $"Messages received at IoT Hub: {publishingMonitoringResultJson.TotalValueChangesCount}");
         }
     }
 }

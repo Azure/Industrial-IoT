@@ -234,69 +234,6 @@
                 "description": "Specifies the name of the Azure Log Analytics workspace created as part of this deployment."
             }
         },
-        "kustoClusterName": {
-            "type": "string",
-            "defaultValue": "[concat('kusto', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
-            "metadata": {
-                "description": "Name of the cluster to create"
-            }
-        },
-        "kustoSkuName": {
-            "type": "string",
-            "defaultValue": "Dev(No SLA)_Standard_D11_v2",
-            "allowedValues": [
-                "Standard_DS13_v2+1TB_PS",
-                "Standard_DS13_v2+2TB_PS",
-                "Standard_DS14_v2+3TB_PS",
-                "Standard_DS14_v2+4TB_PS",
-                "Standard_D13_v2",
-                "Standard_D14_v2",
-                "Standard_L4s",
-                "Standard_L8s",
-                "Standard_L16s",
-                "Standard_D11_v2",
-                "Standard_D12_v2",
-                "Standard_E2a_v4",
-                "Standard_E4a_v4",
-                "Standard_E8a_v4",
-                "Standard_E16a_v4",
-                "Standard_E8as_v4+1TB_PS",
-                "Standard_E8as_v4+2TB_PS",
-                "Standard_E16as_v4+3TB_PS",
-                "Standard_E16as_v4+4TB_PS",
-                "Dev(No SLA)_Standard_D11_v2"
-            ],
-            "metadata": {
-                "description": "Sku name for kusto service."
-            }
-        },
-        "kustoSkuCapacity": {
-            "type": "int",
-            "defaultValue": 1,
-            "minValue": 1,
-            "maxValue": 3,
-            "metadata": {
-                "description": "Kusto sku capacity."
-            }
-        },
-        "kustoSkuTier": {
-            "type": "string",
-            "defaultValue": "Basic",
-            "allowedValues": [
-                "Basic",
-                "Standard"
-            ],
-            "metadata": {
-                "description": "Sku tier for Kusto service."
-            }
-        },
-        "kustoDatabaseName": {
-            "type": "string",
-            "defaultValue": "kustodb",
-            "metadata": {
-                "description": "Name of the Kusto database to create."
-            }
-        },
         "workspaceSku": {
             "type": "string",
             "allowedValues": [
@@ -352,13 +289,6 @@
         "appinsightsResourceId": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
         "signalRResourceId": "[resourceId('Microsoft.SignalRService/SignalR', parameters('signalRName'))]",
         "signalREventHubConsumerGroup": "telemetryux",
-        "kustoResourceId": "[resourceId('Microsoft.Kusto/clusters', parameters('kustoClusterName'))]",
-        "kustoDatabaseResourceId": "[resourceId('Microsoft.Kusto/clusters/databases', parameters('kustoClusterName'), parameters('kustoDatabaseName'))]",
-        "kustoEventHubDataFormat": "",
-        "kustoEventHubMappingRule": "",
-        "kustoEventHubTable": "",
-        "kustoEventHubDataConnection": "opcuaeventhub",
-        "kustoEventHubConsumerGroup": "telemetrykusto",
         "omsResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
         "standardConfigurationResourceName": "infrastructure.configuration",
         "workbookConfigurationResourceName": "workbook.configuration"
@@ -516,78 +446,6 @@
             "dependsOn": [
                 "[variables('tsiEnvironmentResourceId')]",
                 "[variables('tsiEventSourceAuthorizationRuleResourceId')]"
-            ]
-        },
-        {
-            "comments": "Kusto cluster for alternative visualization and analytics",
-            "name": "[parameters('kustoClusterName')]",
-            "type": "Microsoft.Kusto/clusters",
-            "apiVersion": "2020-02-15",
-            "location": "[resourceGroup().location]",
-            "tags": "[parameters('tags')]",
-            "sku": {
-                "name": "[parameters('kustoSkuName')]",
-                "tier": "[parameters('kustoSkuTier')]",
-                "capacity": "[parameters('kustoSkuCapacity')]"
-            },
-            "properties": {
-                "trustedExternalTenants": [
-                    {
-                        "value": "*"
-                    }
-                ],
-                "enableDiskEncryption": false,
-                "enableStreamingIngest": true
-            }
-        },
-        {
-            "comments": "The Kusto database instance",
-            "name": "[concat(parameters('kustoClusterName'), '/', parameters('kustoDatabaseName'))]",
-            "type": "Microsoft.Kusto/clusters/databases",
-            "apiVersion": "2020-02-15",
-            "location": "[resourceGroup().location]",
-            "tags": "[parameters('tags')]",
-            "kind": "ReadWrite",
-            "properties": {
-                "softDeletePeriod": "P365D",
-                "hotCachePeriod": "P31D"
-            },
-            "dependsOn": [
-                "[variables('kustoResourceId')]"
-            ]
-        },
-        {
-            "comments": "Kusto Consumer Group for Device Telemetry EventHub",
-            "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
-            "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('kustoEventHubConsumerGroup'))]",
-            "apiVersion": "2017-04-01",
-            "tags": "[parameters('tags')]",
-            "properties": {
-                "userMetadata": "Kusto Telemetry Consumer Group"
-            },
-            "dependsOn": [
-            ]
-        },
-        {
-            "comments": "Kusto event hub data connection",
-            "name": "[concat(parameters('kustoClusterName'), '/', parameters('kustoDatabaseName'), '/', variables('kustoEventHubDataConnection'))]",
-            "type": "Microsoft.Kusto/Clusters/Databases/DataConnections",
-            "apiVersion": "2020-02-15",
-            "location": "[resourceGroup().location]",
-            "tags": "[parameters('tags')]",
-            "kind": "EventHub",
-            "properties": {
-                "eventHubResourceId": "[variables('eventHubResourceId')]",
-                "consumerGroup": "[variables('kustoEventHubConsumerGroup')]",
-                "tableName": "[variables('kustoEventHubTable')]",
-                "mappingRuleName": "[variables('kustoEventHubMappingRule')]",
-                "dataFormat": "[variables('kustoEventHubDataFormat')]",
-                "eventSystemProperties": [],
-                "compression": "None"
-            },
-            "dependsOn": [
-                "[variables('kustoDatabaseResourceId')]",
-                "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', parameters('eventHubNamespaceName'), parameters('eventHubName'), variables('kustoEventHubConsumerGroup'))]"
             ]
         },
         {
