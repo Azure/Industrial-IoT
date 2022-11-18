@@ -45,19 +45,13 @@ Otherwise, please report bugs, feature requests, or suggestions as [GitHub issue
 
 ## Supported releases and support policy
 
-### IMPORTANT NOTICE
-
-* Official support for the Azure Industrial IoT platform and its components [will end in July 2023](#supported-releases-and-support-policy).
-* Support for the [OPC Publisher IoT Edge module](#opc-publisher---standalone) **will be extended until December 2024**.
-
 Our releases are tagged following semantic versioning (“semver”) conventions. Minor and patch releases do not break backwards compatibility. Minor releases and patch releases address customer reported issues and receive security updates. Minor releases are either regular releases or LTS (Long term support) releases. Currently only the 2.8 release is receiving long-term support (2 years of support after release, only security fixes in the second year). Regular (non-LTS) releases are supported for 6 months after the subsequent major.minor release, or for 1 year after its release whichever comes first. This is reflected in the following table. Releases not shown in the table (e.g., 2.3, 2.4, or 2.6) are out of support already.
 
 | Release (tag)                               | Latest patch release (tag) | End of support | Successor (tag)      | Update instructions                                       |
 |---------------------------------------------|----------------------------|----------------|----------------------|-----------------------------------------------------------|
 | 2.5                                         | 2.5.5                      | 12/1/2021      | 2.8 (LTS) (>= 2.8.2) | [Migration Path](docs/modules/publisher-migrationpath.md) |
 | 2.7                                         | 2.7.206                    | 1/15/2022      | 2.8 (LTS) (>= 2.8.0) | N/A                                                       |
-| 2.8 (LTS)                                   | 2.8.3                      | **7/15/2023**  | N/A                  | N/A                                                       |
-| 2.8 (LTS) - **OPC Publisher Standalone**    | 2.8.3                      | 12/31/2024     | TBA                  | N/A                                                       |
+| 2.8 (LTS)                                   | 2.8.3                      | 7/15/2023      | TBA                  | N/A                                                       |
 
 We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string. If you are using a container image with a major.minor version tag that is supported per above table, but a patch version lower than the latest patch version, you need to update your images to the latest version to ensure secure operation and take advantage of the latest fixes. If you unexpectedly encounter bugs and require help, please ensure you are running the latest patch release as we might already have addressed the issue you are seeing. If you are not, please update first and try to reproduce the issue on the latest patch version.
 
