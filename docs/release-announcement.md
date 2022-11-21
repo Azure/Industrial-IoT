@@ -28,9 +28,10 @@ We are pleased to announce the release of version 2.8.4 of our Industrial IoT Pl
 - [OPC Publisher] (Preview) User can set the Data change trigger value of the Data change filter type either as a default for all or per subscription (#1830).
 - [OPC Publisher] (Preview) Allow comment in OpcPublisher Configuration when Validation is used (#1892)
 - [All IoT Edge modules] Add a configuration option to set security option RejectUnknownRevocationStatus (#1777)
-- [All IoT Edge modules] Add mandatory field for edgeHub in the base deployment template to support cloning deployments (#1764)
+- [All IoT Edge modules] Add mandatory field for edgeHub in the base deployment template to support cloning deployments (#1764
+- [OPC Discovery] Ensure duplicate discovery urls override previous url instead of causing exception (#1903, #1902)
 
-For features that are marked as Preview, please report any issues through GitHub issues. 
+For features that are marked as Preview, please report any issues through GitHub issues.
 
 ## Azure Industrial IoT Platform Release 2.8.3
 
