@@ -361,7 +361,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 request.Token.ThrowIfCancellationRequested();
                 var resolved = await ep.TryResolveAsync();
                 var url = new Uri($"opc.tcp://" + resolved);
-                discoveryUrls.Add(ep, url);
+                discoveryUrls.AddOrUpdate(ep, url);
             }
             request.Token.ThrowIfCancellationRequested();
 
@@ -426,16 +426,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// <returns></returns>
         private async Task<Dictionary<IPEndPoint, Uri>> GetDiscoveryUrlsAsync(
             IEnumerable<Uri> discoveryUrls) {
+            var result = new Dictionary<IPEndPoint, Uri>();
             if (discoveryUrls?.Any() ?? false) {
                 var results = await Task.WhenAll(discoveryUrls
                     .Select(GetHostEntryAsync)
                     .ToArray());
-                return results
+                foreach (var entry in results
                     .SelectMany(v => v)
-                    .Where(a => a.Item2 != null)
-                    .ToDictionary(k => k.Item1, v => v.Item2);
+                    .Where(a => a.Item2 != null)) {
+                    result.AddOrUpdate(entry.Item1, entry.Item2);
+                }
             }
-            return new Dictionary<IPEndPoint, Uri>();
+            return result;
         }
 
         /// <summary>
