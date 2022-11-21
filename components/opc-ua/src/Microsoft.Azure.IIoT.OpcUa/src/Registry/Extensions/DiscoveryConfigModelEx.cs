@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 MinPortProbesPercent = model.MinPortProbesPercent <= 0 ?
                     null : model.MinPortProbesPercent,
                 NetworkProbeTimeout = model.NetworkProbeTimeout <= TimeSpan.Zero ?
-                    null : model.IdleTimeBetweenScans,
+                    null : model.NetworkProbeTimeout,
                 PortProbeTimeout = model.PortProbeTimeout <= TimeSpan.Zero ?
                     null : model.PortProbeTimeout,
             };
