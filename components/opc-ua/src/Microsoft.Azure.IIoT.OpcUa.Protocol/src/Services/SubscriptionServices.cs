@@ -142,10 +142,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 Id,
                                 Connection.CreateConnectionId());
                             Try.Op(() => session?.RemoveSubscription(subscription));
-                            _logger.Debug("Subscription successfully removed '{subscription}'/'{sessionId}'",
+                            _logger.Information("Subscription '{subscription}'/'{sessionId}' successfully closed (Remaining: {Remaining}).",
+                                Id,
+                                Connection.CreateConnectionId(), session.Subscriptions.Count());
+                        }
+                        else {
+                            _logger.Warning("Subscription '{subscription}' not found in '{sessionId}'.",
+                                Id,
+                                Connection.CreateConnectionId(), session.Subscriptions.Count());
+                        }
+                    }
+                    else {
+                        _logger.Warning("Tried to close '{subscription}', but the session '{sessionId}' with it was not found.",
                                 Id,
                                 Connection.CreateConnectionId());
-                        }
                     }
                 }
                 catch (Exception e) {
@@ -153,6 +163,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Id,
                         Connection.CreateConnectionId());
                 }
+
+                // Disconnect session when empty
+                await _outer._sessionManager.RemoveSessionAsync(_subscription.Connection, true);
             }
 
             /// <inheritdoc/>
