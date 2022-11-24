@@ -121,6 +121,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public async Task CloseAsync() {
                 await _lock.WaitAsync().ConfigureAwait(false);
                 try {
+                    if (_closed) {
+                        return;
+                    }
+                    _closed = true;
                     _outer._sessionManager.UnregisterSubscription(this);
                 }
                 finally {
@@ -163,14 +167,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Id,
                         Connection.CreateConnectionId());
                 }
-
-                // Disconnect session when empty
-                await _outer._sessionManager.RemoveSessionAsync(_subscription.Connection, true);
             }
 
             /// <inheritdoc/>
             public void Dispose() {
-                Try.Async(CloseAsync).Wait();
+                if (!_closed) {
+                    Try.Async(CloseAsync).Wait();
+                }
                 _lock.Dispose();
             }
 
@@ -1016,6 +1019,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private readonly SemaphoreSlim _lock;
             private List<MonitoredItemWrapper> _currentlyMonitored;
             private uint _expectedSequenceNumber = 1;
+            private bool _closed;
             private static readonly Gauge kMonitoredItems = Metrics.CreateGauge(
                 "iiot_edge_publisher_monitored_items", "monitored items count",
                 new GaugeConfiguration {
