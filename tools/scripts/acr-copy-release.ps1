@@ -55,6 +55,7 @@ Param(
     [Parameter(Mandatory = $true)] [string] $ReleaseVersion,
     [switch] $IsLatest,
     [switch] $IsMajorUpdate,
+    [switch] $IsPrerelease,
     [switch] $RemoveNamespaceOnRelease
 )
 
