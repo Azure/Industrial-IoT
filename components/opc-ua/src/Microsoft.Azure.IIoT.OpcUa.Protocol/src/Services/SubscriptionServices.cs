@@ -136,7 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         var subscription = session.Subscriptions.
                             SingleOrDefault(s => s.Handle == this);
                         if (subscription != null) {
-                            _logger.Information("Closing subscription '{subscription}'/'{sessionId}'",
+                            _logger.Information("Closing subscription '{subscription}' in session '{sessionId}'...",
                                 Id,
                                 Connection.CreateConnectionId());
                             Try.Op(() => subscription.PublishingEnabled = false);
@@ -145,15 +145,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _logger.Debug("Deleted monitored items for '{subscription}'/'{sessionId}'",
                                 Id,
                                 Connection.CreateConnectionId());
-                            Try.Op(() => session?.RemoveSubscription(subscription));
-                            _logger.Information("Subscription '{subscription}'/'{sessionId}' successfully closed (Remaining: {Remaining}).",
+                            Try.Op(() => session.RemoveSubscription(subscription));
+                            _logger.Information("Subscription '{subscription}' in session '{sessionId}' successfully closed (Remaining: {Remaining}).",
                                 Id,
                                 Connection.CreateConnectionId(), session.Subscriptions.Count());
                         }
                         else {
-                            _logger.Warning("Subscription '{subscription}' not found in '{sessionId}'.",
+                            _logger.Warning("Subscription '{subscription}' not found in session '{sessionId}'.",
                                 Id,
-                                Connection.CreateConnectionId(), session.Subscriptions.Count());
+                                Connection.CreateConnectionId());
                         }
                     }
                     else {
