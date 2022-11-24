@@ -151,13 +151,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 Connection.CreateConnectionId(), session.Subscriptions.Count());
                         }
                         else {
-                            _logger.Warning("Subscription '{subscription}' not found in session '{sessionId}'.",
+                            _logger.Warning("Failed to close subscription '{subscription}'. Subscription was not found in session '{sessionId}'.",
                                 Id,
                                 Connection.CreateConnectionId());
                         }
                     }
                     else {
-                        _logger.Warning("Tried to close '{subscription}', but the session '{sessionId}' with it was not found.",
+                        _logger.Warning("Failed to close subscription '{subscription}'. The attached session '{sessionId}' could not be found.",
                                 Id,
                                 Connection.CreateConnectionId());
                     }
