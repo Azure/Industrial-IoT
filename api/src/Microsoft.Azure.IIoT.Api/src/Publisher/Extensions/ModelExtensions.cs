@@ -1312,27 +1312,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         }
 
         /// <summary>
-        /// Create service model from api model
+        /// Create api model
         /// </summary>
-        public static PublishedDataSetEventModel ToServiceModel(
-            this PublishedDataSetEventApiModel model) {
+        public static EventFilterApiModel ToApiModel(
+            this EventFilterModel model) {
             if (model == null) {
                 return null;
             }
-            return new PublishedDataSetEventModel {
-                Id = model.Id,
-                DiscardNew = model.DiscardNew,
-                EventNotifier = model.EventNotifier,
-                BrowsePath = model.BrowsePath,
-                WhereClause = model.WhereClause.ToServiceModel(),
-                QueueSize = model.QueueSize,
-                MonitoringMode = (OpcUa.Publisher.Models.MonitoringMode?)model.MonitoringMode,
-                TriggerId = model.TriggerId,
+            return new EventFilterApiModel {
                 SelectClauses = model.SelectClauses?
-                    .Select(f => f.ToServiceModel())
+                    .Select(e => e.ToApiModel())
                     .ToList(),
-                PendingAlarms = model.PendingAlarms.ToServiceModel(),
                 TypeDefinitionId = model.TypeDefinitionId,
+                PendingAlarms = model.PendingAlarms.ToApiModel(),
+                WhereClause = model.WhereClause.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Create service model from api model
+        /// </summary>
+        public static EventFilterModel ToServiceModel(
+            this EventFilterApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new EventFilterModel {
+                SelectClauses = model.SelectClauses?
+                    .Select(e => e.ToServiceModel())
+                    .ToList(),
+                TypeDefinitionId = model.TypeDefinitionId,
+                PendingAlarms = model.PendingAlarms.ToServiceModel(),
+                WhereClause = model.WhereClause.ToServiceModel()
             };
         }
 
@@ -1364,6 +1375,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 IsEnabled = model.IsEnabled,
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval,
+            };
+        }
+
+        /// <summary>
+        /// Create service model from api model
+        /// </summary>
+        public static PublishedDataSetEventModel ToServiceModel(
+            this PublishedDataSetEventApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PublishedDataSetEventModel {
+                Id = model.Id,
+                DiscardNew = model.DiscardNew,
+                EventNotifier = model.EventNotifier,
+                BrowsePath = model.BrowsePath,
+                WhereClause = model.WhereClause.ToServiceModel(),
+                QueueSize = model.QueueSize,
+                MonitoringMode = (OpcUa.Publisher.Models.MonitoringMode?)model.MonitoringMode,
+                TriggerId = model.TriggerId,
+                SelectClauses = model.SelectClauses?
+                    .Select(f => f.ToServiceModel())
+                    .ToList(),
+                PendingAlarms = model.PendingAlarms.ToServiceModel(),
+                TypeDefinitionId = model.TypeDefinitionId,
             };
         }
 

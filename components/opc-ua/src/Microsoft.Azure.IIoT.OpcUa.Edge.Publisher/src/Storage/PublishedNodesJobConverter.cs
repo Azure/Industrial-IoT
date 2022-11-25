@@ -136,7 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                             ? node.Item2.DataSetFieldId
                                             : node.Item2.DisplayName,
                                         PublishedVariableNodeId = node.Item2.Id,
-                                        
+
                                         // At this point in time the next values are ensured to be filled in with
                                         // the appropriate value: configured or default
                                         PublishedVariableDisplayName = node.Item2.DisplayName,
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         TypeDefinitionId = node.Item2.EventFilter.TypeDefinitionId,
                                         SelectClauses = node.Item2.EventFilter.SelectClauses?.Select(s => s.Clone()).ToList(),
                                         WhereClause = node.Item2.EventFilter.WhereClause?.Clone(),
-                                        PendingAlarms = node.Item2.EventFilter.PendingAlarms?.Clone(),
+                                        PendingAlarms = node.Item2.EventFilter.PendingAlarms.Clone(),
                                     }).ToList(),
                             },
                         }

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -419,6 +420,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _logger.Verbose("Removing monitored item '{item}'...",
                                 toRemove.StartNodeId);
                             toRemove.Notification -= OnMonitoredItemChanged;
+                            ((MonitoredItemWrapper)toRemove.Handle).Destroy();
                             count++;
                         }
                         rawSubscription.RemoveItems(toCleanupList);
@@ -453,6 +455,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     foreach (var toRemove in toRemoveList) {
                         _logger.Verbose("Removing monitored item '{item}'...", toRemove.StartNodeId);
                         toRemove.Notification -= OnMonitoredItemChanged;
+                        ((MonitoredItemWrapper)toRemove.Handle).Destroy();
                         count++;
                     }
                     rawSubscription.RemoveItems(toRemoveList);
@@ -653,7 +656,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 noErrorFound = false;
                             }
                         }
-						if (change.Where(x => x.EventTemplate != null).Any()) {
+                        if (change.Where(x => x.EventTemplate != null).Any()) {
                             _logger.Information("Now issuing ConditionRefresh for item {item} on subscription " +
                                 "{subscription}", change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
                             try {
@@ -677,7 +680,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     "{subscription} has completed",
                                     change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
                             }
-						}
+                        }
                     }
                     foreach (var item in validItems) {
                         if (item.Item.SamplingInterval != item.Item.Status.SamplingInterval ||
@@ -767,7 +770,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     .GetValueOrDefault(_outer._clientConfig.MaxKeepAliveCount);
 
                 _subscription.MonitoredItems?.ForEach(m => {
-                    if (m is DataMonitoredItemModel dataItem){
+                    if (m is DataMonitoredItemModel dataItem) {
                         var heartbeat = (uint)(dataItem?.HeartbeatInterval).GetValueOrDefault(TimeSpan.Zero).TotalMilliseconds;
                         if (heartbeat != 0) {
                             var itemKeepAliveCount = heartbeat / normedPublishingInterval;
@@ -1065,8 +1068,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 Exists(m => m.ClientHandle == item.Item.ClientHandle)
                                 && item.ValidateHeartbeat(publishTime)) {
 
-                                MonitoredItemNotificationModel GetDefaultNotification()
-                                {
+                                MonitoredItemNotificationModel GetDefaultNotification() {
                                     return new MonitoredItemNotificationModel {
                                         Id = item?.Template?.Id,
                                         DisplayName = item?.Item?.DisplayName,
@@ -1093,7 +1095,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                         message.Notifications =
                                             new List<MonitoredItemNotificationModel>();
                                     }
-                                   message.Notifications.Add(heartbeatValue);
+                                    message.Notifications.Add(heartbeatValue);
                                 }
                                 continue;
                             }
@@ -1222,32 +1224,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Cache of the latest events for the pending alarms optionally monitored
             /// </summary>
-            public Dictionary<string, MonitoredItemNotificationModel> PendingAlarmEvents { get; } = new Dictionary<string, MonitoredItemNotificationModel>();
+            public Dictionary<string, MonitoredItemNotificationModel> PendingAlarmEvents { get; }
+                = new Dictionary<string, MonitoredItemNotificationModel>();
 
             /// <summary>
             /// Property setter that gets indication if item is online or not.
             /// </summary>
             public void OnMonitoredItemStateChanged(bool online) {
-                if (EventTemplate?.PendingAlarms?.IsEnabled == true && online) {
-                    _pendingAlarmsTimer.Start();
+                if (EventTemplate.PendingAlarms?.IsEnabled == true && online) {
+                    _pendingAlarmsTimer?.Start();
                 }
                 else {
-                    _pendingAlarmsTimer.Stop();
+                    _pendingAlarmsTimer?.Stop();
                     lock (_lock) {
                         PendingAlarmEvents.Clear();
                     }
                 }
             }
 
-            private readonly Object _lock = new object();
-
-            /// <summary>
-            /// Destructor for this class
-            /// </summary>
-            ~MonitoredItemWrapper() {
-                _pendingAlarmsTimer.Stop();
-                _pendingAlarmsTimer.Dispose();
-            }
+            private readonly object _lock = new object();
 
             /// <summary>
             /// validates if a heartbeat is required.
@@ -1332,6 +1327,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <summary>
+            /// Destructor for this class
+            /// </summary>
+            public void Destroy() {
+                if (_pendingAlarmsTimer != null) {
+                    _pendingAlarmsTimer.Stop();
+                    _pendingAlarmsTimer.Dispose();
+                }
+            }
+
+            /// <summary>
             /// Create new stack monitored item
             /// </summary>
             public void Create(ServiceMessageContext messageContext, INodeCache nodeCache, IVariantEncoder codec, bool activate) {
@@ -1370,7 +1375,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
 
-                    Task.Run(() => {
+                    // Check why this was done...
+                    TestWhereClause(_logger, messageContext, nodeCache, eventFilter);
+                    // Check why this was done...
+                    // Task.Run(() => TestWhereClause(_logger, messageContext, nodeCache, eventFilter));
+                    static void TestWhereClause(ILogger logger, ServiceMessageContext messageContext, INodeCache nodeCache, EventFilter eventFilter) {
                         foreach (var element in eventFilter.WhereClause.Elements) {
                             if (element.FilterOperator == FilterOperator.OfType) {
                                 foreach (var filterOperand in element.FilterOperands) {
@@ -1380,20 +1389,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                         nodeCache.FetchNode(nodeId.ToExpandedNodeId(messageContext.NamespaceUris)); // it will throw an exception if it doesn't work
                                     }
                                     catch (Exception ex) {
-                                        _logger.Warning($"Where clause is doing OfType({nodeId}) and we got this message {ex.Message} while looking it up");
+                                        logger.Warning($"Where clause is doing OfType({nodeId}) and we got this message {ex.Message} while looking it up");
                                     }
                                 }
                             }
                         }
-                    });
+                    }
 
                     // let's keep track of the internal fields we add so that they don't show up in the output
                     var internalSelectClauses = new List<SimpleAttributeOperand>();
-                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType)) {
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
+                        && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType)) {
                         var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.EventType);
                         eventFilter.SelectClauses.Add(selectClause);
                         internalSelectClauses.Add(selectClause);
                     }
+
+                    // set up the timer
+                    _pendingAlarmsTimer = new Timer(1000);
+                    _pendingAlarmsTimer.AutoReset = false;
+                    _pendingAlarmsTimer.Elapsed += OnPendingAlarmsTimerElapsed;
 
                     if (EventTemplate.PendingAlarms?.IsEnabled == true) {
                         var conditionIdClause = eventFilter.SelectClauses
@@ -1402,7 +1417,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.IndexOf(conditionIdClause);
                         }
                         else {
-                            EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.Count();
+                            EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.Count;
                             var selectClause = new SimpleAttributeOperand() {
                                 BrowsePath = new QualifiedNameCollection(),
                                 TypeDefinitionId = ObjectTypeIds.ConditionType,
@@ -1418,16 +1433,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.IndexOf(retainClause);
                         }
                         else {
-                            EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.Count();
+                            EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.Count;
                             var selectClause = new SimpleAttributeOperand(ObjectTypeIds.ConditionType, BrowseNames.Retain);
                             eventFilter.SelectClauses.Add(selectClause);
                             internalSelectClauses.Add(selectClause);
                         }
-
-                        // set up the timer
-                        _pendingAlarmsTimer.Interval = 1000;
-                        _pendingAlarmsTimer.Elapsed += OnPendingAlarmsTimerElapsed;
-                        _pendingAlarmsTimer.AutoReset = false;
+                        _pendingAlarmsTimer.Start();
                     }
 
                     var sb = new StringBuilder();
@@ -1441,7 +1452,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
                                         if (selectClause.BrowsePath[i].NamespaceIndex < nodeCache.NamespaceUris.Count) {
                                             sb.Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
-                                            sb.Append("#");
+                                            sb.Append('#');
                                         }
                                         else {
                                             sb.Append($"{selectClause.BrowsePath[i].NamespaceIndex}:");
@@ -1449,7 +1460,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     }
                                 }
                                 else {
-                                    sb.Append("/");
+                                    sb.Append('/');
                                 }
                                 sb.Append(selectClause.BrowsePath[i].Name);
                             }
@@ -1478,7 +1489,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (pendingAlarmsOptions?.IsEnabled == true) {
                     try {
                         // is it time to send anything?
-                        if (Item.Created && pendingAlarmsOptions.IsEnabled == true &&
+                        if (Item.Created &&
                             (((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.SnapshotIntervalTimespan ?? TimeSpan.MaxValue))) ||
                                 ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) &&
                                 pendingAlarmsOptions.Dirty)))) {
@@ -1487,7 +1498,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
                     catch (Exception ex) {
-                        _logger.Error("SendPendingAlarms failed with exception {message}.", ex.Message);
+                        _logger.Error(ex, "SendPendingAlarms failed.");
                     }
                     finally {
                         _pendingAlarmsTimer.Start();
@@ -1718,7 +1729,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (pendingAlarmsOptions?.IsEnabled == true && monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
                     if (pendingAlarmsOptions.ConditionIdIndex.HasValue && pendingAlarmsOptions.RetainIndex.HasValue) {
                         var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
-                        var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue<bool>(false);
+                        var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue(false);
                         lock (_lock) {
                             if (PendingAlarmEvents.ContainsKey(conditionId) && !retain) {
                                 PendingAlarmEvents.Remove(conditionId, out var monitoredItemNotificationModel);
@@ -1726,7 +1737,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             }
                             else if (retain) {
                                 pendingAlarmsOptions.Dirty = true;
-                                PendingAlarmEvents[conditionId] = monitoredItemNotification;
+                                PendingAlarmEvents.AddOrUpdate(conditionId, monitoredItemNotification);
                             }
                         }
                     }
@@ -1744,7 +1755,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 var firstNotification = notifications.FirstOrDefault();
-                var pendingAlarmsNotification = new MonitoredItemNotificationModel() {
+                var pendingAlarmsNotification = new MonitoredItemNotificationModel {
                     AttributeId = Item.AttributeId,
                     ClientHandle = firstNotification?.ClientHandle ?? 0,
                     DiagnosticInfo = null,
@@ -1787,7 +1798,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
-            private readonly Timer _pendingAlarmsTimer = new Timer();
+            private Timer _pendingAlarmsTimer;
             private DateTime _lastSentPendingAlarms = DateTime.UtcNow;
             private HashSet<uint> _newTriggers = new HashSet<uint>();
             private HashSet<uint> _triggers = new HashSet<uint>();

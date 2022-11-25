@@ -290,6 +290,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
                 SelectClauses = model.SelectClauses?
                     .Select(e => e.ToApiModel())
                     .ToList(),
+                TypeDefinitionId = model.TypeDefinitionId,
+                PendingAlarms = model.PendingAlarms.ToApiModel(),
                 WhereClause = model.WhereClause.ToApiModel()
             };
         }
@@ -306,7 +308,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
                 SelectClauses = model.SelectClauses?
                     .Select(e => e.ToServiceModel())
                     .ToList(),
+                TypeDefinitionId = model.TypeDefinitionId,
+                PendingAlarms = model.PendingAlarms.ToServiceModel(),
                 WhereClause = model.WhereClause.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Create api model from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static PendingAlarmsOptionsApiModel ToApiModel(
+            this PendingAlarmsOptionsModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PendingAlarmsOptionsApiModel {
+                IsEnabled = model.IsEnabled,
+                UpdateInterval = model.UpdateInterval,
+                SnapshotInterval = model.SnapshotInterval,
+            };
+        }
+
+        /// <summary>
+        /// Create service model from api model
+        /// </summary>
+        public static PendingAlarmsOptionsModel ToServiceModel(
+            this PendingAlarmsOptionsApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PendingAlarmsOptionsModel {
+                IsEnabled = model.IsEnabled,
+                UpdateInterval = model.UpdateInterval,
+                SnapshotInterval = model.SnapshotInterval,
             };
         }
 

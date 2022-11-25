@@ -84,6 +84,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
+                DataChangeTrigger = (IIoT.OpcUa.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
+                EventFilter = model.EventFilter.ToServiceModel()
             };
         }
 
@@ -163,6 +165,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
+                DataChangeTrigger = (DataChangeTriggerType?)model.DataChangeTrigger,
+                EventFilter = model.EventFilter.ToApiModel()
             };
         }
 

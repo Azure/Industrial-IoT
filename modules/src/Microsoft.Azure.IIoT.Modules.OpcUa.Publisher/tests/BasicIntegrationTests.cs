@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         }
 
         // ToDo: Enable the test once PublishedNodesJobConverter parses OpcEvents.
-        [Theory(Skip = "PublishedNodesJobConverter does not parse OpcEvents now.")]
+        [Theory]
         [InlineData(@"./PublishedNodes/PendingAlarms.json")]
         public async Task CanSendPendingAlarmsToIoTHubTest(string publishedNodesFile) {
             // Arrange
@@ -56,8 +56,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.Single(messages);
             Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
             Assert.Equal("PendingAlarms", messages[0].RootElement[0].GetProperty("DisplayName").GetString());
-            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank", messages[0].RootElement[0].GetProperty("Value")[1].GetProperty("SourceNode").GetString());
-            Assert.Equal(100, messages[0].RootElement[0].GetProperty("Value")[1].GetProperty("Severity").GetInt32());
+            var sourceNode = messages[0].RootElement[0].GetProperty("Value")[0].GetProperty("SourceNode").GetString();
+            Assert.StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a", sourceNode);
+            var severity = messages[0].RootElement[0].GetProperty("Value")[0].GetProperty("Severity").GetInt32();
+            Assert.True(severity >= 100);
         }
     }
 }

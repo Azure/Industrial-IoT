@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Event monitored item
@@ -53,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             return obj is EventMonitoredItemModel model &&
                    base.Equals(obj) &&
                    EventFilter.IsSameAs(model.EventFilter) &&
-                   PendingAlarms == model.PendingAlarms;
+                   PendingAlarms.IsSameAs(model.PendingAlarms);
         }
 
         /// <summary>
@@ -67,23 +66,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             hash.Add(PendingAlarms);
             return hash.ToHashCode();
         }
-
-        /// <summary>
-        /// operator==
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns>If the objects are equal</returns>
-        public static bool operator ==(EventMonitoredItemModel left, EventMonitoredItemModel right)
-            => EqualityComparer<EventMonitoredItemModel>.Default.Equals(left, right);
-
-        /// <summary>
-        /// operator!=
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns>If the objects are not equal</returns>
-        public static bool operator !=(EventMonitoredItemModel left, EventMonitoredItemModel right)
-            => !(left == right);
     }
 }

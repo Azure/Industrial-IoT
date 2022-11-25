@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
     using System;
-    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -17,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// Is pending alarms enabled for this event node?
         /// </summary>
         [DataMember(EmitDefaultValue = true)]
-        public bool IsEnabled { get; set; } = false;
+        public bool IsEnabled { get; set; }
 
         /// <summary>
         /// Time interval for sending pending interval updates in seconds.
@@ -65,62 +64,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// Has the pending alarms events been updated since las update message?
         /// </summary>
         [IgnoreDataMember]
-        public bool Dirty { get; set; } = false;
-
-        /// <summary>
-        /// Clone
-        /// </summary>
-        /// <returns></returns>
-        public PendingAlarmsOptionsModel Clone() {
-            return new PendingAlarmsOptionsModel {
-                IsEnabled = IsEnabled,
-                UpdateInterval = UpdateInterval,
-                SnapshotInterval = SnapshotInterval,
-                ConditionIdIndex = ConditionIdIndex,
-                RetainIndex = RetainIndex,
-                Dirty = Dirty,
-            };
-        }
-
-        /// <summary>
-        /// Equals
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns>True if objects are equal</returns>
-        public override bool Equals(object obj) {
-            return obj is PendingAlarmsOptionsModel model &&
-                   IsEnabled == model.IsEnabled &&
-                   UpdateInterval == model.UpdateInterval &&
-                   SnapshotInterval == model.SnapshotInterval &&
-                   ConditionIdIndex == model.ConditionIdIndex &&
-                   RetainIndex == model.RetainIndex &&
-                   Dirty == model.Dirty;
-        }
-
-        /// <summary>
-        /// GetHashCode
-        /// </summary>
-        /// <returns>Return the hash code for this object</returns>
-        public override int GetHashCode() {
-            return HashCode.Combine(IsEnabled, UpdateInterval, SnapshotInterval, ConditionIdIndex, RetainIndex, Dirty);
-        }
-
-        /// <summary>
-        /// operator==
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns>If the objects are equal</returns>
-        public static bool operator ==(PendingAlarmsOptionsModel left, PendingAlarmsOptionsModel right)
-            => EqualityComparer<PendingAlarmsOptionsModel>.Default.Equals(left, right);
-
-        /// <summary>
-        /// operator!=
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns>If the objects are not equal</returns>
-        public static bool operator !=(PendingAlarmsOptionsModel left, PendingAlarmsOptionsModel right)
-            => !(left == right);
+        public bool Dirty { get; set; }
     }
 }

@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                     .Select(a => a.Clone())
                     .ToList(),
                 WhereClause = model.WhereClause.Clone(),
+                PendingAlarms = model.PendingAlarms.Clone(),
                 TypeDefinitionId = model.TypeDefinitionId
             };
         }
@@ -53,7 +54,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             if (model.TypeDefinitionId != other.TypeDefinitionId) {
                 return false;
             }
-
+            if (!model.PendingAlarms.IsSameAs(other.PendingAlarms)) {
+                return false;
+            }
             return true;
         }
     }
