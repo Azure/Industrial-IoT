@@ -180,7 +180,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_APPINSIGHTS_INSTRUMENTATIONKEY = applicationInsightsComponent.InstrumentationKey;
 
             // Log Analytics Workspace
-            PCS_WORKSPACE_ID = workspace.Id;
+            PCS_WORKSPACE_ID = workspace.CustomerId;
             PCS_WORKSPACE_KEY = workspaceKey;
             PCS_SUBSCRIPTION_ID = subscriptionId;
             PCS_RESOURCE_GROUP = resourceGroupName;

@@ -121,6 +121,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public async Task CloseAsync() {
                 await _lock.WaitAsync().ConfigureAwait(false);
                 try {
+                    if (_closed) {
+                        return;
+                    }
+                    _closed = true;
                     _outer._sessionManager.UnregisterSubscription(this);
                 }
                 finally {
@@ -132,7 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         var subscription = session.Subscriptions.
                             SingleOrDefault(s => s.Handle == this);
                         if (subscription != null) {
-                            _logger.Information("Closing subscription '{subscription}'/'{sessionId}'",
+                            _logger.Information("Closing subscription '{subscription}' in session '{sessionId}'...",
                                 Id,
                                 Connection.CreateConnectionId());
                             Try.Op(() => subscription.PublishingEnabled = false);
@@ -141,11 +145,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _logger.Debug("Deleted monitored items for '{subscription}'/'{sessionId}'",
                                 Id,
                                 Connection.CreateConnectionId());
-                            Try.Op(() => session?.RemoveSubscription(subscription));
-                            _logger.Debug("Subscription successfully removed '{subscription}'/'{sessionId}'",
+                            Try.Op(() => session.RemoveSubscription(subscription));
+                            _logger.Information("Subscription '{subscription}' in session '{sessionId}' successfully closed (Remaining: {Remaining}).",
+                                Id,
+                                Connection.CreateConnectionId(), session.Subscriptions.Count());
+                        }
+                        else {
+                            _logger.Warning("Failed to close subscription '{subscription}'. Subscription was not found in session '{sessionId}'.",
                                 Id,
                                 Connection.CreateConnectionId());
                         }
+                    }
+                    else {
+                        _logger.Warning("Failed to close subscription '{subscription}'. The attached session '{sessionId}' could not be found.",
+                                Id,
+                                Connection.CreateConnectionId());
                     }
                 }
                 catch (Exception e) {
@@ -157,7 +171,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public void Dispose() {
-                Try.Async(CloseAsync).Wait();
+                if (!_closed) {
+                    Try.Async(CloseAsync).Wait();
+                }
                 _lock.Dispose();
             }
 
@@ -1003,6 +1019,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private readonly SemaphoreSlim _lock;
             private List<MonitoredItemWrapper> _currentlyMonitored;
             private uint _expectedSequenceNumber = 1;
+            private bool _closed;
             private static readonly Gauge kMonitoredItems = Metrics.CreateGauge(
                 "iiot_edge_publisher_monitored_items", "monitored items count",
                 new GaugeConfiguration {

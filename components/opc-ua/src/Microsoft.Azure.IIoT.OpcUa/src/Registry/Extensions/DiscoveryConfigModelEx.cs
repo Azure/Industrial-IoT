@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using System;
     using System.Linq;
 
     /// <summary>
@@ -22,16 +23,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             return new DiscoveryConfigModel {
                 ActivationFilter = model.ActivationFilter.Clone(),
-                AddressRangesToScan = model.AddressRangesToScan,
-                DiscoveryUrls = model.DiscoveryUrls?.ToList(),
-                Locales = model.Locales?.ToList(),
-                IdleTimeBetweenScans = model.IdleTimeBetweenScans,
-                MaxNetworkProbes = model.MaxNetworkProbes,
-                MaxPortProbes = model.MaxPortProbes,
-                MinPortProbesPercent = model.MinPortProbesPercent,
-                NetworkProbeTimeout = model.NetworkProbeTimeout,
-                PortProbeTimeout = model.PortProbeTimeout,
-                PortRangesToScan = model.PortRangesToScan
+                DiscoveryUrls = model.DiscoveryUrls?.Count > 0 ?
+                    model.DiscoveryUrls.ToList() : null,
+                Locales = model.Locales?.Count > 0 ?
+                    model.Locales.ToList() : null,
+                PortRangesToScan = string.IsNullOrEmpty(model.PortRangesToScan) ?
+                    null : model.PortRangesToScan,
+                AddressRangesToScan = string.IsNullOrEmpty(model.AddressRangesToScan) ?
+                    null : model.AddressRangesToScan,
+                IdleTimeBetweenScans = model.IdleTimeBetweenScans < TimeSpan.Zero ?
+                    null : model.IdleTimeBetweenScans,
+                MaxNetworkProbes = model.MaxNetworkProbes <= 0 ?
+                    null : model.MaxNetworkProbes,
+                MaxPortProbes = model.MaxPortProbes <= 0 ?
+                    null : model.MaxPortProbes,
+                MinPortProbesPercent = model.MinPortProbesPercent <= 0 ?
+                    null : model.MinPortProbesPercent,
+                NetworkProbeTimeout = model.NetworkProbeTimeout <= TimeSpan.Zero ?
+                    null : model.NetworkProbeTimeout,
+                PortProbeTimeout = model.PortProbeTimeout <= TimeSpan.Zero ?
+                    null : model.PortProbeTimeout,
             };
         }
     }
