@@ -36,6 +36,10 @@
     Release as latest image
  .PARAMETER IsMajorUpdate
     Release as major update
+ .PARAMETER IsPrerelease
+    Release as -ReleaseVersion (without any prerelease tags) only. This
+    will not update rolling tags like latest and major version and allow
+    customers to test the releae image ahead of full release.
  .PARAMETER RemoveNamespaceOnRelease
     Remove namespace (e.g. public) on release.
 #>
@@ -51,6 +55,7 @@ Param(
     [Parameter(Mandatory = $true)] [string] $ReleaseVersion,
     [switch] $IsLatest,
     [switch] $IsMajorUpdate,
+    [switch] $IsPrerelease,
     [switch] $RemoveNamespaceOnRelease
 )
 
@@ -143,20 +148,29 @@ foreach ($Repository in $BuildRepositories) {
     }
 
     $ReleaseTags = @()
-    if ($script:IsLatest.IsPresent) {
-        $ReleaseTags += "latest"
-    }
-
-    # Example: if release version is 2.8.1, then base image tags are "2", "2.8", "2.8.1"
-    $versionParts = $script:ReleaseVersion.Split('-')[0].Split('.')
-    if ($versionParts.Count -gt 0) {
-        $versionTag = $versionParts[0]
+    if ($script:IsPrerelease.IsPresent) {
         if ($script:IsMajorUpdate.IsPresent -or $script:IsLatest.IsPresent) {
-            $ReleaseTags += $versionTag
+            throw "IsMajorUpdate and IsLatest is not allowed when IsPrerelease is specified."
         }
-        for ($i = 1; $i -lt ($versionParts.Count); $i++) {
-            $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
-            $ReleaseTags += $versionTag
+        $versionTag = $script:ReleaseVersion.Split('-')[0]
+        $ReleaseTags += $versionTag
+    }
+    else {
+        if ($script:IsLatest.IsPresent) {
+            $ReleaseTags += "latest"
+        }
+
+        # Example: if release version is 2.8.1, then base image tags are "2", "2.8", "2.8.1"
+        $versionParts = $script:ReleaseVersion.Split('-')[0].Split('.')
+        if ($versionParts.Count -gt 0) {
+            $versionTag = $versionParts[0]
+            if ($script:IsMajorUpdate.IsPresent -or $script:IsLatest.IsPresent) {
+                $ReleaseTags += $versionTag
+            }
+            for ($i = 1; $i -lt ($versionParts.Count); $i++) {
+                $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
+                $ReleaseTags += $versionTag
+            }
         }
     }
 

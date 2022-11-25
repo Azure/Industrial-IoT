@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public Session GetOrCreateSession(ConnectionModel connection,
-            bool createIfNotExists) {
+            bool ensureWorkingSession) {
 
             // Find session and if not exists create
             var id = new ConnectionIdentifier(connection);
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             try {
                 // try to get an existing session
                 if (!_sessions.TryGetValue(id, out var wrapper)) {
-                    if (!createIfNotExists) {
+                    if (!ensureWorkingSession) {
                         return null;
                     }
                     wrapper = new SessionWrapper() {
@@ -108,6 +108,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     };
                     _sessions.AddOrUpdate(id, wrapper);
                     TriggerKeepAlive();
+                }
+                if (!ensureWorkingSession) {
+                    return wrapper.Session;
                 }
                 switch (wrapper.State) {
                     case SessionState.Running:
@@ -227,7 +230,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 TriggerKeepAlive();
                 Try.Op(() => _cts?.Cancel());
                 await _runner.ConfigureAwait(false);
-                _logger.Information("Succesfully stopped all sessions");
+                _logger.Information("Successfully stopped all sessions");
             }
             catch (OperationCanceledException) { }
             catch (Exception ex) {

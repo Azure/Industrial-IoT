@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
             DiscoveryConfigModel configuration) :
             this(new DiscoveryRequestModel {
                 Id = "",
-                Configuration = configuration,
+                Configuration = configuration.Clone(),
                 Context = null,
                 Discovery = mode
             }, NetworkClass.Wired, true) {
