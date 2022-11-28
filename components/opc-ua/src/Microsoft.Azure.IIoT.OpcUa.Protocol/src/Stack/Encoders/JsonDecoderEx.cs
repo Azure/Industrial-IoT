@@ -1917,7 +1917,7 @@ namespace Opc.Ua.Encoders {
                         // read array from one dimension
                         var part = ReadArray(null, ValueRanks.OneDimension, builtInType, null) as System.Collections.IList;
                         if (part != null && part.Count > 0) {
-                            // add part elements to final list 
+                            // add part elements to final list
                             foreach (var item in part) {
                                 elements.Add(item);
                             }
