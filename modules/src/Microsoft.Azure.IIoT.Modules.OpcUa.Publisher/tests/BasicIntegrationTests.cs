@@ -4,7 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+    using NuGet.Frameworks;
     using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.IO;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -13,25 +22,24 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
     /// </summary>
     public class BasicIntegrationTests : PublisherIntegrationTestBase, IClassFixture<OPCUAServerFixture> {
-        [Theory]
-        [InlineData(@"./PublishedNodes/DataItems.json")]
-        public async Task CanSendDataItemToIoTHubTest(string publishedNodesFile) {
+        [Fact]
+        public async Task CanSendDataItemToIoTHubTest() {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(publishedNodesFile).ConfigureAwait(false);
+            var messages = await ProcessMessagesAsync(@"./PublishedNodes/DataItems.json").ConfigureAwait(false);
 
             // Assert
             Assert.Single(messages);
             Assert.Equal("ns=21;i=1259", messages[0].RootElement[0].GetProperty("NodeId").GetString());
-            Assert.InRange(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
+            Assert.InRange(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetDouble(),
+                double.MinValue, double.MaxValue);
         }
 
-        [Theory]
-        [InlineData(@"./PublishedNodes/SimpleEvents.json")]
-        public async Task CanSendEventToIoTHubTest(string publishedNodesFile) {
+        [Fact]
+        public async Task CanSendEventToIoTHubTest() {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(publishedNodesFile).ConfigureAwait(false);
+            var messages = await ProcessMessagesAsync(@"./PublishedNodes/SimpleEvents.json").ConfigureAwait(false);
 
             // Assert
             Assert.Single(messages);
@@ -39,14 +47,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.NotEmpty(messages[0].RootElement[0].GetProperty("Value").GetProperty("EventId").GetString());
         }
 
-        // ToDo: Enable the test once PublishedNodesJobConverter parses OpcEvents.
-        [Theory]
-        [InlineData(@"./PublishedNodes/PendingAlarms.json")]
-        public async Task CanSendPendingAlarmsToIoTHubTest(string publishedNodesFile) {
+        [Fact]
+        public async Task CanSendPendingAlarmsToIoTHubTest() {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(
-                publishedNodesFile,
+                @"./PublishedNodes/PendingAlarms.json",
                 new TimeSpan(0, 0, 1),
                 new TimeSpan(0, 2, 0),
                 1
@@ -60,6 +66,175 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a", sourceNode);
             var severity = messages[0].RootElement[0].GetProperty("Value")[0].GetProperty("Severity").GetInt32();
             Assert.True(severity >= 100);
+        }
+
+        [Fact]
+        public async Task CanSendDataItemToIoTHubTestWithDeviceMethod() {
+            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
+            var testInput = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/DataItems.json"));
+            await StartPublisherAsync();
+            try {
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                Assert.Empty(endpoints.Endpoints);
+
+                var result = await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput[0]);
+                Assert.NotNull(result);
+
+                var messages = await WaitForOneMessageAsync().ConfigureAwait(false);
+                Assert.Single(messages);
+                Assert.Equal("ns=21;i=1259", messages[0].RootElement[0].GetProperty("NodeId").GetString());
+                Assert.InRange(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetDouble(),
+                    double.MinValue, double.MaxValue);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                var e = Assert.Single(endpoints.Endpoints);
+
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(DeviceId, ModuleId, e);
+                var n = Assert.Single(nodes.OpcNodes);
+                Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
+
+                result = await PublisherApi.UnpublishNodesAsync(DeviceId, ModuleId, e);
+                Assert.NotNull(result);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                Assert.Empty(endpoints.Endpoints);
+            }
+            finally {
+                StopPublisher();
+            }
+        }
+
+        [Fact]
+        public async Task CanSendEventToIoTHubTestWithDeviceMethod() {
+            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
+            var testInput = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/SimpleEvents.json"));
+            await StartPublisherAsync();
+            try {
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                Assert.Empty(endpoints.Endpoints);
+
+                var result = await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput[0]);
+                Assert.NotNull(result);
+
+                var messages = await WaitForOneMessageAsync().ConfigureAwait(false);
+                Assert.Single(messages);
+                Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
+                Assert.NotEmpty(messages[0].RootElement[0].GetProperty("Value").GetProperty("EventId").GetString());
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                var e = Assert.Single(endpoints.Endpoints);
+
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(DeviceId, ModuleId, e);
+                var n = Assert.Single(nodes.OpcNodes);
+                Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
+
+                result = await PublisherApi.UnpublishAllNodesAsync(DeviceId, ModuleId, new PublishNodesEndpointApiModel());
+                Assert.NotNull(result);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                Assert.Empty(endpoints.Endpoints);
+            }
+            finally {
+                StopPublisher();
+            }
+        }
+
+        [Fact]
+        public async Task CanSendPendingAlarmsToIoTHubTestWithDeviceMethod() {
+            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
+            var testInput = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/PendingAlarms.json"));
+            await StartPublisherAsync();
+            try {
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                Assert.Empty(endpoints.Endpoints);
+
+                var result = await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput[0]);
+                Assert.NotNull(result);
+
+                var messages = await WaitForMessagesAsync(new TimeSpan(0, 0, 1), new TimeSpan(0, 2, 0), 1).ConfigureAwait(false);
+                Assert.Single(messages);
+                Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
+                Assert.Equal("PendingAlarms", messages[0].RootElement[0].GetProperty("DisplayName").GetString());
+                var sourceNode = messages[0].RootElement[0].GetProperty("Value")[0].GetProperty("SourceNode").GetString();
+                Assert.StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a", sourceNode);
+                var severity = messages[0].RootElement[0].GetProperty("Value")[0].GetProperty("Severity").GetInt32();
+                Assert.True(severity >= 100);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                var e = Assert.Single(endpoints.Endpoints);
+
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(DeviceId, ModuleId, e);
+                var n = Assert.Single(nodes.OpcNodes);
+                Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
+
+                result = await PublisherApi.UnpublishNodesAsync(DeviceId, ModuleId, testInput[0]);
+                Assert.NotNull(result);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                Assert.Empty(endpoints.Endpoints);
+            }
+            finally {
+                StopPublisher();
+            }
+        }
+
+        [Fact]
+        public async Task CanSendDataItemToIoTHubTestWithDeviceMethod2() {
+            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
+            var testInput1 = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/DataItems.json"));
+            var testInput2 = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/SimpleEvents.json"));
+            var testInput3 = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/PendingAlarms.json"));
+            await StartPublisherAsync();
+            try {
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                Assert.Empty(endpoints.Endpoints);
+
+                await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput1[0]);
+                await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput2[0]);
+                await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput3[0]);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                var e = Assert.Single(endpoints.Endpoints);
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(DeviceId, ModuleId, e);
+                Assert.Equal(3, nodes.OpcNodes.Count);
+
+                await PublisherApi.UnpublishAllNodesAsync(DeviceId, ModuleId, new PublishNodesEndpointApiModel());
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                Assert.Empty(endpoints.Endpoints);
+
+                await PublisherApi.AddOrUpdateEndpointsAsync(DeviceId, ModuleId, new List<PublishNodesEndpointApiModel> {
+                    new PublishNodesEndpointApiModel {
+                        OpcNodes = nodes.OpcNodes,
+                        EndpointUrl = e.EndpointUrl,
+                        UseSecurity = e.UseSecurity
+                    }
+                });
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                e = Assert.Single(endpoints.Endpoints);
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(DeviceId, ModuleId, e);
+                Assert.Equal(3, nodes.OpcNodes.Count);
+
+                await PublisherApi.UnpublishNodesAsync(DeviceId, ModuleId, testInput3[0]);
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(DeviceId, ModuleId, e);
+                Assert.Equal(2, nodes.OpcNodes.Count);
+                await PublisherApi.UnpublishNodesAsync(DeviceId, ModuleId, testInput2[0]);
+                nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(DeviceId, ModuleId, e);
+                Assert.Equal(1, nodes.OpcNodes.Count);
+
+                var messages = await WaitForOneMessageAsync().ConfigureAwait(false);
+                Assert.Single(messages);
+                Assert.Equal("ns=21;i=1259", messages[0].RootElement[0].GetProperty("NodeId").GetString());
+                Assert.InRange(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetDouble(),
+                    double.MinValue, double.MaxValue);
+
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync(DeviceId, ModuleId);
+                var diag = Assert.Single(diagnostics);
+                Assert.Equal(e.EndpointUrl, diag.Endpoint.EndpointUrl);
+            }
+            finally {
+                StopPublisher();
+            }
         }
     }
 }

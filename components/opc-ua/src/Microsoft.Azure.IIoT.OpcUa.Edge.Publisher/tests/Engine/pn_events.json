@@ -1,0 +1,100 @@
+﻿[
+  {
+    "DataSetWriterId": "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+    "Tag": "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234",
+    "DataSetWriterGroup": "Leaf0",
+    "DataSetPublishingInterval": 10000,
+    "EndpointUrl": "opc.tcp://opcplc:50000",
+    "UseSecurity": false,
+    "OpcNodes": [
+      {
+        "Id": "i=2253",
+        "DisplayName": "SimpleEvents",
+        "QueueSize": 10,
+        "EventFilter": {
+          "SelectClauses": [
+            {
+              "TypeDefinitionId": "i=2041",
+              "BrowsePath": [
+                "EventId"
+              ]
+            },
+            {
+              "TypeDefinitionId": "i=2041",
+              "BrowsePath": [
+                "Message"
+              ]
+            },
+            {
+              "TypeDefinitionId": "ns=16;i=235",
+              "BrowsePath": [
+                "16:CycleId"
+              ]
+            },
+            {
+              "TypeDefinitionId": "ns=16;i=235",
+              "BrowsePath": [
+                "16:CurrentStep"
+              ]
+            }
+          ],
+          "WhereClause": {
+            "Elements": [
+              {
+                "FilterOperator": "OfType",
+                "FilterOperands": [
+                  {
+                    "Value": "ns=16;i=235"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "DataSetWriterId": "Leaf1_1000_3085991c-b85c-4311-9bfb-a916da952234",
+    "Tag": "Tag_Leaf1_1000_3085991c-b85c-4311-9bfb-a916da952234",
+    "DataSetWriterGroup": "Leaf1",
+    "DataSetPublishingInterval": 1000,
+    "EndpointUrl": "opc.tcp://opcplc:50000",
+    "UseSecurity": false,
+    "OpcNodes": [
+      {
+        "Id": "i=2255",
+        "DisplayName": "Alarms",
+        "QueueSize": 10,
+        "EventFilter": {
+          "SelectClauses": [
+            {
+              "TypeDefinitionId": "i=2041",
+              "BrowsePath": [
+                "EventId"
+              ]
+            },
+            {
+              "TypeDefinitionId": "i=2041",
+              "BrowsePath": [
+                "Message"
+              ]
+            }
+          ],
+          "WhereClause": {
+            "Elements": [
+              {
+                "FilterOperator": "OfType",
+                "FilterOperands": [
+                  {
+                    "Value": "ns=17;i=235"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

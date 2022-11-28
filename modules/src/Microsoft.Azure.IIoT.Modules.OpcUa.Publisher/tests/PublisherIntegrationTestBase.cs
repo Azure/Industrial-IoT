@@ -9,9 +9,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.HealthChecks;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
@@ -19,6 +21,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
@@ -49,18 +53,29 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// <summary>
         /// Whether the module is running.
         /// </summary>
-        private BlockingCollection<EventMessage> Events { get; set; } = new BlockingCollection<EventMessage>();
+        private BlockingCollection<EventMessage> Events { get; set; }
+
+        /// <summary>
+        /// Device Id
+        /// </summary>
+        protected string DeviceId { get; } = Utils.GetHostName();
+
+        /// <summary>
+        /// Module Id
+        /// </summary>
+        protected string ModuleId { get; }
 
         public PublisherIntegrationTestBase() {
             // This is a fake but correctly formatted connection string.
             var connectionString = $"HostName=dummy.azure-devices.net;" +
-                $"DeviceId={Utils.GetHostName()};" +
+                $"DeviceId={DeviceId};" +
                 $"SharedAccessKeyName=iothubowner;" +
                 $"SharedAccessKey=aXRpc25vdGFuYWNjZXNza2V5";
             var config = connectionString.ToIoTHubConfig();
 
             _typedConnectionString = ConnectionString.Parse(config.IoTHubConnString);
             _exit = new TaskCompletionSource<bool>();
+            _running = new TaskCompletionSource<bool>();
         }
 
         protected Task<List<JsonDocument>> ProcessMessagesAsync(string publishedNodesFile, string[] arguments = default) {
@@ -81,24 +96,44 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             int messageCount,
             string[] arguments = default) {
 
-            // publishedNodesFile points to the local server on the same machine and port currently as tests are run one at a time (not parallel) it does not need randomly generated port numbers.
-            _ = Task.Run(() => HostPublisherAsync(
-                Mock.Of<ILogger>(),
-                publishedNodesFile,
-                arguments ?? Array.Empty<string>()
-            ));
+            await StartPublisherAsync(publishedNodesFile, arguments);
+
+            var messages = await WaitForMessagesAsync(messageCheckingDelay, messageCollectionTimeout, messageCount);
+
+            StopPublisher();
+
+            return messages;
+        }
+
+        /// <summary>
+        /// Wait for one message
+        /// </summary>
+        protected Task<List<JsonDocument>> WaitForOneMessageAsync() {
+            // Collect messages from server with default settings
+            return WaitForMessagesAsync(
+                new TimeSpan(0, 0, 0, 0, 500),
+                new TimeSpan(0, 0, 2, 0, 0),
+                1
+            );
+        }
+
+        /// <summary>
+        /// Wait for messages
+        /// </summary>
+        protected async Task<List<JsonDocument>> WaitForMessagesAsync(
+            TimeSpan messageCheckingDelay,
+            TimeSpan messageCollectionTimeout,
+            int messageCount) {
 
             var stopWatch = new Stopwatch();
             stopWatch.Start();
 
             while (Events.Count < messageCount) {
-                if(stopWatch.Elapsed > messageCollectionTimeout) {
+                if (stopWatch.Elapsed > messageCollectionTimeout) {
                     break;
                 }
                 await Task.Delay(messageCheckingDelay);
             }
-
-            Exit();
 
             var messages = new List<JsonDocument>();
             foreach (var evt in Events) {
@@ -109,9 +144,35 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         }
 
         /// <summary>
+        /// Start publisher
+        /// </summary>
+        protected Task StartPublisherAsync(string publishedNodesFile = null, string[] arguments = default) {
+            _ = Task.Run(() => HostPublisherAsync(
+                Mock.Of<ILogger>(),
+                publishedNodesFile,
+                arguments ?? Array.Empty<string>()
+            ));
+            return _running.Task;
+        }
+
+        /// <summary>
+        /// Get publisher api
+        /// </summary>
+        protected IPublisherControlApi PublisherApi => _apiScope?.Resolve<IPublisherControlApi>();
+
+        /// <summary>
+        /// Stop publisher
+        /// </summary>
+        protected void StopPublisher() {
+            // Shut down gracefully.
+            _exit.TrySetResult(true);
+        }
+
+        /// <summary>
         /// Setup publishing from sample server.
         /// </summary>
-        private async Task HostPublisherAsync(ILogger logger, string publishedNodesFilePath, string[] arguments) {
+        private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile, string[] arguments) {
+            var publishedNodesFilePath = string.IsNullOrEmpty(publishedNodesFile) ? Path.GetTempFileName() : publishedNodesFile;
             try {
                 var config = _typedConnectionString.ToIoTHubConfig();
                 arguments = arguments.Concat(
@@ -135,7 +196,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 using (var cts = new CancellationTokenSource()) {
                     // Start publisher module
                     var host = Task.Run(() =>
-                    HostAsync(logger, configuration, new List<(DeviceTwinModel, DeviceModel)>() { (new DeviceTwinModel(), new DeviceModel() { Id = _typedConnectionString.DeviceId }) }), cts.Token);
+                    HostAsync(logger, configuration, new List<(DeviceTwinModel, DeviceModel)>() {
+                        (new DeviceTwinModel(), new DeviceModel() { Id = _typedConnectionString.DeviceId }) }), cts.Token);
                     await Task.WhenAny(_exit.Task);
                     cts.Cancel();
                     await host;
@@ -143,6 +205,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             }
             catch (OperationCanceledException) {
                 Console.WriteLine("Cancellation operation.");
+            }
+            finally {
+                if (string.IsNullOrEmpty(publishedNodesFile) && File.Exists(publishedNodesFilePath)) {
+                    File.Delete(publishedNodesFilePath);
+                }
             }
         }
 
@@ -163,8 +230,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                         var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
                         ISessionManager sessionManager = null;
 
-                        var hubServices = (IoTHubServices)hostScope.Resolve<IIoTHub>();
-                        Events = hubServices.Events;
+                        Events = hostScope.Resolve<IIoTHub>().Events;
 
                         try {
                             var version = GetType().Assembly.GetReleaseVersion().ToString();
@@ -175,14 +241,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                             await workerSupervisor.StartAsync();
                             sessionManager = hostScope.Resolve<ISessionManager>();
 
+                            _apiScope = ConfigureContainer(configurationRoot, hostScope.Resolve<IIoTHubTwinServices>());
+                            _running.TrySetResult(true);
                             await Task.WhenAny(_exit.Task);
                             logger.Information("Module exits...");
+                        }
+                        catch (Exception ex) {
+                            _running.TrySetException(ex);
                         }
                         finally {
                             await workerSupervisor.StopAsync();
                             await sessionManager?.StopAsync();
                             healthCheckManager.Stop();
                             await module.StopAsync();
+
+                            Events = null;
+                            _apiScope?.Dispose();
+                            _apiScope = null;
                         }
                     }
                 }
@@ -194,9 +269,30 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         }
 
         /// <summary>
+        /// Configure DI for the API scope
+        /// </summary>
+        /// <param name="configurationRoot"></param>
+        /// <param name="ioTHubTwinServices"></param>
+        /// <returns></returns>
+        private static IContainer ConfigureContainer(IConfiguration configurationRoot, IIoTHubTwinServices ioTHubTwinServices) {
+            var builder = new ContainerBuilder();
+            builder.RegisterInstance(configurationRoot).AsImplementedInterfaces();
+            builder.RegisterInstance(ioTHubTwinServices).ExternallyOwned();
+            builder.AddConsoleLogger();
+            builder.RegisterModule<NewtonSoftJsonModule>();
+            builder.RegisterType<IoTHubTwinMethodClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<ChunkMethodClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<PublisherModuleControlClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            return builder.Build();
+        }
+
+        /// <summary>
         /// Configures DI for the types required.
         /// </summary>
-        private IContainer ConfigureContainer(IConfiguration configuration, List<(DeviceTwinModel, DeviceModel)> devices) {
+        private static IContainer ConfigureContainer(IConfiguration configuration, List<(DeviceTwinModel, DeviceModel)> devices) {
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
             var standaloneCliOptions = new StandaloneCliOptions(configuration);
@@ -226,6 +322,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             builder.RegisterType<StandaloneJobOrchestrator>().AsImplementedInterfaces().SingleInstance();
             // Create jobs from published nodes file
             builder.RegisterType<PublishedNodesJobConverter>().SingleInstance();
+            builder.RegisterType<PublisherMethodsController>().AsImplementedInterfaces().InstancePerLifetimeScope();
 
             builder.RegisterType<IdentityTokenSettingsController>().AsImplementedInterfaces().SingleInstance();
 
@@ -239,13 +336,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             return builder.Build();
         }
 
-        /// <inheritdoc/>
-        private void Exit() {
-            // Shut down gracefully.
-            _exit.TrySetResult(true);
-        }
-
         private readonly TaskCompletionSource<bool> _exit;
+        private readonly TaskCompletionSource<bool> _running;
         private readonly ConnectionString _typedConnectionString;
+        private IContainer _apiScope;
     }
 }

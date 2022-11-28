@@ -1278,6 +1278,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (!(obj is MonitoredItemWrapper item)) {
                     return false;
                 }
+                if (Template.GetType() != item.Template.GetType()) {
+                    // Event item is incompatible with a data item
+                    return false;
+                }
                 if (Template.Id != item.Template.Id) {
                     return false;
                 }
@@ -1299,6 +1303,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public override int GetHashCode() {
                 var hashCode = 1301977042;
+                // Event item is incompatible with a data item
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<Type>.Default.GetHashCode(Template.GetType());
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(Template.Id);
                 hashCode = (hashCode * -1521134295) +
@@ -1428,7 +1435,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
 
                         var retainClause = eventFilter.SelectClauses
-                            .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.BrowsePath?.FirstOrDefault() == BrowseNames.Retain);
+                            .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                                x.BrowsePath?.FirstOrDefault() == BrowseNames.Retain);
                         if (retainClause != null) {
                             EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.IndexOf(retainClause);
                         }
@@ -1570,7 +1578,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 // TODO
-                // monitoredItem.Filter = monitoredItemInfo.Filter?.ToStackType();
+                // Item.Filter = Item.Filter?.ToStackType();
                 return changes;
             }
 
@@ -1668,7 +1676,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var evFilter = Item.Filter as EventFilter;
                 var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
                     evFilter?.SelectClauses
-                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
+                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
+                            && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
 
                 // now, is this a regular event or RefreshStartEventType/RefreshEndEventType?
                 if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1) {
@@ -1721,12 +1730,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
 
-                var monitoredItemNotification = notification
-                .ToMonitoredItemNotification(Item);
+                var monitoredItemNotification = notification.ToMonitoredItemNotification(Item);
                 if (message == null) {
                     return;
                 }
-                if (pendingAlarmsOptions?.IsEnabled == true && monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
+                if (pendingAlarmsOptions?.IsEnabled == true &&
+                    monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
                     if (pendingAlarmsOptions.ConditionIdIndex.HasValue && pendingAlarmsOptions.RetainIndex.HasValue) {
                         var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
                         var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue(false);
