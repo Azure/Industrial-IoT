@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -50,12 +51,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         public async Task CanSendPendingAlarmsToIoTHubTest() {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(
-                @"./PublishedNodes/PendingAlarms.json",
-                new TimeSpan(0, 0, 1),
-                new TimeSpan(0, 2, 0),
-                1
-            ).ConfigureAwait(false);
+            var messages = await ProcessMessagesAsync(@"./PublishedNodes/PendingAlarms.json").ConfigureAwait(false);
 
             // Assert
             Assert.Single(messages);
@@ -78,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 var result = await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForOneMessageAsync().ConfigureAwait(false);
+                var messages = WaitForMessages();
                 Assert.Single(messages);
                 Assert.Equal("ns=21;i=1259", messages[0].RootElement[0].GetProperty("NodeId").GetString());
                 Assert.InRange(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetDouble(),
@@ -113,7 +109,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 var result = await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForOneMessageAsync().ConfigureAwait(false);
+                var messages = WaitForMessages();
                 Assert.Single(messages);
                 Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
                 Assert.NotEmpty(messages[0].RootElement[0].GetProperty("Value").GetProperty("EventId").GetString());
@@ -147,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 var result = await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = await WaitForMessagesAsync(new TimeSpan(0, 0, 1), new TimeSpan(0, 2, 0), 1).ConfigureAwait(false);
+                var messages = WaitForMessages();
                 Assert.Single(messages);
                 Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
                 Assert.Equal("PendingAlarms", messages[0].RootElement[0].GetProperty("DisplayName").GetString());
@@ -217,7 +213,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(DeviceId, ModuleId, e);
                 Assert.Equal(1, nodes.OpcNodes.Count);
 
-                var messages = await WaitForOneMessageAsync().ConfigureAwait(false);
+                var messages = WaitForMessages();
                 Assert.Single(messages);
                 Assert.Equal("ns=21;i=1259", messages[0].RootElement[0].GetProperty("NodeId").GetString());
                 Assert.InRange(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetDouble(),
@@ -231,5 +227,60 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 StopPublisher();
             }
         }
+
+        [Fact]
+        public async Task CanSendPendingAlarmsToIoTHubTestWithDeviceMethod2() {
+            var testInput = GetEndpointsFromFile(@"./PublishedNodes/PendingAlarms.json");
+            await StartPublisherAsync();
+            try {
+                var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                Assert.Empty(endpoints.Endpoints);
+
+                var result = await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput[0]);
+                Assert.NotNull(result);
+
+                var messages = WaitForMessages();
+                var message = Assert.Single(messages);
+                Assert.Equal("i=2253", message.RootElement[0].GetProperty("NodeId").GetString());
+                Assert.Equal("PendingAlarms", message.RootElement[0].GetProperty("DisplayName").GetString());
+                var sourceNode = message.RootElement[0].GetProperty("Value")[0].GetProperty("SourceNode").GetString();
+                Assert.StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a", sourceNode);
+                var severity = message.RootElement[0].GetProperty("Value")[0].GetProperty("Severity").GetInt32();
+                Assert.True(severity >= 100);
+
+                // Disable pending alarms
+                testInput[0].OpcNodes[0].EventFilter.PendingAlarms.IsEnabled = false;
+                result = await PublisherApi.AddOrUpdateEndpointsAsync(DeviceId, ModuleId, new List<PublishNodesEndpointApiModel> {
+                    testInput[0] });
+                Assert.NotNull(result);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                var e = Assert.Single(endpoints.Endpoints);
+
+                var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(DeviceId, ModuleId, e);
+                var n = Assert.Single(nodes.OpcNodes);
+                Assert.False(n.EventFilter.PendingAlarms.IsEnabled);
+
+                // Wait until it was applied and we receive normal events again
+                messages = WaitForMessages(TimeSpan.FromMinutes(5), 1,
+                    message => message.RootElement[0].GetProperty("Value").ValueKind != JsonValueKind.Array);
+                message = Assert.Single(messages);
+                Assert.Equal("i=2253", message.RootElement[0].GetProperty("NodeId").GetString());
+                Assert.Equal("PendingAlarms", message.RootElement[0].GetProperty("DisplayName").GetString());
+                var value = message.RootElement[0].GetProperty("Value");
+                severity = value.GetProperty("Severity").GetInt32();
+                Assert.True(severity >= 100);
+
+                result = await PublisherApi.UnpublishNodesAsync(DeviceId, ModuleId, testInput[0]);
+                Assert.NotNull(result);
+
+                endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
+                Assert.Empty(endpoints.Endpoints);
+            }
+            finally {
+                StopPublisher();
+            }
+        }
+
     }
 }

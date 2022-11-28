@@ -82,17 +82,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <returns>If the objects are equal</returns>
         public override bool Equals(object obj) {
             return obj is BaseMonitoredItemModel model &&
-                   Id == model.Id &&
-                   DisplayName == model.DisplayName &&
-                   StartNodeId == model.StartNodeId &&
-                   EqualityComparer<string[]>.Default.Equals(RelativePath, model.RelativePath) &&
-                   AttributeId == model.AttributeId &&
-                   IndexRange == model.IndexRange &&
-                   EqualityComparer<TimeSpan?>.Default.Equals(SamplingInterval, model.SamplingInterval) &&
-                   QueueSize == model.QueueSize &&
-                   DiscardNew == model.DiscardNew &&
-                   MonitoringMode == model.MonitoringMode &&
-                   TriggerId == model.TriggerId;
+                Id == model.Id &&
+                DisplayName == model.DisplayName &&
+                StartNodeId == model.StartNodeId &&
+                EqualityComparer<string[]>.Default.Equals(RelativePath, model.RelativePath) &&
+                AttributeId == model.AttributeId &&
+                IndexRange == model.IndexRange &&
+                EqualityComparer<TimeSpan?>.Default.Equals(SamplingInterval, model.SamplingInterval) &&
+                QueueSize == model.QueueSize &&
+                DiscardNew == model.DiscardNew &&
+                MonitoringMode == model.MonitoringMode &&
+                TriggerId == model.TriggerId;
         }
 
         /// <summary>

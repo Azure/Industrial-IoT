@@ -91,7 +91,7 @@ When you specify a simple mode configuration, the OPC Publisher does two things:
 * It looks at the TypeDefinitionId and traverses the inheritance tree for that event type, collecting all the fields. Then it constructs a select clause with all the fields it finds.
 * It creates a where clause that is OfType(TypeDefinitionId).
 
-In addition to this, you can also configure to enable pending alarms view. What this does is that it listens to ConditionType derived events, record unique occurrences of them and on periodic updates will send a message containing all the unique events that has the Retain property set to True. This enables you to get a snapshot view of all pending, or active, alarms and conditions which can be very useful for dashboard-like scenarios.
+In addition to this, you can also configure to enable pending alarms view. What this does is that it listens to ConditionType derived events, records unique occurrences of them and on periodic updates will send a message containing all the unique events that has the Retain property set to True. This enables you to get a snapshot view of all pending, or active, alarms and conditions which can be very useful for dashboard-like scenarios.
 
 Here is an example of a configuration for a pending alarms:
 

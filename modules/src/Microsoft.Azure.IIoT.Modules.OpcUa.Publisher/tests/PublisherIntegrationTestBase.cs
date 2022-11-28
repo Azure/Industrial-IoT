@@ -84,25 +84,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
         protected Task<List<JsonDocument>> ProcessMessagesAsync(string publishedNodesFile, string[] arguments = default) {
             // Collect messages from server with default settings
-            return ProcessMessagesAsync(
-                publishedNodesFile,
-                new TimeSpan(0, 0, 0, 0, 500),
-                new TimeSpan(0, 0, 2, 0, 0),
-                1,
-                arguments
-            );
+            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, arguments);
         }
 
         protected async Task<List<JsonDocument>> ProcessMessagesAsync(
             string publishedNodesFile,
-            TimeSpan messageCheckingDelay,
             TimeSpan messageCollectionTimeout,
             int messageCount,
             string[] arguments = default) {
 
             await StartPublisherAsync(publishedNodesFile, arguments);
 
-            var messages = await WaitForMessagesAsync(messageCheckingDelay, messageCollectionTimeout, messageCount);
+            var messages = WaitForMessages(messageCollectionTimeout, messageCount);
 
             StopPublisher();
 
@@ -112,39 +105,29 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// <summary>
         /// Wait for one message
         /// </summary>
-        protected Task<List<JsonDocument>> WaitForOneMessageAsync() {
+        protected List<JsonDocument> WaitForMessages(Func<JsonDocument, bool> predicate = null) {
             // Collect messages from server with default settings
-            return WaitForMessagesAsync(
-                new TimeSpan(0, 0, 0, 0, 500),
-                new TimeSpan(0, 0, 2, 0, 0),
-                1
-            );
+            return WaitForMessages(TimeSpan.FromMinutes(2), 1, predicate);
         }
 
         /// <summary>
         /// Wait for messages
         /// </summary>
-        protected async Task<List<JsonDocument>> WaitForMessagesAsync(
-            TimeSpan messageCheckingDelay,
-            TimeSpan messageCollectionTimeout,
-            int messageCount) {
-
+        protected List<JsonDocument> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
+            Func<JsonDocument, bool> predicate = null) {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-
-            while (Events.Count < messageCount) {
-                if (stopWatch.Elapsed > messageCollectionTimeout) {
-                    break;
-                }
-                await Task.Delay(messageCheckingDelay);
-            }
-
             var messages = new List<JsonDocument>();
-            foreach (var evt in Events) {
-                messages.Add(JsonDocument.Parse(Encoding.UTF8.GetString(evt.Message.GetBytes())));
+            while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
+                && Events.TryTake(out var evt, messageCollectionTimeout)) {
+                messageCollectionTimeout -= stopWatch.Elapsed;
+                var document = JsonDocument.Parse(Encoding.UTF8.GetString(evt.Message.GetBytes()));
+                if (predicate != null && !predicate(document)) {
+                    continue;
+                }
+                messages.Add(document);
             }
-
-            return messages;
+            return messages.Take(messageCount).ToList();
         }
 
         /// <summary>
