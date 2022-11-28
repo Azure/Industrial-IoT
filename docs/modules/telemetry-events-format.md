@@ -1,6 +1,9 @@
 # Detailing the output for OPC UA Events in OPC Publisher
 
-This section describes what the output looks like when listening for events in the OPC Publisher. Events are produced in the PubSub format specified in the OPC UA Standard. The payload is an event which consists of fields selected in the select clause and its values.
+[Home](../../readme.md)
+
+This section describes what the output looks like when listening for events in the OPC Publisher. Events are produced in the PubSub format specified in the OPC UA Standard. The payload is an event which consists of fields selected in the select clause and its values. Details for data messages can be found [in this seperate document](./telemetry-messages-format.md).
+
 
 Here is an example of the output we get when listening to events from the Simple Events sample:
 

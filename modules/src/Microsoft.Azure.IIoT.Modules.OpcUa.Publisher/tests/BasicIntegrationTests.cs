@@ -5,14 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-    using NuGet.Frameworks;
+    using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
     using Xunit;
@@ -21,7 +16,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,
     /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
     /// </summary>
-    public class BasicIntegrationTests : PublisherIntegrationTestBase, IClassFixture<OPCUAServerFixture> {
+    [Collection(ReadCollection.Name)]
+    public class BasicIntegrationTests : PublisherIntegrationTestBase {
+
+        public BasicIntegrationTests(ReferenceServerFixture fixture) : base(fixture) { }
+
         [Fact]
         public async Task CanSendDataItemToIoTHubTest() {
             // Arrange
@@ -70,8 +69,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
         [Fact]
         public async Task CanSendDataItemToIoTHubTestWithDeviceMethod() {
-            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
-            var testInput = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/DataItems.json"));
+            var testInput = GetEndpointsFromFile(@"./PublishedNodes/DataItems.json");
             await StartPublisherAsync();
             try {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
@@ -106,8 +104,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
         [Fact]
         public async Task CanSendEventToIoTHubTestWithDeviceMethod() {
-            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
-            var testInput = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/SimpleEvents.json"));
+            var testInput = GetEndpointsFromFile(@"./PublishedNodes/SimpleEvents.json");
             await StartPublisherAsync();
             try {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
@@ -141,8 +138,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
         [Fact]
         public async Task CanSendPendingAlarmsToIoTHubTestWithDeviceMethod() {
-            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
-            var testInput = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/PendingAlarms.json"));
+            var testInput = GetEndpointsFromFile(@"./PublishedNodes/PendingAlarms.json");
             await StartPublisherAsync();
             try {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
@@ -180,10 +176,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
         [Fact]
         public async Task CanSendDataItemToIoTHubTestWithDeviceMethod2() {
-            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
-            var testInput1 = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/DataItems.json"));
-            var testInput2 = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/SimpleEvents.json"));
-            var testInput3 = serializer.Deserialize<PublishNodesEndpointApiModel[]>(File.ReadAllText(@"./PublishedNodes/PendingAlarms.json"));
+            var testInput1 = GetEndpointsFromFile(@"./PublishedNodes/DataItems.json");
+            var testInput2 = GetEndpointsFromFile(@"./PublishedNodes/SimpleEvents.json");
+            var testInput3 = GetEndpointsFromFile(@"./PublishedNodes/PendingAlarms.json");
             await StartPublisherAsync();
             try {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);

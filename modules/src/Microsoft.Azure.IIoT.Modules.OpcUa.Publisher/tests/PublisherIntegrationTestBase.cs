@@ -23,12 +23,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Moq;
@@ -65,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// </summary>
         protected string ModuleId { get; }
 
-        public PublisherIntegrationTestBase() {
+        public PublisherIntegrationTestBase(ReferenceServerFixture serverFixture) {
             // This is a fake but correctly formatted connection string.
             var connectionString = $"HostName=dummy.azure-devices.net;" +
                 $"DeviceId={DeviceId};" +
@@ -76,6 +79,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             _typedConnectionString = ConnectionString.Parse(config.IoTHubConnString);
             _exit = new TaskCompletionSource<bool>();
             _running = new TaskCompletionSource<bool>();
+            _serverFixture = serverFixture;
         }
 
         protected Task<List<JsonDocument>> ProcessMessagesAsync(string publishedNodesFile, string[] arguments = default) {
@@ -169,10 +173,25 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         }
 
         /// <summary>
+        /// Get endpoints from file
+        /// </summary>
+        /// <param name="publishedNodesFile"></param>
+        /// <returns></returns>
+        protected PublishNodesEndpointApiModel[] GetEndpointsFromFile(string publishedNodesFile) {
+            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
+            var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}", _serverFixture.Port.ToString());
+            return serializer.Deserialize<PublishNodesEndpointApiModel[]>(fileContent);
+        }
+
+        /// <summary>
         /// Setup publishing from sample server.
         /// </summary>
         private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile, string[] arguments) {
-            var publishedNodesFilePath = string.IsNullOrEmpty(publishedNodesFile) ? Path.GetTempFileName() : publishedNodesFile;
+            var publishedNodesFilePath = Path.GetTempFileName();
+            if (!string.IsNullOrEmpty(publishedNodesFile)) {
+                File.WriteAllText(publishedNodesFilePath,
+                    File.ReadAllText(publishedNodesFile).Replace("{{Port}}", _serverFixture.Port.ToString()));
+            }
             try {
                 var config = _typedConnectionString.ToIoTHubConfig();
                 arguments = arguments.Concat(
@@ -207,7 +226,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 Console.WriteLine("Cancellation operation.");
             }
             finally {
-                if (string.IsNullOrEmpty(publishedNodesFile) && File.Exists(publishedNodesFilePath)) {
+                if (File.Exists(publishedNodesFilePath)) {
                     File.Delete(publishedNodesFilePath);
                 }
             }
@@ -339,6 +358,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         private readonly TaskCompletionSource<bool> _exit;
         private readonly TaskCompletionSource<bool> _running;
         private readonly ConnectionString _typedConnectionString;
+        private readonly ReferenceServerFixture _serverFixture;
         private IContainer _apiScope;
     }
 }

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
+    using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using System.IO;
@@ -17,11 +18,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,
     /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
     /// </summary>
-    public class ReversibleEncodingIntegrationTests : PublisherIntegrationTestBase, IClassFixture<OPCUAServerFixture> {
+    [Collection(ReadCollection.Name)]
+    public class ReversibleEncodingIntegrationTests : PublisherIntegrationTestBase {
         private const string kEventId = "EventId";
         private const string kMessage = "Message";
         private const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
         private const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
+
+        public ReversibleEncodingIntegrationTests(ReferenceServerFixture fixture) : base(fixture) { }
 
         [Theory]
         [InlineData(@"./PublishedNodes/SimpleEvents.json")]

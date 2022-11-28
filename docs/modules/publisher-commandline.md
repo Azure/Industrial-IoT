@@ -6,7 +6,6 @@ The following OPC Publisher configuration can be applied by Command Line Interfa
 The `Alternative` field, where present, refers to the CLI argument applicable in **standalone mode only**.
  When both environment variable and CLI argument are provided, the latest will overrule the env variable.
 
-
             PublishedNodesFile=VALUE
                                       The file used to store the configuration of the nodes to be published
                                       along with the information to connect to the OPC UA server sources

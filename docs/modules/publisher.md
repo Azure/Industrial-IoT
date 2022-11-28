@@ -121,6 +121,9 @@ The simplest way to configure OPC Publisher is via a configuration file. A basic
 Other example configuration files are provided via [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1) and [`publishednodes_2.8.json`](publishednodes_2.8.json?raw=1).
 
 The configuration file syntax has been enhanced over time. OPC Publisher read old formats and converts them into the current format when persisting the configuration. OPC Publisher regularly persists the configuration file.
+
+To subscribe to OPC UA Alarms and Events follow the instructions [described in this seperate document](./publisher-event-configuration.md).
+
 When OPC Publisher reads the file, it's validated against the [reference schema](https://raw.githubusercontent.com/Azure/Industrial-IoT/main/modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src/Schemas/publishednodesschema.json). Refer to the [OPC Publisher manual](https://github.com/Azure/Industrial-IoT/blob/main/docs/manual/readme.md) for schema validation details.
 
 OPC UA optimizes network bandwidth by only sending changes to OPC Publisher when the data item's value has changed. Some use cases require to publish data values in constant intervals. OPC Publisher supports a "heartbeat" for every configured telemetry event that can be enabled by specifying the `HeartbeatInterval` key in the data item's configuration. The interval is specified in seconds:
@@ -207,6 +210,8 @@ OPC Publisher version 2.6 and above supports standardized OPC UA PubSub JSON for
 }
 ```
 
+You can find more examples [here](./telemetry-messages-format.md) and [here](./telemetry-events-format.md).
+
 All versions of OPC Publisher support a non-standardized, simple JSON telemetry format, which is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
 
 ``` json
@@ -281,7 +286,7 @@ The `mq/om` parameter controls the upper limit of the capacity of the internal m
 - Use OPC Publisher > 2.6 in standalone mode
   - Use PubSub format (`--mm=PubSub`)
   - When Samples format (`--mm=Samples`) is required
-    - Don't use FullFeaturedMessage (`--fm=false`). You can find a sample of full featured telemetry message [here](../dev-guides/telemetry-messages-format.md).
+    - Don't use FullFeaturedMessage (`--fm=false`). You can find a sample of full featured telemetry message [here](telemetry-messages-format.md).
   - Use batching (`--bs=600`) in combination with batch interval (`--si=20`)
     - Batching is also useable with PubSub but current implementation of PubSub batches automatically based on Publishing Interval of OPC UA nodes. When most nodes are using the same publishing interval it isn't necessary.
   - Increase Monitored Items Queue capacity (`--mq=25000`)
@@ -294,9 +299,9 @@ If the queue keeps growing even though the parameters have been adjusted, eventu
 
 It must be noted that IoT Hub also has limits in terms of how many messages it will accept, that is, there are quotas for a given IoT Hub SKU defined [here](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-quotas-throttling). If this quota is exceeded, OPC Publisher will generate an error trying to send the message to IoT Hub and the message will be lost.
 
-The `si` parameter forces OPC Publisher to send messages to IoT Hub at the specified interval. A message is sent either when the maximum IoT Hub message size of 256 KB of data is available (triggering the send interval to reset) or when the specified interval time has passed.
+The `si` or `bi` parameter forces OPC Publisher to send messages to IoT Hub at the specified interval. A message is sent either when the maximum IoT Hub message size of 256 KB of data is available (triggering the send interval to reset) or when the specified interval time has passed.
 
-The `bs` parameter enables batching of incoming OPC UA data change messages. When used without batching interval (`si`), a message is sent to IoT Hub only once OPC Publisher receives specified number of incoming messages. That is why it is recommended to use batching together with batching interval to achieve consistent message delivery cadence to IoT Hub.
+The `bs` parameter enables batching of incoming OPC UA data change messages. When used without batching interval (`bi`), a message is sent to IoT Hub only once OPC Publisher receives specified number of incoming messages. That is why it is recommended to use batching together with batching interval to achieve consistent message delivery cadence to IoT Hub.
 
 The `ms` parameter enables batching of messages sent to IoT Hub. In most network setups, the latency of sending a single message to IoT Hub is high, compared to the time it takes to transmit the payload. This is due to Quality of Service (QoS) requirements, since messages are acknowledged only once they've been processed by IoT Hub). Therefore, if a delay for the data to arrive at IoT Hub is acceptable, OPC Publisher should be configured to use the maximal message size of 256 KB by setting the `ms` parameter to 0. It's also the most cost-effective way to use OPC Publisher.
 
