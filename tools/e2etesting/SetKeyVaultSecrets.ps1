@@ -46,12 +46,8 @@ if (!$context) {
 }
 
 ## Ensure KeyVault
-
-$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $KeyVaultName -ErrorAction SilentlyContinue
-
-if (!$keyVault) {
-    Write-Error "Key Vault $($KeyVaultName) missing"
-}
+$resourceGroup = (Get-AzResource -Name $KeyVaultName).ResourceGroupName
+$keyVault = Get-AzKeyVault -ResourceGroupName $resourceGroup -VaultName $KeyVaultName
 
 Write-Host "Adding/Updating KeyVault-Secrets..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-DOCKER-SERVER' -SecretValue (ConvertTo-SecureString $ContainerRegistryServer -AsPlainText -Force) | Out-Null
