@@ -36,3 +36,28 @@ steps:
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
       -ServicePrincipalId "$(ServicePrincipalId)"
+
+- task: AzurePowerShell@5
+  displayName: 'Set KeyVaultName-Variable'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+    scriptArguments: >
+      -ResourceGroupName '$(ResourceGroupName)'
+
+- task: AzurePowerShell@5
+  displayName: 'Set keyvault container registry secrets'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\SetKeyVaultSecrets.ps1'
+    scriptArguments: >
+      -KeyVaultName "$(KeyVaultName)"
+      -ImageTag "$(ImageTag)"
+      -ImageNamespace "$(ImageNamespace)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
+      -ContainerRegistryUsername "$(ContainerRegistryUsername)"
+      -ContainerRegistryPassword "$(ContainerRegistryPassword)"

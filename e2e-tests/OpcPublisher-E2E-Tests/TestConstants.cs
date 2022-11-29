@@ -19,7 +19,7 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <summary>
         /// Name of the test assembly
         /// </summary>
-        public const string TestAssemblyName = "IIoTPlatform-E2E-Tests";
+        public const string TestAssemblyName = "OpcPublisher-AE-E2E-Tests";
 
         /// <summary>
         /// Default timeout of web calls
@@ -44,7 +44,7 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <summary>
         /// Folder to store published_nodes.json file
         /// </summary>
-        public const string PublishedNodesFolder = "/mount";
+        public const string PublishedNodesFolder = "/mount/opc_publisher";
 
         /// <summary>
         /// The full name of the publishednodes.json on the Edge
@@ -290,17 +290,17 @@ namespace OpcPublisher_AE_E2E_Tests {
             /// <summary>
             /// Container Registry server
             /// </summary>
-            public const string PCS_CONTAINER_REGISTRY_SERVER = "PCS_CONTAINER_REGISTRY_SERVER";
+            public const string PCS_DOCKER_SERVER = "PCS_DOCKER_SERVER";
 
             /// <summary>
             /// Container Registry user name
             /// </summary>
-            public const string PCS_CONTAINER_REGISTRY_USER = "PCS_CONTAINER_REGISTRY_USER";
+            public const string PCS_DOCKER_USER = "PCS_DOCKER_USER";
 
             /// <summary>
             /// Container Registry password
             /// </summary>
-            public const string PCS_CONTAINER_REGISTRY_PASSWORD = "PCS_CONTAINER_REGISTRY_PASSWORD";
+            public const string PCS_DOCKER_PASSWORD = "PCS_DOCKER_PASSWORD";
 
             /// <summary>
             ///Images namespace

@@ -17,6 +17,9 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     /// <summary>
     /// The test theory submitting a high load of event messages
     /// </summary>
+    [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
+    [Collection("IIoT Standalone Test Collection")]
+    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
     public class C_EventsStressTestTheory : DynamicAciTestBase {
         public C_EventsStressTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
@@ -55,7 +58,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 // Get time of event attached Server node
                 .Select(e => (e.EnqueuedTime, e.Messages["i=2253"].SourceTimestamp))
                 .ToListAsync(_timeoutToken);
-            
+
             // Assert throughput
 
             // Trim first few and last seconds of data, since Publisher polls PLCs
@@ -64,7 +67,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             var intervalEnd = fullData.Select(d => d.SourceTimestamp).Max() - FromSeconds(nSecondSkipLast);
             var intervalDuration = intervalEnd - intervalStart;
             var eventData = fullData.Where(d => d.SourceTimestamp > intervalStart && d.SourceTimestamp < intervalEnd).ToList();
-            
+
             // Bin events by 1-second interval to compute event rate histogram
             var eventRatesBySecond = eventData
                 .GroupBy(s => s.SourceTimestamp.Truncate(FromSeconds(1)))
@@ -83,7 +86,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 expectedEventsPerSecond,
                 expectedEventsPerSecond / 10d,
                 "Publisher should match PLC event rate");
-            
+
             var (average, stDev) = DescriptiveStats(eventRatesBySecond);
 
             average.Should().BeApproximately(
@@ -92,7 +95,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 "Publisher should match PLC event rate");
 
             stDev.Should().BeLessThan(expectedEventsPerSecond / 3d, "Publisher should sustain PLC event rate");
-            
+
             // Assert latency
             var end2EndLatency = eventData
                 .Select(v => v.EnqueuedTime - v.SourceTimestamp)

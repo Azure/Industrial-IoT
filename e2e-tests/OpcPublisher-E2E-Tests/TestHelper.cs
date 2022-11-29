@@ -413,7 +413,8 @@ namespace OpcPublisher_AE_E2E_Tests {
             }
 
             var defaultAzureCredential = new DefaultAzureCredential();
-            var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com//.default" }), cancellationToken);
+            var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
+                new[] { "https://management.azure.com//.default" }, tenantId: context.OpcPlcConfig.TenantId), cancellationToken);
             var tokenCredentials = new TokenCredentials(accessToken.Token);
 
             IAzure azure;
@@ -546,20 +547,28 @@ namespace OpcPublisher_AE_E2E_Tests {
             var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
             await foreach (var partitionEvent in events.WithCancellation(cancellationToken)) {
                 var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[MessageSystemPropertyNames.EnqueuedTime];
-                JArray batchedMessages = null;
+                JToken json = null;
                 bool isPayloadCompressed = (string)partitionEvent.Data.Properties["$$ContentEncoding"] == "gzip";
                 if (isPayloadCompressed) {
                     var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
                     using (var input = new MemoryStream(compressedPayload)) {
                         using (var gs = new GZipStream(input, CompressionMode.Decompress)) {
                             using (var textReader = new StreamReader(gs)) {
-                                batchedMessages = JsonConvert.DeserializeObject<JArray>(await textReader.ReadToEndAsync());
+                                json = JsonConvert.DeserializeObject<JToken>(await textReader.ReadToEndAsync());
                             }
                         }
                     }
                 }
                 else {
-                    batchedMessages = partitionEvent.DeserializeJson<JArray>();
+                    json = partitionEvent.DeserializeJson<JToken>();
+                }
+
+                List<dynamic> batchedMessages;
+                if (json is JArray array) {
+                    batchedMessages = array.Select(v => (dynamic)v).ToList();
+                }
+                else {
+                    batchedMessages = new List<dynamic> { json };
                 }
 
                 // Expect all messages to be the same

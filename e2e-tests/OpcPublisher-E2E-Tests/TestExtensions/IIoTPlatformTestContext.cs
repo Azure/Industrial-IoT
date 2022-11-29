@@ -151,7 +151,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestExtensions {
         /// Get configuration that reads from:
         ///     - environment variables
         ///     - environment variables from user target
-        ///     - environment variables from launchSettings.json
+        ///     - environment variables from .env file
         /// </summary>
         /// <returns></returns>
         private static IConfigurationRoot GetConfiguration() {
@@ -174,7 +174,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestExtensions {
             () => throw new Exception("IoT Hub EventHub connection string is not provided."));
 
         string IIoTEdgeConfig.EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
-            () => "1.1");
+            () => "1.4");
 
         string IIoTEdgeConfig.NestedEdgeFlag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_FLAG,
             () => "Disable");
@@ -205,19 +205,19 @@ namespace OpcPublisher_AE_E2E_Tests.TestExtensions {
 
         string IOpcPlcConfig.SubscriptionId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SUBSCRIPTION_ID, () => string.Empty);
 
-        string IContainerRegistryConfig.ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_SERVER,
+        string IContainerRegistryConfig.ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_SERVER,
             () => string.Empty);
 
-        string IContainerRegistryConfig.ContainerRegistryUser => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_USER,
+        string IContainerRegistryConfig.ContainerRegistryUser => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_USER,
             () => string.Empty);
 
-        string IContainerRegistryConfig.ContainerRegistryPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_PASSWORD,
+        string IContainerRegistryConfig.ContainerRegistryPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_PASSWORD,
             () => string.Empty);
 
         string IContainerRegistryConfig.ImagesNamespace => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_NAMESPACE,
             () => string.Empty);
 
         string IContainerRegistryConfig.ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
-            () => "latest" );
+            () => "latest");
     }
 }

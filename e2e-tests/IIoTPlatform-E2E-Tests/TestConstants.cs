@@ -289,17 +289,17 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// Container Registry server
             /// </summary>
-            public const string PCS_CONTAINER_REGISTRY_SERVER = "PCS_CONTAINER_REGISTRY_SERVER";
+            public const string PCS_DOCKER_SERVER = "PCS_DOCKER_SERVER";
 
             /// <summary>
             /// Container Registry user name
             /// </summary>
-            public const string PCS_CONTAINER_REGISTRY_USER = "PCS_CONTAINER_REGISTRY_USER";
+            public const string PCS_DOCKER_USER = "PCS_DOCKER_USER";
 
             /// <summary>
             /// Container Registry password
             /// </summary>
-            public const string PCS_CONTAINER_REGISTRY_PASSWORD = "PCS_CONTAINER_REGISTRY_PASSWORD";
+            public const string PCS_DOCKER_PASSWORD = "PCS_DOCKER_PASSWORD";
 
             /// <summary>
             ///Images namespace
