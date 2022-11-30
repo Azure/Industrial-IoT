@@ -34,7 +34,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
 
     /// <summary>Message sent by Publisher to IoT Hub.</summary>
     /// <typeparam name="T">Payload type.</typeparam>
-    public class PubSubMessages<T> : Dictionary<string, PubSubMessage<T>> where T : BaseEventTypePayload {
+    public class PubSubMessages<T> : Dictionary<string, T> where T : BaseEventTypePayload {
     }
 
     /// <summary>Container for payload.</summary>
@@ -76,16 +76,13 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
         /// <summary>Gets or sets the receive time.</summary>
         public DateTime? ReceiveTime { get; set; }
 
+        /// <summary>Gets or sets the time.</summary>
+        public DateTime? Time { get; set; }
 
-        /// <summary>Gets or sets the local time.</summary>
-        public DateTime? LocalTime { get; set; }
     }
-
 
     /// <summary>Base class for system events types.</summary>
     public class SystemEventTypePayload : BaseEventTypePayload {
-        /// <summary>Gets or sets the time.</summary>
-        public DateTime? Time { get; set; }
     }
 
     /// <summary>Payload for conditions and alarms.</summary>
@@ -141,9 +138,6 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
 
         /// <summary>Gets or sets the retain flag.</summary>
         public bool Retain { get; set; }
-
-        /// <summary>Gets or sets the time.</summary>
-        public DateTime? Time { get; set; }
     }
 
     /// <summary>Payload for simple events.</summary>

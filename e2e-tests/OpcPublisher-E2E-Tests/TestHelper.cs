@@ -264,15 +264,15 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="port">Port of OPC UA server</param>
         /// <param name="writerId">DataSetWriterId to set</param>
-        /// <param name="opcEvents">OPC UA events</param>
-        public static string PublishedNodesJson(this IIoTStandaloneTestContext context, uint port, string writerId, JArray opcEvents) {
+        /// <param name="opcNodes">OPC UA nodes</param>
+        public static string PublishedNodesJson(this IIoTStandaloneTestContext context, uint port, string writerId, JArray opcNodes) {
             return JsonConvert.SerializeObject(
                 new JArray(
                     context.PlcAciDynamicUrls.Select(host => new JObject(
                         new JProperty("EndpointUrl", $"opc.tcp://{host}:{port}"),
                         new JProperty("UseSecurity", false),
                         new JProperty("DataSetWriterId", writerId),
-                        new JProperty("OpcEvents", opcEvents)))
+                        new JProperty("OpcNodes", opcNodes)))
                 ), Formatting.Indented);
         }
 
@@ -452,6 +452,9 @@ namespace OpcPublisher_AE_E2E_Tests {
             var containerGroup = azure.ContainerGroups.ListByResourceGroup(context.OpcPlcConfig.ResourceGroupName)
                 .First(g => g.IPAddress == firstAciIpAddress);
             context.PLCImage = containerGroup.Containers.First().Value.Image;
+
+            // TODO: Remove when plc is updated to latest stack
+            context.PLCImage = "mcr.microsoft.com/iotedge/opc-plc:2.5.7";
 
             return azure;
         }

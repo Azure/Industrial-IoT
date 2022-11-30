@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Queue size
         /// </summary>
-        public uint? QueueSize { get; set; }
+        public uint QueueSize { get; set; }
 
         /// <summary>
         /// Discard new values if queue is full

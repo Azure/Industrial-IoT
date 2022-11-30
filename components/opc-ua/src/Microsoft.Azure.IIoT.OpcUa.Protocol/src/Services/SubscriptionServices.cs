@@ -1371,8 +1371,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             GetValueOrDefault(Opc.Ua.MonitoringMode.Reporting)
                         : Opc.Ua.MonitoringMode.Disabled,
                     StartNodeId = Template.StartNodeId.ToNodeId(messageContext),
-                    // TODO apply & propagate the default values configured, available for standalone only
-                    QueueSize = Template.QueueSize.GetValueOrDefault(1),
+                    QueueSize = Template.QueueSize,
                     SamplingInterval = (int)Template.SamplingInterval.
                         GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
                     DiscardOldest = !Template.DiscardNew.GetValueOrDefault(false),
@@ -1438,13 +1437,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     Item.DiscardOldest = !Template.DiscardNew.GetValueOrDefault(false);
                     itemChange = true;
                 }
-                if (Template.QueueSize.GetValueOrDefault(1) !=
-                    model.Template.QueueSize.GetValueOrDefault(1)) {
+                if (Template.QueueSize != model.Template.QueueSize) {
                     _logger.Debug("{item}: Changing queue size from {old} to {new}",
-                        this, Template.QueueSize.GetValueOrDefault(1),
-                        model.Template.QueueSize.GetValueOrDefault(1));
+                        this, Template.QueueSize,
+                        model.Template.QueueSize);
                     Template.QueueSize = model.Template.QueueSize;
-                    Item.QueueSize = Template.QueueSize.GetValueOrDefault(1);
+                    Item.QueueSize = Template.QueueSize;
                     itemChange = true;
                 }
                 if (Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting) !=

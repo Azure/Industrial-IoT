@@ -31,7 +31,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 AggregateFilter = null,
                 DiscardNew = publishedVariable.DiscardNew,
                 StartNodeId = publishedVariable.PublishedVariableNodeId,
-                QueueSize = publishedVariable.QueueSize,
+
+                //
+                // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/
+                // 0 or 1 the Server returns the default queue size which shall be 1
+                // as revisedQueueSize for data monitored items. The queue has a single
+                // entry, effectively disabling queuing. This is the default behavior
+                // since beginning of publisher time.
+                //
+                QueueSize = publishedVariable.QueueSize ?? 1,
                 RelativePath = publishedVariable.BrowsePath,
                 AttributeId = publishedVariable.Attribute,
                 IndexRange = publishedVariable.IndexRange,

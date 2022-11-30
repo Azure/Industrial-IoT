@@ -329,7 +329,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// The trait value for PublisherMode = standalone
             /// </summary>
-            public const string PublisherModeStandaloneTraitValue = "standalone";
+            public const string PublisherModeTraitValue = "standalone";
 
             /// <summary>
             /// The trait name of the Twin Mode

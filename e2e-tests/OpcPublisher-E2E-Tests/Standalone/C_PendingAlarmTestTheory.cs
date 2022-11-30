@@ -21,7 +21,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
-    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
+    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
     public class C_PendingAlarmTestTheory : DynamicAciTestBase {
         public C_PendingAlarmTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
         : base(context, output) {
@@ -41,42 +41,17 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
-            TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView(false));
+            TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView());
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             // take any message
             var ev = await messages
                 .FirstAsync(_timeoutToken);
 
             // Assert
-            ValidatePendingAlarmsView(ev, false);
+            ValidatePendingAlarmsView(ev);
         }
 
-        [Fact, PriorityOrder(11)]
-        public async void Test_VerifyDataAvailableAtIoTHub_Expect_PendingAlarmsView_WithCompression() {
-
-            // Arrange
-            await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
-                {"/bin/sh", "-c", "./opcplc --autoaccept --alm --pn=50000"},
-                _timeoutToken);
-
-            var messages = _consumer.ReadPendingAlarmMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken);
-
-            // Act
-            var pnJson = _context.PublishedNodesJson(
-                50000,
-                _writerId,
-            TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView(true));
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
-            // take any message
-            var ev = await messages
-                .FirstAsync(_timeoutToken);
-
-            // Assert
-            ValidatePendingAlarmsView(ev, true);
-        }
-
-        private static void ValidatePendingAlarmsView(PendingAlarmEventData<ConditionTypePayload> eventData, bool expectCompressedPayload) {
-            Assert.Equal(expectCompressedPayload, eventData.IsPayloadCompressed);
+        private static void ValidatePendingAlarmsView(PendingAlarmEventData<ConditionTypePayload> eventData) {
             foreach (var pendingMessage in eventData.Messages.PendingMessages) {
                 pendingMessage.ConditionId.Should().StartWith("http://microsoft.com/Opc/OpcPlc/AlarmsInstance#");
                 eventData.Messages.PendingMessages.Where(x => x.ConditionId == pendingMessage.ConditionId).ToList().Should().HaveCount(1);

@@ -19,7 +19,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
-    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
+    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
     public class C_EventsStressTestTheory : DynamicAciTestBase {
         public C_EventsStressTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
@@ -56,7 +56,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 .ConsumeDuring(_context, FromSeconds(nSecondsTotal))
 
                 // Get time of event attached Server node
-                .Select(e => (e.EnqueuedTime, e.Messages["i=2253"].SourceTimestamp))
+                .Select(e => (e.EnqueuedTime, SourceTimestamp: e.Messages["i=2253"].Time))
                 .ToListAsync(_timeoutToken);
 
             // Assert throughput
@@ -70,17 +70,17 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
 
             // Bin events by 1-second interval to compute event rate histogram
             var eventRatesBySecond = eventData
-                .GroupBy(s => s.SourceTimestamp.Truncate(FromSeconds(1)))
+                .GroupBy(s => s.SourceTimestamp.Value.Truncate(FromSeconds(1)))
                 .Select(g => g.Count())
                 .ToList();
 
             _output.WriteLine($"Event rates per second, by second: {string.Join(',', eventRatesBySecond)} e/s");
 
-            var eventRate = eventData.Count / intervalDuration.TotalSeconds;
+            var eventRate = eventData.Count / intervalDuration.Value.TotalSeconds;
             intervalDuration.Should().BeGreaterThan(FromSeconds(nSeconds));
 
             const int expectedEventsPerSecond = instances * eventInstances * 1000 / eventIntervalPerInstanceMs;
-            eventData.Count().Should().BeGreaterThan(nSeconds * expectedEventsPerSecond,
+            eventData.Count.Should().BeGreaterThan(nSeconds * expectedEventsPerSecond,
                 "Publisher should produce data continuously");
             eventRate.Should().BeApproximately(
                 expectedEventsPerSecond,
@@ -101,7 +101,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 .Select(v => v.EnqueuedTime - v.SourceTimestamp)
                 .ToList();
             end2EndLatency.Min().Should().BePositive();
-            end2EndLatency.Average(v => v.TotalMilliseconds).Should().BeLessThan(8000);
+            end2EndLatency.Average(v => v.Value.TotalMilliseconds).Should().BeLessThan(8000);
         }
 
         private static (double average, double stDev) DescriptiveStats(IReadOnlyCollection<int> population) {

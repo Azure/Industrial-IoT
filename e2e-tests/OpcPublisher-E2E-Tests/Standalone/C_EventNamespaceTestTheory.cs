@@ -19,7 +19,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
-    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
+    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
     public class C_EventNamespaceTestTheory : DynamicAciTestBase {
         public C_EventNamespaceTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
@@ -107,7 +107,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
         }
 
         private static void VerifyPayloads(PubSubMessages<SystemCycleStatusEventTypePayload> payloads) {
-            foreach (var payload in payloads.Select(x => x.Value.Value)) {
+            foreach (var payload in payloads.Select(x => x.Value)) {
                 payload.Message.Should().Match("The system cycle '*' has started.");
                 payload.CycleId.Should().MatchRegex("^\\d+$");
             }
@@ -120,23 +120,25 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 new JArray(
                             new JObject(
                               new JProperty("Id", "ns=0;i=2253"),
+                              new JProperty("QueueSize", 10),
                               new JProperty("DisplayName", "SimpleEvents"),
-                              new JProperty("SelectClauses", new JArray(
-                                    new JObject(
-                                      new JProperty("TypeDefinitionId", messageTypeDefinitionId),
-                                      new JProperty("BrowsePath", new JArray(
-                                          new JValue(messageBrowsePath)))),
-                                    new JObject(
-                                      new JProperty("TypeDefinitionId", cycleIdDefinitionId),
-                                      new JProperty("BrowsePath", new JArray(
-                                          new JValue(cycleIdBrowsePath)))))),
-                              new JProperty("WhereClause", new JObject(
-                                  new JProperty("Elements", new JArray(
+                              new JProperty("EventFilter", new JObject(
+                                  new JProperty("SelectClauses", new JArray(
                                         new JObject(
-                                          new JProperty("FilterOperator", new JValue("OfType")),
-                                          new JProperty("FilterOperands", new JArray(
-                                                new JObject(
-                                                  new JProperty("Value", filterTypeDefinitionId))))))))))));
+                                          new JProperty("TypeDefinitionId", messageTypeDefinitionId),
+                                          new JProperty("BrowsePath", new JArray(
+                                              new JValue(messageBrowsePath)))),
+                                        new JObject(
+                                          new JProperty("TypeDefinitionId", cycleIdDefinitionId),
+                                          new JProperty("BrowsePath", new JArray(
+                                              new JValue(cycleIdBrowsePath)))))),
+                                  new JProperty("WhereClause", new JObject(
+                                      new JProperty("Elements", new JArray(
+                                            new JObject(
+                                              new JProperty("FilterOperator", new JValue("OfType")),
+                                              new JProperty("FilterOperands", new JArray(
+                                                    new JObject(
+                                                      new JProperty("Value", filterTypeDefinitionId))))))))))))));
         }
     }
 }

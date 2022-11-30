@@ -38,7 +38,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     TypeDefinitionId = publishedEvent.TypeDefinitionId,
                 },
                 DiscardNew = publishedEvent.DiscardNew,
-                QueueSize = publishedEvent.QueueSize,
+
+                //
+                // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/
+                // 0 the Server returns the default queue size for Event Notifications
+                // as revisedQueueSize for event monitored items.
+                //
+                QueueSize = publishedEvent.QueueSize ?? 0,
                 TriggerId = publishedEvent.TriggerId,
                 MonitoringMode = publishedEvent.MonitoringMode,
                 StartNodeId = publishedEvent.EventNotifier,

@@ -16,7 +16,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
-    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
+    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
     public class C_WhereClauseTestTheory : DynamicAciTestBase {
         public C_WhereClauseTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
@@ -94,16 +94,12 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             ValidateSimpleEventFields(ev.messages);
         }
 
-        private void ValidateBaseEventTypeFields(JToken ev) {
+        private static void ValidateBaseEventTypeFields(JToken ev) {
             // navigate to the event fields (nested several layers)
             var fields = ev.Children()
                 .First()
                     .Children()
-                        .First()
-                            .Children()
-                                .First()
-                                    .Children()
-                                        .First();
+                        .First();
             Assert.NotNull(fields);
             Assert.Equal(8, fields.Count());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventId")).Any());
@@ -116,16 +112,12 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             Assert.True(fields.Where(x => x.Path.EndsWith("Time")).Any());
         }
 
-        private void ValidateSimpleEventFields(JToken ev) {
+        private static void ValidateSimpleEventFields(JToken ev) {
             // navigate to the event fields (nested several layers)
             var fields = ev.Children()
                 .First()
                     .Children()
-                        .First()
-                            .Children()
-                                .First()
-                                    .Children()
-                                        .First();
+                        .First();
             Assert.NotNull(fields);
             Assert.Equal(4, fields.Count());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventId")).Any());
