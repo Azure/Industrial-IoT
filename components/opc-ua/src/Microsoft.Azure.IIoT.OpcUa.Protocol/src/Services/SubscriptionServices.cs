@@ -1655,7 +1655,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     else {
                         // if a field's nameis empty, it's not written to the output
-                        FieldNames.Add("");
+                        FieldNames.Add(null);
                     }
                 }
 
@@ -1834,8 +1834,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         // is it time to send anything?
                         if (Item.Created &&
                             (now > (_lastSentPendingAlarms + (pendingAlarmsOptions.SnapshotIntervalTimespan ?? TimeSpan.MaxValue))) ||
-                                ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) &&
-                                pendingAlarmsOptions.Dirty)) {
+                                ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) && pendingAlarmsOptions.Dirty)) {
                             SendPendingAlarms();
                             _lastSentPendingAlarms = now;
                         }

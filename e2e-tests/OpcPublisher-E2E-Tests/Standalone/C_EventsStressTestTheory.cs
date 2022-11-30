@@ -56,7 +56,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 .ConsumeDuring(_context, FromSeconds(nSecondsTotal))
 
                 // Get time of event attached Server node
-                .Select(e => (e.EnqueuedTime, SourceTimestamp: e.Messages["i=2253"].Time))
+                .Select(e => (e.EnqueuedTime, SourceTimestamp: e.Messages["i=2253"].ReceiveTime))
                 .ToListAsync(_timeoutToken);
 
             // Assert throughput

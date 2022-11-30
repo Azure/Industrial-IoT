@@ -6,12 +6,16 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Microsoft.VisualStudio.TestPlatform.Utilities;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     /// <summary>
     /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,
@@ -19,8 +23,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// </summary>
     [Collection(ReadCollection.Name)]
     public class BasicIntegrationTests : PublisherIntegrationTestBase {
+        private readonly ITestOutputHelper _output;
 
-        public BasicIntegrationTests(ReferenceServerFixture fixture) : base(fixture) { }
+        public BasicIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture) {
+            _output = output;
+        }
 
         [Fact]
         public async Task CanSendDataItemToIoTHubTest() {
@@ -51,16 +58,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         public async Task CanSendPendingAlarmsToIoTHubTest() {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(@"./PublishedNodes/PendingAlarms.json").ConfigureAwait(false);
+            var messages = await ProcessMessagesAsync(@"./PublishedNodes/PendingAlarms.json", WithPendingAlarms).ConfigureAwait(false);
 
             // Assert
-            Assert.Single(messages);
-            Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
-            Assert.Equal("PendingAlarms", messages[0].RootElement[0].GetProperty("DisplayName").GetString());
-            var sourceNode = messages[0].RootElement[0].GetProperty("Value")[0].GetProperty("SourceNode").GetString();
-            Assert.StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a", sourceNode);
-            var severity = messages[0].RootElement[0].GetProperty("Value")[0].GetProperty("Severity").GetInt32();
-            Assert.True(severity >= 100);
+            var message = Assert.Single(messages).RootElement[0];
+
+            _output.WriteLine(message.ToString());
+            Assert.Equal("i=2253", message.GetProperty("NodeId").GetString());
+            Assert.Equal("PendingAlarms", message.GetProperty("DisplayName").GetString());
+
+            var evt = GetAlarmCondition(message.GetProperty("Value"));
+            Assert.NotEqual(JsonValueKind.Null, evt.ValueKind);
+            Assert.True(evt.GetProperty("Severity").GetInt32() >= 100);
         }
 
         [Fact]
@@ -143,14 +152,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 var result = await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = WaitForMessages();
-                Assert.Single(messages);
-                Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
-                Assert.Equal("PendingAlarms", messages[0].RootElement[0].GetProperty("DisplayName").GetString());
-                var sourceNode = messages[0].RootElement[0].GetProperty("Value")[0].GetProperty("SourceNode").GetString();
-                Assert.StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a", sourceNode);
-                var severity = messages[0].RootElement[0].GetProperty("Value")[0].GetProperty("Severity").GetInt32();
-                Assert.True(severity >= 100);
+                var messages = WaitForMessages(WithPendingAlarms);
+                var message = Assert.Single(messages).RootElement[0];
+
+                _output.WriteLine(message.ToString());
+                Assert.Equal("i=2253", message.GetProperty("NodeId").GetString());
+                Assert.Equal("PendingAlarms", message.GetProperty("DisplayName").GetString());
+
+                var evt = GetAlarmCondition(message.GetProperty("Value"));
+                Assert.NotEqual(JsonValueKind.Null, evt.ValueKind);
+                Assert.True(evt.GetProperty("Severity").GetInt32() >= 100);
 
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
                 var e = Assert.Single(endpoints.Endpoints);
@@ -239,14 +250,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 var result = await PublisherApi.PublishNodesAsync(DeviceId, ModuleId, testInput[0]);
                 Assert.NotNull(result);
 
-                var messages = WaitForMessages();
-                var message = Assert.Single(messages);
-                Assert.Equal("i=2253", message.RootElement[0].GetProperty("NodeId").GetString());
-                Assert.Equal("PendingAlarms", message.RootElement[0].GetProperty("DisplayName").GetString());
-                var sourceNode = message.RootElement[0].GetProperty("Value")[0].GetProperty("SourceNode").GetString();
-                Assert.StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a", sourceNode);
-                var severity = message.RootElement[0].GetProperty("Value")[0].GetProperty("Severity").GetInt32();
-                Assert.True(severity >= 100);
+                var messages = WaitForMessages(WithPendingAlarms);
+                var message = Assert.Single(messages).RootElement[0];
+
+                _output.WriteLine(message.ToString());
+                Assert.Equal("i=2253", message.GetProperty("NodeId").GetString());
+                Assert.Equal("PendingAlarms", message.GetProperty("DisplayName").GetString());
+
+                var evt = GetAlarmCondition(message.GetProperty("Value"));
+                Assert.NotEqual(JsonValueKind.Null, evt.ValueKind);
+                Assert.True(evt.GetProperty("Severity").GetInt32() >= 100);
 
                 // Disable pending alarms
                 testInput[0].OpcNodes[0].EventFilter.PendingAlarms.IsEnabled = false;
@@ -262,14 +275,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 Assert.False(n.EventFilter.PendingAlarms.IsEnabled);
 
                 // Wait until it was applied and we receive normal events again
-                messages = WaitForMessages(TimeSpan.FromMinutes(5), 1,
-                    message => message.RootElement[0].GetProperty("Value").ValueKind != JsonValueKind.Array);
-                message = Assert.Single(messages);
-                Assert.Equal("i=2253", message.RootElement[0].GetProperty("NodeId").GetString());
-                Assert.Equal("PendingAlarms", message.RootElement[0].GetProperty("DisplayName").GetString());
-                var value = message.RootElement[0].GetProperty("Value");
-                severity = value.GetProperty("Severity").GetInt32();
-                Assert.True(severity >= 100);
+                messages = WaitForMessages(TimeSpan.FromMinutes(5), 1, WithRegularEvent);
+                message = Assert.Single(messages).RootElement[0];
+                Assert.Equal("i=2253", message.GetProperty("NodeId").GetString());
+                Assert.Equal("PendingAlarms", message.GetProperty("DisplayName").GetString());
+
+                evt = message.GetProperty("Value");
+                Assert.True(evt.GetProperty("Severity").GetInt32() >= 100);
 
                 result = await PublisherApi.UnpublishNodesAsync(DeviceId, ModuleId, testInput[0]);
                 Assert.NotNull(result);
@@ -282,5 +294,24 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             }
         }
 
+        private static JsonElement GetAlarmCondition(JsonElement jsonElement) {
+            Assert.Equal(JsonValueKind.Array, jsonElement.ValueKind);
+            return jsonElement.EnumerateArray().FirstOrDefault(element =>
+                element.TryGetProperty("SourceNode", out var node) &&
+                    node.GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a"));
+        }
+
+        private static bool WithPendingAlarms(JsonDocument message) {
+            if (WithRegularEvent(message)) {
+                return false;
+            }
+            var value = message.RootElement[0].GetProperty("Value");
+            return value.GetArrayLength() > 0;
+        }
+
+        private static bool WithRegularEvent(JsonDocument message) {
+            var value = message.RootElement[0].GetProperty("Value");
+            return value.ValueKind != JsonValueKind.Array;
+        }
     }
 }

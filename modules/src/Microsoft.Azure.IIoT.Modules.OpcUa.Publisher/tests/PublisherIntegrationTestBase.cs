@@ -82,20 +82,24 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             _serverFixture = serverFixture;
         }
 
-        protected Task<List<JsonDocument>> ProcessMessagesAsync(string publishedNodesFile, string[] arguments = default) {
+        protected Task<List<JsonDocument>> ProcessMessagesAsync(
+            string publishedNodesFile,
+            Func<JsonDocument, bool> predicate = null,
+            string[] arguments = default) {
             // Collect messages from server with default settings
-            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, arguments);
+            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, arguments);
         }
 
         protected async Task<List<JsonDocument>> ProcessMessagesAsync(
             string publishedNodesFile,
             TimeSpan messageCollectionTimeout,
             int messageCount,
+            Func<JsonDocument, bool> predicate = null,
             string[] arguments = default) {
 
             await StartPublisherAsync(publishedNodesFile, arguments);
 
-            var messages = WaitForMessages(messageCollectionTimeout, messageCount);
+            var messages = WaitForMessages(messageCollectionTimeout, messageCount, predicate);
 
             StopPublisher();
 
