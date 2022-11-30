@@ -77,7 +77,7 @@ stages:
   jobs:
   - job: runtestsbasic
     timeoutInMinutes: 150
-    displayName: 'Run basic End to End Tests'
+    displayName: 'Run Basic End to End Tests'
     steps:
     - template: steps/runtests.yml
       parameters:

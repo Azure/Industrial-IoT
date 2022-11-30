@@ -89,7 +89,7 @@ $allAciNames | %{
     }
 }
 
-Write-Host
+Write-Host "Creating container instances with PLC Image $($PLCImage)..."
 
 $jobs = @()
 

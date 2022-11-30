@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var template = new DataMonitoredItemModel {
                 AttributeId = null,
                 MonitoringMode = null,
-                QueueSize = null,
                 SamplingInterval = null,
                 DiscardNew = null,
             };
@@ -26,7 +25,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             Assert.Equal(Attributes.Value, monitoredItemWrapper.Item.AttributeId);
             Assert.Equal(MonitoringMode.Reporting, monitoredItemWrapper.Item.MonitoringMode);
-            Assert.Equal((uint)1, monitoredItemWrapper.Item.QueueSize);
             Assert.Equal(1000, monitoredItemWrapper.Item.SamplingInterval);
             Assert.True(monitoredItemWrapper.Item.DiscardOldest);
         }
