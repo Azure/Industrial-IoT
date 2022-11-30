@@ -224,6 +224,11 @@ namespace OpcPublisher_AE_E2E_Tests {
             /// The trait value for PublisherMode = AE
             /// </summary>
             public const string PublisherModeTraitValue = "AE";
+
+            /// <summary>
+            /// The trait value for PublisherMode = standalone
+            /// </summary>
+            public const string PublisherModeStandaloneTraitValue = "standaloneX";
         }
     }
 }
