@@ -453,9 +453,6 @@ namespace OpcPublisher_AE_E2E_Tests {
                 .First(g => g.IPAddress == firstAciIpAddress);
             context.PLCImage = containerGroup.Containers.First().Value.Image;
 
-            // TODO: Remove when plc is updated to latest stack
-            context.PLCImage = "mcr.microsoft.com/iotedge/opc-plc:2.5.7";
-
             return azure;
         }
 
