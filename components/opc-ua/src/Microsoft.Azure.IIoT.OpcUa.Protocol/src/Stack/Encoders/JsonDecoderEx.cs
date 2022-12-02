@@ -572,7 +572,7 @@ namespace Opc.Ua.Encoders {
             if (token.Type == JTokenType.String) {
                 var val = (string)token;
                 var index = val.LastIndexOf('_');
-                if (index != -1 && int.TryParse(val.Substring(index + 1),
+                if (index != -1 && int.TryParse(val.AsSpan(index + 1),
                     out var numeric)) {
                     return (Enum)Enum.ToObject(enumType, numeric);
                 }
@@ -587,7 +587,7 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Reads an array with the specified valueRank and the specified BuiltInType
         /// </summary>
-        public object ReadArray(string fieldName, int valueRank, BuiltInType builtInType, ExpandedNodeId nodeId) {
+        public Array ReadArray(string fieldName, int valueRank, BuiltInType builtInType, Type systemType, ExpandedNodeId nodeId) {
             if (valueRank == ValueRanks.OneDimension) {
                 switch (builtInType) {
                     case BuiltInType.Boolean:
@@ -660,57 +660,57 @@ namespace Opc.Ua.Encoders {
 
                 switch (builtInType) {
                     case BuiltInType.Boolean:
-                        return new Matrix(elements.Cast<bool>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<bool>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.SByte:
-                        return new Matrix(elements.Cast<sbyte>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<sbyte>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.Byte:
-                        return new Matrix(elements.Cast<byte>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<byte>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.Int16:
-                        return new Matrix(elements.Cast<Int16>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<Int16>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.UInt16:
-                        return new Matrix(elements.Cast<UInt16>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<UInt16>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.Int32:
-                        return new Matrix(elements.Cast<Int32>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<Int32>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.UInt32:
-                        return new Matrix(elements.Cast<UInt32>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<UInt32>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.Int64:
-                        return new Matrix(elements.Cast<Int64>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<Int64>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.UInt64:
-                        return new Matrix(elements.Cast<UInt64>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<UInt64>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.Float:
-                        return new Matrix(elements.Cast<float>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<float>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.Double:
-                        return new Matrix(elements.Cast<double>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<double>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.String:
-                        return new Matrix(elements.Cast<string>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<string>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.DateTime:
-                        return new Matrix(elements.Cast<DateTime>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<DateTime>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.Guid:
-                        return new Matrix(elements.Cast<Uuid>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<Uuid>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.ByteString:
-                        return new Matrix(elements.Cast<byte[]>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<byte[]>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.XmlElement:
-                        return new Matrix(elements.Cast<XmlElement>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<XmlElement>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.NodeId:
-                        return new Matrix(elements.Cast<NodeId>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<NodeId>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.ExpandedNodeId:
-                        return new Matrix(elements.Cast<ExpandedNodeId>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<ExpandedNodeId>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.StatusCode:
-                        return new Matrix(elements.Cast<StatusCode>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<StatusCode>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.QualifiedName:
-                        return new Matrix(elements.Cast<QualifiedName>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<QualifiedName>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.LocalizedText:
-                        return new Matrix(elements.Cast<LocalizedText>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<LocalizedText>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.DataValue:
-                        return new Matrix(elements.Cast<DataValue>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<DataValue>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.Enumeration:
-                        return new Matrix(elements.Cast<Int32>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<Int32>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.Variant:
-                        return new Matrix(elements.Cast<Variant>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<Variant>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.ExtensionObject:
-                        return new Matrix(elements.Cast<ExtensionObject>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<ExtensionObject>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                     case BuiltInType.DiagnosticInfo:
-                        return new Matrix(elements.Cast<DiagnosticInfo>().ToArray(), builtInType, dimensions.ToArray());
+                        return new Matrix(elements.Cast<DiagnosticInfo>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
                 }
             }
             return null;
@@ -1755,7 +1755,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="o"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
-        private bool HasAnyOf(JObject o, params string[] properties) {
+        private static bool HasAnyOf(JObject o, params string[] properties) {
             foreach (var property in properties) {
                 if (o.TryGetValue(property,
                     StringComparison.InvariantCultureIgnoreCase, out _)) {
@@ -1915,7 +1915,7 @@ namespace Opc.Ua.Encoders {
                     }
                     if (!hasInnerArray) {
                         // read array from one dimension
-                        var part = ReadArray(null, ValueRanks.OneDimension, builtInType, null) as System.Collections.IList;
+                        var part = ReadArray(null, ValueRanks.OneDimension, builtInType, null, null) as System.Collections.IList;
                         if (part != null && part.Count > 0) {
                             // add part elements to final list
                             foreach (var item in part) {
