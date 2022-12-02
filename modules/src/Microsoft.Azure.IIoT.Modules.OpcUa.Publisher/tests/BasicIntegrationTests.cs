@@ -6,11 +6,8 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Microsoft.VisualStudio.TestPlatform.Utilities;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
