@@ -17,7 +17,7 @@ steps:
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
-      Write-Host "##vso[task.setvariable variable=TenantId]$($env:tenantId)"
+      Write-Host "##vso[task.setvariable variable=pcs-auth-tenant]$($env:tenantId)"
 
 - task: AzurePowerShell@5
   displayName: 'Set KeyVaultName-Variable'
@@ -135,4 +135,4 @@ steps:
     PCS_RESOURCE_GROUP: '$(ResourceGroupName)'
     AZURE_CLIENT_ID: "$($ServicePrincipalId)"
     AZURE_CLIENT_SECRET: "$($ServicePrincipalKey)"
-    AZURE_TENANT_ID: "$($TenantId)"
+    AZURE_TENANT_ID: "$($pcs-auth-tenant)"
