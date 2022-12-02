@@ -219,6 +219,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Create request for GetConfiguredNodesOnEndpoint method call for endpoint 1
             var nodesOnEndpoint1 = new PublishedNodesEntryModel {
                 EndpointUrl = request1.EndpointUrl,
+                UseSecurity = request1.UseSecurity
             };
             var requestGetConfiguredNodesOnEndpoint1 = nodesOnEndpoint1.ToApiModel();
 
