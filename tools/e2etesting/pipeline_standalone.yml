@@ -77,7 +77,6 @@ stages:
   jobs:
   - job: runtestsae
     timeoutInMinutes: 150
-    dependsOn: runtestsbasic
     displayName: 'Run A&E End to End Tests'
     steps:
     - template: steps/runtests.yml
@@ -86,6 +85,7 @@ stages:
         ModeValue: AE
   - job: runtestsbasic
     timeoutInMinutes: 150
+    dependsOn: runtestsae
     displayName: 'Run Basic End to End Tests'
     steps:
     - template: steps/runtests.yml
