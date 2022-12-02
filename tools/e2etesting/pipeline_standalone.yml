@@ -75,15 +75,6 @@ stages:
   dependsOn: deploy
   condition: and(not(canceled()), or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped')))
   jobs:
-  - job: runtestsbasic
-    timeoutInMinutes: 150
-    displayName: 'Run Basic End to End Tests'
-    steps:
-    - template: steps/runtests.yml
-      parameters:
-        ModeName: PublisherMode
-        ModeValue: standalone
-
   - job: runtestsae
     timeoutInMinutes: 150
     dependsOn: runtestsbasic
@@ -93,6 +84,14 @@ stages:
       parameters:
         ModeName: PublisherMode
         ModeValue: AE
+  - job: runtestsbasic
+    timeoutInMinutes: 150
+    displayName: 'Run Basic End to End Tests'
+    steps:
+    - template: steps/runtests.yml
+      parameters:
+        ModeName: PublisherMode
+        ModeValue: standalone
 
 - stage: cleanup
   displayName: Cleanup resources
