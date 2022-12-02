@@ -4,10 +4,12 @@
 // ------------------------------------------------------------
 
 namespace OpcPublisher_AE_E2E_Tests.TestModels {
-    using System.Collections.Generic;
+    using System;
 
-    /// <summary>Message sent by Publisher to IoT Hub.</summary>
-    /// <typeparam name="T">Payload type.</typeparam>
-    public class PubSubMessages<T> : Dictionary<string, T> where T : BaseEventTypePayload {
+    /// <summary>Base class for system events types.</summary>
+    public class SystemEventTypePayload : BaseEventTypePayload {
+
+        /// <summary>Gets or sets the time.</summary>
+        public DateTime? Time { get; set; }
     }
 }

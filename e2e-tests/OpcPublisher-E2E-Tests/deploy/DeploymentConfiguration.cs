@@ -19,6 +19,17 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy {
 
         /// <inheritdoc />
         public async Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token) {
+            var deploymentConfiguration = GetDeploymentConfiguration();
+
+            var configuration = await _context.RegistryHelper
+                .CreateOrUpdateConfigurationAsync(deploymentConfiguration, token)
+                .ConfigureAwait(false);
+
+            return configuration != null;
+        }
+
+        /// <inheritdoc />
+        public Configuration GetDeploymentConfiguration() {
             var deploymentConfiguration = new Configuration(DeploymentName) {
                 Content = new ConfigurationContent {
                     ModulesContent = CreateDeploymentModules()
@@ -27,10 +38,7 @@ namespace OpcPublisher_AE_E2E_Tests.Deploy {
                 Priority = Priority
             };
 
-            var configuration = await _context.RegistryHelper.CreateOrUpdateConfigurationAsync(
-                deploymentConfiguration, true, DeploymentName, token);
-
-            return configuration != null;
+            return deploymentConfiguration;
         }
 
         protected readonly IIoTPlatformTestContext _context;

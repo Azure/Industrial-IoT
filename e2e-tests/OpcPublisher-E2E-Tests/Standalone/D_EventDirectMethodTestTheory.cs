@@ -18,8 +18,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
-    public class C_EventNamespaceTestTheory : DynamicAciTestBase {
-        public C_EventNamespaceTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
+    public class D_EventDirectMethodTestTheory : DynamicAciTestBase {
+        public D_EventDirectMethodTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }
 
@@ -38,11 +38,12 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 "5:CycleId",
                 "ns=5;i=2");
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await PublishNodesAsync(pnJson, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
             var payloads = await messages.FirstAsync(_timeoutToken);
+            await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
             VerifyPayloads(payloads.Messages);
@@ -58,11 +59,12 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 "http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId",
                 "nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2");
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await PublishNodesAsync(pnJson, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
             var payloads = await messages.FirstAsync(_timeoutToken);
+            await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
             VerifyPayloads(payloads.Messages);
@@ -76,11 +78,12 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("ns=5;i=2"));
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await PublishNodesAsync(pnJson, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
             var payloads = await messages.FirstAsync(_timeoutToken);
+            await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
             VerifyPayloads(payloads.Messages);
@@ -94,11 +97,12 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 _writerId,
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"));
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+            await PublishNodesAsync(pnJson, _timeoutToken);
             var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
 
             // Act
             var payloads = await messages.FirstAsync(_timeoutToken);
+            await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
             VerifyPayloads(payloads.Messages);

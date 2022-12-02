@@ -8,6 +8,7 @@ namespace OpcPublisher_AE_E2E_Tests {
     using Azure.Identity;
     using Azure.Messaging.EventHubs.Consumer;
     using Microsoft.Azure.Devices;
+    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.Management.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
@@ -25,7 +26,9 @@ namespace OpcPublisher_AE_E2E_Tests {
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
+    using System.Net.Sockets;
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Text.RegularExpressions;
@@ -34,61 +37,9 @@ namespace OpcPublisher_AE_E2E_Tests {
     using TestExtensions;
     using TestModels;
     using Xunit;
+    using Xunit.Abstractions;
 
     internal static partial class TestHelper {
-
-        /// <summary>
-        /// Read PublishedNodes json from OPC-PLC and provide the data to the tests
-        /// </summary>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</returns>
-        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedPublishedNodesConfigurationAsync(
-            IIoTPlatformTestContext context,
-            CancellationToken ct = default
-        ) {
-            var result = new Dictionary<string, PublishedNodesEntryModel>();
-
-            var opcPlcList = context.OpcPlcConfig.Urls;
-            context.OutputHelper?.WriteLine($"SimulatedOpcPlcUrls {opcPlcList}");
-            var ipAddressList = opcPlcList.Split(TestConstants.SimulationUrlsSeparator);
-
-            foreach (var ipAddress in ipAddressList.Where(s => !string.IsNullOrWhiteSpace(s))) {
-                try {
-                    using (var client = new HttpClient()) {
-                        var ub = new UriBuilder { Host = ipAddress };
-                        var baseAddress = ub.Uri;
-
-                        client.BaseAddress = baseAddress;
-                        client.Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds);
-
-                        using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile, ct)) {
-                            Assert.NotNull(response);
-                            Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
-                            var json = await response.Content.ReadAsStringAsync();
-                            Assert.NotEmpty(json);
-                            var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
-
-                            Assert.NotNull(entryModels);
-                            Assert.NotEmpty(entryModels);
-                            Assert.NotNull(entryModels[0].OpcNodes);
-                            Assert.NotEmpty(entryModels[0].OpcNodes);
-
-                            // Set endpoint url correctly when it's not specified in pn.json ie. replace fqdn with the ip address
-                            string fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
-                            entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, ipAddress);
-
-                            result.Add(ipAddress, entryModels[0]);
-                        }
-                    }
-                }
-                catch (Exception e) {
-                    context.OutputHelper?.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, ipAddress);
-                    continue;
-                }
-            }
-            return result;
-        }
 
         /// <summary>
         /// Update Device Twin tag
@@ -109,21 +60,6 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <summary>
         /// Transfer the content of published_nodes.json file into the OPC Publisher edge module
         /// </summary>
-        /// <param name="entries">Entries for published_nodes.json</param>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="ct">Cancellation token</param>
-        public static Task SwitchToStandaloneModeAndPublishNodesAsync(
-            IEnumerable<PublishedNodesEntryModel> entries,
-            IIoTPlatformTestContext context,
-            CancellationToken ct = default
-        ) {
-            var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
-            return SwitchToStandaloneModeAndPublishNodesAsync(json, context, ct);
-        }
-
-        /// <summary>
-        /// Transfer the content of published_nodes.json file into the OPC Publisher edge module
-        /// </summary>
         /// <param name="json">String for published_nodes.json</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
@@ -134,6 +70,21 @@ namespace OpcPublisher_AE_E2E_Tests {
         ) {
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
             context.OutputHelper?.WriteLine(json);
+            await PublishNodesAsync(json, context, ct);
+            await SwitchToStandaloneModeAsync(context, ct);
+        }
+
+        /// <summary>
+        /// Transfer the content of published_nodes.json file into the OPC Publisher edge module
+        /// </summary>
+        /// <param name="json">String for published_nodes.json</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        public static async Task PublishNodesAsync(
+            string json,
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default
+        ) {
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
             using var scpClient = CreateScpClientAndConnect(context);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
@@ -152,8 +103,20 @@ namespace OpcPublisher_AE_E2E_Tests {
                     }
                 }
             }
+        }
 
-            await SwitchToStandaloneModeAsync(context, ct);
+        /// <summary>
+        /// Clean published nodes JSON files.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context) {
+            // Make sure directories exist.
+            using (var sshCient = CreateSshClientAndConnect(context)) {
+                sshCient.RunCommand($"[ ! -d {TestConstants.PublishedNodesFolder} ]" +
+                    $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
+            }
+            await PublishNodesAsync("[]", context).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -162,7 +125,7 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        private static async Task SwitchToStandaloneModeAsync(
+        public static async Task SwitchToStandaloneModeAsync(
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
@@ -183,20 +146,29 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <returns>Instance of SshClient, that need to be disposed</returns>
         private static SshClient CreateSshClientAndConnect(IIoTPlatformTestContext context) {
             var privateKeyFile = GetPrivateSshKey(context);
+            try {
+                var client = new SshClient(
+                    context.SshConfig.Host,
+                    context.SshConfig.Username,
+                    privateKeyFile);
 
-            context.OutputHelper?.WriteLine("Create SSH Client");
-            var client = new SshClient(
-                context.SshConfig.Host,
-                context.SshConfig.Username,
-                privateKeyFile);
-
-            context.OutputHelper?.WriteLine("open ssh connection to host {0} with username {1}",
-                context.SshConfig.Host,
-                context.SshConfig.Username);
-            client.Connect();
-            context.OutputHelper?.WriteLine("ssh connection successful established");
-
-            return client;
+                var connectAttempt = 0;
+                while (true) {
+                    try {
+                        client.Connect();
+                        return client;
+                    }
+                    catch (SocketException) when (++connectAttempt < 5) {
+                        Thread.Sleep(1000);
+                    }
+                }
+            }
+            catch (Exception ex) {
+                context.OutputHelper?.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
+                    context.SshConfig.Host,
+                    context.SshConfig.Username, ex.Message);
+                throw;
+            }
         }
 
         /// <summary>
@@ -206,20 +178,29 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <returns>Instance of SshClient, that need to be disposed</returns>
         private static ScpClient CreateScpClientAndConnect(IIoTPlatformTestContext context) {
             var privateKeyFile = GetPrivateSshKey(context);
+            try {
+                var client = new ScpClient(
+                    context.SshConfig.Host,
+                    context.SshConfig.Username,
+                    privateKeyFile);
 
-            context.OutputHelper?.WriteLine("Create SCP Client");
-            var client = new ScpClient(
-                context.SshConfig.Host,
-                context.SshConfig.Username,
-                privateKeyFile);
-
-            context.OutputHelper?.WriteLine("open scp connection to host {0} with username {1}",
-                context.SshConfig.Host,
-                context.SshConfig.Username);
-            client.Connect();
-            context.OutputHelper?.WriteLine("scp connection successful established");
-
-            return client;
+                var connectAttempt = 0;
+                while (true) {
+                    try {
+                        client.Connect();
+                        return client;
+                    }
+                    catch (SocketException) when (++connectAttempt < 5) {
+                        Thread.Sleep(1000);
+                    }
+                }
+            }
+            catch (Exception ex) {
+                context.OutputHelper?.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
+                    context.SshConfig.Host,
+                    context.SshConfig.Username, ex.Message);
+                throw;
+            }
         }
 
         /// <summary>
@@ -228,13 +209,38 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns></returns>
         private static PrivateKeyFile GetPrivateSshKey(IIoTPlatformTestContext context) {
-            context.OutputHelper?.WriteLine("Load private key from environment variable");
-
             var buffer = Encoding.Default.GetBytes(context.SshConfig.PrivateKey);
             var privateKeyStream = new MemoryStream(buffer);
 
             var privateKeyFile = new PrivateKeyFile(privateKeyStream);
             return privateKeyFile;
+        }
+
+        /// <summary>
+        /// Delete a file on the Edge VM
+        /// </summary>
+        /// <param name="fileName">Filename of the file to delete</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        public static void DeleteFileOnEdgeVM(string fileName, IIoTPlatformTestContext context) {
+            var isSuccessful = false;
+            using var client = CreateSshClientAndConnect(context);
+
+            var terminal = client.RunCommand("rm " + fileName);
+
+            if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.ToLowerInvariant().Contains("no such file")) {
+                isSuccessful = true;
+            }
+            Assert.True(isSuccessful, "Delete file was not successful");
+
+            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
+                using var sshCient = CreateSshClientAndConnect(context);
+                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
+                    if (edge != string.Empty) {
+                        var command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo rm {fileName}'";
+                        sshCient.RunCommand(command);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -713,6 +719,81 @@ namespace OpcPublisher_AE_E2E_Tests {
             return dateTime.AddTicks(-(dateTime.Ticks % timeSpan.Ticks));
         }
 
-        private static readonly JsonSerializer kSerializer = new JsonSerializer();
+        /// <summary>
+        /// Initialize DeviceServiceClient from IoT Hub connection string.
+        /// </summary>
+        /// <param name="iotHubConnectionString"></param>
+        /// <param name="transportType"></param>
+        public static ServiceClient DeviceServiceClient(
+            string iotHubConnectionString,
+            Microsoft.Azure.Devices.TransportType transportType = Microsoft.Azure.Devices.TransportType.Amqp_WebSocket_Only
+        ) {
+            ServiceClient iotHubClient;
+
+            if (string.IsNullOrWhiteSpace(iotHubConnectionString)) {
+                throw new ArgumentNullException(nameof(iotHubConnectionString));
+            }
+
+            return iotHubClient = ServiceClient.CreateFromConnectionString(
+                iotHubConnectionString,
+                transportType
+            );
+        }
+
+        /// <summary>
+        /// Prints the exception message and stacktrace for exception (and all inner exceptions) in test output
+        /// </summary>
+        /// <param name="e">Exception to be printed</param>
+        /// <param name="outputHelper">XUnit Test OutputHelper instance or null (no print in this case)</param>
+        private static void PrettyPrintException(Exception e, ITestOutputHelper outputHelper) {
+
+            var exception = e;
+            while (exception != null) {
+                outputHelper.WriteLine(exception.Message);
+                outputHelper.WriteLine(exception.StackTrace);
+                outputHelper.WriteLine("");
+                exception = exception.InnerException;
+            }
+        }
+
+        /// <summary>
+        /// Call a direct method
+        /// </summary>
+        /// <param name="serviceClient">Device service client</param>
+        /// <param name="deviceId">Device Id</param>
+        /// <param name="moduleId">Module Id</param>
+        /// <param name="parameters">Method parameter </param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        public static async Task<MethodResultModel> CallMethodAsync(ServiceClient serviceClient, string deviceId, string moduleId,
+            MethodParameterModel parameters, IIoTPlatformTestContext context, CancellationToken ct) {
+            var attempt = 0;
+            while (true) {
+                try {
+                    var methodInfo = new CloudToDeviceMethod(parameters.Name);
+                    methodInfo.SetPayloadJson(parameters.JsonPayload);
+                    var result = await (string.IsNullOrEmpty(moduleId) ?
+                         serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
+                         serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct));
+                    context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
+                    return new MethodResultModel {
+                        JsonPayload = result.GetPayloadAsJson(),
+                        Status = result.Status
+                    };
+                }
+                catch (Exception e) {
+                    context.OutputHelper.WriteLine($"Failed to call method {parameters.Name} with {parameters.JsonPayload}");
+                    if (e.Message.Contains("The operation failed because the requested device isn't online") && ++attempt < 60) {
+                        context.OutputHelper.WriteLine("Device is not online, trying again to call device after delay...");
+                        await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
+                        continue;
+                    }
+                    PrettyPrintException(e, context.OutputHelper);
+                    throw;
+                }
+            }
+        }
+
+		private static readonly JsonSerializer kSerializer = new JsonSerializer();
     }
 }

@@ -51,7 +51,7 @@ steps:
 
 - task: AzureKeyVault@1
   displayName: 'Retrieve KeyVault secrets for API tests'
-  condition: ne( '${{ parameters.ModeValue }}', 'standalone')
+  condition: notIn( '${{ parameters.ModeValue }}', 'standalone', 'AE')
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'

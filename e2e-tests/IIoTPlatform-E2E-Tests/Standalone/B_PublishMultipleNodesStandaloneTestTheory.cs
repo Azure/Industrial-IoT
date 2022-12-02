@@ -67,7 +67,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             await TestHelper.PublishNodesAsync(
                 _context,
-                TestConstants.PublishedNodesFullName,
                 new[] { nodesToPublish }
             ).ConfigureAwait(false);
 
@@ -125,7 +124,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(
                 _context,
-                TestConstants.PublishedNodesFullName,
                 Array.Empty<PublishedNodesEntryModel>()
             ).ConfigureAwait(false);
 

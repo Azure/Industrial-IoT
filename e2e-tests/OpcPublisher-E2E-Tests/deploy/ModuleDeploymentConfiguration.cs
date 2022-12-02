@@ -3,10 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Deploy {
-
-    using IIoTPlatform_E2E_Tests.Deploy;
-    using IIoTPlatform_E2E_Tests.TestExtensions;
+namespace OpcPublisher_AE_E2E_Tests.Deploy {
+    using TestExtensions;
 
     /// <summary>
     /// Configuration that corresponds to a module deployment.

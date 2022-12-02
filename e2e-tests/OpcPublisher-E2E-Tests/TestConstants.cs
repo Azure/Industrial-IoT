@@ -230,5 +230,45 @@ namespace OpcPublisher_AE_E2E_Tests {
             /// </summary>
             public const string PublisherModeStandaloneTraitValue = "standaloneX";
         }
+
+        /// <summary>
+        /// Direct Method names
+        /// </summary>
+        internal static class DirectMethodNames {
+            /// <summary>
+            /// Publish Nodes
+            /// </summary>
+            public const string PublishNodes = "PublishNodes_V1";
+
+            /// <summary>
+            /// Unpublish Nodes
+            /// </summary>
+            public const string UnpublishNodes = "UnpublishNodes_V1";
+
+            /// <summary>
+            /// GetConfiguredNodesOnEndpoint
+            /// </summary>
+            public const string GetConfiguredNodesOnEndpoint = "GetConfiguredNodesOnEndpoint_V1";
+
+            /// <summary>
+            /// GetConfiguredEndpoints
+            /// </summary>
+            public const string GetConfiguredEndpoints = "GetConfiguredEndpoints_V1";
+
+            /// <summary>
+            /// UnpublishAllNodes
+            /// </summary>
+            public const string UnpublishAllNodes = "UnpublishAllNodes_V1";
+
+            /// <summary>
+            /// GetDiagnosticInfo
+            /// </summary>
+            public const string GetDiagnosticInfo = "GetDiagnosticInfo_V1";
+
+            /// <summary>
+            /// AddOrUpdateEndpoints
+            /// </summary>
+            public const string AddOrUpdateEndpoints = "AddOrUpdateEndpoints_V1";
+        }
     }
 }

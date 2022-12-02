@@ -9,7 +9,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestExtensions {
     /// <summary>
     /// Test context to pass data between test cases for standalone tests.
     /// </summary>
-    public class IIoTStandaloneTestContext : IIoTMultipleNodesTestContext {
+    public class IIoTStandaloneTestContext : IIoTPlatformTestContext {
 
         /// <summary>
         /// Deployment for edgeHub and edgeAgent so called "base deployment"
@@ -19,7 +19,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestExtensions {
         /// <summary>
         /// Deployment for OPC Publisher as standalone
         /// </summary>
-        public readonly IIoTHubEdgeDeployment IoTHubPublisherDeployment;
+        public readonly ModuleDeploymentConfiguration IoTHubPublisherDeployment;
 
         /// <summary>
         /// Constructor of test context.
@@ -27,7 +27,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestExtensions {
         public IIoTStandaloneTestContext() {
             // Create deployments.
             IoTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(this);
-            IoTHubPublisherDeployment = new IoTHubPublisherDeployment(this);
+            IoTHubPublisherDeployment = new IoTHubPublisherDeployment(this, MessagingMode.PubSub);
         }
     }
 }

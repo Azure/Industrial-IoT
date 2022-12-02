@@ -5,9 +5,10 @@
 
 namespace OpcPublisher_AE_E2E_Tests.TestModels {
     using System.Collections.Generic;
+    using Newtonsoft.Json;
 
-    /// <summary>Message sent by Publisher to IoT Hub.</summary>
-    /// <typeparam name="T">Payload type.</typeparam>
-    public class PubSubMessages<T> : Dictionary<string, T> where T : BaseEventTypePayload {
+    public class PendingAlarmMessages<T> where T : BaseEventTypePayload {
+        [JsonProperty("i=2253")]
+        public List<T> PendingMessages { get; set; }
     }
 }

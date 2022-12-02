@@ -18,8 +18,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
-    public class C_PendingAlarmTestTheory : DynamicAciTestBase {
-        public C_PendingAlarmTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
+    public class D_AlarmDirectMethodTestTheory : DynamicAciTestBase {
+        public D_AlarmDirectMethodTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
         : base(context, output) {
         }
 
@@ -37,11 +37,13 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
-            TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView());
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
+                TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView());
+            await PublishNodesAsync(pnJson, _timeoutToken);
+
             // take any message
             var ev = await messages
                 .FirstAsync(_timeoutToken);
+            await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
             ValidatePendingAlarmsView(ev);

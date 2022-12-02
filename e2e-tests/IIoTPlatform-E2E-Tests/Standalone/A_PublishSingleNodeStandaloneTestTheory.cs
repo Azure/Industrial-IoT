@@ -63,7 +63,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             await TestHelper.PublishNodesAsync(
                 _context,
-                TestConstants.PublishedNodesFullName,
                 new[] { model }
             ).ConfigureAwait(false);
 
@@ -106,7 +105,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(
                 _context,
-                TestConstants.PublishedNodesFullName,
                 Array.Empty<PublishedNodesEntryModel>()
             ).ConfigureAwait(false);
 
@@ -129,7 +127,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token, DataChangeTriggerType.Status);
             await TestHelper.PublishNodesAsync(
                 _context,
-                TestConstants.PublishedNodesFullName,
                 new[] { model }
             ).ConfigureAwait(false);
 
@@ -151,7 +148,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(
                 _context,
-                TestConstants.PublishedNodesFullName,
                 Array.Empty<PublishedNodesEntryModel>()
             ).ConfigureAwait(false);
 
@@ -162,7 +158,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token, DataChangeTriggerType.StatusValueTimestamp);
             await TestHelper.PublishNodesAsync(
                 _context,
-                TestConstants.PublishedNodesFullName,
                 new[] { model }
             ).ConfigureAwait(false);
 

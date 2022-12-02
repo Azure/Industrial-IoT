@@ -4,10 +4,9 @@
 // ------------------------------------------------------------
 
 namespace OpcPublisher_AE_E2E_Tests.TestModels {
-    using System.Collections.Generic;
+    public class PendingAlarmEventData<T> where T : BaseEventTypePayload {
+        public bool IsPayloadCompressed { get; set; }
 
-    /// <summary>Message sent by Publisher to IoT Hub.</summary>
-    /// <typeparam name="T">Payload type.</typeparam>
-    public class PubSubMessages<T> : Dictionary<string, T> where T : BaseEventTypePayload {
+        public PendingAlarmMessages<T> Messages { get; set; }
     }
 }
