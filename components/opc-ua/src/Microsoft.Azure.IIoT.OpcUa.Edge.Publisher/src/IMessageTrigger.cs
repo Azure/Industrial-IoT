@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// The number of all eventChange Notifications
         /// that have been invoked by this message source.
         /// </summary>
-        ulong EventChangesCount { get; }
+        ulong EventCount { get; }
 
         /// <summary>
         /// The number of all dataChange Notifications
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// The number of all monitored items event value changes
         /// that have been invoked by this message source.
         /// </summary>
-        ulong EventValueChangesCount { get; }
+        ulong EventNotificationCount { get; }
 
         /// <summary>
         /// Writer events

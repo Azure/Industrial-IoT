@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Simple attribute operand model
+    /// Pending alarm handling options model
     /// </summary>
     [DataContract]
     public class PendingAlarmsOptionsApiModel {

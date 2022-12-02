@@ -158,10 +158,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public ulong EventValueChangesCount { get; private set; } = 0;
+        public ulong EventNotificationCount { get; private set; }
 
         /// <inheritdoc/>
-        public ulong EventChangesCount { get; private set; } = 0;
+        public ulong EventCount { get; private set; }
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
@@ -513,19 +513,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <param name="notificationCount"></param>
             private void OnSubscriptionEventDiagnosticsChanged(object sender, int notificationCount) {
                 lock (_lock) {
-                    if (_outer.EventChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
-                        _outer.EventValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
+                    if (_outer.EventCount >= kNumberOfInvokedMessagesResetThreshold ||
+                        _outer.EventNotificationCount >= kNumberOfInvokedMessagesResetThreshold) {
                         // reset both
                         _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
                             "So far, {EventChangesCount} event changes and {EventValueChangesCount}" +
                             " event value changes were invoked by message source.",
-                            _outer.EventChangesCount, _outer.EventValueChangesCount);
-                        _outer.EventChangesCount = 0;
-                        _outer.EventValueChangesCount = 0;
+                            _outer.EventCount, _outer.EventNotificationCount);
+                        _outer.EventCount = 0;
+                        _outer.EventNotificationCount = 0;
                     }
 
-                    _outer.EventValueChangesCount += (ulong)notificationCount;
-                    _outer.EventChangesCount++;
+                    _outer.EventNotificationCount += (ulong)notificationCount;
+                    _outer.EventCount++;
                 }
             }
 
