@@ -198,7 +198,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestExtensions {
             () => throw new Exception("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
         string IOpcPlcConfig.TenantId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
-            () => throw new Exception("Tenant Id is not provided."));
+            () => GetStringOrDefault("AZURE_TENANT_ID", () => throw new Exception("Tenant Id is not provided.")));
 
         string IOpcPlcConfig.ResourceGroupName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_RESOURCE_GROUP,
             () => throw new Exception("Resource Group Name is not provided."));

@@ -418,10 +418,25 @@ namespace OpcPublisher_AE_E2E_Tests {
                 return context.AzureContext;
             }
 
-            var defaultAzureCredential = new DefaultAzureCredential();
+            context.OutputHelper.WriteLine($"TenantId: {context.OpcPlcConfig.TenantId}");
+            context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
+            context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
+            context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
+
+            var options = new DefaultAzureCredentialOptions {
+                TenantId = context.OpcPlcConfig.TenantId,
+            };
+            //options.AdditionallyAllowedTenants.Add("*");
+
+            var defaultAzureCredential = new DefaultAzureCredential(options);
             var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
                 new[] { "https://management.azure.com//.default" }, tenantId: context.OpcPlcConfig.TenantId), cancellationToken);
+
+            context.OutputHelper.WriteLine($"Received Token {accessToken.Token}");
+
             var tokenCredentials = new TokenCredentials(accessToken.Token);
+            var azureCredentials = new AzureCredentials(tokenCredentials, tokenCredentials, context.OpcPlcConfig.TenantId,
+                AzureEnvironment.AzureGlobalCloud);
 
             IAzure azure;
 
@@ -429,18 +444,14 @@ namespace OpcPublisher_AE_E2E_Tests {
                 azure = Azure
                     .Configure()
                     .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                    .Authenticate(new AzureCredentials(tokenCredentials,
-                                                        tokenCredentials, context.OpcPlcConfig.TenantId,
-                                                        AzureEnvironment.AzureGlobalCloud))
+                    .Authenticate(azureCredentials)
                     .WithDefaultSubscription();
             }
             else {
                 azure = Azure
                     .Configure()
                     .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                    .Authenticate(new AzureCredentials(tokenCredentials,
-                                                        tokenCredentials, context.OpcPlcConfig.TenantId,
-                                                        AzureEnvironment.AzureGlobalCloud))
+                    .Authenticate(azureCredentials)
                     .WithSubscription(context.OpcPlcConfig.SubscriptionId);
             }
 
