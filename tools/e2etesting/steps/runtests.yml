@@ -133,6 +133,6 @@ steps:
     NESTED_EDGE_SSH_CONNECTIONS: "$(NestedEdgeSshConnection)"
     PCS_SUBSCRIPTION_ID: '$(PCS-SUBSCRIPTION-ID)'
     PCS_RESOURCE_GROUP: '$(ResourceGroupName)'
-    AZURE_CLIENT_ID: "$($ServicePrincipalId)"
-    AZURE_CLIENT_SECRET: "$($ServicePrincipalKey)"
-    AZURE_TENANT_ID: "$($pcs-auth-tenant)"
+    AZURE_CLIENT_ID: "$(ServicePrincipalId)"
+    AZURE_CLIENT_SECRET: "$(ServicePrincipalKey)"
+    AZURE_TENANT_ID: "$(pcs-auth-tenant)"
