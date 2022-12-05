@@ -1801,7 +1801,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
                 }
-                else if (values == null || HasEventId(values)) {
+                else {
                     message.Notifications?.Add(monitoredItemNotification);
                 }
             }
@@ -1856,7 +1856,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     notifications = PendingAlarmEvents.Values
                         .Select(x => x.Value.Value)
                         .OfType<ExtensionObject>()
-                        .Where(e => e.Body is EncodeableDictionary fields && HasEventId(fields))
                         .ToArray();
                     sequenceNumber = ++_pendingAlarmsSequenceNumber;
                     EventTemplate.PendingAlarms.Dirty = false;
@@ -1884,11 +1883,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 };
                 message.Notifications.Add(pendingAlarmsNotification);
                 (Item.Subscription?.Handle as SubscriptionWrapper)?.SendMessage(message);
-            }
-
-            private static bool HasEventId(EncodeableDictionary values) {
-                var eventId = values.FirstOrDefault(kv => kv.Key == "EventId");
-                return (eventId?.Value?.Value) != null;
             }
 
             private void ParseFields(INodeCache nodeCache, List<QualifiedName> fieldNames, Node node, string browsePathPrefix = "") {
