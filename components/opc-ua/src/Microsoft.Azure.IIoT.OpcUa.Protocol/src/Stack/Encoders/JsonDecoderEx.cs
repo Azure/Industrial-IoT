@@ -566,6 +566,9 @@ namespace Opc.Ua.Encoders {
             if (enumType == null) {
                 throw new ArgumentNullException(nameof(enumType));
             }
+            if (!enumType.IsEnum) {
+                throw new ArgumentException("Not an enum type", nameof(enumType));
+            }
             if (!TryGetToken(property, out var token)) {
                 return (Enum)Enum.ToObject(enumType, 0); // or null?
             }

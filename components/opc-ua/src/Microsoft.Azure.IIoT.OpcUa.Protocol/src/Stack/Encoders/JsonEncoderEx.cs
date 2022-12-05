@@ -962,15 +962,25 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteEnumeratedArray(string property, Array values, Type systemType) {
-            if (values == null || values.Length == 0) {
+        public void WriteEnumeratedArray(string property, Array values, Type enumType) {
+            if (values == null) {
                 WriteNull(property);
             }
             else {
                 PushArray(property, values.Length);
                 // encode each element in the array.
-                foreach (Enum value in values) {
-                    WriteEnumerated(null, value);
+                if (enumType.IsEnum) {
+                    foreach (Enum value in values) {
+                        WriteEnumerated(null, value);
+                    }
+                }
+                else if (enumType == typeof(int)) {
+                    foreach (int value in values) {
+                        WriteInt32(null, value);
+                    }
+                }
+                else {
+                    throw new ArgumentException("Not an enum type", nameof(enumType));
                 }
                 PopArray();
             }
