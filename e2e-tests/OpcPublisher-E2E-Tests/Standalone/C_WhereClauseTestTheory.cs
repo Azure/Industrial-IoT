@@ -15,9 +15,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
-    [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
-    public class C_WhereClauseTestTheory : DynamicAciTestBase {
+    public class C_WhereClauseTestTheory : DynamicAciTestBase, IClassFixture<IIoTStandaloneTestContext> {
         public C_WhereClauseTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }

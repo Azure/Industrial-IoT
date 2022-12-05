@@ -31,7 +31,7 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <summary>
         /// Maximum timeout for a test case
         /// </summary>
-        public const int MaxTestTimeoutMilliseconds = 25 * 60 * 1000;
+        public const int MaxTestTimeoutMilliseconds = 10 * 60 * 1000;
 
         /// <summary>
         /// Name of Published Nodes Json used by publisher module

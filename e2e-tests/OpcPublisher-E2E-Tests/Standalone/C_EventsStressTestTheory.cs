@@ -18,9 +18,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     /// The test theory submitting a high load of event messages
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
-    [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
-    public class C_EventsStressTestTheory : DynamicAciTestBase {
+    public class C_EventsStressTestTheory : DynamicAciTestBase, IClassFixture<IIoTStandaloneTestContext> {
         public C_EventsStressTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
             : base(context, output) {
         }
