@@ -19,10 +19,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
     /// </summary>
     [Collection(ReadCollection.Name)]
-    public class BasicIntegrationTests : PublisherIntegrationTestBase {
+    public class BasicSamplesIntegrationTests : PublisherIntegrationTestBase {
         private readonly ITestOutputHelper _output;
 
-        public BasicIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture) {
+        public BasicSamplesIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture) {
             _output = output;
         }
 
@@ -46,9 +46,28 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             var messages = await ProcessMessagesAsync(@"./PublishedNodes/SimpleEvents.json").ConfigureAwait(false);
 
             // Assert
-            Assert.Single(messages);
-            Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
-            Assert.NotEmpty(messages[0].RootElement[0].GetProperty("Value").GetProperty("EventId").GetString());
+            var message = Assert.Single(messages).RootElement[0];
+            Assert.Equal("i=2253", message.GetProperty("NodeId").GetString());
+            Assert.False(message.TryGetProperty("ApplicationUri", out _));
+            Assert.False(message.TryGetProperty("Timestamp", out _));
+            Assert.False(message.TryGetProperty("SequenceNumber", out _));
+            Assert.NotEmpty(message.GetProperty("Value").GetProperty("EventId").GetString());
+        }
+
+        [Fact]
+        public async Task CanSendEventToIoTHubTestFulLFeaturedMessage() {
+            // Arrange
+            // Act
+            var messages = await ProcessMessagesAsync(@"./PublishedNodes/SimpleEvents.json",
+                arguments: new string[] {"--fm=True"}).ConfigureAwait(false);
+
+            // Assert
+            var message = Assert.Single(messages).RootElement[0];
+            Assert.Equal("i=2253", message.GetProperty("NodeId").GetString());
+            Assert.NotEmpty(message.GetProperty("ApplicationUri").GetString());
+            Assert.NotEmpty(message.GetProperty("Timestamp").GetString());
+            Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
+            Assert.NotEmpty(message.GetProperty("Value").GetProperty("EventId").GetString());
         }
 
         [Fact]
@@ -72,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         [Fact]
         public async Task CanSendDataItemToIoTHubTestWithDeviceMethod() {
             var testInput = GetEndpointsFromFile(@"./PublishedNodes/DataItems.json");
-            await StartPublisherAsync();
+            await StartPublisherAsync(arguments: new string[] { "--fm=True" });
             try {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
                 Assert.Empty(endpoints.Endpoints);

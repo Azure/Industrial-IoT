@@ -113,27 +113,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
             });
-        }
 
-        [Theory]
-        [InlineData(@"./PublishedNodes/SimpleEvents.json")]
-        public async Task CanDecodeWithReversibleEncodingTest(string publishedNodesFile) {
-            // Arrange
-            // Act
-            var result = await ProcessMessagesAsync(
-                publishedNodesFile,
-                arguments: new[] { "--mm=PubSub", "--UseReversibleEncoding=True" }
-            ).ConfigureAwait(false);
-
-            Assert.Single(result);
-
-            var messages = result
-                .SelectMany(x => x.RootElement.EnumerateArray())
-                .SelectMany(x => x.GetProperty("Messages").EnumerateArray())
-                .ToArray();
-
-            // Assert
-            Assert.NotEmpty(messages);
             Assert.All(messages, m => {
                 var json = m.GetProperty("Payload")
                     .GetProperty("SimpleEvents")
@@ -158,6 +138,73 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     Assert.Null(eof);
                 }
             });
+        }
+
+        [Theory]
+        [InlineData(@"./PublishedNodes/SimpleEvents.json")]
+        public async Task CanEncodeWithReversibleEncodingSamplesTest(string publishedNodesFile) {
+            // Arrange
+            // Act
+            var result = await ProcessMessagesAsync(
+                publishedNodesFile,
+                arguments: new[] { "--mm=Samples", "--UseReversibleEncoding=True" }
+            ).ConfigureAwait(false);
+
+            var m = Assert.Single(result).RootElement[0];
+
+            var value = m.GetProperty("Value");
+            var type = value.GetProperty("Type").GetString();
+            var body = value.GetProperty("Body");
+            Assert.Equal("ExtensionObject", type);
+
+            var typeId = body.GetProperty("TypeId").GetString();
+            var encoding = body.GetProperty("Encoding").GetString();
+            body = body.GetProperty("Body");
+            Assert.Equal("http://microsoft.com/Industrial-IoT/OpcPublisher#i=1", typeId);
+            Assert.Equal("Json", encoding);
+
+            var eventId = body.GetProperty(kEventId);
+            Assert.Equal("ByteString", eventId.GetProperty("Type").GetString());
+            Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
+
+            var message = body.GetProperty(kMessage);
+            Assert.Equal("LocalizedText", message.GetProperty("Type").GetString());
+            Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
+            Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
+
+            var cycleId = body.GetProperty(kCycleId);
+            Assert.Equal("String", cycleId.GetProperty("Type").GetString());
+            Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
+
+            var currentStep = body.GetProperty(kCurrentStep);
+            body = currentStep.GetProperty("Body");
+            Assert.Equal("ExtensionObject", currentStep.GetProperty("Type").GetString());
+            Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", body.GetProperty("TypeId").GetString());
+            Assert.Equal("Json", body.GetProperty("Encoding").GetString());
+            Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
+            Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
+
+            var json = value
+                        .GetProperty("Body")
+                        .GetProperty("Body")
+                        .GetRawText();
+            var buffer = Encoding.UTF8.GetBytes(json);
+
+            var serviceMessageContext = new ServiceMessageContext();
+            serviceMessageContext.Factory.AddEncodeableType(typeof(EncodeableDictionary));
+
+            using (var stream = new MemoryStream(buffer)) {
+                using var decoder = new JsonDecoderEx(stream, serviceMessageContext);
+                var actual = new EncodeableDictionary();
+                actual.Decode(decoder);
+
+                Assert.Equal(4, actual.Count);
+                Assert.Equal(new[] { kEventId, kMessage, kCycleId, kCurrentStep }, actual.Select(x => x.Key));
+                Assert.All(actual.Select(x => x.Value?.Value), Assert.NotNull);
+
+                var eof = decoder.ReadDataValue(null);
+                Assert.Null(eof);
+            }
         }
     }
 }

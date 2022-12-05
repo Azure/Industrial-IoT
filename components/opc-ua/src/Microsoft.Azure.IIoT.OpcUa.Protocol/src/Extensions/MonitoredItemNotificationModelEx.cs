@@ -80,7 +80,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 DisplayName = monitoredItem.DisplayName,
                 NodeId = handleId?.Template?.StartNodeId,
                 AttributeId = monitoredItem.AttributeId,
-                ClientHandle = notification.ClientHandle,
                 Value = notification.Value,
                 Overflow = notification.Value?.StatusCode.Overflow,
                 NotificationData = notification.Message == null || notification.Message.IsEmpty
@@ -118,7 +117,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 DisplayName = monitoredItem.DisplayName,
                 NodeId = handleId?.Template?.StartNodeId,
                 AttributeId = monitoredItem.AttributeId,
-                ClientHandle = eventFieldList.ClientHandle,
                 Value = ToDataValue(eventFieldList, monitoredItem),
                 NotificationData = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
                     ? null
@@ -135,7 +133,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 IsHeartbeat = false
             };
         }
-
 
         /// <summary>
         /// Convert to Datavalue

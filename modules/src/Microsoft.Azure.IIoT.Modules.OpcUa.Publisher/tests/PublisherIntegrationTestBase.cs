@@ -125,7 +125,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
                 && Events.TryTake(out var evt, messageCollectionTimeout)) {
                 messageCollectionTimeout -= stopWatch.Elapsed;
-                var document = JsonDocument.Parse(Encoding.UTF8.GetString(evt.Message.GetBytes()));
+                var json = Encoding.UTF8.GetString(evt.Message.GetBytes());
+                var document = JsonDocument.Parse(json);
+                json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
                 if (predicate != null && !predicate(document)) {
                     continue;
                 }

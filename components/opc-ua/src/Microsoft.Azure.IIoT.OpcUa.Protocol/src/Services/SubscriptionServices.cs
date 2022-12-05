@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Opc.Ua.Design;
     using Opc.Ua.Encoders;
     using Opc.Ua.Extensions;
     using Prometheus;
@@ -1076,7 +1075,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                         DisplayName = item?.Item?.DisplayName,
                                         NodeId = item?.Template?.StartNodeId,
                                         AttributeId = item.Item.AttributeId,
-                                        ClientHandle = item.Item.ClientHandle,
                                         Value = new DataValue(Variant.Null,
                                             item?.Item?.Status?.Error?.StatusCode ??
                                             StatusCodes.BadMonitoredItemIdInvalid),
@@ -1786,8 +1784,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (message == null) {
                     return;
                 }
-                if (pendingAlarmsOptions?.IsEnabled == true &&
-                    monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
+                var values = monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) as EncodeableDictionary;
+                if (pendingAlarmsOptions?.IsEnabled == true && values != null) {
                     if (pendingAlarmsOptions.ConditionIdIndex.HasValue && pendingAlarmsOptions.RetainIndex.HasValue) {
                         var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
                         var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue(false);
@@ -1803,7 +1801,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
                 }
-                else {
+                else if (values == null || HasEventId(values)) {
                     message.Notifications?.Add(monitoredItemNotification);
                 }
             }
@@ -1852,24 +1850,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Send pending alarms
             /// </summary>
             private void SendPendingAlarms() {
-                List<MonitoredItemNotificationModel> notifications = null;
+                ExtensionObject[] notifications = null;
+                uint sequenceNumber;
                 lock (_lock) {
-                    notifications = new List<MonitoredItemNotificationModel>(PendingAlarmEvents.Values);
+                    notifications = PendingAlarmEvents.Values
+                        .Select(x => x.Value.Value)
+                        .OfType<ExtensionObject>()
+                        .Where(e => e.Body is EncodeableDictionary fields && HasEventId(fields))
+                        .ToArray();
+                    sequenceNumber = ++_pendingAlarmsSequenceNumber;
                     EventTemplate.PendingAlarms.Dirty = false;
                 }
 
-                var firstNotification = notifications.FirstOrDefault();
                 var pendingAlarmsNotification = new MonitoredItemNotificationModel {
                     AttributeId = Item.AttributeId,
-                    ClientHandle = firstNotification?.ClientHandle ?? 0,
                     DiagnosticInfo = null,
                     DisplayName = Item.DisplayName,
                     Id = Item.DisplayName,
                     IsHeartbeat = false,
-                    SequenceNumber = null,
+                    SequenceNumber = sequenceNumber,
                     NodeId = Item.StartNodeId.ToString(),
                     StringTable = null,
-                    Value = new DataValue(notifications.Select(x => x.Value.Value).OfType<ExtensionObject>().ToArray())
+                    Value = new DataValue(notifications)
                 };
 
                 var message = new SubscriptionNotificationModel {
@@ -1882,6 +1884,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 };
                 message.Notifications.Add(pendingAlarmsNotification);
                 (Item.Subscription?.Handle as SubscriptionWrapper)?.SendMessage(message);
+            }
+
+            private static bool HasEventId(EncodeableDictionary values) {
+                var eventId = values.FirstOrDefault(kv => kv.Key == "EventId");
+                return (eventId?.Value?.Value) != null;
             }
 
             private void ParseFields(INodeCache nodeCache, List<QualifiedName> fieldNames, Node node, string browsePathPrefix = "") {
@@ -1904,6 +1911,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             private Timer _pendingAlarmsTimer;
             private DateTime _lastSentPendingAlarms = DateTime.UtcNow;
+            private uint _pendingAlarmsSequenceNumber;
             private HashSet<uint> _newTriggers = new HashSet<uint>();
             private HashSet<uint> _triggers = new HashSet<uint>();
             private Publisher.Models.MonitoringMode? _modeChange;

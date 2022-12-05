@@ -365,7 +365,9 @@ Returns a list of actual metrics for every endpoint (Dataset).
   >          "connectionRetries": 0,
   >          "opcEndpointConnected": true,
   >          "monitoredOpcNodesSucceededCount": 5,
-  >          "monitoredOpcNodesFailedCount": 0
+  >          "monitoredOpcNodesFailedCount": 0,
+             "ingressEventNotifications": 0,
+             "ingressEvents": 0
   >       }
   >    ]
   > }
