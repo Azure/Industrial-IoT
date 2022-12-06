@@ -2272,9 +2272,9 @@ In the below commands "`azure-industrial-iot`" is used as the namespace. Please 
 
    `helm get values azure-industrial-iot --namespace azure-industrial-iot > values.yaml`
 
-3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from `2.7.206` version to `2.8.3`.
+3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from `2.7.206` version to `2.8.4`.
 
-   Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to `2.8.3` from `2.7.206`. If there isn’t one, please add it.
+   Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to `2.8.4` from `2.7.206`. If there isn’t one, please add it.
 
 4. After that we can update the existing release with new images. For that we will use `values.yaml` that we modified previously:
 
@@ -2306,7 +2306,7 @@ Here are resources of a sample deployment:
 
 <img src="media/image52.png" style="width:6.29166in;height:2.54316in" />
 
-Then, go to one of those resources in Azure Portal, then to Container Settings under Settings on left pane, then change tag of the image specified in "Full Image Name and Tag" to the version that is desired, let’s say `2.8.3`, and then click on Save.
+Then, go to one of those resources in Azure Portal, then to Container Settings under Settings on left pane, then change tag of the image specified in "Full Image Name and Tag" to the version that is desired, let’s say `2.8.4`, and then click on Save.
 
 <img src="media/image53.png" style="width:6.29166in;height:4.23536in" />
 

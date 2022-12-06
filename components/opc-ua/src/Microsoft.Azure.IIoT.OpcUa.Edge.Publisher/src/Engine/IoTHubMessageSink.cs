@@ -98,9 +98,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             catch (Exception ex) {
                 _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
             }
-            finally {
-                messageObjects.ForEach(m => m.Dispose());
-            }
         }
 
         /// <summary>

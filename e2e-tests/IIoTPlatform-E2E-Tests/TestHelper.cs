@@ -4,7 +4,12 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
+    using IIoTPlatform_E2E_Tests.TestEventProcessor;
+    using Microsoft.Azure.Devices;
+    using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
     using Renci.SshNet;
     using RestSharp;
     using RestSharp.Authenticators;
@@ -20,15 +25,10 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
-    using Newtonsoft.Json.Converters;
     using TestExtensions;
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
-    using Microsoft.Azure.Devices;
-    using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using IIoTPlatform_E2E_Tests.TestEventProcessor;
 
     internal static partial class TestHelper {
 
@@ -210,35 +210,30 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
-        /// transfer the content of published_nodes.json file into the OPC Publisher edge module
+        /// Transfer the content of published_nodes.json file into the OPC Publisher edge module
         /// </summary>
-        /// <param name="entries">Entries for published_nodes.json</param>
+        /// <param name="json">String for published_nodes.json</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         public static async Task PublishNodesAsync(
+            string json,
             IIoTPlatformTestContext context,
-            string publishedNodesFullPath,
-            IEnumerable<PublishedNodesEntryModel> entries
+            CancellationToken ct = default
         ) {
-            context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
-            context.OutputHelper?.WriteLine(JsonConvert.SerializeObject(entries));
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
             using var scpClient = CreateScpClientAndConnect(context);
-            var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-
-            scpClient.Upload(stream, publishedNodesFullPath);
+            scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
             if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
                 using var sshCient = CreateSshClientAndConnect(context);
                 foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
                     if (edge != string.Empty) {
                         // Copy file to the edge vm
-                        var command = $"scp -oStrictHostKeyChecking=no {publishedNodesFullPath} {edge}:{TestConstants.PublishedNodesFilename}";
+                        var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
                         sshCient.RunCommand(command);
-
                         // Move file to the target folder with sudo permissions
-                        command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {publishedNodesFullPath}'";
+                        command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
                         sshCient.RunCommand(command);
                     }
                 }
@@ -246,28 +241,37 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
-        /// Clean published nodes JSON files for both legacy (2.5) and current (2.8) versions.
+        /// Transfer the content of published_nodes.json file into the OPC Publisher edge module
+        /// </summary>
+        /// <param name="entries">Entries for published_nodes.json</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        public static async Task PublishNodesAsync(
+            IIoTPlatformTestContext context,
+            IEnumerable<PublishedNodesEntryModel> entries,
+            CancellationToken ct = default
+        ) {
+            var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
+
+            context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
+            context.OutputHelper?.WriteLine(JsonConvert.SerializeObject(entries));
+
+            await PublishNodesAsync(json, context, ct);
+        }
+
+        /// <summary>
+        /// Clean published nodes JSON files.
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
         public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context) {
             // Make sure directories exist.
             using (var sshCient = CreateSshClientAndConnect(context)) {
-                sshCient.RunCommand($"[ ! -d { TestConstants.PublishedNodesFolder} ]" +
+                sshCient.RunCommand($"[ ! -d {TestConstants.PublishedNodesFolder} ]" +
                     $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
-                sshCient.RunCommand($"[ ! -d { TestConstants.PublishedNodesFolderLegacy} ]" +
-                    $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolderLegacy}");
             }
-
             await PublishNodesAsync(
                 context,
-                TestConstants.PublishedNodesFullName,
-                Array.Empty<PublishedNodesEntryModel>()
-            ).ConfigureAwait(false);
-
-            await PublishNodesAsync(
-                context,
-                TestConstants.PublishedNodesFullNameLegacy,
                 Array.Empty<PublishedNodesEntryModel>()
             ).ConfigureAwait(false);
         }
@@ -383,8 +387,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns></returns>
-        private static PrivateKeyFile GetPrivateSshKey(IIoTPlatformTestContext context)
-        {
+        private static PrivateKeyFile GetPrivateSshKey(IIoTPlatformTestContext context) {
             var buffer = Encoding.Default.GetBytes(context.SshConfig.PrivateKey);
             var privateKeyStream = new MemoryStream(buffer);
 
@@ -575,7 +578,7 @@ namespace IIoTPlatform_E2E_Tests {
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
                 }
             }
-            catch (OperationCanceledException) {}
+            catch (OperationCanceledException) { }
             catch (Exception e) {
                 context.OutputHelper?.WriteLine("Error: not all API microservices of IIoT " +
                     $"platform are in healthy state ({e.Message}).");
@@ -823,7 +826,7 @@ namespace IIoTPlatform_E2E_Tests {
                     };
                 }
                 catch (Exception e) {
-                    context.OutputHelper.WriteLine($"Method call {parameters.Name} failed.");
+                    context.OutputHelper.WriteLine($"Failed to call method {parameters.Name} with {parameters.JsonPayload}");
                     if (e.Message.Contains("The operation failed because the requested device isn't online") && ++attempt < 60) {
                         context.OutputHelper.WriteLine("Device is not online, trying again to call device after delay...");
                         await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);

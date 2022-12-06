@@ -19,13 +19,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="dataItems"></param>
         /// <returns></returns>
-        public static IEnumerable<MonitoredItemModel> ToMonitoredItems(
+        public static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
             this PublishedDataItemsModel dataItems) {
             if (dataItems?.PublishedData == null) {
-                return Enumerable.Empty<MonitoredItemModel>();
+                return Enumerable.Empty<BaseMonitoredItemModel>();
             }
 
-            var map = new Dictionary<string, MonitoredItemModel>();
+            var map = new Dictionary<string, BaseMonitoredItemModel>();
             foreach (var item in dataItems.PublishedData) {
                 if (item == null) {
                     continue;

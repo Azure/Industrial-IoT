@@ -16,6 +16,8 @@ steps:
     addSpnToEnvironment: true
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
+      Write-Host "##vso[task.setvariable variable=pcs-auth-tenant]$($env:tenantId)"
 
 - task: AzurePowerShell@5
   displayName: 'Set KeyVaultName-Variable'
@@ -45,11 +47,11 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
-    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,testeventprocessor-baseurl,testeventprocessor-username,testeventprocessor-password,iothub-eventhub-connectionstring,storageaccount-iothubcheckpoint-connectionstring'
+    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,testeventprocessor-baseurl,testeventprocessor-username,testeventprocessor-password,iothub-eventhub-connectionstring,storageaccount-iothubcheckpoint-connectionstring,PCS-SUBSCRIPTION-ID'
 
 - task: AzureKeyVault@1
   displayName: 'Retrieve KeyVault secrets for API tests'
-  condition: ne( '${{ parameters.ModeValue }}', 'standalone')
+  condition: notIn( '${{ parameters.ModeValue }}', 'standalone', 'AE')
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
@@ -97,7 +99,7 @@ steps:
     arguments: '--configuration Release'
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
-  timeoutInMinutes: 150
+  timeoutInMinutes: 180
   retryCountOnTaskFailure: 1
   inputs:
     command: test
@@ -122,10 +124,15 @@ steps:
     TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
     TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
     PCS_IMAGES_TAG: '$(ImageTag)'
-    PCS_CONTAINER_REGISTRY_SERVER: "$(ContainerRegistryServer)"
-    PCS_CONTAINER_REGISTRY_USER: "$(ContainerRegistryUsername)"
-    PCS_CONTAINER_REGISTRY_PASSWORD: "$(ContainerRegistryPassword)"
+    PCS_DOCKER_SERVER: "$(ContainerRegistryServer)"
+    PCS_DOCKER_USER: "$(ContainerRegistryUsername)"
+    PCS_DOCKER_PASSWORD: "$(ContainerRegistryPassword)"
     PCS_IMAGES_NAMESPACE: "$(ImageNamespace)"
     IOT_EDGE_VERSION: "$(EdgeVersion)"
     NESTED_EDGE_FLAG: "$(NestedEdgeFlag)"
     NESTED_EDGE_SSH_CONNECTIONS: "$(NestedEdgeSshConnection)"
+    PCS_SUBSCRIPTION_ID: '$(PCS-SUBSCRIPTION-ID)'
+    PCS_RESOURCE_GROUP: '$(ResourceGroupName)'
+    AZURE_CLIENT_ID: "$(ServicePrincipalId)"
+    AZURE_CLIENT_SECRET: "$(ServicePrincipalKey)"
+    AZURE_TENANT_ID: "$(pcs-auth-tenant)"

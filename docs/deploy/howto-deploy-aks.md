@@ -30,7 +30,7 @@
 
 `Microsoft.Azure.IIoT.Deployment` is a command line application for deploying the Azure Industrial IoT solution,
 which deploys the required Azure infrastructure resources and microservices required by the Azure Industrial IoT solution.
-By default, it deploys `2.8.3` version of Azure Industrial IoT microservices.
+By default, it deploys `2.8.4` version of Azure Industrial IoT microservices.
 
 The main difference between the [script based deployment](howto-deploy-all-in-one.md) option is that
 `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
@@ -477,7 +477,7 @@ Command line argument key-value pairs can be specified with:
 | `ResourceGroup:Region`           | Check bellow for list of supported Azure regions.   | Region where new Resource Group should be created.                                           |                                               |
 | `Helm:RepoUrl`                   | Should be URL.                                      | Helm repository URL for `azure-industrial-iot` Helm chart.                                   | `https://azure.github.io/Industrial-IoT/helm` |
 | `Helm:ChartVersion`              |                                                     | `azure-industrial-iot` Helm chart version to be deployed.                                    | `0.4.3`                                       |
-| `Helm:ImageTag`                  |                                                     | Docker image tag for Azure Industrial IoT components to be deployed.                         | `2.8.3`                                       |
+| `Helm:ImageTag`                  |                                                     | Docker image tag for Azure Industrial IoT components to be deployed.                         | `2.8.4`                                       |
 | `Helm:ImageNamespace`            |                                                     | Docker image namespace for Azure Industrial IoT components to be deployed.                   | `""`                                          |
 | `Helm:ContainerRegistryServer`   |                                                     | Docker container registry server to use for pulling images.                                  | `mcr.microsoft.com`                           |
 | `Helm:ContainerRegistryUsername` |                                                     | Username for Docker container registry.                                                      | `""`                                          |
@@ -626,7 +626,7 @@ Kubernetes Dashboard.
 [documentation](../../deploy/helm/azure-industrial-iot/README.md).
 
 By default, `Microsoft.Azure.IIoT.Deployment` deploys `0.4.3` version of `azure-industrial-iot` Helm chart
-with `2.8.3` version of Azure Industrial IoT components. Both chart version and components version can be
+with `2.8.4` version of Azure Industrial IoT components. Both chart version and components version can be
 changed using configuration parameters. Please check `Helm:ChartVersion` and `Helm:ImageTag` parameters for
 that.
 

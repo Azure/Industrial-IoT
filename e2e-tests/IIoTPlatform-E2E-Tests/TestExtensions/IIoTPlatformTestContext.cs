@@ -3,7 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-#nullable enable
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using Config;
     using Microsoft.Extensions.Configuration;
@@ -13,7 +12,8 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     /// <summary>
     /// Context to pass data between test cases
     /// </summary>
-    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig, IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig {
+    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig,
+		IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig {
 
         /// <summary>
         /// Configuration
@@ -29,27 +29,27 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <summary>
         /// Save the identifier of OPC server endpoints
         /// </summary>
-        public string? OpcUaEndpointId { get; set; }
+        public string OpcUaEndpointId { get; set; }
 
         /// <summary>
         /// Save the identfier of the opc ua application
         /// </summary>
-        public string? ApplicationId { get; set; }
+        public string ApplicationId { get; set; }
 
         /// <summary>
         /// Folder path where PublishedNodes file is saved during the test
         /// </summary>
-        public string? PublishedNodesFileInternalFolder { get; set; }
+        public string PublishedNodesFileInternalFolder { get; set; }
 
         /// <summary>
         /// Helper to write output, need to be set from constructor of test class
         /// </summary>
-        public ITestOutputHelper? OutputHelper { get; set; }
+        public ITestOutputHelper OutputHelper { get; set; }
 
         /// <summary>
         /// Gets or sets the OPC server url
         /// </summary>
-        public string? OpcServerUrl { get; set; }
+        public string OpcServerUrl { get; set; }
 
         /// <summary>
         /// IoT Device Configuration
@@ -118,7 +118,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        private string GetStringOrDefault(string key, Func<string>? defaultValue) {
+        private string GetStringOrDefault(string key, Func<string> defaultValue) {
             var value = Configuration.GetValue<string>(key);
             if (string.IsNullOrEmpty(value)) {
                 return defaultValue?.Invoke() ?? string.Empty;
@@ -153,7 +153,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             () => throw new Exception("IoT Hub EventHub connection string is not provided."));
 
         string IIoTHubConfig.CheckpointStorageConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING,
-            () => throw new Exception("IoT Hub Checkpoint Storage connection string is not provided."));
+        () => throw new Exception("IoT Hub Checkpoint Storage connection string is not provided."));
 
         string IIoTEdgeConfig.EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
             () => "1.4");
@@ -203,19 +203,19 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string ITestEventProcessorConfig.TestEventProcessorPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_PASSWORD,
             () => throw new Exception("Test Event Processor Password is not provided."));
 
-        string IContainerRegistryConfig.ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_SERVER,
+        string IContainerRegistryConfig.ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_SERVER,
             () => string.Empty);
 
-        string IContainerRegistryConfig.ContainerRegistryUser => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_USER,
+        string IContainerRegistryConfig.ContainerRegistryUser => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_USER,
             () => string.Empty);
 
-        string IContainerRegistryConfig.ContainerRegistryPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_PASSWORD,
+        string IContainerRegistryConfig.ContainerRegistryPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_PASSWORD,
             () => string.Empty);
 
         string IContainerRegistryConfig.ImagesNamespace => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_NAMESPACE,
             () => string.Empty);
 
         string IContainerRegistryConfig.ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
-            () => "latest" );
+            () => "latest");
     }
 }

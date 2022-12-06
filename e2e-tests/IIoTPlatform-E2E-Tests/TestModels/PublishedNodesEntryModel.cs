@@ -25,6 +25,7 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
         /// The Publishing interval for a dataset writer
         /// </summary>
         public int? DataSetPublishingInterval { get; set; }
+
         /// <summary>
         /// The endpoint URL of the OPC UA server.
         /// </summary>

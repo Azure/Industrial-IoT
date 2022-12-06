@@ -28,6 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 MaxMessageSize = model.Engine?.MaxMessageSize,
                 MaxOutgressMessages = model.Engine?.MaxOutgressMessages,
                 EnableRoutingInfo = model.Engine?.EnableRoutingInfo,
+                UseReversibleEncoding = model.Engine?.UseReversibleEncoding,
             };
         }
     }

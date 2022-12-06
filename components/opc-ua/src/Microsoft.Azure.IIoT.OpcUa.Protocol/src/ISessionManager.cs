@@ -36,9 +36,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Get or create session for subscription
         /// </summary>
         /// <param name="connection"></param>
-        /// <param name="createIfNotExists"></param>
+        /// <param name="ensureWorkingSession"></param>
         /// <returns></returns>
-        Session GetOrCreateSession(ConnectionModel connection, bool createIfNotExists);
+        Session GetOrCreateSession(ConnectionModel connection, bool ensureWorkingSession);
 
         /// <summary>
         /// Remove session if empty
