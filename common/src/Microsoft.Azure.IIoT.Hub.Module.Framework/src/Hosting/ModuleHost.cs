@@ -356,6 +356,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             // Process initial setting snapshot from twin
             var twin = await Client.GetTwinAsync();
+            if (twin == null) {
+                return;
+            }
             if (!string.IsNullOrEmpty(twin.DeviceId)) {
                 DeviceId = twin.DeviceId;
             }
