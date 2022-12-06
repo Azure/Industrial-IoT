@@ -137,7 +137,8 @@ The pki path can be configured using the `PkiRootPath` command line argument.
 
 By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
 
-#### Use custom OPC UA application instance certificate in OPC Publisher
+### Use custom OPC UA application instance certificate in OPC Publisher
+
 One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
 
 Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the ApplicationCertificateSubjectName like in the example below.

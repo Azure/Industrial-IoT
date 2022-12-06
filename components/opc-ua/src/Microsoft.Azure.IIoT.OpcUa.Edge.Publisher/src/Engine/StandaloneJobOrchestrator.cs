@@ -854,7 +854,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // when no endpoint is specified remove all the configuration
             // purge content feature is implemented to ensure the backwards compatibility
             // with V2.5.x of the publisher
-            var purge = null == request.EndpointUrl;
+            var purge = null == request?.EndpointUrl;
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
                 if (!purge) {

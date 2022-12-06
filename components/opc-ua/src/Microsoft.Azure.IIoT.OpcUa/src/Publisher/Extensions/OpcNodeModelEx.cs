@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
     using System.Collections.Generic;
 
@@ -65,8 +66,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             if (model.QueueSize != that.QueueSize) {
                 return false;
             }
-            
+
             if (model.DataChangeTrigger != that.DataChangeTrigger) {
+                return false;
+            }
+
+            if (!model.EventFilter.IsSameAs(that.EventFilter)) {
                 return false;
             }
 

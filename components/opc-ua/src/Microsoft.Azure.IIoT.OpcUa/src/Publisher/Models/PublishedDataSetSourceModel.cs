@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Or published events data
         /// </summary>
-        public PublishedDataSetEventsModel PublishedEvents { get; set; }
+        public PublishedEventItemsModel PublishedEvents { get; set; }
 
         /// <summary>
         /// Connection information (publisher extension)

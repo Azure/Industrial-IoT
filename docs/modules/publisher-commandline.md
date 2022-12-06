@@ -6,7 +6,6 @@ The following OPC Publisher configuration can be applied by Command Line Interfa
 The `Alternative` field, where present, refers to the CLI argument applicable in **standalone mode only**.
  When both environment variable and CLI argument are provided, the latest will overrule the env variable.
 
-
             PublishedNodesFile=VALUE
                                       The file used to store the configuration of the nodes to be published
                                       along with the information to connect to the OPC UA server sources
@@ -447,11 +446,21 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: false
 
             EnableRoutingInfo=VALUE
-                                      Adds the routing info to telemetry messages. The name of the property is 
+                                      Adds the routing info to telemetry messages. The name of the property is
                                       `$$RoutingInfo` and the value is the `DataSetWriterGroup` for that particular message.
                                       When the `DataSetWriterGroup` is not configured, the `$$RoutingInfo` property will
-                                      not be added to the message even if this argument is set. 
+                                      not be added to the message even if this argument is set.
                                       Alternative: --ri, --enableroutinginfo
+                                      Mode: Standalone
+                                      Type: boolean
+                                      Default: false
+                                      
+            UseReversibleEncoding=VALUE
+                                      Use reversible encoding in JSON encoders.
+                                      Alternative:
+                                      Mode: Standalone and Orchestrated
+                                      Type: boolean
+                                      Default: false
                                       Mode: Standalone only
                                       Type: boolean
                                       Default: false

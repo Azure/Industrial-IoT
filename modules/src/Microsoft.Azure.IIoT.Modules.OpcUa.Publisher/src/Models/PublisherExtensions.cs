@@ -84,6 +84,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
+                DataChangeTrigger = (IIoT.OpcUa.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
+                EventFilter = model.EventFilter.ToServiceModel()
             };
         }
 
@@ -163,6 +165,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
+                DataChangeTrigger = (DataChangeTriggerType?)model.DataChangeTrigger,
+                EventFilter = model.EventFilter.ToApiModel()
             };
         }
 
@@ -185,39 +189,49 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         }
 
         /// <summary>
-        /// Create an api model from service model ignoring the password
+        /// Create an api model from service model
         /// </summary>
         public static List<DiagnosticInfoApiModel> ToApiModel(
             this List<JobDiagnosticInfoModel> model) {
             if (model == null) {
                 return null;
             }
+            return model.Select(e => e.ToApiModel()).ToList();
+        }
 
-            return model.Select(e => new DiagnosticInfoApiModel {
-                Endpoint = e.Endpoint.ToApiModel(),
-                SentMessagesPerSec = e.SentMessagesPerSec,
-                IngestionDuration = e.IngestionDuration,
-                IngressDataChanges = e.IngressDataChanges,
-                IngressValueChanges = e.IngressValueChanges,
-                IngressBatchBlockBufferSize = e.IngressBatchBlockBufferSize,
-                EncodingBlockInputSize = e.EncodingBlockInputSize,
-                EncodingBlockOutputSize = e.EncodingBlockOutputSize,
-                EncoderNotificationsProcessed = e.EncoderNotificationsProcessed,
-                EncoderNotificationsDropped = e.EncoderNotificationsDropped,
-                EncoderIoTMessagesProcessed = e.EncoderIoTMessagesProcessed,
-                EncoderAvgNotificationsMessage = e.EncoderAvgNotificationsMessage,
-                EncoderAvgIoTMessageBodySize = e.EncoderAvgIoTMessageBodySize,
-                EncoderAvgIoTChunkUsage = e.EncoderAvgIoTChunkUsage,
-                EstimatedIoTChunksPerDay = e.EstimatedIoTChunksPerDay,
-                OutgressBatchBlockBufferSize = e.OutgressBatchBlockBufferSize,
-                OutgressInputBufferCount = e.OutgressInputBufferCount,
-                OutgressInputBufferDropped = e.OutgressInputBufferDropped,
-                OutgressIoTMessageCount = e.OutgressIoTMessageCount,
-                ConnectionRetries = e.ConnectionRetries,
-                OpcEndpointConnected = e.OpcEndpointConnected,
-                MonitoredOpcNodesSucceededCount = e.MonitoredOpcNodesSucceededCount,
-                MonitoredOpcNodesFailedCount = e.MonitoredOpcNodesFailedCount,
-            }).ToList();
+        /// <summary>
+        /// Create an api model from service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static DiagnosticInfoApiModel ToApiModel(this JobDiagnosticInfoModel model) {
+            return new DiagnosticInfoApiModel {
+                Endpoint = model.Endpoint.ToApiModel(),
+                SentMessagesPerSec = model.SentMessagesPerSec,
+                IngestionDuration = model.IngestionDuration,
+                IngressDataChanges = model.IngressDataChanges,
+                IngressValueChanges = model.IngressValueChanges,
+                IngressBatchBlockBufferSize = model.IngressBatchBlockBufferSize,
+                EncodingBlockInputSize = model.EncodingBlockInputSize,
+                EncodingBlockOutputSize = model.EncodingBlockOutputSize,
+                EncoderNotificationsProcessed = model.EncoderNotificationsProcessed,
+                EncoderNotificationsDropped = model.EncoderNotificationsDropped,
+                EncoderIoTMessagesProcessed = model.EncoderIoTMessagesProcessed,
+                EncoderAvgNotificationsMessage = model.EncoderAvgNotificationsMessage,
+                EncoderAvgIoTMessageBodySize = model.EncoderAvgIoTMessageBodySize,
+                EncoderAvgIoTChunkUsage = model.EncoderAvgIoTChunkUsage,
+                EstimatedIoTChunksPerDay = model.EstimatedIoTChunksPerDay,
+                OutgressBatchBlockBufferSize = model.OutgressBatchBlockBufferSize,
+                OutgressInputBufferCount = model.OutgressInputBufferCount,
+                OutgressInputBufferDropped = model.OutgressInputBufferDropped,
+                OutgressIoTMessageCount = model.OutgressIoTMessageCount,
+                ConnectionRetries = model.ConnectionRetries,
+                OpcEndpointConnected = model.OpcEndpointConnected,
+                MonitoredOpcNodesSucceededCount = model.MonitoredOpcNodesSucceededCount,
+                MonitoredOpcNodesFailedCount = model.MonitoredOpcNodesFailedCount,
+                IngressEventNotifications = model.IngressEventNotifications,
+                IngressEvents = model.IngressEvents
+            };
         }
     }
 }

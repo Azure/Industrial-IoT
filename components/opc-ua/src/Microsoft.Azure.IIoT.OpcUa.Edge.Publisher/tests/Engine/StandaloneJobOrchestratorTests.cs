@@ -581,6 +581,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         }
 
         [Theory]
+        [InlineData("Engine/pn_events.json")]
+        [InlineData("Engine/pn_pending_alarms.json")]
         [InlineData("Engine/empty_pn.json")]
         [InlineData("Engine/pn_assets.json")]
         [InlineData("Engine/pn_assets_with_optional_fields.json")]

@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Monitored items in the subscription
         /// </summary>
-        public List<MonitoredItemModel> MonitoredItems { get; set; }
+        public List<BaseMonitoredItemModel> MonitoredItems { get; set; }
 
         /// <summary>
         /// Extra fields in each message

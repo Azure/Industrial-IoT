@@ -52,6 +52,17 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         public int EncodingBlockInputSize { get; set; }
 
         /// <summary>
+        /// Number of incoming event notifications containing
+        /// many events
+        /// </summary>
+        public ulong IngressEventNotifications { get; set; }
+
+        /// <summary>
+        /// Total incoming events so far.
+        /// </summary>
+        public ulong IngressEvents { get; set; }
+
+        /// <summary>
         /// EncodingBlockOutputSize
         /// </summary>
         public int EncodingBlockOutputSize { get; set; }
