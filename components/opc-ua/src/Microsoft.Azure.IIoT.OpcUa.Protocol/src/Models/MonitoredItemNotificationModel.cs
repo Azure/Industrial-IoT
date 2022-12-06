@@ -39,11 +39,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public uint? SequenceNumber { get; set; }
 
         /// <summary>
-        /// Client handle
-        /// </summary>
-        public uint ClientHandle { get; set; }
-
-        /// <summary>
         /// Value of variable change notification
         /// </summary>
         public DataValue Value { get; set; }

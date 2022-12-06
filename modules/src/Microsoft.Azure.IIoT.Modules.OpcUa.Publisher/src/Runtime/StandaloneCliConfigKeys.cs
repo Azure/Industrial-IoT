@@ -63,6 +63,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string FullFeaturedMessage = "FullFeaturedMessage";
 
         /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public const string UseReversibleEncoding = "UseReversibleEncoding";
+
+        /// <summary>
         /// Key for the default sampling interval in milliseconds.
         /// </summary>
         public const string OpcSamplingInterval = "DefaultSamplingInterval";

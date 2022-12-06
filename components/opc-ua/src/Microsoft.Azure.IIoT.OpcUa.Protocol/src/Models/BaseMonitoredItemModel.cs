@@ -7,11 +7,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Monitored item
+    /// Base monitored item
     /// </summary>
-    public class MonitoredItemModel {
+    public abstract class BaseMonitoredItemModel {
 
         /// <summary>
         /// Identifier for this monitored item
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Queue size
         /// </summary>
-        public uint? QueueSize { get; set; }
+        public uint QueueSize { get; set; }
 
         /// <summary>
         /// Discard new values if queue is full
@@ -69,23 +70,50 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public string TriggerId { get; set; }
 
         /// <summary>
-        /// Data change filter
+        /// Clones this object
         /// </summary>
-        public DataChangeFilterModel DataChangeFilter { get; set; }
+        /// <returns></returns>
+        public abstract BaseMonitoredItemModel Clone();
 
         /// <summary>
-        /// Event filter
+        /// Equals function
         /// </summary>
-        public EventFilterModel EventFilter { get; set; }
+        /// <param name="obj"></param>
+        /// <returns>If the objects are equal</returns>
+        public override bool Equals(object obj) {
+            return obj is BaseMonitoredItemModel model &&
+                Id == model.Id &&
+                DisplayName == model.DisplayName &&
+                StartNodeId == model.StartNodeId &&
+                EqualityComparer<string[]>.Default.Equals(RelativePath, model.RelativePath) &&
+                AttributeId == model.AttributeId &&
+                IndexRange == model.IndexRange &&
+                EqualityComparer<TimeSpan?>.Default.Equals(SamplingInterval, model.SamplingInterval) &&
+                QueueSize == model.QueueSize &&
+                DiscardNew == model.DiscardNew &&
+                MonitoringMode == model.MonitoringMode &&
+                TriggerId == model.TriggerId;
+        }
 
         /// <summary>
-        /// Aggregate filter
+        /// Calculate hash code
         /// </summary>
-        public AggregateFilterModel AggregateFilter { get; set; }
-
-        /// <summary>
-        /// heartbeat interval not present if zero
-        /// </summary>
-        public TimeSpan? HeartbeatInterval { get; set; }
+        /// <returns>The hash code</returns>
+        public override int GetHashCode() {
+            var hash = new HashCode();
+            hash.Add(base.GetHashCode());
+            hash.Add(Id);
+            hash.Add(DisplayName);
+            hash.Add(StartNodeId);
+            hash.Add(RelativePath);
+            hash.Add(AttributeId);
+            hash.Add(IndexRange);
+            hash.Add(SamplingInterval);
+            hash.Add(QueueSize);
+            hash.Add(DiscardNew);
+            hash.Add(MonitoringMode);
+            hash.Add(TriggerId);
+            return hash.ToHashCode();
+        }
     }
 }

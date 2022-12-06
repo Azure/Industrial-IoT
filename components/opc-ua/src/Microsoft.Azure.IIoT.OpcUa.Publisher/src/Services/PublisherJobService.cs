@@ -279,6 +279,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                             DiagnosticsInterval = TimeSpan.FromSeconds(60),
                             MaxMessageSize = 0,
                             MaxOutgressMessages = DefaultMaxOutgressMessages.Value,
+                            UseReversibleEncoding = false,
                             EnableRoutingInfo = false,
                         };
                     }
@@ -316,6 +317,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0,
                     MaxOutgressMessages = DefaultMaxOutgressMessages.Value,
+                    UseReversibleEncoding = false,
                     EnableRoutingInfo = false
                 },
                 ConnectionString = null

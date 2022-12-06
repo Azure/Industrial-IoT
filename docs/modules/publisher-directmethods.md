@@ -61,6 +61,8 @@ The `_V1` direct methods use the payload schema as described below:
 }
 ```
 
+To subscribe to OPC UA Alarms and Events you must configure the entry in `OpcNodes` as [described in this seperate document](./publisher-event-configuration.md).
+
 Method call's request attributes are as follows:
 
 | Attribute                           | Mandatory | Type            | Default                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -363,7 +365,9 @@ Returns a list of actual metrics for every endpoint (Dataset).
   >          "connectionRetries": 0,
   >          "opcEndpointConnected": true,
   >          "monitoredOpcNodesSucceededCount": 5,
-  >          "monitoredOpcNodesFailedCount": 0
+  >          "monitoredOpcNodesFailedCount": 0,
+             "ingressEventNotifications": 0,
+             "ingressEvents": 0
   >       }
   >    ]
   > }

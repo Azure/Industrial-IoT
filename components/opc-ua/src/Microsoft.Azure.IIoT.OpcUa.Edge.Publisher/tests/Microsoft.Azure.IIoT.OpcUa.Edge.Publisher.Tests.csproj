@@ -25,6 +25,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\api\src\Microsoft.Azure.IIoT.Api\src\Microsoft.Azure.IIoT.Api.csproj" />
     <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.Debug\src\Microsoft.Azure.IIoT.Diagnostics.Debug.csproj" />
     <ProjectReference Include="..\..\..\..\..\modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.csproj" />
   </ItemGroup>
@@ -42,6 +43,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Controller\DmApiPayloadCollection.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Engine\pn_pending_alarms.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Engine\pn_2.5_legacy_error.json">
@@ -70,6 +74,9 @@
     </None>
     <None Update="Engine\pn_2.5_legacy.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Engine\pn_events.json">
+	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>

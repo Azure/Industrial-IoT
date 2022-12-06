@@ -33,7 +33,7 @@ Param(
 $ErrorActionPreference = "Stop"
 
 if (!$PLCImage) {
-    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:2.5.2"
+    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:2.5.7"
 }
 
 if (!$ResourceGroupName) {
@@ -89,7 +89,7 @@ $allAciNames | %{
     }
 }
 
-Write-Host
+Write-Host "Creating container instances with PLC Image $($PLCImage)..."
 
 $jobs = @()
 

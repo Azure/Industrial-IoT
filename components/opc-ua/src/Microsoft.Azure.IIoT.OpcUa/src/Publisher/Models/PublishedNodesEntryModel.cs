@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Contains the nodes which should be
+    /// Contains the nodes which should be published
     /// </summary>
     [DataContract]
     public class PublishedNodesEntryModel {

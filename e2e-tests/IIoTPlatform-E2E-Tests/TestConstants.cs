@@ -60,21 +60,10 @@ namespace IIoTPlatform_E2E_Tests {
         public const string PublishedNodesFolder = "/mount/opc_publisher";
 
         /// <summary>
-        /// Folder to store published_nodes.json file for legacy publisher
-        /// </summary>
-        public const string PublishedNodesFolderLegacy = "/mount/opc_publisher_2.5";
-
-        /// <summary>
         /// The full name of the publishednodes.json on the Edge
         /// </summary>
         public static readonly string PublishedNodesFullName =
             PublishedNodesFolder.TrimEnd('/') + "/" + PublishedNodesFilename;
-
-        /// <summary>
-        /// The full name of the publishednodes.json on the Edge
-        /// </summary>
-        public static readonly string PublishedNodesFullNameLegacy =
-            PublishedNodesFolderLegacy.TrimEnd('/') + "/" + PublishedNodesFilename;
 
         /// <summary>
         /// Default Microsoft Container Registry
@@ -289,17 +278,17 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// Container Registry server
             /// </summary>
-            public const string PCS_CONTAINER_REGISTRY_SERVER = "PCS_CONTAINER_REGISTRY_SERVER";
+            public const string PCS_DOCKER_SERVER = "PCS_DOCKER_SERVER";
 
             /// <summary>
             /// Container Registry user name
             /// </summary>
-            public const string PCS_CONTAINER_REGISTRY_USER = "PCS_CONTAINER_REGISTRY_USER";
+            public const string PCS_DOCKER_USER = "PCS_DOCKER_USER";
 
             /// <summary>
             /// Container Registry password
             /// </summary>
-            public const string PCS_CONTAINER_REGISTRY_PASSWORD = "PCS_CONTAINER_REGISTRY_PASSWORD";
+            public const string PCS_DOCKER_PASSWORD = "PCS_DOCKER_PASSWORD";
 
             /// <summary>
             ///Images namespace
@@ -329,7 +318,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// The trait value for PublisherMode = standalone
             /// </summary>
-            public const string PublisherModeStandaloneTraitValue = "standalone";
+            public const string PublisherModeTraitValue = "standalone";
 
             /// <summary>
             /// The trait name of the Twin Mode
@@ -410,41 +399,6 @@ namespace IIoTPlatform_E2E_Tests {
             /// AddOrUpdateEndpoints
             /// </summary>
             public const string AddOrUpdateEndpoints = "AddOrUpdateEndpoints_V1";
-        }
-
-        /// <summary>
-        /// Direct Method legacy names
-        /// </summary>
-        internal static class DirectMethodLegacyNames {
-            /// <summary>
-            /// Publish Node
-            /// </summary>
-            public const string PublishNodes = "PublishNodes";
-
-            /// <summary>
-            /// Unpublish Nodes
-            /// </summary>
-            public const string UnpublishNodes = "UnpublishNodes";
-
-            /// <summary>
-            /// GetConfiguredNodesOnEndpoint
-            /// </summary>
-            public const string GetConfiguredNodesOnEndpoint = "GetConfiguredNodesOnEndpoint";
-
-            /// <summary>
-            /// GetConfiguredEndpoints
-            /// </summary>
-            public const string GetConfiguredEndpoints = "GetConfiguredEndpoints";
-
-            /// <summary>
-            /// UnpublishAllNodes
-            /// </summary>
-            public const string UnpublishAllNodes = "UnpublishAllNodes";
-
-            /// <summary>
-            /// GetDiagnosticInfo
-            /// </summary>
-            public const string GetDiagnosticInfo = "GetDiagnosticInfo";
         }
     }
 }
