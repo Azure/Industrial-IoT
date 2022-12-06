@@ -61,9 +61,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> Queue Size for the monitored item </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public uint? QueueSize { get; set; }
-        
+
         /// <summary> Data change filter </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public DataChangeTriggerType? DataChangeTrigger { get; set; }
+
+        /// <summary> Deadband type </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public DeadbandType? DeadbandType { get; set; }
+
+        /// <summary> Deadband value </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public double? DeadbandValue { get; set; }
     }
 }

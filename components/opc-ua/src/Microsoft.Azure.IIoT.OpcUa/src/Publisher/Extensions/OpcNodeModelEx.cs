@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
 
@@ -65,8 +66,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             if (model.QueueSize != that.QueueSize) {
                 return false;
             }
-            
-            if (model.DataChangeTrigger != that.DataChangeTrigger) {
+
+            if ((model.DataChangeTrigger ?? DataChangeTriggerType.Status) !=
+                (that.DataChangeTrigger ?? DataChangeTriggerType.Status)) {
+                return false;
+            }
+
+            if (model.DeadbandType != that.DeadbandType) {
+                return false;
+            }
+
+            if (model.DeadbandValue != that.DeadbandValue) {
                 return false;
             }
 
@@ -88,6 +98,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.SkipFirst);
             hash.Add(model.QueueSize);
             hash.Add(model.DataChangeTrigger);
+            hash.Add(model.DeadbandValue);
+            if (model.DeadbandType == null) {
+                hash.Add(-1);
+            }
+            else {
+                hash.Add(model.DeadbandType);
+            }
             return hash.ToHashCode();
         }
 

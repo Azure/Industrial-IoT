@@ -30,34 +30,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 HeartbeatInterval = 35,
                 SkipFirst = true,
                 QueueSize = 123,
-                DataChangeTrigger = DataChangeTriggerType.Status
+                DataChangeTrigger = DataChangeTriggerType.Status,
+                DeadbandType = DeadbandType.Absolute,
+                DeadbandValue = 0.1
             };
 
-            opcNode2 = new OpcNodeModel {
+            static OpcNodeModel NewNode() => new OpcNodeModel {
                 Id = "id",
                 OpcPublishingIntervalTimespan = TimeSpan.Parse("00:00:01.5"),
                 OpcSamplingIntervalTimespan = TimeSpan.Parse("00:00:02.500"),
                 HeartbeatIntervalTimespan = TimeSpan.Parse("00:00:35"),
                 SkipFirst = true,
                 QueueSize = 123,
-                DataChangeTrigger = DataChangeTriggerType.Status
+                DataChangeTrigger = DataChangeTriggerType.Status,
+                DeadbandType = DeadbandType.Absolute,
+                DeadbandValue = 0.1
             };
 
+            opcNode2 = NewNode();
             Assert.True(comparer.Equals(opcNode1, opcNode2));
             Assert.True(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
 
+            opcNode2 = NewNode();
             opcNode2.SkipFirst = false;
             opcNode2.QueueSize = 123;
 
             Assert.False(comparer.Equals(opcNode1, opcNode2));
             Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
 
+            opcNode2 = NewNode();
             opcNode2.SkipFirst = true;
             opcNode2.QueueSize = 321;
 
             Assert.False(comparer.Equals(opcNode1, opcNode2));
             Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
-            
+
+            opcNode2 = NewNode();
             opcNode2.SkipFirst = true;
             opcNode2.QueueSize = 123;
             opcNode2.DataChangeTrigger = DataChangeTriggerType.StatusValue;
@@ -65,9 +73,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             Assert.False(comparer.Equals(opcNode1, opcNode2));
             Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
 
+            opcNode2 = NewNode();
             opcNode2.SkipFirst = null;
             opcNode2.QueueSize = null;
             opcNode2.DataChangeTrigger = null;
+
+            Assert.False(comparer.Equals(opcNode1, opcNode2));
+            Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
+
+            opcNode2 = NewNode();
+            opcNode2.DataChangeTrigger = null;
+
+            Assert.True(comparer.Equals(opcNode1, opcNode2));
+            Assert.True(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
+
+            opcNode2 = NewNode();
+            opcNode2.DeadbandType = DeadbandType.Percent;
+
+            Assert.False(comparer.Equals(opcNode1, opcNode2));
+            Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
+
+            opcNode2 = NewNode();
+            opcNode2.DeadbandType = null;
+
+            Assert.False(comparer.Equals(opcNode1, opcNode2));
+            Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
+
+            opcNode2 = NewNode();
+            opcNode2.DeadbandValue = null;
 
             Assert.False(comparer.Equals(opcNode1, opcNode2));
             Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));

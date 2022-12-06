@@ -144,7 +144,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     QueueSize = node.Item2.QueueSize,
                                     // ToDo: Implement mechanism for SkipFirst.
                                     SkipFirst = node.Item2.SkipFirst,
-                                    DataChangeTrigger = node.Item2.DataChangeTrigger
+                                    DataChangeTrigger = node.Item2.DataChangeTrigger,
+                                    DeadbandValue = node.Item2.DeadbandValue,
+                                    DeadbandType = node.Item2.DeadbandType
                                 }).ToList()
                             }
                         }
@@ -327,7 +329,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                             // ToDo: Implement mechanism for SkipFirst.
                             SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
-                            DataChangeTrigger = node.DataChangeTrigger
+                            DataChangeTrigger = node.DataChangeTrigger ?? standaloneCliModel.DefaultDataChangeTrigger,
+                            DeadbandType = node.DeadbandType,
+                            DeadbandValue = node.DeadbandValue
                         });
                     }
                     else {
@@ -351,7 +355,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
                                 // ToDo: Implement mechanism for SkipFirst.
                                 SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
-                                DataChangeTrigger = node.DataChangeTrigger
+                                DataChangeTrigger = node.DataChangeTrigger ?? standaloneCliModel.DefaultDataChangeTrigger,
+                                DeadbandType = node.DeadbandType,
+                                DeadbandValue = node.DeadbandValue
                             });
                         }
                     }
