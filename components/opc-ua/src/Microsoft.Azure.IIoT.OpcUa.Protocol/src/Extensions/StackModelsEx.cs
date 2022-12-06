@@ -257,7 +257,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 return null;
             }
             return new SimpleAttributeOperand {
-                TypeDefinitionId = model.NodeId.ToNodeId(context),
+                TypeDefinitionId = model.TypeDefinitionId.ToNodeId(context),
                 AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
                 BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
                     Enumerable.Empty<QualifiedName>() :
@@ -278,7 +278,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 return null;
             }
             return new SimpleAttributeOperandModel {
-                NodeId = model.TypeDefinitionId.AsString(context),
+                TypeDefinitionId = model.TypeDefinitionId.AsString(context),
                 AttributeId = (NodeAttribute)model.AttributeId,
                 BrowsePath = model.BrowsePath?.Select(p => p.AsString(context)).ToArray(),
                 IndexRange = model.IndexRange
@@ -422,7 +422,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         public static IUserIdentity ToStackModel(this CredentialModel authentication) {
             switch (authentication?.Type ?? CredentialType.None) {
                 case CredentialType.UserName:
-                    if (authentication.Value != null && 
+                    if (authentication.Value != null &&
                         authentication.Value.IsObject &&
                         authentication.Value.TryGetProperty("user", out var user) &&
                             user.IsString &&

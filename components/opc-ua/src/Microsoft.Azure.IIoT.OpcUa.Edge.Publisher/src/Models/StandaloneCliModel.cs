@@ -49,12 +49,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Flag wether to grab the display name of nodes form
         /// the OPC UA Server.
         /// </summary>
-        public bool FetchOpcNodeDisplayName { get; set; } = false;
+        public bool FetchOpcNodeDisplayName { get; set; }
 
         /// <summary>
-        /// set the default queue size for monitored items
+        /// set the default queue size for monitored items. If not
+        /// set the default queue size will be configured (1 for
+        /// data monitored items, and 0 for event monitoring).
         /// </summary>
-        public uint DefaultQueueSize { get; set; } = 1;
+        public uint? DefaultQueueSize { get; set; }
 
         /// <summary>
         /// set the default data change filter for monitored items
@@ -115,6 +117,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Define the maximum amount of the IoT D2C messages
         /// </summary>
         public int? MaxOutgressMessages { get; set; } = 4096;
+
+        /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public bool? UseReversibleEncoding { get; set; } = false;
 
         /// <summary>
         /// Flag to determine if a telemetry header helper is enabled.

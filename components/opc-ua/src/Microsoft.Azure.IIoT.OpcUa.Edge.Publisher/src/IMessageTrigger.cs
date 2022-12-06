@@ -52,6 +52,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         ulong ValueChangesCountLastMinute { get; }
 
         /// <summary>
+        /// The number of all eventChange Notifications
+        /// that have been invoked by this message source.
+        /// </summary>
+        ulong EventCount { get; }
+
+        /// <summary>
         /// The number of all dataChange Notifications
         /// that have been invoked by this message source.
         /// </summary>
@@ -61,6 +67,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <see cref="DataChangesCount"/> from the last minute
         /// </summary>
         ulong DataChangesCountLastMinute { get; }
+
+        /// <summary>
+        /// The number of all monitored items event value changes
+        /// that have been invoked by this message source.
+        /// </summary>
+        ulong EventNotificationCount { get; }
 
         /// <summary>
         /// Writer events

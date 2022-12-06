@@ -56,6 +56,61 @@
         ]
     },
     {
+        "DataSetWriterGroup": "Leaf2",
+        "DataSetWriterId": "Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952235",
+        "Tag": "Tag_Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952235",
+        "DataSetPublishingInterval": 10000,
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "UseSecurity": false,
+        "OpcNodes": [
+            {
+                "Id": "i=2253",
+                "DisplayName": "SimpleEvents",
+                "QueueSize": 10,
+                "EventFilter": {
+                    "SelectClauses": [
+                        {
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "EventId"
+                            ]
+                        },
+                        {
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "Message"
+                            ]
+                        },
+                        {
+                            "TypeDefinitionId": "ns=16;i=235",
+                            "BrowsePath": [
+                                "16:CycleId"
+                            ]
+                        },
+                        {
+                            "TypeDefinitionId": "ns=16;i=235",
+                            "BrowsePath": [
+                                "16:CurrentStep"
+                            ]
+                        }
+                    ],
+                    "WhereClause": {
+                        "Elements": [
+                            {
+                                "FilterOperator": "OfType",
+                                "FilterOperands": [
+                                    {
+                                        "Value": "ns=16;i=235"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        ]
+    },
+    {
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,
         "DataSetPublishingIntervalTimesapn": "00:00:02",

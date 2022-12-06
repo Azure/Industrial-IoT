@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     /// Describes event fields to be published
     /// </summary>
     [DataContract]
-    public class PublishedDataSetEventsApiModel {
+    public class PublishedDataSetEventApiModel {
 
         /// <summary>
         /// Identifier of event in the dataset.
@@ -37,14 +37,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Event fields to select
         /// </summary>
-        [DataMember(Name = "selectedFields", Order = 3)]
-        public List<SimpleAttributeOperandApiModel> SelectedFields { get; set; }
+        [DataMember(Name = "selectClauses", Order = 3)]
+        public List<SimpleAttributeOperandApiModel> SelectClauses { get; set; }
 
         /// <summary>
         /// Filter to use to select event fields
         /// </summary>
-        [DataMember(Name = "filter", Order = 4)]
-        public ContentFilterApiModel Filter { get; set; }
+        [DataMember(Name = "whereClause", Order = 4)]
+        public ContentFilterApiModel WhereClause { get; set; }
 
         /// <summary>
         /// Queue size (Publisher extension)
@@ -74,5 +74,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "triggerId", Order = 8,
             EmitDefaultValue = false)]
         public string TriggerId { get; set; }
+
+        /// <summary>
+        /// Pending alarm settings
+        /// </summary>
+        [DataMember(Name = "pendingAlarms", Order = 9)]
+        public PendingAlarmsOptionsApiModel PendingAlarms { get; set; }
+
+        /// <summary>
+        /// Simple event Type id
+        /// </summary>
+        [DataMember(Name = "typeDefinitionId", Order = 10)]
+        public string TypeDefinitionId { get; set; }
     }
 }

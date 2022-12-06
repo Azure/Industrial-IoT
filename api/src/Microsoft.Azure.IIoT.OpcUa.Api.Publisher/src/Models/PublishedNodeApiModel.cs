@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using System.Runtime.Serialization;
     using System;
     using System.ComponentModel.DataAnnotations;
@@ -92,5 +93,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "deadbandValue", Order = 14,
             EmitDefaultValue = false)]
         public double? DeadbandValue { get; set; }
+
+        /// <summary>Event Filter</summary>
+        [DataMember(Name = "eventFilter", Order = 15,
+            EmitDefaultValue = false)]
+        public EventFilterApiModel EventFilter { get; set; }
     }
 }

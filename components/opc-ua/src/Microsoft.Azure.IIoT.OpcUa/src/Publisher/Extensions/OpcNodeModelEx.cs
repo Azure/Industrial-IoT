@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
     using System.Collections.Generic;
 
@@ -77,6 +78,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             }
 
             if (model.DeadbandValue != that.DeadbandValue) {
+                return false;
+            }
+
+            if (!model.EventFilter.IsSameAs(that.EventFilter)) {
                 return false;
             }
 

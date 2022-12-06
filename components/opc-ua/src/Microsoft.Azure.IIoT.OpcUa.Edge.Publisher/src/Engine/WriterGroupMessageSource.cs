@@ -158,6 +158,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
+        public ulong EventNotificationCount { get; private set; }
+
+        /// <inheritdoc/>
+        public ulong EventCount { get; private set; }
+
+        /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
 
         /// <inheritdoc/>
@@ -264,7 +270,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 var sc = await _outer._subscriptionManager.GetOrCreateSubscriptionAsync(
                     _subscriptionInfo).ConfigureAwait(false);
-                sc.OnSubscriptionChange += OnSubscriptionChangedAsync;
+                sc.OnSubscriptionDataChange += OnSubscriptionDataChangedAsync;
+                sc.OnSubscriptionEventChange += OnSubscriptionEventChangedAsync;
+                sc.OnSubscriptionDataDiagnosticsChange += OnSubscriptionDataDiagnosticsChanged;
+                sc.OnSubscriptionEventDiagnosticsChange += OnSubscriptionEventDiagnosticsChanged;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
                     _subscriptionInfo.Configuration).ConfigureAwait(false);
                 Subscription = sc;
@@ -339,7 +348,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     return;
                 }
                 await Subscription.CloseAsync().ConfigureAwait(false);
-                Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
+                Subscription.OnSubscriptionDataChange -= OnSubscriptionDataChangedAsync;
+                Subscription.OnSubscriptionEventChange -= OnSubscriptionEventChangedAsync;
+                Subscription.OnSubscriptionDataDiagnosticsChange -= OnSubscriptionDataDiagnosticsChanged;
+                Subscription.OnSubscriptionEventDiagnosticsChange -= OnSubscriptionEventDiagnosticsChanged;
                 Subscription.Dispose();
                 Subscription = null;
 
@@ -445,7 +457,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Handle subscription change messages
             /// </summary>
-            private async void OnSubscriptionChangedAsync(object sender,
+            private async void OnSubscriptionDataChangedAsync(object sender,
                 SubscriptionNotificationModel notification) {
                 var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
                 if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0 &&
@@ -456,6 +468,65 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                 }
                 CallMessageReceiverDelegates(sender, sequenceNumber, notification);
+            }
+
+            /// <summary>
+            /// Handle subscription data diagnostics change messages
+            /// </summary>
+            private void OnSubscriptionDataDiagnosticsChanged(object sender, int notificationCount) {
+                lock (_lock) {
+                    if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
+                        _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
+                        // reset both
+                        _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
+                            "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
+                            " value changes were invoked by message source.",
+                            _outer.DataChangesCount, _outer.ValueChangesCount);
+                        _outer.DataChangesCount = 0;
+                        _outer.ValueChangesCount = 0;
+                    }
+
+                    _outer.ValueChangesCount += (ulong)notificationCount;
+                    _outer.DataChangesCount++;
+                }
+            }
+
+            /// <summary>
+            /// Handle subscription change messages
+            /// </summary>
+            private async void OnSubscriptionEventChangedAsync(object sender, SubscriptionNotificationModel notification) {
+                var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
+                if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0 &&
+                    (sequenceNumber % _keyFrameCount.Value) == 0) {
+                    var snapshot = await Try.Async(() => Subscription.GetSnapshotAsync()).ConfigureAwait(false);
+                    if (snapshot != null) {
+                        notification = snapshot;
+                    }
+                }
+                CallMessageReceiverDelegates(sender, sequenceNumber, notification);
+            }
+
+            /// <summary>
+            /// Handle subscription event diagnostics change messages
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="notificationCount"></param>
+            private void OnSubscriptionEventDiagnosticsChanged(object sender, int notificationCount) {
+                lock (_lock) {
+                    if (_outer.EventCount >= kNumberOfInvokedMessagesResetThreshold ||
+                        _outer.EventNotificationCount >= kNumberOfInvokedMessagesResetThreshold) {
+                        // reset both
+                        _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
+                            "So far, {EventChangesCount} event changes and {EventValueChangesCount}" +
+                            " event value changes were invoked by message source.",
+                            _outer.EventCount, _outer.EventNotificationCount);
+                        _outer.EventCount = 0;
+                        _outer.EventNotificationCount = 0;
+                    }
+
+                    _outer.EventNotificationCount += (ulong)notificationCount;
+                    _outer.EventCount++;
+                }
             }
 
             /// <summary>

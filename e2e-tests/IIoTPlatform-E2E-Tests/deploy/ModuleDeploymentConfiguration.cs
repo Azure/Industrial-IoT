@@ -23,6 +23,6 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         /// </summary>
         /// <param name="context"></param>
         public ModuleDeploymentConfiguration(IIoTPlatformTestContext context)
-            : base (context) {}
+            : base(context) { }
     }
 }

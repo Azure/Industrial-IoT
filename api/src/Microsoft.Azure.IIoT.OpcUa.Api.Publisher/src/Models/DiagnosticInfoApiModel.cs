@@ -127,5 +127,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "monitoredOpcNodesFailedCount", Order = 22,
             EmitDefaultValue = true)]
         public int MonitoredOpcNodesFailedCount { get; set; }
+
+        /// <summary> Number of incoming event notifications </summary>
+        [DataMember(Name = "ingressEventNotifications", Order = 23,
+            EmitDefaultValue = true)]
+        public ulong IngressEventNotifications { get; set; }
+
+        /// <summary> Total incoming events so far. </summary>
+        [DataMember(Name = "ingressEvents", Order = 24,
+            EmitDefaultValue = true)]
+        public ulong IngressEvents { get; set; }
     }
 }

@@ -302,7 +302,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var jobModel = jobSerializer.DeserializeJobConfiguration(
                 job.First().JobConfiguration, job.First().JobConfigurationType) as WriterGroupJobModel;
 
-            jobModel.WriterGroup.DataSetWriters.Count.Should().Be(4);
+            jobModel.WriterGroup.DataSetWriters.Count.Should().Be(5);
             foreach (var datasetWriter in jobModel.WriterGroup.DataSetWriters) {
                 datasetWriter.DataSet.DataSetSource.Connection.Endpoint.Url
                     .Should()
@@ -336,7 +336,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 EndpointUrl = endpointUrl,
             };
 
-            var methodsController = await publishNodeAsync(publishedNodesFile);
+            var methodsController = await PublishNodeAsync(publishedNodesFile);
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
@@ -374,7 +374,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 Password = password,
             };
 
-            var methodsController = await publishNodeAsync(publishedNodesFile);
+            var methodsController = await PublishNodeAsync(publishedNodesFile);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -412,7 +412,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 })
                 .ToList();
 
-            var methodsController = await publishNodeAsync("Engine/empty_pn.json");
+            var methodsController = await PublishNodeAsync("Engine/empty_pn.json");
 
             for (var i = 0; i < 5; ++i) {
                 await methodsController.PublishNodesAsync(endpoints[i]).ConfigureAwait(false);
@@ -446,7 +446,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 UseSecurity = useSecurity,
             };
 
-            var methodsController = await publishNodeAsync(publishedNodesFile);
+            var methodsController = await PublishNodeAsync(publishedNodesFile);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -480,7 +480,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 OpcAuthenticationMode = authenticationMode,
             };
 
-            var methodsController = await publishNodeAsync(publishedNodesFile);
+            var methodsController = await PublishNodeAsync(publishedNodesFile);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -512,7 +512,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 Password = password,
             };
 
-            var methodsController = await publishNodeAsync(publishedNodesFile);
+            var methodsController = await PublishNodeAsync(publishedNodesFile);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -535,7 +535,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         /// <summary>
         /// publish nodes from publishedNodesFile
         /// </summary>
-        private async Task<PublisherMethodsController> publishNodeAsync(string publishedNodesFile) {
+        private async Task<PublisherMethodsController> PublishNodeAsync(string publishedNodesFile) {
             var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var identityMock = new Mock<IIdentity>();
@@ -672,7 +672,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
 
             //publish nodes
-            var methodsController = await publishNodeAsync(publishedNodesFile);
+            var methodsController = await PublishNodeAsync(publishedNodesFile);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController

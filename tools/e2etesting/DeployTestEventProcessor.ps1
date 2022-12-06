@@ -6,7 +6,8 @@ Param(
     $StorageAccountName,
     $IoTHubName,
     $TenantId,
-    $StorageContainerName
+    $StorageContainerName,
+    $StorageFileShareName = "acishare"
 )
 
 # Stop execution when an error occurs.
@@ -140,6 +141,15 @@ $storageContainer = Get-AzStorageContainer -Name $StorageContainerName -Context 
 if (!$storageContainer) {
     Write-Host "Creating storage container '$($StorageContainerName)' in storage account '$($storageAccount.StorageAccountName)'..."
     $storageContainer = New-AzStorageContainer -Name $StorageContainerName -Context $storageContext -Permission Container | Out-Null
+}
+
+## Ensure file share for ACI mount and files to be able to support dynamic ACI:s in test
+
+$storageShare = Get-AzStorageShare -Context $storageContext.Context -Name $StorageFileShareName -ErrorAction SilentlyContinue 
+
+if (!$storageShare) {
+    Write-Host "Creating storage share '$($StorageFileShareName )' in storage account '$($storageAccount.StorageAccountName)'..."
+    $storageShare = New-AzStorageShare -Context $storageContext.Context -Name $StorageFileShareName | Out-Null
 }
 
 ## Ensure AppServicePlan ##
