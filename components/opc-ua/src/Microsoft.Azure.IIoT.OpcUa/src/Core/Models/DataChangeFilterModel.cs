@@ -19,11 +19,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// <summary>
         /// Dead band
         /// </summary>
-        public DeadbandType? DeadBandType { get; set; }
+        public DeadbandType? DeadbandType { get; set; }
 
         /// <summary>
         /// Dead band value
         /// </summary>
-        public double? DeadBandValue { get; set; }
+        public double? DeadbandValue { get; set; }
     }
 }

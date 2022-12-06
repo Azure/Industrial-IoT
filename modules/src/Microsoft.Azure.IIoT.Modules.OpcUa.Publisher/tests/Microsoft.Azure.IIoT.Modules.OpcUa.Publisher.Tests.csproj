@@ -35,6 +35,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="PublishedNodes\Deadband.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="PublishedNodes\DataItems.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

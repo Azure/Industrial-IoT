@@ -68,11 +68,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if ((model.DataChangeTrigger ?? DataChangeTriggerType.Status) !=
-                (that.DataChangeTrigger ?? DataChangeTriggerType.Status)) {
+            // Null is default == StatusValue == 1
+            if ((model.DataChangeTrigger ?? DataChangeTriggerType.StatusValue) !=
+                (that.DataChangeTrigger ?? DataChangeTriggerType.StatusValue)) {
                 return false;
             }
 
+            // Null is None == no deadband
             if (model.DeadbandType != that.DeadbandType) {
                 return false;
             }

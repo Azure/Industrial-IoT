@@ -4,12 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
+    using FluentAssertions;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
+    using System.Text.Unicode;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
@@ -37,6 +39,44 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.Equal("ns=21;i=1259", messages[0].RootElement[0].GetProperty("NodeId").GetString());
             Assert.InRange(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetDouble(),
                 double.MinValue, double.MaxValue);
+        }
+
+        [Fact]
+        public async Task CanSendDeadbandItemsToIoTHubTest() {
+            // Arrange
+            // Act
+            var messages = await ProcessMessagesAsync(@"./PublishedNodes/Deadband.json").ConfigureAwait(false);
+
+            // Assert
+            var messageBatch = Assert.Single(messages);
+            var doubleValues = messageBatch.RootElement.EnumerateArray()
+                .Where(message => message.GetProperty("DisplayName").GetString() == "DoubleValues" &&
+                    message.GetProperty("Value").TryGetProperty("Value", out _));
+            double? dvalue = null;
+            foreach (var message in doubleValues) {
+                Assert.Equal("http://test.org/UA/Data/#i=11224", message.GetProperty("NodeId").GetString());
+                var value1 = message.GetProperty("Value").GetProperty("Value").GetDouble();
+                _output.WriteLine(JsonSerializer.Serialize(message));
+                if (dvalue != null) {
+                    var abs = Math.Abs(dvalue.Value - value1);
+                    Assert.True(abs >= 5.0, $"Value within absolute deadband limit {abs} < 5");
+                }
+                dvalue = value1;
+            }
+            var int64Values = messageBatch.RootElement.EnumerateArray()
+                .Where(message => message.GetProperty("DisplayName").GetString() == "Int64Values" &&
+                    message.GetProperty("Value").TryGetProperty("Value", out _));
+            long? lvalue = null;
+            foreach (var message in int64Values) {
+                Assert.Equal("http://test.org/UA/Data/#i=11206", message.GetProperty("NodeId").GetString());
+                var value1 = message.GetProperty("Value").GetProperty("Value").GetInt64();
+                _output.WriteLine(JsonSerializer.Serialize(message));
+                if (lvalue != null) {
+                    var abs = Math.Abs(lvalue.Value - value1);
+                    Assert.True(abs >= 10, $"Value within percent deadband limit {abs} < 10%");
+                }
+                lvalue = value1;
+            }
         }
 
         [Fact]

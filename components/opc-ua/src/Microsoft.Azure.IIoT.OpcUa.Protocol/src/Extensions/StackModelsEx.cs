@@ -139,8 +139,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 return null;
             }
             return new DataChangeFilter {
-                DeadbandValue = model.DeadBandValue ?? 0.0,
-                DeadbandType = (uint)model.DeadBandType.ToStackType(),
+                DeadbandValue = model.DeadbandValue ?? 0.0,
+                DeadbandType = (uint)model.DeadbandType.ToStackType(),
                 Trigger = model.DataChangeTrigger.ToStackType()
             };
         }
@@ -155,9 +155,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 return null;
             }
             return new DataChangeFilterModel {
-                DeadBandValue = (int)model.DeadbandValue == 0 ? (double?)null :
+                DeadbandValue = (int)model.DeadbandValue == 0 ? (double?)null :
                     model.DeadbandValue,
-                DeadBandType = ((DeadbandType)model.DeadbandType).ToServiceType(),
+                DeadbandType = ((DeadbandType)model.DeadbandType).ToServiceType(),
                 DataChangeTrigger = model.Trigger.ToServiceType()
             };
         }

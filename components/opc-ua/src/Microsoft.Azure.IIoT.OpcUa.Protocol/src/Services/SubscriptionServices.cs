@@ -1375,7 +1375,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     DiscardOldest = !Template.DiscardNew.GetValueOrDefault(false),
                 };
 
-                // Set event filter
+                // Set filter
                 if (DataTemplate != null) {
                     Item.Filter = DataTemplate.DataChangeFilter.ToStackModel() ??
                         ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(messageContext));

@@ -31,8 +31,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
             AttributeId = NodeAttribute.DataType,
             DataChangeFilter = new DataChangeFilterModel() {
                 DataChangeTrigger = DataChangeTriggerType.StatusValue,
-                DeadBandType = DeadbandType.Absolute,
-                DeadBandValue = 45
+                DeadbandType = DeadbandType.Absolute,
+                DeadbandValue = 45
             },
             DiscardNew = true,
             DisplayName = "DataDisplayName",
