@@ -13,6 +13,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
 
 - task: PowerShell@2
+  displayName: 'Install Az.ContainerRegistry'
   inputs:
     targetType: 'inline'
     script: 'Install-Module -Name Az.ContainerRegistry -Force'
