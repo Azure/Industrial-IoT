@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.GetNormalizedHeartbeatInterval());
             hash.Add(model.SkipFirst);
             hash.Add(model.QueueSize);
-            hash.Add(model.DataChangeTrigger);
+            hash.Add(model.DataChangeTrigger ?? DataChangeTriggerType.StatusValue);
             hash.Add(model.DeadbandValue);
             if (model.DeadbandType == null) {
                 hash.Add(-1);

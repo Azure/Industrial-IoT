@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 HeartbeatInterval = 35,
                 SkipFirst = true,
                 QueueSize = 123,
-                DataChangeTrigger = DataChangeTriggerType.Status,
+                DataChangeTrigger = DataChangeTriggerType.StatusValue,
                 DeadbandType = DeadbandType.Absolute,
                 DeadbandValue = 0.1
             };
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 HeartbeatIntervalTimespan = TimeSpan.Parse("00:00:35"),
                 SkipFirst = true,
                 QueueSize = 123,
-                DataChangeTrigger = DataChangeTriggerType.Status,
+                DataChangeTrigger = DataChangeTriggerType.StatusValue,
                 DeadbandType = DeadbandType.Absolute,
                 DeadbandValue = 0.1
             };
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             opcNode2 = NewNode();
             opcNode2.SkipFirst = true;
             opcNode2.QueueSize = 123;
-            opcNode2.DataChangeTrigger = DataChangeTriggerType.StatusValue;
+            opcNode2.DataChangeTrigger = DataChangeTriggerType.Status;
 
             Assert.False(comparer.Equals(opcNode1, opcNode2));
             Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
