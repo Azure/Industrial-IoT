@@ -440,7 +440,9 @@ If the endpoint isn't configured or `UnpublishAllNodes` is called on that endpoi
          "connectionRetries": 0,
          "opcEndpointConnected": true,
          "monitoredOpcNodesSucceededCount": 5,
-         "monitoredOpcNodesFailedCount": 0
+         "monitoredOpcNodesFailedCount": 0,
+         "ingressEventNotifications": 0,
+         "ingressEvents": 0
       }
    ]
 }

@@ -208,9 +208,9 @@ When an empty payload is set or the endpoint in payload is null, the complete co
 
   _Exceptions_: a response corresponding to an exception will be returned if:
 
-  - request payload contains an endpoint (DataSet) that isn't present in publisher configuration
+- request payload contains an endpoint (DataSet) that isn't present in publisher configuration
 
-  - request payload contains `OpcNodes`
+- request payload contains `OpcNodes`
 
   _Example_:
 
@@ -366,8 +366,8 @@ Returns a list of actual metrics for every endpoint (Dataset).
   >          "opcEndpointConnected": true,
   >          "monitoredOpcNodesSucceededCount": 5,
   >          "monitoredOpcNodesFailedCount": 0,
-             "ingressEventNotifications": 0,
-             "ingressEvents": 0
+  >          "ingressEventNotifications": 0,
+  >          "ingressEvents": 0
   >       }
   >    ]
   > }
@@ -381,17 +381,15 @@ changes the complete node set for an endpoint (DataSet) with the one provided in
 By providing an empty list of nodes in the request, the user can remove the
 previously configured nodes for a specific endpoint (DataSet).
 
-  _Request_: represents a list of objects, which should strictly follow the request payload schema as
-  described above. The `OpcNodes` attribute being empty list or `null` will be interpreted as a removal
-  request for that endpoint (DataSet).
+  _Request_: represents a list of objects, which should strictly follow the request payload schema as described above. The `OpcNodes` attribute being empty list or `null` will be interpreted as a removal request for that endpoint (DataSet).
 
   _Response_: when successful - Status 200 and an empty json (`{}`) as payload
 
   _Exceptions_: a response corresponding to an exception will be returned if:
 
-  - request payload contains deletion request for an endpoint (DataSet) that isn't present in publisher configuration
+- request payload contains deletion request for an endpoint (DataSet) that isn't present in publisher configuration
 
-  - request payload contains two or more entries for the same endpoint (DataSet)
+- request payload contains two or more entries for the same endpoint (DataSet)
 
   _Example_:
   > _Method Name_: `AddOrUpdateEndpoints_V1`

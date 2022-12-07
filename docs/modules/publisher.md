@@ -155,18 +155,6 @@ These direct methods are documented in a separate [document](publisher-directmet
 
 Migration of applications, which used direct methods from version 2.5.x to versions 2.8.2 or above, check the [migration path](publisher-migrationpath.md) documentation.
 
-### Configuration via the built-in OPC UA Server Interface
-
-**Please note: This feature right now is only available in version 2.5 and below.**
-
-OPC Publisher has a built-in OPC UA server, running on port 62222. It implements three OPC UA methods:
-
-- PublishNode
-- UnpublishNode
-- GetPublishedNodes
-
-This interface can be accessed using an OPC UA client application, for example [UA Expert](https://www.unified-automation.com/products/development-tools/uaexpert.html).
-
 ### Configuration via Cloud-based, Companion REST Microservice
 
 **Please note: This feature is not available in version 2.5.x.**

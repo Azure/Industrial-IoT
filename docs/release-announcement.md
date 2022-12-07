@@ -1,5 +1,20 @@
 # Release announcement
 
+## Azure Industrial IoT OPC Publisher Community Preview Release 2.9.0
+
+We are pleased to announce the **preview** release of version 2.9.0 of OPC Publisher. This release contains several requested features and fixes issues discovered.
+
+### IMPORTANT - PLEASE READ
+
+Preview releases are only supported through GitHub issues.
+
+### Changes in this release
+
+- [OPC Publisher] [Alarms and Events](./modules/publisher-event-configuration.md) support to OPC Publisher. You can now subscribe to events in addition to value changes and in the familar ways using the published nodes json configuration and direct methods.
+- [OPC Publisher] Full Deadband filtering. We introduced data change triggers in 2.8.4 and are now supporting the full data change filter configuration to configure percent and absolute deadband as defined in OPC UA.
+- [All IoT Edge modules] Configuration to optionally enable MQTT topic publishing and command control via an MQTT broker instead of IoT Edge EdgeHub.
+- [All IoT Edge modules] Update OPC UA stack to latest .371 version.
+
 ## Azure Industrial IoT Platform Release 2.8.4
 
 We are pleased to announce the release of version 2.8.4 of our Industrial IoT Platform components as latest patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates fixes, performance optimizations and bugfixes.
