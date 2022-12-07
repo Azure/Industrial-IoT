@@ -155,18 +155,6 @@ These direct methods are documented in a separate [document](publisher-directmet
 
 Migration of applications, which used direct methods from version 2.5.x to versions 2.8.2 or above, check the [migration path](publisher-migrationpath.md) documentation.
 
-### Configuration via the built-in OPC UA Server Interface
-
-**Please note: This feature right now is only available in version 2.5 and below.**
-
-OPC Publisher has a built-in OPC UA server, running on port 62222. It implements three OPC UA methods:
-
-- PublishNode
-- UnpublishNode
-- GetPublishedNodes
-
-This interface can be accessed using an OPC UA client application, for example [UA Expert](https://www.unified-automation.com/products/development-tools/uaexpert.html).
-
 ### Configuration via Cloud-based, Companion REST Microservice
 
 **Please note: This feature is not available in version 2.5.x.**
@@ -247,12 +235,6 @@ All versions of OPC Publisher support a non-standardized, simple JSON telemetry 
 
 **Warning: The `Samples` format changed over time**
 
-### Configuration of the simple JSON telemetry format via Separate Configuration File
-
-**Please note: This feature is only available in version 2.5 and below of OPC Publisher.**
-
-OPC Publisher allows filtering the parts of the non-standardized, simple telemetry format via a separate configuration file, which can be specified via the `tc` command line option. If no configuration file is specified, the full JSON telemetry format is sent to IoT Hub. The format of the separate telemetry configuration file is described [here](publisher-telemetryformat.md).
-
 ### Persisting OPC Publisher Configuration
 
 To ensure operation of OPC Publisher over restarts, it's required to map configuration files to the host file system. The mapping can be achieved via the "Container Create Option" in the Azure portal. The configuration files are:
@@ -277,13 +259,13 @@ Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be
 
 In production setups, network performance requirements (throughput and latency) and memory resources must be considered. OPC Publisher exposes the following command line parameters to help meet these requirements:
 
-- Message queue capacity (`mq` for version 2.5 and below, not available in version 2.6, `om` for version 2.7)
+- Message queue capacity (`om` since version 2.7)
 - IoT Hub send interval (`si`)
 
-The `mq/om` parameter controls the upper limit of the capacity of the internal message queue. This queue buffers all messages before they're sent to IoT Hub. The default size of the queue is up to 2 MB for OPC Publisher version 2.5 and below and 4000 IoT Hub messages for version 2.7 (for example: if the setting for the IoT Hub message size is 256 KB, the size of the queue will be up to 1 GB). If OPC Publisher isn't able to send messages to IoT Hub fast enough, the number of items in this queue increases. In this case, one or both of the following can be done to mitigate:
+The `om` parameter controls the upper limit of the capacity of the internal message queue. This queue buffers all messages before they're sent to IoT Hub. The default size of the queue is 4000 IoT Hub messages (for example: if the setting for the IoT Hub message size is 256 KB, the size of the queue will be up to 1 GB). If OPC Publisher isn't able to send messages to IoT Hub fast enough, the number of items in this queue increases. In this case, one or both of the following can be done to mitigate:
 
 - Decrease the IoT Hub send interval (`si`)
-- Use OPC Publisher > 2.6 in standalone mode
+- Use latest OPC Publisher in standalone mode
   - Use PubSub format (`--mm=PubSub`)
   - When Samples format (`--mm=Samples`) is required
     - Don't use FullFeaturedMessage (`--fm=false`). You can find a sample of full featured telemetry message [here](telemetry-messages-format.md).
@@ -295,7 +277,7 @@ The `mq/om` parameter controls the upper limit of the capacity of the internal m
   - Try to use less different publishing intervals
   - Experiment with the numbers, depending on the IoT Hub connectivity it seems to be better to have fewer messages with more OPC UA value changes in it (check OPC Publisher logs) but it could also be better to have more messages with fewer OPC UA value changes, this is specific to every factory
 
-If the queue keeps growing even though the parameters have been adjusted, eventually the maximum queue capacity will be reached and messages will be lost. This is because all parameters have physical limits and the Internet connection between OPC Publisher and IoT Hub isn't fast enough for the number of messages that must be sent in a given scenario. In that case, only setting up several, parallel OPC Publishers will help. The `mq/om` parameter also has the biggest impact on the memory consumption by OPC Publisher.
+If the queue keeps growing even though the parameters have been adjusted, eventually the maximum queue capacity will be reached and messages will be lost. This is because all parameters have physical limits and the Internet connection between OPC Publisher and IoT Hub isn't fast enough for the number of messages that must be sent in a given scenario. In that case, only setting up several, parallel OPC Publishers will help. The `om` parameter also has the biggest impact on the memory consumption by OPC Publisher.
 
 It must be noted that IoT Hub also has limits in terms of how many messages it will accept, that is, there are quotas for a given IoT Hub SKU defined [here](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-quotas-throttling). If this quota is exceeded, OPC Publisher will generate an error trying to send the message to IoT Hub and the message will be lost.
 

@@ -79,6 +79,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
                     { $"ec|edgehubconnectionstring=|{StandaloneCliConfigKeys.EdgeHubConnectionString}=", "An edge module connection string to use",
                         dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
+                    { $"mqc|mqttclientconnectionstring=|{StandaloneCliConfigKeys.MqttClientConnectionString}", "An mqtt client connection string to use.",
+                        mqc => this[StandaloneCliConfigKeys.MqttClientConnectionString] = mqc },
+                    { $"ttt|telemetrytopictemplate=|{StandaloneCliConfigKeys.TelemetryTopicTemplateKey}", "A template to build Topics. Valid Placeholders are: {device_id}.",
+                        ttt => this[StandaloneCliConfigKeys.TelemetryTopicTemplateKey] = ttt },
                     { $"{StandaloneCliConfigKeys.BypassCertVerificationKey}=", "Enables bypass of certificate verification for upstream communication to edgeHub.",
                         (bool b) => this[StandaloneCliConfigKeys.BypassCertVerificationKey] = b.ToString() },
                     { $"{StandaloneCliConfigKeys.EnableMetricsKey}=", "Enables upstream metrics propagation.",
@@ -143,7 +147,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
                     { $"mq|monitoreditemqueuecapacity=|{StandaloneCliConfigKeys.DefaultQueueSize}=", "Default queue size for monitored items.",
                         (uint u) => this[StandaloneCliConfigKeys.DefaultQueueSize] = u.ToString() },
-                    { $"mc|monitoreditemdatachangetrigger=|{StandaloneCliConfigKeys.DefaultDataChangeTrigger}=", "Default data change trigger for the monitored items " +
+                    { $"mc|monitoreditemdatachangetrigger=|{StandaloneCliConfigKeys.DefaultDataChangeTrigger}=", "Default data change trigger for the monitored items." +
                        $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(DataChangeTriggerType)))}).",
                         (DataChangeTriggerType t) => this[StandaloneCliConfigKeys.DefaultDataChangeTrigger] = t.ToString() },
 

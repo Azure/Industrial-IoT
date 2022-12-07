@@ -298,7 +298,7 @@ With `--fm=True` enabling full featured messages, these would then look like:
   "body": {
     "NodeId": "i=2253",
     "EndpointUrl": "opc.tcp://localhost:56769/UA/SampleServer",
-    "ApplicationUri": "urn:mschier205:OPCFoundation:CoreSampleServer",
+    "ApplicationUri": "urn:SampleServer",
     "DisplayName": "SimpleEvents",
     "Timestamp": "2022-12-05T11:00:18.1907826Z",
     "Value": {

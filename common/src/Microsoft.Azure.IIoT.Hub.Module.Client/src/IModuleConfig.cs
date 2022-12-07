@@ -16,6 +16,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         string EdgeHubConnectionString { get; }
 
         /// <summary>
+        /// MqttClient connection string
+        /// </summary>
+        string MqttClientConnectionString { get; }
+
+        /// <summary>
+        /// Gets or sets the optional telemetry topic template. 
+        /// If no template is provided default IoT Hub topics are used.
+        /// </summary>
+        string TelemetryTopicTemplate { get; }
+
+        /// <summary>
         /// Bypass cert validation with hub
         /// </summary>
         bool BypassCertVerification { get; }
