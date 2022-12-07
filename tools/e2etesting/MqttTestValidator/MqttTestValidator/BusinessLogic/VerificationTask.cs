@@ -88,7 +88,7 @@ namespace MqttTestValidator.BusinessLogic {
                     _logger.LogInformation("Subscribing to topic {MqttTopic} with QoS 1", _mqttTopic);
                     var subscriptionResult =  mqttClient.SubscribeAsync(mqttSubscribeOptions, cts.Token).ConfigureAwait(false).GetAwaiter().GetResult();
                     if (subscriptionResult.Items[0].ResultCode != MqttClientSubscribeResultCode.GrantedQoS1) {
-                        _logger.LogError("Can't subscribe to topic: {subscriptionResult.Items[0].ResultCode}");
+                        _logger.LogError("Can't subscribe to topic: {ResultCode}", subscriptionResult.Items[0].ResultCode);
                         throw new InvalidProgramException("Can't subscribe to topic");
                     }
                     _logger.LogInformation("Subscribed");

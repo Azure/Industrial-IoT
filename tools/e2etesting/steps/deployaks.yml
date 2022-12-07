@@ -41,7 +41,6 @@ steps:
     scriptArguments: >
       -ResourceGroupName $(ResourceGroupName)
       -Region $(Region)
-      -ServicePrincipalId '$(ServicePrincipalId)'
       -ContainerRegistryServer '$(ContainerRegistryServer)'
       -ContainerRegistryUsername '$(ContainerRegistryUsername)'
       -ContainerRegistryPassword '$(ContainerRegistryPassword)'
