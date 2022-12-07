@@ -472,7 +472,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Alternative: --mc, --monitoreditemdatachangetrigger
                                       Mode: Standalone and Orchestrated
                                       Type: enum string : "Status", "StatusValue", "StatusValueTimestamp"
-                                      Default: "Status"
+                                      Default: "StatusValue"
 
             TelemetryTopicTemplate=VALUE
                                       [Preview feature]
