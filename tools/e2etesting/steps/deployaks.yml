@@ -12,23 +12,11 @@ steps:
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
 
-- task: PowerShell@2
-  displayName: 'Install Az.ContainerRegistry'
-  inputs:
-    targetType: 'inline'
-    script: 'Install-Module -Name Az.ContainerRegistry -Force'
-
-- task: PowerShell@2
-  displayName: 'Install Az.Aks'
-  inputs:
-    targetType: 'inline'
-    script: 'Install-Module -Name Az.Aks -Force'
-
 - task: AzurePowerShell@5
   displayName: 'Auto-Set Variables'
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    preferredAzurePowerShellVersion: '2.6.0'
     scriptType: filePath
     scriptPath: '$(System.DefaultWorkingDirectory)/tools/e2etesting/SetVariables.ps1'
     scriptArguments: >
@@ -42,7 +30,7 @@ steps:
   displayName: "Deploy AKS"
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    preferredAzurePowerShellVersion: '2.6.0'
     scriptType: filePath
     scriptPath: '$(System.DefaultWorkingDirectory)/tools/e2etesting/DeployAKS.ps1'
     scriptArguments: >
