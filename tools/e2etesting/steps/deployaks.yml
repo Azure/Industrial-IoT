@@ -19,10 +19,10 @@ steps:
     script: 'Install-Module -Name Az.ContainerRegistry -Force'
 
 - task: PowerShell@2
-  displayName: 'Install Az.ContainerRegistry'
+  displayName: 'Install Az.Aks'
   inputs:
     targetType: 'inline'
-    script: 'Install-Module -Name Az.Aks -MaximumVersion 4.0.0 -Force'
+    script: 'Install-Module -Name Az.Aks -Force'
 
 - task: AzurePowerShell@5
   displayName: 'Auto-Set Variables'
