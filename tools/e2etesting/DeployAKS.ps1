@@ -102,7 +102,7 @@ if (!$testSuffix) {
     ## Create AKS Cluster
     Write-Host "Creating cluster $aksName"
 
-    for ($i = 0; $i -lt 20; $i++) {
+    for ($i = 0; ($i -lt 20) -and (!$aksCluster); $i++) {
         try {
             $aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -SshKeyPath ssh.pub -Force
             if (!$aksCluster) {
@@ -111,12 +111,11 @@ if (!$testSuffix) {
             else {
                 Write-Host "Cluster $aksName created"
                 $aksCluster | Format-Table | Out-String | % { Write-Host $_ }
-                break
             }
         }
         catch {
-            Write-Host "$($_.Exception.Message) for $($applicationDisplayName) - Retrying..."
-            Start-Sleep -s 1
+            Write-Host "$($_.Exception.Message) for $($aksName) - Retrying..."
+            Start-Sleep -s 2
         }
     }
 
@@ -124,9 +123,6 @@ if (!$testSuffix) {
         Write-Error "Failed to create AKS cluster."
     }
     else {
-        Write-Host "Cluster $aksName created"
-        $aksCluster | Format-Table | Out-String | % { Write-Host $_ }
-
         $tags = $resourceGroup.Tags
         $tags += @{"TestingResourcesSuffix" = $testSuffix }
         Set-AzResourceGroup -Name $resourceGroup.ResourceGroupName -Tag $tags | Out-Null
@@ -138,7 +134,6 @@ if (!$testSuffix) {
 
 ## Install kubectl
 Install-AzAksKubectl -Version latest -Force
-
 
 ## Load AKS Cluster credentials
 Import-AzAksCredential -ResourceGroupName $resourceGroupName -Name $aksName -Force
