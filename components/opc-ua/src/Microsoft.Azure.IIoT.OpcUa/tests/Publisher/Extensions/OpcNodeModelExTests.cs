@@ -84,8 +84,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             opcNode2 = NewNode();
             opcNode2.DataChangeTrigger = null;
 
-            Assert.True(comparer.Equals(opcNode1, opcNode2));
-            Assert.True(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
+            Assert.False(comparer.Equals(opcNode1, opcNode2));
+            Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
 
             opcNode2 = NewNode();
             opcNode2.DeadbandType = DeadbandType.Percent;

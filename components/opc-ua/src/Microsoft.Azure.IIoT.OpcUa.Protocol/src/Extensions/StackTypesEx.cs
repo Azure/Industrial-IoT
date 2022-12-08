@@ -430,6 +430,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             switch (mode) {
                 case UaDataChangeTrigger.Status:
                     return DataChangeTriggerType.Status;
+                case UaDataChangeTrigger.StatusValue:
+                    return DataChangeTriggerType.StatusValue;
                 case UaDataChangeTrigger.StatusValueTimestamp:
                     return DataChangeTriggerType.StatusValueTimestamp;
                 default:

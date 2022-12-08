@@ -68,9 +68,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            // Null is default == StatusValue == 1
-            if ((model.DataChangeTrigger ?? DataChangeTriggerType.StatusValue) !=
-                (that.DataChangeTrigger ?? DataChangeTriggerType.StatusValue)) {
+            //
+            // Null is default and equals to StatusValue, but we allow StatusValue == 1
+            // to be set specifically to enable a user to force a data filter to be
+            // applied (otherwise it is not if nothing else is set)
+            //
+            if (model.DataChangeTrigger != that.DataChangeTrigger) {
                 return false;
             }
 
@@ -104,9 +107,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.GetNormalizedHeartbeatInterval());
             hash.Add(model.SkipFirst);
             hash.Add(model.QueueSize);
-            hash.Add(model.DataChangeTrigger ?? DataChangeTriggerType.StatusValue);
+            if (model.DataChangeTrigger == null) {
+                //
+                // Null is default and equals to StatusValue, but we allow StatusValue == 1
+                // to be set specifically to enable a user to force a data filter to be
+                // applied (otherwise it is not if nothing else is set)
+                //
+                hash.Add(-1);
+            }
+            else {
+                hash.Add(model.DataChangeTrigger);
+            }
             hash.Add(model.DeadbandValue);
             if (model.DeadbandType == null) {
+                // Null is None == no deadband
                 hash.Add(-1);
             }
             else {
