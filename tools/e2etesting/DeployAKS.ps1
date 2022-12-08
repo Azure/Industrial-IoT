@@ -133,7 +133,7 @@ if (!$testSuffix) {
 }
 
 ## Install kubectl
-Install-AzAksCliTool -Force
+Install-AzAksKubectl -Version latest -Force
 
 ## Load AKS Cluster credentials
 Import-AzAksCredential -ResourceGroupName $resourceGroupName -Name $aksName -Force
