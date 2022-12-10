@@ -59,7 +59,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public uint? DefaultQueueSize { get; set; }
 
         /// <summary>
-        /// set the default data change filter for monitored items
+        /// set the default data change filter for monitored items. Default is
+        /// status and value change triggering.
         /// </summary>
         public DataChangeTriggerType? DefaultDataChangeTrigger { get; set; }
 

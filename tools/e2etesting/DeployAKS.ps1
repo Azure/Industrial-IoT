@@ -91,12 +91,6 @@ $testSuffix = $resourceGroup.Tags["TestingResourcesSuffix"]
 if (!$testSuffix) {
     $testSuffix = Get-Random -Minimum 10000 -Maximum 99999
 
-    $tags = $resourceGroup.Tags
-    $tags += @{"TestingResourcesSuffix" = $testSuffix }
-    Set-AzResourceGroup -Name $resourceGroup.ResourceGroupName -Tag $tags | Out-Null
-    $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
-
-
     $aksName = "aksCluster_$($testSuffix)"
 
     # Create ssh keys
@@ -108,23 +102,38 @@ if (!$testSuffix) {
     ## Create AKS Cluster
     Write-Host "Creating cluster $aksName"
 
-    $aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -SshKeyPath ssh.pub -Force 
+    for ($i = 0; ($i -lt 20) -and (!$aksCluster); $i++) {
+        try {
+            $aksCluster = New-AzAksCluster -ResourceGroupName $resourceGroupName -Name $aksName -NodeCount 3 -SshKeyPath ssh.pub -Force
+            if (!$aksCluster) {
+                throw "Failed to create AKS cluster."
+            }
+            else {
+                Write-Host "Cluster $aksName created"
+                $aksCluster | Format-Table | Out-String | % { Write-Host $_ }
+            }
+        }
+        catch {
+            Write-Host "$($_.Exception.Message) for $($aksName) - Retrying..."
+            Start-Sleep -s 2
+        }
+    }
 
     if (!$aksCluster) {
         Write-Error "Failed to create AKS cluster."
     }
     else {
-        Write-Host "Cluster $aksName created"
-        $aksCluster | Format-Table | Out-String | % { Write-Host $_ }
+        $tags = $resourceGroup.Tags
+        $tags += @{"TestingResourcesSuffix" = $testSuffix }
+        Set-AzResourceGroup -Name $resourceGroup.ResourceGroupName -Tag $tags | Out-Null
+        $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
     }
-
-}else{
+} else {
     $aksName = "aksCluster_$($testSuffix)"
 }
 
 ## Install kubectl
 Install-AzAksKubectl -Version latest -Force
-
 
 ## Load AKS Cluster credentials
 Import-AzAksCredential -ResourceGroupName $resourceGroupName -Name $aksName -Force

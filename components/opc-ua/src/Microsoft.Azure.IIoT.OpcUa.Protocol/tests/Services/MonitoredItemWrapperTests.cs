@@ -62,8 +62,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var template = new DataMonitoredItemModel {
                 DataChangeFilter = new DataChangeFilterModel {
                     DataChangeTrigger = Publisher.Models.DataChangeTriggerType.StatusValue,
-                    DeadBandType = Publisher.Models.DeadbandType.Percent,
-                    DeadBandValue = 10.0
+                    DeadbandType = Publisher.Models.DeadbandType.Percent,
+                    DeadbandValue = 10.0
                 }
             };
             var monitoredItemWrapper = GetMonitoredItemWrapper(template);

@@ -84,8 +84,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public DataChangeTriggerType? DataChangeTrigger { get; set; }
 
+        /// <summary> Deadband type </summary>
+        [DataMember(Name = "deadbandType", Order = 13,
+            EmitDefaultValue = false)]
+        public DeadbandType? DeadbandType { get; set; }
+
+        /// <summary> Deadband value </summary>
+        [DataMember(Name = "deadbandValue", Order = 14,
+            EmitDefaultValue = false)]
+        public double? DeadbandValue { get; set; }
+
         /// <summary>Event Filter</summary>
-        [DataMember(Name = "eventFilter", Order = 13,
+        [DataMember(Name = "eventFilter", Order = 15,
             EmitDefaultValue = false)]
         public EventFilterApiModel EventFilter { get; set; }
     }

@@ -90,7 +90,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         QueueSize = initialNode.QueueSize,
                         // ToDo: Implement mechanism for SkipFirst.
                         SkipFirst = initialNode.SkipFirst,
-                        DataChangeTrigger = initialNode.DataChangeTrigger
+                        DataChangeTrigger = initialNode.DataChangeTrigger,
+                        DeadbandType = initialNode.DeadbandType,
+                        DeadbandValue = initialNode.DeadbandValue
                     });
                 }
 
@@ -186,7 +188,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         QueueSize = initialNode.QueueSize,
                         // ToDo: Implement mechanism for SkipFirst.
                         SkipFirst = initialNode.SkipFirst,
-                        DataChangeTrigger = initialNode.DataChangeTrigger
+                        DataChangeTrigger = initialNode.DataChangeTrigger,
+                        DeadbandType = initialNode.DeadbandType,
+                        DeadbandValue = initialNode.DeadbandValue
                     });
                 }
 

@@ -64,8 +64,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             }
             return new DataChangeFilterModel {
                 DataChangeTrigger = publishedVariable.DataChangeTrigger,
-                DeadBandType = publishedVariable.DeadbandType,
-                DeadBandValue = publishedVariable.DeadbandValue,
+                DeadbandType = publishedVariable.DeadbandType,
+                DeadbandValue = publishedVariable.DeadbandValue,
             };
         }
     }

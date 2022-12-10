@@ -15,6 +15,8 @@ steps:
     inputs:
       targetType: 'inline'
       script: 'Get-ChildItem -Path Env:'
+
+
   - task: PowerShell@2
     inputs:
       targetType: 'inline'

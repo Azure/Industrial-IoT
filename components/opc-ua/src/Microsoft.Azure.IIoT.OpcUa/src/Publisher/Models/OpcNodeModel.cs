@@ -67,6 +67,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public DataChangeTriggerType? DataChangeTrigger { get; set; }
 
+        /// <summary> Deadband type </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public DeadbandType? DeadbandType { get; set; }
+
+        /// <summary> Deadband value </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public double? DeadbandValue { get; set; }
+
         /// <summary>Event Filter</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public EventFilterModel EventFilter { get; set; }

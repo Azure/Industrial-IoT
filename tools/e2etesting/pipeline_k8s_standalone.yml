@@ -23,7 +23,6 @@ stages:
 - stage: testAKS
   displayName: Test 
   dependsOn: deployAKS
-  condition: not(canceled())
   jobs:
   - job: test
     displayName: Test
