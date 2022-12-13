@@ -91,10 +91,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { $"hb|heartbeatinterval=|{StandaloneCliConfigKeys.HeartbeatIntervalDefault}=", "The publisher is using this as default value in seconds " +
                         "for the heartbeat interval setting of nodes without a heartbeat interval setting.",
                         (int i) => this[StandaloneCliConfigKeys.HeartbeatIntervalDefault] = TimeSpan.FromSeconds(i).ToString() },
-                    // ToDo: Bring back once SkipFirst mechanism is implemented.
-                    //{ "sf|skipfirstevent=", "The publisher is using this as default value for the skip first " +
-                    //    "event setting of nodes without a skip first event setting.",
-                    //    (bool b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b.ToString() },
+                    { $"sf|skipfirstevent=|{StandaloneCliConfigKeys.SkipFirstDefault}=", "The publisher is using this as default value for the skip first " +
+                        "setting of nodes without a skip first setting.",
+                        (bool b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b.ToString() },
 
                     { $"fm|fullfeaturedmessage=|{StandaloneCliConfigKeys.FullFeaturedMessage}=", "The full featured mode for messages (all fields filled in)." +
                         "Default is 'false' for legacy compatibility.",

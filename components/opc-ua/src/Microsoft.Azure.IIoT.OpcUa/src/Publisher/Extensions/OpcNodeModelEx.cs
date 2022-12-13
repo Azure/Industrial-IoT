@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if (model.SkipFirst != that.SkipFirst) {
+            if ((model.SkipFirst ?? false) != (that.SkipFirst ?? false)) {
                 return false;
             }
 
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.GetNormalizedPublishingInterval());
             hash.Add(model.GetNormalizedSamplingInterval());
             hash.Add(model.GetNormalizedHeartbeatInterval());
-            hash.Add(model.SkipFirst);
+            hash.Add(model.SkipFirst ?? false);
             hash.Add(model.QueueSize);
             if (model.DataChangeTrigger == null) {
                 //

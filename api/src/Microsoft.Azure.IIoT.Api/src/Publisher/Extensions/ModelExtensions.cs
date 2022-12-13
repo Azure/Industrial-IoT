@@ -1497,6 +1497,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 QueueSize = model.QueueSize,
                 SamplingInterval = model.SamplingInterval,
                 TriggerId = model.TriggerId,
+                SkipFirst = model.SkipFirst,
                 HeartbeatInterval = model.HeartbeatInterval,
                 PublishedVariableDisplayName = model.PublishedVariableDisplayName,
                 SubstituteValue = model.SubstituteValue?.Copy()
@@ -1525,6 +1526,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 MetaDataProperties = model.MetaDataProperties?
                     .ToList(),
                 QueueSize = model.QueueSize,
+                SkipFirst = model.SkipFirst,
                 SamplingInterval = model.SamplingInterval,
                 TriggerId = model.TriggerId,
                 HeartbeatInterval = model.HeartbeatInterval,

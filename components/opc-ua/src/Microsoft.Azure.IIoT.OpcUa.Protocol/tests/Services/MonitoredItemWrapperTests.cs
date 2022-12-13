@@ -27,6 +27,63 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(MonitoringMode.Reporting, monitoredItemWrapper.Item.MonitoringMode);
             Assert.Equal(1000, monitoredItemWrapper.Item.SamplingInterval);
             Assert.True(monitoredItemWrapper.Item.DiscardOldest);
+            Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
+        }
+
+        [Fact]
+        public void SetSkipFirstBeforeFirstNotificationProcessedSucceedsTests() {
+            var template = new DataMonitoredItemModel {
+                AttributeId = null,
+                MonitoringMode = null,
+                SamplingInterval = null,
+                DiscardNew = null,
+                SkipFirst = true
+            };
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
+            Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
+            Assert.True(monitoredItemWrapper.TrySetSkipFirst(true));
+            Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
+            Assert.True(monitoredItemWrapper.TrySetSkipFirst(true));
+            Assert.True(monitoredItemWrapper.SkipMonitoredItemNotification());
+            // This is allowed since it does not matter
+            Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
+            Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
+            Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
+        }
+
+        [Fact]
+        public void SetSkipFirstAfterFirstNotificationProcessedFailsTests() {
+            var template = new DataMonitoredItemModel {
+                AttributeId = null,
+                MonitoringMode = null,
+                SamplingInterval = null,
+                DiscardNew = null,
+                SkipFirst = true
+            };
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            Assert.True(monitoredItemWrapper.SkipMonitoredItemNotification());
+            Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
+            // This is allowed since it does not matter
+            Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
+            Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
+            // This is allowed since it does not matter
+            Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
+            Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
+        }
+
+        [Fact]
+        public void NotsetSkipFirstAfterFirstNotificationProcessedFailsSettingTests() {
+            var template = new DataMonitoredItemModel {
+                AttributeId = null,
+                MonitoringMode = null,
+                SamplingInterval = null,
+                DiscardNew = null
+            };
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
+            Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
+            Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
         }
 
         [Fact]
@@ -40,6 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 MonitoringMode = Publisher.Models.MonitoringMode.Sampling,
                 StartNodeId = "i=2258",
                 QueueSize = 10,
+                SkipFirst = true,
                 SamplingInterval = TimeSpan.FromMilliseconds(10000),
                 DiscardNew = true
             };
@@ -55,6 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(10000, monitoredItemWrapper.Item.SamplingInterval);
             Assert.False(monitoredItemWrapper.Item.DiscardOldest);
             Assert.Equal(monitoredItemWrapper, monitoredItemWrapper.Item.Handle);
+            Assert.True(monitoredItemWrapper.SkipMonitoredItemNotification());
         }
 
         [Fact]

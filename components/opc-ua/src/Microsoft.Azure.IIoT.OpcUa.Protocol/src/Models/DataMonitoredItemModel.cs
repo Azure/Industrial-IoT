@@ -28,6 +28,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public TimeSpan? HeartbeatInterval { get; set; }
 
         /// <summary>
+        /// Skip first value
+        /// </summary>
+        public bool SkipFirst { get; set; }
+
+        /// <summary>
         /// Clone
         /// </summary>
         /// <returns>A copy of this object</returns>
@@ -39,6 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 SamplingInterval = SamplingInterval,
                 QueueSize = QueueSize,
                 DiscardNew = DiscardNew,
+                SkipFirst = SkipFirst,
                 DataChangeFilter = DataChangeFilter.Clone(),
                 AggregateFilter = AggregateFilter.Clone(),
                 AttributeId = AttributeId,
@@ -58,6 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public override bool Equals(object obj) {
             return obj is DataMonitoredItemModel model &&
                 base.Equals(obj) &&
+                SkipFirst == model.SkipFirst &&
                 DataChangeFilter.IsSameAs(model.DataChangeFilter) &&
                 AggregateFilter.IsSameAs(model.AggregateFilter) &&
                 EqualityComparer<TimeSpan?>.Default.Equals(HeartbeatInterval, model.HeartbeatInterval);
@@ -73,23 +80,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             hash.Add(DataChangeFilter);
             hash.Add(AggregateFilter);
             hash.Add(HeartbeatInterval);
+            hash.Add(SkipFirst);
             return hash.ToHashCode();
         }
-
-        /// <summary>
-        /// operator==
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns>If the objects are equal</returns>
-        public static bool operator ==(DataMonitoredItemModel left, DataMonitoredItemModel right) => EqualityComparer<DataMonitoredItemModel>.Default.Equals(left, right);
-
-        /// <summary>
-        /// operator!=
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns>If the objects are not equal</returns>
-        public static bool operator !=(DataMonitoredItemModel left, DataMonitoredItemModel right) => !(left == right);
     }
 }

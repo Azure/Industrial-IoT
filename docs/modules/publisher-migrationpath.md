@@ -34,6 +34,7 @@ OPC Publisher 2.8.2 adds several new fields for configuring publishing. The full
         "OpcPublishingIntervalTimespan": "string",
         "HeartbeatInterval": "integer",
         "HeartbeatIntervalTimespan": "string",
+        "SkipFirst": "bool",
         "QueueSize": "integer"
       }
     ]
@@ -79,7 +80,7 @@ The following table describes the command line arguments, which were available i
 | --dc, --deviceconnectionstring=VALUE    |  yes                     |                 |
 | --c, --connectionstring=VALUE           |  no                      |  use --dc, --deviceconnectionstring=VALUE               |
 | --hb, --heartbeatinterval=VALUE         |  yes                     |                 |
-| --sf, --skipfirstevent=VALUE            |  no                      |                 |
+| --sf, --skipfirstevent=VALUE            |  yes (2.9+)              |                 |
 | --pn, --portnum=VALUE                   |  no                      |                 |
 | --pa, --path=VALUE                      |  no                      |                 |
 | --lr, --ldsreginterval=VALUE            |  no                      |                 |

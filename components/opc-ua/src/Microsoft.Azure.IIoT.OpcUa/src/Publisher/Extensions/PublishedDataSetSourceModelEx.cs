@@ -51,6 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             sb.Append(publishedVariableData?.PublishedVariableDisplayName);
             sb.Append(publishedVariableData?.SamplingInterval);
             sb.Append(publishedVariableData?.HeartbeatInterval);
+            sb.Append(publishedVariableData?.SkipFirst);
             sb.Append(publishedEventData?.Id);
             sb.Append(publishedEventData?.EventNotifier);
             if (publishedEventData?.BrowsePath != null) {
