@@ -1,0 +1,35 @@
+[
+    {
+        "EndpointUrl": "opc.tcp://10.0.0.1:59412",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "UsernamePassword",
+        "OpcAuthenticationUsername": "user",
+        "OpcAuthenticationPassword": "passwd",
+        "OpcNodes": [
+            {
+                "Id": "ns=2;s=Variable1.Line1.Power",
+                "DisplayName": "Variable1_Power",
+                "OpcSamplingInterval": 60000,
+                "OpcPublishingInterval": 60000,
+                "HeartbeatInterval": 3343,
+                "SkipFirst": false
+            },
+            {
+                "Id": "ns=2;s=Variable1.Line1.Speed",
+                "DisplayName": "Variable1_Line1_Speed",
+                "OpcSamplingInterval": 900000,
+                "OpcPublishingInterval": 900000,
+                "HeartbeatInterval": 3465,
+                "SkipFirst": false
+            },
+            {
+                "Id": "ns=2;s=Variable1.Line1.Power",
+                "DisplayName": "Variable1_Line1_Power",
+                "OpcSamplingInterval": 60000,
+                "OpcPublishingInterval": 60000,
+                "HeartbeatInterval": 3343,
+                "SkipFirst": false
+            }
+        ]
+    }
+]
