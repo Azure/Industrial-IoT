@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { $"sf|skipfirst=|{StandaloneCliConfigKeys.SkipFirstDefault}=", "The publisher is using this as default value for the skip first " +
                         "setting of nodes without a skip first setting.",
                         (bool b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b.ToString() },
-                    { $"skipfirstevent=", "Maintained for backwards compatibility, do not use.",
+                    { "skipfirstevent=", "Maintained for backwards compatibility, do not use.",
                         (string b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b, /* hidden = */ true },
 
                     { $"fm|fullfeaturedmessage=|{StandaloneCliConfigKeys.FullFeaturedMessage}=", "The full featured mode for messages (all fields filled in)." +
@@ -154,14 +154,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (DataChangeTriggerType t) => this[StandaloneCliConfigKeys.DefaultDataChangeTrigger] = t.ToString() },
 
                     // cert store option
-                    { $"aa|autoaccept", "The publisher trusts all servers it is establishing a connection to.",
-                        b => this[StandaloneCliConfigKeys.AutoAcceptCerts] = (b != null).ToString() },
-                    { $"{StandaloneCliConfigKeys.AutoAcceptCerts}=", "The publisher trusts all servers it is establishing a connection to.",
-                        (bool b) => this[StandaloneCliConfigKeys.AutoAcceptCerts] = b.ToString() },
-                    { $"tm|trustmyself", "The publisher certificate is put into the trusted store automatically.",
-                        b => this[StandaloneCliConfigKeys.TrustMyself] = (b != null).ToString() },
-                    { $"{StandaloneCliConfigKeys.TrustMyself}=", "The publisher certificate is put into the trusted store automatically.",
-                        (bool b) => this[StandaloneCliConfigKeys.TrustMyself] = b.ToString() },
+                    { $"aa|autoaccept:|{StandaloneCliConfigKeys.AutoAcceptCerts}:", "The publisher trusts all servers it is establishing a connection to.",
+                        (bool? b) => this[StandaloneCliConfigKeys.AutoAcceptCerts] = b?.ToString() ?? "True" },
+                    { $"tm|trustmyself:|{StandaloneCliConfigKeys.TrustMyself}:", "The publisher certificate is put into the trusted store automatically.",
+                        (bool? b) => this[StandaloneCliConfigKeys.TrustMyself] = b?.ToString() ?? "True" },
                     { $"at|appcertstoretype=|{StandaloneCliConfigKeys.OpcOwnCertStoreType}=", "The own application cert store type (allowed: Directory, X509Store).",
                         s => {
                             if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||
@@ -180,10 +176,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         s => this[StandaloneCliConfigKeys.OpcApplicationCertificateSubjectName] = s },
                     { $"an|appname=|{StandaloneCliConfigKeys.OpcApplicationName}=", "The name for the app (used during OPC UA authentication).",
                         s => this[StandaloneCliConfigKeys.OpcApplicationName] = s },
-                    { "tt|trustedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("tt|trustedcertstoretype"); } },
+                    { "tt|trustedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("tt|trustedcertstoretype"); }, true },
                     { $"rp|rejectedcertstorepath=|{StandaloneCliConfigKeys.OpcRejectedCertStorePath}=", "The path of the rejected cert store.",
                         s => this[StandaloneCliConfigKeys.OpcRejectedCertStorePath] = s },
-                    { "rt|rejectedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("rt|rejectedcertstoretype"); } },
+                    { "rt|rejectedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("rt|rejectedcertstoretype"); }, true },
                     { $"ip|issuercertstorepath=|{StandaloneCliConfigKeys.OpcIssuerCertStorePath}=", "The path of the trusted issuer cert store.",
                         s => this[StandaloneCliConfigKeys.OpcIssuerCertStorePath] = s },
                     { $"{StandaloneCliConfigKeys.PkiRootPathKey}=", "PKI certificate store root path.",
@@ -198,7 +194,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.RejectSha1SignedCertificatesKey] = b.ToString() },
                     { $"{StandaloneCliConfigKeys.MinimumCertificateKeySizeKey}=", "Minimum accepted certificate size.",
                         s => this[StandaloneCliConfigKeys.MinimumCertificateKeySizeKey] = s },
-                    { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); } },
+                    { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); }, true },
                     { $"bs|batchsize=|{StandaloneCliConfigKeys.BatchSize}=", "The size of message batching buffer.",
                         (int i) => this[StandaloneCliConfigKeys.BatchSize] = i.ToString() },
                     { $"bi|batchtriggerinterval=|{StandaloneCliConfigKeys.BatchTriggerInterval}=", "The trigger batching interval in milliseconds.",
@@ -224,12 +220,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.RuntimeStateReporting] = b.ToString()},
                     { $"ri|enableroutinginfo=|{StandaloneCliConfigKeys.EnableRoutingInfo}=", "Enable adding routing info to telemetry. By default this is disabled.",
                         (bool b) => this[StandaloneCliConfigKeys.EnableRoutingInfo] = b.ToString() },
-                    { $"{StandaloneCliConfigKeys.UseReversibleEncoding}=", "Use reversible encoding in JSON encoders. Default is false.",
+                    { $"re|reversibleencoding|{StandaloneCliConfigKeys.UseReversibleEncoding}=", "Use reversible encoding in JSON encoders. Default is false.",
                         (bool b) => this[StandaloneCliConfigKeys.UseReversibleEncoding] = b.ToString() },
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
-                        (int i) => this[StandaloneCliConfigKeys.ScaleTestCount] = i.ToString() },
+                        (string i) => this[StandaloneCliConfigKeys.ScaleTestCount] = i.ToString(), true },
 
                     // show help
                     { "h|help", "show this message and exit.",
