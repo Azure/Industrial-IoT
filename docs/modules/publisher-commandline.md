@@ -499,7 +499,7 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       [Preview feature]
                                       The publisher is using this as default value for the skip first
                                       setting of nodes without a skip first setting.
-                                      Alternative: --sf, --skipfirstevent
+                                      Alternative: --sf, --skipfirst
                                       Mode: Standalone only
                                       Type: bool
                                       Default: false

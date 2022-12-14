@@ -6,8 +6,9 @@ Migration of OPC Publisher(standalone mode) version 2.5.x to 2.8.2 works for bac
 
 ## Configuration file (pn.json)
 
-OPC Publisher 2.8.2 in standalone mode can consume published nodes JSON files of 2.5.x version without any modifications.
-OPC Publisher 2.8.2 adds several new fields for configuring publishing. The full schema looks like this:
+In standalone mode OPC Publisher 2.8.2 and above can consume published nodes JSON files of 2.5.x version without any modifications.
+OPC Publisher 2.8.2 and above added several new fields to configure publishing but maintained backwards compatibilty with 2.5.x.
+The full schema looks like this:
 
 ```json
 [
@@ -58,7 +59,7 @@ To learn more about how to use comman-line arguments to configure OPC Publisher,
 
 ## OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2
 
-The following table describes the command line arguments, which were available in OPC Publisher 2.5.x and their compatibility in OPC Publisher 2.8.2.
+The following table describes the command line arguments, which were available in OPC Publisher 2.5.x and their compatibility in OPC Publisher 2.8.2 and above.
 
 | **Command Line Options**                |  **in 2.8.2 and above**  | **Alternative** |
 |--------------------------------------   |--------------------------|-----------------|
@@ -78,9 +79,9 @@ The following table describes the command line arguments, which were available i
 | --ms, --iothubmessagesize=VALUE         |  yes                     |                 |
 | --si, --iothubsendinterval=VALUE        |  yes                     |                 |
 | --dc, --deviceconnectionstring=VALUE    |  yes                     |                 |
-| --c, --connectionstring=VALUE           |  no                      |  use --dc, --deviceconnectionstring=VALUE               |
+| --c, --connectionstring=VALUE           |  no                      | use --dc, --deviceconnectionstring=VALUE               |
 | --hb, --heartbeatinterval=VALUE         |  yes                     |                 |
-| --sf, --skipfirstevent=VALUE            |  yes (2.9+)              |                 |
+| --sf, --skipfirstevent=VALUE            |  yes (2.9.0 or above)    | same as --skipfirst=VALUE |
 | --pn, --portnum=VALUE                   |  no                      |                 |
 | --pa, --path=VALUE                      |  no                      |                 |
 | --lr, --ldsreginterval=VALUE            |  no                      |                 |
