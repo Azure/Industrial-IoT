@@ -12,6 +12,7 @@ Preview releases are only supported through GitHub issues.
 
 - [OPC Publisher] [Alarms and Events](./modules/publisher-event-configuration.md) support to OPC Publisher. You can now subscribe to events in addition to value changes and in the familar ways using the published nodes json configuration and direct methods.
 - [OPC Publisher] Full Deadband filtering. We introduced data change triggers in 2.8.4 and are now supporting the full data change filter configuration to configure percent and absolute deadband as defined in OPC UA.
+- [OPC Publisher] Adding back support for --sf and SkipFirst property to skip the first data change notification to be sent when subscription is created.
 - [All IoT Edge modules] Configuration to optionally enable MQTT topic publishing and command control via an MQTT broker instead of IoT Edge EdgeHub.
 - [All IoT Edge modules] Update OPC UA stack to latest .371 version.
 

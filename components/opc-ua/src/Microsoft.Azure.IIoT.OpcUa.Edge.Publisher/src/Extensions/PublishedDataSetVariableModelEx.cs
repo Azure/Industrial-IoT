@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 DisplayName = displayName ?? publishedVariable.PublishedVariableDisplayName,
                 DataChangeFilter = ToDataChangeFilter(publishedVariable),
                 AggregateFilter = null,
+                SkipFirst = publishedVariable.SkipFirst ?? false,
                 DiscardNew = publishedVariable.DiscardNew,
                 StartNodeId = publishedVariable.PublishedVariableNodeId,
 

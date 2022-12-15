@@ -137,5 +137,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "heartbeatInterval", Order = 16,
             EmitDefaultValue = false)]
         public TimeSpan? HeartbeatInterval { get; set; }
+
+        /// <summary>
+        /// Instruct the monitored item to skip the first received value
+        /// </summary>
+        [DataMember(Name = "skipFirst", Order = 17,
+            EmitDefaultValue = false)]
+        public bool? SkipFirst { get; set; }
     }
 }

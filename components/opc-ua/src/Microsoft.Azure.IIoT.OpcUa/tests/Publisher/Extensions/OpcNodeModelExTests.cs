@@ -28,7 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 OpcPublishingInterval = 1500,
                 OpcSamplingInterval = 2500,
                 HeartbeatInterval = 35,
-                SkipFirst = true,
                 QueueSize = 123,
                 DataChangeTrigger = DataChangeTriggerType.StatusValue,
                 DeadbandType = DeadbandType.Absolute,
@@ -46,6 +45,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 DeadbandType = DeadbandType.Absolute,
                 DeadbandValue = 0.1
             };
+
+            opcNode2 = NewNode();
+            opcNode2.SkipFirst = false;
+            Assert.True(comparer.Equals(opcNode1, opcNode2));
+            Assert.True(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
+
+            // Set skip first to true like factory
+            opcNode2 = NewNode();
+            opcNode1.SkipFirst = true;
+            Assert.True(comparer.Equals(opcNode1, opcNode2));
+            Assert.True(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
 
             opcNode2 = NewNode();
             Assert.True(comparer.Equals(opcNode1, opcNode2));

@@ -75,6 +75,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 return null;
             }
             var handleId = monitoredItem.Handle as SubscriptionServices.MonitoredItemWrapper;
+            if (handleId?.SkipMonitoredItemNotification() ?? false) {
+                // Skip change notification
+                return null;
+            }
             return new MonitoredItemNotificationModel {
                 Id = handleId?.Template?.Id,
                 DisplayName = monitoredItem.DisplayName,

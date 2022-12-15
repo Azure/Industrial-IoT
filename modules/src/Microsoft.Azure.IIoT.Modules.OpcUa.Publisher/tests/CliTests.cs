@@ -34,6 +34,34 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         }
 
         /// <summary>
+        /// Valid boolean option test
+        /// </summary>
+        [Theory]
+        [InlineData("True", new string[] { "-aa" })]
+        [InlineData("True", new string[] { "--aa" })]
+        [InlineData("True", new string[] { "-autoaccept" })]
+        [InlineData("True", new string[] { "--autoaccept" })]
+        [InlineData("True", new string[] { "--autoaccept=True" })]
+        [InlineData("False", new string[] { "--autoaccept=False" })]
+        [InlineData("False", new string[] { "-aa=false" })]
+        [InlineData("True", new string[] { "-aa=true" })]
+        [InlineData("True", new string[] { "--AutoAcceptUntrustedCertificates" })]
+        [InlineData("True", new string[] { "--AutoAcceptUntrustedCertificates=True" })]
+        public void ValidAutoAcceptUntrustedCertificatesOptionTest(string expected, string[] param) {
+
+            var result = new StandaloneCliOptions(param);
+
+            result.Count
+                .Should()
+                .Be(1);
+
+            result.Keys.Should()
+                .Equal("AutoAcceptUntrustedCertificates");
+            result.Values.Should()
+                .Equal(expected);
+        }
+
+        /// <summary>
         /// LegacyOptionTest
         /// </summary>
         [Theory]

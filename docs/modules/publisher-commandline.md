@@ -495,4 +495,13 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                           for IoT Hub use a regular device connection string (*)
                                       Default: <not set>
 
+            SkipFirstDefault=VALUE
+                                      [Preview feature]
+                                      The publisher is using this as default value for the skip first
+                                      setting of nodes without a skip first setting.
+                                      Alternative: --sf, --skipfirst
+                                      Mode: Standalone only
+                                      Type: bool
+                                      Default: false
+
 (*) Check [here](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#using-the-mqtt-protocol-directly-as-a-device) and [here](https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#for-azure-iot-tools) how to retrieve the device connection string or generate a SharedAccessSignature for one.

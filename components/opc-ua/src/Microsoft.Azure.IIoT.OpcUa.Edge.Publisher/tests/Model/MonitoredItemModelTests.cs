@@ -35,6 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
                 DeadbandValue = 45
             },
             DiscardNew = true,
+            SkipFirst = true,
             DisplayName = "DataDisplayName",
             HeartbeatInterval = TimeSpan.FromMilliseconds(30000),
             Id = "Id",

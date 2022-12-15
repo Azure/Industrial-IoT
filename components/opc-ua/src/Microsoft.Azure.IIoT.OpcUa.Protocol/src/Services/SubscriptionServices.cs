@@ -1379,6 +1379,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (DataTemplate != null) {
                     Item.Filter = DataTemplate.DataChangeFilter.ToStackModel() ??
                         ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(messageContext));
+                    if (!TrySetSkipFirst(DataTemplate.SkipFirst)) {
+                        Debug.Fail($"Unexpected: Failed to set skip first setting.");
+                    }
                 }
                 else if (EventTemplate != null) {
                     var eventFilter = GetEventFilter(messageContext, nodeCache, codec);
@@ -1485,6 +1488,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         DataTemplate.HeartbeatInterval = model.DataTemplate.HeartbeatInterval;
 
                         itemChange = true; // TODO: Not really a change in the item
+                    }
+
+                    if (model.DataTemplate.SkipFirst != DataTemplate.SkipFirst) {
+                        DataTemplate.SkipFirst = model.DataTemplate.SkipFirst;
+
+                        if (model.TrySetSkipFirst(model.DataTemplate.SkipFirst)) {
+                            _logger.Debug("{item}: Setting skip first setting to {new}",
+                                this, model.DataTemplate.SkipFirst);
+                        }
+                        else {
+                            _logger.Information(
+    "{item}: Tried to set SkipFirst but it was set previously or first value was already processed.",
+                                this, model.DataTemplate.SkipFirst);
+                        }
+                        // No change, just updated internal state
                     }
                 }
                 else if (model.EventTemplate != null) {
@@ -1903,6 +1921,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
+            /// <summary>
+            /// Whether to skip monitored item notification
+            /// </summary>
+            /// <returns></returns>
+            public bool SkipMonitoredItemNotification() {
+                // This will update that first value has been processed.
+                var last = Interlocked.Exchange(ref _skipDataChangeNotification, (int)SkipSetting.DontSkip);
+                return last == (int)SkipSetting.Skip;
+            }
+
+            /// <summary>
+            /// Try set skip first setting. We allow updating while first value
+            /// is not yet processed, which is the case if skip setting is unconfigured.
+            /// </summary>
+            /// <param name="skipFirst"></param>
+            /// <returns></returns>
+            public bool TrySetSkipFirst(bool skipFirst) {
+                if (skipFirst) {
+                    // We only allow updating first skip setting while unconfigured
+                    return Interlocked.CompareExchange(ref _skipDataChangeNotification,
+                        (int)SkipSetting.Skip, (int)SkipSetting.Unconfigured) == (int)SkipSetting.Unconfigured;
+                }
+                else {
+                    // Unset skip setting if it was configured but first message was not yet processed
+                    Interlocked.CompareExchange(ref _skipDataChangeNotification,
+                        (int)SkipSetting.Unconfigured, (int)SkipSetting.Skip);
+                    return true;
+                }
+            }
+
+            enum SkipSetting : int {
+                DontSkip, // Default
+                Skip, // Skip first value
+                Unconfigured, // Configuration not applied yet
+            }
+
+            private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
             private Timer _pendingAlarmsTimer;
             private DateTime _lastSentPendingAlarms = DateTime.UtcNow;
             private uint _pendingAlarmsSequenceNumber;
