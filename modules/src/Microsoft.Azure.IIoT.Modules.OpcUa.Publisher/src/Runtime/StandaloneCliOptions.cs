@@ -225,7 +225,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
-                        (string i) => this[StandaloneCliConfigKeys.ScaleTestCount] = i.ToString(), true },
+                        (string i) => this[StandaloneCliConfigKeys.ScaleTestCount] = i, true },
 
                     // show help
                     { "h|help", "show this message and exit.",
