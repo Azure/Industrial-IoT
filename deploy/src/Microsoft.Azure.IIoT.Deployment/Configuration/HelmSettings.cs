@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
         // Defaults
         public static string _defaultRepoUrl = "https://azure.github.io/Industrial-IoT/helm";
-        public static string _defaultChartVersion = "0.4.3";
+        public static string _defaultChartVersion = "0.4.4";
         public static string _defaultImageTag = "2.8.4";
         public static string _defaultImageNamespace = "";
         public static string _defaultContainerRegistryServer = "mcr.microsoft.com";
