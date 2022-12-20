@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var messages = new List<DataSetMessageModel>();
 
             var networkMessages = await (encodeBatchFlag
-                ?_encoder.EncodeBatchAsync(messages, maxMessageSize)
+                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
                 : _encoder.EncodeAsync(messages, maxMessageSize)
             );
 
@@ -117,6 +117,67 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             }
         }
 
+        [Theory]
+        [InlineData(false, MessageEncoding.Json)]
+        [InlineData(true, MessageEncoding.Json)]
+        [InlineData(false, MessageEncoding.Uadp)]
+        [InlineData(true, MessageEncoding.Uadp)]
+        public async Task EncodeMetadataTest(bool encodeBatchFlag, MessageEncoding encoding) {
+            var maxMessageSize = 256 * 1024;
+            var messages = GenerateSampleMessages(20, encoding);
+            messages[10].Notifications = null; // Emit metadata
+            messages[10].MetaData = new DataSetMetaDataType {
+                Name = "test",
+                Fields = new FieldMetaDataCollection {
+                    new FieldMetaData {
+                        Name = "test",
+                        BuiltInType = (byte)BuiltInType.UInt16
+                    }
+                }
+            };
+
+            var networkMessages = await (encodeBatchFlag
+                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
+                : _encoder.EncodeAsync(messages, maxMessageSize)
+            );
+
+            if (encodeBatchFlag) {
+                Assert.Equal(1, networkMessages.Count());
+                Assert.Equal((uint)199, _encoder.NotificationsProcessedCount);
+                Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
+                Assert.Equal((uint)1, _encoder.MessagesProcessedCount);
+                Assert.Equal(199, _encoder.AvgNotificationsPerMessage);
+            }
+            else {
+                Assert.Equal(20, networkMessages.Count());
+                Assert.Equal((uint)199, _encoder.NotificationsProcessedCount);
+                Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
+                Assert.Equal((uint)20, _encoder.MessagesProcessedCount);
+            }
+        }
+
+        [Theory]
+        [InlineData(false, MessageEncoding.Json)]
+        [InlineData(true, MessageEncoding.Json)]
+        [InlineData(false, MessageEncoding.Uadp)]
+        [InlineData(true, MessageEncoding.Uadp)]
+        public async Task EncodeNothingTest(bool encodeBatchFlag, MessageEncoding encoding) {
+            var maxMessageSize = 256 * 1024;
+            var messages = GenerateSampleMessages(1, encoding);
+            messages[0].Notifications = null;
+            messages[0].MetaData = null;
+            var networkMessages = await (encodeBatchFlag
+                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
+                : _encoder.EncodeAsync(messages, maxMessageSize)
+            );
+
+            Assert.Empty(networkMessages);
+            Assert.Equal((uint)0, _encoder.NotificationsProcessedCount);
+            Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
+            Assert.Equal((uint)0, _encoder.MessagesProcessedCount);
+            Assert.Equal(0, _encoder.AvgNotificationsPerMessage);
+        }
+
         public static IList<DataSetMessageModel> GenerateSampleMessages(
             uint numOfMessages,
             MessageEncoding encoding = MessageEncoding.Json
@@ -156,12 +217,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                                 PublishedVariables = new PublishedDataItemsModel {
                                     PublishedData = new List<PublishedDataSetVariableModel>()
                                 }
+                            },
+                            DataSetMetaData = new DataSetMetaDataModel {
+                                Name = "test",
+                                DataSetClassId = Guid.NewGuid()
                             }
                         }
                     },
                     WriterGroup = new WriterGroupModel {
                         MessageSettings = new WriterGroupMessageSettingsModel {
-                            NetworkMessageContentMask = (NetworkMessageContentMask) 0xffff
+                            NetworkMessageContentMask = (NetworkMessageContentMask)0xffff
                         },
                         MessageType = encoding
                     },

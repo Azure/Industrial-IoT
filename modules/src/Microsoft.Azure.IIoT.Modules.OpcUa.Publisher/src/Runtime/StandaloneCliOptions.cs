@@ -98,6 +98,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "skipfirstevent=", "Maintained for backwards compatibility, do not use.",
                         (string b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b, /* hidden = */ true },
 
+                    { $"dn|dontdiscardold=|{StandaloneCliConfigKeys.DiscardNewDefault}=", "The publisher is using this as default value for the discard old " +
+                        "setting of monitored item queue configuration. Setting to true will ensure that new values are dropped before older ones are drained.",
+                        (bool b) => this[StandaloneCliConfigKeys.DiscardNewDefault] = b.ToString() },
                     { $"fm|fullfeaturedmessage=|{StandaloneCliConfigKeys.FullFeaturedMessage}=", "The full featured mode for messages (all fields filled in)." +
                         "Default is 'false' for legacy compatibility.",
                         (bool b) => this[StandaloneCliConfigKeys.FullFeaturedMessage] = b.ToString() },
@@ -125,6 +128,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int i) => this[StandaloneCliConfigKeys.OpcSamplingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
                     { $"op|opcpublishinginterval=|{StandaloneCliConfigKeys.OpcPublishingInterval}=", "Default value in milliseconds for the publishing interval " +
                         "setting of the subscriptions against the OPC UA server.",
+                        (int i) => this[StandaloneCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
+
+                    { $"kfi|keyframeinterval=|{StandaloneCliConfigKeys.DefaultKeyFrameInterval}=", "Default value in milliseconds specifying the interval " +
+                        "for when periodic key frames are inserted.",
+                        (int i) => this[StandaloneCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
+                    { $"kfc|keyframecount=|{StandaloneCliConfigKeys.DefaultKeyFrameCount}=", "Default count of messages before a new key frame is sent " +
+                        "if the publishing mode is PubSub.",
+                        (int i) => this[StandaloneCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
+                    { $"msi|metadatasendinterval=|{StandaloneCliConfigKeys.DefaultMetaDataSendInterval}=", "Default value in milliseconds for the metadata send " +
+                        "interval if the publishing mode is PubSub.",
                         (int i) => this[StandaloneCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
 
                     { $"{StandaloneCliConfigKeys.ApplicationUriKey}=", "OPC UA Client Application Config - Application URI as per OPC UA definition.",
@@ -417,8 +430,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.PublishedNodesSchemaFile = GetValueOrDefault(StandaloneCliConfigKeys.PublishedNodesConfigurationSchemaFilename, StandaloneCliConfigKeys.DefaultPublishedNodesSchemaFilename);
             model.DefaultHeartbeatInterval = GetValueOrDefault(StandaloneCliConfigKeys.HeartbeatIntervalDefault, model.DefaultHeartbeatInterval);
             model.DefaultSkipFirst = GetValueOrDefault(StandaloneCliConfigKeys.SkipFirstDefault, model.DefaultSkipFirst);
+            model.DefaultDiscardNew = GetValueOrDefault(StandaloneCliConfigKeys.DiscardNewDefault, model.DefaultDiscardNew);
             model.DefaultSamplingInterval = GetValueOrDefault(StandaloneCliConfigKeys.OpcSamplingInterval, model.DefaultSamplingInterval);
             model.DefaultPublishingInterval = GetValueOrDefault(StandaloneCliConfigKeys.OpcPublishingInterval, model.DefaultPublishingInterval);
+            model.DefaultMetaDataSendInterval = GetValueOrDefault(StandaloneCliConfigKeys.DefaultMetaDataSendInterval, model.DefaultMetaDataSendInterval);
+            model.DefaultKeyFrameInterval = GetValueOrDefault(StandaloneCliConfigKeys.DefaultKeyFrameInterval, model.DefaultKeyFrameInterval);
+            model.DefaultKeyFrameCount = GetValueOrDefault(StandaloneCliConfigKeys.DefaultKeyFrameCount, model.DefaultKeyFrameCount);
             model.FetchOpcNodeDisplayName = GetValueOrDefault(StandaloneCliConfigKeys.FetchOpcNodeDisplayName, model.FetchOpcNodeDisplayName);
             model.DefaultQueueSize = GetValueOrDefault(StandaloneCliConfigKeys.DefaultQueueSize, model.DefaultQueueSize);
             model.DiagnosticsInterval = GetValueOrDefault(StandaloneCliConfigKeys.DiagnosticsInterval, model.DiagnosticsInterval);

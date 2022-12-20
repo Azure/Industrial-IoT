@@ -24,6 +24,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public List<MonitoredItemNotificationModel> Notifications { get; set; }
 
         /// <summary>
+        /// Meta data
+        /// </summary>
+        public DataSetMetaDataType MetaData { get; set; }
+
+        /// <summary>
         /// Subscription from which message originated
         /// </summary>
         public string SubscriptionId { get; internal set; }
@@ -37,11 +42,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Appplication url
         /// </summary>
         public string ApplicationUri { get; internal set; }
-
-        /// <summary>
-        /// set if message contains data changes for every monitored item
-        /// </summary>
-        public bool IsKeyMessage { get; internal set; }
 
         /// <summary>
         /// Publishing time

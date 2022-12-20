@@ -38,6 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 IndexRange = IndexRange,
                 MonitoringMode = MonitoringMode,
                 DisplayName = DisplayName,
+                DataSetClassFieldId = DataSetClassFieldId,
                 RelativePath = RelativePath,
                 PendingAlarms = PendingAlarms?.Clone() ?? null
             };

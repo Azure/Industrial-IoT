@@ -220,12 +220,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             toRemove.ForEach(sc => sc.Dispose());
 
-            toAdd.ForEach(async sc => await sc.OpenAsync().ConfigureAwait(false) );
+            toAdd.ForEach(async sc => await sc.OpenAsync().ConfigureAwait(false));
             toUpdate.ForEach(async sc => {
-                    var newSc = newSubscriptions.Find(s => s.Equals(sc));
-                    await sc.UpdateAsync(newSc);
-                }
-            );
+                var newSc = newSubscriptions.Find(s => s.Equals(sc));
+                await sc.UpdateAsync(newSc);
+            });
         }
 
         /// <inheritdoc/>
@@ -354,7 +353,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 Subscription.OnSubscriptionEventDiagnosticsChange -= OnSubscriptionEventDiagnosticsChanged;
                 Subscription.Dispose();
                 Subscription = null;
-
             }
 
             /// <inheritdoc/>
@@ -406,8 +404,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     .TotalMilliseconds;
 
                 if (metaDataSendInterval > 0) {
-                    _metaData = dataSetWriter.DataSet?.DataSetMetaData ??
-                        throw new ArgumentNullException(nameof(dataSetWriter.DataSet));
                     if (_metadataTimer == null) {
                         _metadataTimer = new Timer(metaDataSendInterval);
                         _metadataTimer.Elapsed += MetadataTimerElapsed;
@@ -433,10 +429,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _keyframeTimer.Enabled = false;
 
                     _outer._logger.Debug("Insert keyframe message...");
-                    var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
-                    var snapshot = await Subscription.GetSnapshotAsync().ConfigureAwait(false);
+                    var snapshot = await Subscription.GetSubscriptionNotificationAsync().ConfigureAwait(false);
                     if (snapshot != null) {
-                        CallMessageReceiverDelegates(this, sequenceNumber, snapshot);
+                        CallMessageReceiverDelegates(this, snapshot);
                     }
                 }
                 catch (Exception ex) {
@@ -450,24 +445,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Fired when metadata time elapsed
             /// </summary>
-            private void MetadataTimerElapsed(object sender, ElapsedEventArgs e) {
-                // Send(_metaData)
+            private async void MetadataTimerElapsed(object sender, ElapsedEventArgs e) {
+                try {
+                    _metadataTimer.Enabled = false;
+
+                    _outer._logger.Debug("Insert metadata message...");
+                    var notification = await Subscription.GetSubscriptionNotificationAsync(false).ConfigureAwait(false);
+                    if (notification != null) {
+                        CallMessageReceiverDelegates(this, notification, true);
+                    }
+                }
+                catch (Exception ex) {
+                    _outer._logger.Information(ex, "Failed to send metadata.");
+                }
+                finally {
+                    _metadataTimer.Enabled = true;
+                }
             }
 
             /// <summary>
-            /// Handle subscription change messages
+            /// Handle subscription data change messages
             /// </summary>
             private async void OnSubscriptionDataChangedAsync(object sender,
                 SubscriptionNotificationModel notification) {
-                var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
-                if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0 &&
-                    (sequenceNumber % _keyFrameCount.Value) == 0) {
-                    var snapshot = await Try.Async(() => Subscription.GetSnapshotAsync()).ConfigureAwait(false);
-                    if (snapshot != null) {
-                        notification = snapshot;
+                if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0) {
+                    var frameCount = Interlocked.Increment(ref _frameCount);
+                    if ((frameCount % _keyFrameCount.Value) == 0) {
+                        InitializeKeyframeTrigger(_dataSetWriter);
+                        var snapshot = await Try.Async(() => Subscription.GetSubscriptionNotificationAsync()).ConfigureAwait(false);
+                        if (snapshot != null) {
+                            notification = snapshot;
+                        }
                     }
                 }
-                CallMessageReceiverDelegates(sender, sequenceNumber, notification);
+                CallMessageReceiverDelegates(sender, notification);
             }
 
             /// <summary>
@@ -484,6 +495,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             _outer.DataChangesCount, _outer.ValueChangesCount);
                         _outer.DataChangesCount = 0;
                         _outer.ValueChangesCount = 0;
+                        _outer.FireOnCounterResetEvent();
                     }
 
                     _outer.ValueChangesCount += (ulong)notificationCount;
@@ -495,15 +507,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// Handle subscription change messages
             /// </summary>
             private async void OnSubscriptionEventChangedAsync(object sender, SubscriptionNotificationModel notification) {
-                var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
-                if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0 &&
-                    (sequenceNumber % _keyFrameCount.Value) == 0) {
-                    var snapshot = await Try.Async(() => Subscription.GetSnapshotAsync()).ConfigureAwait(false);
-                    if (snapshot != null) {
-                        notification = snapshot;
+                if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0) {
+                    var frameCount = Interlocked.Increment(ref _frameCount);
+                    if ((frameCount % _keyFrameCount.Value) == 0) {
+                        InitializeKeyframeTrigger(_dataSetWriter);
+                        var snapshot = await Try.Async(() => Subscription.GetSubscriptionNotificationAsync()).ConfigureAwait(false);
+                        if (snapshot != null) {
+                            notification = snapshot;
+                        }
                     }
                 }
-                CallMessageReceiverDelegates(sender, sequenceNumber, notification);
+                CallMessageReceiverDelegates(sender, notification);
             }
 
             /// <summary>
@@ -522,6 +536,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             _outer.EventCount, _outer.EventNotificationCount);
                         _outer.EventCount = 0;
                         _outer.EventNotificationCount = 0;
+                        _outer.FireOnCounterResetEvent();
                     }
 
                     _outer.EventNotificationCount += (ulong)notificationCount;
@@ -533,44 +548,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// handle subscription change messages
             /// </summary>
             /// <param name="sender"></param>
-            /// <param name="sequenceNumber"></param>
             /// <param name="notification"></param>
-            private void CallMessageReceiverDelegates(object sender, uint sequenceNumber,
-                SubscriptionNotificationModel notification) {
+            /// <param name="metaDataTimer"></param>
+            private void CallMessageReceiverDelegates(object sender,
+                SubscriptionNotificationModel notification, bool metaDataTimer = false) {
                 try {
-                    var message = new DataSetMessageModel {
-                        // TODO: Filter changes on the monitored items contained in the template
-                        Notifications = notification.Notifications.ToList(),
-                        ServiceMessageContext = notification.ServiceMessageContext,
-                        SubscriptionId = notification.SubscriptionId,
-                        SequenceNumber = sequenceNumber,
-                        ApplicationUri = notification.ApplicationUri,
-                        EndpointUrl = notification.EndpointUrl,
-                        TimeStamp = notification.Timestamp,
-                        PublisherId = _outer._publisherId,
-                        Writer = _dataSetWriter,
-                        WriterGroup = _outer._writerGroup
-                    };
                     lock (_lock) {
-                        if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
-                            _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
-                            // reset both
-                            _outer._logger.Information("Notifications counter has been reset to prevent overflow. " +
-                                "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
-                                " value changes were invoked by message source.",
-                                _outer.DataChangesCount, _outer.ValueChangesCount);
-                            _outer.DataChangesCount = 0;
-                            _outer.ValueChangesCount = 0;
-                            _outer.FireOnCounterResetEvent();
+                        if (notification.MetaData != null) {
+                            var sendMetadata = metaDataTimer;
+                            //
+                            // Only send if called from metadata timer or if the metadata version changes.
+                            // Metadata reference is owned by the notification/message, a new metadata is
+                            // created when it changes so old one is not mutated and this should be safe.
+                            //
+                            if (_currentMetadataMajorVersion != notification.MetaData.ConfigurationVersion.MajorVersion &&
+                                _currentMetadataMinorVersion != notification.MetaData.ConfigurationVersion.MinorVersion) {
+                                _currentMetadataMajorVersion = notification.MetaData.ConfigurationVersion.MajorVersion;
+                                _currentMetadataMinorVersion = notification.MetaData.ConfigurationVersion.MinorVersion;
+                                sendMetadata = true;
+                            }
+                            if (sendMetadata) {
+                                var message = CreateDataSetMessage(notification);
+                                if (!metaDataTimer) {
+                                    // Reset periodic timer since we were not called on timer.
+                                    InitializeMetaDataTrigger(_dataSetWriter);
+                                }
+                                _outer.OnMessage?.Invoke(sender, message);
+                            }
                         }
 
-                        _outer.ValueChangesCount += (ulong)message.Notifications.Count();
-                        _outer.DataChangesCount++;
-                        _outer.OnMessage?.Invoke(sender, message);
+                        if (notification.Notifications != null) {
+                            var message = CreateDataSetMessage(notification);
+                            message.Notifications = notification.Notifications;
+                            _outer.OnMessage?.Invoke(sender, message);
+                        }
                     }
                 }
                 catch (Exception ex) {
                     _outer._logger.Debug(ex, "Failed to produce message");
+                }
+
+                DataSetMessageModel CreateDataSetMessage(SubscriptionNotificationModel notification) {
+                    return new DataSetMessageModel {
+                        ServiceMessageContext = notification.ServiceMessageContext,
+                        SubscriptionId = notification.SubscriptionId,
+                        ApplicationUri = notification.ApplicationUri,
+                        EndpointUrl = notification.EndpointUrl,
+                        TimeStamp = notification.Timestamp,
+                        PublisherId = _outer._publisherId,
+                        MetaData = notification.MetaData,
+                        Writer = _dataSetWriter,
+                        SequenceNumber = _currentSequenceNumber++,
+                        WriterGroup = _outer._writerGroup
+                    };
                 }
             }
 
@@ -584,11 +614,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             /// <inheritdoc/>
-            public static bool operator == (DataSetWriterSubscription objA, DataSetWriterSubscription objB) =>
+            public static bool operator ==(DataSetWriterSubscription objA, DataSetWriterSubscription objB) =>
                 EqualityComparer<DataSetWriterSubscription>.Default.Equals(objA, objB);
 
             /// <inheritdoc/>
-            public static bool operator != (DataSetWriterSubscription objA, DataSetWriterSubscription objB) =>
+            public static bool operator !=(DataSetWriterSubscription objA, DataSetWriterSubscription objB) =>
                 !(objA == objB);
 
             /// <inheritdoc/>
@@ -607,9 +637,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             private SubscriptionModel _subscriptionInfo;
             private Timer _keyframeTimer;
             private Timer _metadataTimer;
-            private DataSetMetaDataModel _metaData;
             private uint? _keyFrameCount;
-            private long _currentSequenceNumber;
+            private uint _currentSequenceNumber;
+            private uint _frameCount;
+            private uint _currentMetadataMajorVersion;
+            private uint _currentMetadataMinorVersion;
         }
 
         /// <summary>

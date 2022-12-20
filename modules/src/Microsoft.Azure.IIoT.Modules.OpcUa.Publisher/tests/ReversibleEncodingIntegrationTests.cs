@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             // Arrange
             // Act
             var result = await ProcessMessagesAsync(
-                publishedNodesFile,
+                publishedNodesFile, messageType: "ua-data",
                 arguments: new[] { "--mm=PubSub", "--UseReversibleEncoding=False" }
             ).ConfigureAwait(false);
 
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             // Arrange
             // Act
             var result = await ProcessMessagesAsync(
-                publishedNodesFile,
+                publishedNodesFile, messageType: "ua-data",
                 arguments: new[] { "--mm=PubSub", "--UseReversibleEncoding=True" }
             ).ConfigureAwait(false);
 

@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Opc.Ua.Design;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -38,6 +39,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 DataSetWriterGroup = model.DataSetWriterGroup,
                 DataSetWriterId = model.DataSetWriterId,
+                DataSetClassId = model.DataSetClassId,
+                DataSetDescription = model.DataSetDescription,
+                DataSetKeyFrameCount = model.DataSetKeyFrameCount,
+                DataSetKeyFrameInterval = model.DataSetKeyFrameInterval,
+                DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
+                DataSetName = model.DataSetName,
                 Tag = model.Tag,
                 DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
                 // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
@@ -59,6 +66,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             return new OpcNodeModel {
                 Id = model.Id,
                 DataSetFieldId = model.DataSetFieldId,
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 DisplayName = model.DisplayName,
                 ExpandedNodeId = model.ExpandedNodeId,
 
@@ -84,6 +92,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
+                DiscardNew = model.DiscardNew,
+                DeadbandType = (IIoT.OpcUa.Publisher.Models.DeadbandType?)model.DeadbandType,
+                DeadbandValue = model.DeadbandValue,
                 DataChangeTrigger = (IIoT.OpcUa.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
                 EventFilter = model.EventFilter.ToServiceModel()
             };
@@ -115,6 +126,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
                 UserName = endpoint.OpcAuthenticationUsername,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
+                DataSetDescription = endpoint.DataSetDescription,
+                DataSetKeyFrameCount = endpoint.DataSetKeyFrameCount,
+                DataSetKeyFrameInterval = endpoint.DataSetKeyFrameInterval,
+                DataSetMetaDataSendInterval = endpoint.DataSetMetaDataSendInterval,
+                DataSetName = endpoint.DataSetName,
+                DataSetClassId = endpoint.DataSetClassId,
                 DataSetWriterId = endpoint.DataSetWriterId,
                 Tag = endpoint.Tag,
                 DataSetPublishingIntervalTimespan = endpoint.DataSetPublishingIntervalTimespan,
@@ -151,6 +168,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 ExpandedNodeId = model.ExpandedNodeId,
                 DataSetFieldId = model.DataSetFieldId,
                 DisplayName = model.DisplayName,
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
                 OpcPublishingInterval = !model.OpcPublishingIntervalTimespan.HasValue
                     ? model.OpcPublishingInterval
@@ -165,6 +183,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
+                DiscardNew = model.DiscardNew,
+                DeadbandType = (DeadbandType?)model.DeadbandType,
+                DeadbandValue = model.DeadbandValue,
                 DataChangeTrigger = (DataChangeTriggerType?)model.DataChangeTrigger,
                 EventFilter = model.EventFilter.ToApiModel()
             };

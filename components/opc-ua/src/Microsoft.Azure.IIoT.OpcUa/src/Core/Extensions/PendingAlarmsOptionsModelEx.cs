@@ -22,9 +22,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 IsEnabled = model.IsEnabled,
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval,
-                ConditionIdIndex = model.ConditionIdIndex,
-                RetainIndex = model.RetainIndex,
-                Dirty = model.Dirty,
             };
         }
 
@@ -44,10 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             return
                 other.IsEnabled == model.IsEnabled &&
                 other.UpdateInterval == model.UpdateInterval &&
-                other.SnapshotInterval == model.SnapshotInterval &&
-                other.ConditionIdIndex == model.ConditionIdIndex &&
-                other.RetainIndex == model.RetainIndex &&
-                other.Dirty == model.Dirty;
+                other.SnapshotInterval == model.SnapshotInterval;
         }
     }
 }

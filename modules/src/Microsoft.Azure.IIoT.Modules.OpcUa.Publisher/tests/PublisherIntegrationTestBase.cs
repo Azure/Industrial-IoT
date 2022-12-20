@@ -85,9 +85,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         protected Task<List<JsonDocument>> ProcessMessagesAsync(
             string publishedNodesFile,
             Func<JsonDocument, bool> predicate = null,
+            string messageType = null,
             string[] arguments = default) {
             // Collect messages from server with default settings
-            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, arguments);
+            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
         }
 
         protected async Task<List<JsonDocument>> ProcessMessagesAsync(
@@ -95,11 +96,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             TimeSpan messageCollectionTimeout,
             int messageCount,
             Func<JsonDocument, bool> predicate = null,
+            string messageType = null,
             string[] arguments = default) {
 
             await StartPublisherAsync(publishedNodesFile, arguments);
 
-            var messages = WaitForMessages(messageCollectionTimeout, messageCount, predicate);
+            var messages = WaitForMessages(messageCollectionTimeout, messageCount, predicate, messageType);
 
             StopPublisher();
 
@@ -109,16 +111,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// <summary>
         /// Wait for one message
         /// </summary>
-        protected List<JsonDocument> WaitForMessages(Func<JsonDocument, bool> predicate = null) {
+        protected List<JsonDocument> WaitForMessages(Func<JsonDocument, bool> predicate = null,
+            string messageType = null) {
             // Collect messages from server with default settings
-            return WaitForMessages(TimeSpan.FromMinutes(2), 1, predicate);
+            return WaitForMessages(TimeSpan.FromMinutes(2), 1, predicate, messageType);
         }
 
         /// <summary>
         /// Wait for messages
         /// </summary>
         protected List<JsonDocument> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
-            Func<JsonDocument, bool> predicate = null) {
+            Func<JsonDocument, bool> predicate = null, string messageType = null) {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var messages = new List<JsonDocument>();
@@ -128,6 +131,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 var json = Encoding.UTF8.GetString(evt.Message.GetBytes());
                 var document = JsonDocument.Parse(json);
                 json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
+                if (messageType != null) {
+                    var type = document.RootElement[0].GetProperty("MessageType").GetString();
+                    if (type != messageType) {
+                        continue;
+                    }
+                }
                 if (predicate != null && !predicate(document)) {
                     continue;
                 }

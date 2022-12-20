@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             }
             return new DataMonitoredItemModel {
                 Id = publishedVariable.Id,
+                DataSetClassFieldId = publishedVariable.DataSetClassFieldId,
                 DisplayName = displayName ?? publishedVariable.PublishedVariableDisplayName,
                 DataChangeFilter = ToDataChangeFilter(publishedVariable),
                 AggregateFilter = null,

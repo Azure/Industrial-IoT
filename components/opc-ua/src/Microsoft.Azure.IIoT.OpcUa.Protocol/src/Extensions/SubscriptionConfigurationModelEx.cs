@@ -23,7 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 PublishingInterval = model.PublishingInterval,
                 LifetimeCount = model.LifetimeCount,
                 KeepAliveCount = model.KeepAliveCount,
-                MaxNotificationsPerPublish = model.MaxNotificationsPerPublish,
                 Priority = model.Priority,
                 ResolveDisplayName = model.ResolveDisplayName
             };
@@ -50,9 +49,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 return false;
             }
             if (model.KeepAliveCount != other.KeepAliveCount) {
-                return false;
-            }
-            if (model.MaxNotificationsPerPublish != other.MaxNotificationsPerPublish) {
                 return false;
             }
             if (model.Priority != other.Priority) {

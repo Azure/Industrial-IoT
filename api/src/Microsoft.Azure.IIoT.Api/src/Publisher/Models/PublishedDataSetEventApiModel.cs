@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using System.Runtime.Serialization;
     using System.Collections.Generic;
+    using System;
 
     /// <summary>
     /// Describes event fields to be published
@@ -86,5 +87,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "typeDefinitionId", Order = 10)]
         public string TypeDefinitionId { get; set; }
+
+        /// <summary>
+        /// Identifier of event fields in the dataset class.
+        /// </summary>
+        [DataMember(Name = "dataSetClassFieldId", Order = 11,
+            EmitDefaultValue = false)]
+        public Guid DataSetClassFieldId { get; set; }
     }
 }

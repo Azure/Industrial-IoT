@@ -36,6 +36,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public bool DefaultSkipFirst { get; set; } = false;
 
         /// <summary>
+        /// The default flag whether to descard new items in queue
+        /// </summary>
+        public bool? DefaultDiscardNew { get; set; }
+
+        /// <summary>
         /// The default sampling interval.
         /// </summary>
         public TimeSpan? DefaultSamplingInterval { get; set; } = TimeSpan.FromSeconds(1);
@@ -44,6 +49,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// The default publishing interval.
         /// </summary>
         public TimeSpan? DefaultPublishingInterval { get; set; } = TimeSpan.FromSeconds(1);
+
+        /// <summary>
+        /// Default metadata send interval.
+        /// </summary>
+        public TimeSpan? DefaultMetaDataSendInterval { get; set; }
+
+        /// <summary>
+        /// Default keyframe count
+        /// </summary>
+        public uint? DefaultKeyFrameCount { get; set; }
+
+        /// <summary>
+        /// Default key frame interval.
+        /// </summary>
+        public TimeSpan? DefaultKeyFrameInterval { get; set; }
 
         /// <summary>
         /// Flag wether to grab the display name of nodes form

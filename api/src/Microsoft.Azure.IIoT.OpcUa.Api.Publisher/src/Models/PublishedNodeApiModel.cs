@@ -98,5 +98,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "eventFilter", Order = 15,
             EmitDefaultValue = false)]
         public EventFilterApiModel EventFilter { get; set; }
+
+        /// <summary> Discard new values if queue is full </summary>
+        [DataMember(Name = "discardNew", Order = 16,
+            EmitDefaultValue = false)]
+        public bool? DiscardNew { get; set; }
+
+        /// <summary> Field id in dataset class </summary>
+        [DataMember(Name = "dataSetClassFieldId", Order = 17,
+            EmitDefaultValue = false)]
+        public Guid DataSetClassFieldId { get; set; }
     }
 }

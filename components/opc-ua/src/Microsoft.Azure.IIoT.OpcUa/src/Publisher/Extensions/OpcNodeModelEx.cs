@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
     using System.Collections.Generic;
@@ -44,6 +43,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
+            if (model.DataSetClassFieldId != that.DataSetClassFieldId) {
+                return false;
+            }
+
             if (string.Compare(model.ExpandedNodeId, that.ExpandedNodeId, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
@@ -61,6 +64,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             }
 
             if ((model.SkipFirst ?? false) != (that.SkipFirst ?? false)) {
+                return false;
+            }
+
+            if ((model.DiscardNew ?? false) != (that.DiscardNew ?? false)) {
                 return false;
             }
 
@@ -101,11 +108,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.Id);
             hash.Add(model.DisplayName);
             hash.Add(model.DataSetFieldId);
+            hash.Add(model.DataSetClassFieldId);
             hash.Add(model.ExpandedNodeId);
             hash.Add(model.GetNormalizedPublishingInterval());
             hash.Add(model.GetNormalizedSamplingInterval());
             hash.Add(model.GetNormalizedHeartbeatInterval());
             hash.Add(model.SkipFirst ?? false);
+            hash.Add(model.DiscardNew ?? false);
             hash.Add(model.QueueSize);
             if (model.DataChangeTrigger == null) {
                 //

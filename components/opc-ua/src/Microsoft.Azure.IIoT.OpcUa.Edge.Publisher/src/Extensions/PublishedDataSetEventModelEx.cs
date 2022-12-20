@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
 
             return new EventMonitoredItemModel {
                 Id = publishedEvent.Id,
+                DataSetClassFieldId = publishedEvent.DataSetClassFieldId,
                 DisplayName = displayName,
                 EventFilter = new EventFilterModel {
                     SelectClauses = publishedEvent.SelectClauses?

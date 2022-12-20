@@ -39,6 +39,9 @@ The `_V1` direct methods use the payload schema as described below:
   "Password": "string",
   "DataSetWriterGroup": "string",
   "DataSetWriterId": "string",
+  "DataSetClassId": "Guid",
+  "DataSetName": "string",
+  "DataSetDescription": "string",
   "DataSetPublishingInterval": "integer",
   "DataSetPublishingIntervalTimespan": "string",
   "Tag": "string",
@@ -52,8 +55,10 @@ The `_V1` direct methods use the payload schema as described below:
       "OpcPublishingInterval": "integer",
       "OpcPublishingIntervalTimespan": "string",
       "DataSetFieldId ": "string",
+      "DataSetClassFieldId ": "Guid",
       "DisplayName": "string",
       "SkipFirst": "bool",
+      "DiscardNew": "bool",
       "HeartbeatInterval": "integer",
       "HeartbeatIntervalTimespan": "string",
       "QueueSize": "integer",
@@ -81,6 +86,9 @@ Method call's request attributes are as follows:
 | `Password`                          | No        | String          | `null`                      | The password for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
 | `DataSetWriterGroup`                | No        | String          | `EndpointUrl`               | The data set writer group collecting datasets defined for a certain <br>endpoint uniquely identified by the above attributes. <br>This attribute is used to identify the session opened into the <br>server. The default value consists of the EndpointUrl string, <br>followed by a deterministic hash composed of the <br>EndpointUrl, UseSecurity, OpcAuthenticationMode, UserName and Password attributes. |
 | `DataSetWriterId`                   | No        | String          | `DataSetPublishingInterval` | The unique identifier for a data set writer used to collect <br>OPC UA nodes to be semantically grouped and published with <br>the same publishing interval. <br>When not specified a string representing the common <br>publishing interval of the nodes in the data set collection. <br>This attribute uniquely identifies a data set <br>within a DataSetWriterGroup. The uniqueness is determined <br>using the provided DataSetWriterId and the publishing <br>interval of the grouped OpcNodes.  An individual <br>subscription is created for each DataSetWriterId. |
+| `DataSetName`                       | No        | String          | `null`                      | The optional name of the data set as it will appear in the dataset metadata. |
+| `DataSetDescription`                | No        | String          | `null`                      | The optional description for the data set as it will appear in the dataset metadata. |
+| `DataSetClassId`                    | No        | Guid            | Guid.Empty                  | The optional dataset class id as it shall appear in dataset messages and dataset metadata. |
 | `DataSetPublishingInterval`         | No        | Integer         | `null`                      | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed in milliseconds. <br>Ignored when `DataSetPublishingIntervalTimespan` is present. <br> _Note_: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
 | `DataSetPublishingIntervalTimespan` | No        | String          | `null`                      | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed as a Timespan string ({d.hh:mm:dd.fff}). <br>When both Intervals are specified, the Timespan will win and be used for the configuration. <br> _Note_: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
 | `Tag`                               | No        | String          | empty                       | User defined information stored in the configuration as a tag string. |
@@ -98,12 +106,14 @@ OpcNode attributes are as follows:
 | `OpcSamplingIntervalTimespan`   | No        | String  | null    | The sampling interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>The value is used as defined in the OPC UA specification. |
 | `OpcPublishingInterval`         | No        | Integer | 1000    | The publishing interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcPublishingIntervalTimespan` is present. |
 | `OpcPublishingIntervalTimespan` | No        | String  | null    | The publishing interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. |
-| `DataSetFieldId`                | No        | String  | null    | A user defined tag used to identify the Field in the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode. |
+| `DataSetFieldId`                | No        | String  | null    | A user defined tag used to identify the field in the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode. |
+| `DataSetClassFieldId`           | No        | Guid    | Empty   | A user defined Guid that identifies the field in the data set class of the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode.<br>This value is ignored when subscribing to events, in which case a `DataSetClassFieldId` can be applied to each select clause that select the content of the event dataset. |
 | `DisplayName`                   | No        | String  | null    | A user defined tag to be added to the telemetry message <br>when publisher runs in Samples message mode. |
 | `HeartbeatInterval`             | No        | Integer | 0       | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in seconds. <br>0 means the heartbeat mechanism is disabled. <br>This value is ignored when `HeartbeatIntervalTimespan` is present. |
 | `HeartbeatIntervalTimespan`     | No        | String  | null    | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). |
 | `SkipFirst`                     | No        | boolean | false   | Whether the first received data change for the monitored item should not be sent. This can avoid large initial messages since all values are sent by a server as the first notification.<br>If an `EventFilter` is specified, this value is ignored |
 | `QueueSize`                     | No        | Integer | 1       | The desired QueueSize for the monitored item to be published.  |
+| `DiscardNew`                    | No        | boolean | false   | Whether the server shall discard new values when the queue is full. Default is false, it will discard values that have not been sent yet. |
 | `DataChangeTrigger`             | No        | String  | null    | The data change trigger to use. <br>The default is `"StatusValue"` causing telemetry to be sent when value or statusCode of the DataValue change. <br>`"Status"` causes messages to be sent only when the status code changes and <br>`"StatusValueTimestamp"` causes a message to be sent when value, statusCode, or the source timestamp of the value change. A publisher wide default value can be set using the [command line](./publisher-commandline.md). This value is ignored if an EventFilter is configured. |
 | `DeadbandType`                  | No        | String  | 1       | The type of deadband filter to apply. <br>`"Percent"` means that the `DeadbandValue` specified is a percentage of the EURange of the value. The value then is clamped to a value between 0.0 and 100.0 <br>`"Absolute"` means the value is an absolute deadband range. Negative values are interpreted as 0.0. This value is ignored if an `EventFilter` is present. |
 | `DeadbandValue`                 | No        | Decimal | 1       | The deaadband value to use. If the `DeadbandType` is not specified or an `EventFilter` is specified, this value is ignored. |

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
+    using System;
+
     /// <summary>
     /// Simple attribute operand model
     /// </summary>
@@ -34,5 +36,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// Optional display name
         /// </summary>
         public string DisplayName { get; set; }
+
+        /// <summary>
+        /// Optional field id
+        /// </summary>
+        public Guid DataSetClassFieldId { get; set; }
     }
 }

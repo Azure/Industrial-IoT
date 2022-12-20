@@ -43,9 +43,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string HeartbeatIntervalDefault = "DefaultHeartbeatInterval";
 
         /// <summary>
-        /// Key for the default flag to skip the first event
+        /// Key for the default flag to skip the first notification
         /// </summary>
         public const string SkipFirstDefault = "DefaultSkipFirst";
+
+        /// <summary>
+        /// Key for the default flag to discard new items in server queue
+        /// </summary>
+        public const string DiscardNewDefault = "DiscardNew";
 
         /// <summary>
         /// Key for the messaging mode
@@ -78,10 +83,25 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string OpcPublishingInterval = "DefaultPublishingInterval";
 
         /// <summary>
+        /// Key for default frame interval
+        /// </summary>
+        public static string DefaultKeyFrameInterval = "DefaultKeyFrameInterval";
+
+        /// <summary>
+        /// Key for default keyframe count
+        /// </summary>
+        public static string DefaultKeyFrameCount = "DefaultKeyFrameCount";
+
+        /// <summary>
+        /// Key for default metadata send interval
+        /// </summary>
+        public static string DefaultMetaDataSendInterval = "DefaultMetaDataSendInterval";
+
+        /// <summary>
         /// Key for the default queue size fro monitored items
         /// </summary>
         public const string DefaultQueueSize = "DefaultQueueSize";
-        
+
         /// <summary>
         /// Key for the default data change filter for monitored items.
         /// </summary>

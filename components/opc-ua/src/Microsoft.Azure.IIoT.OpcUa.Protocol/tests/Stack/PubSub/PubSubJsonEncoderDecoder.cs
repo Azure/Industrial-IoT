@@ -42,7 +42,6 @@ namespace Opc.Ua.PubSub.Tests {
 
             var networkMessage = new NetworkMessage {
                 MessageId = Guid.NewGuid().ToString(), // TODO
-                MessageType = "ua-data",
                 Messages = new List<DataSetMessage>(),
                 PublisherId = "PublisherId"
             };
@@ -108,7 +107,6 @@ namespace Opc.Ua.PubSub.Tests {
 
             var networkMessage = new NetworkMessage {
                 MessageId = Guid.NewGuid().ToString(), // TODO
-                MessageType = "ua-data",
                 Messages = new List<DataSetMessage>(),
                 PublisherId = "PublisherId",
                 DataSetClassId = "1234"

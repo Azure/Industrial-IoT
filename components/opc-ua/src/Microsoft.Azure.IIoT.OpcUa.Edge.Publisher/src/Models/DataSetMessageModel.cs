@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     public class DataSetMessageModel {
 
         /// <summary>
-        /// Sequence number of the event
+        /// Sequence number of the message
         /// </summary>
         public uint SequenceNumber { get; set; }
 
@@ -29,6 +29,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Dataset writer model reference
         /// </summary>
         public DataSetWriterModel Writer { get; set; }
+
+        /// <summary>
+        /// Dataset writer model reference
+        /// </summary>
+        public DataSetMetaDataType MetaData { get; set; }
 
         /// <summary>
         /// Writer group model reference

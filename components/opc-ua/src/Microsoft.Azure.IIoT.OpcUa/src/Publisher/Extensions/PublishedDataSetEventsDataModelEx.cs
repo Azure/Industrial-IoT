@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             }
             return new PublishedDataSetEventModel {
                 Id = model.Id,
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 MonitoringMode = model.MonitoringMode,
                 TriggerId = model.TriggerId,
                 DiscardNew = model.DiscardNew,

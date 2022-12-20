@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// <summary>
     /// Class to test Cli options
     /// </summary>
-    public class CliTests {
+    public class StandaloneCliTests {
 
         /// <summary>
         /// ValidOptionTest

@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using Opc.Ua.PubSub;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -20,7 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Serilog;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -122,6 +122,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperWriter = new StringWriter();
                     var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
                         UseAdvancedEncoding = true,
+                        IgnoreDefaultValues = true,
+                        IgnoreNullValues = true,
                         UseUriEncoding = true,
                         UseReversibleEncoding = _useReversibleEncoding
                     };
@@ -151,6 +153,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var encoder = new JsonEncoderEx(writer, encodingContext,
                         JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = true,
+                        IgnoreDefaultValues = true,
+                        IgnoreNullValues = true,
                         UseUriEncoding = true,
                         UseReversibleEncoding = _useReversibleEncoding
                     };
@@ -274,6 +278,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var writer = new StringWriter();
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
                     UseAdvancedEncoding = true,
+                    IgnoreDefaultValues = true,
+                    IgnoreNullValues = true,
                     UseUriEncoding = true,
                     UseReversibleEncoding = _useReversibleEncoding
                 };
@@ -370,10 +376,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             // TODO: Honor single message
             // TODO: Group by writer
+
             foreach (var message in messages) {
-                if (message.WriterGroup?.MessageType
-                    .GetValueOrDefault(MessageEncoding.Json) == encoding) {
-                    var networkMessage = new NetworkMessage() {
+                if (message.WriterGroup?.MessageType.GetValueOrDefault(MessageEncoding.Json) == encoding) {
+                    var networkMessage = new NetworkMessage {
                         MessageContentMask = message.WriterGroup
                             .MessageSettings.NetworkMessageContentMask
                             .ToStackType(message.WriterGroup?.MessageType),
@@ -383,48 +389,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         DataSetWriterGroup = message.WriterGroup.WriterGroupId,
                         MessageId = message.SequenceNumber.ToString()
                     };
-                    var notificationQueues = message.Notifications
-                        .GroupBy(m => !string.IsNullOrEmpty(m.Id) ?
-                                        m.Id :
-                                        !string.IsNullOrEmpty(m.DisplayName) ?
-                                            m.DisplayName :
-                                            m.NodeId)
-                        .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
-                        .ToArray();
 
-                    while (notificationQueues.Any(q => q.Any())) {
-                        var payload = notificationQueues
-                            .Select(q => q.Any() ? q.Dequeue() : null)
-                            .Where(s => s != null)
-                            .ToDictionary(
-                                //  Identifier to show for notification in payload of IoT Hub method
-                                //  Prio 1: Id = DataSetFieldId - if already configured
-                                //  Prio 2: Id = DisplayName - if already configured
-                                //  Prio 3: NodeId as configured
-                                s => !string.IsNullOrEmpty(s.Id) ?
-                                        s.Id :
-                                        !string.IsNullOrEmpty(s.DisplayName) ?
-                                            s.DisplayName :
-                                            s.NodeId,
-                                s => s.Value);
+                    if (message.Notifications != null) {
+                        var notificationQueues = message.Notifications
+                            .GroupBy(m => m.DataSetFieldName)
+                            .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
+                            .ToArray();
 
-                        var dataSetMessage = new DataSetMessage() {
-                            DataSetWriterId = message.Writer.DataSetWriterId,
-                            MetaDataVersion = new ConfigurationVersionDataType {
-                                MajorVersion = message.Writer?.DataSet?.DataSetMetaData?
-                                    .ConfigurationVersion?.MajorVersion ?? 1,
-                                MinorVersion = message.Writer?.DataSet?.DataSetMetaData?
-                                    .ConfigurationVersion?.MinorVersion ?? 0
-                            },
-                            MessageContentMask = (message.Writer?.MessageSettings?.DataSetMessageContentMask)
-                                .ToStackType(message.WriterGroup?.MessageType),
-                            Timestamp = message.TimeStamp ?? DateTime.UtcNow,
-                            SequenceNumber = message.SequenceNumber,
-                            Status = payload.Values.Any(s => StatusCode.IsNotGood(s.StatusCode)) ?
-                                StatusCodes.Bad : StatusCodes.Good,
-                            Payload = new DataSet(payload, (uint)message.Writer?.DataSetFieldContentMask.ToStackType())
-                        };
-                        networkMessage.Messages.Add(dataSetMessage);
+                        while (notificationQueues.Any(q => q.Any())) {
+                            var payload = notificationQueues
+                                .Select(q => q.Any() ? q.Dequeue() : null)
+                                .Where(s => s != null)
+                                .ToDictionary(
+                                    s => s.DataSetFieldName,
+                                    s => s.Value);
+
+                            var dataSetMessage = new DataSetMessage {
+                                DataSetWriterId = message.Writer?.DataSetWriterId,
+                                MetaDataVersion = message.MetaData?.ConfigurationVersion ?? new ConfigurationVersionDataType {
+                                    MajorVersion = 1
+                                },
+                                MessageContentMask = (message.Writer?.MessageSettings?.DataSetMessageContentMask)
+                                    .ToStackType(message.WriterGroup?.MessageType),
+                                Timestamp = message.TimeStamp ?? DateTime.UtcNow,
+                                SequenceNumber = message.SequenceNumber,
+                                Status = payload.Values.Any(s => StatusCode.IsNotGood(s.StatusCode)) ?
+                                    StatusCodes.Bad : StatusCodes.Good,
+                                Payload = new DataSet(payload, (uint)message.Writer?.DataSetFieldContentMask.ToStackType())
+                            };
+                            networkMessage.Messages.Add(dataSetMessage);
+                        }
+                    }
+                    else if (message.MetaData != null) {
+                        // Emit metadata change message
+                        networkMessage.DataSetWriterId = message.Writer.DataSetWriterId;
+                        networkMessage.MetaData = (DataSetMetaDataType)Utils.Clone(message.MetaData);
+                        networkMessage.MetaData.Description = message.Writer?.DataSet?.DataSetMetaData?.Description;
+                        networkMessage.MetaData.Name = message.Writer?.DataSet?.DataSetMetaData?.Name;
+                    }
+                    else {
+                        _logger.Debug("Message has no notifications but also no metadata to send.");
+                        continue;
                     }
                     yield return networkMessage;
                 }

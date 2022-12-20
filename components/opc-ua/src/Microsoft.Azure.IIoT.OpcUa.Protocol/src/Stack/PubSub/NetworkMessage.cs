@@ -9,8 +9,19 @@ namespace Opc.Ua.PubSub {
 
     /// <summary>
     /// Encodeable Network message
+    /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public class NetworkMessage : IEncodeable {
+
+        /// <summary>
+        /// Ua data message type
+        /// </summary>
+        public const string MessageTypeUaData = "ua-data";
+
+        /// <summary>
+        /// Ua meta data message type
+        /// </summary>
+        public const string MessageTypeUaMetadata = "ua-metadata";
 
         /// <summary>
         /// Message content
@@ -28,11 +39,6 @@ namespace Opc.Ua.PubSub {
         public string PublisherId { get; set; }
 
         /// <summary>
-        /// Dataset class
-        /// </summary>
-        public string DataSetClassId { get; set; }
-
-        /// <summary>
         /// Dataset writerGroup
         /// </summary>
         public string DataSetWriterGroup { get; set; }
@@ -40,12 +46,27 @@ namespace Opc.Ua.PubSub {
         /// <summary>
         /// Message type
         /// </summary>
-        public string MessageType { get; set; } = "ua-data";
+        public string MessageType => MetaData == null ? MessageTypeUaData : MessageTypeUaMetadata;
+
+        /// <summary>
+        /// Dataset class id in case of ua-data message
+        /// </summary>
+        public string DataSetClassId { get; set; }
 
         /// <summary>
         /// DataSet Messages
         /// </summary>
         public List<DataSetMessage> Messages { get; set; } = new List<DataSetMessage>();
+
+        /// <summary>
+        /// Data set writer id in case of ua-metadata message
+        /// </summary>
+        public string DataSetWriterId { get; set; }
+
+        /// <summary>
+        /// Data set metadata in case this is a metadata message
+        /// </summary>
+        public DataSetMetaDataType MetaData { get; set; }
 
         /// <inheritdoc/>
         public ExpandedNodeId TypeId => ExpandedNodeId.Null;
@@ -91,7 +112,7 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override bool Equals(Object value) {
+        public override bool Equals(object value) {
             return IsEqual(value as IEncodeable);
         }
 
@@ -117,6 +138,7 @@ namespace Opc.Ua.PubSub {
                 !Utils.IsEqual(wrapper.PublisherId, PublisherId) ||
                 !Utils.IsEqual(wrapper.TypeId, TypeId) ||
                 !Utils.IsEqual(wrapper.XmlEncodingId, XmlEncodingId) ||
+                !Utils.IsEqual(wrapper.MetaData, MetaData) ||
                 !Utils.IsEqual(wrapper.Messages, Messages)) {
                 return false;
             }
@@ -135,20 +157,27 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.NetworkMessageNumber) != 0) {
                 MessageId = decoder.ReadString(nameof(MessageId));
             }
-            MessageType = decoder.ReadString(nameof(MessageType));
-            if (MessageType != "ua-data") {
-                // todo throw incorrect message format
-            }
+            var messageType = decoder.ReadString(nameof(MessageType));
             if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.PublisherId) != 0) {
                 PublisherId = decoder.ReadString(nameof(PublisherId));
             }
-            if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0) {
-                DataSetClassId = decoder.ReadString(nameof(DataSetClassId));
+            if (messageType.Equals(MessageTypeUaData, StringComparison.InvariantCultureIgnoreCase)) {
+                if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0) {
+                    DataSetClassId = decoder.ReadString(nameof(DataSetClassId));
+                }
+                var messagesArray = decoder.ReadEncodeableArray(nameof(Messages), typeof(DataSetMessage));
+                Messages = new List<DataSetMessage>();
+                foreach (var value in messagesArray) {
+                    Messages.Add(value as DataSetMessage);
+                }
             }
-            var messagesArray = decoder.ReadEncodeableArray("Messages", typeof(DataSetMessage));
-            Messages = new List<DataSetMessage>();
-            foreach (var value in messagesArray) {
-                Messages.Add(value as DataSetMessage);
+            else if (messageType.Equals(MessageTypeUaMetadata, StringComparison.InvariantCultureIgnoreCase)) {
+                DataSetWriterId = decoder.ReadString(nameof(DataSetWriterId));
+                MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(nameof(MetaData), typeof(DataSetMetaDataType));
+            }
+            else {
+                throw ServiceResultException.Create(StatusCodes.BadTcpMessageTypeInvalid,
+                    "Received incorrect message type {0}", messageType);
             }
         }
 
@@ -159,27 +188,34 @@ namespace Opc.Ua.PubSub {
             if (MessageId != null) {
                 MessageContentMask |= (uint)JsonNetworkMessageContentMask.NetworkMessageHeader;
             }
-            MessageType = decoder.ReadString(nameof(MessageType));
-            if (MessageType != "ua-data"){
-                // todo throw incorrect message format
-            }
+            var messageType = decoder.ReadString(nameof(MessageType));
             PublisherId = decoder.ReadString(nameof(PublisherId));
             if (PublisherId != null) {
                 MessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
             }
-            DataSetClassId = decoder.ReadString(nameof(DataSetClassId));
-            if(DataSetClassId != null){
-                MessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
+            if (messageType.Equals(MessageTypeUaData, StringComparison.InvariantCultureIgnoreCase)) {
+                DataSetClassId = decoder.ReadString(nameof(DataSetClassId));
+                if (DataSetClassId != null) {
+                    MessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
+                }
+                DataSetWriterGroup = decoder.ReadString(nameof(DataSetWriterGroup));
+                var messagesArray = decoder.ReadEncodeableArray(nameof(Messages), typeof(DataSetMessage));
+                Messages = new List<DataSetMessage>();
+                foreach (var value in messagesArray) {
+                    Messages.Add(value as DataSetMessage);
+                }
+                if (Messages.Count == 1) {
+                    MessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+                }
             }
-            DataSetWriterGroup = decoder.ReadString(nameof(DataSetWriterGroup));
-
-            var messagesArray = decoder.ReadEncodeableArray("Messages", typeof(DataSetMessage));
-            Messages = new List<DataSetMessage>();
-            foreach (var value in messagesArray) {
-                Messages.Add(value as DataSetMessage);
+            else if (messageType.Equals(MessageTypeUaMetadata, StringComparison.InvariantCultureIgnoreCase)) {
+                DataSetWriterId = decoder.ReadString(nameof(DataSetWriterId));
+                DataSetWriterGroup = decoder.ReadString(nameof(DataSetWriterGroup));
+                MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(nameof(MetaData), typeof(DataSetMetaDataType));
             }
-            if (Messages.Count == 1) {
-                MessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+            else {
+                throw ServiceResultException.Create(StatusCodes.BadTcpMessageTypeInvalid,
+                    "Received incorrect message type {0}", messageType);
             }
         }
 
@@ -196,10 +232,14 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.PublisherId) != 0) {
                 encoder.WriteString(nameof(PublisherId), PublisherId);
             }
-            if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0) {
-                encoder.WriteString(nameof(DataSetClassId), DataSetClassId);
+            if (MetaData != null) {
+                encoder.WriteString(nameof(DataSetWriterId), DataSetWriterId);
+                encoder.WriteEncodeable(nameof(MetaData), MetaData, typeof(DataSetMetaDataType));
             }
-            if (Messages != null && Messages.Count > 0) {
+            else if (Messages != null && Messages.Count > 0) {
+                if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0) {
+                    encoder.WriteString(nameof(DataSetClassId), DataSetClassId);
+                }
                 encoder.WriteEncodeableArray(nameof(Messages), Messages.ToArray(), typeof(DataSetMessage[]));
             }
         }
@@ -215,14 +255,23 @@ namespace Opc.Ua.PubSub {
                 if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
                     encoder.WriteString(nameof(PublisherId), PublisherId);
                 }
-                if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0 &&
-                    !string.IsNullOrEmpty(DataSetClassId)) {
-                    encoder.WriteString(nameof(DataSetClassId), DataSetClassId);
+                if (MetaData != null) {
+                    if (!string.IsNullOrEmpty(DataSetWriterId)) {
+                        encoder.WriteString(nameof(DataSetWriterId), DataSetWriterId);
+                    }
+                    if (!string.IsNullOrEmpty(DataSetWriterGroup)) {
+                        encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
+                    }
+                    encoder.WriteEncodeable(nameof(MetaData), MetaData, typeof(DataSetMetaDataType));
                 }
-                if (!string.IsNullOrEmpty(DataSetWriterGroup)) {
-                    encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
-                }
-                if (Messages != null && Messages.Count > 0) {
+                else if (Messages != null && Messages.Count > 0) {
+                    if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0 &&
+                        !string.IsNullOrEmpty(DataSetClassId)) {
+                        encoder.WriteString(nameof(DataSetClassId), DataSetClassId);
+                    }
+                    if (!string.IsNullOrEmpty(DataSetWriterGroup)) {
+                        encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
+                    }
                     if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.SingleDataSetMessage) != 0) {
                         encoder.WriteEncodeable(nameof(Messages), Messages[0], typeof(DataSetMessage));
                     }

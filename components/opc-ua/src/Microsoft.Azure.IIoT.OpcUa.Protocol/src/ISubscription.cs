@@ -37,11 +37,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         event EventHandler<int> OnSubscriptionEventDiagnosticsChange;
 
         /// <summary>
-        /// Item change events
-        /// </summary>
-        event EventHandler<SubscriptionNotificationModel> OnMonitoredItemChange;
-
-        /// <summary>
         /// Identifier of the subscription
         /// </summary>
         string Id { get; }
@@ -82,10 +77,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         int NumberOfBadNodes { get; }
 
         /// <summary>
-        /// Create snapshot
+        /// Get a subscription notification with optional snapshot
         /// </summary>
+        /// <param name="withNotifications"></param>
         /// <returns></returns>
-        Task<SubscriptionNotificationModel> GetSnapshotAsync();
+        Task<SubscriptionNotificationModel> GetSubscriptionNotificationAsync(
+            bool withNotifications = false);
 
         /// <summary>
         /// Apply desired state

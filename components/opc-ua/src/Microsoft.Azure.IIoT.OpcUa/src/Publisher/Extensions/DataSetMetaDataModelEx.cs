@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using System.Linq;
 
     /// <summary>
     /// Dataset metadata extensions
@@ -22,15 +21,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 return null;
             }
             return new DataSetMetaDataModel {
-                ConfigurationVersion = model.ConfigurationVersion.Clone(),
                 Name = model.Name,
                 DataSetClassId = model.DataSetClassId,
-                Description = model.Description.Clone(),
-                EnumDataTypes = model.EnumDataTypes?.Select(d => d.Clone()).ToList(),
-                StructureDataTypes = model.StructureDataTypes?.Select(d => d.Clone()).ToList(),
-                SimpleDataTypes = model.SimpleDataTypes?.Select(d => d.Clone()).ToList(),
-                Namespaces = model.Namespaces?.ToList(),
-                Fields = model.Fields?.Select(d => d.Clone()).ToList()
+                Description = model.Description,
             };
         }
     }

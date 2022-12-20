@@ -96,6 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 RelativePath = new[] { "RelativePath1", "RelativePath2" },
                 MonitoringMode = Publisher.Models.MonitoringMode.Sampling,
                 StartNodeId = "i=2258",
+                DataSetClassFieldId = Guid.NewGuid(),
                 QueueSize = 10,
                 SkipFirst = true,
                 SamplingInterval = TimeSpan.FromMilliseconds(10000),
@@ -241,9 +242,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             context.NamespaceUris = nodeCache.NamespaceUris;
             var monitoredItemWrapper = GetMonitoredItemWrapper(template, messageContext: context, nodeCache: nodeCache);
 
-            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.FieldNames.Count);
-            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", monitoredItemWrapper.FieldNames[0]);
-            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", monitoredItemWrapper.FieldNames[1]);
+            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.Fields.Count);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", monitoredItemWrapper.Fields[0].Name);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", monitoredItemWrapper.Fields[1].Name);
         }
 
         [Fact(Skip = "This test relied on relaxed validation. Now this will throw as ns=2 cannot be resolved.")]
@@ -277,9 +278,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
-            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.FieldNames.Count);
-            Assert.Equal("2:CycleId", monitoredItemWrapper.FieldNames[0]);
-            Assert.Equal("2:CurrentStep", monitoredItemWrapper.FieldNames[1]);
+            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.Fields.Count);
+            Assert.Equal("2:CycleId", monitoredItemWrapper.Fields[0].Name);
+            Assert.Equal("2:CurrentStep", monitoredItemWrapper.Fields[1].Name);
         }
     }
 }

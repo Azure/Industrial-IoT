@@ -1157,6 +1157,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     OpcAuthenticationUsername = model.OpcAuthenticationUsername,
                     DataSetWriterGroup = model.DataSetWriterGroup,
                     DataSetWriterId = model.DataSetWriterId,
+                    DataSetName = model.DataSetName,
+                    DataSetDescription = model.DataSetDescription,
+                    DataSetKeyFrameCount = model.DataSetKeyFrameCount,
+                    DataSetKeyFrameInterval = model.DataSetKeyFrameInterval,
+                    DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
+                    DataSetClassId = model.DataSetClassId,
                     Tag = model.Tag,
                     DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
                     DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue

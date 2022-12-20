@@ -62,24 +62,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="model"></param>
-        /// <returns></returns>
-        public static EventFilterModel Encode(this IVariantEncoder encoder, EventFilter model) {
-            if (model == null) {
-                return null;
-            }
-            return new EventFilterModel {
-                SelectClauses = model.SelectClauses?
-                    .Select(c => c.ToServiceModel(encoder.Context))
-                    .ToList(),
-                WhereClause = encoder.Encode(model.WhereClause)
-            };
-        }
-
-        /// <summary>
-        /// Convert to stack model
-        /// </summary>
-        /// <param name="encoder"></param>
-        /// <param name="model"></param>
         /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
         public static ContentFilter Decode(this IVariantEncoder encoder, ContentFilterModel model,

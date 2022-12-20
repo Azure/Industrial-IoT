@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(@"./PublishedNodes/DataItems.json",
-                arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
+                messageType: "ua-data", arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
 
             // Assert
             Assert.Single(messages);
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(@"./PublishedNodes/PendingAlarms.json", WithPendingAlarms,
-                arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
+                messageType: "ua-data", arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
 
             // Assert
             var message = Assert.Single(messages).RootElement[0];

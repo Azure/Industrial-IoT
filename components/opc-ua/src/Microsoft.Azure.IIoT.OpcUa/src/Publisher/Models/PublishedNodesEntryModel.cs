@@ -22,6 +22,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DataSetWriterGroup { get; set; }
 
+        /// <summary> A dataset class id. </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public Guid DataSetClassId { get; set; }
+
+        /// <summary> The optional short name of the dataset. </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public string DataSetName { get; set; }
+
+        /// <summary> The optional description of the dataset. </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public string DataSetDescription { get; set; }
+
         /// <summary> The Publishing interval for a dataset writer in miliseconds.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? DataSetPublishingInterval { get; set; }
@@ -29,6 +41,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> The Publishing interval for a dataset writer in timespan format.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public TimeSpan? DataSetPublishingIntervalTimespan { get; set; }
+
+        /// <summary> Insert a key frame every x messages </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public uint? DataSetKeyFrameCount { get; set; }
+
+        /// <summary> Or send a keyframe at the configured interval </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public TimeSpan? DataSetKeyFrameInterval { get; set; }
+
+        /// <summary> Send metadata at the configured interval even when not changing </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public TimeSpan? DataSetMetaDataSendInterval { get; set; }
 
         /// <summary> The endpoint URL of the OPC UA server.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = true)]

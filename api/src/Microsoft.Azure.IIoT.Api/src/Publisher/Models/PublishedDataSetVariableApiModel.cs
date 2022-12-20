@@ -144,5 +144,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "skipFirst", Order = 17,
             EmitDefaultValue = false)]
         public bool? SkipFirst { get; set; }
+
+        /// <summary>
+        /// Identifier of field in the dataset class.
+        /// </summary>
+        [DataMember(Name = "dataSetClassFieldId", Order = 11,
+            EmitDefaultValue = false)]
+        public Guid DataSetClassFieldId { get; set; }
     }
 }

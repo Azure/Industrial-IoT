@@ -52,6 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 MonitoringMode = MonitoringMode,
                 DisplayName = DisplayName,
                 RelativePath = RelativePath,
+                DataSetClassFieldId = DataSetClassFieldId,
                 HeartbeatInterval = HeartbeatInterval
             };
         }

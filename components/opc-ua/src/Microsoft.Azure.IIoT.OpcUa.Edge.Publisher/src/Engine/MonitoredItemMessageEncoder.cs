@@ -140,6 +140,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperWriter = new StringWriter();
                     var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
                         UseAdvancedEncoding = true,
+                        IgnoreDefaultValues = true,
+                        IgnoreNullValues = true,
                         UseUriEncoding = true,
                         UseReversibleEncoding = _useReversibleEncoding
                     };
@@ -167,6 +169,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var encoder = new JsonEncoderEx(writer, encodingContext,
                         JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = true,
+                        IgnoreDefaultValues = true,
+                        IgnoreNullValues = true,
                         UseUriEncoding = true,
                         UseReversibleEncoding = _useReversibleEncoding
                     };
@@ -286,6 +290,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var writer = new StringWriter();
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
                     UseAdvancedEncoding = true,
+                    IgnoreDefaultValues = true,
+                    IgnoreNullValues = true,
                     UseUriEncoding = true,
                     UseReversibleEncoding = _useReversibleEncoding
                 };
@@ -378,28 +384,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 yield break;
             }
             foreach (var message in messages) {
-                if (message.WriterGroup?.MessageType.GetValueOrDefault(MessageEncoding.Json) == encoding) {
-                    foreach (var notification in message.Notifications) {
-                        var result = new MonitoredItemMessage {
-                            MessageContentMask = (message.Writer?.MessageSettings?
-                               .DataSetMessageContentMask).ToMonitoredItemMessageMask(
-                                   message.Writer?.DataSetFieldContentMask),
-                            ApplicationUri = message.ApplicationUri,
-                            EndpointUrl = message.EndpointUrl,
-                            ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
-                            NodeId = notification.NodeId,
-                            Timestamp = message.TimeStamp ?? DateTime.UtcNow,
-                            Value = notification.Value,
-                            DisplayName = notification.DisplayName,
-                            SequenceNumber = notification.SequenceNumber.GetValueOrDefault(0)
-                        };
-                        // force published timestamp into to source timestamp for the legacy heartbeat compatibility
-                        if (notification.IsHeartbeat &&
-                            ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) &&
-                            ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0)) {
-                            result.Value.SourceTimestamp = result.Timestamp;
+                // Check whether this is a metadata message, we do not handle those in legacy mode
+                if (message.Notifications != null) {
+                    if (message.WriterGroup?.MessageType.GetValueOrDefault(MessageEncoding.Json) == encoding) {
+                        foreach (var notification in message.Notifications) {
+                            var result = new MonitoredItemMessage {
+                                MessageContentMask = (message.Writer?.MessageSettings?
+                                   .DataSetMessageContentMask).ToMonitoredItemMessageMask(
+                                       message.Writer?.DataSetFieldContentMask),
+                                ApplicationUri = message.ApplicationUri,
+                                EndpointUrl = message.EndpointUrl,
+                                ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
+                                NodeId = notification.NodeId,
+                                Timestamp = message.TimeStamp ?? DateTime.UtcNow,
+                                Value = notification.Value,
+                                DisplayName = notification.DisplayName,
+                                SequenceNumber = notification.SequenceNumber.GetValueOrDefault(0)
+                            };
+                            // force published timestamp into to source timestamp for the legacy heartbeat compatibility
+                            if (notification.IsHeartbeat &&
+                                ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) &&
+                                ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0)) {
+                                result.Value.SourceTimestamp = result.Timestamp;
+                            }
+                            yield return result;
                         }
-                        yield return result;
                     }
                 }
             }

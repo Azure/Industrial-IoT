@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -16,6 +17,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Identifier of event in the dataset.
         /// </summary>
         public string Id { get; set; }
+
+        /// <summary>
+        /// Identifier of event fields in the dataset class.
+        /// </summary>
+        public Guid DataSetClassFieldId { get; set; }
 
         /// <summary>
         /// Event notifier to subscribe to (or start node)

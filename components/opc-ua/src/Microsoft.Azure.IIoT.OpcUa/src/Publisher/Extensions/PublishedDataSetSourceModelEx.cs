@@ -48,11 +48,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             sb.Append(model.SubscriptionSettings?.PublishingInterval.ToString());
             sb.Append(publishedVariableData?.Id);
             sb.Append(publishedVariableData?.PublishedVariableNodeId);
+            sb.Append(publishedVariableData?.DataSetClassFieldId);
             sb.Append(publishedVariableData?.PublishedVariableDisplayName);
             sb.Append(publishedVariableData?.SamplingInterval);
             sb.Append(publishedVariableData?.HeartbeatInterval);
             sb.Append(publishedVariableData?.SkipFirst);
             sb.Append(publishedEventData?.Id);
+            sb.Append(publishedEventData?.DataSetClassFieldId);
             sb.Append(publishedEventData?.EventNotifier);
             if (publishedEventData?.BrowsePath != null) {
                 foreach (var browsePath in publishedEventData.BrowsePath) {

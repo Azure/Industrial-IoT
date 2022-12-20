@@ -21,7 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             return new PublishedDataSetSettingsModel {
                 LifeTimeCount = model.LifeTimeCount,
                 MaxKeepAliveCount = model.MaxKeepAliveCount,
-                MaxNotificationsPerPublish = model.MaxNotificationsPerPublish,
                 Priority = model.Priority,
                 PublishingInterval = model.PublishingInterval,
                 ResolveDisplayName = model.ResolveDisplayName

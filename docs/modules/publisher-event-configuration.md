@@ -45,7 +45,7 @@ When you specify a simple mode configuration, the OPC Publisher does two things:
 To configure an advanced event filter you have to specify a full event filter which at minimum consists of three things:
 
 * The source node you want to receive events for (in the example below again the server node which has node id `i=2253`).
-* A select clause specifying which fields should be in the reported event.
+* A select clause specifying which fields should be in the reported event. This can include a data set class field id that is then used as identifier in the dataset metadata for the dataset class.
 * A where clause specifying the filter AST.
 
 Here is an example of a configuration file that selects events using an advanced event filter:
@@ -62,24 +62,28 @@ Here is an example of a configuration file that selects events using an advanced
                     "SelectClauses": [
                         {
                             "TypeDefinitionId": "i=2041",
+                            "DataSetClassFieldId ": "D3EB3722-E956-4E5E-925B-FB727B737520",
                             "BrowsePath": [
                                 "EventId"
                             ]
                         },
                         {
                             "TypeDefinitionId": "i=2041",
+                            "DataSetClassFieldId ": "A435F616-CE1E-4FBD-A819-03175EB49231",
                             "BrowsePath": [
                                 "Message"
                             ]
                         },
                         {
                             "TypeDefinitionId": "ns=2;i=235",
+                            "DataSetClassFieldId ": "BD236A98-8DA3-40A1-B8E8-00AB23A6B5E9",
                             "BrowsePath": [
                                 "/2:CycleId"
                             ]
                         },
                         {
                             "TypeDefinitionId": "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
+                            "DataSetClassFieldId ": "9F9A420B-509E-488B-A7A4-F320F8223E9E",
                             "BrowsePath": [
                                 "/http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep"
                             ]

@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using Microsoft.Azure.IIoT.Auth.Models;
     using System.Linq;
 
     /// <summary>
@@ -558,35 +558,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public static ConfigurationVersionApiModel ToApiModel(
-            this ConfigurationVersionModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ConfigurationVersionApiModel {
-                MajorVersion = model.MajorVersion,
-                MinorVersion = model.MinorVersion
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static ConfigurationVersionModel ToServiceModel(
-            this ConfigurationVersionApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ConfigurationVersionModel {
-                MajorVersion = model.MajorVersion,
-                MinorVersion = model.MinorVersion
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
         public static ConnectionApiModel ToApiModel(
             this ConnectionModel model) {
             if (model == null) {
@@ -718,22 +689,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new DataSetMetaDataApiModel {
                 Name = model.Name,
-                ConfigurationVersion = model.ConfigurationVersion.ToApiModel(),
                 DataSetClassId = model.DataSetClassId,
-                Description = model.Description.ToApiModel(),
-                Fields = model.Fields?
-                    .Select(f => f.ToApiModel())
-                    .ToList(),
-                EnumDataTypes = model.EnumDataTypes?
-                    .Select(f => f.ToApiModel())
-                    .ToList(),
-                StructureDataTypes = model.StructureDataTypes?
-                    .Select(f => f.ToApiModel())
-                    .ToList(),
-                SimpleDataTypes = model.SimpleDataTypes?
-                    .Select(f => f.ToApiModel())
-                    .ToList(),
-                Namespaces = model.Namespaces?.ToList()
+                Description = model.Description
             };
         }
 
@@ -747,22 +704,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new DataSetMetaDataModel {
                 Name = model.Name,
-                ConfigurationVersion = model.ConfigurationVersion.ToServiceModel(),
                 DataSetClassId = model.DataSetClassId,
-                Description = model.Description.ToServiceModel(),
-                Fields = model.Fields?
-                    .Select(f => f.ToServiceModel())
-                    .ToList(),
-                EnumDataTypes = model.EnumDataTypes?
-                    .Select(f => f.ToServiceModel())
-                    .ToList(),
-                StructureDataTypes = model.StructureDataTypes?
-                    .Select(f => f.ToServiceModel())
-                    .ToList(),
-                SimpleDataTypes = model.SimpleDataTypes?
-                    .Select(f => f.ToServiceModel())
-                    .ToList(),
-                Namespaces = model.Namespaces?.ToList()
+                Description = model.Description
             };
         }
 
@@ -947,150 +890,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public static EnumDefinitionApiModel ToApiModel(
-            this EnumDefinitionModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new EnumDefinitionApiModel {
-                Fields = model.Fields?
-                    .Select(f => f.ToApiModel())
-                    .ToList()
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static EnumDefinitionModel ToServiceModel(
-            this EnumDefinitionApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new EnumDefinitionModel {
-                Fields = model.Fields?
-                    .Select(f => f.ToServiceModel())
-                    .ToList()
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static EnumDescriptionApiModel ToApiModel(
-            this EnumDescriptionModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new EnumDescriptionApiModel {
-                Name = model.Name,
-                BuiltInType = model.BuiltInType,
-                DataTypeId = model.DataTypeId,
-                EnumDefinition = model.EnumDefinition.ToApiModel()
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static EnumDescriptionModel ToServiceModel(
-            this EnumDescriptionApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new EnumDescriptionModel {
-                Name = model.Name,
-                BuiltInType = model.BuiltInType,
-                DataTypeId = model.DataTypeId,
-                EnumDefinition = model.EnumDefinition.ToServiceModel()
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static EnumFieldApiModel ToApiModel(
-            this EnumFieldModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new EnumFieldApiModel {
-                Name = model.Name,
-                Description = model.Description.ToApiModel(),
-                DisplayName = model.DisplayName.ToApiModel(),
-                Value = model.Value
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static EnumFieldModel ToServiceModel(
-            this EnumFieldApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new EnumFieldModel {
-                Name = model.Name,
-                Description = model.Description.ToServiceModel(),
-                DisplayName = model.DisplayName.ToServiceModel(),
-                Value = model.Value
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static FieldMetaDataApiModel ToApiModel(
-            this FieldMetaDataModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new FieldMetaDataApiModel {
-                Description = model.Description.ToApiModel(),
-                ArrayDimensions = model.ArrayDimensions?.ToList(),
-                BuiltInType = model.BuiltInType,
-                DataSetFieldId = model.DataSetFieldId,
-                DataTypeId = model.DataTypeId,
-                FieldFlags = model.FieldFlags,
-                MaxStringLength = model.MaxStringLength,
-                Name = model.Name,
-                Properties = model.Properties?
-                    .ToDictionary(k => k.Key, v => v.Value),
-                ValueRank = model.ValueRank
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static FieldMetaDataModel ToServiceModel(
-            this FieldMetaDataApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new FieldMetaDataModel {
-                Description = model.Description.ToServiceModel(),
-                ArrayDimensions = model.ArrayDimensions?.ToList(),
-                BuiltInType = model.BuiltInType,
-                DataSetFieldId = model.DataSetFieldId,
-                DataTypeId = model.DataTypeId,
-                FieldFlags = model.FieldFlags,
-                MaxStringLength = model.MaxStringLength,
-                Name = model.Name,
-                Properties = model.Properties?
-                    .ToDictionary(k => k.Key, v => v.Value),
-                ValueRank = model.ValueRank
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
         public static FilterOperandApiModel ToApiModel(
             this FilterOperandModel model) {
             if (model == null) {
@@ -1157,7 +956,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 Expires = model.Expires
             };
         }
-
 
         /// <summary>
         /// Create api model from service model
@@ -1307,6 +1105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .Select(f => f.ToApiModel())
                     .ToList(),
                 PendingAlarms = model.PendingAlarms.ToApiModel(),
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 TypeDefinitionId = model.TypeDefinitionId,
             };
         }
@@ -1399,6 +1198,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .Select(f => f.ToServiceModel())
                     .ToList(),
                 PendingAlarms = model.PendingAlarms.ToServiceModel(),
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 TypeDefinitionId = model.TypeDefinitionId,
             };
         }
@@ -1415,7 +1215,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             return new PublishedDataSetSettingsApiModel {
                 LifeTimeCount = model.LifeTimeCount,
                 MaxKeepAliveCount = model.MaxKeepAliveCount,
-                MaxNotificationsPerPublish = model.MaxNotificationsPerPublish,
                 Priority = model.Priority,
                 ResolveDisplayName = model.ResolveDisplayName,
                 PublishingInterval = model.PublishingInterval
@@ -1433,7 +1232,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             return new PublishedDataSetSettingsModel {
                 LifeTimeCount = model.LifeTimeCount,
                 MaxKeepAliveCount = model.MaxKeepAliveCount,
-                MaxNotificationsPerPublish = model.MaxNotificationsPerPublish,
                 Priority = model.Priority,
                 ResolveDisplayName = model.ResolveDisplayName,
                 PublishingInterval = model.PublishingInterval
@@ -1484,6 +1282,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new PublishedDataSetVariableApiModel {
                 Id = model.Id,
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 PublishedVariableNodeId = model.PublishedVariableNodeId,
                 BrowsePath = model.BrowsePath,
                 Attribute = model.Attribute,
@@ -1516,6 +1315,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 Id = model.Id,
                 PublishedVariableNodeId = model.PublishedVariableNodeId,
                 BrowsePath = model.BrowsePath,
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 Attribute = model.Attribute,
                 DataChangeTrigger = (OpcUa.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
                 DeadbandType = (OpcUa.Publisher.Models.DeadbandType?)model.DeadbandType,
@@ -1588,6 +1388,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 AttributeId = (Core.Models.NodeAttribute?)model.AttributeId,
                 BrowsePath = model.BrowsePath,
                 IndexRange = model.IndexRange,
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 DisplayName = model.DisplayName
             };
         }
@@ -1605,148 +1406,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 AttributeId = (OpcUa.Core.Models.NodeAttribute?)model.AttributeId,
                 BrowsePath = model.BrowsePath,
                 IndexRange = model.IndexRange,
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 DisplayName = model.DisplayName
             };
         }
 
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static SimpleTypeDescriptionApiModel ToApiModel(
-            this SimpleTypeDescriptionModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new SimpleTypeDescriptionApiModel {
-                BaseDataTypeId = model.BaseDataTypeId,
-                Name = model.Name,
-                DataTypeId = model.DataTypeId,
-                BuiltInType = model.BuiltInType
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static SimpleTypeDescriptionModel ToServiceModel(
-            this SimpleTypeDescriptionApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new SimpleTypeDescriptionModel {
-                BaseDataTypeId = model.BaseDataTypeId,
-                Name = model.Name,
-                DataTypeId = model.DataTypeId,
-                BuiltInType = model.BuiltInType
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static StructureDefinitionApiModel ToApiModel(
-            this StructureDefinitionModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new StructureDefinitionApiModel {
-                BaseDataTypeId = model.BaseDataTypeId,
-                Fields = model.Fields?
-                    .Select(f => f.ToApiModel())
-                    .ToList(),
-                StructureType = (Core.Models.StructureType)model.StructureType
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static StructureDefinitionModel ToServiceModel(
-            this StructureDefinitionApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new StructureDefinitionModel {
-                BaseDataTypeId = model.BaseDataTypeId,
-                Fields = model.Fields?
-                    .Select(f => f.ToServiceModel())
-                    .ToList(),
-                StructureType = (OpcUa.Core.Models.StructureType)model.StructureType
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static StructureDescriptionApiModel ToApiModel(
-            this StructureDescriptionModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new StructureDescriptionApiModel {
-                DataTypeId = model.DataTypeId,
-                Name = model.Name,
-                StructureDefinition = model.StructureDefinition.ToApiModel()
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static StructureDescriptionModel ToServiceModel(
-            this StructureDescriptionApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new StructureDescriptionModel {
-                DataTypeId = model.DataTypeId,
-                Name = model.Name,
-                StructureDefinition = model.StructureDefinition.ToServiceModel()
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static StructureFieldApiModel ToApiModel(
-            this StructureFieldModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new StructureFieldApiModel {
-                ArrayDimensions = model.ArrayDimensions?.ToList(),
-                DataTypeId = model.DataTypeId,
-                Description = model.Description.ToApiModel(),
-                IsOptional = model.IsOptional,
-                MaxStringLength = model.MaxStringLength,
-                Name = model.Name,
-                ValueRank = (Core.Models.NodeValueRank?)model.ValueRank
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static StructureFieldModel ToServiceModel(
-            this StructureFieldApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new StructureFieldModel {
-                ArrayDimensions = model.ArrayDimensions?.ToList(),
-                DataTypeId = model.DataTypeId,
-                Description = model.Description.ToServiceModel(),
-                IsOptional = model.IsOptional,
-                MaxStringLength = model.MaxStringLength,
-                Name = model.Name,
-                ValueRank = (OpcUa.Core.Models.NodeValueRank?)model.ValueRank
-            };
-        }
         /// <summary>
         /// Create api model from service model
         /// </summary>

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
 
@@ -23,6 +23,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Display name
         /// </summary>
         public string DisplayName { get; set; }
+
+        /// <summary>
+        /// Field id in class
+        /// </summary>
+        public Guid DataSetClassFieldId { get; set; }
 
         /// <summary>
         /// Node id
@@ -70,6 +75,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public string TriggerId { get; set; }
 
         /// <summary>
+        ///  Identifier to show for notification in payload of IoT Hub method
+        ///  Prio 1: Id = DataSetFieldId - if already configured
+        ///  Prio 2: Id = DisplayName - if already configured
+        ///  Prio 3: NodeId as configured
+        /// </summary>
+        public string DataSetFieldName => !string.IsNullOrEmpty(Id) ?
+            Id : !string.IsNullOrEmpty(DisplayName) ? DisplayName : StartNodeId;
+
+        /// <summary>
         /// Clones this object
         /// </summary>
         /// <returns></returns>
@@ -83,6 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public override bool Equals(object obj) {
             return obj is BaseMonitoredItemModel model &&
                 Id == model.Id &&
+                DataSetClassFieldId == model.DataSetClassFieldId &&
                 DisplayName == model.DisplayName &&
                 StartNodeId == model.StartNodeId &&
                 EqualityComparer<string[]>.Default.Equals(RelativePath, model.RelativePath) &&
@@ -113,6 +128,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             hash.Add(DiscardNew);
             hash.Add(MonitoringMode);
             hash.Add(TriggerId);
+            hash.Add(DataSetClassFieldId);
             return hash.ToHashCode();
         }
     }

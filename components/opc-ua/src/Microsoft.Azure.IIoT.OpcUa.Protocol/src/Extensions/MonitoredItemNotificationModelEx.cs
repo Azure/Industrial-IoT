@@ -74,31 +74,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             if (notification == null || monitoredItem == null) {
                 return null;
             }
-            var handleId = monitoredItem.Handle as SubscriptionServices.MonitoredItemWrapper;
+            var handleId = monitoredItem.Handle as MonitoredItemWrapper;
             if (handleId?.SkipMonitoredItemNotification() ?? false) {
                 // Skip change notification
                 return null;
             }
             return new MonitoredItemNotificationModel {
                 Id = handleId?.Template?.Id,
+                DataSetFieldName = handleId?.Template?.DataSetFieldName ?? monitoredItem.DisplayName,
                 DisplayName = monitoredItem.DisplayName,
                 NodeId = handleId?.Template?.StartNodeId,
                 AttributeId = monitoredItem.AttributeId,
                 Value = notification.Value,
-                Overflow = notification.Value?.StatusCode.Overflow,
-                NotificationData = notification.Message == null || notification.Message.IsEmpty
-                    ? null
-                    : notification.Message.NotificationData.ToList(),
-                PublishTime = notification.Message == null || notification.Message.IsEmpty
-                    ? (DateTime?)null
-                    : notification.Message.PublishTime,
                 SequenceNumber = notification.Message == null || notification.Message.IsEmpty
                     ? (uint?)null
                     : notification.Message.SequenceNumber,
-                StringTable = notification.Message == null || notification.Message.IsEmpty
-                    ? null
-                    : notification.Message.StringTable,
-                DiagnosticInfo = notification.DiagnosticInfo,
                 IsHeartbeat = false
             };
         }
@@ -115,25 +105,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 return null;
             }
 
-            var handleId = monitoredItem.Handle as SubscriptionServices.MonitoredItemWrapper;
+            // TODO: Convert to list of notifications using select clauses!
+
+            var handleId = monitoredItem.Handle as MonitoredItemWrapper;
             return new MonitoredItemNotificationModel {
                 Id = handleId?.Template?.Id,
+                DataSetFieldName = handleId?.Template?.DataSetFieldName ?? monitoredItem.DisplayName,
                 DisplayName = monitoredItem.DisplayName,
                 NodeId = handleId?.Template?.StartNodeId,
                 AttributeId = monitoredItem.AttributeId,
                 Value = ToDataValue(eventFieldList, monitoredItem),
-                NotificationData = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
-                    ? null
-                    : eventFieldList.Message.NotificationData.ToList(),
-                PublishTime = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
-                    ? (DateTime?)null
-                    : eventFieldList.Message.PublishTime,
                 SequenceNumber = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
                     ? (uint?)null
                     : eventFieldList.Message.SequenceNumber,
-                StringTable = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
-                    ? null
-                    : eventFieldList.Message.StringTable,
                 IsHeartbeat = false
             };
         }
@@ -151,9 +135,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             }
             return new DataValue {
                 Value = new EncodeableDictionary(eventFields.EventFields
-                    .Select((value, i) => new KeyDataValuePair {
-                        Key = SubscriptionServices.GetFieldDisplayName(monitoredItem, i),
-                        Value = new DataValue(value)
+                    .Select((value, i) => {
+                        return new KeyDataValuePair {
+                            Key = (monitoredItem.Handle as MonitoredItemWrapper)?.Fields[i].Name,
+                            Value = new DataValue(value)
+                        };
                     }))
             };
         }

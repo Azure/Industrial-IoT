@@ -267,25 +267,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
-        /// Convert to service model
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static SimpleAttributeOperandModel ToServiceModel(this SimpleAttributeOperand model,
-            IServiceMessageContext context) {
-            if (model == null) {
-                return null;
-            }
-            return new SimpleAttributeOperandModel {
-                TypeDefinitionId = model.TypeDefinitionId.AsString(context),
-                AttributeId = (NodeAttribute)model.AttributeId,
-                BrowsePath = model.BrowsePath?.Select(p => p.AsString(context)).ToArray(),
-                IndexRange = model.IndexRange
-            };
-        }
-
-        /// <summary>
         /// Convert user token policies to service model
         /// </summary>
         /// <param name="policies"></param>

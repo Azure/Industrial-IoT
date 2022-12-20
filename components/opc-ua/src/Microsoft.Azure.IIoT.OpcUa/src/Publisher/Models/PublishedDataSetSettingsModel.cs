@@ -27,11 +27,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public uint? MaxKeepAliveCount { get; set; }
 
         /// <summary>
-        /// Max notifications per publish
-        /// </summary>
-        public uint? MaxNotificationsPerPublish { get; set; }
-
-        /// <summary>
         /// Priority
         /// </summary>
         public byte? Priority { get; set; }
@@ -40,15 +35,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Triggers automatic monitored items display name discovery
         /// </summary>
         public bool? ResolveDisplayName { get; set; }
-    //
-    //   /// <summary>
-    //   /// Whether to send change messages
-    //   /// </summary>
-    //   public bool? SendChangeMessages { get; set; }
-    //
-    //   /// <summary>
-    //   /// Messaging mode - defaults to monitoreditem
-    //   /// </summary>
-    //   public MessageModes? MessageMode { get; set; }
     }
 }

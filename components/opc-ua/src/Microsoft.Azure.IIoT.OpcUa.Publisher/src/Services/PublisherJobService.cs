@@ -352,7 +352,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                     writer.DataSetWriterId == dataSetWriterId) {
                     System.Diagnostics.Debug.Assert(writer.DataSet.DataSetSource.PublishedVariables.PublishedData != null);
                     variables = writer.DataSet.DataSetSource.PublishedVariables.PublishedData;
-                    writer.DataSet.DataSetMetaData.ConfigurationVersion.MinorVersion++;
                     break;
                 }
             }
@@ -361,12 +360,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 var dataSetWriter = new DataSetWriterModel {
                     DataSetWriterId = dataSetWriterId,
                     DataSet = new PublishedDataSetModel {
-                        Name = null,
                         DataSetMetaData = new DataSetMetaDataModel {
-                            ConfigurationVersion = new ConfigurationVersionModel {
-                                MajorVersion = 1,
-                                MinorVersion = 0
-                            },
                             DataSetClassId = Guid.NewGuid(),
                             Name = endpointId
                         },

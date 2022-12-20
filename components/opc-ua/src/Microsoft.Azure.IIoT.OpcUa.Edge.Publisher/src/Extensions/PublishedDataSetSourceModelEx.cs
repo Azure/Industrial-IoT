@@ -28,7 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 Priority = dataSetSource.SubscriptionSettings?.Priority,
                 LifetimeCount = dataSetSource.SubscriptionSettings?.LifeTimeCount,
                 KeepAliveCount = dataSetSource.SubscriptionSettings?.MaxKeepAliveCount,
-                MaxNotificationsPerPublish = dataSetSource.SubscriptionSettings?.MaxNotificationsPerPublish,
                 PublishingInterval = dataSetSource.SubscriptionSettings?.PublishingInterval,
                 ResolveDisplayName = dataSetSource.SubscriptionSettings?.ResolveDisplayName
             };
