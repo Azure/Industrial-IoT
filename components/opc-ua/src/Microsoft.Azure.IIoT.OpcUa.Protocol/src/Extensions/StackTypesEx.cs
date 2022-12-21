@@ -406,7 +406,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         public static UaDataChangeTrigger ToStackType(this DataChangeTriggerType? mode) {
             if (mode == null) {
-                return UaDataChangeTrigger.Status;
+                // Default is status and value change triggering
+                return UaDataChangeTrigger.StatusValue;
             }
             switch (mode.Value) {
                 case DataChangeTriggerType.Status:
@@ -416,7 +417,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 case DataChangeTriggerType.StatusValueTimestamp:
                     return UaDataChangeTrigger.StatusValueTimestamp;
                 default:
-                    return UaDataChangeTrigger.Status;
+                    return UaDataChangeTrigger.StatusValue;
             }
         }
 

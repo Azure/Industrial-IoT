@@ -20,7 +20,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
-    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
+    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
     public class B_PublishMultipleNodesStandaloneTestTheory {
 
         private readonly ITestOutputHelper _output;
@@ -67,7 +67,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             await TestHelper.PublishNodesAsync(
                 _context,
-                TestConstants.PublishedNodesFullName,
                 new[] { nodesToPublish }
             ).ConfigureAwait(false);
 
@@ -125,7 +124,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(
                 _context,
-                TestConstants.PublishedNodesFullName,
                 Array.Empty<PublishedNodesEntryModel>()
             ).ConfigureAwait(false);
 

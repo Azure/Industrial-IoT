@@ -79,6 +79,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
                     { $"ec|edgehubconnectionstring=|{StandaloneCliConfigKeys.EdgeHubConnectionString}=", "An edge module connection string to use",
                         dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
+                    { $"mqc|mqttclientconnectionstring=|{StandaloneCliConfigKeys.MqttClientConnectionString}", "An mqtt client connection string to use.",
+                        mqc => this[StandaloneCliConfigKeys.MqttClientConnectionString] = mqc },
+                    { $"ttt|telemetrytopictemplate=|{StandaloneCliConfigKeys.TelemetryTopicTemplateKey}", "A template to build Topics. Valid Placeholders are: {device_id}.",
+                        ttt => this[StandaloneCliConfigKeys.TelemetryTopicTemplateKey] = ttt },
                     { $"{StandaloneCliConfigKeys.BypassCertVerificationKey}=", "Enables bypass of certificate verification for upstream communication to edgeHub.",
                         (bool b) => this[StandaloneCliConfigKeys.BypassCertVerificationKey] = b.ToString() },
                     { $"{StandaloneCliConfigKeys.EnableMetricsKey}=", "Enables upstream metrics propagation.",
@@ -87,10 +91,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { $"hb|heartbeatinterval=|{StandaloneCliConfigKeys.HeartbeatIntervalDefault}=", "The publisher is using this as default value in seconds " +
                         "for the heartbeat interval setting of nodes without a heartbeat interval setting.",
                         (int i) => this[StandaloneCliConfigKeys.HeartbeatIntervalDefault] = TimeSpan.FromSeconds(i).ToString() },
-                    // ToDo: Bring back once SkipFirst mechanism is implemented.
-                    //{ "sf|skipfirstevent=", "The publisher is using this as default value for the skip first " +
-                    //    "event setting of nodes without a skip first event setting.",
-                    //    (bool b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b.ToString() },
+
+                    { $"sf|skipfirst=|{StandaloneCliConfigKeys.SkipFirstDefault}=", "The publisher is using this as default value for the skip first " +
+                        "setting of nodes without a skip first setting.",
+                        (bool b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b.ToString() },
+                    { "skipfirstevent=", "Maintained for backwards compatibility, do not use.",
+                        (string b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b, /* hidden = */ true },
 
                     { $"fm|fullfeaturedmessage=|{StandaloneCliConfigKeys.FullFeaturedMessage}=", "The full featured mode for messages (all fields filled in)." +
                         "Default is 'false' for legacy compatibility.",
@@ -143,19 +149,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
                     { $"mq|monitoreditemqueuecapacity=|{StandaloneCliConfigKeys.DefaultQueueSize}=", "Default queue size for monitored items.",
                         (uint u) => this[StandaloneCliConfigKeys.DefaultQueueSize] = u.ToString() },
-                    { $"mc|monitoreditemdatachangetrigger=|{StandaloneCliConfigKeys.DefaultDataChangeTrigger}=", "Default data change trigger for the monitored items " +
+                    { $"mc|monitoreditemdatachangetrigger=|{StandaloneCliConfigKeys.DefaultDataChangeTrigger}=", "Default data change trigger for the monitored items." +
                        $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(DataChangeTriggerType)))}).",
                         (DataChangeTriggerType t) => this[StandaloneCliConfigKeys.DefaultDataChangeTrigger] = t.ToString() },
 
                     // cert store option
-                    { $"aa|autoaccept", "The publisher trusts all servers it is establishing a connection to.",
-                        b => this[StandaloneCliConfigKeys.AutoAcceptCerts] = (b != null).ToString() },
-                    { $"{StandaloneCliConfigKeys.AutoAcceptCerts}=", "The publisher trusts all servers it is establishing a connection to.",
-                        (bool b) => this[StandaloneCliConfigKeys.AutoAcceptCerts] = b.ToString() },
-                    { $"tm|trustmyself", "The publisher certificate is put into the trusted store automatically.",
-                        b => this[StandaloneCliConfigKeys.TrustMyself] = (b != null).ToString() },
-                    { $"{StandaloneCliConfigKeys.TrustMyself}=", "The publisher certificate is put into the trusted store automatically.",
-                        (bool b) => this[StandaloneCliConfigKeys.TrustMyself] = b.ToString() },
+                    { $"aa|autoaccept:|{StandaloneCliConfigKeys.AutoAcceptCerts}:", "The publisher trusts all servers it is establishing a connection to.",
+                        (bool? b) => this[StandaloneCliConfigKeys.AutoAcceptCerts] = b?.ToString() ?? "True" },
+                    { $"tm|trustmyself:|{StandaloneCliConfigKeys.TrustMyself}:", "The publisher certificate is put into the trusted store automatically.",
+                        (bool? b) => this[StandaloneCliConfigKeys.TrustMyself] = b?.ToString() ?? "True" },
                     { $"at|appcertstoretype=|{StandaloneCliConfigKeys.OpcOwnCertStoreType}=", "The own application cert store type (allowed: Directory, X509Store).",
                         s => {
                             if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||
@@ -174,10 +176,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         s => this[StandaloneCliConfigKeys.OpcApplicationCertificateSubjectName] = s },
                     { $"an|appname=|{StandaloneCliConfigKeys.OpcApplicationName}=", "The name for the app (used during OPC UA authentication).",
                         s => this[StandaloneCliConfigKeys.OpcApplicationName] = s },
-                    { "tt|trustedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("tt|trustedcertstoretype"); } },
+                    { "tt|trustedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("tt|trustedcertstoretype"); }, true },
                     { $"rp|rejectedcertstorepath=|{StandaloneCliConfigKeys.OpcRejectedCertStorePath}=", "The path of the rejected cert store.",
                         s => this[StandaloneCliConfigKeys.OpcRejectedCertStorePath] = s },
-                    { "rt|rejectedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("rt|rejectedcertstoretype"); } },
+                    { "rt|rejectedcertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("rt|rejectedcertstoretype"); }, true },
                     { $"ip|issuercertstorepath=|{StandaloneCliConfigKeys.OpcIssuerCertStorePath}=", "The path of the trusted issuer cert store.",
                         s => this[StandaloneCliConfigKeys.OpcIssuerCertStorePath] = s },
                     { $"{StandaloneCliConfigKeys.PkiRootPathKey}=", "PKI certificate store root path.",
@@ -192,7 +194,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.RejectSha1SignedCertificatesKey] = b.ToString() },
                     { $"{StandaloneCliConfigKeys.MinimumCertificateKeySizeKey}=", "Minimum accepted certificate size.",
                         s => this[StandaloneCliConfigKeys.MinimumCertificateKeySizeKey] = s },
-                    { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); } },
+                    { "it|issuercertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("it|issuercertstoretype"); }, true },
                     { $"bs|batchsize=|{StandaloneCliConfigKeys.BatchSize}=", "The size of message batching buffer.",
                         (int i) => this[StandaloneCliConfigKeys.BatchSize] = i.ToString() },
                     { $"bi|batchtriggerinterval=|{StandaloneCliConfigKeys.BatchTriggerInterval}=", "The trigger batching interval in milliseconds.",
@@ -218,44 +220,46 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.RuntimeStateReporting] = b.ToString()},
                     { $"ri|enableroutinginfo=|{StandaloneCliConfigKeys.EnableRoutingInfo}=", "Enable adding routing info to telemetry. By default this is disabled.",
                         (bool b) => this[StandaloneCliConfigKeys.EnableRoutingInfo] = b.ToString() },
+                    { $"re|reversibleencoding|{StandaloneCliConfigKeys.UseReversibleEncoding}=", "Use reversible encoding in JSON encoders. Default is false.",
+                        (bool b) => this[StandaloneCliConfigKeys.UseReversibleEncoding] = b.ToString() },
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
-                        (int i) => this[StandaloneCliConfigKeys.ScaleTestCount] = i.ToString() },
+                        (string i) => this[StandaloneCliConfigKeys.ScaleTestCount] = i, true },
 
                     // show help
                     { "h|help", "show this message and exit.",
                         b => showHelp = true },
 
-                    // Legacy: unsupported
-                    { "tc|telemetryconfigfile=", "Legacy - do not use.", b => {legacyOptions.Add("tc|telemetryconfigfile"); } },
-                    { "ic|iotcentral=", "Legacy - do not use.", b => {legacyOptions.Add("ic|iotcentral"); } },
-                    { "ns|noshutdown=", "Legacy - do not use.", b => {legacyOptions.Add("ns|noshutdown"); } },
-                    { "rf|runforever", "Legacy - do not use.", b => {legacyOptions.Add("rf|runforever"); } },
-                    { "pn|portnum=", "Legacy - do not use.", b => {legacyOptions.Add("pn|portnum"); } },
-                    { "pa|path=", "Legacy - do not use.", b => {legacyOptions.Add("pa|path"); } },
-                    { "lr|ldsreginterval=", "Legacy - do not use.", b => {legacyOptions.Add("lr|ldsreginterval"); } },
-                    { "ss|suppressedopcstatuscodes=", "Legacy - do not use.", b => {legacyOptions.Add("ss|suppressedopcstatuscodes"); } },
-                    { "csr", "Legacy - do not use.", b => {legacyOptions.Add("csr"); } },
-                    { "ab|applicationcertbase64=", "Legacy - do not use.",b => {legacyOptions.Add("ab|applicationcertbase64"); } },
-                    { "af|applicationcertfile=", "Legacy - do not use.", b => {legacyOptions.Add("af|applicationcertfile"); } },
-                    { "pk|privatekeyfile=", "Legacy - do not use.", b => {legacyOptions.Add("pk|privatekeyfile"); } },
-                    { "pb|privatekeybase64=", "Legacy - do not use.", b => {legacyOptions.Add("pb|privatekeybase64"); } },
-                    { "cp|certpassword=", "Legacy - do not use.", b => {legacyOptions.Add("cp|certpassword"); } },
-                    { "tb|addtrustedcertbase64=", "Legacy - do not use.", b => {legacyOptions.Add("tb|addtrustedcertbase64"); } },
-                    { "tf|addtrustedcertfile=", "Legacy - do not use.", b => {legacyOptions.Add("tf|addtrustedcertfile"); } },
-                    { "ib|addissuercertbase64=", "Legacy - do not use.", b => {legacyOptions.Add("ib|addissuercertbase64"); } },
-                    { "if|addissuercertfile=", "Legacy - do not use.", b => {legacyOptions.Add("if|addissuercertfile"); } },
-                    { "rb|updatecrlbase64=", "Legacy - do not use.", b => {legacyOptions.Add("rb|updatecrlbase64"); } },
-                    { "uc|updatecrlfile=", "Legacy - do not use.", b => {legacyOptions.Add("uc|updatecrlfile"); } },
-                    { "rc|removecert=", "Legacy - do not use.", b => {legacyOptions.Add("rc|removecert"); } },
-                    { "dt|devicecertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("dt|devicecertstoretype"); } },
-                    { "dp|devicecertstorepath=", "Legacy - do not use.", b => {legacyOptions.Add("dp|devicecertstorepath"); } },
-                    { "i|install", "Legacy - do not use.", b => {legacyOptions.Add("i|install"); } },
-                    { "st|opcstacktracemask=", "Legacy - do not use.", b => {legacyOptions.Add("st|opcstacktracemask"); } },
-                    { "sd|shopfloordomain=", "Legacy - do not use.", b => {legacyOptions.Add("sd|shopfloordomain"); } },
-                    { "vc|verboseconsole=", "Legacy - do not use.", b => {legacyOptions.Add("vc|verboseconsole"); } },
-                    { "as|autotrustservercerts=", "Legacy - do not use.", b => {legacyOptions.Add("as|autotrustservercerts"); } },
+                    // Legacy: unsupported and hidden
+                    { "tc|telemetryconfigfile=", "Legacy - do not use.", b => {legacyOptions.Add("tc|telemetryconfigfile"); }, true },
+                    { "ic|iotcentral=", "Legacy - do not use.", b => {legacyOptions.Add("ic|iotcentral"); }, true },
+                    { "ns|noshutdown=", "Legacy - do not use.", b => {legacyOptions.Add("ns|noshutdown"); }, true },
+                    { "rf|runforever", "Legacy - do not use.", b => {legacyOptions.Add("rf|runforever"); }, true },
+                    { "pn|portnum=", "Legacy - do not use.", b => {legacyOptions.Add("pn|portnum"); }, true },
+                    { "pa|path=", "Legacy - do not use.", b => {legacyOptions.Add("pa|path"); }, true },
+                    { "lr|ldsreginterval=", "Legacy - do not use.", b => {legacyOptions.Add("lr|ldsreginterval"); }, true },
+                    { "ss|suppressedopcstatuscodes=", "Legacy - do not use.", b => {legacyOptions.Add("ss|suppressedopcstatuscodes"); }, true },
+                    { "csr", "Legacy - do not use.", b => {legacyOptions.Add("csr"); }, true },
+                    { "ab|applicationcertbase64=", "Legacy - do not use.",b => {legacyOptions.Add("ab|applicationcertbase64"); }, true },
+                    { "af|applicationcertfile=", "Legacy - do not use.", b => {legacyOptions.Add("af|applicationcertfile"); }, true },
+                    { "pk|privatekeyfile=", "Legacy - do not use.", b => {legacyOptions.Add("pk|privatekeyfile"); }, true },
+                    { "pb|privatekeybase64=", "Legacy - do not use.", b => {legacyOptions.Add("pb|privatekeybase64"); }, true },
+                    { "cp|certpassword=", "Legacy - do not use.", b => {legacyOptions.Add("cp|certpassword"); }, true },
+                    { "tb|addtrustedcertbase64=", "Legacy - do not use.", b => {legacyOptions.Add("tb|addtrustedcertbase64"); }, true },
+                    { "tf|addtrustedcertfile=", "Legacy - do not use.", b => {legacyOptions.Add("tf|addtrustedcertfile"); }, true },
+                    { "ib|addissuercertbase64=", "Legacy - do not use.", b => {legacyOptions.Add("ib|addissuercertbase64"); }, true },
+                    { "if|addissuercertfile=", "Legacy - do not use.", b => {legacyOptions.Add("if|addissuercertfile"); }, true },
+                    { "rb|updatecrlbase64=", "Legacy - do not use.", b => {legacyOptions.Add("rb|updatecrlbase64"); }, true },
+                    { "uc|updatecrlfile=", "Legacy - do not use.", b => {legacyOptions.Add("uc|updatecrlfile"); }, true },
+                    { "rc|removecert=", "Legacy - do not use.", b => {legacyOptions.Add("rc|removecert"); }, true },
+                    { "dt|devicecertstoretype=", "Legacy - do not use.", b => {legacyOptions.Add("dt|devicecertstoretype"); }, true },
+                    { "dp|devicecertstorepath=", "Legacy - do not use.", b => {legacyOptions.Add("dp|devicecertstorepath"); }, true },
+                    { "i|install", "Legacy - do not use.", b => {legacyOptions.Add("i|install"); }, true },
+                    { "st|opcstacktracemask=", "Legacy - do not use.", b => {legacyOptions.Add("st|opcstacktracemask"); }, true },
+                    { "sd|shopfloordomain=", "Legacy - do not use.", b => {legacyOptions.Add("sd|shopfloordomain"); }, true },
+                    { "vc|verboseconsole=", "Legacy - do not use.", b => {legacyOptions.Add("vc|verboseconsole"); }, true },
+                    { "as|autotrustservercerts=", "Legacy - do not use.", b => {legacyOptions.Add("as|autotrustservercerts"); }, true },
                 };
 
             try {
@@ -335,6 +339,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// The Maximum (IoT D2C) message buffer size
         /// </summary>
         public int? MaxOutgressMessages => StandaloneCliModel.MaxOutgressMessages;
+
+        /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public bool? UseReversibleEncoding => StandaloneCliModel.UseReversibleEncoding;
 
         /// <inheritdoc/>
         public bool? EnableRoutingInfo => StandaloneCliModel.EnableRoutingInfo;
@@ -427,6 +436,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.LegacyCompatibility = GetValueOrDefault(StandaloneCliConfigKeys.LegacyCompatibility, model.LegacyCompatibility);
             model.EnableRuntimeStateReporting = GetValueOrDefault(StandaloneCliConfigKeys.RuntimeStateReporting, model.EnableRuntimeStateReporting);
             model.EnableRoutingInfo = GetValueOrDefault(StandaloneCliConfigKeys.EnableRoutingInfo, model.EnableRoutingInfo);
+            model.UseReversibleEncoding = GetValueOrDefault(StandaloneCliConfigKeys.UseReversibleEncoding, model.UseReversibleEncoding);
             return model;
         }
 

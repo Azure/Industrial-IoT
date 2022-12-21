@@ -26,15 +26,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
-    <PackageReference Include="Antlr4" Version="4.6.6" />
-  </ItemGroup>
-  <ItemGroup>
-    <Antlr4 Update="**/*.g4">
-      <Generator>MSBuild:Compile</Generator>
-      <CustomToolNamespace>$(RootNamespace).Parser</CustomToolNamespace>
-      <Listener>False</Listener>
-      <Visitor>False</Visitor>
-    </Antlr4>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.4.371.50" />

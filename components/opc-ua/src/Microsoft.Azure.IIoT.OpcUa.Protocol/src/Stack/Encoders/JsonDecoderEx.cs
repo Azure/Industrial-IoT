@@ -91,6 +91,27 @@ namespace Opc.Ua.Encoders {
             // No op
         }
 
+        /// <summary>
+        /// Read a decoded JSON field.
+        /// </summary>
+        /// <param name="fieldName">The name of the field.</param>
+        /// <param name="token">The returned object token of the field.</param>
+        public bool ReadField(string fieldName, out object token) {
+            token = null;
+
+            if (string.IsNullOrEmpty(fieldName)) {
+                token = this._stack.Peek();
+                return true;
+            }
+
+            var context = _stack.Peek().ToObject< Dictionary<string, object>>();
+            if (context == null || !context.TryGetValue(fieldName, out token)) {
+                return false;
+            }
+
+            return true;
+        }
+
         /// <inheritdoc/>
         public bool ReadBoolean(string property) {
             return TryGetToken(property, out var value) && (bool)value;
@@ -1846,27 +1867,6 @@ namespace Opc.Ua.Encoders {
                     LineInfoHandling = LineInfoHandling.Ignore
                 });
             return root as JObject;
-        }
-
-        /// <summary>
-        /// Read a decoded JSON field.
-        /// </summary>
-        /// <param name="fieldName">The name of the field.</param>
-        /// <param name="token">The returned object token of the field.</param>
-        private bool ReadField(string fieldName, out object token) {
-            token = null;
-
-            if (String.IsNullOrEmpty(fieldName)) {
-                token = this._stack.Peek();
-                return true;
-            }
-
-            var context = _stack.Peek().ToObject<Dictionary<string, object>>();
-            if (context == null || !context.TryGetValue(fieldName, out token)) {
-                return false;
-            }
-
-            return true;
         }
 
         private bool ReadArrayField(string fieldName, out List<object> array) {

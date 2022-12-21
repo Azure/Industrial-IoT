@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// Type definition node id if operand is
         /// simple or full attribute operand.
         /// </summary>
-        public string NodeId { get; set; }
+        public string TypeDefinitionId { get; set; }
 
         /// <summary>
         /// Browse path of attribute operand
@@ -29,5 +29,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// Index range of attribute operand
         /// </summary>
         public string IndexRange { get; set; }
+
+        /// <summary>
+        /// Optional display name
+        /// </summary>
+        public string DisplayName { get; set; }
     }
 }

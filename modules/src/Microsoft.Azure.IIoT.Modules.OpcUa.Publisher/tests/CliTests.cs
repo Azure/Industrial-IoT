@@ -3,12 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
-using System.Linq;
-using FluentAssertions;
-using Xunit;
-
-namespace Microsoft.Azure.IIoT.Modules.Publisher.Tests {
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using FluentAssertions;
+    using Xunit;
 
     /// <summary>
     /// Class to test Cli options
@@ -31,6 +29,34 @@ namespace Microsoft.Azure.IIoT.Modules.Publisher.Tests {
                 .Should()
                 .Be(1);
 
+            result.Values.Should()
+                .Equal(expected);
+        }
+
+        /// <summary>
+        /// Valid boolean option test
+        /// </summary>
+        [Theory]
+        [InlineData("True", new string[] { "-aa" })]
+        [InlineData("True", new string[] { "--aa" })]
+        [InlineData("True", new string[] { "-autoaccept" })]
+        [InlineData("True", new string[] { "--autoaccept" })]
+        [InlineData("True", new string[] { "--autoaccept=True" })]
+        [InlineData("False", new string[] { "--autoaccept=False" })]
+        [InlineData("False", new string[] { "-aa=false" })]
+        [InlineData("True", new string[] { "-aa=true" })]
+        [InlineData("True", new string[] { "--AutoAcceptUntrustedCertificates" })]
+        [InlineData("True", new string[] { "--AutoAcceptUntrustedCertificates=True" })]
+        public void ValidAutoAcceptUntrustedCertificatesOptionTest(string expected, string[] param) {
+
+            var result = new StandaloneCliOptions(param);
+
+            result.Count
+                .Should()
+                .Be(1);
+
+            result.Keys.Should()
+                .Equal("AutoAcceptUntrustedCertificates");
             result.Values.Should()
                 .Equal(expected);
         }

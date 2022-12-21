@@ -75,12 +75,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 return null;
             }
             var handleId = monitoredItem.Handle as SubscriptionServices.MonitoredItemWrapper;
+            if (handleId?.SkipMonitoredItemNotification() ?? false) {
+                // Skip change notification
+                return null;
+            }
             return new MonitoredItemNotificationModel {
                 Id = handleId?.Template?.Id,
                 DisplayName = monitoredItem.DisplayName,
                 NodeId = handleId?.Template?.StartNodeId,
                 AttributeId = monitoredItem.AttributeId,
-                ClientHandle = notification.ClientHandle,
                 Value = notification.Value,
                 Overflow = notification.Value?.StatusCode.Overflow,
                 NotificationData = notification.Message == null || notification.Message.IsEmpty
@@ -118,7 +121,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 DisplayName = monitoredItem.DisplayName,
                 NodeId = handleId?.Template?.StartNodeId,
                 AttributeId = monitoredItem.AttributeId,
-                ClientHandle = eventFieldList.ClientHandle,
                 Value = ToDataValue(eventFieldList, monitoredItem),
                 NotificationData = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
                     ? null
@@ -133,10 +135,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     ? null
                     : eventFieldList.Message.StringTable,
                 IsHeartbeat = false
-
             };
         }
-
 
         /// <summary>
         /// Convert to Datavalue
@@ -150,35 +150,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 return new DataValue(StatusCodes.BadNoData);
             }
             return new DataValue {
-                ServerPicoseconds = 0,
-                ServerTimestamp = eventFields.GetEventValue<DateTime>(
-                    BrowseNames.Time, monitoredItem),
-                SourcePicoseconds = 0,
-                SourceTimestamp = eventFields.GetEventValue<DateTime>(
-                    BrowseNames.ReceiveTime, monitoredItem),
-                StatusCode = eventFields.GetEventValue<StatusCode>(
-                    BrowseNames.StatusCode, monitoredItem),
-                Value = new EncodeableDictionary {
-                    Fields = new KeyValuePairCollection(eventFields.EventFields
-                        .Select((value, i) => new Opc.Ua.KeyValuePair {
-                            Key = monitoredItem.GetFieldName(i),
-                            Value = value
-                        }))
-                }
+                Value = new EncodeableDictionary(eventFields.EventFields
+                    .Select((value, i) => new KeyDataValuePair {
+                        Key = SubscriptionServices.GetFieldDisplayName(monitoredItem, i),
+                        Value = new DataValue(value)
+                    }))
             };
-        }
-
-        /// <summary>
-        /// Returns value of the field name containing the event type.
-        /// </summary>
-        public static T GetEventValue<T>(this EventFieldList eventFields, string name,
-            MonitoredItem monitoredItem, T defaultValue = default) {
-            // get value
-            var value = monitoredItem.GetFieldValue(eventFields, ObjectTypes.BaseEventType, name);
-            if (value != null) {
-                return value.As<T>();
-            }
-            return defaultValue;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -125,28 +125,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 MaxKeepAliveCount = _clientConfig.MaxKeepAliveCount
                             },
                             PublishedVariables = new PublishedDataItemsModel {
-                                PublishedData = opcNodes.Select(node => new PublishedDataSetVariableModel {
-                                    //  Identifier to show for notification in payload of IoT Hub method
-                                    //  Prio 1: DataSetFieldId (need to be read from message)
-                                    //  Prio 2: DisplayName - nothing to do, because notification.Id
-                                    //                        already contains DisplayName
-                                    //  Prio 3: NodeId as configured; Id remains null in this case
-                                    Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId)
+                                PublishedData = opcNodes.Where(node => node.Item2.EventFilter == null)
+                                    .Select(node => new PublishedDataSetVariableModel {
+                                        //  Identifier to show for notification in payload of IoT Hub method
+                                        //  Prio 1: DataSetFieldId (need to be read from message)
+                                        //  Prio 2: DisplayName - nothing to do, because notification.Id
+                                        //                        already contains DisplayName
+                                        //  Prio 3: NodeId as configured; Id remains null in this case
+                                        Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId)
                                             ? node.Item2.DataSetFieldId
                                             : node.Item2.DisplayName,
-                                    PublishedVariableNodeId = node.Item2.Id,
+                                        PublishedVariableNodeId = node.Item2.Id,
 
-                                    // At this point in time the next values are ensured to be filled in with
-                                    // the appropriate value: configured or default
-                                    PublishedVariableDisplayName = node.Item2.DisplayName,
-                                    SamplingInterval = node.Item2.OpcSamplingIntervalTimespan,
-                                    HeartbeatInterval = node.Item2.HeartbeatIntervalTimespan,
-                                    QueueSize = node.Item2.QueueSize,
-                                    // ToDo: Implement mechanism for SkipFirst.
-                                    SkipFirst = node.Item2.SkipFirst,
-                                    DataChangeTrigger = node.Item2.DataChangeTrigger
-                                }).ToList()
-                            }
+                                        // At this point in time the next values are ensured to be filled in with
+                                        // the appropriate value: configured or default
+                                        PublishedVariableDisplayName = node.Item2.DisplayName,
+                                        SamplingInterval = node.Item2.OpcSamplingIntervalTimespan,
+                                        HeartbeatInterval = node.Item2.HeartbeatIntervalTimespan,
+                                        QueueSize = node.Item2.QueueSize,
+                                        SkipFirst = node.Item2.SkipFirst,
+                                        DataChangeTrigger = node.Item2.DataChangeTrigger,
+                                        DeadbandValue = node.Item2.DeadbandValue,
+                                        DeadbandType = node.Item2.DeadbandType
+                                    }).ToList(),
+                            },
+                            PublishedEvents = new PublishedEventItemsModel {
+                                PublishedData = opcNodes.Where(node => node.Item2.EventFilter != null)
+                                    .Select(node => new PublishedDataSetEventModel {
+                                        //  Identifier to show for notification in payload of IoT Hub method
+                                        //  Prio 1: DataSetFieldId (need to be read from message)
+                                        //  Prio 2: DisplayName - nothing to do, because notification.Id
+                                        //                        already contains DisplayName
+                                        Id = !string.IsNullOrEmpty(node.Item2.DataSetFieldId)
+                                            ? node.Item2.DataSetFieldId
+                                            : node.Item2.DisplayName,
+                                        EventNotifier = node.Item2.Id,
+                                        QueueSize = node.Item2.QueueSize,
+                                        TypeDefinitionId = node.Item2.EventFilter.TypeDefinitionId,
+                                        SelectClauses = node.Item2.EventFilter.SelectClauses?.Select(s => s.Clone()).ToList(),
+                                        WhereClause = node.Item2.EventFilter.WhereClause?.Clone(),
+                                        PendingAlarms = node.Item2.EventFilter.PendingAlarms.Clone(),
+                                    }).ToList(),
+                            },
                         }
                     ).ToList()
                 ).ToList();
@@ -158,14 +178,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
 
                 var result = flattenedGroups.Select(dataSetSourceBatches => dataSetSourceBatches.Any() ? new WriterGroupJobModel {
                     MessagingMode = standaloneCliModel.MessagingMode,
-                    Engine = _engineConfig == null ? null : new EngineConfigurationModel {
-                        BatchSize = _engineConfig.BatchSize,
-                        BatchTriggerInterval = _engineConfig.BatchTriggerInterval,
-                        DiagnosticsInterval = _engineConfig.DiagnosticsInterval,
-                        MaxMessageSize = _engineConfig.MaxMessageSize,
-                        MaxOutgressMessages = _engineConfig.MaxOutgressMessages,
-                        EnableRoutingInfo = _engineConfig.EnableRoutingInfo,
-                    },
+                    Engine = _engineConfig == null
+                        ? null
+                        : new EngineConfigurationModel {
+                            BatchSize = _engineConfig.BatchSize,
+                            BatchTriggerInterval = _engineConfig.BatchTriggerInterval,
+                            DiagnosticsInterval = _engineConfig.DiagnosticsInterval,
+                            MaxMessageSize = _engineConfig.MaxMessageSize,
+                            MaxOutgressMessages = _engineConfig.MaxOutgressMessages,
+                            UseReversibleEncoding = _engineConfig.UseReversibleEncoding,
+                            EnableRoutingInfo = _engineConfig.EnableRoutingInfo,
+                        },
                     WriterGroup = new WriterGroupModel {
                         MessageType = standaloneCliModel.MessageEncoding,
                         WriterGroupId = dataSetSourceBatches.First().Connection.Group,
@@ -278,7 +301,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 result += !string.IsNullOrEmpty(result) ? "_" : string.Empty;
                 result += $"{model.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds}";
                 if (subset.Where(x => x.SubscriptionSettings.PublishingInterval == model.SubscriptionSettings.PublishingInterval).Count() > 1) {
-                    result += $"_{model.PublishedVariables.PublishedData.First().PublishedVariableNodeId}";
+                    if (!string.IsNullOrEmpty(model.PublishedVariables?.PublishedData?.First()?.PublishedVariableNodeId)) {
+                        result += $"_{model.PublishedVariables.PublishedData.First().PublishedVariableNodeId}";
+                    }
+                    else if (!string.IsNullOrEmpty(model.PublishedEvents?.PublishedData?.First()?.EventNotifier)) {
+                        result += $"_{model.PublishedEvents.PublishedData.First().EventNotifier}";
+                    }
+                    else {
+                        result += $"_{Guid.NewGuid()}";
+                    }
                 }
             }
             else {
@@ -312,7 +343,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             if (item.OpcNodes != null) {
                 foreach (var node in item.OpcNodes) {
                     if (standaloneCliModel.ScaleTestCount.GetValueOrDefault(1) == 1) {
-                        yield return ( item.DataSetWriterId,  new OpcNodeModel {
+                        yield return (item.DataSetWriterId, new OpcNodeModel {
                             Id = !string.IsNullOrEmpty(node.Id) ? node.Id : node.ExpandedNodeId,
                             DisplayName = node.DisplayName,
                             DataSetFieldId = node.DataSetFieldId,
@@ -325,9 +356,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             OpcSamplingIntervalTimespan = node
                                 .GetNormalizedSamplingInterval(standaloneCliModel.DefaultSamplingInterval),
                             QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
-                            // ToDo: Implement mechanism for SkipFirst.
                             SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
-                            DataChangeTrigger = node.DataChangeTrigger
+                            DataChangeTrigger = node.DataChangeTrigger ?? standaloneCliModel.DefaultDataChangeTrigger,
+                            DeadbandType = node.DeadbandType,
+                            DeadbandValue = node.DeadbandValue,
+                            EventFilter = node.EventFilter
                         });
                     }
                     else {
@@ -349,14 +382,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 OpcSamplingIntervalTimespan = node
                                     .GetNormalizedSamplingInterval(standaloneCliModel.DefaultSamplingInterval),
                                 QueueSize = node.QueueSize ?? standaloneCliModel.DefaultQueueSize,
-                                // ToDo: Implement mechanism for SkipFirst.
                                 SkipFirst = node.SkipFirst ?? standaloneCliModel.DefaultSkipFirst,
-                                DataChangeTrigger = node.DataChangeTrigger
+                                DataChangeTrigger = node.DataChangeTrigger ?? standaloneCliModel.DefaultDataChangeTrigger,
+                                DeadbandType = node.DeadbandType,
+                                DeadbandValue = node.DeadbandValue,
+                                EventFilter = node.EventFilter
                             });
                         }
                     }
                 }
             }
+
             if (item.NodeId?.Identifier != null) {
                 yield return (item.DataSetWriterId, new OpcNodeModel {
                     Id = item.NodeId.Identifier,
@@ -365,7 +401,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         .GetNormalizedDataSetPublishingInterval(standaloneCliModel.DefaultPublishingInterval),
                     OpcSamplingIntervalTimespan = standaloneCliModel.DefaultSamplingInterval,
                     QueueSize = standaloneCliModel.DefaultQueueSize,
-                    // ToDo: Implement mechanism for SkipFirst.
                     SkipFirst = standaloneCliModel.DefaultSkipFirst,
                     DataChangeTrigger = standaloneCliModel.DefaultDataChangeTrigger
                 });

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
     using System.Collections.Generic;
 
@@ -58,15 +60,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if (model.SkipFirst != that.SkipFirst) {
+            if ((model.SkipFirst ?? false) != (that.SkipFirst ?? false)) {
                 return false;
             }
 
             if (model.QueueSize != that.QueueSize) {
                 return false;
             }
-            
+
+            //
+            // Null is default and equals to StatusValue, but we allow StatusValue == 1
+            // to be set specifically to enable a user to force a data filter to be
+            // applied (otherwise it is not if nothing else is set)
+            //
             if (model.DataChangeTrigger != that.DataChangeTrigger) {
+                return false;
+            }
+
+            // Null is None == no deadband
+            if (model.DeadbandType != that.DeadbandType) {
+                return false;
+            }
+
+            if (model.DeadbandValue != that.DeadbandValue) {
+                return false;
+            }
+
+            if (!model.EventFilter.IsSameAs(that.EventFilter)) {
                 return false;
             }
 
@@ -85,9 +105,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.GetNormalizedPublishingInterval());
             hash.Add(model.GetNormalizedSamplingInterval());
             hash.Add(model.GetNormalizedHeartbeatInterval());
-            hash.Add(model.SkipFirst);
+            hash.Add(model.SkipFirst ?? false);
             hash.Add(model.QueueSize);
-            hash.Add(model.DataChangeTrigger);
+            if (model.DataChangeTrigger == null) {
+                //
+                // Null is default and equals to StatusValue, but we allow StatusValue == 1
+                // to be set specifically to enable a user to force a data filter to be
+                // applied (otherwise it is not if nothing else is set)
+                //
+                hash.Add(-1);
+            }
+            else {
+                hash.Add(model.DataChangeTrigger);
+            }
+            hash.Add(model.DeadbandValue);
+            if (model.DeadbandType == null) {
+                // Null is None == no deadband
+                hash.Add(-1);
+            }
+            else {
+                hash.Add(model.DeadbandType);
+            }
             return hash.ToHashCode();
         }
 

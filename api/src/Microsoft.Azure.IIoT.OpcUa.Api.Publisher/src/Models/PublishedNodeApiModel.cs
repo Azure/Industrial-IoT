@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using System.Runtime.Serialization;
     using System;
     using System.ComponentModel.DataAnnotations;
@@ -77,10 +78,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "queueSize", Order = 11,
             EmitDefaultValue = false)]
         public uint? QueueSize { get; set; }
-        
+
         /// <summary> Data change trigger </summary>
         [DataMember(Name = "dataChangeTrigger", Order = 12,
             EmitDefaultValue = false)]
         public DataChangeTriggerType? DataChangeTrigger { get; set; }
+
+        /// <summary> Deadband type </summary>
+        [DataMember(Name = "deadbandType", Order = 13,
+            EmitDefaultValue = false)]
+        public DeadbandType? DeadbandType { get; set; }
+
+        /// <summary> Deadband value </summary>
+        [DataMember(Name = "deadbandValue", Order = 14,
+            EmitDefaultValue = false)]
+        public double? DeadbandValue { get; set; }
+
+        /// <summary>Event Filter</summary>
+        [DataMember(Name = "eventFilter", Order = 15,
+            EmitDefaultValue = false)]
+        public EventFilterApiModel EventFilter { get; set; }
     }
 }

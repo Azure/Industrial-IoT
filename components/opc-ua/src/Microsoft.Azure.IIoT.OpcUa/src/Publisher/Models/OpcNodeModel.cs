@@ -4,9 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Runtime.Serialization;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Describing an entry in the node list
@@ -61,9 +62,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> Queue Size for the monitored item </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public uint? QueueSize { get; set; }
-        
+
         /// <summary> Data change filter </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public DataChangeTriggerType? DataChangeTrigger { get; set; }
+
+        /// <summary> Deadband type </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public DeadbandType? DeadbandType { get; set; }
+
+        /// <summary> Deadband value </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public double? DeadbandValue { get; set; }
+
+        /// <summary>Event Filter</summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public EventFilterModel EventFilter { get; set; }
     }
 }

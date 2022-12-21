@@ -6,8 +6,9 @@ Migration of OPC Publisher(standalone mode) version 2.5.x to 2.8.2 works for bac
 
 ## Configuration file (pn.json)
 
-OPC Publisher 2.8.2 in standalone mode can consume published nodes JSON files of 2.5.x version without any modifications.
-OPC Publisher 2.8.2 adds several new fields for configuring publishing. The full schema looks like this:
+In standalone mode OPC Publisher 2.8.2 and above can consume published nodes JSON files of 2.5.x version without any modifications.
+OPC Publisher 2.8.2 and above added several new fields to configure publishing but maintained backwards compatibilty with 2.5.x.
+The full schema looks like this:
 
 ```json
 [
@@ -34,6 +35,7 @@ OPC Publisher 2.8.2 adds several new fields for configuring publishing. The full
         "OpcPublishingIntervalTimespan": "string",
         "HeartbeatInterval": "integer",
         "HeartbeatIntervalTimespan": "string",
+        "SkipFirst": "bool",
         "QueueSize": "integer"
       }
     ]
@@ -57,7 +59,7 @@ To learn more about how to use comman-line arguments to configure OPC Publisher,
 
 ## OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2
 
-The following table describes the command line arguments, which were available in OPC Publisher 2.5.x and their compatibility in OPC Publisher 2.8.2.
+The following table describes the command line arguments, which were available in OPC Publisher 2.5.x and their compatibility in OPC Publisher 2.8.2 and above.
 
 | **Command Line Options**                |  **in 2.8.2 and above**  | **Alternative** |
 |--------------------------------------   |--------------------------|-----------------|
@@ -77,9 +79,9 @@ The following table describes the command line arguments, which were available i
 | --ms, --iothubmessagesize=VALUE         |  yes                     |                 |
 | --si, --iothubsendinterval=VALUE        |  yes                     |                 |
 | --dc, --deviceconnectionstring=VALUE    |  yes                     |                 |
-| --c, --connectionstring=VALUE           |  no                      |  use --dc, --deviceconnectionstring=VALUE               |
+| --c, --connectionstring=VALUE           |  no                      | use --dc, --deviceconnectionstring=VALUE               |
 | --hb, --heartbeatinterval=VALUE         |  yes                     |                 |
-| --sf, --skipfirstevent=VALUE            |  no                      |                 |
+| --sf, --skipfirstevent=VALUE            |  yes (2.9.0 or above)    | same as --skipfirst=VALUE |
 | --pn, --portnum=VALUE                   |  no                      |                 |
 | --pa, --path=VALUE                      |  no                      |                 |
 | --lr, --ldsreginterval=VALUE            |  no                      |                 |
@@ -137,7 +139,8 @@ The pki path can be configured using the `PkiRootPath` command line argument.
 
 By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
 
-#### Use custom OPC UA application instance certificate in OPC Publisher
+### Use custom OPC UA application instance certificate in OPC Publisher
+
 One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
 
 Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the ApplicationCertificateSubjectName like in the example below.
@@ -439,7 +442,9 @@ If the endpoint isn't configured or `UnpublishAllNodes` is called on that endpoi
          "connectionRetries": 0,
          "opcEndpointConnected": true,
          "monitoredOpcNodesSucceededCount": 5,
-         "monitoredOpcNodesFailedCount": 0
+         "monitoredOpcNodesFailedCount": 0,
+         "ingressEventNotifications": 0,
+         "ingressEvents": 0
       }
    ]
 }

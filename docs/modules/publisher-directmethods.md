@@ -53,47 +53,61 @@ The `_V1` direct methods use the payload schema as described below:
       "OpcPublishingIntervalTimespan": "string",
       "DataSetFieldId ": "string",
       "DisplayName": "string",
+      "SkipFirst": "bool",
       "HeartbeatInterval": "integer",
       "HeartbeatIntervalTimespan": "string",
-      "QueueSize": "integer"
+      "QueueSize": "integer",
+      "DataChangeTrigger": "string",
+      "DeadbandType": "string",
+      "DeadbandValue": "decimal",
+      "EventFilter": {
+        (*)
+      }
     }
   ]
 }
 ```
 
+(*) To subscribe to OPC UA Alarms and Events you must configure the `EventFilter` attribute in `OpcNodes` as [described in this seperate document](./publisher-event-configuration.md).
+
 Method call's request attributes are as follows:
 
-| Attribute                           | Mandatory | Type            | Default                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Attribute                           | Mandatory | Type            | Default                     | Description |
 |-------------------------------------|-----------|-----------------|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `EndpointUrl`                       | Yes       | String          | N/A                         | The OPC UA server endpoint URL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `UseSecurity`                       | No        | Boolean         | `false`                     | Controls whether to use a secure OPC UA mode to establish a session to the OPC UA server endpoint                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `OpcAuthenticationMode`             | No        | Enum            | `Anonymous`                 | Enum to specify the session authentication. <br>Options: `Anonymous`, `UsernamePassword`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `UserName`                          | No        | String          | `null`                      | The username for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `Password`                          | No        | String          | `null`                      | The password for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `DataSetWriterGroup`                | No        | String          | `EndpointUrl`               | The data set writer group collecting datasets defined for a certain <br>endpoint uniquely identified by the above attributes. <br>This attribute is used to identify the session opened into the <br>server. The default value consists of the EndpointUrl string, <br>followed by a deterministic hash composed of the <br>EndpointUrl, UseSecurity, OpcAuthenticationMode, UserName and Password attributes.                                                                                                                                                             |
+| `EndpointUrl`                       | Yes       | String          | N/A                         | The OPC UA server endpoint URL |
+| `UseSecurity`                       | No        | Boolean         | `false`                     | Controls whether to use a secure OPC UA mode to establish a session to the OPC UA server endpoint |
+| `OpcAuthenticationMode`             | No        | Enum            | `Anonymous`                 | Enum to specify the session authentication. <br>Options: `Anonymous`, `UsernamePassword` |
+| `UserName`                          | No        | String          | `null`                      | The username for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
+| `Password`                          | No        | String          | `null`                      | The password for the session authentication. <br>Mandatory if OpcAuthentication mode is `UsernamePassword`. |
+| `DataSetWriterGroup`                | No        | String          | `EndpointUrl`               | The data set writer group collecting datasets defined for a certain <br>endpoint uniquely identified by the above attributes. <br>This attribute is used to identify the session opened into the <br>server. The default value consists of the EndpointUrl string, <br>followed by a deterministic hash composed of the <br>EndpointUrl, UseSecurity, OpcAuthenticationMode, UserName and Password attributes. |
 | `DataSetWriterId`                   | No        | String          | `DataSetPublishingInterval` | The unique identifier for a data set writer used to collect <br>OPC UA nodes to be semantically grouped and published with <br>the same publishing interval. <br>When not specified a string representing the common <br>publishing interval of the nodes in the data set collection. <br>This attribute uniquely identifies a data set <br>within a DataSetWriterGroup. The uniqueness is determined <br>using the provided DataSetWriterId and the publishing <br>interval of the grouped OpcNodes.  An individual <br>subscription is created for each DataSetWriterId. |
-| `DataSetPublishingInterval`         | No        | Integer         | `null`                      | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed in milliseconds. <br>Ignored when `DataSetPublishingIntervalTimespan` is present. <br> _Note_: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node.                                                                                                                                                                                            |
-| `DataSetPublishingIntervalTimespan` | No        | String          | `null`                      | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed as a Timespan string ({d.hh:mm:dd.fff}). <br>When both Intervals are specified, the Timespan will win and be used for the configuration. <br> _Note_: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node.                                                                                                                                     |
-| `Tag`                               | No        | String          | empty                       | User defined information stored in the configuration as a tag string.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `OpcNodes`                          | No        | List\<OpcNode\> | empty                       | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `DataSetPublishingInterval`         | No        | Integer         | `null`                      | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed in milliseconds. <br>Ignored when `DataSetPublishingIntervalTimespan` is present. <br> _Note_: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
+| `DataSetPublishingIntervalTimespan` | No        | String          | `null`                      | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed as a Timespan string ({d.hh:mm:dd.fff}). <br>When both Intervals are specified, the Timespan will win and be used for the configuration. <br> _Note_: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
+| `Tag`                               | No        | String          | empty                       | User defined information stored in the configuration as a tag string. |
+| `OpcNodes`                          | No        | List\<OpcNode\> | empty                       | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
 
 _Note_: `OpcNodes` field is mandatory for `PublishNodes_V1`. It is optional for `UnpublishNodes_V1` and `AddOrUpdateEndpoints_V1`. And `OpcNodes` field shouldn't be specified for the rest of the direct methods.
 
 OpcNode attributes are as follows:
 
-| Attribute                       | Mandatory | Type    | Default | Description                                                                                                                                                                                                                                                                                                                                |
+| Attribute                       | Mandatory | Type    | Default | Description |
 |---------------------------------|-----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Id`                            | Yes*      | String  | N/A     | The OPC UA NodeId in the OPC UA server whose data value changes should be published. <br>Can be specified as NodeId or ExpandedNodeId as per OPC UA specification, <br>or as ExpandedNodeId IIoT format {NamespaceUi}#{NodeIdentifier}. <br>*_Note_: `Id` field may be omitted when `ExpandedNodeId` is present.                           |
-| `ExpandedNodeId`                | No        | String  | null    | Enables backwards compatibility. <br>Must be specified as ExpandedNodeId as per OPC UA specification. <br>*_Note_: when `ExpandedNodeId` is present `Id` field may be omitted.                                                                                                                                                             |
-| `OpcSamplingInterval`           | No        | Integer | 1000    | The sampling interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcSamplingIntervalTimespan` is present.                                                                                                                |
-| `OpcSamplingIntervalTimespan`   | No        | String  | null    | The sampling interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>The value is used as defined in the OPC UA specification.                                                                                                                                                      |
+| `Id`                            | Yes*      | String  | N/A     | The OPC UA NodeId in the OPC UA server whose data value changes should be published. <br>Can be specified as NodeId or ExpandedNodeId as per OPC UA specification, <br>or as ExpandedNodeId IIoT format {NamespaceUi}#{NodeIdentifier}. <br>*_Note_: `Id` field may be omitted when `ExpandedNodeId` is present. |
+| `ExpandedNodeId`                | No        | String  | null    | Enables backwards compatibility. <br>Must be specified as ExpandedNodeId as per OPC UA specification. <br>*_Note_: when `ExpandedNodeId` is present `Id` field may be omitted. |
+| `OpcSamplingInterval`           | No        | Integer | 1000    | The sampling interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcSamplingIntervalTimespan` is present. |
+| `OpcSamplingIntervalTimespan`   | No        | String  | null    | The sampling interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>The value is used as defined in the OPC UA specification. |
 | `OpcPublishingInterval`         | No        | Integer | 1000    | The publishing interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcPublishingIntervalTimespan` is present. |
-| `OpcPublishingIntervalTimespan` | No        | String  | null    | The publishing interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification.                                         |
-| `DataSetFieldId`                | No        | String  | null    | A user defined tag used to identify the Field in the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode.                                                                                                                                                                                                         |
-| `DisplayName`                   | No        | String  | null    | A user defined tag to be added to the telemetry message <br>when publisher runs in Samples message mode.                                                                                                                                                                                                                                   |
-| `HeartbeatInterval`             | No        | Integer | 0       | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in seconds. <br>0 means the heartbeat mechanism is disabled. <br>This value is ignored when `HeartbeatIntervalTimespan` is present.                                                |
-| `HeartbeatIntervalTimespan`     | No        | String  | null    | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}).                                                                                                                                              |
-| `QueueSize`                     | No        | Integer | 1       | The desired QueueSize for the monitored item to be published.                                                                                                                                                                                                                                                                              |
+| `OpcPublishingIntervalTimespan` | No        | String  | null    | The publishing interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. |
+| `DataSetFieldId`                | No        | String  | null    | A user defined tag used to identify the Field in the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode. |
+| `DisplayName`                   | No        | String  | null    | A user defined tag to be added to the telemetry message <br>when publisher runs in Samples message mode. |
+| `HeartbeatInterval`             | No        | Integer | 0       | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in seconds. <br>0 means the heartbeat mechanism is disabled. <br>This value is ignored when `HeartbeatIntervalTimespan` is present. |
+| `HeartbeatIntervalTimespan`     | No        | String  | null    | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). |
+| `SkipFirst`                     | No        | boolean | false   | Whether the first received data change for the monitored item should not be sent. This can avoid large initial messages since all values are sent by a server as the first notification.<br>If an `EventFilter` is specified, this value is ignored |
+| `QueueSize`                     | No        | Integer | 1       | The desired QueueSize for the monitored item to be published.  |
+| `DataChangeTrigger`             | No        | String  | null    | The data change trigger to use. <br>The default is `"StatusValue"` causing telemetry to be sent when value or statusCode of the DataValue change. <br>`"Status"` causes messages to be sent only when the status code changes and <br>`"StatusValueTimestamp"` causes a message to be sent when value, statusCode, or the source timestamp of the value change. A publisher wide default value can be set using the [command line](./publisher-commandline.md). This value is ignored if an EventFilter is configured. |
+| `DeadbandType`                  | No        | String  | 1       | The type of deadband filter to apply. <br>`"Percent"` means that the `DeadbandValue` specified is a percentage of the EURange of the value. The value then is clamped to a value between 0.0 and 100.0 <br>`"Absolute"` means the value is an absolute deadband range. Negative values are interpreted as 0.0. This value is ignored if an `EventFilter` is present. |
+| `DeadbandValue`                 | No        | Decimal | 1       | The deaadband value to use. If the `DeadbandType` is not specified or an `EventFilter` is specified, this value is ignored. |
+| `EventFilter`                   | No        | [EventFilter](./publisher-event-configuration.md) | null | An [event filter](./publisher-event-configuration.md) configuration to use when subscribing to events instead of data changes.  |
 
 In the implementation of OPC Publisher, DatSetWriterGroup is defined by combination of `DataSetWriterGroup` attribute and details of OPC UA server endpoint (`EndpointUrl` and connection details).
 Each unique DatSetWriterGroup will result in one session to OPC UA server. This session will contain several subscriptions within it for each DataSetWriter of DatSetWriterGroup.
@@ -206,9 +220,9 @@ When an empty payload is set or the endpoint in payload is null, the complete co
 
   _Exceptions_: a response corresponding to an exception will be returned if:
 
-  - request payload contains an endpoint (DataSet) that isn't present in publisher configuration
+- request payload contains an endpoint (DataSet) that isn't present in publisher configuration
 
-  - request payload contains `OpcNodes`
+- request payload contains `OpcNodes`
 
   _Example_:
 
@@ -363,7 +377,9 @@ Returns a list of actual metrics for every endpoint (Dataset).
   >          "connectionRetries": 0,
   >          "opcEndpointConnected": true,
   >          "monitoredOpcNodesSucceededCount": 5,
-  >          "monitoredOpcNodesFailedCount": 0
+  >          "monitoredOpcNodesFailedCount": 0,
+  >          "ingressEventNotifications": 0,
+  >          "ingressEvents": 0
   >       }
   >    ]
   > }
@@ -377,17 +393,15 @@ changes the complete node set for an endpoint (DataSet) with the one provided in
 By providing an empty list of nodes in the request, the user can remove the
 previously configured nodes for a specific endpoint (DataSet).
 
-  _Request_: represents a list of objects, which should strictly follow the request payload schema as
-  described above. The `OpcNodes` attribute being empty list or `null` will be interpreted as a removal
-  request for that endpoint (DataSet).
+  _Request_: represents a list of objects, which should strictly follow the request payload schema as described above. The `OpcNodes` attribute being empty list or `null` will be interpreted as a removal request for that endpoint (DataSet).
 
   _Response_: when successful - Status 200 and an empty json (`{}`) as payload
 
   _Exceptions_: a response corresponding to an exception will be returned if:
 
-  - request payload contains deletion request for an endpoint (DataSet) that isn't present in publisher configuration
+- request payload contains deletion request for an endpoint (DataSet) that isn't present in publisher configuration
 
-  - request payload contains two or more entries for the same endpoint (DataSet)
+- request payload contains two or more entries for the same endpoint (DataSet)
 
   _Example_:
   > _Method Name_: `AddOrUpdateEndpoints_V1`

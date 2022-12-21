@@ -4,6 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
+    using Agent.Framework;
+    using Agent.Framework.Models;
+    using Diagnostics;
+    using FluentAssertions;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
@@ -12,23 +16,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
-    using Agent.Framework;
-    using Agent.Framework.Models;
-    using Diagnostics;
-    using FluentAssertions;
     using Models;
     using Moq;
     using Publisher.Engine;
     using Serializers.NewtonSoft;
+    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.IO;
+    using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using Xunit;
     using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
-
-    using System.Text;
-    using System;
 
     /// <summary>
     /// Tests the Direct methods configuration for the standaloneJobOrchestrator class
@@ -40,6 +39,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/publishednodeswithoptionalfields.json")]
         [InlineData("Engine/pn_assets.json")]
         [InlineData("Engine/pn_assets_with_optional_fields.json")]
+        [InlineData("Engine/pn_events.json")]
+        [InlineData("Engine/pn_pending_alarms.json")]
         public async Task PublishNodesOnEmptyConfiguration(string publishedNodesFile) {
             var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
@@ -107,6 +108,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/publishednodeswithoptionalfields.json", "Engine/publishednodes.json")]
         [InlineData("Engine/pn_assets.json", "Engine/pn_assets_with_optional_fields.json")]
         [InlineData("Engine/pn_assets_with_optional_fields.json", "Engine/pn_assets.json")]
+        [InlineData("Engine/pn_events.json", "Engine/pn_pending_alarms.json")]
         public async Task PublishNodesOnExistingConfiguration(string existingConfig, string newConfig) {
             var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();

@@ -177,6 +177,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagnosticInfo.IngestionDuration = TimeSpan.FromSeconds(totalDuration);
             diagnosticInfo.IngressDataChanges = _messageTrigger.DataChangesCount;
             diagnosticInfo.IngressValueChanges = _messageTrigger.ValueChangesCount;
+            diagnosticInfo.IngressEvents = _messageTrigger.EventCount;
+            diagnosticInfo.IngressEventNotifications = _messageTrigger.EventNotificationCount;
             diagnosticInfo.IngressBatchBlockBufferSize = _batchDataSetMessageBlock.OutputCount;
             diagnosticInfo.EncodingBlockInputSize = _encodingBlock.InputCount;
             diagnosticInfo.EncodingBlockOutputSize = _encodingBlock.OutputCount;
@@ -226,10 +228,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 ? $"(All time ~{dataChangesPerSec:0.##}/s; {_messageTrigger.DataChangesCountLastMinute.ToString("D2")} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
                 : "";
             diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
+            diagInfo.AppendLine("  # Ingress EventData (from OPC)       : {eventNotificationCount,14:n0}");
             string valueChangesPerSecFormatted = info.IngressValueChanges > 0 && info.IngestionDuration.TotalSeconds > 0
                 ? $"(All time ~{valueChangesPerSec:0.##}/s; {_messageTrigger.ValueChangesCountLastMinute.ToString("D2")} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
                 : "";
             diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
+            diagInfo.AppendLine("  # Ingress Events (from OPC)          : {eventCount,14:n0}");
 
             diagInfo.AppendLine("  # Ingress BatchBlock buffer size     : {batchDataSetMessageBlockOutputCount,14:0}");
             diagInfo.AppendLine("  # Encoding Block input/output size   : {encodingBlockInputCount,14:0} | {encodingBlockOutputCount:0}");
@@ -255,7 +259,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 info.Id,
                 info.IngestionDuration,
                 info.IngressDataChanges, dataChangesPerSecFormatted,
+                info.IngressEventNotifications,
                 info.IngressValueChanges, valueChangesPerSecFormatted,
+                info.IngressEvents,
                 info.IngressBatchBlockBufferSize,
                 info.EncodingBlockInputSize, info.EncodingBlockOutputSize,
                 info.EncoderNotificationsProcessed,
@@ -282,12 +288,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 .Set(dataChangesPerSec);
             kDataChangesPerSecondLastMin.WithLabels(deviceId, moduleId, Name)
                 .Set(dataChangesPerSecLastMin);
+            kEventNotificationsCount.WithLabels(deviceId, moduleId, Name)
+                .Set(info.IngressEventNotifications);
             kValueChangesCount.WithLabels(deviceId, moduleId, Name)
                 .Set(info.IngressValueChanges);
             kValueChangesPerSecond.WithLabels(deviceId, moduleId, Name)
                 .Set(valueChangesPerSec);
             kValueChangesPerSecondLastMin.WithLabels(deviceId, moduleId, Name)
                 .Set(valueChangesPerSecLastMin);
+            kEventsCount.WithLabels(deviceId, moduleId, Name)
+                .Set(info.IngressEvents);
             kNotificationsProcessedCount.WithLabels(deviceId, moduleId, Name)
                 .Set(info.EncoderNotificationsProcessed);
             kNotificationsDroppedCount.WithLabels(deviceId, moduleId, Name)
@@ -398,28 +408,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly GaugeConfiguration kGaugeConfig = new GaugeConfiguration {
             LabelNames = new[] { "deviceid", "module", "triggerid" }
         };
+        private static readonly Gauge kEventsCount = Metrics.CreateGauge(
+            "iiot_edge_publisher_events",
+            "Opc Events delivered for processing", kGaugeConfig);
         private static readonly Gauge kValueChangesCount = Metrics.CreateGauge(
             "iiot_edge_publisher_value_changes",
-            "Opc ValuesChanges delivered for processing", kGaugeConfig);
+            "Opc Value changes delivered for processing", kGaugeConfig);
         private static readonly Gauge kValueChangesPerSecond = Metrics.CreateGauge(
             "iiot_edge_publisher_value_changes_per_second",
-            "Opc ValuesChanges/second delivered for processing", kGaugeConfig);
+            "Opc Value changes/second delivered for processing", kGaugeConfig);
         private static readonly Gauge kValueChangesPerSecondLastMin = Metrics.CreateGauge(
             "iiot_edge_publisher_value_changes_per_second_last_min",
-            "Opc ValuesChanges/second delivered for processing in last 60s", kGaugeConfig);
+            "Opc Value changes/second delivered for processing in last 60s", kGaugeConfig);
+        private static readonly Gauge kEventNotificationsCount = Metrics.CreateGauge(
+            "iiot_edge_publisher_event_notifications",
+            "Opc Event notifications delivered for processing", kGaugeConfig);
         private static readonly Gauge kDataChangesCount = Metrics.CreateGauge(
             "iiot_edge_publisher_data_changes",
-            "Opc DataChanges delivered for processing", kGaugeConfig);
+            "Opc Data notifications delivered for processing", kGaugeConfig);
         private static readonly Gauge kDataChangesPerSecond = Metrics.CreateGauge(
             "iiot_edge_publisher_data_changes_per_second",
-            "Opc DataChanges/second delivered for processing", kGaugeConfig);
+            "Opc Data notifications/second delivered for processing", kGaugeConfig);
         private static readonly Gauge kDataChangesPerSecondLastMin = Metrics.CreateGauge(
             "iiot_edge_publisher_data_changes_per_second_last_min",
-            "Opc DataChanges/second delivered for processing in last 60s", kGaugeConfig);
+            "Opc Data notifications/second delivered for processing in last 60s", kGaugeConfig);
         private static readonly Gauge kIoTHubQueueBuffer = Metrics.CreateGauge(
             "iiot_edge_publisher_iothub_queue_size",
             "IoT messages queued sending", kGaugeConfig);
-            private static readonly Gauge kIoTHubQueueBufferDroppedCount = Metrics.CreateGauge(
+        private static readonly Gauge kIoTHubQueueBufferDroppedCount = Metrics.CreateGauge(
             "iiot_edge_publisher_iothub_queue_dropped_count",
             "IoT messages dropped", kGaugeConfig);
         private static readonly Gauge kSentMessagesCount = Metrics.CreateGauge(
