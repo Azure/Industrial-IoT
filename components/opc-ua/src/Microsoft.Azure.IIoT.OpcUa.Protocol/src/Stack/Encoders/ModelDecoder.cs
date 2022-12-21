@@ -333,8 +333,8 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc />
-        public object ReadArray(string fieldName, int valueRank, BuiltInType builtInType, ExpandedNodeId nodeId) {
-            return _wrapped.ReadArray(fieldName, valueRank, builtInType);
+        public Array ReadArray(string fieldName, int valueRank, BuiltInType builtInType, Type type, ExpandedNodeId nodeId) {
+            return _wrapped.ReadArray(fieldName, valueRank, builtInType, type, nodeId);
         }
 
         /// <summary>
