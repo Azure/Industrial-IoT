@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create new stack monitored item
         /// </summary>
-        public void Create(Session session, IVariantEncoder codec, bool activate) {
+        public void Create(ISession session, IVariantEncoder codec, bool activate) {
             Create(session.MessageContext as ServiceMessageContext, session.NodeCache, session.TypeTree, codec, activate);
         }
 
