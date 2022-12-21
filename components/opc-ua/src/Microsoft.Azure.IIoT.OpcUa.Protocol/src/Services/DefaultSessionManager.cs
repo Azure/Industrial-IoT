@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (!_sessions.TryGetValue(key, out var wrapper)) {
                     return;
                 }
-                if (onlyIfEmpty && wrapper._subscriptions.Count == 0) {
+                if (onlyIfEmpty && wrapper._subscriptions.IsEmpty) {
                     wrapper.State = SessionState.Disconnect;
                     TriggerKeepAlive();
                 }
@@ -702,13 +702,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="session"></param>
         /// <param name="e"></param>
-        private void Session_Notification(Session session, NotificationEventArgs e) {
+        private void Session_Notification(ISession session, NotificationEventArgs e) {
             try {
                 _logger.Debug("Notification for session '{id}', subscription '{displayName}' - sequence# {sequence}-{publishTime}",
                     session?.Handle is SessionWrapper wrapper ? wrapper?.Id : session?.SessionName,
                     e.Subscription?.DisplayName, e?.NotificationMessage?.SequenceNumber,
                     e.NotificationMessage?.PublishTime);
-                if (e.NotificationMessage.IsEmpty || e.NotificationMessage.NotificationData.Count() == 0) {
+                if (e.NotificationMessage.IsEmpty || e.NotificationMessage.NotificationData.Count == 0) {
                     var keepAlive = new DataChangeNotification() {
                         MonitoredItems = new MonitoredItemNotificationCollection() {
                         new MonitoredItemNotification() {
@@ -731,7 +731,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="session"></param>
         /// <param name="e"></param>
-        private void Session_KeepAlive(Session session, KeepAliveEventArgs e) {
+        private void Session_KeepAlive(ISession session, KeepAliveEventArgs e) {
             try {
                 if (session?.Handle is SessionWrapper wrapper) {
 
