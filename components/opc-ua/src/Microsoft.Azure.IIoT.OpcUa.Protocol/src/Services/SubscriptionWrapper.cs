@@ -163,8 +163,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <inheritdoc/>
-            public async Task<SubscriptionNotificationModel> GetSubscriptionNotificationAsync(bool withNotifications) {
-                await _lock.WaitAsync().ConfigureAwait(false);
+            public SubscriptionNotificationModel GetSubscriptionNotification(bool withNotifications) {
+                _lock.Wait();
                 try {
                     var subscription = GetSubscription(null, null, false);
                     if (subscription == null) {
@@ -175,12 +175,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ApplicationUri = subscription.Session.Endpoint.Server.ApplicationUri,
                         EndpointUrl = subscription.Session.Endpoint.EndpointUrl,
                         MetaData = _currentMetaData,
-                        SubscriptionId = Id,
+                        SubscriptionName = Id,
+                        MessageType = withNotifications ?
+                            Opc.Ua.PubSub.MessageType.KeyFrame : Opc.Ua.PubSub.MessageType.KeepAlive,
                         Notifications = !withNotifications ? null : subscription.MonitoredItems
-                            .Select(m => m.LastValue.ToMonitoredItemNotification(m))
-                            .Where(m => m != null)
+                            .SelectMany(m => m.LastValue.ToMonitoredItemNotifications(m))
                             .ToList()
                     };
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Failed to get notification");
+                    return null;
                 }
                 finally {
                     _lock.Release();
@@ -263,6 +268,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     Enabled = false;
                     Active = false;
                 }
+            }
+
+            /// <summary>
+            /// Send condition notification
+            /// </summary>
+            /// <param name="subscription"></param>
+            /// <param name="notifications"></param>
+            internal void SendConditionNotification(Subscription subscription,
+                IEnumerable<MonitoredItemNotificationModel> notifications) {
+                var message = new SubscriptionNotificationModel {
+                    ServiceMessageContext = subscription?.Session?.MessageContext,
+                    ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
+                    EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
+                    SubscriptionName = Id,
+                    MessageType = Opc.Ua.PubSub.MessageType.Condition,
+                    MetaData = _currentMetaData,
+                    Timestamp = DateTime.UtcNow,
+                    Notifications = notifications.ToList()
+                };
+                OnSubscriptionEventChange?.Invoke(this, message);
             }
 
             /// <summary>
@@ -486,7 +511,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 count = 0;
                 foreach (var toUpdate in currentState.Intersect(desiredState)) {
                     if (toUpdate.MergeWith(rawSubscription.Session?.MessageContext,
-                            rawSubscription.Session?.NodeCache, codec, desiredUpdates[toUpdate], out var metadata)) {
+                            rawSubscription.Session?.NodeCache, rawSubscription.Session?.TypeTree,
+                            codec, desiredUpdates[toUpdate], out var metadata)) {
                         _logger.Verbose("Updating monitored item '{item}'...", toUpdate);
                         count++;
                     }
@@ -592,7 +618,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var fields = new FieldMetaDataCollection();
                     _currentlyMonitored?.ForEach(monitoredItem => monitoredItem.GetMetaData(
                         rawSubscription.Session?.MessageContext, rawSubscription.Session?.NodeCache,
-                        fields, dataTypes));
+                        rawSubscription.Session?.TypeTree, fields, dataTypes));
 
                     _currentMetaData = new DataSetMetaDataType {
                         Namespaces = rawSubscription.Session?.NamespaceUris.ToArray(),
@@ -935,11 +961,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     // check if notification is a keep alive
-                    var isKeepAlive = notification.Events.First().ClientHandle == 0 &&
-                                      notification.Events.First().Message?.NotificationData?.Count == 0;
-                    var sequenceNumber = notification.Events.First().Message?.SequenceNumber;
-                    var publishTime = (notification.Events.First().Message?.PublishTime).
-                        GetValueOrDefault(DateTime.UtcNow);
+                    var firstEvent = notification.Events.First();
+                    var isKeepAlive = firstEvent.ClientHandle == 0 && firstEvent.Message?.NotificationData?.Count == 0;
+                    var sequenceNumber = firstEvent.Message?.SequenceNumber;
+                    var publishTime = (firstEvent.Message?.PublishTime).GetValueOrDefault(DateTime.UtcNow);
                     var numOfEvents = 0;
 
                     _logger.Debug("Event for subscription: {Subscription}, sequence#: " +
@@ -958,8 +983,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 ServiceMessageContext = subscription.Session?.MessageContext,
                                 ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
                                 EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
-                                SubscriptionId = Id,
+                                SubscriptionName = Id,
                                 Timestamp = publishTime,
+                                MessageType = Opc.Ua.PubSub.MessageType.Event,
                                 MetaData = _currentMetaData,
                                 Notifications = new List<MonitoredItemNotificationModel>()
                             };
@@ -1008,13 +1034,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     // check if notification is a keep alive
-                    var isKeepAlive = notification?.MonitoredItems?.Count == 1 &&
-                                      notification?.MonitoredItems?.First().ClientHandle == 0 &&
-                                      notification?.MonitoredItems?.First().Message?.NotificationData?.Count == 0;
-                    var sequenceNumber = (notification?.MonitoredItems?.First()?.Message?.SequenceNumber)
-                                         .GetValueOrDefault(0);
-                    var publishTime = (notification?.MonitoredItems?.First().Message?.PublishTime).
-                        GetValueOrDefault(DateTime.UtcNow);
+                    var singleMessage = notification?.MonitoredItems?.SingleOrDefault();
+                    var isKeepAlive = singleMessage != null && singleMessage.ClientHandle == 0
+                        && singleMessage.Message?.NotificationData?.Count == 0;
+
+                    var firstMessage = singleMessage ?? notification?.MonitoredItems?.FirstOrDefault();
+                    var sequenceNumber = (firstMessage?.Message?.SequenceNumber).GetValueOrDefault(0);
+                    var publishTime = (firstMessage?.Message.PublishTime).GetValueOrDefault(DateTime.UtcNow);
 
                     if (isKeepAlive) {
                         // in case of a keepalive,the sequence number is not incremented by the servers
@@ -1036,12 +1062,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ServiceMessageContext = subscription?.Session?.MessageContext,
                         ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
                         EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
-                        SubscriptionId = Id,
+                        SubscriptionName = Id,
                         Timestamp = publishTime,
+                        MessageType = isKeepAlive ? Opc.Ua.PubSub.MessageType.KeepAlive
+                            : Opc.Ua.PubSub.MessageType.DeltaFrame,
                         MetaData = _currentMetaData,
-                        Notifications = notification.ToMonitoredItemNotifications(
-                                subscription?.MonitoredItems)?.ToList()
-                                ?? new List<MonitoredItemNotificationModel>(),
+                        Notifications = isKeepAlive ? null
+                            : notification.ToMonitoredItemNotifications(subscription?.MonitoredItems).ToList(),
                     };
 
                     // add the heartbeat for monitored items that did not receive a datachange notification
@@ -1064,22 +1091,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 Exists(m => m.ClientHandle == item.Item.ClientHandle)
                                 && item.ValidateHeartbeat(publishTime)) {
 
-                                MonitoredItemNotificationModel GetDefaultNotification() {
+                                MonitoredItemNotificationModel GetDefaultNotification(uint messageId) {
                                     return new MonitoredItemNotificationModel {
                                         DataSetFieldName = item?.Template?.DataSetFieldName,
                                         Id = item?.Template?.Id,
                                         DisplayName = item?.Item?.DisplayName,
                                         NodeId = item?.Template?.StartNodeId,
                                         AttributeId = item.Item.AttributeId,
+                                        MessageId = messageId,
                                         Value = new DataValue(Variant.Null,
                                             item?.Item?.Status?.Error?.StatusCode ??
                                             StatusCodes.BadMonitoredItemIdInvalid),
                                     };
                                 }
 
-                                var heartbeatValue = item.Item?.LastValue.
-                                    ToMonitoredItemNotification(item.Item, GetDefaultNotification);
-                                if (heartbeatValue != null) {
+                                var heartbeatValues = item.Item?.LastValue.
+                                    ToMonitoredItemNotifications(item.Item, () => GetDefaultNotification(sequenceNumber));
+                                foreach (var heartbeat in heartbeatValues) {
+                                    var heartbeatValue = heartbeat.Clone();
                                     heartbeatValue.SequenceNumber = sequenceNumber;
                                     heartbeatValue.IsHeartbeat = true;
                                     if (message.Notifications == null) {
@@ -1088,6 +1117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     }
                                     message.Notifications.Add(heartbeatValue);
                                 }
+                                message.MessageType = Opc.Ua.PubSub.MessageType.KeyFrame;
                                 continue;
                             }
                             item.ValidateHeartbeat(publishTime);
@@ -1117,19 +1147,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 catch (Exception e) {
                     _logger.Warning(e, "Exception processing subscription notification");
                 }
-            }
-
-            public void SendEventNotification(Subscription subscription, MonitoredItemNotificationModel notification) {
-                var message = new SubscriptionNotificationModel {
-                    ServiceMessageContext = subscription?.Session?.MessageContext,
-                    ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
-                    EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
-                    SubscriptionId = Id,
-                    MetaData = _currentMetaData,
-                    Timestamp = DateTime.UtcNow,
-                    Notifications = new List<MonitoredItemNotificationModel> { notification }
-                };
-                OnSubscriptionEventChange.Invoke(this, message);
             }
 
             private readonly SubscriptionModel _subscription;

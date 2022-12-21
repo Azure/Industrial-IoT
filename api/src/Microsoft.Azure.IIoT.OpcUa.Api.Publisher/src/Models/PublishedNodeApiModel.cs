@@ -99,13 +99,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public EventFilterApiModel EventFilter { get; set; }
 
+        /// <summary> Settings for condition reporting </summary>
+        [DataMember(Name = "conditionHandling", Order = 16,
+            EmitDefaultValue = false)]
+        public ConditionHandlingOptionsApiModel ConditionHandling { get; set; }
+
         /// <summary> Discard new values if queue is full </summary>
-        [DataMember(Name = "discardNew", Order = 16,
+        [DataMember(Name = "discardNew", Order = 17,
             EmitDefaultValue = false)]
         public bool? DiscardNew { get; set; }
 
         /// <summary> Field id in dataset class </summary>
-        [DataMember(Name = "dataSetClassFieldId", Order = 17,
+        [DataMember(Name = "dataSetClassFieldId", Order = 18,
             EmitDefaultValue = false)]
         public Guid DataSetClassFieldId { get; set; }
     }

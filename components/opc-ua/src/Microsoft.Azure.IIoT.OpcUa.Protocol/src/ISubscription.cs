@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="withNotifications"></param>
         /// <returns></returns>
-        Task<SubscriptionNotificationModel> GetSubscriptionNotificationAsync(
+        SubscriptionNotificationModel GetSubscriptionNotification(
             bool withNotifications = false);
 
         /// <summary>

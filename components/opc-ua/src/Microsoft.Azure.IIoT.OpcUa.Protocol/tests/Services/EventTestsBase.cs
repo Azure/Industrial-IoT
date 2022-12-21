@@ -41,10 +41,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     : new VariantEncoderFactory().Create(messageContext);
             }
 
+            nodeCache ??= GetNodeCache();
             var monitoredItemWrapper = new MonitoredItemWrapper(template, Log.Logger);
             monitoredItemWrapper.Create(
                 messageContext ?? new ServiceMessageContext(),
-                nodeCache ?? GetNodeCache(),
+                nodeCache,
+                nodeCache.TypeTree,
                 codec,
                 activate);
             return monitoredItemWrapper;

@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Utils;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -269,8 +268,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 var sc = await _outer._subscriptionManager.GetOrCreateSubscriptionAsync(
                     _subscriptionInfo).ConfigureAwait(false);
-                sc.OnSubscriptionDataChange += OnSubscriptionDataChangedAsync;
-                sc.OnSubscriptionEventChange += OnSubscriptionEventChangedAsync;
+                sc.OnSubscriptionDataChange += OnSubscriptionDataChanged;
+                sc.OnSubscriptionEventChange += OnSubscriptionEventChanged;
                 sc.OnSubscriptionDataDiagnosticsChange += OnSubscriptionDataDiagnosticsChanged;
                 sc.OnSubscriptionEventDiagnosticsChange += OnSubscriptionEventDiagnosticsChanged;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
@@ -347,8 +346,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     return;
                 }
                 await Subscription.CloseAsync().ConfigureAwait(false);
-                Subscription.OnSubscriptionDataChange -= OnSubscriptionDataChangedAsync;
-                Subscription.OnSubscriptionEventChange -= OnSubscriptionEventChangedAsync;
+                Subscription.OnSubscriptionDataChange -= OnSubscriptionDataChanged;
+                Subscription.OnSubscriptionEventChange -= OnSubscriptionEventChanged;
                 Subscription.OnSubscriptionDataDiagnosticsChange -= OnSubscriptionDataDiagnosticsChanged;
                 Subscription.OnSubscriptionEventDiagnosticsChange -= OnSubscriptionEventDiagnosticsChanged;
                 Subscription.Dispose();
@@ -378,7 +377,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (keyframeTriggerInterval > 0) {
                     if (_keyframeTimer == null) {
                         _keyframeTimer = new Timer(keyframeTriggerInterval);
-                        _keyframeTimer.Elapsed += KeyframeTimerElapsedAsync;
+                        _keyframeTimer.Elapsed += KeyframeTimerElapsed;
                     }
                     else {
                         _keyframeTimer.Interval = keyframeTriggerInterval;
@@ -390,7 +389,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _keyframeTimer.Dispose();
                         _keyframeTimer = null;
                     }
-                    _keyFrameCount = dataSetWriter.KeyFrameCount;
+                    _frameCount = 0;
+                    _keyFrameCount = dataSetWriter.KeyFrameCount ?? 0;
                 }
             }
 
@@ -424,61 +424,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Fire when keyframe timer elapsed to send keyframe message
             /// </summary>
-            private async void KeyframeTimerElapsedAsync(object sender, ElapsedEventArgs e) {
+            private void KeyframeTimerElapsed(object sender, ElapsedEventArgs e) {
                 try {
                     _keyframeTimer.Enabled = false;
+                }
+                catch (ObjectDisposedException) {
+                    // Disposed while being invoked
+                    return;
+                }
 
-                    _outer._logger.Debug("Insert keyframe message...");
-                    var snapshot = await Subscription.GetSubscriptionNotificationAsync().ConfigureAwait(false);
-                    if (snapshot != null) {
-                        CallMessageReceiverDelegates(this, snapshot);
-                    }
+                _outer._logger.Debug("Insert keyframe message...");
+                var snapshot = Subscription.GetSubscriptionNotification();
+                if (snapshot != null) {
+                    CallMessageReceiverDelegates(this, snapshot);
                 }
-                catch (Exception ex) {
-                    _outer._logger.Information(ex, "Failed to send keyframe.");
-                }
-                finally {
-                    _keyframeTimer.Enabled = true;
+                else {
+                    // Failed to send, try again later
+                    InitializeKeyframeTrigger(_dataSetWriter);
                 }
             }
 
             /// <summary>
             /// Fired when metadata time elapsed
             /// </summary>
-            private async void MetadataTimerElapsed(object sender, ElapsedEventArgs e) {
+            private void MetadataTimerElapsed(object sender, ElapsedEventArgs e) {
                 try {
                     _metadataTimer.Enabled = false;
+                    // Enabled again after calling message receiver delegate
+                }
+                catch (ObjectDisposedException) {
+                    // Disposed while being invoked
+                    return;
+                }
 
-                    _outer._logger.Debug("Insert metadata message...");
-                    var notification = await Subscription.GetSubscriptionNotificationAsync(false).ConfigureAwait(false);
-                    if (notification != null) {
-                        CallMessageReceiverDelegates(this, notification, true);
-                    }
+                _outer._logger.Debug("Insert metadata message...");
+                var notification = Subscription.GetSubscriptionNotification();
+                if (notification != null) {
+                    // This call udpates the message type, so no need to do it here.
+                    CallMessageReceiverDelegates(this, notification, true);
                 }
-                catch (Exception ex) {
-                    _outer._logger.Information(ex, "Failed to send metadata.");
-                }
-                finally {
-                    _metadataTimer.Enabled = true;
+                else {
+                    // Failed to send, try again later
+                    InitializeMetaDataTrigger(_dataSetWriter);
                 }
             }
 
             /// <summary>
             /// Handle subscription data change messages
             /// </summary>
-            private async void OnSubscriptionDataChangedAsync(object sender,
-                SubscriptionNotificationModel notification) {
-                if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0) {
-                    var frameCount = Interlocked.Increment(ref _frameCount);
-                    if ((frameCount % _keyFrameCount.Value) == 0) {
-                        InitializeKeyframeTrigger(_dataSetWriter);
-                        var snapshot = await Try.Async(() => Subscription.GetSubscriptionNotificationAsync()).ConfigureAwait(false);
-                        if (snapshot != null) {
-                            notification = snapshot;
-                        }
-                    }
-                }
-                CallMessageReceiverDelegates(sender, notification);
+            private void OnSubscriptionDataChanged(object sender, SubscriptionNotificationModel notification) {
+                CallMessageReceiverDelegates(sender, ProcessKeyFrame(notification));
             }
 
             /// <summary>
@@ -506,18 +501,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Handle subscription change messages
             /// </summary>
-            private async void OnSubscriptionEventChangedAsync(object sender, SubscriptionNotificationModel notification) {
-                if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0) {
+            private void OnSubscriptionEventChanged(object sender, SubscriptionNotificationModel notification) {
+                CallMessageReceiverDelegates(sender, ProcessKeyFrame(notification));
+            }
+
+            /// <summary>
+            /// Check and get key frame if necessary.
+            /// </summary>
+            /// <param name="notification"></param>
+            /// <returns></returns>
+            private SubscriptionNotificationModel ProcessKeyFrame(SubscriptionNotificationModel notification) {
+                if (_keyFrameCount > 0) {
                     var frameCount = Interlocked.Increment(ref _frameCount);
-                    if ((frameCount % _keyFrameCount.Value) == 0) {
-                        InitializeKeyframeTrigger(_dataSetWriter);
-                        var snapshot = await Try.Async(() => Subscription.GetSubscriptionNotificationAsync()).ConfigureAwait(false);
+                    if ((frameCount % _keyFrameCount) == 0) {
+                        var snapshot = Subscription.GetSubscriptionNotification();
                         if (snapshot != null) {
                             notification = snapshot;
                         }
                     }
                 }
-                CallMessageReceiverDelegates(sender, notification);
+                return notification;
             }
 
             /// <summary>
@@ -569,11 +572,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
                             if (sendMetadata) {
                                 var message = CreateDataSetMessage(notification);
-                                if (!metaDataTimer) {
-                                    // Reset periodic timer since we were not called on timer.
-                                    InitializeMetaDataTrigger(_dataSetWriter);
-                                }
+                                message.MessageType = Opc.Ua.PubSub.MessageType.Metadata;
                                 _outer.OnMessage?.Invoke(sender, message);
+                                InitializeMetaDataTrigger(_dataSetWriter);
                             }
                         }
 
@@ -581,17 +582,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             var message = CreateDataSetMessage(notification);
                             message.Notifications = notification.Notifications;
                             _outer.OnMessage?.Invoke(sender, message);
+                            if (message.MessageType == Opc.Ua.PubSub.MessageType.KeyFrame) {
+                                // Reset keyframe trigger
+                                InitializeKeyframeTrigger(_dataSetWriter);
+                            }
                         }
                     }
                 }
                 catch (Exception ex) {
-                    _outer._logger.Debug(ex, "Failed to produce message");
+                    _outer._logger.Warning(ex, "Failed to produce message.");
                 }
 
                 DataSetMessageModel CreateDataSetMessage(SubscriptionNotificationModel notification) {
                     return new DataSetMessageModel {
                         ServiceMessageContext = notification.ServiceMessageContext,
+                        SubscriptionName = notification.SubscriptionName,
                         SubscriptionId = notification.SubscriptionId,
+                        MessageType = notification.MessageType,
                         ApplicationUri = notification.ApplicationUri,
                         EndpointUrl = notification.EndpointUrl,
                         TimeStamp = notification.Timestamp,
@@ -599,7 +606,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         MetaData = notification.MetaData,
                         Writer = _dataSetWriter,
                         SequenceNumber = _currentSequenceNumber++,
-                        WriterGroup = _outer._writerGroup
+                        WriterGroup = _outer._writerGroup,
+                        Notifications = null,
                     };
                 }
             }
@@ -637,9 +645,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             private SubscriptionModel _subscriptionInfo;
             private Timer _keyframeTimer;
             private Timer _metadataTimer;
-            private uint? _keyFrameCount;
+            private uint _keyFrameCount;
+            private volatile uint _frameCount;
             private uint _currentSequenceNumber;
-            private uint _frameCount;
             private uint _currentMetadataMajorVersion;
             private uint _currentMetadataMinorVersion;
         }

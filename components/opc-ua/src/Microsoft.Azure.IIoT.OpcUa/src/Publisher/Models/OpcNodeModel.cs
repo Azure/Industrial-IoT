@@ -86,5 +86,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary>Event Filter</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public EventFilterModel EventFilter { get; set; }
+
+        /// <summary> Settings for pending condition handling </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public ConditionHandlingOptionsModel ConditionHandling { get; set; }
     }
 }

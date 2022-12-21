@@ -8,13 +8,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using System;
 
     /// <summary>
-    /// PubSub job description
+    /// Data set writer description
     /// </summary>
     [DataContract]
     public class DataSetWriterApiModel {
 
         /// <summary>
-        /// Dataset writer id
+        /// Dataset writer name
         /// </summary>
         [DataMember(Name = "dataSetWriterId", Order = 0)]
         public string DataSetWriterId { get; set; }

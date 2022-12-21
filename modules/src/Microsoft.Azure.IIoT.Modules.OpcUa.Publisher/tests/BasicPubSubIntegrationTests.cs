@@ -4,11 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Microsoft.VisualStudio.TestPlatform.Utilities;
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
@@ -35,43 +31,38 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 messageType: "ua-data", arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
 
             // Assert
-            Assert.Single(messages);
-            var output = messages[0].RootElement[0].GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
+            var message = Assert.Single(messages);
+            var output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
             Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
             Assert.InRange(output.GetProperty("Value").GetDouble(),
                 double.MinValue, double.MaxValue);
         }
 
         [Fact]
-        public async Task CanSendPendingAlarmsToIoTHubTest() {
+        public async Task CanSendPendingConditionsToIoTHubTest() {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(@"./PublishedNodes/PendingAlarms.json", WithPendingAlarms,
+            var messages = await ProcessMessagesAsync(@"./PublishedNodes/PendingAlarms.json", GetAlarmCondition,
                 messageType: "ua-data", arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
 
             // Assert
-            var message = Assert.Single(messages).RootElement[0];
-            _output.WriteLine(message.ToString());
+            _output.WriteLine(messages.ToString());
+            var evt = Assert.Single(messages);
 
-            var conditions = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("PendingAlarms");
-            Assert.Equal(JsonValueKind.Array, conditions.ValueKind);
-
-            var evt = GetAlarmCondition(conditions);
-            Assert.NotEqual(JsonValueKind.Null, evt.ValueKind);
-            Assert.True(evt.GetProperty("Severity").GetInt32() >= 100);
+            Assert.Equal(JsonValueKind.Object, evt.ValueKind);
+            Assert.True(evt.GetProperty("Payload").GetProperty("Severity").GetInt32() >= 100);
         }
 
         private static JsonElement GetAlarmCondition(JsonElement jsonElement) {
-            Assert.Equal(JsonValueKind.Array, jsonElement.ValueKind);
-            return jsonElement.EnumerateArray().FirstOrDefault(element =>
-                element.TryGetProperty("SourceNode", out var node) &&
-                    node.GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a"));
-        }
-
-        private static bool WithPendingAlarms(JsonDocument message) {
-            var value = message.RootElement[0].GetProperty("Messages")[0]
-                .GetProperty("Payload").GetProperty("PendingAlarms");
-            return value.GetArrayLength() > 0;
+            var messages = jsonElement.GetProperty("Messages");
+            if (messages.ValueKind != JsonValueKind.Array) {
+                return default;
+            }
+            return messages.EnumerateArray().FirstOrDefault(element => {
+                return element.GetProperty("MessageType").GetString() == "ua-condition" &&
+                       element.GetProperty("Payload").TryGetProperty("SourceNode", out var node) &&
+                        node.GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a");
+            });
         }
     }
 }

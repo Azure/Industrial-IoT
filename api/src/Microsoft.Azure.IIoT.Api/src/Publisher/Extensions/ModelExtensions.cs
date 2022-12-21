@@ -1104,8 +1104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 SelectClauses = model.SelectClauses?
                     .Select(f => f.ToApiModel())
                     .ToList(),
-                PendingAlarms = model.PendingAlarms.ToApiModel(),
-                DataSetClassFieldId = model.DataSetClassFieldId,
+                ConditionHandling = model.ConditionHandling.ToApiModel(),
                 TypeDefinitionId = model.TypeDefinitionId,
             };
         }
@@ -1123,7 +1122,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .Select(e => e.ToApiModel())
                     .ToList(),
                 TypeDefinitionId = model.TypeDefinitionId,
-                PendingAlarms = model.PendingAlarms.ToApiModel(),
                 WhereClause = model.WhereClause.ToApiModel()
             };
         }
@@ -1141,7 +1139,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .Select(e => e.ToServiceModel())
                     .ToList(),
                 TypeDefinitionId = model.TypeDefinitionId,
-                PendingAlarms = model.PendingAlarms.ToServiceModel(),
                 WhereClause = model.WhereClause.ToServiceModel()
             };
         }
@@ -1150,13 +1147,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public static PendingAlarmsOptionsApiModel ToApiModel(
-            this PendingAlarmsOptionsModel model) {
+        public static ConditionHandlingOptionsApiModel ToApiModel(
+            this ConditionHandlingOptionsModel model) {
             if (model == null) {
                 return null;
             }
-            return new PendingAlarmsOptionsApiModel {
-                IsEnabled = model.IsEnabled,
+            return new ConditionHandlingOptionsApiModel {
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval,
             };
@@ -1165,13 +1161,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public static PendingAlarmsOptionsModel ToServiceModel(
-            this PendingAlarmsOptionsApiModel model) {
+        public static ConditionHandlingOptionsModel ToServiceModel(
+            this ConditionHandlingOptionsApiModel model) {
             if (model == null) {
                 return null;
             }
-            return new PendingAlarmsOptionsModel {
-                IsEnabled = model.IsEnabled,
+            return new ConditionHandlingOptionsModel {
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval,
             };
@@ -1197,8 +1192,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 SelectClauses = model.SelectClauses?
                     .Select(f => f.ToServiceModel())
                     .ToList(),
-                PendingAlarms = model.PendingAlarms.ToServiceModel(),
-                DataSetClassFieldId = model.DataSetClassFieldId,
+                ConditionHandling = model.ConditionHandling.ToServiceModel(),
                 TypeDefinitionId = model.TypeDefinitionId,
             };
         }
@@ -1427,7 +1421,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 LocaleIds = model.LocaleIds?.ToList(),
                 MaxNetworkMessageSize = model.MaxNetworkMessageSize,
                 MessageSettings = model.MessageSettings.ToApiModel(),
-                MessageType = (Models.MessageEncoding?)model.MessageType,
+                MessageEncoding = (Models.MessageEncoding?)model.MessageEncoding,
                 Name = model.Name,
                 Priority = model.Priority,
                 SecurityGroupId = model.SecurityGroupId,
@@ -1457,7 +1451,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 LocaleIds = model.LocaleIds?.ToList(),
                 MaxNetworkMessageSize = model.MaxNetworkMessageSize,
                 MessageSettings = model.MessageSettings.ToServiceModel(),
-                MessageType = (OpcUa.Publisher.Models.MessageEncoding?)model.MessageType,
+                MessageEncoding = (OpcUa.Publisher.Models.MessageEncoding?)model.MessageEncoding,
                 Name = model.Name,
                 Priority = model.Priority,
                 SecurityGroupId = model.SecurityGroupId,

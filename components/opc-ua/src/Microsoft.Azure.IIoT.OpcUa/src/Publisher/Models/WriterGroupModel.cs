@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Network message types to generate (publisher extension)
         /// </summary>
-        public MessageEncoding? MessageType { get; set; }
+        public MessageEncoding? MessageEncoding { get; set; }
 
         /// <summary>
         /// The data set writers generating dataset messages in the group

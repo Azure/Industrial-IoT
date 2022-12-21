@@ -26,14 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         public ContentFilterApiModel WhereClause { get; set; }
 
         /// <summary>
-        /// Settings for pending alarms
-        /// </summary>
-        [DataMember(Name = "pendingAlarms", Order = 2,
-            EmitDefaultValue = false)]
-        public PendingAlarmsOptionsApiModel PendingAlarms { get; set; }
-
-        /// <summary>
-        /// Simple event Type id
+        /// Simple event Type definition node id
         /// </summary>
         [DataMember(Name = "typeDefinitionId", Order = 3,
             EmitDefaultValue = false)]

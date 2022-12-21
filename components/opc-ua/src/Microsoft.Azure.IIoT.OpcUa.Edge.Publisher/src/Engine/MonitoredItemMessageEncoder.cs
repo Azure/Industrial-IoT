@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Core;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -124,9 +126,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext);
-            if (!notifications.Any()) {
-                yield break;
-            }
             var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
@@ -174,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         UseUriEncoding = true,
                         UseReversibleEncoding = _useReversibleEncoding
                     };
-                    foreach(var element in chunk) {
+                    foreach (var element in chunk) {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
@@ -212,9 +211,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext);
-            if (!notifications.Any()) {
-                yield break;
-            }
             var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
@@ -282,9 +278,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext);
-            if (!notifications.Any()) {
-                yield break;
-            }
             var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 var writer = new StringWriter();
@@ -334,10 +327,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext);
-            if (!notifications.Any()) {
-                yield break;
-            }
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext).ToList();
             var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 var encoder = new BinaryEncoder(encodingContext);
@@ -383,34 +373,67 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 yield break;
             }
-            foreach (var message in messages) {
-                // Check whether this is a metadata message, we do not handle those in legacy mode
-                if (message.Notifications != null) {
-                    if (message.WriterGroup?.MessageType.GetValueOrDefault(MessageEncoding.Json) == encoding) {
-                        foreach (var notification in message.Notifications) {
-                            var result = new MonitoredItemMessage {
-                                MessageContentMask = (message.Writer?.MessageSettings?
-                                   .DataSetMessageContentMask).ToMonitoredItemMessageMask(
-                                       message.Writer?.DataSetFieldContentMask),
-                                ApplicationUri = message.ApplicationUri,
-                                EndpointUrl = message.EndpointUrl,
-                                ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
-                                NodeId = notification.NodeId,
-                                Timestamp = message.TimeStamp ?? DateTime.UtcNow,
-                                Value = notification.Value,
-                                DisplayName = notification.DisplayName,
-                                SequenceNumber = notification.SequenceNumber.GetValueOrDefault(0)
+
+            // Filter metadata message == no notifications, we do not handle those in samples mode
+            foreach (var message in messages.Where(m => m.Notifications != null)) {
+                if (message.WriterGroup?.MessageEncoding.GetValueOrDefault(MessageEncoding.Json) == encoding) {
+
+                    // Group by message id to collate event fields into a single key value pair dictionary view
+                    foreach (var notification in message.Notifications.GroupBy(f => f.Id + f.MessageId)) {
+                        var notificationsInGroup = notification.ToList();
+                        if (notificationsInGroup.Count == 1) {
+                            // This is a data change event
+                            yield return CreateMessage(message, notificationsInGroup[0], notificationsInGroup[0].Value);
+                        }
+                        else if (notificationsInGroup.Count > 1) {
+
+                            Debug.Assert(notificationsInGroup
+                                .Select(n => n.DataSetFieldName).Distinct().Count() == notificationsInGroup.Count,
+                                "There should not be duplications in fields in the group.");
+                            Debug.Assert(notificationsInGroup.All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
+                                "All notifications in the group should have the same sequence number.");
+
+                            // Combine all event fields into a table representation
+                            var dataValue = new DataValue {
+                                Value = new EncodeableDictionary(notificationsInGroup
+                                    .Select(n => new KeyDataValuePair {
+                                        Key = n.DataSetFieldName,
+                                        Value = n.Value
+                                    })),
+                                SourceTimestamp = notificationsInGroup[0].Value.SourceTimestamp,
+                                SourcePicoseconds = notificationsInGroup[0].Value.SourcePicoseconds,
+                                ServerTimestamp = notificationsInGroup[0].Value.ServerTimestamp,
+                                ServerPicoseconds = notificationsInGroup[0].Value.ServerPicoseconds,
+                                StatusCode = notificationsInGroup[0].Value.StatusCode
                             };
-                            // force published timestamp into to source timestamp for the legacy heartbeat compatibility
-                            if (notification.IsHeartbeat &&
-                                ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) &&
-                                ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0)) {
-                                result.Value.SourceTimestamp = result.Timestamp;
-                            }
-                            yield return result;
+                            yield return CreateMessage(message, notificationsInGroup[0], dataValue);
                         }
                     }
                 }
+            }
+
+            static MonitoredItemMessage CreateMessage(DataSetMessageModel message,
+                MonitoredItemNotificationModel notification, DataValue value) {
+                var result = new MonitoredItemMessage {
+                    MessageContentMask = (message.Writer?.MessageSettings?
+                        .DataSetMessageContentMask).ToMonitoredItemMessageMask(
+                            message.Writer?.DataSetFieldContentMask),
+                    ApplicationUri = message.ApplicationUri,
+                    EndpointUrl = message.EndpointUrl,
+                    ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
+                    NodeId = notification.NodeId,
+                    Timestamp = message.TimeStamp ?? DateTime.UtcNow,
+                    Value = value,
+                    DisplayName = notification.DisplayName,
+                    SequenceNumber = notification.SequenceNumber.GetValueOrDefault(0)
+                };
+                // force published timestamp into to source timestamp for the legacy heartbeat compatibility
+                if (notification.IsHeartbeat &&
+                    ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) &&
+                    ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0)) {
+                    result.Value.SourceTimestamp = result.Timestamp;
+                }
+                return result;
             }
         }
     }

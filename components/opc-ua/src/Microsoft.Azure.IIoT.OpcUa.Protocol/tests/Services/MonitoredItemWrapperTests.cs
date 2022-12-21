@@ -183,8 +183,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         [Fact]
         public void AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplate() {
             var template = new EventMonitoredItemModel {
-                PendingAlarms = new PendingAlarmsOptionsModel {
-                    IsEnabled = true
+                ConditionHandling = new ConditionHandlingOptionsModel {
+                    SnapshotInterval = 10,
+                    UpdateInterval = 20
                 }
             };
             var monitoredItemWrapper = GetMonitoredItemWrapper(template);

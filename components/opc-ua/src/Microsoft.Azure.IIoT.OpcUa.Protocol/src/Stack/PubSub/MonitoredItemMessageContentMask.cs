@@ -80,6 +80,11 @@ namespace Opc.Ua {
         /// <summary>
         /// Sequence number included
         /// </summary>
-        SequenceNumber = 0x2000
+        SequenceNumber = 0x2000,
+
+        /// <summary>
+        /// Message type
+        /// </summary>
+        MessageType = 0x4000
     }
 }

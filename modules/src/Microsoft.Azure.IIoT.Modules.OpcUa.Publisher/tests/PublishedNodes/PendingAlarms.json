@@ -7,12 +7,11 @@
                 "DisplayName": "PendingAlarms",
                 "Id": "i=2253",
                 "EventFilter": {
-                    "TypeDefinitionId": "i=2041",
-                    "PendingAlarms": {
-                        "IsEnabled": true,
-                        "UpdateInterval": 10,
-                        "SnapshotInterval": 20
-                    }
+                    "TypeDefinitionId": "i=2041"
+                },
+                "ConditionHandling": {
+                    "UpdateInterval": 10,
+                    "SnapshotInterval": 20
                 }
             }
         ]

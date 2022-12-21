@@ -77,22 +77,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public string TriggerId { get; set; }
 
         /// <summary>
-        /// Pending alarm settings
+        /// Condition handling settings
         /// </summary>
-        [DataMember(Name = "pendingAlarms", Order = 9)]
-        public PendingAlarmsOptionsApiModel PendingAlarms { get; set; }
+        [DataMember(Name = "conditionHandling", Order = 9)]
+        public ConditionHandlingOptionsApiModel ConditionHandling { get; set; }
 
         /// <summary>
-        /// Simple event Type id
+        /// Simple event Type definition id
         /// </summary>
         [DataMember(Name = "typeDefinitionId", Order = 10)]
         public string TypeDefinitionId { get; set; }
-
-        /// <summary>
-        /// Identifier of event fields in the dataset class.
-        /// </summary>
-        [DataMember(Name = "dataSetClassFieldId", Order = 11,
-            EmitDefaultValue = false)]
-        public Guid DataSetClassFieldId { get; set; }
     }
 }

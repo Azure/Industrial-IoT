@@ -14,11 +14,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     [DataContract]
     public class PublishedNodesEntryModel {
 
-        /// <summary> Id Identifier of the DataFlow - DataSetWriterId. </summary>
+        /// <summary> Name of the data set writer. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DataSetWriterId { get; set; }
 
-        /// <summary> The Group the stream belongs to - DataSetWriterGroup. </summary>
+        /// <summary> The Group the writer belongs to. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DataSetWriterGroup { get; set; }
 

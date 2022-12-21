@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "messageType", Order = 1,
             EmitDefaultValue = false)]
-        public MessageEncoding? MessageType { get; set; }
+        public MessageEncoding? MessageEncoding { get; set; }
 
         /// <summary>
         /// The data set writers generating dataset messages in the group

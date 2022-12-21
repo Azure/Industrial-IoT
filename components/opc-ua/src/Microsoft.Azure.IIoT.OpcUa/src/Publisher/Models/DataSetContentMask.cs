@@ -50,6 +50,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Sequence number
         /// </summary>
-        SequenceNumber = 0x80
+        SequenceNumber = 0x80,
+
+        /// <summary>
+        /// Message type (json)
+        /// </summary>
+        MessageType = 0x100,
+
+        /// <summary>
+        /// Dataset writer name (json)
+        /// </summary>
+        DataSetWriterName = 0x200,
+
+        /// <summary>
+        /// Reversible encoding (json)
+        /// </summary>
+        ReversibleFieldEncoding = 0x400,
     }
 }

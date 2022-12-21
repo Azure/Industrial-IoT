@@ -4,22 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
+
     /// <summary>
-    /// PendingAlarmsOptionsModel extensions
+    /// Condition options extensions
     /// </summary>
-    public static class PendingAlarmsOptionsModelEx {
+    public static class ConditionHandlingOptionsModelEx {
 
         /// <summary>
         /// Clone
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static PendingAlarmsOptionsModel Clone(this PendingAlarmsOptionsModel model) {
+        public static ConditionHandlingOptionsModel Clone(this ConditionHandlingOptionsModel model) {
             if (model == null) {
                 return null;
             }
-            return new PendingAlarmsOptionsModel {
-                IsEnabled = model.IsEnabled,
+            return new ConditionHandlingOptionsModel {
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval,
             };
@@ -29,9 +29,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// Compare options
         /// </summary>
         /// <param name="model"></param>
+        /// <returns></returns>
+        public static bool IsDisabled(this ConditionHandlingOptionsModel model) {
+            if (model == null) {
+                return true;
+            }
+            return
+                model.UpdateInterval == null &&
+                model.SnapshotInterval == null;
+        }
+
+        /// <summary>
+        /// Compare options
+        /// </summary>
+        /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this PendingAlarmsOptionsModel model, PendingAlarmsOptionsModel other) {
+        public static bool IsSameAs(this ConditionHandlingOptionsModel model, ConditionHandlingOptionsModel other) {
             if (model == null && other == null) {
                 return true;
             }
@@ -39,7 +53,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 return false;
             }
             return
-                other.IsEnabled == model.IsEnabled &&
                 other.UpdateInterval == model.UpdateInterval &&
                 other.SnapshotInterval == model.SnapshotInterval;
         }

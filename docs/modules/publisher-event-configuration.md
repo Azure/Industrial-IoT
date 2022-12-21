@@ -9,7 +9,7 @@ OPC Publisher supports two types of event filter configurations you can specify:
 
 In the configuration file you can specify how many event configurations as you like and you can also combine events and data nodes for a single endpoint.
 
-In addition you can configure optional [pending alarms](#pending-alarms-handling-options) reporting where OPC Publisher reports pending alarms at a configured time interval.
+In addition you can configure optional [Condition](#condition-handling-options) reporting where OPC Publisher reports retaind conditions at a configured time periodic rate in seconds.
 
 ## Simple event filter
 
@@ -110,27 +110,26 @@ Here is an example of a configuration file that selects events using an advanced
 
 The exact syntax allowed can be found in the OPC UA reference documentation.  Note that not all servers support all filter capabilities.  You can trouble shoot issues using the OPC Publisher logs.
 
-## Pending alarms handling options
+## Condition handling options
 
-In addition to this, you can also configure to enable pending alarms view. What this does is that it listens to ConditionType derived events, records unique occurrences of them and on periodic updates will send a message containing all the unique events that has the Retain property set to True. This enables you to get a snapshot view of all pending, or active, alarms and conditions which can be very useful for dashboard-like scenarios.
+In addition to this, you can also configure to enable condition handling. When configured OPC Publisher listens to ConditionType derived events, records unique occurrences of them and periodically sends all condition events that have the Retain property set to True. This enables you to continuously get a snapshot view of all active alarms and conditions which can be very useful for dashboard-like scenarios.
 
-Here is an example of a configuration for a pending alarms:
+Here is an example of a configuration for condition handling:
 
 ```json
 [
     {
         "EndpointUrl": "opc.tcp://testserver:62563/Quickstarts/AlarmConditionServer",
-        "OpcEvents": [
+        "OpcNodes": [
             {
                 "DisplayName": "AlarmConditions",
                 "Id": "i=2253",
                 "EventFilter": {
-                    "TypeDefinitionId": "i=2915",
-                    "PendingAlarms": {
-                        "IsEnabled": true,
-                        "UpdateInterval": 10,
-                        "SnapshotInterval": 20
-                    }
+                    "TypeDefinitionId": "i=2915"
+                },
+                "ConditionHandling": {
+                    "UpdateInterval": 10,
+                    "SnapshotInterval": 20
                 }
             }
         ]
@@ -138,10 +137,11 @@ Here is an example of a configuration for a pending alarms:
 ]
 ```
 
-The PendingAlarms section consists of the following properties:
+The `ConditionHandling` section consists of the following properties:
 
-* IsEnabled - defines if pending alarms view is enabled or not. If disabled it will work as normal events.
-* UpdateInterval - the interval, in seconds, which a message is sent if anything has been updated during this interval.
-* SnapshotInterval - the interval, in seconds, that triggers a message to be sent regardless of if there has been an update or not.
+* `UpdateInterval` - the interval, in seconds, which a message is sent if anything has been updated during this interval.
+* `SnapshotInterval` - the interval, in seconds, that triggers a message to be sent regardless of if there has been an update or not.
 
-You can use the pending alarm configuration regardless if you are using advanced or simple event filters.
+One or both of these must be set for condition handling to be in effect. You can use the condition handling configuration regardless if you are using advanced or simple event filters. If you specify `ConditionHandling` option without an `EventFilter` property it is ignored, as condition handling has no effect for data change subscriptions.
+
+Conditions are sent as `ua-condition` data set messages. This is a message type not part of the official standard but allows seperating condition snapshots from regular `ua-event` data set messages.

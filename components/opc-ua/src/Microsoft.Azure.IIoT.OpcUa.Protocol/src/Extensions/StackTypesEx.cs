@@ -604,7 +604,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 if (0 != (message & DataSetContentMask.SequenceNumber)) {
                     result |= UaMonitoredItemMessageContentMask.SequenceNumber;
                 }
-
+                if (0 != (message & DataSetContentMask.MessageType)) {
+                    result |= UaMonitoredItemMessageContentMask.MessageType;
+                }
             }
             return (uint)result;
         }
@@ -643,11 +645,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             if (mask == null) {
                 mask =
                     DataSetContentMask.DataSetWriterId |
+                    DataSetContentMask.DataSetWriterName |
                     DataSetContentMask.MetaDataVersion |
                     DataSetContentMask.MajorVersion |
                     DataSetContentMask.MinorVersion |
                     DataSetContentMask.SequenceNumber |
                     DataSetContentMask.Timestamp |
+                    DataSetContentMask.MessageType |
                     DataSetContentMask.Status;
             }
             switch (encoding) {
@@ -708,6 +712,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             }
             if (0 != (mask & DataSetContentMask.DataSetWriterId)) {
                 result |= JsonDataSetMessageContentMask.DataSetWriterId;
+            }
+            if (0 != (mask & DataSetContentMask.MessageType)) {
+                result |= JsonDataSetMessageContentMask.MessageType;
+            }
+            if (0 != (mask & DataSetContentMask.DataSetWriterName)) {
+                result |= (JsonDataSetMessageContentMask)64; // TODO JsonDataSetMessageContentMask.DataSetWriterName;
+            }
+            if (0 != (mask & DataSetContentMask.ReversibleFieldEncoding)) {
+                result |= (JsonDataSetMessageContentMask)128; // TODO JsonDataSetMessageContentMask.ReversibleFieldEncoding;
             }
             return result;
         }

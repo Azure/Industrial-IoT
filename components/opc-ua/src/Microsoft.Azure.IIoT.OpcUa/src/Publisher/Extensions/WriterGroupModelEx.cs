@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 LocaleIds = model.LocaleIds?.ToList(),
                 MaxNetworkMessageSize = model.MaxNetworkMessageSize,
                 MessageSettings = model.MessageSettings.Clone(),
-                MessageType = model.MessageType,
+                MessageEncoding = model.MessageEncoding,
                 Name = model.Name,
                 Priority = model.Priority,
                 PublishingInterval = model.PublishingInterval,

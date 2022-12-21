@@ -378,11 +378,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // TODO: Group by writer
 
             foreach (var message in messages) {
-                if (message.WriterGroup?.MessageType.GetValueOrDefault(MessageEncoding.Json) == encoding) {
+                if (message.WriterGroup?.MessageEncoding.GetValueOrDefault(MessageEncoding.Json) == encoding) {
                     var networkMessage = new NetworkMessage {
                         MessageContentMask = message.WriterGroup
                             .MessageSettings.NetworkMessageContentMask
-                            .ToStackType(message.WriterGroup?.MessageType),
+                            .ToStackType(message.WriterGroup?.MessageEncoding),
                         PublisherId = message.PublisherId,
                         DataSetClassId = message.Writer?.DataSet?
                             .DataSetMetaData?.DataSetClassId.ToString(),
@@ -405,12 +405,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     s => s.Value);
 
                             var dataSetMessage = new DataSetMessage {
-                                DataSetWriterId = message.Writer?.DataSetWriterId,
+                                DataSetWriterId = message.SubscriptionId,
+                                DataSetWriterName = message.Writer?.DataSetWriterId,
+                                MessageType = message.MessageType,
                                 MetaDataVersion = message.MetaData?.ConfigurationVersion ?? new ConfigurationVersionDataType {
                                     MajorVersion = 1
                                 },
                                 MessageContentMask = (message.Writer?.MessageSettings?.DataSetMessageContentMask)
-                                    .ToStackType(message.WriterGroup?.MessageType),
+                                    .ToStackType(message.WriterGroup?.MessageEncoding),
                                 Timestamp = message.TimeStamp ?? DateTime.UtcNow,
                                 SequenceNumber = message.SequenceNumber,
                                 Status = payload.Values.Any(s => StatusCode.IsNotGood(s.StatusCode)) ?
@@ -422,7 +424,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                     else if (message.MetaData != null) {
                         // Emit metadata change message
-                        networkMessage.DataSetWriterId = message.Writer.DataSetWriterId;
+                        networkMessage.DataSetWriterId = message.SubscriptionId;
+                        networkMessage.DataSetWriterName = message.Writer.DataSetWriterId;
                         networkMessage.MetaData = (DataSetMetaDataType)Utils.Clone(message.MetaData);
                         networkMessage.MetaData.Description = message.Writer?.DataSet?.DataSetMetaData?.Description;
                         networkMessage.MetaData.Name = message.Writer?.DataSet?.DataSetMetaData?.Name;

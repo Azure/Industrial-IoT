@@ -82,20 +82,20 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             _serverFixture = serverFixture;
         }
 
-        protected Task<List<JsonDocument>> ProcessMessagesAsync(
+        protected Task<List<JsonElement>> ProcessMessagesAsync(
             string publishedNodesFile,
-            Func<JsonDocument, bool> predicate = null,
+            Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
             string[] arguments = default) {
             // Collect messages from server with default settings
             return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
         }
 
-        protected async Task<List<JsonDocument>> ProcessMessagesAsync(
+        protected async Task<List<JsonElement>> ProcessMessagesAsync(
             string publishedNodesFile,
             TimeSpan messageCollectionTimeout,
             int messageCount,
-            Func<JsonDocument, bool> predicate = null,
+            Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
             string[] arguments = default) {
 
@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// <summary>
         /// Wait for one message
         /// </summary>
-        protected List<JsonDocument> WaitForMessages(Func<JsonDocument, bool> predicate = null,
+        protected List<JsonElement> WaitForMessages(Func<JsonElement, JsonElement> predicate = null,
             string messageType = null) {
             // Collect messages from server with default settings
             return WaitForMessages(TimeSpan.FromMinutes(2), 1, predicate, messageType);
@@ -120,29 +120,45 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// <summary>
         /// Wait for messages
         /// </summary>
-        protected List<JsonDocument> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
-            Func<JsonDocument, bool> predicate = null, string messageType = null) {
+        protected List<JsonElement> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            var messages = new List<JsonDocument>();
+            var messages = new List<JsonElement>();
             while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
                 && Events.TryTake(out var evt, messageCollectionTimeout)) {
                 messageCollectionTimeout -= stopWatch.Elapsed;
                 var json = Encoding.UTF8.GetString(evt.Message.GetBytes());
                 var document = JsonDocument.Parse(json);
                 json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
-                if (messageType != null) {
-                    var type = document.RootElement[0].GetProperty("MessageType").GetString();
-                    if (type != messageType) {
-                        continue;
+                var element = document.RootElement;
+                if (element.ValueKind == JsonValueKind.Array) {
+                    foreach (var item in element.EnumerateArray()) {
+                        Add(messages, item, predicate, messageType);
                     }
                 }
-                if (predicate != null && !predicate(document)) {
-                    continue;
+                else if (element.ValueKind == JsonValueKind.Object) {
+                    Add(messages, element, predicate, messageType);
                 }
-                messages.Add(document);
             }
             return messages.Take(messageCount).ToList();
+
+            static void Add(List<JsonElement> messages, JsonElement item,
+                Func<JsonElement, JsonElement> predicate, string messageType) {
+                if (messageType != null) {
+                    var type = item.GetProperty("MessageType").GetString();
+                    if (type != messageType) {
+                        return;
+                    }
+                }
+                var add = item;
+                if (predicate != null) {
+                    add = predicate(item);
+                }
+                if (add.ValueKind == JsonValueKind.Object) {
+                    messages.Add(add);
+                }
+            }
         }
 
         /// <summary>

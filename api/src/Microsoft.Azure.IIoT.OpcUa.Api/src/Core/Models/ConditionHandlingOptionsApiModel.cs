@@ -7,16 +7,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Pending alarm handling options model
+    /// Condition handling options model
     /// </summary>
     [DataContract]
-    public class PendingAlarmsOptionsApiModel {
-
-        /// <summary>
-        /// Is pending alarm enabled?
-        /// </summary>
-        [DataMember(Name = "isEnabled", Order = 0)]
-        public bool IsEnabled { get; set; }
+    public class ConditionHandlingOptionsApiModel {
 
         /// <summary>
         /// Update interval for pending alarm in seconds.

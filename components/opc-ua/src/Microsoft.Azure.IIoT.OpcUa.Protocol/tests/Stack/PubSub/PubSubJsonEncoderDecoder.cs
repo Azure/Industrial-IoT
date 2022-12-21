@@ -24,7 +24,7 @@ namespace Opc.Ua.PubSub.Tests {
             };
 
             var message = new DataSetMessage {
-                DataSetWriterId = "WriterId",
+                DataSetWriterName = "WriterId",
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
                 SequenceNumber = ++_currentSequenceNumber,
                 Status = StatusCodes.Bad,
@@ -85,7 +85,7 @@ namespace Opc.Ua.PubSub.Tests {
             };
 
             var message = new DataSetMessage {
-                DataSetWriterId = "WriterId",
+                DataSetWriterName = "WriterId",
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
                 SequenceNumber = ++_currentSequenceNumber,
                 Status = StatusCodes.GoodCallAgain,

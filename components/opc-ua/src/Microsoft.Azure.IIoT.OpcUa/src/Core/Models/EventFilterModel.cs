@@ -24,12 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         public ContentFilterModel WhereClause { get; set; }
 
         /// <summary>
-        /// Settings for pending alarms
-        /// </summary>
-        [DataMember(EmitDefaultValue = false)]
-        public PendingAlarmsOptionsModel PendingAlarms { get; set; }
-
-        /// <summary>
         /// Simple event Type id
         /// </summary>
         [DataMember(EmitDefaultValue = false)]

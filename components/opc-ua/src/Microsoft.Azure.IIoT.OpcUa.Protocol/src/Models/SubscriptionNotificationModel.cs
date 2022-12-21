@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using System.Collections.Generic;
     using Opc.Ua;
     using System;
+    using Opc.Ua.PubSub;
 
     /// <summary>
     /// Subscription notification model
@@ -24,6 +25,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public List<MonitoredItemNotificationModel> Notifications { get; set; }
 
         /// <summary>
+        /// Message type
+        /// </summary>
+        public MessageType MessageType { get; set; }
+
+        /// <summary>
         /// Meta data
         /// </summary>
         public DataSetMetaDataType MetaData { get; set; }
@@ -31,21 +37,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Subscription from which message originated
         /// </summary>
-        public string SubscriptionId { get; internal set; }
+        public string SubscriptionName { get; set; }
+
+        /// <summary>
+        /// Subscription identifier
+        /// </summary>
+        public ushort SubscriptionId { get; set; }
 
         /// <summary>
         /// Endpoint url
         /// </summary>
-        public string EndpointUrl { get; internal set; }
+        public string EndpointUrl { get; set; }
 
         /// <summary>
         /// Appplication url
         /// </summary>
-        public string ApplicationUri { get; internal set; }
+        public string ApplicationUri { get; set; }
 
         /// <summary>
         /// Publishing time
         /// </summary>
-        public DateTime Timestamp { get; internal set; }
+        public DateTime Timestamp { get; set; }
     }
 }

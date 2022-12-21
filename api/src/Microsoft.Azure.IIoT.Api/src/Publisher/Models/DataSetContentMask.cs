@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         Status = 8,
 
         /// <summary>
-        /// Dataset writer id (json)
+        /// Dataset writer name (json)
         /// </summary>
         [EnumMember]
         DataSetWriterId = 16,

@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public string DataSetWriterGroup { get; set; }
 
-        /// <summary> Id Identifier of the DataFlow - DataSetWriterId.</summary>
+        /// <summary> Dataset writer name.</summary>
         [DataMember(Name = "dataSetWriterId", Order = 1,
             EmitDefaultValue = false)]
         public string DataSetWriterId { get; set; }

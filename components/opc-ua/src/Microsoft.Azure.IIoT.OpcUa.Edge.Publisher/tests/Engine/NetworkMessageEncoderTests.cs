@@ -4,9 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Moq;
@@ -74,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Uadp)]
         public async Task EncodeTooBigMessageTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 100;
-            var messages = GenerateSampleMessages(3, encoding);
+            var messages = GenerateSampleMessages(3, false, encoding);
 
             var networkMessages = await (encodeBatchFlag
                 ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
@@ -94,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Uadp)]
         public async Task EncodeTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 256 * 1024;
-            var messages = GenerateSampleMessages(20, encoding);
+            var messages = GenerateSampleMessages(20, false, encoding);
 
             var networkMessages = await (encodeBatchFlag
                 ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
@@ -122,9 +124,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Json)]
         [InlineData(false, MessageEncoding.Uadp)]
         [InlineData(true, MessageEncoding.Uadp)]
+        public async Task EncodeEventsTest(bool encodeBatchFlag, MessageEncoding encoding) {
+            var maxMessageSize = 256 * 1024;
+            var messages = GenerateSampleMessages(20, true, encoding);
+
+            var networkMessages = await (encodeBatchFlag
+                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
+                : _encoder.EncodeAsync(messages, maxMessageSize)
+            );
+
+            if (encodeBatchFlag) {
+                Assert.Equal(1, networkMessages.Count());
+                Assert.Equal((uint)1260, _encoder.NotificationsProcessedCount);
+                Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
+                Assert.Equal((uint)1, _encoder.MessagesProcessedCount);
+                Assert.Equal(1260, _encoder.AvgNotificationsPerMessage);
+            }
+            else {
+                Assert.Equal(20, networkMessages.Count());
+                Assert.Equal((uint)1260, _encoder.NotificationsProcessedCount);
+                Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
+                Assert.Equal((uint)20, _encoder.MessagesProcessedCount);
+                Assert.Equal(63, _encoder.AvgNotificationsPerMessage);
+            }
+        }
+
+        [Theory]
+        [InlineData(false, MessageEncoding.Json)]
+        [InlineData(true, MessageEncoding.Json)]
+        [InlineData(false, MessageEncoding.Uadp)]
+        [InlineData(true, MessageEncoding.Uadp)]
         public async Task EncodeMetadataTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 256 * 1024;
-            var messages = GenerateSampleMessages(20, encoding);
+            var messages = GenerateSampleMessages(20, false, encoding);
             messages[10].Notifications = null; // Emit metadata
             messages[10].MetaData = new DataSetMetaDataType {
                 Name = "test",
@@ -163,7 +195,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Uadp)]
         public async Task EncodeNothingTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 256 * 1024;
-            var messages = GenerateSampleMessages(1, encoding);
+            var messages = GenerateSampleMessages(1, false, encoding);
             messages[0].Notifications = null;
             messages[0].MetaData = null;
             var networkMessages = await (encodeBatchFlag
@@ -179,7 +211,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         }
 
         public static IList<DataSetMessageModel> GenerateSampleMessages(
-            uint numOfMessages,
+            uint numOfMessages, bool eventList = false,
             MessageEncoding encoding = MessageEncoding.Json
         ) {
             var messages = new List<DataSetMessageModel>();
@@ -192,20 +224,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 for (uint k = 0; k < i + 1; k++) {
                     var notificationSuffix = suffix + $"-{k}";
 
-                    var monitoredItemNotification = new MonitoredItemNotification {
-                        ClientHandle = k,
-                        Value = new DataValue(new Variant(k), new StatusCode(0), DateTime.UtcNow),
-                        Message = new NotificationMessage()
-                    };
-
                     var monitoredItem = new MonitoredItem {
                         DisplayName = "DisplayName" + notificationSuffix,
                         StartNodeId = new NodeId("NodeId" + notificationSuffix),
                         AttributeId = k
                     };
-
-                    var notification = monitoredItemNotification.ToMonitoredItemNotification(monitoredItem);
-                    notifications.Add(notification);
+                    if (eventList) {
+                        var handle = new MonitoredItemWrapper(new EventMonitoredItemModel(), ConsoleLogger.Create());
+                        handle.Fields.Add(("1", default));
+                        handle.Fields.Add(("2", default));
+                        handle.Fields.Add(("3", default));
+                        handle.Fields.Add(("4", default));
+                        handle.Fields.Add(("5", default));
+                        handle.Fields.Add(("6", default));
+                        monitoredItem.Handle = handle;
+                        var eventFieldList = new EventFieldList {
+                            ClientHandle = k,
+                            EventFields = new Variant[] { 1, 2, 3, 4, 5, 6 },
+                            Message = new NotificationMessage()
+                        };
+                        var notification = eventFieldList.ToMonitoredItemNotifications(monitoredItem);
+                        notifications.AddRange(notification);
+                    }
+                    else {
+                        var monitoredItemNotification = new MonitoredItemNotification {
+                            ClientHandle = k,
+                            Value = new DataValue(new Variant(k), new StatusCode(0), DateTime.UtcNow),
+                            Message = new NotificationMessage()
+                        };
+                        var notification = monitoredItemNotification.ToMonitoredItemNotifications(monitoredItem);
+                        notifications.AddRange(notification);
+                    }
                 }
 
                 var message = new DataSetMessageModel {
@@ -228,12 +277,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         MessageSettings = new WriterGroupMessageSettingsModel {
                             NetworkMessageContentMask = (NetworkMessageContentMask)0xffff
                         },
-                        MessageType = encoding
+                        MessageEncoding = encoding
                     },
                     TimeStamp = DateTime.UtcNow,
                     ServiceMessageContext = new ServiceMessageContext { },
                     Notifications = notifications,
-                    SubscriptionId = "SubscriptionId" + suffix,
+                    SubscriptionName = "SubscriptionId" + suffix,
                     EndpointUrl = "EndpointUrl" + suffix,
                     ApplicationUri = "ApplicationUri" + suffix
                 };

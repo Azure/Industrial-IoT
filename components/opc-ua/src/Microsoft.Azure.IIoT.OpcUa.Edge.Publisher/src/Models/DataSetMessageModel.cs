@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System;
     using System.Collections.Generic;
     using Opc.Ua;
+    using Opc.Ua.PubSub;
 
     /// <summary>
     /// Data set message emitted by writer in a writer group.
@@ -56,9 +57,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public IEnumerable<MonitoredItemNotificationModel> Notifications { get; set; }
 
         /// <summary>
+        /// Type of message
+        /// </summary>
+        public MessageType MessageType { get; set; }
+
+        /// <summary>
+        /// Internal id for the subscription
+        /// </summary>
+        public ushort SubscriptionId { get; set; }
+
+        /// <summary>
         /// Subscription from which message originated
         /// </summary>
-        public string SubscriptionId { get; set; }
+        public string SubscriptionName { get; set; }
 
         /// <summary>
         /// Endpoint the subscription is connected to

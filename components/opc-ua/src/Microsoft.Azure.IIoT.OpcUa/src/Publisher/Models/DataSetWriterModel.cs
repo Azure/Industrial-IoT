@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     public class DataSetWriterModel
     {
         /// <summary>
-        /// Dataset writer id
+        /// Dataset writer name
         /// </summary>
         public string DataSetWriterId { get; set; }
 

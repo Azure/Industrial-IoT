@@ -29,7 +29,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
 
             return new EventMonitoredItemModel {
                 Id = publishedEvent.Id,
-                DataSetClassFieldId = publishedEvent.DataSetClassFieldId,
                 DisplayName = displayName,
                 EventFilter = new EventFilterModel {
                     SelectClauses = publishedEvent.SelectClauses?
@@ -53,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 AttributeId = null,
                 IndexRange = null,
                 SamplingInterval = TimeSpan.Zero,
-                PendingAlarms = publishedEvent.PendingAlarms?.Clone() ?? null,
+                ConditionHandling = publishedEvent.ConditionHandling.Clone(),
             };
         }
     }

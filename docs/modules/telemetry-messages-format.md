@@ -18,12 +18,14 @@ The following messages are emitted for data value changes in a subscription if P
     "PublisherId": "opc.tcp://opcplc:50000_70FB9F43",
     "Messages": [
       {
-        "DataSetWriterId": "1000",
+        "DataSetWriterId": 1,
+        "DataSetWriterName": "1000",
         "SequenceNumber": 27,
         "MetaDataVersion": {
           "MajorVersion": 1,
           "MinorVersion": 0
         },
+        "MessageType": "ua-deltaframe",
         "Timestamp": "2022-03-18T12:55:21.3424136Z",
         "Payload": {
           "AlternatingBoolean": {
@@ -65,6 +67,57 @@ The following messages are emitted for data value changes in a subscription if P
     "$$ContentEncoding": "utf-8"
   }
 }
+```
+
+The data set messages in the `ua-data` network message can be delta frames (`ua-deltaframe`, containing only changed values in the dataset), key frames (`ua-keyframe`, containing all values of the dataset), keep alives (`ua-keepalive`, containing no payload), or [events and conditions](./telemetry-events-format.md).
+
+The data set is described by the corresponding metadata message (message type `ua-metdata`), which is emitted prior to the first message and whenever the configuration is updated requiring an update of the metadata. Metadata can also be sent periodically, which can be configured using the control plane of OPC Publisher.
+
+```json
+{
+  "body": [
+    {
+      "MessageId": "0",
+      "MessageType": "ua-metadata",
+      "PublisherId": "opc.tcp://localhost:57537/UA/SampleServer_A2425855",
+      "DataSetWriterId": 1,
+      "MetaData": {
+        "Namespaces": [
+          "http://opcfoundation.org/UA/",
+          "urn:localhost:OPCFoundation:CoreSampleServer",
+          "http://test.org/UA/Data/",
+          ..l
+          "http://opcfoundation.org/UA/Boiler/"
+        ],
+        "StructureDataTypes": [],
+        "EnumDataTypes": [],
+        "SimpleDataTypes": [],
+        "Fields": [
+          {
+            "Name": "Output",
+            "BuiltInType": 26,
+            "DataType": "Number",
+            "ValueRank": -1,
+            "ArrayDimensions": [],
+            "DataSetFieldId": "fcab2ed0-c6b2-4456-a4c3-ed985e5c708d",
+            "Properties": []
+          }
+        ],
+        "ConfigurationVersion": {
+          "MajorVersion": 1222304635,
+          "MinorVersion": 1289056823
+        }
+      }
+    }
+  ],
+  "enqueuedTime": "Mon Jan 23 2023 13:49:02 GMT+0200 (Central European Summer Time)",
+  "properties": {
+    "$$ContentType": "application/x-network-message-json-v1",
+    "iothub-message-schema": "application/ua+json",
+    "$$ContentEncoding": "utf-8"
+  }
+}
+
 ```
 
 ### Samples mode

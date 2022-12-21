@@ -23,7 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             }
             return new PublishedDataSetEventModel {
                 Id = model.Id,
-                DataSetClassFieldId = model.DataSetClassFieldId,
                 MonitoringMode = model.MonitoringMode,
                 TriggerId = model.TriggerId,
                 DiscardNew = model.DiscardNew,
@@ -34,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 SelectClauses = model.SelectClauses?
                     .Select(f => f.Clone())
                     .ToList(),
-                PendingAlarms = model.PendingAlarms?.Clone() ?? null,
+                ConditionHandling = model.ConditionHandling.Clone(),
                 TypeDefinitionId = model.TypeDefinitionId
             };
         }

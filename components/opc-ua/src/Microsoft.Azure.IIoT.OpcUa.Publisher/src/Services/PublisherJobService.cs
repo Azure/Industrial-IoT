@@ -295,7 +295,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             return new WriterGroupJobModel {
                 MessagingMode = MessagingMode.Samples,
                 WriterGroup = new WriterGroupModel {
-                    MessageType = MessageEncoding.Json,
+                    MessageEncoding = MessageEncoding.Json,
                     WriterGroupId = job.Id,
                     DataSetWriters = new List<DataSetWriterModel>(),
                     MessageSettings = new WriterGroupMessageSettingsModel() {

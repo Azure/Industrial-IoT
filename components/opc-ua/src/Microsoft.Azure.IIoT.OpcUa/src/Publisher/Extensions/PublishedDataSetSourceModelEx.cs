@@ -54,16 +54,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             sb.Append(publishedVariableData?.HeartbeatInterval);
             sb.Append(publishedVariableData?.SkipFirst);
             sb.Append(publishedEventData?.Id);
-            sb.Append(publishedEventData?.DataSetClassFieldId);
             sb.Append(publishedEventData?.EventNotifier);
             if (publishedEventData?.BrowsePath != null) {
                 foreach (var browsePath in publishedEventData.BrowsePath) {
                     sb.Append(browsePath);
                 }
             }
-            sb.Append(publishedEventData?.PendingAlarms?.IsEnabled);
-            sb.Append(publishedEventData?.PendingAlarms?.UpdateInterval);
-            sb.Append(publishedEventData?.PendingAlarms?.SnapshotInterval);
+            sb.Append(publishedEventData?.ConditionHandling?.UpdateInterval);
+            sb.Append(publishedEventData?.ConditionHandling?.SnapshotInterval);
             sb.Append(publishedEventData?.TypeDefinitionId);
             return sb.ToString().ToSha1Hash();
         }

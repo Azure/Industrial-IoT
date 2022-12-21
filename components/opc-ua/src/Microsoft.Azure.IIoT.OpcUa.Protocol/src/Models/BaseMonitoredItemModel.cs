@@ -25,11 +25,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// Field id in class
-        /// </summary>
-        public Guid DataSetClassFieldId { get; set; }
-
-        /// <summary>
         /// Node id
         /// </summary>
         public string StartNodeId { get; set; }
@@ -97,7 +92,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public override bool Equals(object obj) {
             return obj is BaseMonitoredItemModel model &&
                 Id == model.Id &&
-                DataSetClassFieldId == model.DataSetClassFieldId &&
                 DisplayName == model.DisplayName &&
                 StartNodeId == model.StartNodeId &&
                 EqualityComparer<string[]>.Default.Equals(RelativePath, model.RelativePath) &&
@@ -128,7 +122,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             hash.Add(DiscardNew);
             hash.Add(MonitoringMode);
             hash.Add(TriggerId);
-            hash.Add(DataSetClassFieldId);
             return hash.ToHashCode();
         }
     }

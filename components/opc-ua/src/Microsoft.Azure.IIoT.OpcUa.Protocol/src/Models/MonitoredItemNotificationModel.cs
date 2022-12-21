@@ -37,6 +37,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public string DisplayName { get; internal set; }
 
         /// <summary>
+        /// Identifier to relate notifications to a value
+        /// </summary>
+        public uint MessageId { get; internal set; }
+
+        /// <summary>
         /// Sequence number
         /// </summary>
         public uint? SequenceNumber { get; set; }

@@ -58,10 +58,16 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         public List<DataSetMessage> Messages { get; set; } = new List<DataSetMessage>();
 
+
         /// <summary>
-        /// Data set writer id in case of ua-metadata message
+        /// Data set writer name in case of ua-metadata message
         /// </summary>
-        public string DataSetWriterId { get; set; }
+        public ushort DataSetWriterId { get; set; }
+
+        /// <summary>
+        /// Data set writer name in case of ua-metadata message
+        /// </summary>
+        public string DataSetWriterName { get; set; }
 
         /// <summary>
         /// Data set metadata in case this is a metadata message
@@ -172,8 +178,9 @@ namespace Opc.Ua.PubSub {
                 }
             }
             else if (messageType.Equals(MessageTypeUaMetadata, StringComparison.InvariantCultureIgnoreCase)) {
-                DataSetWriterId = decoder.ReadString(nameof(DataSetWriterId));
+                DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
                 MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(nameof(MetaData), typeof(DataSetMetaDataType));
+                DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
             }
             else {
                 throw ServiceResultException.Create(StatusCodes.BadTcpMessageTypeInvalid,
@@ -209,9 +216,9 @@ namespace Opc.Ua.PubSub {
                 }
             }
             else if (messageType.Equals(MessageTypeUaMetadata, StringComparison.InvariantCultureIgnoreCase)) {
-                DataSetWriterId = decoder.ReadString(nameof(DataSetWriterId));
-                DataSetWriterGroup = decoder.ReadString(nameof(DataSetWriterGroup));
+                DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
                 MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(nameof(MetaData), typeof(DataSetMetaDataType));
+                DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
             }
             else {
                 throw ServiceResultException.Create(StatusCodes.BadTcpMessageTypeInvalid,
@@ -233,8 +240,9 @@ namespace Opc.Ua.PubSub {
                 encoder.WriteString(nameof(PublisherId), PublisherId);
             }
             if (MetaData != null) {
-                encoder.WriteString(nameof(DataSetWriterId), DataSetWriterId);
+                encoder.WriteUInt16(nameof(DataSetWriterId), DataSetWriterId);
                 encoder.WriteEncodeable(nameof(MetaData), MetaData, typeof(DataSetMetaDataType));
+                encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
             }
             else if (Messages != null && Messages.Count > 0) {
                 if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0) {
@@ -256,13 +264,16 @@ namespace Opc.Ua.PubSub {
                     encoder.WriteString(nameof(PublisherId), PublisherId);
                 }
                 if (MetaData != null) {
-                    if (!string.IsNullOrEmpty(DataSetWriterId)) {
-                        encoder.WriteString(nameof(DataSetWriterId), DataSetWriterId);
+                    if (DataSetWriterId != 0) {
+                        encoder.WriteUInt16(nameof(DataSetWriterId), DataSetWriterId);
                     }
                     if (!string.IsNullOrEmpty(DataSetWriterGroup)) {
                         encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
                     }
                     encoder.WriteEncodeable(nameof(MetaData), MetaData, typeof(DataSetMetaDataType));
+                    if (!string.IsNullOrEmpty(DataSetWriterName)) {
+                        encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
+                    }
                 }
                 else if (Messages != null && Messages.Count > 0) {
                     if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0 &&

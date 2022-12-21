@@ -4,14 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Moq;
     using Opc.Ua;
     using System;
@@ -20,7 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
     /// Test
@@ -2409,7 +2409,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcJobTestWithPendingAlarms() {
+        public void PnPlcJobTestWithConditionHandling() {
             var pn = @"
 [
     {
@@ -2420,12 +2420,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                 ""Id"": ""i=2253"",
                 ""OpcPublishingInterval"": 5000,
                 ""EventFilter"": {
-                    ""TypeDefinitionId"": ""ns=2;i=235"",
-                    ""PendingAlarms"": {
-                        ""IsEnabled"": true,
-                        ""UpdateInterval"": 10000,
-                        ""SnapshotInterval"": 20000
-                    }
+                    ""TypeDefinitionId"": ""ns=2;i=235""
+                },
+                ""ConditionHandling"": {
+                    ""UpdateInterval"": 10,
+                    ""SnapshotInterval"": 30
                 }
             }
         ]
@@ -2463,10 +2462,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal("ns=2;i=235", eventModel.TypeDefinitionId);
-            Assert.NotNull(eventModel.PendingAlarms);
-            Assert.True(eventModel.PendingAlarms.IsEnabled);
-            Assert.Equal(10000, eventModel.PendingAlarms.UpdateInterval);
-            Assert.Equal(20000, eventModel.PendingAlarms.SnapshotInterval);
+            Assert.NotNull(eventModel.ConditionHandling);
+            Assert.Equal(10000, eventModel.ConditionHandling.UpdateInterval);
+            Assert.Equal(20000, eventModel.ConditionHandling.SnapshotInterval);
         }
 
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();

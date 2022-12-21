@@ -19,11 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public string Id { get; set; }
 
         /// <summary>
-        /// Identifier of event fields in the dataset class.
-        /// </summary>
-        public Guid DataSetClassFieldId { get; set; }
-
-        /// <summary>
         /// Event notifier to subscribe to (or start node)
         /// </summary>
         public string EventNotifier { get; set; }
@@ -67,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Pending alarm settings
         /// </summary>
-        public PendingAlarmsOptionsModel PendingAlarms { get; set; }
+        public ConditionHandlingOptionsModel ConditionHandling { get; set; }
 
         /// <summary>
         /// Simple event Type id

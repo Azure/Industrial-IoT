@@ -8,9 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Opc.Ua.Encoders;
     using Opc.Ua.Extensions;
-    using Opc.Ua.Types;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -63,33 +61,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Field identifier either configured or randomly assigned for data change items
         /// </summary>
-        public Guid DataSetFieldId => Template.DataSetClassFieldId == Guid.Empty ? _fieldId
-            : Template.DataSetClassFieldId;
+        public Guid DataSetFieldId => DataTemplate.DataSetClassFieldId == Guid.Empty ? _fieldId
+            : DataTemplate.DataSetClassFieldId;
         private Guid _fieldId = Guid.NewGuid();
-
-        /// <summary>
-        /// Cache of the latest events for the pending alarms optionally monitored
-        /// </summary>
-        public Dictionary<string, MonitoredItemNotificationModel> PendingAlarmEvents { get; }
-            = new Dictionary<string, MonitoredItemNotificationModel>();
 
         /// <summary>
         /// Property setter that gets indication if item is online or not.
         /// </summary>
         public void OnMonitoredItemStateChanged(bool online) {
-            if (_pendingAlarmsTimer != null) {
-                var enabled = _pendingAlarmsTimer.Enabled;
-                if (EventTemplate.PendingAlarms?.IsEnabled == true && online && !enabled) {
-                    _pendingAlarmsTimer.Start();
-                    _logger.Debug("{item}: Restarted pending alarm handling after item went online.", this);
+            if (_conditionTimer != null) {
+                var enabled = _conditionTimer.Enabled;
+                if (online && !enabled) {
+                    lock (_lock) {
+                        if (_conditionHandlingState == null) {
+                            return;
+                        }
+                    }
+                    _conditionTimer.Start();
+                    _logger.Debug("{item}: Restarted pending condition handling after item went online.", this);
                 }
                 else if (enabled) {
-                    _pendingAlarmsTimer.Stop();
+                    _conditionTimer.Stop();
                     lock (_lock) {
-                        PendingAlarmEvents.Clear();
+                        _conditionHandlingState?.Active.Clear();
                     }
                     if (!online) {
-                        _logger.Debug("{item}: Stopped pending alarm handling while item is offline.", this);
+                        _logger.Debug("{item}: Stopped pending condition handling while item is offline.", this);
                     }
                 }
             }
@@ -136,9 +133,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (Template.Id != item.Template.Id) {
                 return false;
             }
-            if (Template.DataSetClassFieldId != item.Template.DataSetClassFieldId) {
-                return false;
-            }
             if (!Template.RelativePath.SequenceEqualsSafe(item.Template.RelativePath)) {
                 return false;
             }
@@ -163,8 +157,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Template.Id);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<Guid>.Default.GetHashCode(Template.DataSetClassFieldId);
-            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string[]>.Default.GetHashCode(Template.RelativePath);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Template.StartNodeId);
@@ -184,9 +176,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create new stack monitored item
         /// </summary>
-
         public void Create(Session session, IVariantEncoder codec, bool activate) {
-            Create(session.MessageContext as ServiceMessageContext, session.NodeCache, codec, activate);
+            Create(session.MessageContext as ServiceMessageContext, session.NodeCache, session.TypeTree, codec, activate);
         }
 
         /// <summary>
@@ -194,9 +185,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         public void Destroy() {
             Item.Handle = null;
-            if (_pendingAlarmsTimer != null) {
-                _pendingAlarmsTimer.Stop();
-                _pendingAlarmsTimer.Dispose();
+            if (_conditionTimer != null) {
+                _conditionTimer.Stop();
+                _conditionTimer.Dispose();
             }
         }
 
@@ -205,22 +196,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="messageContext"></param>
         /// <param name="nodeCache"></param>
+        /// <param name="typeTree"></param>
         /// <param name="fields"></param>
         /// <param name="dataTypes"></param>
         /// <returns></returns>
-        public void GetMetaData(IServiceMessageContext messageContext, INodeCache nodeCache,
+        public void GetMetaData(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
             FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
             try {
                 if (Item.Filter is EventFilter eventFilter) {
-                    if (EventTemplate.PendingAlarms?.IsEnabled == true) {
-                        GetPendingAlarmsMetadata(nodeCache, fields, dataTypes);
-                    }
-                    else {
-                        GetEventMetadata(eventFilter, nodeCache, fields, dataTypes);
-                    }
+                    GetEventMetadata(eventFilter, nodeCache, typeTree, fields, dataTypes);
                 }
                 else {
-                    GetDataMetadata(messageContext, nodeCache, fields, dataTypes);
+                    GetDataMetadata(messageContext, nodeCache, typeTree, fields, dataTypes);
                 }
             }
             catch (Exception e) {
@@ -231,7 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create new stack monitored item
         /// </summary>
-        public void Create(ServiceMessageContext messageContext, INodeCache nodeCache,
+        public void Create(ServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
             IVariantEncoder codec, bool activate) {
 
             Item = new MonitoredItem {
@@ -241,7 +228,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 IndexRange = Template.IndexRange,
                 RelativePath = Template.RelativePath?
                             .ToRelativePath(messageContext)?
-                            .Format(nodeCache.TypeTree),
+                            .Format(typeTree),
                 MonitoringMode = activate
                     ? Template.MonitoringMode.ToStackType().
                         GetValueOrDefault(Opc.Ua.MonitoringMode.Reporting)
@@ -262,7 +249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
             else if (EventTemplate != null) {
-                var eventFilter = GetEventFilter(messageContext, nodeCache, codec);
+                var eventFilter = GetEventFilter(messageContext, nodeCache, typeTree, codec);
                 Item.Filter = eventFilter;
             }
             else {
@@ -284,11 +271,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="messageContext"></param>
         /// <param name="nodeCache"></param>
+        /// <param name="typeTree"></param>
         /// <param name="codec"></param>
         /// <param name="model"></param>
         /// <param name="metadataChange"></param>
         /// <returns>Whether apply changes should be called on the subscription</returns>
-        internal bool MergeWith(IServiceMessageContext messageContext, INodeCache nodeCache,
+        internal bool MergeWith(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
             IVariantEncoder codec, MonitoredItemWrapper model, out bool metadataChange) {
 
             metadataChange = false;
@@ -342,18 +330,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 itemChange = true;
             }
 
-            if (Template.DataSetClassFieldId != model.Template.DataSetClassFieldId) {
-                var previous = DataSetFieldId;
-                Template.DataSetClassFieldId = model.Template.DataSetClassFieldId;
-                _logger.Debug("{item}: Changing dataset class field id from {old} to {new}",
-                    this, previous, DataSetFieldId);
-                metadataChange = true;
-            }
-
             // Should never merge items with different template types
             Debug.Assert(model.Template.GetType() == Template.GetType());
 
             if (model.DataTemplate != null) {
+
+                if (DataTemplate.DataSetClassFieldId != model.DataTemplate.DataSetClassFieldId) {
+                    var previous = DataSetFieldId;
+                    DataTemplate.DataSetClassFieldId = model.DataTemplate.DataSetClassFieldId;
+                    _logger.Debug("{item}: Changing dataset class field id from {old} to {new}",
+                        this, previous, DataSetFieldId);
+                    metadataChange = true;
+                }
 
                 // Update change filter
                 if (!model.DataTemplate.DataChangeFilter.IsSameAs(DataTemplate.DataChangeFilter)) {
@@ -398,9 +386,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 // Update event filter
                 if (!model.EventTemplate.EventFilter.IsSameAs(EventTemplate.EventFilter) ||
-                    !model.EventTemplate.PendingAlarms.IsSameAs(EventTemplate.PendingAlarms)) {
+                    !model.EventTemplate.ConditionHandling.IsSameAs(EventTemplate.ConditionHandling)) {
 
-                    EventTemplate.PendingAlarms = model.EventTemplate.PendingAlarms;
+                    EventTemplate.ConditionHandling = model.EventTemplate.ConditionHandling;
                     EventTemplate.EventFilter = model.EventTemplate.EventFilter;
                     _logger.Debug("{item}: Changing event filter.");
 
@@ -409,7 +397,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 if (metadataChange) {
-                    Item.Filter = GetEventFilter(messageContext, nodeCache, codec);
+                    Item.Filter = GetEventFilter(messageContext, nodeCache, typeTree, codec);
                 }
             }
             else {
@@ -453,25 +441,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="messageContext"></param>
         /// <param name="nodeCache"></param>
+        /// <param name="typeTree"></param>
         /// <param name="codec"></param>
         /// <returns></returns>
         private EventFilter GetEventFilter(IServiceMessageContext messageContext, INodeCache nodeCache,
-            IVariantEncoder codec) {
+            ITypeTable typeTree, IVariantEncoder codec) {
 
             // set up the timer even if event is not a pending alarms event.
             var created = false;
-            if (_pendingAlarmsTimer == null) {
-                _pendingAlarmsTimer = new Timer(1000);
-                _pendingAlarmsTimer.AutoReset = false;
-                _pendingAlarmsTimer.Elapsed += OnPendingAlarmsTimerElapsed;
+            if (_conditionTimer == null) {
+                _conditionTimer = new Timer(1000);
+                _conditionTimer.AutoReset = false;
+                _conditionTimer.Elapsed += OnConditionTimerElapsed;
                 created = true;
             }
 
-            if (!created && EventTemplate.PendingAlarms?.IsEnabled != true) {
-                // Always stop in case we are asked to disable pending alarms
-                _pendingAlarmsTimer.Stop();
+            if (!created && EventTemplate.ConditionHandling.IsDisabled()) {
+                // Always stop in case we are asked to disable condition handling
+                _conditionTimer.Stop();
                 lock (_lock) {
-                    PendingAlarmEvents.Clear();
+                    _conditionHandlingState = null;
                 }
                 _logger.Information("{item}: Disabled pending alarm handling.", this);
             }
@@ -479,14 +468,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var eventFilter = new EventFilter();
             if (EventTemplate.EventFilter != null) {
                 if (!string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId)) {
-                    eventFilter = GetSimpleEventFilter(nodeCache, messageContext);
+                    eventFilter = GetSimpleEventFilter(nodeCache, typeTree, messageContext);
                 }
                 else {
                     eventFilter = codec.Decode(EventTemplate.EventFilter, true);
                 }
             }
 
-            TestWhereClause(messageContext, nodeCache, eventFilter);
+            TestWhereClause(messageContext, nodeCache, typeTree, eventFilter);
 
             // let's keep track of the internal fields we add so that they don't show up in the output
             var internalSelectClauses = new List<SimpleAttributeOperand>();
@@ -497,37 +486,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 internalSelectClauses.Add(selectClause);
             }
 
-            if (EventTemplate.PendingAlarms?.IsEnabled == true) {
-                var conditionIdClause = eventFilter.SelectClauses
-                    .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId);
-                if (conditionIdClause != null) {
-                    EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.IndexOf(conditionIdClause);
+            if (!EventTemplate.ConditionHandling.IsDisabled()) {
+                var conditionHandlingState = InitializeConditionHandlingState(eventFilter, internalSelectClauses);
+                lock (_lock) {
+                    _conditionHandlingState = conditionHandlingState;
                 }
-                else {
-                    EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.Count;
-                    var selectClause = new SimpleAttributeOperand() {
-                        BrowsePath = new QualifiedNameCollection(),
-                        TypeDefinitionId = ObjectTypeIds.ConditionType,
-                        AttributeId = Attributes.NodeId
-                    };
-                    eventFilter.SelectClauses.Add(selectClause);
-                    internalSelectClauses.Add(selectClause);
-                }
-
-                var retainClause = eventFilter.SelectClauses
-                    .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType &&
-                        x.BrowsePath?.FirstOrDefault() == BrowseNames.Retain);
-                if (retainClause != null) {
-                    EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.IndexOf(retainClause);
-                }
-                else {
-                    EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.Count;
-                    var selectClause = new SimpleAttributeOperand(ObjectTypeIds.ConditionType, BrowseNames.Retain);
-                    eventFilter.SelectClauses.Add(selectClause);
-                    internalSelectClauses.Add(selectClause);
-                }
-
-                _pendingAlarmsTimer.Start();
+                _conditionTimer.Start();
                 _logger.Information("{item}: {Action} pending alarm handling.", this, created ? "Enabled" : "Re-enabled");
             }
 
@@ -573,18 +537,60 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
+        /// Initialize periodic pending condition handling state
+        /// </summary>
+        /// <param name="eventFilter"></param>
+        /// <param name="internalSelectClauses"></param>
+        /// <returns></returns>
+        private static ConditionHandlingState InitializeConditionHandlingState(EventFilter eventFilter,
+            List<SimpleAttributeOperand> internalSelectClauses) {
+            var conditionHandlingState = new ConditionHandlingState();
+
+            var conditionIdClause = eventFilter.SelectClauses
+                .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId);
+            if (conditionIdClause != null) {
+                conditionHandlingState.ConditionIdIndex = eventFilter.SelectClauses.IndexOf(conditionIdClause);
+            }
+            else {
+                conditionHandlingState.ConditionIdIndex = eventFilter.SelectClauses.Count;
+                var selectClause = new SimpleAttributeOperand() {
+                    BrowsePath = new QualifiedNameCollection(),
+                    TypeDefinitionId = ObjectTypeIds.ConditionType,
+                    AttributeId = Attributes.NodeId
+                };
+                eventFilter.SelectClauses.Add(selectClause);
+                internalSelectClauses.Add(selectClause);
+            }
+
+            var retainClause = eventFilter.SelectClauses
+                .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                    x.BrowsePath?.FirstOrDefault() == BrowseNames.Retain);
+            if (retainClause != null) {
+                conditionHandlingState.RetainIndex = eventFilter.SelectClauses.IndexOf(retainClause);
+            }
+            else {
+                conditionHandlingState.RetainIndex = eventFilter.SelectClauses.Count;
+                var selectClause = new SimpleAttributeOperand(ObjectTypeIds.ConditionType, BrowseNames.Retain);
+                eventFilter.SelectClauses.Add(selectClause);
+                internalSelectClauses.Add(selectClause);
+            }
+            return conditionHandlingState;
+        }
+
+        /// <summary>
         /// Builds select clause and where clause by using OPC UA reflection
         /// </summary>
         /// <param name="nodeCache"></param>
+        /// <param name="typeTree"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        private EventFilter GetSimpleEventFilter(INodeCache nodeCache, IServiceMessageContext context) {
+        private EventFilter GetSimpleEventFilter(INodeCache nodeCache, ITypeTable typeTree, IServiceMessageContext context) {
             var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(context);
             var nodes = new List<Node>();
             ExpandedNodeId superType = null;
             nodes.Insert(0, nodeCache.FetchNode(typeDefinitionId));
             do {
-                superType = nodes[0].GetSuperType(nodeCache.TypeTree);
+                superType = nodes[0].GetSuperType(typeTree);
                 if (superType != null) {
                     nodes.Insert(0, nodeCache.FetchNode(superType));
                 }
@@ -594,7 +600,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var fieldNames = new List<QualifiedName>();
 
             foreach (var node in nodes) {
-                ParseFields(nodeCache, fieldNames, node);
+                ParseFields(nodeCache, typeTree, fieldNames, node);
             }
             fieldNames = fieldNames
                 .Distinct()
@@ -633,31 +639,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="message"></param>
         /// <param name="notification"></param>
         public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message, EventFieldList notification) {
-            var pendingAlarmsOptions = EventTemplate?.PendingAlarms;
             var evFilter = Item.Filter as EventFilter;
+
             var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
                 evFilter?.SelectClauses
                     .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
                         && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
+
+
+            ConditionHandlingState state;
+            lock (_lock) {
+                state = _conditionHandlingState;
+            }
 
             // now, is this a regular event or RefreshStartEventType/RefreshEndEventType?
             if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1) {
                 var eventType = notification.EventFields[eventTypeIndex.Value].Value as NodeId;
                 if (eventType == ObjectTypeIds.RefreshStartEventType) {
                     // stop the timers during condition refresh
-                    if (pendingAlarmsOptions?.IsEnabled == true) {
-                        _pendingAlarmsTimer.Stop();
+                    if (state != null) {
+                        _conditionTimer.Stop();
                         lock (_lock) {
-                            PendingAlarmEvents.Clear();
+                            state.Active.Clear();
                         }
                         _logger.Debug("{item}: Stopped pending alarm handling during condition refresh.", this);
                     }
                     return;
                 }
                 else if (eventType == ObjectTypeIds.RefreshEndEventType) {
-                    if (pendingAlarmsOptions?.IsEnabled == true) {
+                    if (state != null) {
                         // restart the timers once condition refresh is done.
-                        _pendingAlarmsTimer.Start();
+                        _conditionTimer.Start();
                         _logger.Debug("{item}: Restarted pending alarm handling after condition refresh.", this);
                     }
                     return;
@@ -693,34 +705,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
-            var monitoredItemNotification = notification.ToMonitoredItemNotification(Item);
-            if (message == null) {
-                return;
-            }
-            var values = monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) as EncodeableDictionary;
-            if (pendingAlarmsOptions?.IsEnabled == true && values != null) {
-                if (pendingAlarmsOptions.ConditionIdIndex.HasValue && pendingAlarmsOptions.RetainIndex.HasValue) {
-                    var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
-                    var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue(false);
+            var monitoredItemNotifications = notification.ToMonitoredItemNotifications(Item).ToList();
+            if (state != null) {
+                // Cache conditions
+                var conditionId = monitoredItemNotifications[state.ConditionIdIndex].Value.Value?.ToString();
+                if (conditionId != null) {
+                    var retain = monitoredItemNotifications[state.RetainIndex].Value.GetValue(false);
                     lock (_lock) {
-                        if (PendingAlarmEvents.ContainsKey(conditionId) && !retain) {
-                            PendingAlarmEvents.Remove(conditionId, out var monitoredItemNotificationModel);
-                            pendingAlarmsOptions.Dirty = true;
+                        if (state.Active.ContainsKey(conditionId) && !retain) {
+                            state.Active.Remove(conditionId, out _);
+                            state.Dirty = true;
                         }
                         else if (retain) {
-                            pendingAlarmsOptions.Dirty = true;
-                            PendingAlarmEvents.AddOrUpdate(conditionId, monitoredItemNotification);
+                            state.Dirty = true;
+                            state.Active.AddOrUpdate(conditionId, monitoredItemNotifications);
                         }
                     }
                 }
             }
             else {
-                message.Notifications?.Add(monitoredItemNotification);
+                // Send notifications as event
+                message.Notifications?.AddRange(monitoredItemNotifications.Where(n => n.DataSetFieldName != null));
             }
         }
 
         private void TestWhereClause(IServiceMessageContext messageContext,
-            INodeCache nodeCache, EventFilter eventFilter) {
+            INodeCache nodeCache, ITypeTable typeTree, EventFilter eventFilter) {
             foreach (var element in eventFilter.WhereClause.Elements) {
                 if (element.FilterOperator == FilterOperator.OfType) {
                     foreach (var filterOperand in element.FilterOperands) {
@@ -738,24 +748,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
         }
 
-        private void OnPendingAlarmsTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
+        private void OnConditionTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
             var now = DateTime.UtcNow;
-            var pendingAlarmsOptions = EventTemplate.PendingAlarms;
-            if (pendingAlarmsOptions?.IsEnabled == true) {
+            ConditionHandlingState state;
+            lock (_lock) {
+                state = _conditionHandlingState;
+            }
+            if (state != null) {
                 try {
+                    if (!Item.Created) {
+                        return;
+                    }
+                    var options = EventTemplate.ConditionHandling;
+                    var sendPendingConditions = false;
+
                     // is it time to send anything?
-                    if (Item.Created &&
-                        (now > (_lastSentPendingAlarms + (pendingAlarmsOptions.SnapshotIntervalTimespan ?? TimeSpan.MaxValue))) ||
-                            ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) && pendingAlarmsOptions.Dirty)) {
-                        SendPendingAlarms();
-                        _lastSentPendingAlarms = now;
+                    if (options?.SnapshotInterval != null) {
+                        sendPendingConditions = now >
+                            _lastSentPendingConditions + TimeSpan.FromSeconds(options.SnapshotInterval.Value);
+                    }
+                    if (!sendPendingConditions && state.Dirty && options?.UpdateInterval != null) {
+                        sendPendingConditions = now >
+                            _lastSentPendingConditions + TimeSpan.FromSeconds(options.UpdateInterval.Value);
+                    }
+                    if (sendPendingConditions) {
+                        SendPendingConditions();
+                        _lastSentPendingConditions = now;
                     }
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "{item}: SendPendingAlarms failed.", this);
+                    _logger.Error(ex, "{item}: SendPendingConditions failed.", this);
                 }
                 finally {
-                    _pendingAlarmsTimer.Start();
+                    _conditionTimer.Start();
                 }
             }
         }
@@ -763,30 +788,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Send pending alarms
         /// </summary>
-        private void SendPendingAlarms() {
-            ExtensionObject[] notifications = null;
-            uint sequenceNumber;
+        private void SendPendingConditions() {
+            List<List<MonitoredItemNotificationModel>> notifications = null;
             lock (_lock) {
-                notifications = PendingAlarmEvents.Values
-                    .Select(x => x.Value.Value)
-                    .OfType<ExtensionObject>()
-                    .ToArray();
-                sequenceNumber = ++_pendingAlarmsSequenceNumber;
-                EventTemplate.PendingAlarms.Dirty = false;
+                if (_conditionHandlingState == null) {
+                    return;
+                }
+                notifications = _conditionHandlingState.Active
+                    .Select(entry => entry.Value
+                        .Where(n => n.DataSetFieldName != null)
+                        .Select(n => n.Clone())
+                        .ToList())
+                    .ToList();
+                _conditionHandlingState.Dirty = false;
             }
-
             if (Item.Subscription?.Handle is SubscriptionServices.SubscriptionWrapper subscription) {
-                var pendingAlarmsNotification = new MonitoredItemNotificationModel {
-                    DataSetFieldName = Template?.DataSetFieldName,
-                    Id = Template?.Id,
-                    AttributeId = Item.AttributeId,
-                    DisplayName = Item.DisplayName,
-                    IsHeartbeat = false,
-                    SequenceNumber = sequenceNumber,
-                    NodeId = Item.StartNodeId.ToString(),
-                    Value = new DataValue(notifications)
-                };
-                subscription.SendEventNotification(Item.Subscription, pendingAlarmsNotification);
+                foreach (var pendingAlarm in notifications) {
+                    subscription.SendConditionNotification(Item.Subscription, pendingAlarm);
+                }
             }
         }
 
@@ -795,15 +814,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="messageContext"></param>
         /// <param name="nodeCache"></param>
+        /// <param name="typeTree"></param>
         /// <param name="fields"></param>
         /// <param name="dataTypes"></param>
-        private void GetDataMetadata(IServiceMessageContext messageContext, INodeCache nodeCache,
+        private void GetDataMetadata(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
             FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
             var nodeId = Template.StartNodeId.ToExpandedNodeId(messageContext);
             try {
                 var variable = nodeCache.FetchNode(nodeId) as VariableNode;
                 if (variable != null) {
-                    AddVariableField(fields, dataTypes, nodeCache, variable,
+                    AddVariableField(fields, dataTypes, nodeCache, typeTree, variable,
                         Template.DataSetFieldName, (Uuid)DataSetFieldId);
                 }
             }
@@ -819,11 +839,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="fields"></param>
         /// <param name="dataTypes"></param>
         /// <param name="nodeCache"></param>
+        /// <param name="typeTree"></param>
         /// <param name="variable"></param>
         /// <param name="fieldName"></param>
         /// <param name="dataSetClassFieldId"></param>
         private void AddVariableField(FieldMetaDataCollection fields,
-            NodeIdDictionary<DataTypeDescription> dataTypes, INodeCache nodeCache,
+            NodeIdDictionary<DataTypeDescription> dataTypes, INodeCache nodeCache, ITypeTable typeTree,
             VariableNode variable, string fieldName, Uuid dataSetClassFieldId) {
             var builtInType = TypeInfo.GetBuiltInType(variable.DataType, nodeCache.TypeTree);
             fields.Add(new FieldMetaData {
@@ -839,7 +860,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 Properties = null, // TODO: Add engineering units etc. to properties
                 BuiltInType = (byte)builtInType
             });
-            AddDataTypes(dataTypes, variable.DataType, nodeCache);
+            AddDataTypes(dataTypes, variable.DataType, nodeCache, typeTree);
         }
 
         /// <summary>
@@ -847,10 +868,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="eventFilter"></param>
         /// <param name="nodeCache"></param>
+        /// <param name="typeTree"></param>
         /// <param name="fields"></param>
         /// <param name="dataTypes"></param>
         /// <returns></returns>
-        private void GetEventMetadata(EventFilter eventFilter, INodeCache nodeCache,
+        private void GetEventMetadata(EventFilter eventFilter, INodeCache nodeCache, ITypeTable typeTree,
             FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
             Debug.Assert(Fields.Count == eventFilter.SelectClauses.Count);
             for (var i = 0; i < eventFilter.SelectClauses.Count; i++) {
@@ -860,43 +882,53 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     continue;
                 }
                 var dataSetClassFieldId = (Uuid)Fields[i].DataSetFieldId;
-                var typeDefinition = nodeCache.FetchNode(selectClause.TypeDefinitionId);
-                if (typeDefinition != null) {
-                    var targetNode = nodeCache.BuildBrowsePath(typeDefinition, selectClause.BrowsePath);
-                    if (!NodeId.IsNull(targetNode)) {
-                        var variable = nodeCache.FetchNode(selectClause.TypeDefinitionId) as VariableNode;
-                        if (variable != null) {
-                            AddVariableField(fields, dataTypes, nodeCache, variable, fieldName, dataSetClassFieldId);
-                            continue;
-                        }
-                    }
+                var targetNode = FindNodeWithBrowsePath(nodeCache, typeTree, selectClause.BrowsePath, selectClause.TypeDefinitionId);
+                if (targetNode is VariableNode variable) {
+                    AddVariableField(fields, dataTypes, nodeCache, typeTree, variable, fieldName, dataSetClassFieldId);
                 }
-                fields.Add(new FieldMetaData {
-                    Name = fieldName,
-                    DataSetFieldId = dataSetClassFieldId,
-                });
+                else {
+                    fields.Add(new FieldMetaData {
+                        Name = fieldName,
+                        DataSetFieldId = dataSetClassFieldId,
+                    });
+                }
             }
         }
 
-        /// <summary>
-        /// Fake meta data for pending alarms
-        /// </summary>
-        /// <param name="nodeCache"></param>
-        /// <param name="fields"></param>
-        /// <param name="dataTypes"></param>
-        /// <returns></returns>
-        private void GetPendingAlarmsMetadata(INodeCache nodeCache,
-            FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
-            var dataType = TypeInfo.GetDataTypeId(typeof(EncodeableDictionary));
-            fields.Add(new FieldMetaData {
-                Name = Template.DataSetFieldName,
-                DataSetFieldId = (Uuid)DataSetFieldId,
-                DataType = dataType,
-                Description = "Pending Alarms",
-                ValueRank = ValueRanks.Scalar,
-                BuiltInType = (byte)BuiltInType.ExtensionObject
-            });
-            // AddDataTypes(dataTypes, dataType, nodeCache);
+        private static INode FindNodeWithBrowsePath(INodeCache nodeCache, ITypeTable typeTree,
+            QualifiedNameCollection browsePath, ExpandedNodeId nodeId) {
+
+            INode found = null;
+            foreach (var browseName in browsePath) {
+                found = null;
+                while (found == null) {
+                    found = nodeCache.Find(nodeId);
+                    if (!(found is Node node)) {
+                        return null;
+                    }
+
+                    // Get all hierarchical references of the node and match browse name
+                    foreach (var reference in node.ReferenceTable.Find(ReferenceTypeIds.HierarchicalReferences, false, true, typeTree)) {
+                        var target = nodeCache.Find(reference.TargetId);
+                        if (target?.BrowseName == browseName) {
+                            nodeId = target.NodeId;
+                            found = target;
+                            break;
+                        }
+                    }
+
+                    if (found == null) {
+                        // Try super type
+                        nodeId = typeTree.FindSuperType(nodeId);
+                        if (NodeId.IsNull(nodeId)) {
+                            // Nothing can be found since there is no more super type
+                            return null;
+                        }
+                    }
+                }
+                nodeId = found.NodeId;
+            }
+            return found;
         }
 
         /// <summary>
@@ -905,8 +937,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="dataTypes"></param>
         /// <param name="dataTypeId"></param>
         /// <param name="nodeCache"></param>
+        /// <param name="typeTree"></param>
         private void AddDataTypes(NodeIdDictionary<DataTypeDescription> dataTypes, NodeId dataTypeId,
-            INodeCache nodeCache) {
+            INodeCache nodeCache, ITypeTable typeTree) {
             var baseType = dataTypeId;
             while (!NodeId.IsNull(baseType)) {
                 try {
@@ -926,8 +959,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
 
-                    var builtInType = TypeInfo.GetBuiltInType(dataTypeId, nodeCache.TypeTree);
-                    baseType = nodeCache.TypeTree.FindSuperType(dataTypeId);
+                    var builtInType = TypeInfo.GetBuiltInType(dataTypeId, typeTree);
+                    baseType = typeTree.FindSuperType(dataTypeId);
 
                     if (!dataTypes.ContainsKey(dataType.NodeId)) {
                         switch (builtInType) {
@@ -970,17 +1003,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Get all the fields of a type definition node to build the select clause.
         /// </summary>
         /// <param name="nodeCache"></param>
+        /// <param name="typeTree"></param>
         /// <param name="fieldNames"></param>
         /// <param name="node"></param>
         /// <param name="browsePathPrefix"></param>
-        private void ParseFields(INodeCache nodeCache, List<QualifiedName> fieldNames, Node node, string browsePathPrefix = "") {
+        private void ParseFields(INodeCache nodeCache, ITypeTable typeTree, List<QualifiedName> fieldNames,
+            Node node, string browsePathPrefix = "") {
             foreach (var reference in node.ReferenceTable) {
                 if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent && !reference.IsInverse) {
                     var componentNode = nodeCache.FetchNode(reference.TargetId);
                     if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable) {
                         var fieldName = $"{browsePathPrefix}{componentNode.BrowseName.Name}";
                         fieldNames.Add(new QualifiedName(fieldName, componentNode.BrowseName.NamespaceIndex));
-                        ParseFields(nodeCache, fieldNames, componentNode, $"{fieldName}|");
+                        ParseFields(nodeCache, typeTree, fieldNames, componentNode, $"{fieldName}|");
                     }
                 }
                 else if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty) {
@@ -1027,10 +1062,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Unconfigured, // Configuration not applied yet
         }
 
+        private sealed class ConditionHandlingState {
+
+            /// <summary>
+            /// Index in the SelectClause array for Condition id field
+            /// </summary>
+            public int ConditionIdIndex { get; set; }
+
+            /// <summary>
+            /// Index in the SelectClause array for Retain field
+            /// </summary>
+            public int RetainIndex { get; set; }
+
+            /// <summary>
+            /// Has the pending alarms events been updated since las update message?
+            /// </summary>
+            public bool Dirty { get; set; }
+
+            /// <summary>
+            /// Cache of the latest events for the pending alarms optionally monitored
+            /// </summary>
+            public Dictionary<string, List<MonitoredItemNotificationModel>> Active { get; }
+                = new Dictionary<string, List<MonitoredItemNotificationModel>>();
+        }
+
+        private ConditionHandlingState _conditionHandlingState;
         private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
-        private Timer _pendingAlarmsTimer;
-        private DateTime _lastSentPendingAlarms = DateTime.UtcNow;
-        private uint _pendingAlarmsSequenceNumber;
+        private Timer _conditionTimer;
+        private DateTime _lastSentPendingConditions = DateTime.UtcNow;
         private HashSet<uint> _newTriggers = new HashSet<uint>();
         private HashSet<uint> _triggers = new HashSet<uint>();
         private Publisher.Models.MonitoringMode? _modeChange;
