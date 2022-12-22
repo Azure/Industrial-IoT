@@ -13,15 +13,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public enum MessageEncoding {
 
         /// <summary>
-        /// Json encoding
+        /// Json non-reversible encoding
         /// </summary>
         [EnumMember]
         Json,
 
         /// <summary>
-        /// Uadp encoding
+        /// Json non-reversible encoding
         /// </summary>
         [EnumMember]
-        Uadp
+        JsonNonReversible = Json,
+
+        /// <summary>
+        /// Uadp or Binary encoding
+        /// </summary>
+        [EnumMember]
+        Uadp,
+
+        /// <summary>
+        /// Binary encoding
+        /// </summary>
+        [EnumMember]
+        Binary = Uadp,
+
+        /// <summary>
+        /// Json reversible encoding
+        /// </summary>
+        [EnumMember]
+        JsonReversible,
     }
 }

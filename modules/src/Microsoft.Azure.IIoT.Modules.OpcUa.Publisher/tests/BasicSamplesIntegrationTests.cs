@@ -129,7 +129,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         [Fact]
         public async Task CanSendDataItemToIoTHubTestWithDeviceMethod() {
             var testInput = GetEndpointsFromFile(@"./PublishedNodes/DataItems.json");
-            await StartPublisherAsync(arguments: new string[] { "--fm=True" });
+            await StartPublisherAsync(arguments: new string[] { "--mm=FullSamples" }); // Alternative to --fm=True
             try {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
                 Assert.Empty(endpoints.Endpoints);

@@ -608,6 +608,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 if (0 != (message & DataSetContentMask.MessageType)) {
                     result |= UaMonitoredItemMessageContentMask.MessageType;
                 }
+                if (0 != (message & DataSetContentMask.ReversibleFieldEncoding)) {
+                    result |= UaMonitoredItemMessageContentMask.ReversibleFieldEncoding;
+                }
             }
             return (uint)result;
         }
@@ -677,17 +680,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             if (0 != (mask & NetworkMessageContentMask.DataSetClassId)) {
                 result |= JsonNetworkMessageContentMask.DataSetClassId;
             }
+            if (0 != (mask & NetworkMessageContentMask.ReplyTo)) {
+                result |= JsonNetworkMessageContentMask.ReplyTo;
+            }
             if (0 != (mask & NetworkMessageContentMask.NetworkMessageHeader)) {
                 result |= JsonNetworkMessageContentMask.NetworkMessageHeader;
+            }
+            else {
+                // If not set, bits 3, 4 and 5 can also not be set
+                result = JsonNetworkMessageContentMask.None;
             }
             if (0 != (mask & NetworkMessageContentMask.DataSetMessageHeader)) {
                 result |= JsonNetworkMessageContentMask.DataSetMessageHeader;
             }
             if (0 != (mask & NetworkMessageContentMask.SingleDataSetMessage)) {
                 result |= JsonNetworkMessageContentMask.SingleDataSetMessage;
-            }
-            if (0 != (mask & NetworkMessageContentMask.ReplyTo)) {
-                result |= JsonNetworkMessageContentMask.ReplyTo;
             }
             return result;
         }

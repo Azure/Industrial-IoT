@@ -226,7 +226,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { $"me|messageencoding=|{StandaloneCliConfigKeys.MessageEncoding}=", "The message encoding for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessageEncoding)))}).",
                         (MessageEncoding m) => this[StandaloneCliConfigKeys.MessageEncoding] = m.ToString() },
-                    { $"s|strict|{StandaloneCliConfigKeys.UseStandardsCompliantEncoding}=", "Use strict UA compliant encodings. Default is false.",
+                    { $"ua|strict|{StandaloneCliConfigKeys.UseStandardsCompliantEncoding}=", "Use strict UA compliant encodings. Default is 'false' for backwards compatibility.",
                         (bool b) => this[StandaloneCliConfigKeys.UseStandardsCompliantEncoding] = b.ToString() },
                     { $"lc|legacycompatibility=|{StandaloneCliConfigKeys.LegacyCompatibility}=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
                         "Default is 'false'.",
@@ -300,6 +300,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 foreach (var option in legacyOptions) {
                     Warning("Legacy option {option} not supported, please use -h option to get all the supported options.", option);
                 }
+            }
+
+            if (!MessagingProfile.IsSupported(StandaloneCliModel.MessagingMode, StandaloneCliModel.MessageEncoding, StandaloneCliModel.FullFeaturedMessage)) {
+                Warning("The specified combination of --mm, --me, and --fm is not (yet) supported. Currently supported combinations for --mm and --me are: {MessageProfiles).",
+                    MessagingProfile.SupportedCombinations);
+                Exit(170);
             }
 
             if (showHelp) {

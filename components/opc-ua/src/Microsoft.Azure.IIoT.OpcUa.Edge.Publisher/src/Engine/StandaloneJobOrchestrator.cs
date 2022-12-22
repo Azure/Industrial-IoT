@@ -481,7 +481,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
         }
 
-        private JobProcessingInstructionModel ToJobProcessingInstructionModel (WriterGroupJobModel job){
+        private JobProcessingInstructionModel ToJobProcessingInstructionModel(WriterGroupJobModel job){
             if (job == null) {
                 return null;
             }

@@ -205,19 +205,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             WriterGroupId = dataSetBatches.First.Source.Connection.Group,
                             DataSetWriters = dataSetBatches.Items.Select(dataSet => new DataSetWriterModel {
                                 DataSetWriterName = GetUniqueWriterName(dataSetBatches.Items, dataSet.Source),
-                                DataSetMetaDataSendInterval = standaloneCliModel.MessagingMode == MessagingMode.Samples ? null :
+                                DataSetMetaDataSendInterval = !GetMessagingProfile(standaloneCliModel).SupportsMetadata ? null :
                                     dataSetBatches.First.Header.DataSetMetaDataSendInterval ?? standaloneCliModel.DefaultMetaDataSendInterval,
-                                KeyFrameCount = standaloneCliModel.MessagingMode == MessagingMode.Samples ? null :
+                                KeyFrameCount = !GetMessagingProfile(standaloneCliModel).SupportsKeyFrames ? null :
                                     dataSetBatches.First.Header.DataSetKeyFrameCount ?? standaloneCliModel.DefaultKeyFrameCount,
-                                KeyFrameInterval = standaloneCliModel.MessagingMode == MessagingMode.Samples ? null :
+                                KeyFrameInterval = !GetMessagingProfile(standaloneCliModel).SupportsKeyFrames ? null :
                                     dataSetBatches.First.Header.DataSetKeyFrameInterval ?? standaloneCliModel.DefaultKeyFrameInterval,
                                 DataSet = new PublishedDataSetModel {
                                     Name = null,
-                                    DataSetMetaData = standaloneCliModel.MessagingMode == MessagingMode.Samples ? null : new DataSetMetaDataModel {
-                                        DataSetClassId = dataSetBatches.First.Header.DataSetClassId,
-                                        Description = dataSetBatches.First.Header.DataSetDescription,
-                                        Name = dataSetBatches.First.Header.DataSetName
-                                    },
+                                    DataSetMetaData = !GetMessagingProfile(standaloneCliModel).SupportsMetadata ? null :
+                                        new DataSetMetaDataModel {
+                                            DataSetClassId = dataSetBatches.First.Header.DataSetClassId,
+                                            Description = dataSetBatches.First.Header.DataSetDescription,
+                                            Name = dataSetBatches.First.Header.DataSetName
+                                        },
                                     ExtensionFields = null, // TODO: Add extension information from configuration
                                     DataSetSource = new PublishedDataSetSourceModel {
                                         Connection = new ConnectionModel {
@@ -232,38 +233,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         SubscriptionSettings = dataSet.Source.SubscriptionSettings.Clone(),
                                     },
                                 },
-                                DataSetFieldContentMask =
-                                        DataSetFieldContentMask.StatusCode |
-                                        DataSetFieldContentMask.SourceTimestamp |
-                                        (standaloneCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ServerTimestamp : 0) |
-                                        DataSetFieldContentMask.NodeId |
-                                        DataSetFieldContentMask.DisplayName |
-                                        (standaloneCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ApplicationUri : 0) |
-                                        DataSetFieldContentMask.EndpointUrl |
-                                        (standaloneCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ExtensionFields : 0),
+                                DataSetFieldContentMask = GetMessagingProfile(standaloneCliModel).DataSetFieldContentMask,
                                 MessageSettings = new DataSetWriterMessageSettingsModel() {
-                                    DataSetMessageContentMask =
-                                        (standaloneCliModel.FullFeaturedMessage ? DataSetContentMask.Timestamp : 0) |
-                                        DataSetContentMask.MetaDataVersion |
-                                        (standaloneCliModel.FullFeaturedMessage ? DataSetContentMask.DataSetWriterId : 0) |
-                                        DataSetContentMask.DataSetWriterName |
-                                        DataSetContentMask.MessageType |
-                                        DataSetContentMask.MajorVersion |
-                                        DataSetContentMask.MinorVersion |
-                                        (standaloneCliModel.FullFeaturedMessage ? DataSetContentMask.SequenceNumber : 0)
+                                    DataSetMessageContentMask = GetMessagingProfile(standaloneCliModel).DataSetMessageContentMask
                                 }
                             }).ToList(),
                             MessageSettings = new WriterGroupMessageSettingsModel() {
-                                NetworkMessageContentMask =
-                                    NetworkMessageContentMask.PublisherId |
-                                    NetworkMessageContentMask.WriterGroupId |
-                                    NetworkMessageContentMask.NetworkMessageNumber |
-                                    NetworkMessageContentMask.SequenceNumber |
-                                    NetworkMessageContentMask.PayloadHeader |
-                                    NetworkMessageContentMask.Timestamp |
-                                    NetworkMessageContentMask.DataSetClassId |
-                                    NetworkMessageContentMask.NetworkMessageHeader |
-                                    NetworkMessageContentMask.DataSetMessageHeader
+                                NetworkMessageContentMask = GetMessagingProfile(standaloneCliModel).NetworkMessageContentMask
                             }
                         }
                     });
@@ -293,6 +269,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 sw.Stop();
             }
             return Enumerable.Empty<WriterGroupJobModel>();
+        }
+
+        private static MessagingProfile GetMessagingProfile(StandaloneCliModel standaloneCliModel) {
+            return MessagingProfile.Get(
+                                                    standaloneCliModel.MessagingMode, standaloneCliModel.MessageEncoding,
+                                                    standaloneCliModel.FullFeaturedMessage);
         }
 
         /// <summary>
