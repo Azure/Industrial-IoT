@@ -277,7 +277,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(DeviceId, ModuleId, e);
                 Assert.Equal(1, nodes.OpcNodes.Count);
 
-                var messages = WaitForMessages();
+                var messages = WaitForMessages(GetDataFrame);
                 var message = Assert.Single(messages);
                 Assert.Equal("ns=21;i=1259", message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.GetProperty("Value").GetProperty("Value").GetDouble(),
@@ -347,6 +347,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             finally {
                 StopPublisher();
             }
+        }
+
+        private JsonElement GetDataFrame(JsonElement jsonElement) {
+            return jsonElement.GetProperty("NodeId").GetString() != "i=2253"
+                    ? jsonElement : default;
         }
 
         private static JsonElement GetAlarmCondition(JsonElement jsonElement) {

@@ -2498,8 +2498,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal("ns=2;i=235", eventModel.TypeDefinitionId);
             Assert.NotNull(eventModel.ConditionHandling);
-            Assert.Equal(10000, eventModel.ConditionHandling.UpdateInterval);
-            Assert.Equal(20000, eventModel.ConditionHandling.SnapshotInterval);
+            Assert.Equal(10, eventModel.ConditionHandling.UpdateInterval);
+            Assert.Equal(30, eventModel.ConditionHandling.SnapshotInterval);
         }
 
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
