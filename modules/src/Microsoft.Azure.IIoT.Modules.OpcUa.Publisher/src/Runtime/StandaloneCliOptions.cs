@@ -226,6 +226,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { $"me|messageencoding=|{StandaloneCliConfigKeys.MessageEncoding}=", "The message encoding for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessageEncoding)))}).",
                         (MessageEncoding m) => this[StandaloneCliConfigKeys.MessageEncoding] = m.ToString() },
+                    { $"s|strict|{StandaloneCliConfigKeys.UseStandardsCompliantEncoding}=", "Use strict UA compliant encodings. Default is false.",
+                        (bool b) => this[StandaloneCliConfigKeys.UseStandardsCompliantEncoding] = b.ToString() },
                     { $"lc|legacycompatibility=|{StandaloneCliConfigKeys.LegacyCompatibility}=", "Run the publisher in legacy (2.5.x) compatibility mode. " +
                         "Default is 'false'.",
                         (bool b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b.ToString() },
@@ -233,8 +235,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.RuntimeStateReporting] = b.ToString()},
                     { $"ri|enableroutinginfo=|{StandaloneCliConfigKeys.EnableRoutingInfo}=", "Enable adding routing info to telemetry. By default this is disabled.",
                         (bool b) => this[StandaloneCliConfigKeys.EnableRoutingInfo] = b.ToString() },
-                    { $"re|reversibleencoding|{StandaloneCliConfigKeys.UseReversibleEncoding}=", "Use reversible encoding in JSON encoders. Default is false.",
-                        (bool b) => this[StandaloneCliConfigKeys.UseReversibleEncoding] = b.ToString() },
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
@@ -354,12 +354,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public int? MaxOutgressMessages => StandaloneCliModel.MaxOutgressMessages;
 
         /// <summary>
-        /// Flag to use reversible encoding for messages
+        /// Flag to use strict UA compliant encoding for messages
         /// </summary>
-        public bool? UseReversibleEncoding => StandaloneCliModel.UseReversibleEncoding;
+        public bool UseStandardsCompliantEncoding => StandaloneCliModel.UseStandardsCompliantEncoding;
 
         /// <inheritdoc/>
-        public bool? EnableRoutingInfo => StandaloneCliModel.EnableRoutingInfo;
+        public bool EnableRoutingInfo => StandaloneCliModel.EnableRoutingInfo;
 
         /// <inheritdoc/>
         public bool EnableRuntimeStateReporting { get => StandaloneCliModel.EnableRuntimeStateReporting; }
@@ -453,7 +453,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.LegacyCompatibility = GetValueOrDefault(StandaloneCliConfigKeys.LegacyCompatibility, model.LegacyCompatibility);
             model.EnableRuntimeStateReporting = GetValueOrDefault(StandaloneCliConfigKeys.RuntimeStateReporting, model.EnableRuntimeStateReporting);
             model.EnableRoutingInfo = GetValueOrDefault(StandaloneCliConfigKeys.EnableRoutingInfo, model.EnableRoutingInfo);
-            model.UseReversibleEncoding = GetValueOrDefault(StandaloneCliConfigKeys.UseReversibleEncoding, model.UseReversibleEncoding);
+            model.UseStandardsCompliantEncoding = GetValueOrDefault(StandaloneCliConfigKeys.UseStandardsCompliantEncoding, model.UseStandardsCompliantEncoding);
             return model;
         }
 

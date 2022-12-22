@@ -14,10 +14,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class DataSetWriterApiModel {
 
         /// <summary>
-        /// Dataset writer name
+        /// Dataset writer name. 
         /// </summary>
-        [DataMember(Name = "dataSetWriterId", Order = 0)]
-        public string DataSetWriterId { get; set; }
+        [DataMember(Name = "dataSetWriterId", Order = 0)] // Do not change for backcompat with database schema
+        public string DataSetWriterName { get; set; }
 
         /// <summary>
         /// Published dataset inline definition

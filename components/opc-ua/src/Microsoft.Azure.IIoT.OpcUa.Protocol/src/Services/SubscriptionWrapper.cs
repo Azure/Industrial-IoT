@@ -28,7 +28,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         internal sealed class SubscriptionWrapper : ISubscription {
 
             /// <inheritdoc/>
-            public string Id => _subscription.Id;
+            public string Name => _subscription.Id;
+
+            /// <inheritdoc/>
+            public ushort Id { get; }
 
             /// <inheritdoc/>
             public bool Enabled { get; private set; }
@@ -91,6 +94,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger = logger?.ForContext<SubscriptionWrapper>() ??
                     throw new ArgumentNullException(nameof(logger));
                 _lock = new SemaphoreSlim(1, 1);
+
+                while (Id == 0) {
+                    Id = (ushort)Interlocked.Increment(ref _lastIndex);
+                }
             }
 
             /// <inheritdoc/>
@@ -122,34 +129,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         var subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
                         if (subscription != null) {
                             _logger.Information("Closing subscription '{subscription}' in session '{sessionId}'...",
-                                Id,
+                                Name,
                                 Connection.CreateConnectionId());
                             Try.Op(() => subscription.PublishingEnabled = false);
                             Try.Op(() => subscription.ApplyChanges());
                             Try.Op(() => subscription.DeleteItems());
                             _logger.Debug("Deleted monitored items for '{subscription}'/'{sessionId}'",
-                                Id,
+                                Name,
                                 Connection.CreateConnectionId());
                             Try.Op(() => session.RemoveSubscription(subscription));
                             _logger.Information("Subscription '{subscription}' in session '{sessionId}' successfully closed (Remaining: {Remaining}).",
-                                Id,
+                                Name,
                                 Connection.CreateConnectionId(), session.Subscriptions.Count());
                         }
                         else {
                             _logger.Warning("Failed to close subscription '{subscription}'. Subscription was not found in session '{sessionId}'.",
-                                Id,
+                                Name,
                                 Connection.CreateConnectionId());
                         }
                     }
                     else {
                         _logger.Warning("Failed to close subscription '{subscription}'. The attached session '{sessionId}' could not be found.",
-                                Id,
+                                Name,
                                 Connection.CreateConnectionId());
                     }
                 }
                 catch (Exception e) {
                     _logger.Error(e, "Failed to close subscription '{subscription}'/'{sessionId}'",
-                        Id,
+                        Name,
                         Connection.CreateConnectionId());
                 }
             }
@@ -175,7 +182,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ApplicationUri = subscription.Session.Endpoint.Server.ApplicationUri,
                         EndpointUrl = subscription.Session.Endpoint.EndpointUrl,
                         MetaData = _currentMetaData,
-                        SubscriptionName = Id,
+                        SubscriptionName = Name,
+                        SubscriptionId = Id,
                         MessageType = withNotifications ?
                             Opc.Ua.PubSub.MessageType.KeyFrame : Opc.Ua.PubSub.MessageType.KeepAlive,
                         Notifications = !withNotifications ? null : subscription.MonitoredItems
@@ -281,7 +289,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     ServiceMessageContext = subscription?.Session?.MessageContext,
                     ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
                     EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
-                    SubscriptionName = Id,
+                    SubscriptionName = Name,
+                    SubscriptionId = Id,
                     MessageType = Opc.Ua.PubSub.MessageType.Condition,
                     MetaData = _currentMetaData,
                     Timestamp = DateTime.UtcNow,
@@ -392,7 +401,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         // Remove monitored items not in desired state
                         _logger.Verbose("Remove monitored items in subscription "
                             + "'{subscription}'/'{sessionId}'...",
-                            Id,
+                            Name,
                             Connection.CreateConnectionId());
                         foreach (var toRemove in toCleanupList) {
                             _logger.Verbose("Removing monitored item '{item}'...",
@@ -404,7 +413,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         _logger.Information("Removed {count} monitored items in subscription "
                             + "'{subscription}'/'{sessionId}'",
                             count,
-                            Id,
+                            Name,
                             Connection.CreateConnectionId());
                     }
                     _currentlyMonitored = null;
@@ -416,7 +425,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         _logger.Warning("Failed to remove {count} monitored items from subscription "
                             + "'{subscription}'/'{sessionId}'",
                             rawSubscription.MonitoredItemCount,
-                            Id,
+                            Name,
                             Connection.CreateConnectionId());
                     }
                     return noErrorFound;
@@ -446,7 +455,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _logger.Information("Removed {count} monitored items from subscription "
                         + "'{subscription}'/'{sessionId}'",
                         count,
-                        Id,
+                        Name,
                         Connection.CreateConnectionId());
                 }
 
@@ -457,7 +466,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _logger.Information("Removed {count} detached monitored items from subscription "
                         + "'{subscription}'/'{sessionId}'",
                         toRemoveDetached.Count(),
-                        Id,
+                        Name,
                         Connection.CreateConnectionId());
                 }
 
@@ -467,7 +476,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     count = 0;
                     // Add new monitored items not in current state
                     _logger.Verbose("Add monitored items to subscription '{subscription}'/'{sessionId}'...",
-                        Id,
+                        Name,
                         Connection.CreateConnectionId());
                     foreach (var toAdd in toAddList) {
                         // Create monitored item
@@ -501,7 +510,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _logger.Information("Added {count} monitored items to subscription "
                         + "'{subscription}'/'{sessionId}'",
                         count,
-                        Id,
+                        Name,
                         Connection.CreateConnectionId());
                 }
 
@@ -526,7 +535,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _logger.Information("Updated {count} monitored items in subscription "
                         + "'{subscription}'/'{sessionId}'",
                         count,
-                        Id,
+                        Name,
                         Connection.CreateConnectionId());
                 }
 
@@ -560,7 +569,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _logger.Warning("Error monitoring node {id} due to {code} in subscription "
                                 + "'{subscription}'/'{sessionId}'", monitoredItem.Item.StartNodeId,
                                 monitoredItem.Item.Status.Error.StatusCode,
-                                Id,
+                                Name,
                                 Connection.CreateConnectionId());
                             monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
                             noErrorFound = false;
@@ -573,7 +582,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _logger.Information("Now monitoring {count} nodes in subscription "
                         + "'{subscription}'/'{sessionId}'",
                         count,
-                        Id,
+                        Name,
                         Connection.CreateConnectionId());
 
                     if (_currentlyMonitored.Count != rawSubscription.MonitoredItemCount) {
@@ -613,7 +622,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     _logger.Information("Metadata changed to {major}.{minor} for subscription"
                         + "'{subscription}'/'{sessionId}'",
-                        major, minor, Id, Connection.CreateConnectionId());
+                        major, minor, Name, Connection.CreateConnectionId());
                     var dataTypes = new NodeIdDictionary<DataTypeDescription>();
                     var fields = new FieldMetaDataCollection();
                     _currentlyMonitored?.ForEach(monitoredItem => monitoredItem.GetMetaData(
@@ -645,7 +654,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             + "'{subscription}'/'{sessionId}'.",
                             change.Key.Value,
                             change.Count(),
-                            Id,
+                            Name,
                             Connection.CreateConnectionId());
 
                         var itemsToChange = changeList.Select(t => t.Item).ToList();
@@ -659,7 +668,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 _logger.Warning("Failed to set monitoring for {count} items in subscription "
                                     + "'{subscription}'/'{sessionId}'.",
                                     erroneousResultsCount,
-                                    Id,
+                                    Name,
                                     Connection.CreateConnectionId());
 
                                 for (int i = 0; i < results.Count && i < itemsToChange.Count; ++i) {
@@ -667,7 +676,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                         _logger.Warning("Set monitoring for item '{item}' in subscription "
                                             + "'{subscription}'/'{sessionId}' failed with '{status}'.",
                                             itemsToChange[i].StartNodeId,
-                                            Id,
+                                            Name,
                                             Connection.CreateConnectionId(),
                                             results[i].StatusCode);
                                         changeList[i].Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
@@ -812,7 +821,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (subscription == null) {
                     subscription = new Subscription(session.DefaultSubscription) {
                         Handle = this,
-                        DisplayName = Id,
+                        DisplayName = Name,
                         PublishingEnabled = activate, // false on initialization
                         KeepAliveCount = revisedKeepAliveCount,
                         PublishingInterval = configuredPublishingInterval,
@@ -983,7 +992,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 ServiceMessageContext = subscription.Session?.MessageContext,
                                 ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
                                 EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
-                                SubscriptionName = Id,
+                                SubscriptionName = Name,
+                                SubscriptionId = Id,
                                 Timestamp = publishTime,
                                 MessageType = Opc.Ua.PubSub.MessageType.Event,
                                 MetaData = _currentMetaData,
@@ -1020,7 +1030,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (notification == null) {
                         _logger.Warning(
                             "DataChange for subscription '{subscription}'/'{sessionId}' has empty notification",
-                            Id,
+                            Name,
                             Connection.CreateConnectionId());
                         return;
                     }
@@ -1028,7 +1038,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (_currentlyMonitored == null) {
                         _logger.Information(
                             "DataChange for subscription '{subscription}'/'{sessionId}' has no monitored items yet",
-                            Id,
+                            Name,
                             Connection.CreateConnectionId());
                         return;
                     }
@@ -1046,13 +1056,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         // in case of a keepalive,the sequence number is not incremented by the servers
                         _logger.Information("Keep alive for subscription '{subscription}'/'{sessionId}' with sequenceNumber "
                             + "{sequenceNumber}, publishTime {PublishTime}",
-                            Id, Connection.CreateConnectionId(), sequenceNumber, publishTime);
+                            Name, Connection.CreateConnectionId(), sequenceNumber, publishTime);
                     }
                     else {
                         if (_expectedSequenceNumber != sequenceNumber) {
                             _logger.Warning("DataChange for subscription '{subscription}'/'{sessionId}' has unexpected sequenceNumber "
                                 + "{sequenceNumber} vs expected {expectedSequenceNumber}, publishTime {PublishTime}",
-                                Id, Connection.CreateConnectionId(),
+                                Name, Connection.CreateConnectionId(),
                                 sequenceNumber, _expectedSequenceNumber, publishTime);
                         }
                         _expectedSequenceNumber = sequenceNumber + 1;
@@ -1062,7 +1072,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ServiceMessageContext = subscription?.Session?.MessageContext,
                         ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
                         EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
-                        SubscriptionName = Id,
+                        SubscriptionName = Name,
+                        SubscriptionId = Id,
                         Timestamp = publishTime,
                         MessageType = isKeepAlive ? Opc.Ua.PubSub.MessageType.KeepAlive
                             : Opc.Ua.PubSub.MessageType.DeltaFrame,
@@ -1134,7 +1145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _logger.Debug("Found {count} notifications with null value or not good status "
                                 + "code for '{subscription}'/'{sessionId}' subscription.",
                                 erroneousNotifications.Count,
-                                Id,
+                                Name,
                                 Connection.CreateConnectionId());
                         }
                     }
@@ -1157,6 +1168,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private DataSetMetaDataType _currentMetaData;
             private uint _expectedSequenceNumber = 1;
             private bool _closed;
+
+            private static volatile int _lastIndex;
             private static readonly Gauge kMonitoredItems = Metrics.CreateGauge(
                 "iiot_edge_publisher_monitored_items", "monitored items count",
                 new GaugeConfiguration {

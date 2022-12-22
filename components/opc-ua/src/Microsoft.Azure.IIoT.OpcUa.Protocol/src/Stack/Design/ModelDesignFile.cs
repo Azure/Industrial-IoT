@@ -2202,7 +2202,7 @@ namespace Opc.Ua.Design {
                 if (index >= targetIdParts.Length) {
                     sourcePath = new string[sourceIdParts.Length - index];
                     Array.Copy(sourceIdParts, index, sourcePath, 0, sourcePath.Length);
-                    targetPath = new string[0];
+                    targetPath = Array.Empty<string>();
                     break;
                 }
 
@@ -2217,7 +2217,7 @@ namespace Opc.Ua.Design {
 
             // no common root.
             if (sourcePath == null) {
-                sourcePath = new string[0];
+                sourcePath = Array.Empty<string>();
                 targetPath = new string[targetIdParts.Length - sourceIdParts.Length];
                 Array.Copy(targetIdParts, sourceIdParts.Length, targetPath, 0, targetPath.Length);
             }

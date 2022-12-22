@@ -25,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
     using System.Collections.Generic;
     using System;
+    using Opc.Ua.PubSub;
 
     /// <summary>
     /// Stack types conversions
@@ -717,10 +718,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 result |= JsonDataSetMessageContentMask.MessageType;
             }
             if (0 != (mask & DataSetContentMask.DataSetWriterName)) {
-                result |= (JsonDataSetMessageContentMask)64; // TODO JsonDataSetMessageContentMask.DataSetWriterName;
+                result |= JsonDataSetMessageContentMask2.DataSetWriterName;
             }
             if (0 != (mask & DataSetContentMask.ReversibleFieldEncoding)) {
-                result |= (JsonDataSetMessageContentMask)128; // TODO JsonDataSetMessageContentMask.ReversibleFieldEncoding;
+                result |= JsonDataSetMessageContentMask2.ReversibleFieldEncoding;
             }
             return result;
         }

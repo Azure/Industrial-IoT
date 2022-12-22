@@ -1075,7 +1075,7 @@ namespace Opc.Ua.Encoders {
                         WriteGuid(null, ToTypedScalar<Uuid>(value));
                         return;
                     case BuiltInType.ByteString:
-                        WriteByteString(null, ToTypedScalar<byte[]>(value ?? new byte[0]));
+                        WriteByteString(null, ToTypedScalar<byte[]>(value ?? Array.Empty<byte>()));
                         return;
                     case BuiltInType.XmlElement:
                         WriteXmlElement(null, ToTypedScalar<XmlElement>(value));
@@ -1285,7 +1285,7 @@ namespace Opc.Ua.Encoders {
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
         /// <returns></returns>
-        private T ToTypedScalar<T>(object value) {
+        private static T ToTypedScalar<T>(object value) {
             try {
                 if (value == null) {
                     return default;

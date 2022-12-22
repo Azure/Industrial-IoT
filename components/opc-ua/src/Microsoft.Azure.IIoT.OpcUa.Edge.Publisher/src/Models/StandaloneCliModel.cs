@@ -140,14 +140,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public int? MaxOutgressMessages { get; set; } = 4096;
 
         /// <summary>
-        /// Flag to use reversible encoding for messages
+        /// Flag to use standards compliant encoding for pub sub messages (default to false for backcompat)
         /// </summary>
-        public bool? UseReversibleEncoding { get; set; } = false;
+        public bool UseStandardsCompliantEncoding { get; set; }
 
         /// <summary>
-        /// Flag to determine if a telemetry header helper is enabled.
+        /// Flag to determine if a telemetry header helper is enabled. (default to false)
         /// </summary>
-        public bool? EnableRoutingInfo { get; set; } = false;
+        public bool EnableRoutingInfo { get; set; }
 
         /// <summary>
         /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured
@@ -156,13 +156,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public int? MaxNodesPerDataSet { get; set; } = 1000;
 
         /// <summary>
-        /// Run in legacy compatibility mode
+        /// Run in 2.5.* compatibility mode
         /// </summary>
-        public bool LegacyCompatibility { get; set; } = false;
+        public bool LegacyCompatibility { get; set; }
 
         /// <summary>
         /// Configuration flag for enabling/disabling runtime state reporting.
         /// </summary>
-        public bool EnableRuntimeStateReporting { get; set; } = false;
+        public bool EnableRuntimeStateReporting { get; set; }
     }
 }

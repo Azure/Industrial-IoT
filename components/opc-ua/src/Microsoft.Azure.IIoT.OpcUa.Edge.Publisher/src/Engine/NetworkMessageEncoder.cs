@@ -42,15 +42,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
 
-        /// <summary> Logger for reporting. </summary>
-        private readonly ILogger _logger;
-
-        /// <summary> Flag to determine if extra routing information is enabled </summary>
-        private readonly bool _enableRoutingInfo;
-
-        /// <summary> Flag to use reversible encoding for messages </summary>
-        private readonly bool _useReversibleEncoding;
-
         /// <summary>
         /// Create instance of NetworkMessageEncoder.
         /// </summary>
@@ -58,8 +49,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="engineConfig"> injected configuration. </param>
         public NetworkMessageEncoder(ILogger logger, IEngineConfiguration engineConfig) {
             _logger = logger;
-            _enableRoutingInfo = engineConfig.EnableRoutingInfo.GetValueOrDefault(false);
-            _useReversibleEncoding = engineConfig.UseReversibleEncoding.GetValueOrDefault(false);
+            _enableRoutingInfo = engineConfig.EnableRoutingInfo;
+            _useAdvancedEncoding = !engineConfig.UseStandardsCompliantEncoding;
         }
 
         /// <inheritdoc/>
@@ -121,11 +112,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (notification != null) {
                     var helperWriter = new StringWriter();
                     var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
-                        UseAdvancedEncoding = true,
-                        IgnoreDefaultValues = true,
+                        UseAdvancedEncoding = _useAdvancedEncoding,
+                        UseUriEncoding = _useAdvancedEncoding,
+                        IgnoreDefaultValues = _useAdvancedEncoding,
                         IgnoreNullValues = true,
-                        UseUriEncoding = true,
-                        UseReversibleEncoding = _useReversibleEncoding
+                        UseReversibleEncoding = (notification.MessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0,
                     };
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
@@ -152,11 +143,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var writer = new StringWriter();
                     var encoder = new JsonEncoderEx(writer, encodingContext,
                         JsonEncoderEx.JsonEncoding.Array) {
-                        UseAdvancedEncoding = true,
-                        IgnoreDefaultValues = true,
+                        UseAdvancedEncoding = _useAdvancedEncoding,
+                        UseUriEncoding = _useAdvancedEncoding,
+                        IgnoreDefaultValues = _useAdvancedEncoding,
                         IgnoreNullValues = true,
-                        UseUriEncoding = true,
-                        UseReversibleEncoding = _useReversibleEncoding
+                        UseReversibleEncoding = (notification.MessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0,
                     };
                     foreach (var element in chunk) {
                         encoder.WriteEncodeable(null, element);
@@ -277,11 +268,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 int notificationsPerMessage = networkMessage.Messages.Sum(m => m.Payload.Count);
                 var writer = new StringWriter();
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
-                    UseAdvancedEncoding = true,
-                    IgnoreDefaultValues = true,
+                    UseAdvancedEncoding = _useAdvancedEncoding,
+                    UseUriEncoding = _useAdvancedEncoding,
+                    IgnoreDefaultValues = _useAdvancedEncoding,
                     IgnoreNullValues = true,
-                    UseUriEncoding = true,
-                    UseReversibleEncoding = _useReversibleEncoding
+                    UseReversibleEncoding = (networkMessage.Messages?.FirstOrDefault()?.MessageContentMask 
+                        & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0,
                 };
                 networkMessage.Encode(encoder);
                 encoder.Close();
@@ -379,6 +371,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             foreach (var message in messages) {
                 if (message.WriterGroup?.MessageEncoding.GetValueOrDefault(MessageEncoding.Json) == encoding) {
+                    var dataSetMessageContentMask = (message.Writer?.MessageSettings?.DataSetMessageContentMask)
+                                    .ToStackType(message.WriterGroup?.MessageEncoding);
                     var networkMessage = new NetworkMessage {
                         MessageContentMask = message.WriterGroup
                             .MessageSettings.NetworkMessageContentMask
@@ -387,7 +381,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         DataSetClassId = message.Writer?.DataSet?
                             .DataSetMetaData?.DataSetClassId.ToString(),
                         DataSetWriterGroup = message.WriterGroup.WriterGroupId,
-                        MessageId = message.SequenceNumber.ToString()
+                        MessageId = message.SequenceNumber.ToString(),
                     };
 
                     if (message.Notifications != null) {
@@ -406,13 +400,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                             var dataSetMessage = new DataSetMessage {
                                 DataSetWriterId = message.SubscriptionId,
-                                DataSetWriterName = message.Writer?.DataSetWriterId,
+                                DataSetWriterName = message.Writer?.DataSetWriterName,
                                 MessageType = message.MessageType,
                                 MetaDataVersion = message.MetaData?.ConfigurationVersion ?? new ConfigurationVersionDataType {
                                     MajorVersion = 1
                                 },
-                                MessageContentMask = (message.Writer?.MessageSettings?.DataSetMessageContentMask)
-                                    .ToStackType(message.WriterGroup?.MessageEncoding),
+                                MessageContentMask = dataSetMessageContentMask,
                                 Timestamp = message.TimeStamp ?? DateTime.UtcNow,
                                 SequenceNumber = message.SequenceNumber,
                                 Status = payload.Values.Any(s => StatusCode.IsNotGood(s.StatusCode)) ?
@@ -425,7 +418,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     else if (message.MetaData != null) {
                         // Emit metadata change message
                         networkMessage.DataSetWriterId = message.SubscriptionId;
-                        networkMessage.DataSetWriterName = message.Writer.DataSetWriterId;
+                        networkMessage.DataSetWriterName = message.Writer.DataSetWriterName;
                         networkMessage.MetaData = (DataSetMetaDataType)Utils.Clone(message.MetaData);
                         networkMessage.MetaData.Description = message.Writer?.DataSet?.DataSetMetaData?.Description;
                         networkMessage.MetaData.Name = message.Writer?.DataSet?.DataSetMetaData?.Name;
@@ -438,5 +431,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
         }
+        /// <summary> Logger for reporting. </summary>
+        private readonly ILogger _logger;
+        /// <summary> Flag to determine if extra routing information is enabled </summary>
+        private readonly bool _enableRoutingInfo;
+        /// <summary> Flag to use advanced encoding for messages </summary>
+        private readonly bool _useAdvancedEncoding;
     }
 }

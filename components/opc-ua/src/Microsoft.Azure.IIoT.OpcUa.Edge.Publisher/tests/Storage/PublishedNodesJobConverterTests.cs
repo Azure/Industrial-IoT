@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Single(jobs);
             Assert.Equal("testid", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSetWriterId);
+                .Single().DataSetWriterName);
             Assert.Equal("testid", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Id);
@@ -168,7 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Single(jobs);
             Assert.Equal("1000", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSetWriterId);
+                .Single().DataSetWriterName);
             Assert.Equal("1000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Id);
@@ -493,7 +493,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                 .First().DataSet.DataSetSource.Connection.Group);
             Assert.Equal("testwriterid_2000", jobs
                 .Single().WriterGroup.DataSetWriters
-                .First().DataSetWriterId);
+                .First().DataSetWriterName);
             Assert.Equal("testwriterid_2000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .First().DataSet.DataSetSource.Connection.Id);

@@ -491,9 +491,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             job.WriterGroup.DataSetWriters.ForEach(d => {
                 d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
                 d.DataSet.ExtensionFields["PublisherId"] = jobId;
-                d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterId;
+                d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterName;
             });
-            var dataSetWriters = string.Join(", ", job.WriterGroup.DataSetWriters.Select(w => w.DataSetWriterId));
+            var dataSetWriters = string.Join(", ", job.WriterGroup.DataSetWriters.Select(w => w.DataSetWriterName));
             _logger.Information("Job {jobId} loaded with dataSetGroup {group} with dataSetWriters {dataSetWriters}",
                 jobId, job.WriterGroup.WriterGroupId, dataSetWriters);
             var serializedJob = _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);

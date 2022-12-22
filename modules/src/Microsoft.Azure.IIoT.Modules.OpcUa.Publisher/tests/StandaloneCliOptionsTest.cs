@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
-    using System;
     using System.Collections.Generic;
 
     /// <summary>

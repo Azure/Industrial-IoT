@@ -278,9 +278,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                             BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
                             DiagnosticsInterval = TimeSpan.FromSeconds(60),
                             MaxMessageSize = 0,
-                            MaxOutgressMessages = DefaultMaxOutgressMessages.Value,
-                            UseReversibleEncoding = false,
-                            EnableRoutingInfo = false,
+                            MaxOutgressMessages = DefaultMaxOutgressMessages.Value
                         };
                     }
                     else {
@@ -316,9 +314,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                     BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0,
-                    MaxOutgressMessages = DefaultMaxOutgressMessages.Value,
-                    UseReversibleEncoding = false,
-                    EnableRoutingInfo = false
+                    MaxOutgressMessages = DefaultMaxOutgressMessages.Value
                 },
                 ConnectionString = null
             };
@@ -349,7 +345,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             List<PublishedDataSetVariableModel> variables = null;
             foreach (var writer in publishJob.WriterGroup.DataSetWriters) {
                 if (writer.DataSet.DataSetSource.Connection.IsSameAs(connection) &&
-                    writer.DataSetWriterId == dataSetWriterId) {
+                    writer.DataSetWriterName == dataSetWriterId) {
                     System.Diagnostics.Debug.Assert(writer.DataSet.DataSetSource.PublishedVariables.PublishedData != null);
                     variables = writer.DataSet.DataSetSource.PublishedVariables.PublishedData;
                     break;
@@ -358,7 +354,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             if (variables == null) {
                 // No writer found - add new one with a published dataset
                 var dataSetWriter = new DataSetWriterModel {
-                    DataSetWriterId = dataSetWriterId,
+                    DataSetWriterName = dataSetWriterId,
                     DataSet = new PublishedDataSetModel {
                         DataSetMetaData = new DataSetMetaDataModel {
                             DataSetClassId = Guid.NewGuid(),

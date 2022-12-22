@@ -85,6 +85,11 @@ namespace Opc.Ua {
         /// <summary>
         /// Message type
         /// </summary>
-        MessageType = 0x4000
+        MessageType = 0x4000,
+
+        /// <summary>
+        /// Apply reversible field encoding
+        /// </summary>
+        ReversibleFieldEncoding = 0x8000
     }
 }

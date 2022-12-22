@@ -211,7 +211,7 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterId) != 0) {
                 encoder.WriteUInt16(nameof(DataSetWriterId), DataSetWriterId);
             }
-            if ((MessageContentMask & 64u /*(uint)JsonDataSetMessageContentMask.DataSetWriterName TODO: Remove with 1.05 */) != 0) {
+            if ((MessageContentMask & (uint)JsonDataSetMessageContentMask2.DataSetWriterName) != 0) {
                 encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
             }
             if ((MessageContentMask & (uint)JsonDataSetMessageContentMask.SequenceNumber) != 0) {
@@ -293,7 +293,7 @@ namespace Opc.Ua.PubSub {
                 DataSetWriterName = decoder.ReadString(nameof(DataSetWriterId));
             }
             if (DataSetWriterName != null) {
-                MessageContentMask |= 64u; // TODO: Add with 1.05 (uint)JsonDataSetMessageContentMask.DataSetWriterName;
+                MessageContentMask |= (uint)JsonDataSetMessageContentMask2.DataSetWriterName;
             }
             DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
             if (DataSetWriterId != 0) {

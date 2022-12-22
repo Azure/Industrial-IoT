@@ -311,7 +311,7 @@ namespace Opc.Ua.Models {
             get => this.GetAttribute<ExtensionObject[]>(
                 Attributes.RolePermissions, null)?.Select(ex => ex.Body).OfType<RolePermissionType>();
             set => SetAttribute(Attributes.RolePermissions,
-                value?.Select(r => new ExtensionObject(r)).ToArray() ?? new ExtensionObject[0]);
+                value?.Select(r => new ExtensionObject(r)).ToArray() ?? Array.Empty<ExtensionObject>());
         }
 
         /// <inheritdoc/>
@@ -319,7 +319,7 @@ namespace Opc.Ua.Models {
             get => this.GetAttribute<ExtensionObject[]>(
                 Attributes.UserRolePermissions, null)?.Select(ex => ex.Body).OfType<RolePermissionType>();
             set => SetAttribute(Attributes.UserRolePermissions,
-                value?.Select(r => new ExtensionObject(r)).ToArray() ?? new ExtensionObject[0]);
+                value?.Select(r => new ExtensionObject(r)).ToArray() ?? Array.Empty<ExtensionObject>());
         }
 
         /// <inheritdoc/>

@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxMessageSize = model.MaxMessageSize,
                 MaxOutgressMessages = model.MaxOutgressMessages,
-                UseReversibleEncoding = model.UseReversibleEncoding,
+                UseStandardsCompliantEncoding = model.UseStandardsCompliantEncoding,
                 EnableRoutingInfo = model.EnableRoutingInfo,
             };
         }

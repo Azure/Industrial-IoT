@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             // Act
             var result = await ProcessMessagesAsync(
                 publishedNodesFile, messageType: "ua-data",
-                arguments: new[] { "--mm=PubSub", "--UseReversibleEncoding=False" }
+                arguments: new[] { "--mm=PubSub" }
             ).ConfigureAwait(false);
 
             Assert.Single(result);

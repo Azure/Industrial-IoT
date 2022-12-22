@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     "The server returned no results or diagnostics information.");
             }
             // Add diagnostics
-            var ids = requested?.ToArray() ?? new T[0];
+            var ids = requested?.ToArray() ?? System.Array.Empty<T>();
             for (var index = resultsWithStatus.Count; index < diagnostics.Count; index++) {
                 resultsWithStatus.Add(diagnostics[index] == null ?
                     StatusCodes.Good : StatusCodes.BadUnexpectedError);

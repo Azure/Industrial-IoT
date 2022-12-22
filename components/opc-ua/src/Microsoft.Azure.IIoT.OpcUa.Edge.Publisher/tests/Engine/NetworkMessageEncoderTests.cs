@@ -282,7 +282,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     TimeStamp = DateTime.UtcNow,
                     ServiceMessageContext = new ServiceMessageContext { },
                     Notifications = notifications,
-                    SubscriptionName = "SubscriptionId" + suffix,
+                    SubscriptionId = 22,
                     EndpointUrl = "EndpointUrl" + suffix,
                     ApplicationUri = "ApplicationUri" + suffix
                 };

@@ -39,7 +39,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Identifier of the subscription
         /// </summary>
-        string Id { get; }
+        string Name { get; }
+
+        /// <summary>
+        /// Index inside the publisher
+        /// </summary>
+        ushort Id { get; }
 
         /// <summary>
         /// Enabled - successfully created on server

@@ -67,11 +67,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public ushort SubscriptionId { get; set; }
 
         /// <summary>
-        /// Subscription from which message originated
-        /// </summary>
-        public string SubscriptionName { get; set; }
-
-        /// <summary>
         /// Endpoint the subscription is connected to
         /// </summary>
         public string EndpointUrl { get; set; }

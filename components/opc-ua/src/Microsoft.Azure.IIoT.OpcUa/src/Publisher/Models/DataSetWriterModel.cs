@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Dataset writer name
         /// </summary>
-        public string DataSetWriterId { get; set; }
+        public string DataSetWriterName { get; set; }
 
         /// <summary>
         /// Published dataset inline definition

@@ -170,9 +170,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _sessions.AddOrUpdate(id, wrapper);
                 }
 
-                wrapper._subscriptions.AddOrUpdate(subscription.Id, subscription);
+                wrapper._subscriptions.AddOrUpdate(subscription.Name, subscription);
                 _logger.Information("Subscription '{subscriptionId}' registered/updated in session '{id}' in state {state}",
-                    subscription.Id, id, wrapper.State);
+                    subscription.Name, id, wrapper.State);
                 if (wrapper.State == SessionState.Running) {
                     wrapper.State = SessionState.Refresh;
                 }
@@ -194,9 +194,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (!_sessions.TryGetValue(id, out var wrapper)) {
                     return;
                 }
-                if (wrapper._subscriptions.TryRemove(subscription.Id, out _)) {
+                if (wrapper._subscriptions.TryRemove(subscription.Name, out _)) {
                     _logger.Information("Subscription '{subscriptionId}' unregistered from session '{sessionId}' in state {state}",
-                        subscription.Id, id, wrapper.State);
+                        subscription.Name, id, wrapper.State);
                 }
             }
             finally {

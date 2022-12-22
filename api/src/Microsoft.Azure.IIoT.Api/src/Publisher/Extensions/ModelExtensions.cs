@@ -719,7 +719,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 return null;
             }
             return new DataSetWriterApiModel {
-                DataSetWriterId = model.DataSetWriterId,
+                DataSetWriterName = model.DataSetWriterName,
                 DataSet = model.DataSet.ToApiModel(),
                 DataSetFieldContentMask = (Models.DataSetFieldContentMask?)model.DataSetFieldContentMask,
                 DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
@@ -738,7 +738,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 return null;
             }
             return new DataSetWriterModel {
-                DataSetWriterId = model.DataSetWriterId,
+                DataSetWriterName = model.DataSetWriterName,
                 DataSet = model.DataSet.ToServiceModel(),
                 DataSetFieldContentMask = (OpcUa.Publisher.Models.DataSetFieldContentMask?)model.DataSetFieldContentMask,
                 DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
@@ -862,7 +862,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxMessageSize = model.MaxMessageSize,
                 MaxOutgressMessages = model.MaxOutgressMessages,
-                UseReversibleEncoding = model.UseReversibleEncoding,
+                UseStandardsCompliantEncoding = model.UseStandardsCompliantEncoding,
                 EnableRoutingInfo = model.EnableRoutingInfo,
             };
         }
@@ -881,7 +881,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 MaxMessageSize = model.MaxMessageSize,
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxOutgressMessages = model.MaxOutgressMessages,
-                UseReversibleEncoding = model.UseReversibleEncoding,
+                UseStandardsCompliantEncoding = model.UseStandardsCompliantEncoding,
                 EnableRoutingInfo = model.EnableRoutingInfo,
             };
         }

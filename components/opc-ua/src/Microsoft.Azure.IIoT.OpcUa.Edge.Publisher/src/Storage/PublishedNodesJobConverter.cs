@@ -197,14 +197,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             DiagnosticsInterval = _engineConfig.DiagnosticsInterval,
                             MaxMessageSize = _engineConfig.MaxMessageSize,
                             MaxOutgressMessages = _engineConfig.MaxOutgressMessages,
-                            UseReversibleEncoding = _engineConfig.UseReversibleEncoding,
+                            UseStandardsCompliantEncoding = _engineConfig.UseStandardsCompliantEncoding,
                             EnableRoutingInfo = _engineConfig.EnableRoutingInfo,
                         },
                         WriterGroup = new WriterGroupModel {
                             MessageEncoding = standaloneCliModel.MessageEncoding,
                             WriterGroupId = dataSetBatches.First.Source.Connection.Group,
                             DataSetWriters = dataSetBatches.Items.Select(dataSet => new DataSetWriterModel {
-                                DataSetWriterId = GetUniqueWriterName(dataSetBatches.Items, dataSet.Source),
+                                DataSetWriterName = GetUniqueWriterName(dataSetBatches.Items, dataSet.Source),
                                 DataSetMetaDataSendInterval = standaloneCliModel.MessagingMode == MessagingMode.Samples ? null :
                                     dataSetBatches.First.Header.DataSetMetaDataSendInterval ?? standaloneCliModel.DefaultMetaDataSendInterval,
                                 KeyFrameCount = standaloneCliModel.MessagingMode == MessagingMode.Samples ? null :
@@ -276,7 +276,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             foreach (var dataSetWriter in job.WriterGroup.DataSetWriters) {
                                 int count = dataSetWriter.DataSet?.DataSetSource?.PublishedVariables?.PublishedData?.Count ?? 0;
                                 counter += count;
-                                _logger.Debug("writerId: {writer} nodes: {count}", dataSetWriter.DataSetWriterId, count);
+                                _logger.Debug("writerId: {writer} nodes: {count}", dataSetWriter.DataSetWriterName, count);
                             }
                         }
                     }

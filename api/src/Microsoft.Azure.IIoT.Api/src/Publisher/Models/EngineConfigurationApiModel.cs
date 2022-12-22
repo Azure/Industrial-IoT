@@ -53,13 +53,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "enableRoutingInfo", Order = 5,
             EmitDefaultValue = false)]
-        public bool? EnableRoutingInfo { get; set; }
+        public bool EnableRoutingInfo { get; set; }
 
         /// <summary>
-        /// Flag to use reversible encoding for messages
+        /// Force strict UA compliant encoding for pub sub messages
         /// </summary>
-        [DataMember(Name = "useReversibleEncoding", Order = 6,
+        [DataMember(Name = "useStandardsCompliantEncoding", Order = 6,
             EmitDefaultValue = false)]
-        public bool? UseReversibleEncoding { get; set; }
+        public bool UseStandardsCompliantEncoding { get; set; }
     }
 }

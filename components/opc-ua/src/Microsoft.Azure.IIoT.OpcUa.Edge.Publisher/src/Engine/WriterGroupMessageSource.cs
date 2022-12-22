@@ -596,7 +596,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 DataSetMessageModel CreateDataSetMessage(SubscriptionNotificationModel notification) {
                     return new DataSetMessageModel {
                         ServiceMessageContext = notification.ServiceMessageContext,
-                        SubscriptionName = notification.SubscriptionName,
                         SubscriptionId = notification.SubscriptionId,
                         MessageType = notification.MessageType,
                         ApplicationUri = notification.ApplicationUri,
