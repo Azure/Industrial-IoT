@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
@@ -229,8 +228,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 builder.RegisterType<TwinServices>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
                 builder.RegisterType<AddressSpaceServices>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-                builder.RegisterType<DataUploadServices>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
 
                 // Register module framework

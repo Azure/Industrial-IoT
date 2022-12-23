@@ -34,9 +34,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Iot hub event hub Onboarder Consumer Group </summary>
         public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING =
             "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING";
-        /// <summary> Iot hub event hub Tunnel Consumer Group </summary>
-        public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL =
-            "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL";
         /// <summary> Cosmos db connection string </summary>
         public const string PCS_COSMOSDB_CONNSTRING =
             "PCS_COSMOSDB_CONNSTRING";
@@ -46,21 +43,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Dps idscope </summary>
         public const string PCS_DPS_IDSCOPE =
             "PCS_DPS_IDSCOPE";
-        /// <summary> datalake account </summary>
-        public const string PCS_ADLSG2_ACCOUNT =
-            "PCS_ADLSG2_ACCOUNT";
-        /// <summary> datalake account key </summary>
-        public const string PCS_ADLSG2_ACCOUNT_KEY =
-            "PCS_ADLSG2_ACCOUNT_KEY";
-        /// <summary> ADLS Gen2 endpoint suffix </summary>
-        public const string PCS_ADLSG2_ENDPOINTSUFFIX =
-            "PCS_ADLSG2_ENDPOINTSUFFIX";
-        /// <summary> CDM storage drive </summary>
-        public const string PCS_CDM_DRIVE_NAME =
-            "PCS_ADLSG2_CONTAINER_CDM";
-        /// <summary> CDM storage folder </summary>
-        public const string PCS_CDM_ROOT_FOLDER =
-            "PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER";
         /// <summary> storage connection string </summary>
         public const string PCS_STORAGE_CONNSTRING =
             "PCS_STORAGE_CONNSTRING";
@@ -79,9 +61,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Event hub name </summary>
         public const string PCS_EVENTHUB_NAME =
             "PCS_EVENTHUB_NAME";
-        /// <summary> Event hub consumer group telemetrycdm </summary>
-        public const string PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM =
-            "PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM";
         /// <summary> Event hub consumer group telemetryux </summary>
         public const string PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX =
             "PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX";
