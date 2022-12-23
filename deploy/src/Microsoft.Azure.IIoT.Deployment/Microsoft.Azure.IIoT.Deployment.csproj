@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.Graph" Version="3.35.0" />
     <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.7" />
 
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.48.1" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.49.1" />
 
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="6.0.0" />

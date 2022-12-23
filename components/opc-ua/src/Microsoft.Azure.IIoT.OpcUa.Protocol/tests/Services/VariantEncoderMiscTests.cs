@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var codec = new VariantEncoderFactory().Default;
             var str = "[]";
             var variant = codec.Decode(str, BuiltInType.String);
-            var expected = new Variant(new string[0]);
+            var expected = new Variant(System.Array.Empty<string>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.True(encoded.Equals(str));
@@ -136,7 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var codec = new VariantEncoderFactory().Default;
             var str = "[]";
             var variant = codec.Decode(str, BuiltInType.Int16);
-            var expected = new Variant(new short[0]);
+            var expected = new Variant(System.Array.Empty<short>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.True(encoded.Equals(str));
@@ -260,7 +260,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var expected = new Variant(new ExtensionObject {
                 Body = new Argument("something1", new NodeId(2354), -1, "somedesciroeioi") {
-                    ArrayDimensions = new uint[0]
+                    ArrayDimensions = System.Array.Empty<uint>()
                 },
                 TypeId = DataTypeIds.Argument
             });
@@ -281,7 +281,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var expected = new Variant(new ExtensionObject {
                 Body = new Argument("something2", new NodeId(2334), -1, "asdfsadfffd") {
-                    ArrayDimensions = new uint[0]
+                    ArrayDimensions = System.Array.Empty<uint>()
                 }.AsXmlElement(ServiceMessageContext.GlobalContext),
                 TypeId = "http://test.org/i=444444"
             });
@@ -302,7 +302,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var expected = new Variant(new ExtensionObject {
                 Body = new Argument("something3", new NodeId(2364), -1, "dd f s fdd fd") {
-                    ArrayDimensions = new uint[0]
+                    ArrayDimensions = System.Array.Empty<uint>()
                 }.AsBinary(ServiceMessageContext.GlobalContext),
                 TypeId = "http://test.org/i=444445"
             });

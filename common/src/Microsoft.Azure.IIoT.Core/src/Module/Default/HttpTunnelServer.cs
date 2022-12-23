@@ -224,7 +224,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 _request = request;
                 _chunks = chunks + 1;
                 _payload = new byte[_chunks][];
-                _payload[0] = chunk0 ?? new byte[0];
+                _payload[0] = chunk0 ?? Array.Empty<byte>();
             }
 
             /// <summary>

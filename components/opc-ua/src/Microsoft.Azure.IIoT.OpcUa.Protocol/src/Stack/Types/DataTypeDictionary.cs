@@ -251,7 +251,7 @@ namespace Opc.Ua.Types {
         /// <param name="complexType"></param>
         private void ValidateComplexType(ComplexType complexType) {
             if (complexType.Field == null) {
-                complexType.Field = new FieldType[0];
+                complexType.Field = Array.Empty<FieldType>();
             }
             var fields = new Dictionary<string, FieldType>();
             ValidateBaseType(complexType, complexType.BaseType, fields);

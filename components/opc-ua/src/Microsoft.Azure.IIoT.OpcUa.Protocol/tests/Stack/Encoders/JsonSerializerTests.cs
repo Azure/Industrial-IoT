@@ -211,7 +211,7 @@ namespace Opc.Ua.Encoders {
         public void ReadWriteArgument() {
             var expected = new Argument("something1",
                     new NodeId(2354), -1, "somedesciroeioi") {
-                ArrayDimensions = new uint[0]
+                ArrayDimensions = Array.Empty<uint>()
             };
 
             var json = _serializer.SerializeToString(expected);
@@ -223,13 +223,13 @@ namespace Opc.Ua.Encoders {
         public void ReadWriteArgumentArray() {
             var expected = new[] {
                 new Argument("something1",
-                    new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = new uint[0] },
+                    new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
                 new Argument("something2",
-                    new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = new uint[0] },
+                    new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
                 new Argument("something3",
-                    new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = new uint[0] },
+                    new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                 new Argument("something4",
-                    new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = new uint[0] }
+                    new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
             };
 
             var json = _serializer.SerializeToString(expected);
@@ -424,13 +424,13 @@ namespace Opc.Ua.Encoders {
                 LastMethodCallTime = DateTime.UtcNow,
                 LastMethodInputArguments = new ArgumentCollection {
                     new Argument("something1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = new uint[0] },
+                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something2",
-                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = new uint[0] },
+                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something3",
-                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = new uint[0] },
+                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something4",
-                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = new uint[0] }
+                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
                 },
                 LastMethodInputValues = new VariantCollection {
                     new Variant(4L),
@@ -440,13 +440,13 @@ namespace Opc.Ua.Encoders {
                 },
                 LastMethodOutputArguments = new ArgumentCollection {
                     new Argument("foo1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = new uint[0] },
+                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("foo2",
-                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = new uint[0] },
+                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("adfsdafsdsdsafdsfa",
-                        new NodeId("absc"), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = new uint[0] },
+                        new NodeId("absc"), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("ddddd",
-                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = new uint[0] }
+                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
                 },
                 LastMethodOutputValues = new VariantCollection {
                     new Variant(4L),
@@ -477,13 +477,13 @@ namespace Opc.Ua.Encoders {
                 LastMethodCallTime = DateTime.UtcNow,
                 LastMethodInputArguments = new ArgumentCollection {
                     new Argument("something1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = new uint[0] },
+                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something2",
-                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = new uint[0] },
+                        new NodeId(23), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something3",
-                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = new uint[0] },
+                        new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something4",
-                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = new uint[0] }
+                        new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
                 },
                 LastMethodInputValues = new VariantCollection {
                     new Variant(4L),
@@ -493,13 +493,13 @@ namespace Opc.Ua.Encoders {
                 },
                 LastMethodOutputArguments = new ArgumentCollection {
                     new Argument("foo1",
-                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = new uint[0] },
+                        new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("foo2",
-                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = new uint[0] },
+                        new NodeId(33), -1, "fdsadfsdaf") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("adfsdafsdsdsafdsfa",
-                        new NodeId("absc"), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = new uint[0] },
+                        new NodeId("absc"), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("ddddd",
-                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = new uint[0] }
+                        new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
                 },
                 LastMethodOutputValues = new VariantCollection {
                     new Variant(4L),
