@@ -58,7 +58,6 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         public List<DataSetMessage> Messages { get; set; } = new List<DataSetMessage>();
 
-
         /// <summary>
         /// Data set writer name in case of ua-metadata message
         /// </summary>
@@ -82,6 +81,22 @@ namespace Opc.Ua.PubSub {
 
         /// <inheritdoc/>
         public ExpandedNodeId XmlEncodingId => ExpandedNodeId.Null;
+
+        /// <summary>
+        /// The encoding results in a json array or an object
+        /// </summary>
+        public bool IsJsonArray {
+            get {
+                if (MetaData != null) {
+                    return false;
+                }
+                if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.NetworkMessageHeader) != 0 ||
+                    (MessageContentMask & (uint)JsonNetworkMessageContentMask.SingleDataSetMessage) != 0) {
+                    return false;
+                }
+                return true;
+            }
+        }
 
         /// <inheritdoc/>
         public void Decode(IDecoder decoder) {
@@ -200,7 +215,11 @@ namespace Opc.Ua.PubSub {
             if (PublisherId != null) {
                 MessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
             }
-            if (messageType.Equals(MessageTypeUaData, StringComparison.InvariantCultureIgnoreCase)) {
+            if (messageType == null) {
+                // Minimal message
+
+            }
+            else if (messageType.Equals(MessageTypeUaData, StringComparison.InvariantCultureIgnoreCase)) {
                 DataSetClassId = decoder.ReadString(nameof(DataSetClassId));
                 if (DataSetClassId != null) {
                     MessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
@@ -257,13 +276,14 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="encoder"></param>
         private void EncodeJson(IEncoder encoder) {
-            if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.NetworkMessageHeader) != 0) {
+            if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.NetworkMessageHeader) != 0 || MetaData != null) {
+                // The encoder was set up as object beforehand based on IsJsonArray result
                 encoder.WriteString(nameof(MessageId), MessageId);
                 encoder.WriteString(nameof(MessageType), MessageType);
-                if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
-                    encoder.WriteString(nameof(PublisherId), PublisherId);
-                }
                 if (MetaData != null) {
+                    if (!string.IsNullOrEmpty(PublisherId)) {
+                        encoder.WriteString(nameof(PublisherId), PublisherId);
+                    }
                     if (DataSetWriterId != 0) {
                         encoder.WriteUInt16(nameof(DataSetWriterId), DataSetWriterId);
                     }
@@ -275,7 +295,10 @@ namespace Opc.Ua.PubSub {
                         encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
                     }
                 }
-                else if (Messages != null && Messages.Count > 0) {
+                else {
+                    if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
+                        encoder.WriteString(nameof(PublisherId), PublisherId);
+                    }
                     if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0 &&
                         !string.IsNullOrEmpty(DataSetClassId)) {
                         encoder.WriteString(nameof(DataSetClassId), DataSetClassId);
@@ -288,6 +311,17 @@ namespace Opc.Ua.PubSub {
                     }
                     else {
                         encoder.WriteEncodeableArray(nameof(Messages), Messages.ToArray(), typeof(DataSetMessage[]));
+                    }
+                }
+            }
+            else {
+                // The encoder was set up as array or object beforehand based on IsJsonArray result
+                if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.SingleDataSetMessage) != 0) {
+                    Messages[0].Encode(encoder);
+                }
+                else {
+                    foreach (var message in Messages) {
+                        message.Encode(encoder);
                     }
                 }
             }

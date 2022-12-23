@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
-
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -22,12 +21,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Linq;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
     /// </summary>
     public class StandaloneCliOptions : Dictionary<string, string>, IAgentConfigProvider,
         ISettingsController, IEngineConfiguration, IStandaloneCliModelProvider, IRuntimeStateReporterConfiguration {
+
         /// <summary>
         /// Creates a new instance of the the standalone cli options based on existing configuration values.
         /// </summary>
@@ -303,8 +304,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             }
 
             if (!MessagingProfile.IsSupported(StandaloneCliModel.MessagingMode, StandaloneCliModel.MessageEncoding, StandaloneCliModel.FullFeaturedMessage)) {
-                Warning("The specified combination of --mm, --me, and --fm is not (yet) supported. Currently supported combinations for --mm and --me are: {MessageProfiles).",
-                    MessagingProfile.SupportedCombinations);
+                Warning("The specified combination of --mm, --me, and --fm is not (yet) supported. Currently supported combinations are: {MessageProfiles}).",
+                    MessagingProfile.Supported.Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})").Aggregate((a, b) => $"{a}, {b}"));
                 Exit(170);
             }
 

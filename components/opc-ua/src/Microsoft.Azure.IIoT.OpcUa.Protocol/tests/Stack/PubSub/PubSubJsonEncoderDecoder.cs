@@ -25,11 +25,13 @@ namespace Opc.Ua.PubSub.Tests {
 
             var message = new DataSetMessage {
                 DataSetWriterName = "WriterId",
+                DataSetWriterId = 3,
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
                 SequenceNumber = ++_currentSequenceNumber,
                 Status = StatusCodes.Bad,
                 Timestamp = DateTime.UtcNow,
                 MessageContentMask = (uint)(
+                    JsonDataSetMessageContentMask2.DataSetWriterName |
                     JsonDataSetMessageContentMask.DataSetWriterId |
                     JsonDataSetMessageContentMask.SequenceNumber |
                     JsonDataSetMessageContentMask.MetaDataVersion |
@@ -86,12 +88,14 @@ namespace Opc.Ua.PubSub.Tests {
 
             var message = new DataSetMessage {
                 DataSetWriterName = "WriterId",
+                DataSetWriterId = 1,
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
                 SequenceNumber = ++_currentSequenceNumber,
                 Status = StatusCodes.GoodCallAgain,
                 Timestamp = DateTime.UtcNow,
                 Picoseconds = 1234,
                 MessageContentMask = (uint)(
+                    JsonDataSetMessageContentMask2.DataSetWriterName |
                     JsonDataSetMessageContentMask.DataSetWriterId |
                     JsonDataSetMessageContentMask.SequenceNumber |
                     JsonDataSetMessageContentMask.MetaDataVersion |

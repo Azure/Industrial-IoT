@@ -19,12 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         PubSub,
 
         /// <summary>
-        /// Same as PubSub
-        /// </summary>
-        [EnumMember]
-        NetworkMessages = PubSub,
-
-        /// <summary>
         /// Monitored item sample mode
         /// </summary>
         [EnumMember]
@@ -43,9 +37,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         FullSamples,
 
         /// <summary>
-        /// Dataset messages but no network message header
+        /// Messages without network message header.
         /// </summary>
         [EnumMember]
         DataSetMessages,
+
+        /// <summary>
+        /// Datasets are pure key value pairs without headers.
+        /// </summary>
+        [EnumMember]
+        RawDataSets
     }
 }

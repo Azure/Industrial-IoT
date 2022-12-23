@@ -96,12 +96,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
-            var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
-            if (!notifications.Any()) {
+            var networkMessages = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext)
+                .Concat(GetNetworkMessages(messages, MessageEncoding.JsonReversible, encodingContext));
+            if (!networkMessages.Any()) {
                 yield break;
             }
             var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
-            var current = notifications.GetEnumerator();
+            var current = networkMessages.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
             var chunk = new Collection<NetworkMessage>();
@@ -111,12 +112,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var messageCompleted = false;
                 if (notification != null) {
                     var helperWriter = new StringWriter();
-                    var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
+                    var useReversibleEncoding = (notification.Messages.FirstOrDefault()?.MessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0;
+                    var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext, notification.IsJsonArray
+                        ? JsonEncoderEx.JsonEncoding.Array : JsonEncoderEx.JsonEncoding.Object) {
                         UseAdvancedEncoding = _useAdvancedEncoding,
                         UseUriEncoding = _useAdvancedEncoding,
                         IgnoreDefaultValues = _useAdvancedEncoding,
                         IgnoreNullValues = true,
-                        UseReversibleEncoding = (notification.MessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0,
+                        UseReversibleEncoding = useReversibleEncoding,
                     };
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
@@ -141,13 +144,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var writer = new StringWriter();
-                    var encoder = new JsonEncoderEx(writer, encodingContext,
-                        JsonEncoderEx.JsonEncoding.Array) {
+                    var useReversibleEncoding = (notification.Messages.FirstOrDefault()?.MessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0;
+                    var encoder = new JsonEncoderEx(writer, encodingContext, JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = _useAdvancedEncoding,
                         UseUriEncoding = _useAdvancedEncoding,
                         IgnoreDefaultValues = _useAdvancedEncoding,
                         IgnoreNullValues = true,
-                        UseReversibleEncoding = (notification.MessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0,
+                        UseReversibleEncoding = useReversibleEncoding,
                     };
                     foreach (var element in chunk) {
                         encoder.WriteEncodeable(null, element);
@@ -259,23 +262,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
-            var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
+            var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext)
+                .Concat(GetNetworkMessages(messages, MessageEncoding.JsonReversible, encodingContext));
             if (!notifications.Any()) {
                 yield break;
             }
             var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
-            foreach (var networkMessage in notifications) {
-                int notificationsPerMessage = networkMessage.Messages.Sum(m => m.Payload.Count);
-                var writer = new StringWriter();
-                var encoder = new JsonEncoderEx(writer, encodingContext) {
+            foreach (var notification in notifications) {
+                int notificationsPerMessage = notification.Messages.Sum(m => m.Payload.Count);
+                var useReversibleEncoding = (notification.Messages?.FirstOrDefault()?.MessageContentMask
+                        & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0;
+                using var writer = new StringWriter();
+                using var encoder = new JsonEncoderEx(writer, encodingContext, notification.IsJsonArray
+                    ? JsonEncoderEx.JsonEncoding.Array : JsonEncoderEx.JsonEncoding.Object) {
                     UseAdvancedEncoding = _useAdvancedEncoding,
                     UseUriEncoding = _useAdvancedEncoding,
                     IgnoreDefaultValues = _useAdvancedEncoding,
                     IgnoreNullValues = true,
-                    UseReversibleEncoding = (networkMessage.Messages?.FirstOrDefault()?.MessageContentMask 
-                        & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0,
+                    UseReversibleEncoding = useReversibleEncoding,
                 };
-                networkMessage.Encode(encoder);
+                notification.Encode(encoder);
                 encoder.Close();
                 var encoded = new NetworkMessageModel {
                     Body = Encoding.UTF8.GetBytes(writer.ToString()),
@@ -381,7 +387,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         DataSetClassId = message.Writer?.DataSet?
                             .DataSetMetaData?.DataSetClassId.ToString(),
                         DataSetWriterGroup = message.WriterGroup.WriterGroupId,
-                        MessageId = message.SequenceNumber.ToString(),
+                        MessageId = Guid.NewGuid().ToString(),
                     };
 
                     if (message.Notifications != null) {

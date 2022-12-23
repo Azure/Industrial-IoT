@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using System.Runtime.Serialization;
 
     /// <summary>
     /// Message modes
@@ -15,11 +14,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Standard pub sub mode cloud message mode (default)
         /// </summary>
         PubSub,
-
-        /// <summary>
-        /// Same as PubSub
-        /// </summary>
-        NetworkMessages = PubSub,
 
         /// <summary>
         /// Monitored item sample mode
@@ -37,8 +31,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         FullSamples,
 
         /// <summary>
-        /// Dataset messages but no network message header
+        /// Messages without network message header.
         /// </summary>
         DataSetMessages,
+
+        /// <summary>
+        /// Datasets are pure key value pairs without headers
+        /// </summary>
+        RawDataSets
     }
 }

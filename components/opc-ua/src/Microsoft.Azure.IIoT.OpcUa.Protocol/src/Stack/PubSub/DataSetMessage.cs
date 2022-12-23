@@ -288,10 +288,6 @@ namespace Opc.Ua.PubSub {
         /// <inheritdoc/>
         private void DecodeJson(IDecoder decoder) {
             DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
-            if (DataSetWriterName == null) {
-                // Try legacy format
-                DataSetWriterName = decoder.ReadString(nameof(DataSetWriterId));
-            }
             if (DataSetWriterName != null) {
                 MessageContentMask |= (uint)JsonDataSetMessageContentMask2.DataSetWriterName;
             }

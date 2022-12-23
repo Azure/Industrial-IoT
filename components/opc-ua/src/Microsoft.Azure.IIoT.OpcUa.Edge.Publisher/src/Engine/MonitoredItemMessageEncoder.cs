@@ -77,8 +77,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
             try {
                 var resultJson = EncodeAsJson(messages, maxMessageSize);
-                var resultUadp = EncodeAsUadp(messages, maxMessageSize);
-                var result = resultJson.Concat(resultUadp);
+                var resultBinary = EncodeAsBinary(messages, maxMessageSize);
+                var result = resultJson.Concat(resultBinary);
                 return Task.FromResult(result);
             }
             catch (Exception e) {
@@ -91,8 +91,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
             try {
                 var resultJson = EncodeBatchAsJson(messages, maxMessageSize);
-                var resultUadp = EncodeBatchAsUadp(messages, maxMessageSize);
-                var result = resultJson.Concat(resultUadp);
+                var resultBinary = EncodeBatchAsBinary(messages, maxMessageSize);
+                var result = resultJson.Concat(resultBinary);
                 return Task.FromResult(result);
             }
             catch (Exception e) {
@@ -113,7 +113,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext);
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext)
+                .Concat(GetMonitoredItemMessages(messages, MessageEncoding.JsonReversible, encodingContext));
             var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
@@ -192,14 +193,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="messages"></param>
         /// <param name="maxMessageSize"></param>
         /// <returns></returns>
-        private IEnumerable<NetworkMessageModel> EncodeBatchAsUadp(
+        private IEnumerable<NetworkMessageModel> EncodeBatchAsBinary(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext);
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Binary, encodingContext);
             var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
@@ -266,7 +267,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext);
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext)
+                .Concat(GetMonitoredItemMessages(messages, MessageEncoding.JsonReversible, encodingContext));
             var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 var writer = new StringWriter();
@@ -310,14 +312,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="messages"></param>
         /// <param name="maxMessageSize"></param>
         /// <returns></returns>
-        private IEnumerable<NetworkMessageModel> EncodeAsUadp(
+        private IEnumerable<NetworkMessageModel> EncodeAsBinary(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext).ToList();
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Binary, encodingContext).ToList();
             var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 var encoder = new BinaryEncoder(encodingContext);
