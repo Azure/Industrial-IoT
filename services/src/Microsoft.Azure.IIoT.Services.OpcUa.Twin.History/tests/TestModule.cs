@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
     /// Test twin module
     /// </summary>
     public sealed class TestModule : IBrowseServices<string>, IHistoricAccessServices<string>,
-        INodeServices<string>, IUploadServices<string>, ITestModule {
+        INodeServices<string>, ITestModule {
 
         /// <summary>
         /// The endpoint
@@ -46,17 +46,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
 
         public TestModule(IBrowseServices<EndpointModel> browser,
             IHistoricAccessServices<EndpointModel> history,
-            INodeServices<EndpointModel> nodes, IUploadServices<EndpointModel> upload) {
+            INodeServices<EndpointModel> nodes) {
             _browser = browser ?? throw new ArgumentNullException(nameof(browser));
             _history = history ?? throw new ArgumentNullException(nameof(history));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
-            _upload = upload ?? throw new ArgumentNullException(nameof(upload));
-        }
-
-        /// <inheritdoc/>
-        public Task<ModelUploadStartResultModel> ModelUploadStartAsync(
-            string endpointId, ModelUploadStartRequestModel request) {
-            return _upload.ModelUploadStartAsync(Endpoint, request);
         }
 
         /// <inheritdoc/>
@@ -135,6 +128,5 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
         private readonly IBrowseServices<EndpointModel> _browser;
         private readonly IHistoricAccessServices<EndpointModel> _history;
         private readonly INodeServices<EndpointModel> _nodes;
-        private readonly IUploadServices<EndpointModel> _upload;
     }
 }

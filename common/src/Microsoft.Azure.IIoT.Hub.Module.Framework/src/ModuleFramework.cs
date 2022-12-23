@@ -48,9 +48,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
                 .AsImplementedInterfaces().SingleInstance()
                 .IfNotRegistered(typeof(ITaskScheduler));
 #endif
-            // Register http (tunnel) client module
-            builder.RegisterModule<HttpTunnelClient>();
-
             // Register edgelet client (uses http)
             builder.RegisterType<EdgeletClient>()
                 .AsImplementedInterfaces().SingleInstance();
