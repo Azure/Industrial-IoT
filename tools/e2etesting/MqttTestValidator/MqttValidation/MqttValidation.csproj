@@ -14,7 +14,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="FluentAssertions" Version="6.8.0" />
-		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="6.0.11">
+		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="6.0.12">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

@@ -414,7 +414,7 @@ namespace Opc.Ua.Models {
             _map[Variable, Attributes.AccessLevel] =
                 new MapEntry((byte)1);
             _map[Variable, Attributes.ArrayDimensions] =
-                new MapEntry(new uint[0], true);
+                new MapEntry(Array.Empty<uint>(), true);
             _map[Variable, Attributes.BrowseName] = new
                 MapEntry(QualifiedName.Null);
             _map[Variable, Attributes.DataType] = new
@@ -438,9 +438,9 @@ namespace Opc.Ua.Models {
             _map[Variable, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[Variable, Attributes.RolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[Variable, Attributes.UserRolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[Variable, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[Variable, Attributes.Value] = new
@@ -451,7 +451,7 @@ namespace Opc.Ua.Models {
                 new MapEntry((uint)0, true);
 
             _map[VariableType, Attributes.ArrayDimensions] =
-                new MapEntry(new uint[0], true);
+                new MapEntry(Array.Empty<uint>(), true);
             _map[VariableType, Attributes.BrowseName] =
                 new MapEntry(QualifiedName.Null);
             _map[VariableType, Attributes.DataType] =
@@ -469,9 +469,9 @@ namespace Opc.Ua.Models {
             _map[VariableType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[VariableType, Attributes.RolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[VariableType, Attributes.UserRolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[VariableType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[VariableType, Attributes.Value] =
@@ -496,9 +496,9 @@ namespace Opc.Ua.Models {
             _map[Object, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[Object, Attributes.RolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[Object, Attributes.UserRolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[Object, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[Object, Attributes.WriteMask] =
@@ -519,9 +519,9 @@ namespace Opc.Ua.Models {
             _map[ObjectType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[ObjectType, Attributes.RolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[ObjectType, Attributes.UserRolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[ObjectType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[ObjectType, Attributes.WriteMask] =
@@ -546,9 +546,9 @@ namespace Opc.Ua.Models {
             _map[ReferenceType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[ReferenceType, Attributes.RolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[ReferenceType, Attributes.UserRolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[ReferenceType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[ReferenceType, Attributes.WriteMask] =
@@ -571,9 +571,9 @@ namespace Opc.Ua.Models {
             _map[DataType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[DataType, Attributes.RolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[DataType, Attributes.UserRolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[DataType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[DataType, Attributes.WriteMask] =
@@ -596,9 +596,9 @@ namespace Opc.Ua.Models {
             _map[Method, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[Method, Attributes.RolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[Method, Attributes.UserRolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[Method, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[Method, Attributes.WriteMask] =
@@ -621,9 +621,9 @@ namespace Opc.Ua.Models {
             _map[View, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
             _map[View, Attributes.RolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[View, Attributes.UserRolePermissions] =
-                new MapEntry(new ExtensionObject[0], true);
+                new MapEntry(Array.Empty<ExtensionObject>(), true);
             _map[View, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
             _map[View, Attributes.WriteMask] =

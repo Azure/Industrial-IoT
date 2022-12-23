@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }
             try {
                 await _hub.Clients.All.SendCoreAsync(method,
-                    arguments ?? new object[0], ct);
+                    arguments ?? Array.Empty<object>(), ct);
             }
             catch (Exception ex) {
                 _logger.Verbose(ex, "Failed to send broadcast message");
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }
             try {
                 await _hub.Clients.User(target).SendCoreAsync(method,
-                    arguments ?? new object[0], ct);
+                    arguments ?? Array.Empty<object>(), ct);
             }
             catch (Exception ex) {
                 _logger.Debug(ex, "Failed to send unicast message");
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }
             try {
                 await _hub.Clients.Group(group).SendCoreAsync(method,
-                    arguments ?? new object[0], ct);
+                    arguments ?? Array.Empty<object>(), ct);
             }
             catch (Exception ex) {
                 _logger.Verbose(ex, "Failed to send multicast message");

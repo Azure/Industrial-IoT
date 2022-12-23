@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var codec = new VariantEncoderFactory().Default;
             var str = "[]";
             var variant = codec.Decode(str, BuiltInType.String);
-            var expected = new Variant(new string[0]);
+            var expected = new Variant(System.Array.Empty<string>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(), encoded);
@@ -265,10 +265,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var codec = new VariantEncoderFactory().Default;
             var str = _serializer.FromObject(new {
                 Type = "String",
-                Body = new string[0]
+                Body = System.Array.Empty<string>()
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new string[0]);
+            var expected = new Variant(System.Array.Empty<string>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(), encoded);
@@ -335,10 +335,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var codec = new VariantEncoderFactory().Default;
             var str = _serializer.FromObject(new {
                 Type = "String",
-                Body = new string[0]
+                Body = System.Array.Empty<string>()
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new string[0]);
+            var expected = new Variant(System.Array.Empty<string>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(), encoded);
