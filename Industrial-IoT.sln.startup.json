@@ -38,13 +38,10 @@
         "Microsoft.Azure.IIoT.Services.OpcUa.Registry": {},
         "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync": {},
         "Microsoft.Azure.IIoT.Services.OpcUa.Twin": {},
-        "Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway": {},
         "Microsoft.Azure.IIoT.Services.OpcUa.Twin.History": {},
         "Microsoft.Azure.IIoT.Services.Processor.Onboarding": {},
         "Microsoft.Azure.IIoT.Services.Processor.Events": {},
-        "Microsoft.Azure.IIoT.Services.Processor.Telemetry": {},
-        "Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm": {},
-        "Microsoft.Azure.IIoT.Services.Processor.Tunnel": {}
+        "Microsoft.Azure.IIoT.Services.Processor.Telemetry": {}
       }
     },
     "Individual Services (Light)": {
