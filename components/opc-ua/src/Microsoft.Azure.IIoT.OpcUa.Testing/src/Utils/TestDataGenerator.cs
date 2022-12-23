@@ -893,7 +893,7 @@ namespace Opc.Ua.Test {
          //   new BoundaryValues(typeof(DateTime), DateTime.MinValue, DateTime.MaxValue,
          //       new DateTime(1099, 1, 1), new DateTime(2039, 4, 4),
          //       new DateTime(2001, 9, 11, 9, 15, 0, DateTimeKind.Local)),
-            new BoundaryValues(typeof(byte[]), new byte[0]),
+            new BoundaryValues(typeof(byte[]), Array.Empty<byte>()),
             new BoundaryValues(typeof(StatusCode), 0u, 1073741824u, 2147483648u)
         };
 

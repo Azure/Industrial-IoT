@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Utils {
             char? quote = null;
             var isEscaping = false;
             if (commandLine == null) {
-                return new string[0];
+                return Array.Empty<string>();
             }
             return commandLine
                 .Split(c => {
