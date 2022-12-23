@@ -162,7 +162,7 @@ namespace System {
             if (value == null || value.Length <= 1) {
                 return value;
             }
-            var words = value.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
+            var words = value.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
             var result = words[0].Substring(0, 1).ToLower() + words[0].Substring(1);
             for (var i = 1; i < words.Length; i++) {
                 result += words[i].Substring(0, 1).ToUpper() + words[i].Substring(1);

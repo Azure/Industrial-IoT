@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
                 if (hub == null) {
                     hub = await _serviceManager.CreateHubContextAsync(Resource, ct);
                 }
-                await hub.Clients.All.SendCoreAsync("ping", new object[0], ct);
+                await hub.Clients.All.SendCoreAsync("ping", Array.Empty<object>(), ct);
                 return HealthCheckResult.Healthy();
             }
             catch (Exception ex) {
@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }
             try {
                 await _hub.Clients.All.SendCoreAsync(method,
-                    arguments ?? new object[0], ct);
+                    arguments ?? Array.Empty<object>(), ct);
             }
             catch (AzureSignalRNotConnectedException e) {
                 _logger.Verbose(e,
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }
             try {
                 await _hub.Clients.User(target).SendCoreAsync(method,
-                    arguments ?? new object[0], ct);
+                    arguments ?? Array.Empty<object>(), ct);
             }
             catch (AzureSignalRNotConnectedException e) {
                 _logger.Verbose(e,
@@ -159,7 +159,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }
             try {
                 await _hub.Clients.Group(group).SendCoreAsync(method,
-                    arguments ?? new object[0], ct);
+                    arguments ?? Array.Empty<object>(), ct);
             }
             catch (AzureSignalRNotConnectedException e) {
                 _logger.Verbose(e,

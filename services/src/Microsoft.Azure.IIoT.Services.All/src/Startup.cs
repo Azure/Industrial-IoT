@@ -154,7 +154,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
             public void Start() {
                 _cts = new CancellationTokenSource();
 
-                var args = new string[0];
+                var args = Array.Empty<string>();
 
                 // Minimal processes
                 var processes = new List<Task> {

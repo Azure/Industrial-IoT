@@ -251,7 +251,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 try {
                     object[] inputs;
                     if (_methodParams.Length == 0) {
-                        inputs = new object[0];
+                        inputs = Array.Empty<object>();
                     }
                     else if (_methodParams.Length == 1) {
                         var data = _serializer.Deserialize(payload, _methodParams[0].ParameterType);
@@ -331,7 +331,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         throw new MethodCallStatusException(ex != null ?
                             _serializer.SerializeToString(ex) : null, status);
                     }
-                    return new byte[0];
+                    return Array.Empty<byte>();
                 });
             }
 

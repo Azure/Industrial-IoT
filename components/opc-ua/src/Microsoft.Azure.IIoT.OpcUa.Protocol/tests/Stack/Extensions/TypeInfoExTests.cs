@@ -47,7 +47,7 @@ namespace Opc.Ua.Extensions {
         [Fact]
         public void ArrayBoolNullTest1() {
             var variant = TypeInfo.Arrays.Boolean.CreateVariant(null);
-            Assert.Equal(new bool[0], variant.Value);
+            Assert.Equal(System.Array.Empty<bool>(), variant.Value);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace Opc.Ua.Extensions {
         [Fact]
         public void ArrayStringNullTest1() {
             var variant = TypeInfo.Arrays.String.CreateVariant(null);
-            Assert.Equal(new string[0], variant.Value);
+            Assert.Equal(System.Array.Empty<string>(), variant.Value);
         }
 
         [Fact]
