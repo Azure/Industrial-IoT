@@ -8,12 +8,6 @@ namespace Opc.Ua.PubSub {
     /// Message type
     /// </summary>
     public enum MessageType {
-
-        /// <summary>
-        /// Undefined
-        /// </summary>
-        None,
-
         /// <summary>
         /// Delta frame
         /// </summary>

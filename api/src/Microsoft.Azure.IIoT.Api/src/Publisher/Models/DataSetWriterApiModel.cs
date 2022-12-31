@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class DataSetWriterApiModel {
 
         /// <summary>
-        /// Dataset writer name. 
+        /// Dataset writer name.
         /// </summary>
         [DataMember(Name = "dataSetWriterId", Order = 0)] // Do not change for backcompat with database schema
         public string DataSetWriterName { get; set; }
@@ -46,13 +46,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "keyFrameCount", Order = 4,
             EmitDefaultValue = false)]
         public uint? KeyFrameCount { get; set; }
-
-        /// <summary>
-        /// Or keyframe timer interval (publisher extension)
-        /// </summary>
-        [DataMember(Name = "keyFrameInterval", Order = 5,
-            EmitDefaultValue = false)]
-        public TimeSpan? KeyFrameInterval { get; set; }
 
         /// <summary>
         /// Metadata message sending interval (publisher extension)

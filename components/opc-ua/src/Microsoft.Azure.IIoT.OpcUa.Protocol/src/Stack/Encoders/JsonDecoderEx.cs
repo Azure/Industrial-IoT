@@ -4,11 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
-    using Opc.Ua.Extensions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -104,7 +105,7 @@ namespace Opc.Ua.Encoders {
                 return true;
             }
 
-            var context = _stack.Peek().ToObject< Dictionary<string, object>>();
+            var context = _stack.Peek().ToObject<Dictionary<string, object>>();
             if (context == null || !context.TryGetValue(fieldName, out token)) {
                 return false;
             }
@@ -856,8 +857,37 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public IDictionary<string, DataValue> ReadDataValueDictionary(string property) {
-            return ReadDictionary(property, () => ReadDataValue(null));
+        public DataSet ReadDataSet(string property) {
+            var fieldMask = 0u;
+            bool couldBeRawData = false;
+            var dictionary = ReadDictionary(property, () => {
+                if (TryGetToken(property, out var token)) {
+                    if (token is JObject o) {
+                        if (HasAnyOf(o, "StatusCode")) {
+                            fieldMask |= (uint)DataSetFieldContentMask.StatusCode;
+                        }
+                        if (HasAnyOf(o, "SourceTimestamp")) {
+                            fieldMask |= (uint)DataSetFieldContentMask.SourceTimestamp;
+                        }
+                        if (HasAnyOf(o, "ServerTimestamp")) {
+                            fieldMask |= (uint)DataSetFieldContentMask.ServerTimestamp;
+                        }
+                        if (HasAnyOf(o, "SourcePicoseconds")) {
+                            fieldMask |= (uint)DataSetFieldContentMask.SourcePicoSeconds;
+                        }
+                        if (HasAnyOf(o, "ServerPicoseconds")) {
+                            fieldMask |= (uint)DataSetFieldContentMask.ServerPicoSeconds;
+                        }
+                    }
+                    else if (token is JValue) {
+                        // Could be raw data
+                        couldBeRawData = true;
+                    }
+                }
+                return ReadDataValue(null);
+            });
+            return new DataSet(dictionary, fieldMask == 0 && couldBeRawData
+                ? (uint)DataSetFieldContentMask.RawData : fieldMask);
         }
 
         /// <inheritdoc/>
@@ -1140,7 +1170,7 @@ namespace Opc.Ua.Encoders {
                             return !unsigned ? new Variant((long)token) :
                                 new Variant((ulong)token);
                         }
-                        catch (OverflowException){
+                        catch (OverflowException) {
                             return new Variant((ulong)token);
                         }
                     case JTokenType.Boolean:
@@ -1751,7 +1781,7 @@ namespace Opc.Ua.Encoders {
             }
             var dictionary = new Dictionary<string, T>();
             foreach (var p in o.Properties()) {
-                    dictionary[p.Name] = ReadToken(p.Value, reader);
+                dictionary[p.Name] = ReadToken(p.Value, reader);
             }
             return dictionary;
         }

@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.Models {
     using Opc.Ua.Extensions;
-    using Opc.Ua.Nodeset;
     using System;
     using System.Linq;
     using System.Collections.Generic;
@@ -14,7 +13,7 @@ namespace Opc.Ua.Models {
     /// <summary>
     /// Represents a node in the form of its attributes
     /// </summary>
-    public class NodeAttributeSet : INodeAttributes, INode, IEncodeable {
+    public class NodeAttributeSet : INodeAttributes, INode {
 
         /// <summary>
         /// Constructor
@@ -85,18 +84,6 @@ namespace Opc.Ua.Models {
         IEnumerator IEnumerable.GetEnumerator() {
             return _attributes.GetEnumerator();
         }
-
-        /// <inheritdoc/>
-        public ExpandedNodeId TypeId =>
-            DataTypeIds.Node;
-
-        /// <inheritdoc/>
-        public ExpandedNodeId BinaryEncodingId =>
-            ObjectIds.Node_Encoding_DefaultBinary;
-
-        /// <inheritdoc/>
-        public ExpandedNodeId XmlEncodingId =>
-            ObjectIds.Node_Encoding_DefaultXml;
 
         /// <inheritdoc/>
         public ExpandedNodeId TypeDefinitionId =>
@@ -352,63 +339,8 @@ namespace Opc.Ua.Models {
         public List<IReference> References { get; } = new List<IReference>();
 
         /// <inheritdoc/>
-        public virtual void Decode(IDecoder decoder) {
-            decoder.PushNamespace(Namespaces.OpcUa);
-            // now read node class
-            var nodeClass = (NodeClass)_attributeMap.Decode(decoder, Attributes.NodeClass);
-            if (nodeClass == NodeClass.Unspecified) {
-                throw new ServiceResultException(StatusCodes.BadNodeClassInvalid);
-            }
-            SetAttribute(Attributes.NodeClass, nodeClass);
-            foreach (var attributeId in _attributeMap.GetNodeClassAttributes(NodeClass)) {
-                if (attributeId == Attributes.NodeClass) {
-                    continue; // Read already first
-                }
-                var value = _attributeMap.Decode(decoder, attributeId);
-                if (value != null) {
-                    if (value is DataValue dataValue) {
-                        _attributes[attributeId] = dataValue;
-                    }
-                    else {
-                        _attributes[attributeId] = new DataValue(new Variant(value));
-                    }
-                }
-            }
-            References.Clear();
-            var references = decoder.ReadEncodeableArray<EncodeableReferenceModel>(nameof(References))?.Select(r => r.Reference);
-            if (references != null) {
-                References.AddRange(references);
-            }
-            decoder.PopNamespace();
-        }
-
-        /// <inheritdoc/>
-        public virtual void Encode(IEncoder encoder) {
-            encoder.PushNamespace(Namespaces.OpcUa);
-            // Write node class as first element since we need to look it up on decode.
-            _attributeMap.Encode(encoder, Attributes.NodeClass, NodeClass);
-            var optional = false;
-            foreach (var attributeId in _attributeMap.GetNodeClassAttributes(NodeClass)) {
-                if (attributeId == Attributes.NodeClass) {
-                    continue; // Read already first
-                }
-                object value = null;
-                if (_attributes.TryGetValue(attributeId, out var result) && result != null) {
-                    value = result.WrappedValue.Value;
-                }
-                if (value == null) {
-                    value = _attributeMap.GetDefault(NodeClass, attributeId, ref optional);
-                }
-                _attributeMap.Encode(encoder, attributeId, value);
-            }
-            encoder.WriteEncodeableArray(nameof(References),
-                References.Select(r => new EncodeableReferenceModel(r)));
-            encoder.PopNamespace();
-        }
-
-        /// <inheritdoc/>
-        public bool IsEqual(IEncodeable encodeable) {
-            if (!(encodeable is NodeAttributeSet node)) {
+        public override bool Equals(object o) {
+            if (!(o is NodeAttributeSet node)) {
                 return false;
             }
             if (ReferenceEquals(node._attributes, _attributes)) {
@@ -492,14 +424,6 @@ namespace Opc.Ua.Models {
         /// <inheritdoc/>
         public bool TryGetAttribute(uint attribute, out DataValue value) {
             return _attributes.TryGetValue(attribute, out value);
-        }
-
-        /// <inheritdoc/>
-        public override bool Equals(object obj) {
-            if (obj is IEncodeable encodeable) {
-                return IsEqual(encodeable);
-            }
-            return false;
         }
 
         /// <inheritdoc/>

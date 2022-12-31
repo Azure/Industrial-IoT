@@ -25,6 +25,7 @@ namespace Newtonsoft.Json.Converters {
             }
             converters.Add(new StringEnumConverter(new CamelCaseNamingStrategy(), true));
             converters.Add(new DataValueConverter());
+            converters.Add(new Opc.Ua.DataSetConverter());
             converters.Add(new DiagnosticInfoConverter());
             converters.Add(new ExpandedNodeIdConverter());
             converters.Add(new NodeIdConverter());

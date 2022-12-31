@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// Monitored Item Notification received from the subscription.
         /// </summary>
-        public IEnumerable<MonitoredItemNotificationModel> Notifications { get; set; }
+        public IReadOnlyList<MonitoredItemNotificationModel> Notifications { get; set; }
 
         /// <summary>
         /// Type of message

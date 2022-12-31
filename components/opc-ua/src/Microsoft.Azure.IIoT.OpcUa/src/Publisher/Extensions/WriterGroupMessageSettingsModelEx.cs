@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 GroupVersion = model.GroupVersion,
                 NetworkMessageContentMask = model.NetworkMessageContentMask,
                 PublishingOffset = model.PublishingOffset,
+                MaxMessagesPerPublish = model.MaxMessagesPerPublish,
                 SamplingOffset = model.SamplingOffset
             };
         }

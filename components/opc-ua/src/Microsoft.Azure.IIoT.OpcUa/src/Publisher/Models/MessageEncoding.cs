@@ -4,36 +4,47 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using System.Runtime.Serialization;
+    using System;
 
     /// <summary>
     /// Message encoding
     /// </summary>
+    [Flags]
     public enum MessageEncoding {
-
-        /// <summary>
-        /// Json non-reversible encoding
-        /// </summary>
-        Json,
-
-        /// <summary>
-        /// Json non-reversible encoding
-        /// </summary>
-        JsonNonReversible = Json,
 
         /// <summary>
         /// Uadp or Binary encoding
         /// </summary>
-        Uadp,
+        Uadp = 0x1,
 
         /// <summary>
-        /// Binary encoding
+        /// Binary encoding (same as uadp)
         /// </summary>
         Binary = Uadp,
 
         /// <summary>
-        /// Json reversible encoding
+        /// Json encoding (default)
         /// </summary>
-        JsonReversible,
+        Json = 0x2,
+
+        /// <summary>
+        /// Json reversible
+        /// </summary>
+        JsonReversible = Json | 0x10,
+
+        /// <summary>
+        /// Json gzip
+        /// </summary>
+        JsonGzip = Json | Gzip,
+
+        /// <summary>
+        /// Json reversible
+        /// </summary>
+        JsonReversibleGzip = JsonReversible | JsonGzip,
+
+        /// <summary>
+        /// Gzip flag
+        /// </summary>
+        Gzip = 0x20
     }
 }

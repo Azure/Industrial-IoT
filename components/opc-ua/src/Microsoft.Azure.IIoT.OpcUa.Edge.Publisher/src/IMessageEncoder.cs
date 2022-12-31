@@ -14,27 +14,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     public interface IMessageEncoder {
 
         /// <summary>
-        /// Number of notifications that are too big to be processed to IotHub Messages
+        /// Number of incoming subscription notifications that are
+        /// too big to be processed based on the message size limits
+        /// or other issues with the notification.
         /// </summary>
         uint NotificationsDroppedCount { get; }
 
         /// <summary>
-        /// Number of successfully processed notifications from OPC client
+        /// Number of successfully processed subscription notifications
+        /// from OPC client
         /// </summary>
         uint NotificationsProcessedCount { get; }
 
         /// <summary>
-        /// Number of successfully processed messages
+        /// Number of successfully generated messages that are to be
+        /// sent using the message sender
         /// </summary>
         uint MessagesProcessedCount { get; }
 
         /// <summary>
-        /// Average notifications in a message
+        /// Average subscription notifications packed into a message
         /// </summary>
         double AvgNotificationsPerMessage { get; }
 
         /// <summary>
-        /// Average notifications in a message
+        /// Average size of a message through the lifetime of the
+        /// encoders.
         /// </summary>
         double AvgMessageSize { get; }
 
@@ -43,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// </summary>
         /// <param name="message">Messages to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
-        Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
+        Task<IEnumerable<NetworkMessageChunkModel>> EncodeAsync(
             IEnumerable<DataSetMessageModel> message, int maxMessageSize);
 
         /// <summary>
@@ -51,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// </summary>
         /// <param name="messages">Messages to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
-        Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync
+        Task<IEnumerable<NetworkMessageChunkModel>> EncodeBatchAsync
             (IEnumerable<DataSetMessageModel> messages, int maxMessageSize);
     }
 }

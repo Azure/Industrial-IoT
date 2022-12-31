@@ -54,7 +54,7 @@ namespace Opc.Ua.Encoders {
                     new Variant(new long[] {1, 2, 3, 4, 5 }),
                     new Variant(new string[] {"1", "2", "3", "4", "5" })
                 },
-                LastMethodReturnStatus = 
+                LastMethodReturnStatus =
                     StatusCodes.BadAggregateConfigurationRejected,
                 LastMethodSessionId = new NodeId(
                     Utils.Nonce.CreateNonce(32)),
@@ -86,7 +86,7 @@ namespace Opc.Ua.Encoders {
         }
 
         [Fact]
-        public void ReadWriteDatavalueWithIntStream() {
+        public void ReadWriteDataValueWithIntStream() {
 
             // Create dummy
             var expected = new DataValue(new Variant(12345));
@@ -115,7 +115,7 @@ namespace Opc.Ua.Encoders {
         }
 
         [Fact]
-        public void ReadWriteDatavalueWithStringStream() {
+        public void ReadWriteDataValueWithStringStream() {
 
             // Create dummy
             var expected = new DataValue(new Variant("TestTestTestTest"
@@ -145,16 +145,16 @@ namespace Opc.Ua.Encoders {
         }
 
         [Fact]
-        public void ReadWriteDataValueDictionary() {
+        public void ReadWriteDataSetArrayTest() {
 
             // Create dummy
-            var expected = new Dictionary<string, DataValue> {
-                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.Now, DateTime.UtcNow),
-                ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.Now),
+            var expected = new DataSet {
+                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
+                ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
                 ["1111111111111111111111111"] = new DataValue(new Variant(false), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
                 ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
-                ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.Now, DateTime.MinValue),
-                ["..."] = new DataValue(new Variant(new Variant("imbricated"))),
+                ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
+                ["..."] = new DataValue(new Variant("imbricated")),
             };
 
             var count = 10000;
@@ -164,21 +164,16 @@ namespace Opc.Ua.Encoders {
                 using (var encoder = new JsonEncoderEx(stream, context,
                         JsonEncoderEx.JsonEncoding.Array)) {
                     for (var i = 0; i < count; i++) {
-                        encoder.WriteDataValueDictionary(null, expected);
+                        encoder.WriteDataSet(null, expected);
                     }
                 }
                 buffer = stream.ToArray();
             }
-            // convert DataValue timestamps to OpcUa Utc
-            var expectedResult = new Dictionary<string, DataValue>();
-            foreach (var entry in expected) {
-                expectedResult[entry.Key] = new DataValue(entry.Value).ToOpcUaUniversalTime();
-            }
             using (var stream = new MemoryStream(buffer)) {
                 using (var decoder = new JsonDecoderEx(stream, context)) {
                     for (var i = 0; i < count; i++) {
-                        var result = decoder.ReadDataValueDictionary(null);
-                        Assert.Equal(expectedResult, result);
+                        var result = decoder.ReadDataSet(null);
+                        Assert.Equal(expected, result);
                     }
                     var eof = decoder.ReadDataValue(null);
                     Assert.Null(eof);

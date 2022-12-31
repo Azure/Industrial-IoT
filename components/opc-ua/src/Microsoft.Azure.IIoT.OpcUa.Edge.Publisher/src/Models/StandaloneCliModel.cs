@@ -61,11 +61,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public uint? DefaultKeyFrameCount { get; set; }
 
         /// <summary>
-        /// Default key frame interval.
-        /// </summary>
-        public TimeSpan? DefaultKeyFrameInterval { get; set; }
-
-        /// <summary>
         /// Flag wether to grab the display name of nodes form
         /// the OPC UA Server.
         /// </summary>
@@ -112,20 +107,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// Flag to demand full featured message creation from publisher
         /// </summary>
-        public bool FullFeaturedMessage { get; set; } = false;
+        public bool FullFeaturedMessage { get; set; }
 
         /// <summary>
-        /// The size of the message batching buffer
+        /// Number of messages that trigger a batch
         /// </summary>
         public int? BatchSize { get; set; } = 50;
 
         /// <summary>
-        /// The interval to trigger batching
+        /// The interval to trigger publishing
         /// </summary>
         public TimeSpan? BatchTriggerInterval { get; set; } = TimeSpan.FromSeconds(10);
 
         /// <summary>
-        /// The maximum size of the (IoT D2C ) message
+        /// Max messages packed into an outgoing message
+        /// </summary>
+        public uint? MaxMessagesPerPublish { get; set; }
+
+        /// <summary>
+        /// The maximum size of the (IoT D2C) message
         /// </summary>
         public int? MaxMessageSize { get; set; } = 0;
 
@@ -138,6 +138,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Define the maximum amount of the IoT D2C messages
         /// </summary>
         public int? MaxOutgressMessages { get; set; } = 4096;
+
+        /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public bool? UseReversibleEncoding { get; set; }
 
         /// <summary>
         /// Flag to use standards compliant encoding for pub sub messages (default to false for backcompat)

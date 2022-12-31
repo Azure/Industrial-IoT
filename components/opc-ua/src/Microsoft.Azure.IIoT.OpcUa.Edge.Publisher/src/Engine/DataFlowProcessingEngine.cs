@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
             _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(4096); // = 1 GB
 
-            _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
+            _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageChunkModel>(
                 async input => {
                     try {
                         if (_dataSetMessageBufferSize == 1) {
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                     catch (Exception e) {
                         _logger.Error(e, "Encoding failure");
-                        return Enumerable.Empty<NetworkMessageModel>();
+                        return Enumerable.Empty<NetworkMessageChunkModel>();
                     }
                 },
                 new ExecutionDataflowBlockOptions());
@@ -78,11 +78,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _dataSetMessageBufferSize,
                 new GroupingDataflowBlockOptions ());
 
-            _batchNetworkMessageBlock = new BatchBlock<NetworkMessageModel>(
+            _batchNetworkMessageBlock = new BatchBlock<NetworkMessageChunkModel>(
                 _networkMessageBufferSize,
                 new GroupingDataflowBlockOptions ());
 
-            _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
+            _sinkBlock = new ActionBlock<NetworkMessageChunkModel[]>(
                 async input => {
                     if (input != null && input.Any()) {
                         _logger.Debug("Sink block in engine {Name} triggered with {count} messages",
@@ -386,14 +386,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly IIdentity _identity;
 
         private BatchBlock<DataSetMessageModel> _batchDataSetMessageBlock;
-        private BatchBlock<NetworkMessageModel> _batchNetworkMessageBlock;
+        private BatchBlock<NetworkMessageChunkModel> _batchNetworkMessageBlock;
 
         private readonly Timer _diagnosticsOutputTimer;
         private readonly TimeSpan _diagnosticInterval;
         private DateTime _diagnosticStart = DateTime.MinValue;
 
-        private TransformManyBlock<DataSetMessageModel[], NetworkMessageModel> _encodingBlock;
-        private ActionBlock<NetworkMessageModel[]> _sinkBlock;
+        private TransformManyBlock<DataSetMessageModel[], NetworkMessageChunkModel> _encodingBlock;
+        private ActionBlock<NetworkMessageChunkModel[]> _sinkBlock;
 
         /// <summary>
         /// Define the maximum size of messages

@@ -68,6 +68,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string FullFeaturedMessage = "FullFeaturedMessage";
 
         /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public const string UseReversibleEncoding = "UseReversibleEncoding";
+
+        /// <summary>
         /// Flag to force strict encoding for messages
         /// </summary>
         public const string UseStandardsCompliantEncoding = "UseStandardsCompliantEncoding";
@@ -81,11 +86,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the default publishing interval in milliseconds.
         /// </summary>
         public const string OpcPublishingInterval = "DefaultPublishingInterval";
-
-        /// <summary>
-        /// Key for default frame interval
-        /// </summary>
-        public static string DefaultKeyFrameInterval = "DefaultKeyFrameInterval";
 
         /// <summary>
         /// Key for default keyframe count

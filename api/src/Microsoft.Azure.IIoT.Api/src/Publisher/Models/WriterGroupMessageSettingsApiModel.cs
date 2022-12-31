@@ -47,5 +47,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "publishingOffset", Order = 4,
             EmitDefaultValue = false)]
         public List<double> PublishingOffset { get; set; }
+
+        /// <summary>
+        /// Max messages per network message
+        /// </summary>
+        [DataMember(Name = "maxMessagesPerPublish", Order = 5,
+            EmitDefaultValue = false)]
+        public uint? MaxMessagesPerPublish { get; set; }
     }
 }

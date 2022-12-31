@@ -293,7 +293,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             return new WriterGroupJobModel {
                 MessagingMode = MessagingMode.Samples,
                 WriterGroup = new WriterGroupModel {
-                    MessageEncoding = MessageEncoding.Json,
+                    MessageType = MessageEncoding.Json,
                     WriterGroupId = job.Id,
                     DataSetWriters = new List<DataSetWriterModel>(),
                     MessageSettings = new WriterGroupMessageSettingsModel() {
@@ -397,11 +397,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                             DataSetContentMask.MajorVersion |
                             DataSetContentMask.MinorVersion |
                             DataSetContentMask.SequenceNumber
-                    },
-                    //  TODO provide default settings
-                    KeyFrameCount = null,
-                    DataSetMetaDataSendInterval = null,
-                    KeyFrameInterval = null
+                    }
                 };
                 variables = dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData;
                 publishJob.WriterGroup.DataSetWriters.Add(dataSetWriter);

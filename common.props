@@ -16,7 +16,8 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
+	<Nullable>disable</Nullable>
     <IsPackable>false</IsPackable>
 	<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
 	<ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>

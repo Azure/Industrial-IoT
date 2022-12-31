@@ -201,7 +201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             EnableRoutingInfo = _engineConfig.EnableRoutingInfo,
                         },
                         WriterGroup = new WriterGroupModel {
-                            MessageEncoding = standaloneCliModel.MessageEncoding,
+                            MessageType = standaloneCliModel.MessageEncoding,
                             WriterGroupId = dataSetBatches.First.Source.Connection.Group,
                             DataSetWriters = dataSetBatches.Items.Select(dataSet => new DataSetWriterModel {
                                 DataSetWriterName = GetUniqueWriterName(dataSetBatches.Items, dataSet.Source),
@@ -209,8 +209,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     dataSetBatches.First.Header.DataSetMetaDataSendInterval ?? standaloneCliModel.DefaultMetaDataSendInterval,
                                 KeyFrameCount = !GetMessagingProfile(standaloneCliModel).SupportsKeyFrames ? null :
                                     dataSetBatches.First.Header.DataSetKeyFrameCount ?? standaloneCliModel.DefaultKeyFrameCount,
-                                KeyFrameInterval = !GetMessagingProfile(standaloneCliModel).SupportsKeyFrames ? null :
-                                    dataSetBatches.First.Header.DataSetKeyFrameInterval ?? standaloneCliModel.DefaultKeyFrameInterval,
                                 DataSet = new PublishedDataSetModel {
                                     Name = null,
                                     DataSetMetaData = !GetMessagingProfile(standaloneCliModel).SupportsMetadata ? null :
@@ -234,12 +232,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     },
                                 },
                                 DataSetFieldContentMask = GetMessagingProfile(standaloneCliModel).DataSetFieldContentMask,
-                                MessageSettings = new DataSetWriterMessageSettingsModel() {
+                                MessageSettings = new DataSetWriterMessageSettingsModel {
                                     DataSetMessageContentMask = GetMessagingProfile(standaloneCliModel).DataSetMessageContentMask
                                 }
                             }).ToList(),
-                            MessageSettings = new WriterGroupMessageSettingsModel() {
-                                NetworkMessageContentMask = GetMessagingProfile(standaloneCliModel).NetworkMessageContentMask
+                            MessageSettings = new WriterGroupMessageSettingsModel {
+                                NetworkMessageContentMask = GetMessagingProfile(standaloneCliModel).NetworkMessageContentMask,
+                                MaxMessagesPerPublish = standaloneCliModel.MaxMessagesPerPublish
                             }
                         }
                     });

@@ -310,10 +310,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     await Subscription.ActivateAsync(null).ConfigureAwait(false);
                 }
 
-                if (_keyframeTimer != null) {
-                    _keyframeTimer.Start();
-                }
-
                 if (_metadataTimer != null) {
                     _metadataTimer.Start();
                 }
@@ -329,10 +325,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 await Subscription.DeactivateAsync(null).ConfigureAwait(false);
-
-                if (_keyframeTimer != null) {
-                    _keyframeTimer.Stop();
-                }
 
                 if (_metadataTimer != null) {
                     _metadataTimer.Stop();
@@ -360,7 +352,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     DeactivateAsync().GetAwaiter().GetResult();
                     CloseAsync().GetAwaiter().GetResult();
                 }
-                _keyframeTimer?.Dispose();
                 _metadataTimer?.Dispose();
                 Subscription = null;
             }
@@ -369,29 +360,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// Initializes the key frame triggering mechanism from the cconfiguration model
             /// </summary>
             private void InitializeKeyframeTrigger(DataSetWriterModel dataSetWriter) {
-
-                var keyframeTriggerInterval = dataSetWriter.KeyFrameInterval
-                    .GetValueOrDefault(TimeSpan.Zero)
-                    .TotalMilliseconds;
-
-                if (keyframeTriggerInterval > 0) {
-                    if (_keyframeTimer == null) {
-                        _keyframeTimer = new Timer(keyframeTriggerInterval);
-                        _keyframeTimer.Elapsed += KeyframeTimerElapsed;
-                    }
-                    else {
-                        _keyframeTimer.Interval = keyframeTriggerInterval;
-                    }
-                }
-                else {
-                    if (_keyframeTimer != null) {
-                        _keyframeTimer.Stop();
-                        _keyframeTimer.Dispose();
-                        _keyframeTimer = null;
-                    }
-                    _frameCount = 0;
-                    _keyFrameCount = dataSetWriter.KeyFrameCount ?? 0;
-                }
+                _frameCount = 0;
+                _keyFrameCount = dataSetWriter.KeyFrameCount ?? 0;
             }
 
             /// <summary>
@@ -418,29 +388,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _metadataTimer.Dispose();
                         _metadataTimer = null;
                     }
-                }
-            }
-
-            /// <summary>
-            /// Fire when keyframe timer elapsed to send keyframe message
-            /// </summary>
-            private void KeyframeTimerElapsed(object sender, ElapsedEventArgs e) {
-                try {
-                    _keyframeTimer.Enabled = false;
-                }
-                catch (ObjectDisposedException) {
-                    // Disposed while being invoked
-                    return;
-                }
-
-                _outer._logger.Debug("Insert keyframe message...");
-                var snapshot = Subscription.GetSubscriptionNotification();
-                if (snapshot != null) {
-                    CallMessageReceiverDelegates(this, snapshot);
-                }
-                else {
-                    // Failed to send, try again later
-                    InitializeKeyframeTrigger(_dataSetWriter);
                 }
             }
 
@@ -642,7 +589,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             private readonly object _lock = new object();
             private DataSetWriterModel _dataSetWriter;
             private SubscriptionModel _subscriptionInfo;
-            private Timer _keyframeTimer;
             private Timer _metadataTimer;
             private uint _keyFrameCount;
             private volatile uint _frameCount;

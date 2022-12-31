@@ -14,6 +14,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     public class MessagingProfile {
 
         /// <summary>
+        /// Returns true if json encoding is used
+        /// </summary>
+        public bool IsJson => MessageEncoding.HasFlag(MessageEncoding.Json);
+
+        /// <summary>
         /// Messaging mode
         /// </summary>
         public MessagingMode MessagingMode { get; }
@@ -55,21 +60,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public MessageEncoding MessageEncoding { get; }
 
         /// <summary>
-        /// Returns true if messaging profiles supports metadata
-        /// </summary>
-        public bool IsJson {
-            get {
-                switch (MessageEncoding) {
-                    case MessageEncoding.JsonReversible:
-                    case MessageEncoding.Json:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-        }
-
-        /// <summary>
         /// Dataset message content mask
         /// </summary>
         public DataSetContentMask DataSetMessageContentMask { get; }
@@ -98,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <returns></returns>
         public static MessagingProfile Get(MessagingMode messageMode,
             MessageEncoding encoding, bool fullFeaturedMessage = false) {
-            var key = (GetMessageMode(messageMode, fullFeaturedMessage), encoding);
+            var key = (GetMessageMode(messageMode, fullFeaturedMessage), GetMessageEncoding(encoding));
             return kProfiles[key];
         }
 
@@ -111,7 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <returns></returns>
         public static bool IsSupported(MessagingMode messageMode,
             MessageEncoding encoding, bool fullFeaturedMessage = false) {
-            var key = (GetMessageMode(messageMode, fullFeaturedMessage), encoding);
+            var key = (GetMessageMode(messageMode, fullFeaturedMessage), GetMessageEncoding(encoding));
             return kProfiles.ContainsKey(key);
         }
 
@@ -163,102 +153,108 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             //
 
             // Sample mode
-            AddProfile(MessagingMode.Samples, MessageEncoding.Json,
-                    BuildDataSetContentMask(false),
+            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(false));
-            AddProfile(MessagingMode.FullSamples, MessageEncoding.Json,
-                    BuildDataSetContentMask(true),
+                    BuildDataSetFieldContentMask(false),
+                    MessageEncoding.Json);
+            AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(true));
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Json);
 
             //
             // New message profiles supported in 2.6
             //
 
             // Pub sub
-            AddProfile(MessagingMode.PubSub, MessageEncoding.Json,
-                    BuildDataSetContentMask(false),
+            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(false));
-            AddProfile(MessagingMode.FullNetworkMessages, MessageEncoding.Json,
-                    BuildDataSetContentMask(true),
+                    BuildDataSetFieldContentMask(false),
+                    MessageEncoding.Json);
+            AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(true));
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Json);
 
             //
             // New message profiles supported in 2.8
             //
 
-            AddProfile(MessagingMode.Samples, MessageEncoding.Binary,
-                    BuildDataSetContentMask(false),
+            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(false));
-            AddProfile(MessagingMode.FullSamples, MessageEncoding.Binary,
-                    BuildDataSetContentMask(true),
+                    BuildDataSetFieldContentMask(false),
+                    MessageEncoding.Binary);
+            AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(true));
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Binary);
 
             //
             // New message profiles supported in 2.9
             //
 
+            // Pub sub gzipped
+            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false),
+                    BuildNetworkMessageContentMask(),
+                    BuildDataSetFieldContentMask(false),
+                    MessageEncoding.JsonGzip);
+            AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true),
+                    BuildNetworkMessageContentMask(),
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.JsonGzip);
+
             // Reversible encodings
-            AddProfile(MessagingMode.PubSub, MessageEncoding.JsonReversible,
-                    BuildDataSetContentMask(false, true),
+            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false, true),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(false));
-            AddProfile(MessagingMode.FullNetworkMessages, MessageEncoding.JsonReversible,
-                    BuildDataSetContentMask(true, true),
+                    BuildDataSetFieldContentMask(false),
+                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
+            AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true, true),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(true));
-            AddProfile(MessagingMode.Samples, MessageEncoding.JsonReversible,
-                    BuildDataSetContentMask(false, true),
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
+            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false, true),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(false));
-            AddProfile(MessagingMode.FullSamples, MessageEncoding.JsonReversible,
-                    BuildDataSetContentMask(true, true),
+                    BuildDataSetFieldContentMask(false),
+                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
+            AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true, true),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(true));
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
+
+            // Without network message header
+            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(true, false),
+                    NetworkMessageContentMask.DataSetMessageHeader,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Json, MessageEncoding.JsonGzip);
+            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(true, true),
+                    NetworkMessageContentMask.DataSetMessageHeader,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
+
+            // Raw key value pair datasets, non-reversible
+            AddProfile(MessagingMode.RawDataSets, 0,
+                    0,
+                    DataSetFieldContentMask.RawData,
+                    MessageEncoding.Json, MessageEncoding.JsonGzip);
 
 #if DEBUG
-            // Without network message header
-            AddProfile(MessagingMode.DataSetMessages, MessageEncoding.Json,
-                    BuildDataSetContentMask(true, false),
-                    NetworkMessageContentMask.DataSetMessageHeader,
-                    BuildDataSetFieldContentMask(true));
-            AddProfile(MessagingMode.DataSetMessages, MessageEncoding.JsonReversible,
-                    BuildDataSetContentMask(true, true),
-                    NetworkMessageContentMask.DataSetMessageHeader,
-                    BuildDataSetFieldContentMask(true));
-
-            // Raw key value pairs
-            AddProfile(MessagingMode.RawDataSets, MessageEncoding.Json,
-                    0,
-                    0,
-                    DataSetFieldContentMask.RawData);
-            AddProfile(MessagingMode.RawDataSets, MessageEncoding.JsonReversible,
-                    0,
-                    0,
-                    0);
-
             // Uadp encoding
-            AddProfile(MessagingMode.PubSub, MessageEncoding.Uadp,
-                    BuildDataSetContentMask(false),
+            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(false));
-            AddProfile(MessagingMode.FullNetworkMessages, MessageEncoding.Uadp,
-                    BuildDataSetContentMask(true),
+                    BuildDataSetFieldContentMask(false),
+                    MessageEncoding.Uadp);
+            AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(true));
-            AddProfile(MessagingMode.DataSetMessages, MessageEncoding.Uadp,
-                    BuildDataSetContentMask(true, true),
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Uadp);
+            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(true, true),
                     NetworkMessageContentMask.DataSetMessageHeader,
-                    BuildDataSetFieldContentMask(true));
-            AddProfile(MessagingMode.RawDataSets, MessageEncoding.Uadp,
+                    BuildDataSetFieldContentMask(true),
+                    MessageEncoding.Uadp);
+            AddProfile(MessagingMode.RawDataSets, 0,
                     0,
-                    0,
-                    DataSetFieldContentMask.RawData);
+                    DataSetFieldContentMask.RawData,
+                    MessageEncoding.Uadp);
 #endif
         }
 
@@ -280,16 +276,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             return messageMode;
         }
 
+        /// <summary>
+        /// Massage the message encoding
+        /// </summary>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        private static MessageEncoding GetMessageEncoding(MessageEncoding encoding) {
+            if (encoding == 0) {
+                return MessageEncoding.Json;
+            }
+            return encoding;
+        }
+
         private static void AddProfile(MessagingMode messagingMode,
-            MessageEncoding messageEncoding,
             DataSetContentMask dataSetMessageContentMask,
             NetworkMessageContentMask networkMessageContentMask,
-            DataSetFieldContentMask dataSetFieldContentMask) {
-            kProfiles.Add((messagingMode, messageEncoding),
-                new MessagingProfile(messagingMode, messageEncoding,
-                    dataSetMessageContentMask,
-                    networkMessageContentMask,
-                    dataSetFieldContentMask));
+            DataSetFieldContentMask dataSetFieldContentMask,
+            params MessageEncoding[] messageEncoding) {
+            foreach (var encoding in messageEncoding) {
+                kProfiles.Add((messagingMode, encoding),
+                    new MessagingProfile(messagingMode, encoding,
+                        dataSetMessageContentMask,
+                        networkMessageContentMask,
+                        dataSetFieldContentMask));
+            }
         }
 
         // From published nodes jobs converter

@@ -131,12 +131,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         "setting of the subscriptions against the OPC UA server.",
                         (int i) => this[StandaloneCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
 
-                    { $"kfi|keyframeinterval=|{StandaloneCliConfigKeys.DefaultKeyFrameInterval}=", "Default value in milliseconds specifying the interval " +
-                        "for when periodic key frames are inserted.",
-                        (int i) => this[StandaloneCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
                     { $"kfc|keyframecount=|{StandaloneCliConfigKeys.DefaultKeyFrameCount}=", "Default count of messages before a new key frame is sent " +
                         "if the publishing mode is PubSub.",
-                        (int i) => this[StandaloneCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
+                        (int i) => this[StandaloneCliConfigKeys.DefaultKeyFrameCount] = TimeSpan.FromMilliseconds(i).ToString() },
                     { $"msi|metadatasendinterval=|{StandaloneCliConfigKeys.DefaultMetaDataSendInterval}=", "Default value in milliseconds for the metadata send " +
                         "interval if the publishing mode is PubSub.",
                         (int i) => this[StandaloneCliConfigKeys.OpcPublishingInterval] = TimeSpan.FromMilliseconds(i).ToString() },
@@ -236,6 +233,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[StandaloneCliConfigKeys.RuntimeStateReporting] = b.ToString()},
                     { $"ri|enableroutinginfo=|{StandaloneCliConfigKeys.EnableRoutingInfo}=", "Enable adding routing info to telemetry. By default this is disabled.",
                         (bool b) => this[StandaloneCliConfigKeys.EnableRoutingInfo] = b.ToString() },
+                    { $"re|reversibleencoding|{StandaloneCliConfigKeys.UseReversibleEncoding}=", "Use reversible encoding in JSON encoders. Default is false.",
+                        (bool b) => this[StandaloneCliConfigKeys.UseReversibleEncoding] = b.ToString() },
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
@@ -365,6 +364,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         public bool UseStandardsCompliantEncoding => StandaloneCliModel.UseStandardsCompliantEncoding;
 
+        /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public bool? UseReversibleEncoding => StandaloneCliModel.UseReversibleEncoding;
+
         /// <inheritdoc/>
         public bool EnableRoutingInfo => StandaloneCliModel.EnableRoutingInfo;
 
@@ -441,7 +445,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.DefaultSamplingInterval = GetValueOrDefault(StandaloneCliConfigKeys.OpcSamplingInterval, model.DefaultSamplingInterval);
             model.DefaultPublishingInterval = GetValueOrDefault(StandaloneCliConfigKeys.OpcPublishingInterval, model.DefaultPublishingInterval);
             model.DefaultMetaDataSendInterval = GetValueOrDefault(StandaloneCliConfigKeys.DefaultMetaDataSendInterval, model.DefaultMetaDataSendInterval);
-            model.DefaultKeyFrameInterval = GetValueOrDefault(StandaloneCliConfigKeys.DefaultKeyFrameInterval, model.DefaultKeyFrameInterval);
             model.DefaultKeyFrameCount = GetValueOrDefault(StandaloneCliConfigKeys.DefaultKeyFrameCount, model.DefaultKeyFrameCount);
             model.FetchOpcNodeDisplayName = GetValueOrDefault(StandaloneCliConfigKeys.FetchOpcNodeDisplayName, model.FetchOpcNodeDisplayName);
             model.DefaultQueueSize = GetValueOrDefault(StandaloneCliConfigKeys.DefaultQueueSize, model.DefaultQueueSize);
@@ -461,6 +464,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.EnableRuntimeStateReporting = GetValueOrDefault(StandaloneCliConfigKeys.RuntimeStateReporting, model.EnableRuntimeStateReporting);
             model.EnableRoutingInfo = GetValueOrDefault(StandaloneCliConfigKeys.EnableRoutingInfo, model.EnableRoutingInfo);
             model.UseStandardsCompliantEncoding = GetValueOrDefault(StandaloneCliConfigKeys.UseStandardsCompliantEncoding, model.UseStandardsCompliantEncoding);
+            model.UseReversibleEncoding = GetValueOrDefault(StandaloneCliConfigKeys.UseReversibleEncoding, model.UseReversibleEncoding);
             return model;
         }
 

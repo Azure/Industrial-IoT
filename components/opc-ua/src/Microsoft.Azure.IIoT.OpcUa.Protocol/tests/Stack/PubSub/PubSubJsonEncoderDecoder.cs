@@ -23,14 +23,14 @@ namespace Opc.Ua.PubSub.Tests {
                 { "3", new DataValue("abcd") }
             };
 
-            var message = new DataSetMessage {
+            var message = new JsonDataSetMessage {
                 DataSetWriterName = "WriterId",
                 DataSetWriterId = 3,
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
                 SequenceNumber = ++_currentSequenceNumber,
                 Status = StatusCodes.Bad,
                 Timestamp = DateTime.UtcNow,
-                MessageContentMask = (uint)(
+                DataSetMessageContentMask = (uint)(
                     JsonDataSetMessageContentMask2.DataSetWriterName |
                     JsonDataSetMessageContentMask.DataSetWriterId |
                     JsonDataSetMessageContentMask.SequenceNumber |
@@ -42,32 +42,26 @@ namespace Opc.Ua.PubSub.Tests {
                     DataSetFieldContentMask.SourceTimestamp))
             };
 
-            var networkMessage = new NetworkMessage {
+            var networkMessage = new JsonNetworkMessage {
                 MessageId = Guid.NewGuid().ToString(), // TODO
-                Messages = new List<DataSetMessage>(),
+                Messages = new List<BaseDataSetMessage>(),
                 PublisherId = "PublisherId"
             };
 
             networkMessage.Messages.Add(message);
-            networkMessage.MessageContentMask = (uint)(
+            networkMessage.NetworkMessageContentMask = (uint)(
                 JsonNetworkMessageContentMask.PublisherId |
                 JsonNetworkMessageContentMask.NetworkMessageHeader |
                 JsonNetworkMessageContentMask.SingleDataSetMessage);
 
-            byte[] buffer;
             var context = new ServiceMessageContext();
-            using (var stream = new MemoryStream()) {
-                using (var encoder = new JsonEncoderEx(stream, context)) {
-                    networkMessage.Encode(encoder);
-                }
-                buffer = stream.ToArray();
-            }
+            var buffer = Assert.Single(networkMessage.Encode(context, 1024));
 
             ConvertToOpcUaUniversalTime(networkMessage);
 
             using (var stream = new MemoryStream(buffer)) {
                 using (var decoder = new JsonDecoderEx(stream, context)) {
-                    var result = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
+                    var result = decoder.ReadEncodeable(null, typeof(JsonNetworkMessage)) as JsonNetworkMessage;
                     Assert.Equal(networkMessage, result);
                 }
             }
@@ -86,7 +80,7 @@ namespace Opc.Ua.PubSub.Tests {
                 ["..."] = new DataValue(new Variant(new Variant("imbricated")))
             };
 
-            var message = new DataSetMessage {
+            var message = new JsonDataSetMessage {
                 DataSetWriterName = "WriterId",
                 DataSetWriterId = 1,
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
@@ -94,7 +88,7 @@ namespace Opc.Ua.PubSub.Tests {
                 Status = StatusCodes.GoodCallAgain,
                 Timestamp = DateTime.UtcNow,
                 Picoseconds = 1234,
-                MessageContentMask = (uint)(
+                DataSetMessageContentMask = (uint)(
                     JsonDataSetMessageContentMask2.DataSetWriterName |
                     JsonDataSetMessageContentMask.DataSetWriterId |
                     JsonDataSetMessageContentMask.SequenceNumber |
@@ -109,34 +103,28 @@ namespace Opc.Ua.PubSub.Tests {
                     DataSetFieldContentMask.ServerPicoSeconds))
             };
 
-            var networkMessage = new NetworkMessage {
+            var networkMessage = new JsonNetworkMessage {
                 MessageId = Guid.NewGuid().ToString(), // TODO
-                Messages = new List<DataSetMessage>(),
+                Messages = new List<BaseDataSetMessage>(),
                 PublisherId = "PublisherId",
-                DataSetClassId = "1234"
+                DataSetClassId = Guid.NewGuid()
             };
 
             networkMessage.Messages.Add(message);
-            networkMessage.MessageContentMask = (uint)(
+            networkMessage.NetworkMessageContentMask = (uint)(
                 JsonNetworkMessageContentMask.PublisherId |
                 JsonNetworkMessageContentMask.NetworkMessageHeader |
                 JsonNetworkMessageContentMask.SingleDataSetMessage |
                 JsonNetworkMessageContentMask.DataSetClassId);
 
-            byte[] buffer;
             var context = new ServiceMessageContext();
-            using (var stream = new MemoryStream()) {
-                using (var encoder = new JsonEncoderEx(stream, context)) {
-                    networkMessage.Encode(encoder);
-                }
-                buffer = stream.ToArray();
-            }
+            var buffer = Assert.Single(networkMessage.Encode(context, 1024));
 
             ConvertToOpcUaUniversalTime(networkMessage);
 
             using (var stream = new MemoryStream(buffer)) {
                 using (var decoder = new JsonDecoderEx(stream, context)) {
-                    var result = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
+                    var result = decoder.ReadEncodeable(null, typeof(JsonNetworkMessage)) as JsonNetworkMessage;
                     Assert.Equal(networkMessage, result);
                 }
             }
@@ -145,7 +133,7 @@ namespace Opc.Ua.PubSub.Tests {
         /// <summary>
         /// Convert timestamps of payload to OpcUa Utc.
         /// </summary>
-        private void ConvertToOpcUaUniversalTime(NetworkMessage networkMessage) {
+        private static void ConvertToOpcUaUniversalTime(BaseNetworkMessage networkMessage) {
             // convert DataSet Payload DataValue timestamps to OpcUa Utc
             foreach (var dataSetMessage in networkMessage.Messages) {
                 var expectedPayload = new Dictionary<string, DataValue>();

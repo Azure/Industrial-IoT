@@ -46,10 +46,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public uint? DataSetKeyFrameCount { get; set; }
 
-        /// <summary> Or send a keyframe at the configured interval </summary>
-        [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public TimeSpan? DataSetKeyFrameInterval { get; set; }
-
         /// <summary> Send metadata at the configured interval even when not changing </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public TimeSpan? DataSetMetaDataSendInterval { get; set; }

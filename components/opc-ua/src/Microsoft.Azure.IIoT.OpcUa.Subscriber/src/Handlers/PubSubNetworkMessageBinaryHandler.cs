@@ -46,15 +46,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                 var context = new ServiceMessageContext();
                 var decoder = new BinaryDecoder(new MemoryStream(payload), context);
                 var messages = decoder.ReadBoolean(null) // is Batch?
-                    ? decoder.ReadEncodeableArray(null, typeof(NetworkMessage))
-                        as NetworkMessage[]
-                     : (decoder.ReadEncodeable(null, typeof(NetworkMessage))
-                        as NetworkMessage).YieldReturn();
+                    ? decoder.ReadEncodeableArray(null, typeof(UadpNetworkMessage))
+                        as UadpNetworkMessage[]
+                     : (decoder.ReadEncodeable(null, typeof(UadpNetworkMessage))
+                        as UadpNetworkMessage).YieldReturn();
 
                 foreach (var message in messages) {
                     foreach (var dataSetMessage in message.Messages) {
                         var dataset = new DataSetMessageModel {
-                            PublisherId = message.PublisherId,
+                            PublisherId = message.PublisherIndex,
                             MessageId = message.MessageId,
                             DataSetClassId = message.DataSetClassId,
                             DataSetWriterId = dataSetMessage.DataSetWriterName,

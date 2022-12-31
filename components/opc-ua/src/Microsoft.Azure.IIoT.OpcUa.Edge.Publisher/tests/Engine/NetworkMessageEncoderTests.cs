@@ -5,217 +5,52 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Xunit;
 
-    public class NetworkMessageEncoderTests {
-
-        private readonly Mock<ILogger> _loggerMock;
-        private readonly Mock<IEngineConfiguration> _engineConfigMock;
-        private readonly NetworkMessageEncoder _encoder;
-
-        public NetworkMessageEncoderTests() {
-            _loggerMock = new Mock<ILogger>();
-            _engineConfigMock = new Mock<IEngineConfiguration>();
-            _encoder = new NetworkMessageEncoder(_loggerMock.Object, _engineConfigMock.Object);
-        }
-
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task EmptyMessagesTest(bool encodeBatchFlag) {
-            var maxMessageSize = 256 * 1024;
-            var messages = new List<DataSetMessageModel>();
-
-            var networkMessages = await (encodeBatchFlag
-                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : _encoder.EncodeAsync(messages, maxMessageSize)
-            );
-
-            Assert.Empty(networkMessages);
-            Assert.Equal((uint)0, _encoder.NotificationsProcessedCount);
-            Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
-            Assert.Equal((uint)0, _encoder.MessagesProcessedCount);
-        }
-
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task EmptyDataSetMessageModelTest(bool encodeBatchFlag) {
-            var maxMessageSize = 256 * 1024;
-            var messages = new[] { new DataSetMessageModel() };
-
-            var networkMessages = await (encodeBatchFlag
-                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : _encoder.EncodeAsync(messages, maxMessageSize)
-            );
-
-            Assert.Empty(networkMessages);
-            Assert.Equal((uint)0, _encoder.NotificationsProcessedCount);
-            Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
-            Assert.Equal((uint)0, _encoder.MessagesProcessedCount);
-        }
-
-        [Theory]
-        [InlineData(false, MessageEncoding.Json)]
-        [InlineData(true, MessageEncoding.Json)]
-        [InlineData(false, MessageEncoding.Uadp)]
-        [InlineData(true, MessageEncoding.Uadp)]
-        public async Task EncodeTooBigMessageTest(bool encodeBatchFlag, MessageEncoding encoding) {
-            var maxMessageSize = 100;
-            var messages = GenerateSampleMessages(3, false, encoding);
-
-            var networkMessages = await (encodeBatchFlag
-                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : _encoder.EncodeAsync(messages, maxMessageSize)
-            );
-
-            Assert.Empty(networkMessages);
-            Assert.Equal((uint)0, _encoder.NotificationsProcessedCount);
-            Assert.Equal((uint)6, _encoder.NotificationsDroppedCount);
-            Assert.Equal((uint)0, _encoder.MessagesProcessedCount);
-        }
-
-        [Theory]
-        [InlineData(false, MessageEncoding.Json)]
-        [InlineData(true, MessageEncoding.Json)]
-        [InlineData(false, MessageEncoding.Uadp)]
-        [InlineData(true, MessageEncoding.Uadp)]
-        public async Task EncodeTest(bool encodeBatchFlag, MessageEncoding encoding) {
-            var maxMessageSize = 256 * 1024;
-            var messages = GenerateSampleMessages(20, false, encoding);
-
-            var networkMessages = await (encodeBatchFlag
-                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : _encoder.EncodeAsync(messages, maxMessageSize)
-            );
-
-            if (encodeBatchFlag) {
-                Assert.Equal(1, networkMessages.Count());
-                Assert.Equal((uint)210, _encoder.NotificationsProcessedCount);
-                Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
-                Assert.Equal((uint)1, _encoder.MessagesProcessedCount);
-                Assert.Equal(210, _encoder.AvgNotificationsPerMessage);
-            }
-            else {
-                Assert.Equal(20, networkMessages.Count());
-                Assert.Equal((uint)210, _encoder.NotificationsProcessedCount);
-                Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
-                Assert.Equal((uint)20, _encoder.MessagesProcessedCount);
-                Assert.Equal(10.5, _encoder.AvgNotificationsPerMessage);
-            }
-        }
-
-        [Theory]
-        [InlineData(false, MessageEncoding.Json)]
-        [InlineData(true, MessageEncoding.Json)]
-        [InlineData(false, MessageEncoding.Uadp)]
-        [InlineData(true, MessageEncoding.Uadp)]
-        public async Task EncodeEventsTest(bool encodeBatchFlag, MessageEncoding encoding) {
-            var maxMessageSize = 256 * 1024;
-            var messages = GenerateSampleMessages(20, true, encoding);
-
-            var networkMessages = await (encodeBatchFlag
-                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : _encoder.EncodeAsync(messages, maxMessageSize)
-            );
-
-            if (encodeBatchFlag) {
-                Assert.Equal(1, networkMessages.Count());
-                Assert.Equal((uint)1260, _encoder.NotificationsProcessedCount);
-                Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
-                Assert.Equal((uint)1, _encoder.MessagesProcessedCount);
-                Assert.Equal(1260, _encoder.AvgNotificationsPerMessage);
-            }
-            else {
-                Assert.Equal(20, networkMessages.Count());
-                Assert.Equal((uint)1260, _encoder.NotificationsProcessedCount);
-                Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
-                Assert.Equal((uint)20, _encoder.MessagesProcessedCount);
-                Assert.Equal(63, _encoder.AvgNotificationsPerMessage);
-            }
-        }
-
-        [Theory]
-        [InlineData(false, MessageEncoding.Json)]
-        [InlineData(true, MessageEncoding.Json)]
-        [InlineData(false, MessageEncoding.Uadp)]
-        [InlineData(true, MessageEncoding.Uadp)]
-        public async Task EncodeMetadataTest(bool encodeBatchFlag, MessageEncoding encoding) {
-            var maxMessageSize = 256 * 1024;
-            var messages = GenerateSampleMessages(20, false, encoding);
-            messages[10].Notifications = null; // Emit metadata
-            messages[10].MetaData = new DataSetMetaDataType {
-                Name = "test",
-                Fields = new FieldMetaDataCollection {
-                    new FieldMetaData {
-                        Name = "test",
-                        BuiltInType = (byte)BuiltInType.UInt16
-                    }
-                }
-            };
-
-            var networkMessages = await (encodeBatchFlag
-                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : _encoder.EncodeAsync(messages, maxMessageSize)
-            );
-
-            if (encodeBatchFlag) {
-                Assert.Equal(1, networkMessages.Count());
-                Assert.Equal((uint)199, _encoder.NotificationsProcessedCount);
-                Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
-                Assert.Equal((uint)1, _encoder.MessagesProcessedCount);
-                Assert.Equal(199, _encoder.AvgNotificationsPerMessage);
-            }
-            else {
-                Assert.Equal(20, networkMessages.Count());
-                Assert.Equal((uint)199, _encoder.NotificationsProcessedCount);
-                Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
-                Assert.Equal((uint)20, _encoder.MessagesProcessedCount);
-            }
-        }
-
-        [Theory]
-        [InlineData(false, MessageEncoding.Json)]
-        [InlineData(true, MessageEncoding.Json)]
-        [InlineData(false, MessageEncoding.Uadp)]
-        [InlineData(true, MessageEncoding.Uadp)]
-        public async Task EncodeNothingTest(bool encodeBatchFlag, MessageEncoding encoding) {
-            var maxMessageSize = 256 * 1024;
-            var messages = GenerateSampleMessages(1, false, encoding);
-            messages[0].Notifications = null;
-            messages[0].MetaData = null;
-            var networkMessages = await (encodeBatchFlag
-                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : _encoder.EncodeAsync(messages, maxMessageSize)
-            );
-
-            Assert.Empty(networkMessages);
-            Assert.Equal((uint)0, _encoder.NotificationsProcessedCount);
-            Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
-            Assert.Equal((uint)0, _encoder.MessagesProcessedCount);
-            Assert.Equal(0, _encoder.AvgNotificationsPerMessage);
-        }
+    public static class NetworkMessageEncoderTests {
 
         public static IList<DataSetMessageModel> GenerateSampleMessages(
             uint numOfMessages, bool eventList = false,
-            MessageEncoding encoding = MessageEncoding.Json
-        ) {
+            MessageEncoding encoding = MessageEncoding.Json,
+            NetworkMessageContentMask extraNetworkMessageMask = 0) {
             var messages = new List<DataSetMessageModel>();
-
+            var publisherId = "Publisher";
+            var writer = new DataSetWriterModel {
+                DataSet = new PublishedDataSetModel {
+                    DataSetSource = new PublishedDataSetSourceModel {
+                        PublishedVariables = new PublishedDataItemsModel {
+                            PublishedData = new List<PublishedDataSetVariableModel>()
+                        }
+                    },
+                    DataSetMetaData = new DataSetMetaDataModel {
+                        Name = "testdataset",
+                        DataSetClassId = Guid.NewGuid()
+                    }
+                }
+            };
+            var writerGroup = new WriterGroupModel {
+                MessageSettings = new WriterGroupMessageSettingsModel {
+                    NetworkMessageContentMask =
+                        NetworkMessageContentMask.PublisherId |
+                        NetworkMessageContentMask.WriterGroupId |
+                        NetworkMessageContentMask.NetworkMessageNumber |
+                        NetworkMessageContentMask.SequenceNumber |
+                        NetworkMessageContentMask.PayloadHeader |
+                        NetworkMessageContentMask.Timestamp |
+                        NetworkMessageContentMask.DataSetClassId |
+                        NetworkMessageContentMask.NetworkMessageHeader |
+                        NetworkMessageContentMask.DataSetMessageHeader |
+                        extraNetworkMessageMask
+                },
+                MessageType = encoding
+            };
             for (uint i = 0; i < numOfMessages; i++) {
                 var suffix = $"-{i}";
 
@@ -259,26 +94,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
                 var message = new DataSetMessageModel {
                     SequenceNumber = i,
-                    PublisherId = "PublisherId" + suffix,
-                    Writer = new DataSetWriterModel {
-                        DataSet = new PublishedDataSetModel {
-                            DataSetSource = new PublishedDataSetSourceModel {
-                                PublishedVariables = new PublishedDataItemsModel {
-                                    PublishedData = new List<PublishedDataSetVariableModel>()
-                                }
-                            },
-                            DataSetMetaData = new DataSetMetaDataModel {
-                                Name = "test",
-                                DataSetClassId = Guid.NewGuid()
-                            }
-                        }
-                    },
-                    WriterGroup = new WriterGroupModel {
-                        MessageSettings = new WriterGroupMessageSettingsModel {
-                            NetworkMessageContentMask = (NetworkMessageContentMask)0xffff
-                        },
-                        MessageEncoding = encoding
-                    },
+                    PublisherId = publisherId,
+                    Writer = writer,
+                    WriterGroup = writerGroup,
+                    MessageType = Opc.Ua.PubSub.MessageType.KeyFrame,
+                    MetaData = null,
                     TimeStamp = DateTime.UtcNow,
                     ServiceMessageContext = new ServiceMessageContext { },
                     Notifications = notifications,

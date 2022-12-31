@@ -37,11 +37,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public uint? KeyFrameCount { get; set; }
 
         /// <summary>
-        /// Or keyframe timer interval (publisher extension)
-        /// </summary>
-        public TimeSpan? KeyFrameInterval { get; set; }
-
-        /// <summary>
         /// Metadata message sending interval (publisher extension)
         /// </summary>
         public TimeSpan? DataSetMetaDataSendInterval { get; set; }

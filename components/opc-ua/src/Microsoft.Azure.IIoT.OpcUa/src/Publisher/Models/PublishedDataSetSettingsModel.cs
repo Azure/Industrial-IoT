@@ -27,6 +27,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public uint? MaxKeepAliveCount { get; set; }
 
         /// <summary>
+        /// Max notifications per publish
+        /// </summary>
+        public uint? MaxNotificationsPerPublish { get; set; }
+
+        /// <summary>
         /// Priority
         /// </summary>
         public byte? Priority { get; set; }

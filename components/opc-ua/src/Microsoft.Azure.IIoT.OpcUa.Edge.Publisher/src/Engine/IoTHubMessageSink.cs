@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task SendAsync(IEnumerable<NetworkMessageModel> messages) {
+        public async Task SendAsync(IEnumerable<NetworkMessageChunkModel> messages) {
             if (messages == null || !messages.Any()) {
                 return;
             }
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             var messageObjects = messages
                 .Select(m => CreateMessage(m.Body, m.MessageSchema,
-                    m.ContentType, m.ContentEncoding, m.MessageId, m.RoutingInfo))
+                    m.ContentType, m.ContentEncoding, m.RoutingInfo))
                 .ToList();
             try {
                 var messagesCount = messageObjects.Count;
@@ -107,11 +107,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="eventSchema"></param>
         /// <param name="contentType"></param>
         /// <param name="contentEncoding"></param>
-        /// <param name="messageId"></param>
         /// <param name="routingInfo"></param>
         /// <returns></returns>
         private static Message CreateMessage(byte[] body, string eventSchema,
-            string contentType, string contentEncoding, string messageId, string routingInfo) {
+            string contentType, string contentEncoding, string routingInfo) {
             var msg = new Message(body) {
                 ContentType = contentType,
                 ContentEncoding = contentEncoding,

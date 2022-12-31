@@ -35,5 +35,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Publishing offset for uadp messages
         /// </summary>
         public List<double> PublishingOffset { get; set; }
+
+        /// <summary>
+        /// Max messages per publish
+        /// </summary>
+        public uint? MaxMessagesPerPublish { get; set; }
     }
 }

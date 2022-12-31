@@ -61,7 +61,7 @@ namespace Opc.Ua {
             return true;
         }
 
-        /// <summary cref="Object.MemberwiseClone" />
+        /// <summary cref="object.MemberwiseClone" />
         public new object MemberwiseClone() {
             KeyDataValuePair clone = (KeyDataValuePair)base.MemberwiseClone();
             clone.Key = (string)Utils.Clone(this.Key);
@@ -109,7 +109,7 @@ namespace Opc.Ua {
             return null;
         }
 
-        /// <summary cref="Object.MemberwiseClone" />
+        /// <summary cref="object.MemberwiseClone" />
         public new object MemberwiseClone() {
             KeyDataValuePairCollection clone = new KeyDataValuePairCollection(this.Count);
             for (int ii = 0; ii < this.Count; ii++) {

@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Opc.Ua.Design;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -42,7 +41,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataSetClassId = model.DataSetClassId,
                 DataSetDescription = model.DataSetDescription,
                 DataSetKeyFrameCount = model.DataSetKeyFrameCount,
-                DataSetKeyFrameInterval = model.DataSetKeyFrameInterval,
                 DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
                 DataSetName = model.DataSetName,
                 Tag = model.Tag,
@@ -128,7 +126,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
                 DataSetDescription = endpoint.DataSetDescription,
                 DataSetKeyFrameCount = endpoint.DataSetKeyFrameCount,
-                DataSetKeyFrameInterval = endpoint.DataSetKeyFrameInterval,
                 DataSetMetaDataSendInterval = endpoint.DataSetMetaDataSendInterval,
                 DataSetName = endpoint.DataSetName,
                 DataSetClassId = endpoint.DataSetClassId,

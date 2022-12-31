@@ -16,17 +16,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class WriterGroupApiModel {
 
         /// <summary>
-        /// Dataset writer group name
+        /// Dataset writer group id
         /// </summary>
-        [DataMember(Name = "writerGroupId", Order = 0)] // Do not change for backcompat with database schema
+        [DataMember(Name = "writerGroupId", Order = 0)]
         public string WriterGroupId { get; set; }
 
         /// <summary>
         /// Network message types to generate (publisher extension)
         /// </summary>
-        [DataMember(Name = "messageType", Order = 1, // Do not change for backcompat with database schema
+        [DataMember(Name = "messageType", Order = 1,
             EmitDefaultValue = false)]
-        public MessageEncoding? MessageEncoding { get; set; }
+        public MessageEncoding? MessageType { get; set; }
 
         /// <summary>
         /// The data set writers generating dataset messages in the group

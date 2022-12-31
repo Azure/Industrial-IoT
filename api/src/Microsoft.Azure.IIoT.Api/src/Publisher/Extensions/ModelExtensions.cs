@@ -724,7 +724,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DataSetFieldContentMask = (Models.DataSetFieldContentMask?)model.DataSetFieldContentMask,
                 DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
                 KeyFrameCount = model.KeyFrameCount,
-                KeyFrameInterval = model.KeyFrameInterval,
                 MessageSettings = model.MessageSettings.ToApiModel()
             };
         }
@@ -743,7 +742,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DataSetFieldContentMask = (OpcUa.Publisher.Models.DataSetFieldContentMask?)model.DataSetFieldContentMask,
                 DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
                 KeyFrameCount = model.KeyFrameCount,
-                KeyFrameInterval = model.KeyFrameInterval,
                 MessageSettings = model.MessageSettings.ToServiceModel()
             };
         }
@@ -1209,6 +1207,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             return new PublishedDataSetSettingsApiModel {
                 LifeTimeCount = model.LifeTimeCount,
                 MaxKeepAliveCount = model.MaxKeepAliveCount,
+                MaxNotificationsPerPublish = model.MaxNotificationsPerPublish,
                 Priority = model.Priority,
                 ResolveDisplayName = model.ResolveDisplayName,
                 PublishingInterval = model.PublishingInterval
@@ -1226,6 +1225,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             return new PublishedDataSetSettingsModel {
                 LifeTimeCount = model.LifeTimeCount,
                 MaxKeepAliveCount = model.MaxKeepAliveCount,
+                MaxNotificationsPerPublish = model.MaxNotificationsPerPublish,
                 Priority = model.Priority,
                 ResolveDisplayName = model.ResolveDisplayName,
                 PublishingInterval = model.PublishingInterval
@@ -1421,7 +1421,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 LocaleIds = model.LocaleIds?.ToList(),
                 MaxNetworkMessageSize = model.MaxNetworkMessageSize,
                 MessageSettings = model.MessageSettings.ToApiModel(),
-                MessageEncoding = (Models.MessageEncoding?)model.MessageEncoding,
+                MessageType = (Models.MessageEncoding?)model.MessageType,
                 Name = model.Name,
                 Priority = model.Priority,
                 SecurityGroupId = model.SecurityGroupId,
@@ -1451,7 +1451,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 LocaleIds = model.LocaleIds?.ToList(),
                 MaxNetworkMessageSize = model.MaxNetworkMessageSize,
                 MessageSettings = model.MessageSettings.ToServiceModel(),
-                MessageEncoding = (OpcUa.Publisher.Models.MessageEncoding?)model.MessageEncoding,
+                MessageType = (OpcUa.Publisher.Models.MessageEncoding?)model.MessageType,
                 Name = model.Name,
                 Priority = model.Priority,
                 SecurityGroupId = model.SecurityGroupId,
@@ -1513,6 +1513,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DataSetOrdering = (Models.DataSetOrderingType?)model.DataSetOrdering,
                 GroupVersion = model.GroupVersion,
                 PublishingOffset = model.PublishingOffset,
+                MaxMessagesPerPublish = model.MaxMessagesPerPublish,
                 SamplingOffset = model.SamplingOffset
             };
         }
@@ -1530,6 +1531,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DataSetOrdering = (OpcUa.Publisher.Models.DataSetOrderingType?)model.DataSetOrdering,
                 GroupVersion = model.GroupVersion,
                 PublishingOffset = model.PublishingOffset,
+                MaxMessagesPerPublish = model.MaxMessagesPerPublish,
                 SamplingOffset = model.SamplingOffset
             };
         }

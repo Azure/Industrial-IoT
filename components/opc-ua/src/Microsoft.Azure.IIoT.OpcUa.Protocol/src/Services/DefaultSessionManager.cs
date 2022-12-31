@@ -297,8 +297,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var delay = Task.Delay(_clientConfig.KeepAliveInterval, ct);
                 await Task.WhenAny(delay, _triggerKeepAlive.Task).ConfigureAwait(false);
                 _logger.Debug("Runner Keepalive reset due to {delay} {trigger}",
-                    delay.IsCompleted ? "checkAlive" : String.Empty,
-                    _triggerKeepAlive.Task.IsCompleted ? "triggerKeepAlive" : String.Empty);
+                    delay.IsCompleted ? "checkAlive" : string.Empty,
+                    _triggerKeepAlive.Task.IsCompleted ? "triggerKeepAlive" : string.Empty);
             }
         }
 

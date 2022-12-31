@@ -46,11 +46,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             try {
                 var context = new ServiceMessageContext();
                 var decoder = new JsonDecoderEx(new MemoryStream(payload), context);
-                while (decoder.ReadEncodeable(null, typeof(NetworkMessage))
-                     is NetworkMessage message) {
+                while (decoder.ReadEncodeable(null, typeof(UadpNetworkMessage))
+                     is UadpNetworkMessage message) {
                     foreach (var dataSetMessage in message.Messages) {
                         var dataset = new DataSetMessageModel {
-                            PublisherId = message.PublisherId,
+                            PublisherId = message.PublisherIndex,
                             MessageId = message.MessageId,
                             DataSetClassId = message.DataSetClassId,
                             DataSetWriterId = dataSetMessage.DataSetWriterName,
