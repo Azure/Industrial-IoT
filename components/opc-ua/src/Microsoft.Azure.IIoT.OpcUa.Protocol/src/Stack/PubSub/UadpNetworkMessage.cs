@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
+    using Microsoft.Azure.IIoT;
+    using Microsoft.Azure.IIoT.OpcUa.Core;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -14,6 +16,15 @@ namespace Opc.Ua.PubSub {
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public class UadpNetworkMessage : BaseNetworkMessage {
+
+        /// <inheritdoc/>
+        public override string MessageSchema => MessageSchemaTypes.NetworkMessageUadp;
+
+        /// <inheritdoc/>
+        public override string ContentType => ContentMimeType.Binary;
+
+        /// <inheritdoc/>
+        public override string ContentEncoding => null;
 
         /// <summary>
         /// Writer group id
@@ -28,7 +39,7 @@ namespace Opc.Ua.PubSub {
         /// <summary>
         /// Get and Set NetworkMessageNumber
         /// </summary>
-        public Func<ushort> NetworkMessageNumber { get; set; }
+        public ushort NetworkMessageNumber { get; set; }
 
         /// <summary>
         /// Get and Set SequenceNumber
@@ -379,7 +390,6 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         public UadpNetworkMessage() {
             SequenceNumber = () => _sequenceNumber;
-            NetworkMessageNumber = () => _networkMessageNumber;
         }
 
         /// <inheritdoc/>
@@ -418,6 +428,8 @@ namespace Opc.Ua.PubSub {
                 _extendedFlags1 = null;
                 _extendedFlags2 = null;
 
+                var networkMessageNumber = NetworkMessageNumber++;
+
                 using (var stream = new MemoryStream()) {
                     using (var encoder = new BinaryEncoder(stream, context)) {
                         //
@@ -440,7 +452,7 @@ namespace Opc.Ua.PubSub {
 #endif
                         while (true) {
                             WriteNetworkMessageHeader(encoder, isChunkMessage);
-                            WriteGroupMessageHeader(encoder);
+                            WriteGroupMessageHeader(encoder, networkMessageNumber);
 
                             WritePayloadHeader(encoder, writeSpan, isChunkMessage);
                             WriteExtendedNetworkMessageHeader(encoder);
@@ -546,7 +558,8 @@ namespace Opc.Ua.PubSub {
         /// Write Group Message Header
         /// </summary>
         /// <param name="encoder"></param>
-        private void WriteGroupMessageHeader(BinaryEncoder encoder) {
+        /// <param name="networkMessageNumber"></param>
+        private void WriteGroupMessageHeader(BinaryEncoder encoder, ushort networkMessageNumber) {
             if ((NetworkMessageContentMask & (uint)
                     (UadpNetworkMessageContentMask.GroupHeader |
                      UadpNetworkMessageContentMask.WriterGroupId |
@@ -562,7 +575,7 @@ namespace Opc.Ua.PubSub {
                 encoder.WriteUInt32("GroupVersion", GroupVersion);
             }
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.NetworkMessageNumber) != 0) {
-                encoder.WriteUInt16("NetworkMessageNumber", NetworkMessageNumber());
+                encoder.WriteUInt16("NetworkMessageNumber", networkMessageNumber);
             }
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.SequenceNumber) != 0) {
                 encoder.WriteUInt16("SequenceNumber", SequenceNumber());
@@ -907,7 +920,7 @@ namespace Opc.Ua.PubSub {
             }
             // Decode NetworkMessageNumber
             if ((GroupFlags & GroupFlagsEncodingMask.NetworkMessageNumber) != 0) {
-                _networkMessageNumber = decoder.ReadUInt16("NetworkMessageNumber");
+                NetworkMessageNumber = decoder.ReadUInt16("NetworkMessageNumber");
             }
             // Decode SequenceNumber
             if ((GroupFlags & GroupFlagsEncodingMask.SequenceNumber) != 0) {
@@ -1057,7 +1070,6 @@ namespace Opc.Ua.PubSub {
         private GroupFlagsEncodingMask? _groupFlags;
         private ExtendedFlags2EncodingMask? _extendedFlags2;
         private ExtendedFlags1EncodingMask? _extendedFlags1;
-        private ushort _networkMessageNumber;
         private ushort _sequenceNumber;
     }
 }

@@ -12,11 +12,22 @@ namespace Opc.Ua.PubSub {
     /// </summary>
     public class JsonDataSetMessage : BaseDataSetMessage {
 
+        /// <summary>
+        /// Use capability mode when encoding and decoding
+        /// </summary>
+        public bool UseCompatibilityMode { get; set; }
+
         /// <inheritdoc/>
         public override void Encode(IEncoder encoder, bool withHeader, string property) {
             if (withHeader) {
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterId) != 0) {
-                    encoder.WriteUInt16(nameof(DataSetWriterId), DataSetWriterId);
+                    if (!UseCompatibilityMode) {
+                        encoder.WriteUInt16(nameof(DataSetWriterId), DataSetWriterId);
+                    }
+                    else {
+                        // Up to version 2.8 we wrote the string id as id which is not per standard
+                        encoder.WriteString(nameof(DataSetWriterId), DataSetWriterName);
+                    }
                 }
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.SequenceNumber) != 0) {
                     encoder.WriteUInt32(nameof(SequenceNumber), SequenceNumber);
@@ -28,7 +39,13 @@ namespace Opc.Ua.PubSub {
                     encoder.WriteDateTime(nameof(Timestamp), Timestamp);
                 }
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0) {
-                    encoder.WriteUInt32(nameof(Status), Status.Code);
+                    if (!UseCompatibilityMode) {
+                        encoder.WriteUInt32(nameof(Status), Status.Code);
+                    }
+                    else {
+                        // Up to version 2.8 we wrote the full status code
+                        encoder.WriteStatusCode(nameof(Status), Status);
+                    }
                 }
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.MessageType) != 0) {
                     switch (MessageType) {
@@ -49,7 +66,8 @@ namespace Opc.Ua.PubSub {
                             break;
                     }
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.DataSetWriterName) != 0) {
+                if (!UseCompatibilityMode &&
+                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.DataSetWriterName) != 0) {
                     encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
                 }
                 WritePayload(encoder, nameof(Payload));
@@ -81,7 +99,13 @@ namespace Opc.Ua.PubSub {
         public override void Decode(IDecoder decoder, uint dataSetFieldContentMask, bool withHeader, string property) {
             if (withHeader) {
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterId) != 0) {
-                    DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
+                    if (!UseCompatibilityMode) {
+                        DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
+                    }
+                    else {
+                        // Up to version 2.8 we wrote the string id as id which is not per standard
+                        DataSetWriterName = decoder.ReadString(nameof(DataSetWriterId));
+                    }
                 }
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.SequenceNumber) != 0) {
                     SequenceNumber = decoder.ReadUInt32(nameof(SequenceNumber));
@@ -94,7 +118,13 @@ namespace Opc.Ua.PubSub {
                     Timestamp = decoder.ReadDateTime(nameof(Timestamp));
                 }
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0) {
-                    Status = decoder.ReadUInt32(nameof(Status));
+                    if (!UseCompatibilityMode) {
+                        Status = decoder.ReadUInt32(nameof(Status));
+                    }
+                    else {
+                        // Up to version 2.8 we wrote the full status code
+                        Status = decoder.ReadStatusCode(nameof(Status));
+                    }
                 }
 
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.MessageType) != 0) {

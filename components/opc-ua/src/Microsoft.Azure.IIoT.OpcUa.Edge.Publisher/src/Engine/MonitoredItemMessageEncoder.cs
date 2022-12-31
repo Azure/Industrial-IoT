@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageChunkModel>> EncodeAsync(
+        public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
             try {
                 var resultJson = EncodeAsJson(messages, maxMessageSize);
@@ -82,12 +82,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 return Task.FromResult(result);
             }
             catch (Exception e) {
-                return Task.FromException<IEnumerable<NetworkMessageChunkModel>>(e);
+                return Task.FromException<IEnumerable<NetworkMessageModel>>(e);
             }
         }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageChunkModel>> EncodeBatchAsync(
+        public Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
             try {
                 var resultJson = EncodeBatchAsJson(messages, maxMessageSize);
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 return Task.FromResult(result);
             }
             catch (Exception e) {
-                return Task.FromException<IEnumerable<NetworkMessageChunkModel>>(e);
+                return Task.FromException<IEnumerable<NetworkMessageModel>>(e);
             }
         }
 
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="messages">Messages to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <returns></returns>
-        private IEnumerable<NetworkMessageChunkModel> EncodeBatchAsJson(
+        private IEnumerable<NetworkMessageModel> EncodeBatchAsJson(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
             // by design all messages are generated in the same session context,
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
-                    var encoded = new NetworkMessageChunkModel {
+                    var encoded = new NetworkMessageModel {
                         Body = Encoding.UTF8.GetBytes(writer.ToString()),
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
@@ -192,7 +192,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="messages"></param>
         /// <param name="maxMessageSize"></param>
         /// <returns></returns>
-        private IEnumerable<NetworkMessageChunkModel> EncodeBatchAsBinary(
+        private IEnumerable<NetworkMessageModel> EncodeBatchAsBinary(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
             // by design all messages are generated in the same session context,
@@ -234,7 +234,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var encoder = new BinaryEncoder(encodingContext);
                     encoder.WriteBoolean(null, true); // is Batch
                     encoder.WriteEncodeableArray(null, chunk);
-                    var encoded = new NetworkMessageChunkModel {
+                    var encoded = new NetworkMessageModel {
                         Body = encoder.CloseAndReturnBuffer(),
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.UaBinary,
@@ -259,7 +259,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="messages">Messages to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <returns></returns>
-        private IEnumerable<NetworkMessageChunkModel> EncodeAsJson(
+        private IEnumerable<NetworkMessageModel> EncodeAsJson(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
             // by design all messages are generated in the same session context,
@@ -280,7 +280,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 };
                 networkMessage.Encode(encoder);
                 encoder.Close();
-                var encoded = new NetworkMessageChunkModel {
+                var encoded = new NetworkMessageModel {
                     Body = Encoding.UTF8.GetBytes(writer.ToString()),
                     ContentEncoding = "utf-8",
                     Timestamp = DateTime.UtcNow,
@@ -310,7 +310,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="messages"></param>
         /// <param name="maxMessageSize"></param>
         /// <returns></returns>
-        private IEnumerable<NetworkMessageChunkModel> EncodeAsBinary(
+        private IEnumerable<NetworkMessageModel> EncodeAsBinary(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
             // by design all messages are generated in the same session context,
@@ -324,7 +324,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 encoder.WriteBoolean(null, false); // is not Batch
                 encoder.WriteEncodeable(null, networkMessage);
                 networkMessage.Encode(encoder);
-                var encoded = new NetworkMessageChunkModel {
+                var encoded = new NetworkMessageModel {
                     Body = encoder.CloseAndReturnBuffer(),
                     Timestamp = DateTime.UtcNow,
                     ContentType = ContentMimeType.UaBinary,

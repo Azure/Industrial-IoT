@@ -23,6 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// </summary>
         /// <param name="messages"></param>
         /// <returns></returns>
-        Task SendAsync(IEnumerable<NetworkMessageChunkModel> messages);
+        Task SendAsync(IEnumerable<NetworkMessageModel> messages);
     }
 }

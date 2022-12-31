@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task SendAsync(IEnumerable<NetworkMessageChunkModel> messages) {
+        public async Task SendAsync(IEnumerable<NetworkMessageModel> messages) {
             if (messages == null || !messages.Any()) {
                 return;
             }

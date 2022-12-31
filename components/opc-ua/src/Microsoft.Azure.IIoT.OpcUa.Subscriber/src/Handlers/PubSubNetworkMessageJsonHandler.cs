@@ -50,9 +50,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                      is UadpNetworkMessage message) {
                     foreach (var dataSetMessage in message.Messages) {
                         var dataset = new DataSetMessageModel {
-                            PublisherId = message.PublisherIndex,
+                            PublisherId = message.PublisherId,
                             MessageId = message.MessageId,
-                            DataSetClassId = message.DataSetClassId,
+                            DataSetClassId = message.DataSetClassId.ToString(),
                             DataSetWriterId = dataSetMessage.DataSetWriterName,
                             SequenceNumber = dataSetMessage.SequenceNumber,
                             Status = StatusCode.LookupSymbolicId(dataSetMessage.Status.Code),

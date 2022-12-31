@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
-    using Microsoft.Azure.IIoT.Net;
+    using Microsoft.Azure.IIoT;
+    using Microsoft.Azure.IIoT.OpcUa.Core;
     using Opc.Ua.Encoders;
     using System;
     using System.Collections.Generic;
@@ -17,6 +18,15 @@ namespace Opc.Ua.PubSub {
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public class JsonMetadataMessage : PubSubMessage {
+
+        /// <inheritdoc/>
+        public override string MessageSchema => MessageSchemaTypes.NetworkMessageJson;
+
+        /// <inheritdoc/>
+        public override string ContentType => UseGzipCompression ? ContentMimeType.JsonGzip : ContentMimeType.Json;
+
+        /// <inheritdoc/>
+        public override string ContentEncoding => Encoding.UTF8.EncodingName;
 
         /// <summary>
         /// Flag that indicates if advanced encoding should be used

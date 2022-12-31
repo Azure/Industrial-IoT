@@ -21,6 +21,11 @@ namespace Microsoft.Azure.IIoT {
         public const string Json =
             "application/json";
         /// <summary>
+        /// Json+Gzip encoding
+        /// </summary>
+        public const string JsonGzip =
+            "application/json+gzip";
+        /// <summary>
         /// Bson encoding
         /// </summary>
         public const string Bson =

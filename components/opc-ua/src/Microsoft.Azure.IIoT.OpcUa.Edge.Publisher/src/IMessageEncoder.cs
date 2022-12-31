@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// </summary>
         /// <param name="message">Messages to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
-        Task<IEnumerable<NetworkMessageChunkModel>> EncodeAsync(
+        Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
             IEnumerable<DataSetMessageModel> message, int maxMessageSize);
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// </summary>
         /// <param name="messages">Messages to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
-        Task<IEnumerable<NetworkMessageChunkModel>> EncodeBatchAsync
+        Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync
             (IEnumerable<DataSetMessageModel> messages, int maxMessageSize);
     }
 }

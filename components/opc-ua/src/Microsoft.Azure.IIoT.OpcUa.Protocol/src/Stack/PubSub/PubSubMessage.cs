@@ -24,6 +24,21 @@ namespace Opc.Ua.PubSub {
         public const string MessageTypeUaMetadata = "ua-metadata";
 
         /// <summary>
+        /// Message schema
+        /// </summary>
+        public abstract string MessageSchema { get; }
+
+        /// <summary>
+        /// Content type
+        /// </summary>
+        public abstract string ContentType { get; }
+
+        /// <summary>
+        /// Content encoding
+        /// </summary>
+        public abstract string ContentEncoding { get; }
+
+        /// <summary>
         /// Message id
         /// </summary>
         public string MessageId { get; set; }

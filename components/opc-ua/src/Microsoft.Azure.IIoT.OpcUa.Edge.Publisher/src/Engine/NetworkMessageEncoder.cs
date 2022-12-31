@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -52,28 +53,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageChunkModel>> EncodeAsync(
+        public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
             try {
                 var result = EncodeInternal(messages, maxMessageSize, false);
-                return Task.FromResult<IEnumerable<NetworkMessageChunkModel>>(result.ToList());
+                return Task.FromResult<IEnumerable<NetworkMessageModel>>(result.ToList());
             }
             catch (Exception e) {
                 _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
-                return Task.FromResult(Enumerable.Empty<NetworkMessageChunkModel>());
+                return Task.FromResult(Enumerable.Empty<NetworkMessageModel>());
             }
         }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageChunkModel>> EncodeBatchAsync(
+        public Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
             try {
                 var result = EncodeInternal(messages, maxMessageSize, true);
-                return Task.FromResult<IEnumerable<NetworkMessageChunkModel>>(result.ToList());
+                return Task.FromResult<IEnumerable<NetworkMessageModel>>(result.ToList());
             }
             catch (Exception e) {
                 _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
-                return Task.FromResult(Enumerable.Empty<NetworkMessageChunkModel>());
+                return Task.FromResult(Enumerable.Empty<NetworkMessageModel>());
             }
         }
 
@@ -84,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="maxMessageSize"></param>
         /// <param name="isBatched"></param>
         /// <returns></returns>
-        public IEnumerable<NetworkMessageChunkModel> EncodeInternal(IEnumerable<DataSetMessageModel> messages,
+        public IEnumerable<NetworkMessageModel> EncodeInternal(IEnumerable<DataSetMessageModel> messages,
             int maxMessageSize, bool isBatched) {
 
             //
@@ -92,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // get the first message's context
             //
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
-            var chunkedMessages = new List<NetworkMessageChunkModel>();
+            var chunkedMessages = new List<NetworkMessageModel>();
             if (encodingContext == null) {
                 // Drop all messages
                 Drop(messages);
@@ -117,12 +118,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         continue;
                     }
 
-                    chunkedMessages.Add(new NetworkMessageChunkModel {
-                        Body = body,
-                        ContentEncoding = "utf-8",
+                    chunkedMessages.Add(new NetworkMessageModel {
                         Timestamp = DateTime.UtcNow,
-                        ContentType = ContentMimeType.Json,
-                        MessageSchema = MessageSchemaTypes.NetworkMessageJson,
+                        Body = body,
+                        ContentEncoding = networkMessage.ContentEncoding,
+                        ContentType = networkMessage.ContentType,
+                        MessageSchema = networkMessage.MessageSchema,
                         RoutingInfo = _enableRoutingInfo ? networkMessage.DataSetWriterGroup : null,
                     });
 
@@ -195,10 +196,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                                     BaseDataSetMessage dataSetMessage = encoding.HasFlag(MessageEncoding.Json)
                                         ? new JsonDataSetMessage {
-
+                                            UseCompatibilityMode = !_useStandardsCompliantEncoding
                                         } : new UadpDataSetMessage {
-                                            MetaData = message.MetaData,
-
+                                            MetaData = message.MetaData
                                         };
 
                                     dataSetMessage.DataSetWriterId = message.SubscriptionId;
@@ -263,10 +263,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             BaseNetworkMessage currentMessage = encoding.HasFlag(MessageEncoding.Json) ? new JsonNetworkMessage {
                                 UseAdvancedEncoding = !_useStandardsCompliantEncoding,
                                 UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
-                                UseArrayEnvelope = !_useStandardsCompliantEncoding && isBatched,
+                                UseArrayEnvelope = !_useStandardsCompliantEncoding && isBatched
                             } : new UadpNetworkMessage {
                                 //   WriterGroupId = writerGroup.Index,
                                 //   GroupVersion = writerGroup.Version,
+                                SequenceNumber = () => (ushort)Interlocked.Increment(ref _sequenceNumber),
                                 Timestamp = DateTime.UtcNow,
                                 PicoSeconds = 0
                             };
@@ -291,6 +292,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private readonly ILogger _logger;
         private readonly bool _enableRoutingInfo;
+        private volatile int _sequenceNumber;
         private readonly bool _useStandardsCompliantEncoding;
     }
 }
