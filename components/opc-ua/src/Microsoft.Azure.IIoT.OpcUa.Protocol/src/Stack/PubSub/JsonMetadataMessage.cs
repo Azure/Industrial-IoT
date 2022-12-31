@@ -90,7 +90,7 @@ namespace Opc.Ua.PubSub {
             var chunks = new List<byte[]>();
             using var memoryStream = new MemoryStream();
             var compression = UseGzipCompression ?
-                new GZipStream(memoryStream, CompressionLevel.Fastest, true) : null;
+                new GZipStream(memoryStream, CompressionLevel.Optimal) : null;
             try {
                 using var encoder = new JsonEncoderEx(
                     UseGzipCompression ? compression : memoryStream, context) {

@@ -124,6 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             );
 
             var count = networkMessages.Count();
+            var total = networkMessages.Sum(m => m.Body.Length);
             Assert.InRange(count, 66, 68);
             Assert.Equal((uint)96, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)500 - 96, encoder.NotificationsDroppedCount);

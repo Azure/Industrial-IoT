@@ -5,14 +5,6 @@
     <Description>Azure Industrial IoT OPC UA Protocol and Stack services</Description>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Stack\PubSub\official\JsonDataSetMessage.cs" />
-    <Compile Remove="Stack\PubSub\official\JsonNetworkMessage.cs" />
-    <Compile Remove="Stack\PubSub\official\UaDataSetMessage.cs" />
-    <Compile Remove="Stack\PubSub\official\UadpDataSetMessage.cs" />
-    <Compile Remove="Stack\PubSub\official\UadpNetworkMessage.cs" />
-    <Compile Remove="Stack\PubSub\official\UaNetworkMessage.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="6.0.0" />
@@ -31,8 +23,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Stack\PubSub\official\" />
   </ItemGroup>
 </Project>
