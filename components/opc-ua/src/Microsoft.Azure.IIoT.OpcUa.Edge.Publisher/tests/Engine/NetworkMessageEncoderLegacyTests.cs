@@ -33,15 +33,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task EmptyMessagesTest(bool encodeBatchFlag) {
+        public void EmptyMessagesTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
             var messages = new List<DataSetMessageModel>();
 
             var encoder = GetEncoder();
-            var networkMessages = await (encodeBatchFlag
-                ? encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : encoder.EncodeAsync(messages, maxMessageSize)
-            );
+            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
             Assert.Equal((uint)0, encoder.NotificationsProcessedCount);
@@ -52,15 +49,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task EmptyDataSetMessageModelTest(bool encodeBatchFlag) {
+        public void EmptyDataSetMessageModelTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
             var messages = new[] { new DataSetMessageModel() };
 
             var encoder = GetEncoder();
-            var networkMessages = await (encodeBatchFlag
-                ? encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : encoder.EncodeAsync(messages, maxMessageSize)
-            );
+            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
             Assert.Equal((uint)0, encoder.NotificationsProcessedCount);
@@ -71,15 +65,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task EncodeTooBigJsonMessageTest(bool encodeBatchFlag) {
+        public void EncodeTooBigJsonMessageTest(bool encodeBatchFlag) {
             var maxMessageSize = 100;
             var messages = NetworkMessageEncoderTests.GenerateSampleMessages(3, false, MessageEncoding.Json);
 
             var encoder = GetEncoder();
-            var networkMessages = await (encodeBatchFlag
-                ? encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : encoder.EncodeAsync(messages, maxMessageSize)
-            );
+            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
             Assert.Equal((uint)0, encoder.NotificationsProcessedCount);
@@ -90,15 +81,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task EncodeJsonTest(bool encodeBatchFlag) {
+        public void EncodeJsonTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
             var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, false, MessageEncoding.Json);
 
             var encoder = GetEncoder();
-            var networkMessages = await (encodeBatchFlag
-                ? encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : encoder.EncodeAsync(messages, maxMessageSize)
-            );
+            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
             // Batch or no batch, the difference is that we cram all notifications
             // into a message or write all messages as array in batch mode. If
@@ -114,15 +102,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task EncodeJsonChunkTest(bool encodeBatchFlag) {
+        public void EncodeJsonChunkTest(bool encodeBatchFlag) {
             var maxMessageSize = 8 * 1024;
             var messages = NetworkMessageEncoderTests.GenerateSampleMessages(500, false, MessageEncoding.Json);
 
             var encoder = GetEncoder();
-            var networkMessages = await (encodeBatchFlag
-                ? encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : encoder.EncodeAsync(messages, maxMessageSize)
-            );
+            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
             var count = networkMessages.Count();
             Assert.InRange(count, 66, 68);
@@ -133,13 +118,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         }
 
         [Fact]
-        public async Task EncodeJsonSingleMessageTest() {
+        public void EncodeJsonSingleMessageTest() {
             var maxMessageSize = 256 * 1024;
             var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, false, MessageEncoding.Json,
                 NetworkMessageContentMask.SingleDataSetMessage);
 
             var encoder = GetEncoder();
-            var networkMessages = await encoder.EncodeAsync(messages, maxMessageSize);
+            var networkMessages = encoder.Encode(messages, maxMessageSize, false);
 
             Assert.Equal(20, networkMessages.Count());
             Assert.Equal((uint)20, encoder.NotificationsProcessedCount);
@@ -151,15 +136,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task EncodeEventsJsonTest(bool encodeBatchFlag) {
+        public void EncodeEventsJsonTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
             var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, true, MessageEncoding.Json);
 
             var encoder = GetEncoder();
-            var networkMessages = await (encodeBatchFlag
-                ? encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : encoder.EncodeAsync(messages, maxMessageSize)
-            );
+            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Equal(1, networkMessages.Count());
             Assert.Equal((uint)20, encoder.NotificationsProcessedCount);
@@ -169,13 +151,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         }
 
         [Fact]
-        public async Task EncodeEventsSingleMessageJsonTest() {
+        public void EncodeEventsSingleMessageJsonTest() {
             var maxMessageSize = 256 * 1024;
             var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, true, MessageEncoding.Json,
                 NetworkMessageContentMask.SingleDataSetMessage);
 
             var encoder = GetEncoder();
-            var networkMessages = await encoder.EncodeAsync(messages, maxMessageSize);
+            var networkMessages = encoder.Encode(messages, maxMessageSize, false);
 
             // Single message, no array envelope due to batching resulting in 210 events from 20 notifications.
             Assert.Equal(210, networkMessages.Count());
@@ -188,7 +170,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task EncodeMetadataJsonTest(bool encodeBatchFlag) {
+        public void EncodeMetadataJsonTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
             var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, false, MessageEncoding.Json);
             messages[10].Notifications = null; // Emit metadata
@@ -203,10 +185,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             };
 
             var encoder = GetEncoder();
-            var networkMessages = await (encodeBatchFlag
-                ? encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : encoder.EncodeAsync(messages, maxMessageSize)
-            );
+            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Equal(3, networkMessages.Count());
             Assert.Equal((uint)19, encoder.NotificationsProcessedCount);
@@ -217,17 +196,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task EncodeNothingTest(bool encodeBatchFlag) {
+        public void EncodeNothingTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
             var messages = NetworkMessageEncoderTests.GenerateSampleMessages(1, false, MessageEncoding.Json);
             messages[0].Notifications = null;
             messages[0].MetaData = null;
 
             var encoder = GetEncoder();
-            var networkMessages = await (encodeBatchFlag
-                ? encoder.EncodeBatchAsync(messages, maxMessageSize)
-                : encoder.EncodeAsync(messages, maxMessageSize)
-            );
+            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
             Assert.Equal((uint)0, encoder.NotificationsProcessedCount);

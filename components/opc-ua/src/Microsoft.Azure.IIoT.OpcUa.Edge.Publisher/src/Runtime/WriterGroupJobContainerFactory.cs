@@ -45,15 +45,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime {
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
                 switch (_jobConfig.MessagingMode) {
                     case MessagingMode.Samples:
+                    case MessagingMode.FullSamples:
                         builder.RegisterType<MonitoredItemMessageEncoder>()
-                            .AsImplementedInterfaces().InstancePerLifetimeScope();
-                        break;
-                    case MessagingMode.PubSub:
-                        builder.RegisterType<NetworkMessageEncoder>()
                             .AsImplementedInterfaces().InstancePerLifetimeScope();
                         break;
                     default:
-                        builder.RegisterType<MonitoredItemMessageEncoder>()
+                        builder.RegisterType<NetworkMessageEncoder>()
                             .AsImplementedInterfaces().InstancePerLifetimeScope();
                         break;
                 }

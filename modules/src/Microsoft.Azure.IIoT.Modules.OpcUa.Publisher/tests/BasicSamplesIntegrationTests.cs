@@ -5,11 +5,16 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using FluentAssertions;
+    using Json.More;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Opc.Ua;
+    using Opc.Ua.Encoders;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
+    using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
@@ -21,6 +26,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// </summary>
     [Collection(ReadCollection.Name)]
     public class BasicSamplesIntegrationTests : PublisherIntegrationTestBase {
+        private const string kEventId = "EventId";
+        private const string kMessage = "Message";
+        private const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
+        private const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
 
         public BasicSamplesIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture) {
@@ -110,8 +119,75 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.NotEmpty(message.GetProperty("Value").GetProperty("EventId").GetString());
         }
 
+        [Theory]
+        [InlineData(@"./PublishedNodes/SimpleEvents.json")]
+        public async Task CanEncodeWithReversibleEncodingSamplesTest(string publishedNodesFile) {
+            // Arrange
+            // Act
+            var result = await ProcessMessagesAsync(
+                publishedNodesFile,
+                arguments: new[] { "--mm=Samples", "--me=JsonReversible" }
+            ).ConfigureAwait(false);
+
+            var m = Assert.Single(result);
+
+            var value = m.GetProperty("Value");
+            var type = value.GetProperty("Type").GetString();
+            var body = value.GetProperty("Body");
+            Assert.Equal("ExtensionObject", type);
+
+            var typeId = body.GetProperty("TypeId").GetString();
+            var encoding = body.GetProperty("Encoding").GetString();
+            body = body.GetProperty("Body");
+            Assert.Equal("http://microsoft.com/Industrial-IoT/OpcPublisher#i=1", typeId);
+            Assert.Equal("Json", encoding);
+
+            var eventId = body.GetProperty(kEventId);
+            Assert.Equal("ByteString", eventId.GetProperty("Type").GetString());
+            Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
+
+            var message = body.GetProperty(kMessage);
+            Assert.Equal("LocalizedText", message.GetProperty("Type").GetString());
+            Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
+            Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
+
+            var cycleId = body.GetProperty(kCycleId);
+            Assert.Equal("String", cycleId.GetProperty("Type").GetString());
+            Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
+
+            var currentStep = body.GetProperty(kCurrentStep);
+            body = currentStep.GetProperty("Body");
+            Assert.Equal("ExtensionObject", currentStep.GetProperty("Type").GetString());
+            Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", body.GetProperty("TypeId").GetString());
+            Assert.Equal("Json", body.GetProperty("Encoding").GetString());
+            Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
+            Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
+
+            var json = value
+                        .GetProperty("Body")
+                        .GetProperty("Body")
+                        .GetRawText();
+            var buffer = Encoding.UTF8.GetBytes(json);
+
+            var serviceMessageContext = new ServiceMessageContext();
+            serviceMessageContext.Factory.AddEncodeableType(typeof(EncodeableDictionary));
+
+            using (var stream = new MemoryStream(buffer)) {
+                using var decoder = new JsonDecoderEx(stream, serviceMessageContext);
+                var actual = new EncodeableDictionary();
+                actual.Decode(decoder);
+
+                Assert.Equal(4, actual.Count);
+                Assert.Equal(new[] { kEventId, kMessage, kCycleId, kCurrentStep }, actual.Select(x => x.Key));
+                Assert.All(actual.Select(x => x.Value?.Value), Assert.NotNull);
+
+                var eof = decoder.ReadDataValue(null);
+                Assert.Null(eof);
+            }
+        }
+
         [Fact]
-        public async Task CanSendPendingAlarmsToIoTHubTest() {
+        public async Task CanSendPendingConditionsToIoTHubTest() {
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(@"./PublishedNodes/PendingAlarms.json", GetAlarmCondition).ConfigureAwait(false);
@@ -197,7 +273,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         }
 
         [Fact]
-        public async Task CanSendPendingAlarmsToIoTHubTestWithDeviceMethod() {
+        public async Task CanSendPendingConditionsToIoTHubTestWithDeviceMethod() {
             var testInput = GetEndpointsFromFile(@"./PublishedNodes/PendingAlarms.json");
             await StartPublisherAsync();
             try {
@@ -294,7 +370,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         }
 
         [Fact]
-        public async Task CanSendPendingAlarmsToIoTHubTestWithDeviceMethod2() {
+        public async Task CanSendPendingConditionsToIoTHubTestWithDeviceMethod2() {
             var testInput = GetEndpointsFromFile(@"./PublishedNodes/PendingAlarms.json");
             await StartPublisherAsync();
             try {
@@ -329,15 +405,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
                 // Wait until it was applied and we receive normal events again
                 messages = WaitForMessages(TimeSpan.FromMinutes(5), 1,
-                    message => message.GetProperty("DisplayName").GetString() == "SimpleEvents" ? message : default);
+                    message => message.GetProperty("DisplayName").GetString() == "SimpleEvents"
+                        && message.GetProperty("Value").GetProperty("ReceiveTime").ValueKind != JsonValueKind.Null ? message : default);
                 _output.WriteLine(messages.ToString());
 
                 var message = Assert.Single(messages);
                 Assert.Equal("i=2253", message.GetProperty("NodeId").GetString());
                 Assert.Equal("SimpleEvents", message.GetProperty("DisplayName").GetString());
 
-                evt = message.GetProperty("Value");
-                Assert.True(evt.GetProperty("Severity").GetInt32() >= 100);
+                var sev = message.GetProperty("Value").GetProperty("Severity");
+                Assert.True(sev.GetInt32() >= 100, $"{message.ToJsonString()}");
 
                 result = await PublisherApi.UnpublishNodesAsync(DeviceId, ModuleId, testInput[0]);
                 Assert.NotNull(result);

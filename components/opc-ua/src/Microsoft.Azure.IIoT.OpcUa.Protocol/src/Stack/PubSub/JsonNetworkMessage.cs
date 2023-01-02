@@ -29,6 +29,16 @@ namespace Opc.Ua.PubSub {
         public override string ContentEncoding => Encoding.UTF8.EncodingName;
 
         /// <summary>
+        /// Ua data message type
+        /// </summary>
+        public const string MessageTypeUaData = "ua-data";
+
+        /// <summary>
+        /// Message type
+        /// </summary>
+        internal string MessageType { get; set; } = MessageTypeUaData;
+
+        /// <summary>
         /// Create network message
         /// </summary>
         /// <param name="initialContentMask"></param>

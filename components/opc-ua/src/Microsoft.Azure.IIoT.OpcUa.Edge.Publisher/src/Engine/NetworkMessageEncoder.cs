@@ -53,40 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-            try {
-                var result = EncodeInternal(messages, maxMessageSize, false);
-                return Task.FromResult<IEnumerable<NetworkMessageModel>>(result.ToList());
-            }
-            catch (Exception e) {
-                _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
-                return Task.FromResult(Enumerable.Empty<NetworkMessageModel>());
-            }
-        }
-
-        /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-            try {
-                var result = EncodeInternal(messages, maxMessageSize, true);
-                return Task.FromResult<IEnumerable<NetworkMessageModel>>(result.ToList());
-            }
-            catch (Exception e) {
-                _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
-                return Task.FromResult(Enumerable.Empty<NetworkMessageModel>());
-            }
-        }
-
-        /// <summary>
-        /// Encode messages
-        /// </summary>
-        /// <param name="messages"></param>
-        /// <param name="maxMessageSize"></param>
-        /// <param name="isBatched"></param>
-        /// <returns></returns>
-        public IEnumerable<NetworkMessageModel> EncodeInternal(IEnumerable<DataSetMessageModel> messages,
-            int maxMessageSize, bool isBatched) {
+        public IEnumerable<NetworkMessageModel> Encode(IEnumerable<DataSetMessageModel> messages,
+            int maxMessageSize, bool asBatch) {
 
             //
             // by design all messages are generated in the same session context, therefore it is safe to
@@ -100,7 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 return chunkedMessages;
             }
 
-            var networkMessages = GetNetworkMessages(messages, isBatched);
+            var networkMessages = GetNetworkMessages(messages, asBatch);
             foreach (var (notificationsPerMessage, networkMessage) in networkMessages) {
                 var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
                 var tooBig = 0;

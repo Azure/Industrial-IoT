@@ -58,17 +58,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(4096); // = 1 GB
 
             _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
-                async input => {
+                input => {
                     try {
-                        if (_dataSetMessageBufferSize == 1) {
-                            return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
-                        }
-                        else {
-                            return await _messageEncoder.EncodeBatchAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
-                        }
+                        return _messageEncoder.Encode(input, _maxEncodedMessageSize, _dataSetMessageBufferSize != 1);
                     }
                     catch (Exception e) {
-                        _logger.Error(e, "Encoding failure");
+                        _logger.Error(e, "Encoding failure.");
                         return Enumerable.Empty<NetworkMessageModel>();
                     }
                 },

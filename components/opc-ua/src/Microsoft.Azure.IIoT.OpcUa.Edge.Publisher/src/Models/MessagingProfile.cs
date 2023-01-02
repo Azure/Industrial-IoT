@@ -84,11 +84,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// </summary>
         /// <param name="messageMode"></param>
         /// <param name="encoding"></param>
-        /// <param name="fullFeaturedMessage"></param>
         /// <returns></returns>
         public static MessagingProfile Get(MessagingMode messageMode,
-            MessageEncoding encoding, bool fullFeaturedMessage = false) {
-            var key = (GetMessageMode(messageMode, fullFeaturedMessage), GetMessageEncoding(encoding));
+            MessageEncoding encoding) {
+            var key = (messageMode, GetMessageEncoding(encoding));
             return kProfiles[key];
         }
 
@@ -97,11 +96,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// </summary>
         /// <param name="messageMode"></param>
         /// <param name="encoding"></param>
-        /// <param name="fullFeaturedMessage"></param>
         /// <returns></returns>
         public static bool IsSupported(MessagingMode messageMode,
-            MessageEncoding encoding, bool fullFeaturedMessage = false) {
-            var key = (GetMessageMode(messageMode, fullFeaturedMessage), GetMessageEncoding(encoding));
+            MessageEncoding encoding) {
+            var key = (messageMode, GetMessageEncoding(encoding));
             return kProfiles.ContainsKey(key);
         }
 
@@ -237,7 +235,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     DataSetFieldContentMask.RawData,
                     MessageEncoding.Json, MessageEncoding.JsonGzip);
 
-#if DEBUG
             // Uadp encoding
             AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false),
                     BuildNetworkMessageContentMask(),
@@ -255,25 +252,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     0,
                     DataSetFieldContentMask.RawData,
                     MessageEncoding.Uadp);
-#endif
-        }
-
-        /// <summary>
-        /// Massage the message mode based on the legacy flag
-        /// </summary>
-        /// <param name="messageMode"></param>
-        /// <param name="fullFeaturedMessage"></param>
-        /// <returns></returns>
-        private static MessagingMode GetMessageMode(MessagingMode messageMode, bool fullFeaturedMessage) {
-            if (fullFeaturedMessage) {
-                switch (messageMode) {
-                    case MessagingMode.PubSub:
-                        return MessagingMode.FullNetworkMessages;
-                    case MessagingMode.Samples:
-                        return MessagingMode.FullSamples;
-                }
-            }
-            return messageMode;
         }
 
         /// <summary>

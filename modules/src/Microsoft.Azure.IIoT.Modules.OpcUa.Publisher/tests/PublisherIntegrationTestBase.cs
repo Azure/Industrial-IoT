@@ -146,9 +146,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             static void Add(List<JsonElement> messages, JsonElement item,
                 Func<JsonElement, JsonElement> predicate, string messageType) {
                 if (messageType != null) {
-                    var type = item.GetProperty("MessageType").GetString();
-                    if (type != messageType) {
-                        return;
+                    if (item.TryGetProperty("MessageType", out var v)) {
+                        var type = v.GetString();
+                        if (type != messageType) {
+                            return;
+                        }
                     }
                 }
                 var add = item;

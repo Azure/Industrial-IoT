@@ -19,6 +19,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         [Theory]
         [InlineData("testValue", new string[] { "-dc", "testValue" })]
         [InlineData("testValue", new string[] { "--dc", "testValue" })]
+        [InlineData("testValue", new string[] { "-ec", "testValue" })]
+        [InlineData("testValue", new string[] { "--ec", "testValue" })]
         [InlineData("testValue", new string[] { "-deviceconnectionstring", "testValue" })]
         [InlineData("testValue", new string[] { "--deviceconnectionstring", "testValue" })]
         public void ValidOptionTest(string expected, string[] param) {

@@ -68,11 +68,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string FullFeaturedMessage = "FullFeaturedMessage";
 
         /// <summary>
-        /// Flag to use reversible encoding for messages
-        /// </summary>
-        public const string UseReversibleEncoding = "UseReversibleEncoding";
-
-        /// <summary>
         /// Flag to force strict encoding for messages
         /// </summary>
         public const string UseStandardsCompliantEncoding = "UseStandardsCompliantEncoding";

@@ -29,6 +29,16 @@ namespace Opc.Ua.PubSub {
         public override string ContentEncoding => Encoding.UTF8.EncodingName;
 
         /// <summary>
+        /// Ua meta data message type
+        /// </summary>
+        public const string MessageTypeUaMetadata = "ua-metadata";
+
+        /// <summary>
+        /// Message type
+        /// </summary>
+        internal string MessageType { get; set; } = MessageTypeUaMetadata;
+
+        /// <summary>
         /// Flag that indicates if advanced encoding should be used
         /// </summary>
         public bool UseAdvancedEncoding { get; set; }
@@ -37,11 +47,6 @@ namespace Opc.Ua.PubSub {
         /// Use gzip compression
         /// </summary>
         public bool UseGzipCompression { get; set; }
-
-        /// <summary>
-        /// Message type
-        /// </summary>
-        public override string MessageType => MessageTypeUaMetadata;
 
         /// <summary>
         /// Data set writer name in case of ua-metadata message

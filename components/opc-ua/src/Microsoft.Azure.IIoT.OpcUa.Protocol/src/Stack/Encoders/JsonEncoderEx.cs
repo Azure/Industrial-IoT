@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
-    using Microsoft.Azure.IIoT.Serializers;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Opc.Ua.Extensions;
@@ -26,6 +25,8 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public IServiceMessageContext Context { get; }
+
+        private readonly bool _ownedWriter;
 
         /// <summary>
         /// Whether to use reversible encoding or not
@@ -112,7 +113,7 @@ namespace Opc.Ua.Encoders {
                 FloatFormatHandling = FloatFormatHandling.String,
                 Formatting = formatting,
                 CloseOutput = !leaveOpen,
-            }, context, encoding) {
+            }, context, encoding, true) {
         }
 
         /// <summary>
@@ -121,10 +122,12 @@ namespace Opc.Ua.Encoders {
         /// <param name="writer"></param>
         /// <param name="context"></param>
         /// <param name="encoding"></param>
+        /// <param name="ownedWriter"></param>
         public JsonEncoderEx(JsonWriter writer, IServiceMessageContext context = null,
-            JsonEncoding encoding = JsonEncoding.Object) {
+            JsonEncoding encoding = JsonEncoding.Object, bool ownedWriter = false) {
             _namespaces = new Stack<string>();
             Context = context ?? new ServiceMessageContext();
+            _ownedWriter = ownedWriter;
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
             _encoding = encoding;
             switch (encoding) {
@@ -150,7 +153,12 @@ namespace Opc.Ua.Encoders {
                         _writer.WriteEndArray();
                         break;
                 }
-                ((IDisposable)_writer).Dispose();
+                if (_ownedWriter) {
+                    ((IDisposable)_writer).Dispose();
+                }
+                else {
+                    _writer.Flush();
+                }
                 _writer = null;
             }
         }

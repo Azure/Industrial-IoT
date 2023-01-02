@@ -3,8 +3,56 @@
 # OPC Publisher configuration via command line options and environment variables
 
 The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings.
-The `Alternative` field, where present, refers to the CLI argument applicable in **standalone mode only**.
- When both environment variable and CLI argument are provided, the latest will overrule the env variable.
+The `Alternative` field, where present, refers to the CLI argument applicable in **standalone mode only**.  When both environment variable and CLI argument are provided, the latest will overrule the env variable.
+
+```text
+
+
+```
+
+Currently supported combinations of `--mm` snd `--me` are:
+
+```text
+    --mm Samples and --me Json
+    --mm FullSamples and --me Json
+    --mm PubSub and --me Json
+    --mm FullNetworkMessages and --me Json
+    --mm Samples and --me Uadp
+    --mm FullSamples and --me Uadp
+    --mm PubSub and --me JsonGzip
+    --mm FullNetworkMessages and --me JsonGzip
+    --mm PubSub and --me JsonReversible
+    --mm PubSub and --me JsonReversibleGzip
+    --mm FullNetworkMessages and --me JsonReversible
+    --mm FullNetworkMessages and --me JsonReversibleGzip
+    --mm Samples and --me JsonReversible
+    --mm Samples and --me JsonReversibleGzip
+    --mm FullSamples and --me JsonReversible
+    --mm FullSamples and --me JsonReversibleGzip
+    --mm DataSetMessages and --me Json
+    --mm DataSetMessages and --me JsonGzip
+    --mm DataSetMessages and --me JsonReversible
+    --mm DataSetMessages and --me JsonReversibleGzip
+    --mm RawDataSets and --me Json
+    --mm RawDataSets and --me JsonGzip
+    --mm PubSub and --me Uadp
+    --mm FullNetworkMessages and --me Uadp
+    --mm DataSetMessages and --me Uadp
+    --mm RawDataSets and --me Uadp
+
+```
+
+
+
+
+
+
+
+
+
+```
+
+
 
             PublishedNodesFile=VALUE
                                       The file used to store the configuration of the nodes to be published
@@ -454,16 +502,6 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Mode: Standalone
                                       Type: boolean
                                       Default: false
-                                      
-            UseReversibleEncoding=VALUE
-                                      Use reversible encoding in JSON encoders.
-                                      Alternative:
-                                      Mode: Standalone and Orchestrated
-                                      Type: boolean
-                                      Default: false
-                                      Mode: Standalone only
-                                      Type: boolean
-                                      Default: false
 
             DefaultDataChangeTrigger=VALUE
                                       [Preview feature]
@@ -485,7 +523,6 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                       Default: <not set>
 
             MqttClientConnectionString=VALUE
-                                      [Preview feature]
                                       Publisher connects as IoT Device to a MQTT V5 Broker or to IoT Hub MQTT broker 
                                       endpoint. Cannot be set together with --ec or --dc options.
                                       Alternative: --mqc, --mqttclientconnectionstring
@@ -495,13 +532,22 @@ The `Alternative` field, where present, refers to the CLI argument applicable in
                                           for IoT Hub use a regular device connection string (*)
                                       Default: <not set>
 
-            SkipFirstDefault=VALUE
-                                      [Preview feature]
+            DefaultSkipFirst=VALUE
                                       The publisher is using this as default value for the skip first
                                       setting of nodes without a skip first setting.
                                       Alternative: --sf, --skipfirst
                                       Mode: Standalone only
                                       Type: bool
+                                      Default: false
+                                      
+            DiscardNew=VALUE
+                                      Use reversible encoding in JSON encoders.
+                                      Alternative: --ndo, --nodiscardold
+                                      Mode: Standalone and Orchestrated
+                                      Type: boolean
+                                      Default: false
+                                      Mode: Standalone only
+                                      Type: boolean
                                       Default: false
 
 (*) Check [here](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#using-the-mqtt-protocol-directly-as-a-device) and [here](https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#for-azure-iot-tools) how to retrieve the device connection string or generate a SharedAccessSignature for one.

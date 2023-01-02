@@ -21,7 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.IO;
     using System.Linq;
     using System.Text;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher monitored item message encoder
@@ -73,30 +72,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-            try {
+        public IEnumerable<NetworkMessageModel> Encode(
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool asBatch) {
+            // Deliberately cresh and log through caller
+            if (!asBatch) {
                 var resultJson = EncodeAsJson(messages, maxMessageSize);
                 var resultBinary = EncodeAsBinary(messages, maxMessageSize);
-                var result = resultJson.Concat(resultBinary);
-                return Task.FromResult(result);
+                return resultJson.Concat(resultBinary);
             }
-            catch (Exception e) {
-                return Task.FromException<IEnumerable<NetworkMessageModel>>(e);
-            }
-        }
-
-        /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-            try {
+            else {
                 var resultJson = EncodeBatchAsJson(messages, maxMessageSize);
                 var resultBinary = EncodeBatchAsBinary(messages, maxMessageSize);
-                var result = resultJson.Concat(resultBinary);
-                return Task.FromResult(result);
-            }
-            catch (Exception e) {
-                return Task.FromException<IEnumerable<NetworkMessageModel>>(e);
+                return resultJson.Concat(resultBinary);
             }
         }
 
@@ -160,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         IgnoreDefaultValues = _useAdvancedEncoding,
                         IgnoreNullValues = true,
                         UseReversibleEncoding = (notification.MessageContentMask
-                        & (uint)MonitoredItemMessageContentMask.ReversibleFieldEncoding) != 0,
+                            & (uint)MonitoredItemMessageContentMask.ReversibleFieldEncoding) != 0,
                     };
                     foreach (var element in chunk) {
                         encoder.WriteEncodeable(null, element);

@@ -19,11 +19,6 @@ namespace Opc.Ua.PubSub {
         public uint NetworkMessageContentMask { get; set; }
 
         /// <summary>
-        /// Message type
-        /// </summary>
-        public override string MessageType => MessageTypeUaData;
-
-        /// <summary>
         /// Dataset class id in case of ua-data message
         /// </summary>
         public Guid DataSetClassId { get; set; }

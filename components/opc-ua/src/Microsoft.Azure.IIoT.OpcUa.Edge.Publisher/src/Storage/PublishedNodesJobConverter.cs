@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     .SelectMany(
                         n => n
                         .Distinct(opcNodeModelComparer)
-                        .Batch(standaloneCliModel.MaxNodesPerDataSet.GetValueOrDefault(1000)))
+                        .Batch(standaloneCliModel.MaxNodesPerDataSet))
                     .ToList()
                     .Select(
                         opcNodes => (Header: opcNodes.First().Header, Source: new PublishedDataSetSourceModel {
@@ -271,9 +271,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         }
 
         private static MessagingProfile GetMessagingProfile(StandaloneCliModel standaloneCliModel) {
-            return MessagingProfile.Get(
-                                                    standaloneCliModel.MessagingMode, standaloneCliModel.MessageEncoding,
-                                                    standaloneCliModel.FullFeaturedMessage);
+            return MessagingProfile.Get(standaloneCliModel.MessagingMode, standaloneCliModel.MessageEncoding);
         }
 
         /// <summary>

@@ -16,11 +16,6 @@ namespace Opc.Ua.PubSub {
     public class UadpMetadataMessage : UadpNetworkMessage {
 
         /// <summary>
-        /// Message type
-        /// </summary>
-        public override string MessageType => MessageTypeUaMetadata;
-
-        /// <summary>
         /// Data set writer name in case of ua-metadata message
         /// </summary>
         public ushort DataSetWriterId { get; set; }

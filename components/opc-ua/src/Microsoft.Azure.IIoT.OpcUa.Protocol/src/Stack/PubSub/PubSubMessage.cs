@@ -14,14 +14,9 @@ namespace Opc.Ua.PubSub {
     public abstract class PubSubMessage {
 
         /// <summary>
-        /// Ua data message type
+        /// Message id
         /// </summary>
-        public const string MessageTypeUaData = "ua-data";
-
-        /// <summary>
-        /// Ua meta data message type
-        /// </summary>
-        public const string MessageTypeUaMetadata = "ua-metadata";
+        public string MessageId { get; set; }
 
         /// <summary>
         /// Message schema
@@ -39,11 +34,6 @@ namespace Opc.Ua.PubSub {
         public abstract string ContentEncoding { get; }
 
         /// <summary>
-        /// Message id
-        /// </summary>
-        public string MessageId { get; set; }
-
-        /// <summary>
         /// Publisher identifier
         /// </summary>
         public string PublisherId { get; set; }
@@ -52,11 +42,6 @@ namespace Opc.Ua.PubSub {
         /// Dataset writerGroup
         /// </summary>
         public string DataSetWriterGroup { get; set; }
-
-        /// <summary>
-        /// Message type
-        /// </summary>
-        public abstract string MessageType { get; }
 
         /// <summary>
         /// Decode the network message from the wire representation
@@ -84,7 +69,6 @@ namespace Opc.Ua.PubSub {
             }
             if (!Utils.IsEqual(wrapper.MessageId, MessageId) ||
                 !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup) ||
-                !Utils.IsEqual(wrapper.MessageType, MessageType) ||
                 !Utils.IsEqual(wrapper.PublisherId, PublisherId)) {
                 return false;
             }
@@ -97,7 +81,6 @@ namespace Opc.Ua.PubSub {
             hash.Add(MessageId);
             hash.Add(PublisherId);
             hash.Add(DataSetWriterGroup);
-            hash.Add(MessageType);
             return hash.ToHashCode();
         }
     }
