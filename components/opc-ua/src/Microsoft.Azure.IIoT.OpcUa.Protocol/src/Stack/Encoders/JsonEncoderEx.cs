@@ -85,11 +85,13 @@ namespace Opc.Ua.Encoders {
         /// <param name="context"></param>
         /// <param name="encoding"></param>
         /// <param name="formatting"></param>
-        public JsonEncoderEx(Stream stream,
-            IServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object,
-            Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None) :
-            this(new StreamWriter(stream, new UTF8Encoding(false)),
-                context, encoding, formatting) {
+        /// <param name="leaveOpen"></param>
+        public JsonEncoderEx(Stream stream, IServiceMessageContext context = null,
+            JsonEncoding encoding = JsonEncoding.Object,
+            Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None,
+            bool leaveOpen = false) :
+            this(new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: leaveOpen),
+                context, encoding, formatting, leaveOpen) {
         }
 
         /// <summary>
@@ -99,14 +101,17 @@ namespace Opc.Ua.Encoders {
         /// <param name="context"></param>
         /// <param name="encoding"></param>
         /// <param name="formatting"></param>
-        public JsonEncoderEx(TextWriter writer,
-            IServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object,
-            Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None) :
+        /// <param name="leaveOpen"></param>
+        public JsonEncoderEx(TextWriter writer, IServiceMessageContext context = null,
+            JsonEncoding encoding = JsonEncoding.Object,
+            Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None,
+            bool leaveOpen = false) :
             this(new JsonTextWriter(writer) {
                 AutoCompleteOnClose = true,
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
                 FloatFormatHandling = FloatFormatHandling.String,
-                Formatting = formatting
+                Formatting = formatting,
+                CloseOutput = !leaveOpen,
             }, context, encoding) {
         }
 
@@ -116,8 +121,8 @@ namespace Opc.Ua.Encoders {
         /// <param name="writer"></param>
         /// <param name="context"></param>
         /// <param name="encoding"></param>
-        public JsonEncoderEx(JsonWriter writer,
-            IServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object) {
+        public JsonEncoderEx(JsonWriter writer, IServiceMessageContext context = null,
+            JsonEncoding encoding = JsonEncoding.Object) {
             _namespaces = new Stack<string>();
             Context = context ?? new ServiceMessageContext();
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
@@ -140,13 +145,12 @@ namespace Opc.Ua.Encoders {
                 switch (_encoding) {
                     case JsonEncoding.Object:
                         _writer.WriteEndObject();
-                        _writer.Close();
                         break;
                     case JsonEncoding.Array:
                         _writer.WriteEndArray();
-                        _writer.Close();
                         break;
                 }
+                ((IDisposable)_writer).Dispose();
                 _writer = null;
             }
         }
