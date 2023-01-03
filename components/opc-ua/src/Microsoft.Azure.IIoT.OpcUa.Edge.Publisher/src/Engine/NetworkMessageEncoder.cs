@@ -206,13 +206,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 metaData.Name = message.Writer?.DataSet?.DataSetMetaData?.Name;
 
                                 PubSubMessage metadataMessage = encoding.HasFlag(MessageEncoding.Json)
-                                    ? new JsonMetadataMessage {
+                                    ? new JsonMetaDataMessage {
                                         UseAdvancedEncoding = !_useStandardsCompliantEncoding,
                                         UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
                                         DataSetWriterId = message.SubscriptionId,
                                         MetaData = metaData,
                                         DataSetWriterName = message.Writer.DataSetWriterName
-                                    } : new UadpMetadataMessage {
+                                    } : new UadpMetaDataMessage {
                                         DataSetWriterId = message.SubscriptionId,
                                         MetaData = metaData
                                     };

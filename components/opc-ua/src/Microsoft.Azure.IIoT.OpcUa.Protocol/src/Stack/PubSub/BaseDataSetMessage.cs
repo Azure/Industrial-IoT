@@ -63,17 +63,6 @@ namespace Opc.Ua.PubSub {
         public DataSet Payload { get; set; } = new DataSet();
 
         /// <summary>
-        /// Decode data set message
-        /// </summary>
-        /// <param name="decoder"></param>
-        /// <param name="dataSetFieldContentMask"></param>
-        /// <param name="withHeader"></param>
-        /// <param name="property"></param>
-        public abstract void Decode(IDecoder decoder,
-            uint dataSetFieldContentMask,
-            bool withHeader = true, string property = null);
-
-        /// <summary>
         /// Encode data set message
         /// </summary>
         /// <param name="encoder"></param>
@@ -87,21 +76,23 @@ namespace Opc.Ua.PubSub {
             if (ReferenceEquals(this, value)) {
                 return true;
             }
-            if (!(value is JsonDataSetMessage wrapper)) {
+            if (!(value is BaseDataSetMessage wrapper)) {
                 return false;
             }
             if (!Utils.IsEqual(wrapper.DataSetMessageContentMask, DataSetMessageContentMask) ||
                 !Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
                 !Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName) ||
-                !Utils.IsEqual(wrapper.MessageType, MessageType) ||
-                !Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion) ||
                 !Utils.IsEqual(wrapper.SequenceNumber, SequenceNumber) ||
                 !Utils.IsEqual(wrapper.Status, Status) ||
                 !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
-                !Utils.IsEqual(wrapper.Payload, Payload)) {
+                !Utils.IsEqual(wrapper.MessageType, MessageType) ||
+                !Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion)) {
                 return false;
             }
-            return true;
+            if (wrapper.Payload == null || Payload == null) {
+                return wrapper.Payload == Payload;
+            }
+            return wrapper.Payload.Equals(Payload);
         }
 
         /// <inheritdoc/>

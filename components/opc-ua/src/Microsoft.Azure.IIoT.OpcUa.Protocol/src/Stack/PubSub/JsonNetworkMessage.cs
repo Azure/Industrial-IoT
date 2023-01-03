@@ -11,6 +11,7 @@ namespace Opc.Ua.PubSub {
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
+    using System.Linq;
     using System.Text;
 
     /// <summary>
@@ -103,8 +104,27 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context, IEnumerable<byte[]> reader) {
-
+        public override bool TryDecode(IServiceMessageContext context, Queue<byte[]> reader) {
+            // Decodes a single buffer
+            if (reader.TryPeek(out var buffer)) {
+                using (var memoryStream = new MemoryStream(buffer)) {
+                    var compression = UseGzipCompression ?
+                        new GZipStream(memoryStream, CompressionMode.Decompress) : null;
+                    try {
+                        using var decoder = new JsonDecoderEx(UseGzipCompression ?
+                            compression : memoryStream, context);
+                        if (!decoder.ReadArray(null, () => TryReadNetworkMessage(decoder)).All(s => s)) {
+                            return false;
+                        }
+                        // Complete the buffer
+                        reader.Dequeue();
+                        return true;
+                    }
+                    finally {
+                        compression?.Dispose();
+                    }
+                }
+            }
             return false;
         }
 
@@ -112,13 +132,19 @@ namespace Opc.Ua.PubSub {
         public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context, int maxChunkSize) {
             var chunks = new List<byte[]>();
             var messages = Messages.ToArray().AsSpan();
-            if (HasSingleDataSetMessage && !UseArrayEnvelope) {
-                for (var i = 0; i < messages.Length; i++) {
-                    EncodeMessages(messages.Slice(i, 1));
+            var messageId = MessageId;
+            try {
+                if (HasSingleDataSetMessage && !UseArrayEnvelope) {
+                    for (var i = 0; i < messages.Length; i++) {
+                        EncodeMessages(messages.Slice(i, 1));
+                    }
+                }
+                else {
+                    EncodeMessages(messages);
                 }
             }
-            else {
-                EncodeMessages(messages);
+            finally {
+                MessageId = messageId;
             }
             return chunks;
 
@@ -136,29 +162,7 @@ namespace Opc.Ua.PubSub {
                             IgnoreNullValues = true,
                             UseReversibleEncoding = false
                         };
-                        var messagesToInclude = messages.ToArray();
-                        if (UseArrayEnvelope) {
-                            if (HasSingleDataSetMessage || HasNetworkMessageHeader) {
-                                // Legacy compatibility - n network messages with 1 message each inside array
-                                for (var i = 0; i < messages.Length; i++) {
-                                    var single = messages.Slice(i, 1).ToArray();
-                                    if (HasDataSetMessageHeader || HasNetworkMessageHeader) {
-                                        encoder.WriteObject(null, Messages, _ => Encode(encoder, single));
-                                    }
-                                    else {
-                                        // Write single messages into the array envelope
-                                        Encode(encoder, single);
-                                    }
-                                }
-                            }
-                            else {
-                                // Write all messages into the array envelope
-                                Encode(encoder, messagesToInclude);
-                            }
-                        }
-                        else {
-                            Encode(encoder, messagesToInclude);
-                        }
+                        WriteMessages(encoder, messages);
                     }
                     finally {
                         compression?.Dispose();
@@ -191,25 +195,108 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <summary>
+        /// Write message span
+        /// </summary>
+        /// <param name="encoder"></param>
+        /// <param name="messages"></param>
+        private void WriteMessages(JsonEncoderEx encoder, Span<BaseDataSetMessage> messages) {
+            var messagesToInclude = messages.ToArray();
+            if (UseArrayEnvelope) {
+                if (HasSingleDataSetMessage || HasNetworkMessageHeader) {
+                    // Legacy compatibility - n network messages with 1 message each inside array
+                    for (var i = 0; i < messages.Length; i++) {
+                        var single = messages.Slice(i, 1).ToArray();
+                        if (HasDataSetMessageHeader || HasNetworkMessageHeader) {
+                            encoder.WriteObject(null, Messages, _ => WriteNetworkMessage(encoder, single));
+                        }
+                        else {
+                            // Write single messages into the array envelope
+                            WriteNetworkMessage(encoder, single);
+                        }
+                    }
+                }
+                else {
+                    // Write all messages into the array envelope
+                    WriteNetworkMessage(encoder, messagesToInclude);
+                }
+            }
+            else {
+                WriteNetworkMessage(encoder, messagesToInclude);
+            }
+        }
+
+        /// <summary>
+        /// Try decode
+        /// </summary>
+        /// <param name="decoder"></param>
+        /// <returns></returns>
+        private bool TryReadNetworkMessage(JsonDecoderEx decoder) {
+            if (TryReadNetworkMessageHeader(decoder, out var networkMessageContentMask)) {
+                if (decoder.IsObject(nameof(Messages))) {
+                    // Single message
+                    networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+                }
+                else if (!decoder.IsArray(nameof(Messages))) {
+                    // Messages property is neither object nor array. We might be inside a single dataset
+                    // TODO: Should we throw?
+                    return false;
+                }
+                NetworkMessageContentMask = networkMessageContentMask;
+                return TryReadDataSetMessages(decoder, nameof(Messages));
+            }
+            else {
+                // Reset
+                NetworkMessageContentMask = 0;
+                DataSetWriterGroup = null;
+                DataSetClassId = default;
+                MessageId = null;
+                PublisherId = null;
+
+                if (decoder.IsObject(null)) {
+                    // Treat this object as the single message
+                    NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+                }
+                else if (!decoder.IsArray(null)) {
+                    // This object we are reading is neither an object nor array
+                    return false;
+                }
+                return TryReadDataSetMessages(decoder, null);
+            }
+
+            bool TryReadDataSetMessages(JsonDecoderEx decoder, string property) {
+                var hasDataSetMessageHeader = false;
+                var messages = decoder.ReadArray<BaseDataSetMessage>(property, () => {
+                    var message = new JsonDataSetMessage();
+                    if (!message.TryDecode(decoder, property, ref hasDataSetMessageHeader)) {
+                        return null;
+                    }
+                    return message;
+                });
+                // Add decoded messages to messages array
+                foreach (var message in messages) {
+                    if (message == null) {
+
+                        // Reset
+                        Messages.Clear();
+                        return false;
+                    }
+                    Messages.Add(message);
+                }
+                if (hasDataSetMessageHeader) {
+                    NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetMessageHeader;
+                }
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Encode with set messages
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="messages"></param>
-        private void Encode(JsonEncoderEx encoder, BaseDataSetMessage[] messages) {
+        private void WriteNetworkMessage(JsonEncoderEx encoder, BaseDataSetMessage[] messages) {
             if (HasNetworkMessageHeader) {
-                // The encoder was set up as object beforehand based on IsJsonArray result
-                encoder.WriteString(nameof(MessageId), MessageId);
-                encoder.WriteString(nameof(MessageType), MessageType);
-                if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
-                    encoder.WriteString(nameof(PublisherId), PublisherId);
-                }
-                if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0 &&
-                    DataSetClassId != Guid.Empty) {
-                    encoder.WriteString(nameof(DataSetClassId), DataSetClassId.ToString());
-                }
-                if (!string.IsNullOrEmpty(DataSetWriterGroup)) {
-                    encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
-                }
+                WriteNetworkMessageHeader(encoder);
 
                 if (HasSingleDataSetMessage) {
                     if (HasDataSetMessageHeader) {
@@ -255,70 +342,81 @@ namespace Opc.Ua.PubSub {
             }
         }
 
-        /// <inheritdoc/>
-        internal void Decode(JsonDecoderEx decoder) {
-            if (HasNetworkMessageHeader) {
-                MessageId = decoder.ReadString(nameof(MessageId));
+        /// <summary>
+        /// Read network message header
+        /// </summary>
+        /// <param name="decoder"></param>
+        /// <param name="networkMessageContentMask"></param>
+        /// <returns></returns>
+        private bool TryReadNetworkMessageHeader(JsonDecoderEx decoder, out uint networkMessageContentMask) {
+            networkMessageContentMask = 0;
+            if (!decoder.HasField(nameof(MessageId))) {
+                return false;
+            }
+            MessageId = decoder.ReadString(nameof(MessageId));
+            if (MessageId == null) {
+                // Field is there but not of type string, cannot be a network message header
+                return false;
+            }
+            var messageType = decoder.ReadString(nameof(MessageType));
+            if (!messageType.Equals(MessageTypeUaData, StringComparison.InvariantCultureIgnoreCase)) {
+                // Not a dataset network message
+                return false;
+            }
+            networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.NetworkMessageHeader;
 
-                var messageType = decoder.ReadString(nameof(MessageType));
+            if (decoder.HasField(nameof(PublisherId))) {
+                PublisherId = decoder.ReadString(nameof(PublisherId));
+                if (PublisherId != null) {
+                    networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
+                }
+                else {
+                    // publisher is not string type,
+                    // TODO
+                    return false;
+                }
+            }
 
-                if (!messageType.Equals(MessageTypeUaData, StringComparison.InvariantCultureIgnoreCase)) {
-                    throw ServiceResultException.Create(StatusCodes.BadTcpMessageTypeInvalid,
-                        "Received incorrect message type {0}", messageType);
+            if (decoder.HasField(nameof(DataSetClassId))) {
+                var dataSetClassId = decoder.ReadString(nameof(DataSetClassId));
+                if (dataSetClassId != null && Guid.TryParse(dataSetClassId, out var result)) {
+                    DataSetClassId = result;
+                    networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
                 }
-                if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
-                    PublisherId = decoder.ReadString(nameof(PublisherId));
+                else {
+                    // class id is not guid or string
+                    return false;
                 }
-                if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0) {
-                    var dataSetClassId = decoder.ReadString(nameof(DataSetClassId));
-                    if (dataSetClassId != null && Guid.TryParse(dataSetClassId, out var result)) {
-                        DataSetClassId = result;
-                    }
-                }
+            }
+
+            if (decoder.HasField(nameof(DataSetWriterGroup))) {
                 DataSetWriterGroup = decoder.ReadString(nameof(DataSetWriterGroup));
+                if (DataSetWriterGroup == null) {
+                    // writer group is not string type
+                    // TODO
+                    return false;
+                }
+            }
+            return decoder.HasField(nameof(Messages));
+        }
 
-                //        if (HasSingleDataSetMessage) {
-                //            if (HasDataSetMessageHeader) {
-                //                // Write as a single object under messages property
-                //                decoder.ReadObject(nameof(Messages), messages[0],
-                //                    v => v.Encode(encoder, true));
-                //            }
-                //            else {
-                //                // Write raw data set object under messages property
-                //                messages[0].Decode(decoder, false, nameof(Messages));
-                //            }
-                //        }
-                //        else if (HasDataSetMessageHeader) {
-                //            // Write as array of objects
-                //            decoder.ReadArray(nameof(Messages), messages, v =>
-                //                decoder.ReadObject(null, v, v => v.Encode(encoder, true)));
-                //        }
-                //        else {
-                //            // Write as array of dataset payload tokens
-                //            decoder.ReadArray(nameof(Messages), messages,
-                //                v => v.Decode(decoder, false));
-                //        }
-                //    }
-                //    else {
-                //        // The encoder was set up as array or object beforehand
-                //        if (HasSingleDataSetMessage) {
-                //            // Write object content to current object
-                //            messages[0].Decode(decoder, HasDataSetMessageHeader);
-                //        }
-                //        else if (HasDataSetMessageHeader) {
-                //            // Write each object to the array that is the initial state of the encoder
-                //            foreach (var message in messages) {
-                //                // Write as array of dataset messages with payload
-                //                decoder.ReadObject(null, message, v => v.Decode(decoder, true));
-                //            }
-                //        }
-                //        else {
-                //            // Writes dataset directly the encoder was set up as token
-                //            foreach (var message in messages) {
-                //                message.Decode(decoder, false);
-                //            }
-                //        }
-                //    }
+        /// <summary>
+        /// Write network message header
+        /// </summary>
+        /// <param name="encoder"></param>
+        private void WriteNetworkMessageHeader(JsonEncoderEx encoder) {
+            // The encoder was set up as object beforehand based on IsJsonArray result
+            encoder.WriteString(nameof(MessageId), MessageId);
+            encoder.WriteString(nameof(MessageType), MessageType);
+            if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
+                encoder.WriteString(nameof(PublisherId), PublisherId);
+            }
+            if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0 &&
+                DataSetClassId != Guid.Empty) {
+                encoder.WriteString(nameof(DataSetClassId), DataSetClassId.ToString());
+            }
+            if (!string.IsNullOrEmpty(DataSetWriterGroup)) {
+                encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
             }
         }
     }

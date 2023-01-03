@@ -10,128 +10,144 @@ namespace Opc.Ua.PubSub.Tests {
     using Opc.Ua.Encoders;
     using Xunit;
     using Opc.Ua.Extensions;
+    using Microsoft.Azure.IIoT.OpcUa.Core;
+    using System.Linq;
 
     public class PubSubJsonEncoderDecoder {
 
-        private uint _currentSequenceNumber = 0;
-
-        [Fact]
-        public void EncodeDecodeNetworkMessage() {
+        [Theory]
+        [InlineData(false, JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
+        [InlineData(false, 0, 3)]
+        [InlineData(false, 0, 1)]
+        [InlineData(true, JsonNetworkMessageContentMask.SingleDataSetMessage, 1)]
+        [InlineData(true, 0, 3)]
+        public void EncodeDecodeNetworkMessage(bool useCompatibilityMode, uint extraNetworkMessage, int numberOfMessages) {
             var payload = new Dictionary<string, DataValue> {
                 { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
                 { "2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now) },
                 { "3", new DataValue("abcd") }
             };
 
-            var message = new JsonDataSetMessage {
-                DataSetWriterName = "WriterId",
-                DataSetWriterId = 3,
-                MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
-                SequenceNumber = ++_currentSequenceNumber,
-                Status = StatusCodes.Bad,
-                Timestamp = DateTime.UtcNow,
-                DataSetMessageContentMask = (uint)(
-                    JsonDataSetMessageContentMask2.DataSetWriterName |
-                    JsonDataSetMessageContentMask.DataSetWriterId |
-                    JsonDataSetMessageContentMask.SequenceNumber |
-                    JsonDataSetMessageContentMask.MetaDataVersion |
-                    JsonDataSetMessageContentMask.Timestamp |
-                    JsonDataSetMessageContentMask.Status),
-                Payload = new DataSet(payload, (uint)(
-                    DataSetFieldContentMask.StatusCode |
-                    DataSetFieldContentMask.SourceTimestamp))
-            };
+            var messages = Enumerable
+                .Range(3, numberOfMessages)
+                .Select(sequenceNumber => (BaseDataSetMessage)new JsonDataSetMessage {
+                    DataSetWriterName = "WriterId",
+                    DataSetWriterId = (ushort)(useCompatibilityMode ? 0 : 3),
+                    MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
+                    SequenceNumber = (ushort)sequenceNumber,
+                    Status = StatusCodes.Bad,
+                    Timestamp = DateTime.UtcNow,
+                    UseCompatibilityMode = useCompatibilityMode,
+                    MessageType = MessageType.KeyFrame,
+                    Picoseconds = 1,
+                    DataSetMessageContentMask = (uint)(
+                        JsonDataSetMessageContentMask2.DataSetWriterName |
+                        JsonDataSetMessageContentMask.MessageType |
+                        JsonDataSetMessageContentMask.DataSetWriterId |
+                        JsonDataSetMessageContentMask.SequenceNumber |
+                        JsonDataSetMessageContentMask.MetaDataVersion |
+                        JsonDataSetMessageContentMask.Timestamp |
+                        JsonDataSetMessageContentMask.Status),
+                    Payload = new DataSet(payload, (uint)(
+                        DataSetFieldContentMask.SourceTimestamp |
+                        DataSetFieldContentMask.ServerTimestamp |
+                        DataSetFieldContentMask.SourcePicoSeconds |
+                        DataSetFieldContentMask.ServerPicoSeconds |
+                        DataSetFieldContentMask.StatusCode))
+                })
+                .ToList();
 
             var networkMessage = new JsonNetworkMessage {
                 MessageId = Guid.NewGuid().ToString(), // TODO
-                Messages = new List<BaseDataSetMessage>(),
-                PublisherId = "PublisherId"
+                Messages = messages,
+                DataSetWriterGroup = "group",
+                DataSetClassId = Guid.NewGuid(),
+                PublisherId = "PublisherId",
+                NetworkMessageContentMask = (uint)(
+                    JsonNetworkMessageContentMask.PublisherId |
+                    JsonNetworkMessageContentMask.NetworkMessageHeader |
+                    JsonNetworkMessageContentMask.DataSetMessageHeader |
+                    JsonNetworkMessageContentMask.DataSetClassId |
+                    (JsonNetworkMessageContentMask)extraNetworkMessage)
             };
 
-            networkMessage.Messages.Add(message);
-            networkMessage.NetworkMessageContentMask = (uint)(
-                JsonNetworkMessageContentMask.PublisherId |
-                JsonNetworkMessageContentMask.NetworkMessageHeader |
-                JsonNetworkMessageContentMask.SingleDataSetMessage);
-
             var context = new ServiceMessageContext();
-            var buffer = Assert.Single(networkMessage.Encode(context, 1024));
+            var buffer = Assert.Single(networkMessage.Encode(context, 256 * 1000));
 
             ConvertToOpcUaUniversalTime(networkMessage);
 
-#if FALSE // TODO
-            using (var stream = new MemoryStream(buffer)) {
-                using (var decoder = new JsonDecoderEx(stream, context)) {
-                    var result = decoder.ReadEncodeable(null, typeof(JsonNetworkMessage)) as JsonNetworkMessage;
-                    Assert.Equal(networkMessage, result);
-                }
-            }
-#endif
+            var result = PubSubMessage.Decode(buffer, MessageSchemaTypes.NetworkMessageJson, context);
+            Assert.Equal(networkMessage, result);
         }
 
-
-        [Fact]
-        public void EncodeDecodeNetworkMessageFull() {
-
+        [Theory]
+        [InlineData(false, JsonNetworkMessageContentMask.SingleDataSetMessage, 5)]
+        [InlineData(false, 0, 10)]
+        [InlineData(true, 0, 15)]
+        [InlineData(true, JsonNetworkMessageContentMask.SingleDataSetMessage, 5)]
+        public void EncodeDecodeNetworkMessages(bool useCompatibilityMode, uint extraNetworkMessage, int numberOfMessages) {
             var payload = new Dictionary<string, DataValue> {
-                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.Now, DateTime.UtcNow),
-                ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.Now),
-                ["1111111111111111111111111"] = new DataValue(new Variant(false), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
-                ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6}), StatusCodes.Good),
-                ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.Now, DateTime.MinValue),
-                ["..."] = new DataValue(new Variant(new Variant("imbricated")))
+                { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
+                { "2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now) },
+                { "3", new DataValue("abcd") }
             };
 
-            var message = new JsonDataSetMessage {
-                DataSetWriterName = "WriterId",
-                DataSetWriterId = 1,
-                MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
-                SequenceNumber = ++_currentSequenceNumber,
-                Status = StatusCodes.GoodCallAgain,
-                Timestamp = DateTime.UtcNow,
-                Picoseconds = 1234,
-                DataSetMessageContentMask = (uint)(
-                    JsonDataSetMessageContentMask2.DataSetWriterName |
-                    JsonDataSetMessageContentMask.DataSetWriterId |
-                    JsonDataSetMessageContentMask.SequenceNumber |
-                    JsonDataSetMessageContentMask.MetaDataVersion |
-                    JsonDataSetMessageContentMask.Timestamp |
-                    JsonDataSetMessageContentMask.Status),
-                Payload = new DataSet(payload, (uint)(
-                    DataSetFieldContentMask.StatusCode |
-                    DataSetFieldContentMask.SourceTimestamp |
-                    DataSetFieldContentMask.ServerTimestamp |
-                    DataSetFieldContentMask.SourcePicoSeconds |
-                    DataSetFieldContentMask.ServerPicoSeconds))
-            };
+            var messages = Enumerable
+                .Range(3, numberOfMessages)
+                .Select(sequenceNumber => (BaseDataSetMessage)new JsonDataSetMessage {
+                    DataSetWriterName = "WriterId",
+                    DataSetWriterId = (ushort)(useCompatibilityMode ? 0 : 3),
+                    MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
+                    SequenceNumber = (ushort)sequenceNumber,
+                    Status = StatusCodes.Bad,
+                    Timestamp = DateTime.UtcNow,
+                    UseCompatibilityMode = useCompatibilityMode,
+                    MessageType = MessageType.KeyFrame,
+                    Picoseconds = 1,
+                    DataSetMessageContentMask = (uint)(
+                        JsonDataSetMessageContentMask2.DataSetWriterName |
+                        JsonDataSetMessageContentMask.MessageType |
+                        JsonDataSetMessageContentMask.DataSetWriterId |
+                        JsonDataSetMessageContentMask.SequenceNumber |
+                        JsonDataSetMessageContentMask.MetaDataVersion |
+                        JsonDataSetMessageContentMask.Timestamp |
+                        JsonDataSetMessageContentMask.Status),
+                    Payload = new DataSet(payload, (uint)(
+                        DataSetFieldContentMask.SourceTimestamp |
+                        DataSetFieldContentMask.ServerTimestamp |
+                        DataSetFieldContentMask.SourcePicoSeconds |
+                        DataSetFieldContentMask.ServerPicoSeconds |
+                        DataSetFieldContentMask.StatusCode))
+                })
+                .ToList();
 
             var networkMessage = new JsonNetworkMessage {
                 MessageId = Guid.NewGuid().ToString(), // TODO
-                Messages = new List<BaseDataSetMessage>(),
+                Messages = messages,
+                DataSetWriterGroup = "group",
+                DataSetClassId = Guid.NewGuid(),
                 PublisherId = "PublisherId",
-                DataSetClassId = Guid.NewGuid()
+                NetworkMessageContentMask = (uint)(
+                    JsonNetworkMessageContentMask.PublisherId |
+                    JsonNetworkMessageContentMask.NetworkMessageHeader |
+                    JsonNetworkMessageContentMask.DataSetMessageHeader |
+                    JsonNetworkMessageContentMask.DataSetClassId |
+                    (JsonNetworkMessageContentMask)extraNetworkMessage)
             };
 
-            networkMessage.Messages.Add(message);
-            networkMessage.NetworkMessageContentMask = (uint)(
-                JsonNetworkMessageContentMask.PublisherId |
-                JsonNetworkMessageContentMask.NetworkMessageHeader |
-                JsonNetworkMessageContentMask.SingleDataSetMessage |
-                JsonNetworkMessageContentMask.DataSetClassId);
-
             var context = new ServiceMessageContext();
-            var buffer = Assert.Single(networkMessage.Encode(context, 1024));
+            var buffers = networkMessage.Encode(context, 1024);
+            Assert.Equal(numberOfMessages, buffers.Count);
 
             ConvertToOpcUaUniversalTime(networkMessage);
 
-#if FALSE // TODO
-            using (var stream = new MemoryStream(buffer)) {
-                using (var decoder = new JsonDecoderEx(stream, context)) {
-                    var result = decoder.ReadEncodeable(null, typeof(JsonNetworkMessage)) as JsonNetworkMessage;
-                    Assert.Equal(networkMessage, result);
-                }
-            }
-#endif
+            var m = buffers
+                .Select(buffer => (BaseNetworkMessage)PubSubMessage
+                    .Decode(buffer, MessageSchemaTypes.NetworkMessageJson, context))
+                .ToList();
+            var result = m[0];
+            result.Messages = m.SelectMany(m => m.Messages).ToList();
+            Assert.Equal(networkMessage, result);
         }
 
         /// <summary>

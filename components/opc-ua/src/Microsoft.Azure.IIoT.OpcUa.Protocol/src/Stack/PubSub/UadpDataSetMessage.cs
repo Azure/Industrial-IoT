@@ -235,38 +235,15 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override void Decode(IDecoder decoder, uint dataSetFieldContentMask,
-            bool withHeader, string property) {
-            if (decoder is not BinaryDecoder binaryDecoder) {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError, "Must use Binary decoder here");
-            }
-            if (withHeader) {
-                ReadDataSetMessageHeader(binaryDecoder);
-            }
-            else {
-                Payload.DataSetFieldContentMask = dataSetFieldContentMask;
-            }
-            if ((DataSetFlags2 & DataSetFlags2EncodingMask.DataDeltaFrame) != 0) {
-                ReadMessageDataDeltaFrame(binaryDecoder);
-            }
-            else {
-                ReadMessageDataKeyFrame(binaryDecoder);
-            }
-        }
-
-        /// <inheritdoc/>
         public override void Encode(IEncoder encoder, bool withHeader, string property) {
-
             if (encoder is not BinaryEncoder binaryEncoder) {
                 throw ServiceResultException.Create(StatusCodes.BadEncodingError, "Must use Binary encoder here");
             }
-
             StartPositionInStream = binaryEncoder.Position;
             if (DataSetOffset > 0 && StartPositionInStream < DataSetOffset) {
                 StartPositionInStream = DataSetOffset;
                 binaryEncoder.Position = DataSetOffset;
             }
-
             if (withHeader) {
                 WriteDataSetMessageHeader(binaryEncoder);
             }
@@ -281,7 +258,6 @@ namespace Opc.Ua.PubSub {
                 //
                 WritePayloadKeyFrame(binaryEncoder);
             }
-
             PayloadSizeInStream = (ushort)(binaryEncoder.Position - StartPositionInStream);
             if (ConfiguredSize > 0 && PayloadSizeInStream < ConfiguredSize) {
                 PayloadSizeInStream = ConfiguredSize;
@@ -290,112 +266,19 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <summary>
-        /// Write DataSet message header
+        /// Decode data set message
         /// </summary>
-        /// <param name="encoder"></param>
-        private void WriteDataSetMessageHeader(IEncoder encoder) {
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.MessageIsValid) != 0) {
-                encoder.WriteByte("DataSetFlags1", (byte)DataSetFlags1);
+        /// <param name="decoder"></param>
+        internal void Decode(IDecoder decoder) {
+            if (decoder is not BinaryDecoder binaryDecoder) {
+                throw ServiceResultException.Create(StatusCodes.BadDecodingError, "Must use Binary decoder here");
             }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetFlags2) != 0) {
-                encoder.WriteByte("DataSetFlags2", (byte)DataSetFlags2);
+            ReadDataSetMessageHeader(binaryDecoder);
+            if ((DataSetFlags2 & DataSetFlags2EncodingMask.DataDeltaFrame) != 0) {
+                ReadPayloadDeltaFrame(binaryDecoder);
             }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetMessageSequenceNumber) != 0) {
-                encoder.WriteUInt16("SequenceNumber", (ushort)SequenceNumber);
-            }
-            if ((DataSetFlags2 & DataSetFlags2EncodingMask.Timestamp) != 0) {
-                encoder.WriteDateTime("Timestamp", Timestamp);
-            }
-            if ((DataSetFlags2 & DataSetFlags2EncodingMask.PicoSeconds) != 0) {
-                encoder.WriteUInt16("Picoseconds", PicoSeconds);
-            }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.Status) != 0) {
-                // This is the high order 16 bits of the StatusCode DataType representing
-                // the numeric value of the Severity and SubCode of the StatusCode DataType.
-                encoder.WriteUInt16("Status", (ushort)(Status.Code >> 16));
-            }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0) {
-                encoder.WriteUInt32("ConfigurationMajorVersion", MetaDataVersion.MajorVersion);
-            }
-            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion) != 0) {
-                encoder.WriteUInt32("ConfigurationMinorVersion", MetaDataVersion.MinorVersion);
-            }
-        }
-
-        /// <summary>
-        /// Write payload data
-        /// </summary>
-        /// <param name="binaryEncoder"></param>
-        private void WritePayloadKeyFrame(BinaryEncoder binaryEncoder) {
-
-            var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
-            switch (fieldType) {
-                case DataSetFlags1EncodingMask.FieldTypeVariant:
-                    binaryEncoder.WriteUInt16("DataSetFieldCount", (ushort)Payload.Count);
-                    foreach (var value in Payload) {
-                        binaryEncoder.WriteVariant("Variant", value.Value.WrappedValue);
-                    }
-                    break;
-                case DataSetFlags1EncodingMask.FieldTypeDataValue:
-                    binaryEncoder.WriteUInt16("DataSetFieldCount", (ushort)Payload.Count);
-                    foreach (var value in Payload) {
-                        binaryEncoder.WriteDataValue("DataValue", value.Value);
-                    }
-                    break;
-                case DataSetFlags1EncodingMask.FieldTypeRawData:
-                    // DataSetFieldCount is not written for RawData
-                    foreach (var value in Payload) {
-                        WriteFieldAsRawData(binaryEncoder, value.Key, value.Value);
-                    }
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Write payload data delta frame
-        /// </summary>
-        /// <param name="binaryEncoder"></param>
-        private void WritePayloadDeltaFrame(BinaryEncoder binaryEncoder) {
-
-            // ignore null fields
-            var fieldCount = Payload.Count(value => value.Value?.Value != null);
-            binaryEncoder.WriteUInt16("FieldCount", (ushort)fieldCount);
-
-            var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
-            var values = Payload.ToList();
-            for (var i = 0; i < values.Count; i++) {
-                var value = values[i];
-                if (value.Value?.Value == null) {
-                    continue;
-                }
-
-                // write field index corresponding to metadata
-                binaryEncoder.WriteUInt16("FieldIndex", GetFieldIndex(value.Key, i));
-                switch (fieldType) {
-                    case DataSetFlags1EncodingMask.FieldTypeVariant:
-                        binaryEncoder.WriteVariant("FieldValue", value.Value.WrappedValue);
-                        break;
-                    case DataSetFlags1EncodingMask.FieldTypeDataValue:
-                        binaryEncoder.WriteDataValue("FieldValue", value.Value);
-                        break;
-                    case DataSetFlags1EncodingMask.FieldTypeRawData:
-                        WriteFieldAsRawData(binaryEncoder, value.Key, value.Value.WrappedValue);
-                        break;
-                }
-            }
-
-            // Get field index in metadata if metadata was provided.
-            ushort GetFieldIndex(string key, int pos) {
-                if (MetaData?.Fields != null) {
-                    for (var i = 0; i< MetaData.Fields.Count; i++) {
-                        if (MetaData.Fields[i].Name == key) {
-                            return (ushort)i;
-                        }
-                    }
-                    // Assign a unique new one after the fields in metadata
-                    return (ushort)(MetaData.Fields.Count + pos);
-                }
-                return (ushort)pos;
+            else {
+                ReadPayloadKeyFrame(binaryDecoder);
             }
         }
 
@@ -442,58 +325,114 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <summary>
+        /// Write DataSet message header
+        /// </summary>
+        /// <param name="encoder"></param>
+        private void WriteDataSetMessageHeader(IEncoder encoder) {
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.MessageIsValid) != 0) {
+                encoder.WriteByte("DataSetFlags1", (byte)DataSetFlags1);
+            }
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetFlags2) != 0) {
+                encoder.WriteByte("DataSetFlags2", (byte)DataSetFlags2);
+            }
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.DataSetMessageSequenceNumber) != 0) {
+                encoder.WriteUInt16("SequenceNumber", (ushort)SequenceNumber);
+            }
+            if ((DataSetFlags2 & DataSetFlags2EncodingMask.Timestamp) != 0) {
+                encoder.WriteDateTime("Timestamp", Timestamp);
+            }
+            if ((DataSetFlags2 & DataSetFlags2EncodingMask.PicoSeconds) != 0) {
+                encoder.WriteUInt16("Picoseconds", PicoSeconds);
+            }
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.Status) != 0) {
+                // This is the high order 16 bits of the StatusCode DataType representing
+                // the numeric value of the Severity and SubCode of the StatusCode DataType.
+                encoder.WriteUInt16("Status", (ushort)(Status.Code >> 16));
+            }
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0) {
+                encoder.WriteUInt32("ConfigurationMajorVersion", MetaDataVersion.MajorVersion);
+            }
+            if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion) != 0) {
+                encoder.WriteUInt32("ConfigurationMinorVersion", MetaDataVersion.MinorVersion);
+            }
+        }
+
+        /// <summary>
         /// Read message data key frame from decoder
         /// </summary>
         /// <param name="binaryDecoder"></param>
         /// <returns></returns>
-        private void ReadMessageDataKeyFrame(BinaryDecoder binaryDecoder) {
-            try {
-                ushort fieldCount = 0;
-                var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
-                if (fieldType == DataSetFlags1EncodingMask.FieldTypeRawData) {
-                    if (MetaData != null) {
-                        // metadata should provide field count
-                        fieldCount = (ushort)MetaData.Fields.Count;
-                    }
-                    else {
-                        throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                            "Requires metadata to decode");
-                    }
+        private void ReadPayloadKeyFrame(BinaryDecoder binaryDecoder) {
+            var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
+            ushort fieldCount;
+            if (fieldType == DataSetFlags1EncodingMask.FieldTypeRawData) {
+                if (MetaData != null) {
+                    // metadata should provide field count
+                    fieldCount = (ushort)MetaData.Fields.Count;
                 }
                 else {
-                    fieldCount = binaryDecoder.ReadUInt16("DataSetFieldCount");
-                }
-
-                // check configuration version
-                switch (fieldType) {
-                    case DataSetFlags1EncodingMask.FieldTypeVariant:
-                        for (var i = 0; i < fieldCount; i++) {
-                            var fieldMetaData = GetFieldMetadata(i);
-                            Payload.Add(fieldMetaData?.Name ?? i.ToString(),
-                                new DataValue(binaryDecoder.ReadVariant("Variant")));
-                        }
-                        break;
-                    case DataSetFlags1EncodingMask.FieldTypeDataValue:
-                        for (var i = 0; i < fieldCount; i++) {
-                            var fieldMetaData = GetFieldMetadata(i);
-                            Payload.Add(fieldMetaData?.Name ?? i.ToString(),
-                                binaryDecoder.ReadDataValue("DataValue"));
-                        }
-                        break;
-                    case DataSetFlags1EncodingMask.FieldTypeRawData:
-                        for (var i = 0; i < fieldCount; i++) {
-                            var fieldMetaData = GetFieldMetadata(i);
-                            if (fieldMetaData != null) {
-                                var decodedValue = ReadRawData(binaryDecoder, fieldMetaData);
-                                Payload.Add(fieldMetaData.Name, new DataValue(new Variant(decodedValue)));
-                            }
-                        }
-                        break;
+                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                        "Requires metadata to decode");
                 }
             }
-            catch (Exception ex) {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    ex, "Failed to decode key frame.");
+            else {
+                fieldCount = binaryDecoder.ReadUInt16("DataSetFieldCount");
+            }
+
+            // check configuration version
+            switch (fieldType) {
+                case DataSetFlags1EncodingMask.FieldTypeVariant:
+                    for (var i = 0; i < fieldCount; i++) {
+                        var fieldMetaData = GetFieldMetadata(i);
+                        Payload.Add(fieldMetaData?.Name ?? i.ToString(),
+                            new DataValue(binaryDecoder.ReadVariant("Variant")));
+                    }
+                    break;
+                case DataSetFlags1EncodingMask.FieldTypeDataValue:
+                    for (var i = 0; i < fieldCount; i++) {
+                        var fieldMetaData = GetFieldMetadata(i);
+                        Payload.Add(fieldMetaData?.Name ?? i.ToString(),
+                            binaryDecoder.ReadDataValue("DataValue"));
+                    }
+                    break;
+                case DataSetFlags1EncodingMask.FieldTypeRawData:
+                    for (var i = 0; i < fieldCount; i++) {
+                        var fieldMetaData = GetFieldMetadata(i);
+                        if (fieldMetaData != null) {
+                            var decodedValue = ReadRawData(binaryDecoder, fieldMetaData);
+                            Payload.Add(fieldMetaData.Name, new DataValue(new Variant(decodedValue)));
+                        }
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Write payload data
+        /// </summary>
+        /// <param name="binaryEncoder"></param>
+        private void WritePayloadKeyFrame(BinaryEncoder binaryEncoder) {
+
+            var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
+            switch (fieldType) {
+                case DataSetFlags1EncodingMask.FieldTypeVariant:
+                    binaryEncoder.WriteUInt16("DataSetFieldCount", (ushort)Payload.Count);
+                    foreach (var value in Payload) {
+                        binaryEncoder.WriteVariant("Variant", value.Value.WrappedValue);
+                    }
+                    break;
+                case DataSetFlags1EncodingMask.FieldTypeDataValue:
+                    binaryEncoder.WriteUInt16("DataSetFieldCount", (ushort)Payload.Count);
+                    foreach (var value in Payload) {
+                        binaryEncoder.WriteDataValue("DataValue", value.Value);
+                    }
+                    break;
+                case DataSetFlags1EncodingMask.FieldTypeRawData:
+                    // DataSetFieldCount is not written for RawData
+                    foreach (var value in Payload) {
+                        WriteFieldAsRawData(binaryEncoder, value.Key, value.Value);
+                    }
+                    break;
             }
         }
 
@@ -502,7 +441,7 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="binaryDecoder"></param>
         /// <returns></returns>
-        private void ReadMessageDataDeltaFrame(BinaryDecoder binaryDecoder) {
+        private void ReadPayloadDeltaFrame(BinaryDecoder binaryDecoder) {
             try {
                 var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
                 ushort fieldCount = fieldCount = binaryDecoder.ReadUInt16("FieldCount");
@@ -532,6 +471,54 @@ namespace Opc.Ua.PubSub {
             catch (Exception ex) {
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError,
                     ex, "Failed to decode delta frame.");
+            }
+        }
+
+        /// <summary>
+        /// Write payload data delta frame
+        /// </summary>
+        /// <param name="binaryEncoder"></param>
+        private void WritePayloadDeltaFrame(BinaryEncoder binaryEncoder) {
+
+            // ignore null fields
+            var fieldCount = Payload.Count(value => value.Value?.Value != null);
+            binaryEncoder.WriteUInt16("FieldCount", (ushort)fieldCount);
+
+            var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
+            var values = Payload.ToList();
+            for (var i = 0; i < values.Count; i++) {
+                var value = values[i];
+                if (value.Value?.Value == null) {
+                    continue;
+                }
+
+                // write field index corresponding to metadata
+                binaryEncoder.WriteUInt16("FieldIndex", GetFieldIndex(value.Key, i));
+                switch (fieldType) {
+                    case DataSetFlags1EncodingMask.FieldTypeVariant:
+                        binaryEncoder.WriteVariant("FieldValue", value.Value.WrappedValue);
+                        break;
+                    case DataSetFlags1EncodingMask.FieldTypeDataValue:
+                        binaryEncoder.WriteDataValue("FieldValue", value.Value);
+                        break;
+                    case DataSetFlags1EncodingMask.FieldTypeRawData:
+                        WriteFieldAsRawData(binaryEncoder, value.Key, value.Value.WrappedValue);
+                        break;
+                }
+            }
+
+            // Get field index in metadata if metadata was provided.
+            ushort GetFieldIndex(string key, int pos) {
+                if (MetaData?.Fields != null) {
+                    for (var i = 0; i < MetaData.Fields.Count; i++) {
+                        if (MetaData.Fields[i].Name == key) {
+                            return (ushort)i;
+                        }
+                    }
+                    // Assign a unique new one after the fields in metadata
+                    return (ushort)(MetaData.Fields.Count + pos);
+                }
+                return (ushort)pos;
             }
         }
 

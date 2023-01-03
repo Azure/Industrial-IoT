@@ -56,41 +56,5 @@ namespace Opc.Ua.PubSub {
             hash.Add(Messages);
             return hash.ToHashCode();
         }
-
-        /// <inheritdoc/>
-        protected sealed class EncodeableAdapter : IEncodeable {
-            /// <inheritdoc/>
-            public ExpandedNodeId TypeId { get; }
-            /// <inheritdoc/>
-            public ExpandedNodeId BinaryEncodingId { get; }
-            /// <inheritdoc/>
-            public ExpandedNodeId XmlEncodingId { get; }
-
-            /// <inheritdoc/>
-            public EncodeableAdapter(BaseDataSetMessage message, bool withHeader,
-                uint dataSetFieldContentMask = 0xffff) {
-                _message = message;
-                _dataSetFieldContentMask = dataSetFieldContentMask;
-                _withHeader = withHeader;
-            }
-
-            /// <inheritdoc/>
-            public void Decode(IDecoder decoder) {
-                _message.Decode(decoder, _dataSetFieldContentMask, _withHeader);
-            }
-
-            /// <inheritdoc/>
-            public void Encode(IEncoder encoder) {
-                _message.Encode(encoder, _withHeader);
-            }
-
-            /// <inheritdoc/>
-            public bool IsEqual(IEncodeable encodeable) {
-                return _message.Equals(encodeable);
-            }
-            private readonly BaseDataSetMessage _message;
-            private readonly uint _dataSetFieldContentMask;
-            private readonly bool _withHeader;
-        }
     }
 }

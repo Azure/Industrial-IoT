@@ -17,7 +17,7 @@ namespace Opc.Ua.PubSub {
     /// Json discovery metdata message
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
-    public class JsonMetadataMessage : PubSubMessage {
+    public class JsonMetaDataMessage : PubSubMessage {
 
         /// <inheritdoc/>
         public override string MessageSchema => MessageSchemaTypes.NetworkMessageJson;
@@ -68,7 +68,7 @@ namespace Opc.Ua.PubSub {
             if (ReferenceEquals(this, value)) {
                 return true;
             }
-            if (!(value is JsonMetadataMessage wrapper)) {
+            if (!(value is JsonMetaDataMessage wrapper)) {
                 return false;
             }
             if (!base.Equals(value)) {
@@ -95,8 +95,22 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context, IEnumerable<byte[]> reader) {
-
+        public override bool TryDecode(IServiceMessageContext context, Queue<byte[]> reader) {
+            if (reader.TryPeek(out var buffer)) {
+                using var memoryStream = new MemoryStream(buffer);
+                var compression = UseGzipCompression ?
+                    new GZipStream(memoryStream, CompressionMode.Decompress) : null;
+                try {
+                    using var decoder = new JsonDecoderEx(
+                        UseGzipCompression ? compression : memoryStream, context);
+                    if (TryDecode(decoder)) {
+                        reader.Dequeue();
+                    }
+                }
+                finally {
+                    compression?.Dispose();
+                }
+            }
             return false;
         }
 
@@ -154,21 +168,17 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        internal void Decode(IDecoder decoder) {
+        internal bool TryDecode(IDecoder decoder) {
             MessageId = decoder.ReadString(nameof(MessageId));
-
             var messageType = decoder.ReadString(nameof(MessageType));
+            if (!messageType.Equals(MessageTypeUaMetadata, StringComparison.InvariantCultureIgnoreCase)) {
+                return false;
+            }
             PublisherId = decoder.ReadString(nameof(PublisherId));
-
-            if (messageType.Equals(MessageTypeUaMetadata, StringComparison.InvariantCultureIgnoreCase)) {
-                DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
-                MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(nameof(MetaData), typeof(DataSetMetaDataType));
-                DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
-            }
-            else {
-                throw ServiceResultException.Create(StatusCodes.BadTcpMessageTypeInvalid,
-                    "Received incorrect message type {0}", messageType);
-            }
+            DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
+            MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(nameof(MetaData), typeof(DataSetMetaDataType));
+            DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
+            return true;
         }
     }
 }

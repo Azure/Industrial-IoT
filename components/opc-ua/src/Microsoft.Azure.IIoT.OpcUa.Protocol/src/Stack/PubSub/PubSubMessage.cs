@@ -4,11 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
+    using Microsoft.Azure.IIoT.OpcUa.Core;
     using System;
     using System.Collections.Generic;
 
     /// <summary>
-    /// Encodeable Network message
+    /// Encodeable PubSub messages
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public abstract class PubSubMessage {
@@ -48,7 +49,8 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="reader"></param>
-        public abstract bool TryDecode(IServiceMessageContext context, IEnumerable<byte[]> reader);
+        public abstract bool TryDecode(IServiceMessageContext context,
+            Queue<byte[]> reader);
 
         /// <summary>
         /// Encode the network message into network message chunks
@@ -57,14 +59,66 @@ namespace Opc.Ua.PubSub {
         /// <param name="context"></param>
         /// <param name="maxChunkSize"></param>
         /// <returns></returns>
-        public abstract IReadOnlyList<byte[]> Encode(IServiceMessageContext context, int maxChunkSize);
+        public abstract IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
+            int maxChunkSize);
+
+        /// <summary>
+        /// Decode pub sub messages from buffer
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="messageSchema"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static PubSubMessage Decode(byte[] buffer,
+            string messageSchema, IServiceMessageContext context) {
+            var reader = new Queue<byte[]>();
+            reader.Enqueue(buffer);
+            return Decode(reader, messageSchema, context);
+        }
+
+        /// <summary>
+        /// Decode pub sub messages from buffer
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="messageSchema"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static PubSubMessage Decode(Queue<byte[]> reader,
+            string messageSchema, IServiceMessageContext context) {
+            PubSubMessage message = null;
+            switch (messageSchema) {
+                case MessageSchemaTypes.NetworkMessageJson:
+                    message = new JsonNetworkMessage();
+                    if (!message.TryDecode(context, reader)) {
+                        message = new JsonMetaDataMessage();
+                        if (!message.TryDecode(context, reader)) {
+                            // Failed
+                            message = null;
+                        }
+                    }
+                    break;
+                case MessageSchemaTypes.NetworkMessageUadp:
+                    message = new UadpNetworkMessage();
+                    if (!message.TryDecode(context, reader)) {
+                        message = new UadpDiscoveryMessage();
+                        if (!message.TryDecode(context, reader)) {
+                            // Failed
+                            message = null;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return message;
+        }
 
         /// <inheritdoc/>
         public override bool Equals(object value) {
             if (ReferenceEquals(this, value)) {
                 return true;
             }
-            if (!(value is UadpNetworkMessage wrapper)) {
+            if (!(value is PubSubMessage wrapper)) {
                 return false;
             }
             if (!Utils.IsEqual(wrapper.MessageId, MessageId) ||

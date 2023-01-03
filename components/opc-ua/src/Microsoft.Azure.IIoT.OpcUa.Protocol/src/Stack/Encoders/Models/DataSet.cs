@@ -43,14 +43,14 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            if (obj is not DataSet set) {
+            if (obj is not Dictionary<string, DataValue> set) {
                 return false;
             }
             if (!Keys.SequenceEqualsSafe(set.Keys)) {
                 return false;
             }
             if (!Values.SequenceEqualsSafe(set.Values)) {
-                return false;
+               // return false;
             }
             return true;
         }
