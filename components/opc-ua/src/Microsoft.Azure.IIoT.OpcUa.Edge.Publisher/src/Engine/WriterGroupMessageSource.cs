@@ -421,6 +421,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             private void OnSubscriptionDataChanged(object sender, SubscriptionNotificationModel notification) {
                 CallMessageReceiverDelegates(sender, ProcessKeyFrame(notification));
+
+                SubscriptionNotificationModel ProcessKeyFrame(SubscriptionNotificationModel notification) {
+                    if (_keyFrameCount > 0) {
+                        var frameCount = Interlocked.Increment(ref _frameCount);
+                        if ((frameCount % _keyFrameCount) == 0) {
+                            var snapshot = Subscription.GetSubscriptionNotification();
+                            if (snapshot != null) {
+                                notification = snapshot;
+                            }
+                        }
+                    }
+                    return notification;
+                }
             }
 
             /// <summary>
@@ -449,25 +462,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// Handle subscription change messages
             /// </summary>
             private void OnSubscriptionEventChanged(object sender, SubscriptionNotificationModel notification) {
-                CallMessageReceiverDelegates(sender, ProcessKeyFrame(notification));
-            }
-
-            /// <summary>
-            /// Check and get key frame if necessary.
-            /// </summary>
-            /// <param name="notification"></param>
-            /// <returns></returns>
-            private SubscriptionNotificationModel ProcessKeyFrame(SubscriptionNotificationModel notification) {
-                if (_keyFrameCount > 0) {
-                    var frameCount = Interlocked.Increment(ref _frameCount);
-                    if ((frameCount % _keyFrameCount) == 0) {
-                        var snapshot = Subscription.GetSubscriptionNotification();
-                        if (snapshot != null) {
-                            notification = snapshot;
-                        }
-                    }
-                }
-                return notification;
+                CallMessageReceiverDelegates(sender, notification);
             }
 
             /// <summary>

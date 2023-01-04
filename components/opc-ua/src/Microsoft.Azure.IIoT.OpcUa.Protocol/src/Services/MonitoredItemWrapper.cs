@@ -1056,6 +1056,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
         }
 
+        /// <summary>
+        /// Validate sequence number
+        /// </summary>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="expected"></param>
+        /// <returns></returns>
+        internal bool ValidateSequenceNumber(uint sequenceNumber, out uint expected) {
+            lock (_lock) {
+                var isOk = _expectedSequenceNumber == sequenceNumber;
+                expected = _expectedSequenceNumber;
+                _expectedSequenceNumber = sequenceNumber + 1;
+                return isOk;
+            }
+        }
+
         enum SkipSetting : int {
             DontSkip, // Default
             Skip, // Skip first value
@@ -1089,6 +1104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private ConditionHandlingState _conditionHandlingState;
         private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
         private Timer _conditionTimer;
+        private uint _expectedSequenceNumber = 1;
         private DateTime _lastSentPendingConditions = DateTime.UtcNow;
         private HashSet<uint> _newTriggers = new HashSet<uint>();
         private HashSet<uint> _triggers = new HashSet<uint>();

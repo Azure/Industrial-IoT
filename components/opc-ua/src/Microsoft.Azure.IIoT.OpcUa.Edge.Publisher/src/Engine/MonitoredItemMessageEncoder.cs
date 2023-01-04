@@ -153,8 +153,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
+                    var content = writer.ToString();
                     var encoded = new NetworkMessageModel {
-                        Body = Encoding.UTF8.GetBytes(writer.ToString()),
+                        Body = Encoding.UTF8.GetBytes(content),
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
                         ContentType = _jsonContentType,
@@ -391,6 +392,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             static MonitoredItemMessage CreateMessage(DataSetMessageModel message,
                 MonitoredItemNotificationModel notification, DataValue value) {
+                var sequenceNumber = notification.SequenceNumber.GetValueOrDefault(0);
                 var result = new MonitoredItemMessage {
                     MessageContentMask = (message.Writer?.MessageSettings?
                         .DataSetMessageContentMask).ToMonitoredItemMessageMask(
@@ -402,7 +404,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Timestamp = message.TimeStamp ?? DateTime.UtcNow,
                     Value = value,
                     DisplayName = notification.DisplayName,
-                    SequenceNumber = notification.SequenceNumber.GetValueOrDefault(0)
+                    SequenceNumber = sequenceNumber
                 };
                 // force published timestamp into to source timestamp for the legacy heartbeat compatibility
                 if (notification.IsHeartbeat &&
