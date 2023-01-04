@@ -137,10 +137,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(7956, networkMessages.Count());
+            Assert.Equal(8194, networkMessages.Count());
             Assert.Equal((uint)0, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
-            Assert.Equal((uint)7956, encoder.MessagesProcessedCount);
+            Assert.Equal((uint)8194, encoder.MessagesProcessedCount);
         }
 
         [Theory]

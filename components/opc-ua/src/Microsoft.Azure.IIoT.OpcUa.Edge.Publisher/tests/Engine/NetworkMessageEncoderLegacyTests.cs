@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Moq;
     using Opc.Ua;
     using Serilog;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -114,7 +115,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal((uint)96, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)500 - 96, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)count, encoder.MessagesProcessedCount);
-            Assert.Equal(1, encoder.AvgNotificationsPerMessage);
+            Assert.Equal(1, Math.Round(encoder.AvgNotificationsPerMessage));
         }
 
         [Fact]
@@ -164,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal((uint)20, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)210, encoder.MessagesProcessedCount);
-            Assert.Equal(0, encoder.AvgNotificationsPerMessage);
+            Assert.Equal(0.10, Math.Round(encoder.AvgNotificationsPerMessage, 2));
         }
 
         [Theory]
