@@ -924,8 +924,12 @@ namespace Opc.Ua.PubSub {
         protected bool TryWritePayload(BinaryEncoder encoder, int maxMessageSize,
             ref Span<Message> writeSpan, ref Span<Message> remainingChunks, ref bool isChunkMessage) {
 
-            // MessageSequenceNumber + ChunkOffset + TotalOffset + ByteString Length field
-            const int kChunkHeaderSize = 12;
+            const int kChunkHeaderSize =
+                  2  // MessageSequenceNumber
+                + 4  // ChunkOffset
+                + 4  // TotalOffset
+                + 4  // ByteString Length
+                ;
 
             int payloadOffset = encoder.Position;
             var available = maxMessageSize - payloadOffset

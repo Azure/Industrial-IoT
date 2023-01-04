@@ -22,7 +22,7 @@ namespace Opc.Ua {
             if (!(serializer.Context.Context is IServiceMessageContext context)) {
                 context = ServiceMessageContext.GlobalContext;
             }
-            return new JsonDecoderEx(reader, context, true);
+            return new JsonDecoderEx(reader, context, useJsonLoader: false);
         }
 
         /// <summary>

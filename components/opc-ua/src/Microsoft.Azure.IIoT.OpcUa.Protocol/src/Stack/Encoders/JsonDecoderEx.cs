@@ -31,10 +31,12 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="context"></param>
-        public JsonDecoderEx(Stream stream, IServiceMessageContext context = null) :
+        /// <param name="useJsonLoader"></param>
+        public JsonDecoderEx(Stream stream, IServiceMessageContext context = null,
+            bool useJsonLoader = true) :
             this(new JsonTextReader(new StreamReader(stream)) {
                 FloatParseHandling = FloatParseHandling.Double
-            }, context) {
+            }, context, useJsonLoader) {
         }
 
         /// <summary>
@@ -42,31 +44,11 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="reader"></param>
         /// <param name="context"></param>
-        public JsonDecoderEx(JsonReader reader, IServiceMessageContext context = null) :
-            this(reader, context, true) {
-        }
-
-        /// <summary>
-        /// Create decoder
-        /// </summary>
-        /// <param name="root"></param>
-        /// <param name="context"></param>
-        public JsonDecoderEx(JObject root, IServiceMessageContext context = null) {
-            Context = context ?? new ServiceMessageContext();
-            _reader = null;
-            _stack.Push(root ?? throw new ArgumentException(nameof(root)));
-        }
-
-        /// <summary>
-        /// Create decoder
-        /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="context"></param>
-        /// <param name="useReaderAsIs"></param>
+        /// <param name="useJsonLoader"></param>
         internal JsonDecoderEx(JsonReader reader, IServiceMessageContext context,
-            bool useReaderAsIs) {
+            bool useJsonLoader = true) {
             Context = context ?? new ServiceMessageContext();
-            _reader = useReaderAsIs ? reader : new JsonLoader(
+            _reader = !useJsonLoader ? reader : new JsonLoader(
                 reader ?? throw new ArgumentException(nameof(reader)));
         }
 
@@ -516,9 +498,9 @@ namespace Opc.Ua.Encoders {
             }
             var tokenVariant = ReadVariantFromToken(token);
             if (tokenVariant == Variant.Null) {
-                return new DataValue(StatusCodes.BadNoData);
+                return null;
             }
-            return new DataValue(ReadVariantFromToken(token));
+            return new DataValue(tokenVariant);
         }
 
         /// <inheritdoc/>
@@ -863,8 +845,9 @@ namespace Opc.Ua.Encoders {
                 }
                 return ReadDataValue(null);
             });
-            return new DataSet(dictionary, fieldMask == 0 && couldBeRawData
-                ? (uint)DataSetFieldContentMask.RawData : fieldMask);
+            return dictionary == null ? null : new DataSet(dictionary,
+                fieldMask != 0 || !couldBeRawData ? fieldMask :
+                    (uint)DataSetFieldContentMask.RawData);
         }
 
         /// <inheritdoc/>

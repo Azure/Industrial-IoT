@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Moq;
     using Opc.Ua;
     using Serilog;
+    using System;
     using System.Linq;
     using Xunit;
 
@@ -31,12 +32,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(10, networkMessages.Count());
-            Assert.All(networkMessages, m => Assert.True(m.Body.Length <= maxMessageSize));
+            Assert.Equal(33, networkMessages.Count());
+            Assert.All(networkMessages, m => Assert.True(m.Body.Length <= maxMessageSize, m.Body.Length.ToString()));
             Assert.Equal((uint)10, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
-            Assert.Equal((uint)10, encoder.MessagesProcessedCount);
-            Assert.Equal(1, encoder.AvgNotificationsPerMessage);
+            Assert.Equal((uint)33, encoder.MessagesProcessedCount);
+            Assert.Equal(0.30, Math.Round(encoder.AvgNotificationsPerMessage, 2));
         }
 
         [Theory]
@@ -49,12 +50,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(100, networkMessages.Count());
-            Assert.All(networkMessages, m => Assert.True(m.Body.Length <= maxMessageSize));
+            Assert.Equal(2025, networkMessages.Count());
+            Assert.All(networkMessages, m => Assert.True(m.Body.Length <= maxMessageSize, m.Body.Length.ToString()));
             Assert.Equal((uint)100, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
-            Assert.Equal((uint)100, encoder.MessagesProcessedCount);
-            Assert.Equal(1, encoder.AvgNotificationsPerMessage);
+            Assert.Equal((uint)2025, encoder.MessagesProcessedCount);
+            Assert.Equal(0.05, Math.Round(encoder.AvgNotificationsPerMessage, 2));
         }
 
         [Theory]

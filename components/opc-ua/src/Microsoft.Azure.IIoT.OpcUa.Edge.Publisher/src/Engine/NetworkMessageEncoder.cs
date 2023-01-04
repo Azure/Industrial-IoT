@@ -72,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             foreach (var (notificationsPerMessage, networkMessage) in networkMessages) {
                 var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
                 var tooBig = 0;
-                var notificationsPerChunk = notificationsPerMessage / chunks.Count;
+                var notificationsPerChunk = notificationsPerMessage / (double)chunks.Count;
                 foreach (var body in chunks) {
                     if (body == null) {
                         //

@@ -175,7 +175,7 @@ namespace Opc.Ua.Encoders {
                         var result = decoder.ReadDataSet(null);
                         Assert.Equal(expected, result);
                     }
-                    var eof = decoder.ReadDataValue(null);
+                    var eof = decoder.ReadDataSet(null);
                     Assert.Null(eof);
                 }
             }

@@ -142,7 +142,7 @@ namespace Opc.Ua.PubSub {
                         new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
                     try {
                         using var decoder = new JsonDecoderEx(UseGzipCompression ?
-                            compression : memoryStream, context);
+                            compression : memoryStream, context, useJsonLoader: false);
                         if (!decoder.ReadArray(null, () => TryReadNetworkMessage(decoder)).All(s => s)) {
                             return false;
                         }
