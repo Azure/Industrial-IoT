@@ -829,6 +829,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         MaxNotificationsPerPublish = configuredMaxNotificationsPerPublish,
                         LifetimeCount = configuredLifetimeCount,
                         Priority = configuredPriority,
+                        SequentialPublishing = true,
                         FastDataChangeCallback = OnSubscriptionDataChanged,
                         FastEventCallback = OnSubscriptionEventChanged,
                     };
@@ -984,12 +985,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     if (notification?.Events != null) {
                         for (var i = 0; i < notification.Events.Count; i++) {
-                            var monitoredItem = subscription.MonitoredItems.SingleOrDefault(
-                                    m => m.ClientHandle == notification.Events[i].ClientHandle);
+                            var monitoredItem = subscription.FindItemByClientHandle(notification.Events[i].ClientHandle);
                             if (monitoredItem == null) {
                                 continue;
                             }
-
                             var message = new SubscriptionNotificationModel {
                                 ServiceMessageContext = subscription.Session?.MessageContext,
                                 ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
@@ -1025,175 +1024,173 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// </summary>
             private void OnSubscriptionDataChanged(Subscription subscription,
                 DataChangeNotification notification, IList<string> stringTable) {
-                lock (_lock2) {
-                    try {
-                        if (OnSubscriptionDataChange == null) {
-                            return;
-                        }
-                        if (notification == null) {
-                            _logger.Warning(
-                                "DataChange for subscription '{subscription}'/'{sessionId}' has empty notification",
-                                Name,
-                                Connection.CreateConnectionId());
-                            return;
-                        }
+                try {
+                    if (OnSubscriptionDataChange == null) {
+                        return;
+                    }
+                    if (notification == null) {
+                        _logger.Warning(
+                            "DataChange for subscription '{subscription}'/'{sessionId}' has empty notification",
+                            Name,
+                            Connection.CreateConnectionId());
+                        return;
+                    }
 
-                        if (_currentlyMonitored == null) {
-                            _logger.Information(
-                                "DataChange for subscription '{subscription}'/'{sessionId}' has no monitored items yet",
-                                Name,
-                                Connection.CreateConnectionId());
-                            return;
-                        }
+                    if (_currentlyMonitored == null) {
+                        _logger.Information(
+                            "DataChange for subscription '{subscription}'/'{sessionId}' has no monitored items yet",
+                            Name,
+                            Connection.CreateConnectionId());
+                        return;
+                    }
 
-                        // check if notification is a keep alive
-                        var count = notification?.MonitoredItems?.Count ?? 0;
-                        if (count == 0) {
-                            return;
-                        }
-                        var isKeepAlive = count == 1 && notification.MonitoredItems[0].ClientHandle == 0
-                            && notification.MonitoredItems[0].Message?.NotificationData?.Count == 0;
+                    // check if notification is a keep alive
+                    var count = notification?.MonitoredItems?.Count ?? 0;
+                    if (count == 0) {
+                        return;
+                    }
+                    var isKeepAlive = count == 1 && notification.MonitoredItems[0].ClientHandle == 0
+                        && notification.MonitoredItems[0].Message?.NotificationData?.Count == 0;
 
-                        SubscriptionNotificationModel message;
-                        if (isKeepAlive) {
-                            var sequenceNumber = notification.MonitoredItems[0].Message.SequenceNumber;
-                            var publishTime = notification.MonitoredItems[0].Message.PublishTime;
+                    SubscriptionNotificationModel message;
+                    if (isKeepAlive) {
+                        var sequenceNumber = notification.MonitoredItems[0].Message.SequenceNumber;
+                        var publishTime = notification.MonitoredItems[0].Message.PublishTime;
 
-                            // in case of a keepalive,the sequence number is not incremented by the servers
-                            _logger.Information("Keep alive for subscription '{subscription}'/'{sessionId}' " +
-                                "with sequenceNumber {sequenceNumber}, publishTime {PublishTime}",
-                                Name, Connection.CreateConnectionId(), sequenceNumber, publishTime);
+                        // in case of a keepalive,the sequence number is not incremented by the servers
+                        _logger.Information("Keep alive for subscription '{subscription}'/'{sessionId}' " +
+                            "with sequenceNumber {sequenceNumber}, publishTime {PublishTime}",
+                            Name, Connection.CreateConnectionId(), sequenceNumber, publishTime);
 
-                            message = new SubscriptionNotificationModel {
-                                ServiceMessageContext = subscription?.Session?.MessageContext,
-                                ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
-                                EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
-                                SubscriptionName = Name,
-                                Timestamp = publishTime,
-                                SubscriptionId = Id,
-                                MessageType = Opc.Ua.PubSub.MessageType.KeepAlive,
-                                MetaData = _currentMetaData,
-                                Notifications = new List<MonitoredItemNotificationModel>(),
-                            };
-                        }
-                        else {
-                            message = new SubscriptionNotificationModel {
-                                ServiceMessageContext = subscription?.Session?.MessageContext,
-                                ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
-                                EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
-                                SubscriptionName = Name,
-                                SubscriptionId = Id,
-                                MessageType = Opc.Ua.PubSub.MessageType.DeltaFrame,
-                                MetaData = _currentMetaData,
-                                Notifications = new List<MonitoredItemNotificationModel>(),
-                            };
-                            for (var i = 0; i < notification.MonitoredItems.Count; i++) {
-                                Debug.Assert(notification?.MonitoredItems != null);
-                                var item = notification.MonitoredItems[i];
-                                Debug.Assert(item != null);
-                                var monitoredItem = subscription.FindItemByClientHandle(item.ClientHandle);
+                        message = new SubscriptionNotificationModel {
+                            ServiceMessageContext = subscription?.Session?.MessageContext,
+                            ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
+                            EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
+                            SubscriptionName = Name,
+                            Timestamp = publishTime,
+                            SubscriptionId = Id,
+                            MessageType = Opc.Ua.PubSub.MessageType.KeepAlive,
+                            MetaData = _currentMetaData,
+                            Notifications = new List<MonitoredItemNotificationModel>(),
+                        };
+                    }
+                    else {
+                        message = new SubscriptionNotificationModel {
+                            ServiceMessageContext = subscription?.Session?.MessageContext,
+                            ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
+                            EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
+                            SubscriptionName = Name,
+                            SubscriptionId = Id,
+                            MessageType = Opc.Ua.PubSub.MessageType.DeltaFrame,
+                            MetaData = _currentMetaData,
+                            Notifications = new List<MonitoredItemNotificationModel>(),
+                        };
+                        for (var i = 0; i < notification.MonitoredItems.Count; i++) {
+                            Debug.Assert(notification?.MonitoredItems != null);
+                            var item = notification.MonitoredItems[i];
+                            Debug.Assert(item != null);
+                            var monitoredItem = subscription.FindItemByClientHandle(item.ClientHandle);
 
-                                var sequenceNumber = item.Message.SequenceNumber;
-                                message.Timestamp = item.Message.PublishTime;
+                            var sequenceNumber = item.Message.SequenceNumber;
+                            message.Timestamp = item.Message.PublishTime;
 
-                                if (monitoredItem == null || monitoredItem.Handle is not MonitoredItemWrapper wrapper) {
-                                    _logger.Warning("Monitored item not found with client handle {clientHandle} " +
-                                        "for DataChange received for subscription '{subscription}'/'{sessionId}' + " +
-                                        "{sequenceNumber}, publishTime {PublishTime}",
-                                        item.ClientHandle, Name, Connection.CreateConnectionId(),
-                                        sequenceNumber, message.Timestamp);
-                                    continue;
-                                }
-
-                                if (!wrapper.ValidateSequenceNumber(sequenceNumber, out var expected)) {
-                                    _logger.Warning("DataChange for monitored item {clientHandle} subscription " +
-                                        "'{subscription}'/'{sessionId}' has unexpected sequenceNumber {sequenceNumber} " +
-                                        "vs expected {expectedSequenceNumber}, publishTime {PublishTime}",
-                                        item.ClientHandle, Name, Connection.CreateConnectionId(), sequenceNumber,
-                                        expected, message.Timestamp);
-                                }
-
-                                foreach (var n in item.ToMonitoredItemNotifications(monitoredItem)) {
-                                    message.Notifications.Add(n);
-                                }
+                            if (monitoredItem == null || monitoredItem.Handle is not MonitoredItemWrapper wrapper) {
+                                _logger.Warning("Monitored item not found with client handle {clientHandle} " +
+                                    "for DataChange received for subscription '{subscription}'/'{sessionId}' + " +
+                                    "{sequenceNumber}, publishTime {PublishTime}",
+                                    item.ClientHandle, Name, Connection.CreateConnectionId(),
+                                    sequenceNumber, message.Timestamp);
+                                continue;
                             }
-                        }
 
-                        // add the heartbeat for monitored items that did not receive a datachange notification
-                        // Try access lock if we cannot continue...
-                        List<MonitoredItemWrapper> currentlyMonitored = null;
-                        if (_lock?.Wait(0) ?? true) {
-                            try {
-                                currentlyMonitored = _currentlyMonitored;
+                            if (!wrapper.ValidateSequenceNumber(sequenceNumber, out var expected)) {
+                                _logger.Warning("DataChange for monitored item {clientHandle} subscription " +
+                                    "'{subscription}'/'{sessionId}' has unexpected sequenceNumber {sequenceNumber} " +
+                                    "vs expected {expectedSequenceNumber}, publishTime {PublishTime}",
+                                    item.ClientHandle, Name, Connection.CreateConnectionId(), sequenceNumber,
+                                    expected, message.Timestamp);
                             }
-                            finally {
-                                _lock?.Release();
+
+                            foreach (var n in item.ToMonitoredItemNotifications(monitoredItem)) {
+                                message.Notifications.Add(n);
                             }
-                        }
-
-                        if (currentlyMonitored != null) {
-                            // add the heartbeat for monitored items that did not receive a
-                            // a datachange notification
-                            foreach (var item in currentlyMonitored) {
-                                if (!notification.MonitoredItems.Exists(m => m.ClientHandle == item.Item.ClientHandle)
-                                    && item.ValidateHeartbeat(message.Timestamp)) {
-
-                                    MonitoredItemNotificationModel GetDefaultNotification(uint messageId) {
-                                        return new MonitoredItemNotificationModel {
-                                            DataSetFieldName = item?.Template?.DataSetFieldName,
-                                            Id = item?.Template?.Id,
-                                            DisplayName = item?.Item?.DisplayName,
-                                            NodeId = item?.Template?.StartNodeId,
-                                            AttributeId = item.Item.AttributeId,
-                                            MessageId = messageId,
-                                            Value = new DataValue(Variant.Null,
-                                                item?.Item?.Status?.Error?.StatusCode ??
-                                                StatusCodes.BadMonitoredItemIdInvalid),
-                                        };
-                                    }
-
-                                    var heartbeatValues = item.Item?.LastValue.
-                                        ToMonitoredItemNotifications(item.Item, () => GetDefaultNotification(0));
-                                    foreach (var heartbeat in heartbeatValues) {
-                                        var heartbeatValue = heartbeat.Clone();
-                                        heartbeatValue.SequenceNumber = 0;
-                                        heartbeatValue.IsHeartbeat = true;
-                                        if (message.Notifications == null) {
-                                            message.Notifications =
-                                                new List<MonitoredItemNotificationModel>();
-                                        }
-                                        message.Notifications.Add(heartbeatValue);
-                                    }
-                                    message.MessageType = Opc.Ua.PubSub.MessageType.KeyFrame;
-                                    continue;
-                                }
-                                item.ValidateHeartbeat(message.Timestamp);
-                            }
-                        }
-
-                        if (_logger.IsEnabled(Serilog.Events.LogEventLevel.Debug)) {
-                            var erroneousNotifications = message.Notifications?
-                                .Where(n => n.Value.Value == null
-                                    || StatusCode.IsNotGood(n.Value.StatusCode))
-                                .ToList();
-
-                            if (erroneousNotifications.Count > 0) {
-                                _logger.Debug("Found {count} notifications with null value or not good status "
-                                    + "code for '{subscription}'/'{sessionId}' subscription.",
-                                    erroneousNotifications.Count,
-                                    Name,
-                                    Connection.CreateConnectionId());
-                            }
-                        }
-
-                        if (message.Notifications?.Any() == true) {
-                            OnSubscriptionDataChange.Invoke(this, message);
-                            OnSubscriptionDataDiagnosticsChange.Invoke(this, message.Notifications.Count);
                         }
                     }
-                    catch (Exception e) {
-                        _logger.Warning(e, "Exception processing subscription notification");
+
+                    // add the heartbeat for monitored items that did not receive a datachange notification
+                    // Try access lock if we cannot continue...
+                    List<MonitoredItemWrapper> currentlyMonitored = null;
+                    if (_lock?.Wait(0) ?? true) {
+                        try {
+                            currentlyMonitored = _currentlyMonitored;
+                        }
+                        finally {
+                            _lock?.Release();
+                        }
                     }
+
+                    if (currentlyMonitored != null) {
+                        // add the heartbeat for monitored items that did not receive a
+                        // a datachange notification
+                        foreach (var item in currentlyMonitored) {
+                            if (!notification.MonitoredItems.Exists(m => m.ClientHandle == item.Item.ClientHandle)
+                                && item.ValidateHeartbeat(message.Timestamp)) {
+
+                                MonitoredItemNotificationModel GetDefaultNotification(uint messageId) {
+                                    return new MonitoredItemNotificationModel {
+                                        DataSetFieldName = item?.Template?.DataSetFieldName,
+                                        Id = item?.Template?.Id,
+                                        DisplayName = item?.Item?.DisplayName,
+                                        NodeId = item?.Template?.StartNodeId,
+                                        AttributeId = item.Item.AttributeId,
+                                        MessageId = messageId,
+                                        Value = new DataValue(Variant.Null,
+                                            item?.Item?.Status?.Error?.StatusCode ??
+                                            StatusCodes.BadMonitoredItemIdInvalid),
+                                    };
+                                }
+
+                                var heartbeatValues = item.Item?.LastValue.
+                                    ToMonitoredItemNotifications(item.Item, () => GetDefaultNotification(0));
+                                foreach (var heartbeat in heartbeatValues) {
+                                    var heartbeatValue = heartbeat.Clone();
+                                    heartbeatValue.SequenceNumber = 0;
+                                    heartbeatValue.IsHeartbeat = true;
+                                    if (message.Notifications == null) {
+                                        message.Notifications =
+                                            new List<MonitoredItemNotificationModel>();
+                                    }
+                                    message.Notifications.Add(heartbeatValue);
+                                }
+                                message.MessageType = Opc.Ua.PubSub.MessageType.KeyFrame;
+                                continue;
+                            }
+                            item.ValidateHeartbeat(message.Timestamp);
+                        }
+                    }
+
+                    if (_logger.IsEnabled(Serilog.Events.LogEventLevel.Debug)) {
+                        var erroneousNotifications = message.Notifications?
+                            .Where(n => n.Value.Value == null
+                                || StatusCode.IsNotGood(n.Value.StatusCode))
+                            .ToList();
+
+                        if (erroneousNotifications.Count > 0) {
+                            _logger.Debug("Found {count} notifications with null value or not good status "
+                                + "code for '{subscription}'/'{sessionId}' subscription.",
+                                erroneousNotifications.Count,
+                                Name,
+                                Connection.CreateConnectionId());
+                        }
+                    }
+
+                    if (message.Notifications?.Any() == true) {
+                        OnSubscriptionDataChange.Invoke(this, message);
+                        OnSubscriptionDataDiagnosticsChange.Invoke(this, message.Notifications.Count);
+                    }
+                }
+                catch (Exception e) {
+                    _logger.Warning(e, "Exception processing subscription notification");
                 }
             }
 
@@ -1204,7 +1201,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private List<MonitoredItemWrapper> _currentlyMonitored;
             private DataSetMetaDataType _currentMetaData;
             private bool _closed;
-            private readonly object _lock2 = new object();
 
             private static volatile int _lastIndex;
             private static readonly Gauge kMonitoredItems = Metrics.CreateGauge(
