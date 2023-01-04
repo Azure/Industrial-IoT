@@ -6,6 +6,7 @@
 namespace Opc.Ua.PubSub {
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.OpcUa.Core;
+    using Microsoft.IO;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -384,14 +385,15 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context, Queue<byte[]> reader) {
+        public override bool TryDecode(IServiceMessageContext context, Queue<byte[]> reader,
+            IDataSetMetaDataResolver resolver) {
             var chunks = new List<Message>();
             while (reader.TryPeek(out var buffer)) {
                 using (var binaryDecoder = new BinaryDecoder(buffer, context)) {
                     ReadNetworkMessageHeaderFlags(binaryDecoder);
 
                     // decode network message header according to the header flags
-                    if (!TryReadNetworkMessageHeader(binaryDecoder)) {
+                    if (!TryReadNetworkMessageHeader(binaryDecoder, chunks.Count == 0)) {
                         return false;
                     }
 
@@ -404,7 +406,7 @@ namespace Opc.Ua.PubSub {
                     reader.Dequeue();
                     if (buffers.Length != 0 || chunks.Count == 0) {
                         if (buffers.Length > 0) {
-                            DecodePayloadChunks(context, buffers);
+                            DecodePayloadChunks(context, buffers, resolver);
                             // Process all messages in the buffer
                         }
                         break;
@@ -417,10 +419,11 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context, int maxChunkSize) {
+        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
+            int maxChunkSize, IDataSetMetaDataResolver resolver) {
             var messages = new List<byte[]>();
             bool isChunkMessage = false;
-            var remainingChunks = EncodePayloadChunks(context).AsSpan();
+            var remainingChunks = EncodePayloadChunks(context, resolver).AsSpan();
 
             // Write one message even if it does not contain anything (heartbeat)
             do {
@@ -432,8 +435,8 @@ namespace Opc.Ua.PubSub {
 
                 var networkMessageNumber = NetworkMessageNumber++;
 
-                using (var stream = new MemoryStream()) {
-                    using (var encoder = new BinaryEncoder(stream, context)) {
+                using (var stream = Memory.GetStream()) {
+                    using (var encoder = new BinaryEncoder(stream, context, leaveOpen: true)) {
                         //
                         // Try to write all unless we are writing chunk messages.
                         // Write span is the span of chunks that should go into
@@ -480,12 +483,19 @@ namespace Opc.Ua.PubSub {
                             break;
                         }
                         stream.SetLength(encoder.Position);
+
+                        // TODO: instead of copy using ToArray we shall include the
+                        // stream with the message and dispose it later when it is
+                        // consumed. To get here the bug in BinaryEncoder that it
+                        // disposes the underlying stream even if leaveOpen: true
+                        // is set must be fixed.
+                        messages.Add(stream.ToArray());
                     }
-                    messages.Add(stream.ToArray());
                 }
             }
             while (remainingChunks.Length > 0);
 
+            Debug.Assert(!isChunkMessage);
             return messages;
         }
 
@@ -493,13 +503,15 @@ namespace Opc.Ua.PubSub {
         /// Try read network message
         /// </summary>
         /// <param name="binaryDecoder"></param>
+        /// <param name="isFirstChunk"></param>
         /// <returns></returns>
-        protected virtual bool TryReadNetworkMessageHeader(BinaryDecoder binaryDecoder) {
+        protected virtual bool TryReadNetworkMessageHeader(BinaryDecoder binaryDecoder,
+            bool isFirstChunk) {
             if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryTypeBits) != 0) {
                 return false;
             }
             if (!TryReadGroupMessageHeader(binaryDecoder) ||
-                !TryReadPayloadHeader(binaryDecoder) ||
+                !TryReadPayloadHeader(binaryDecoder, isFirstChunk) ||
                 !TryReadExtendedNetworkMessageHeader(binaryDecoder) ||
                 !TryReadSecurityHeader(binaryDecoder)) {
                 return false;
@@ -512,35 +524,34 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="buffers"></param>
+        /// <param name="resolver"></param>
         protected virtual void DecodePayloadChunks(IServiceMessageContext context,
-            IReadOnlyList<byte[]> buffers) {
-            Debug.Assert(buffers.Count == Messages.Count);
-            for (var i = 0; i < Messages.Count; i++) {
-                var message = (UadpDataSetMessage)Messages[i];
-                using (var stream = new MemoryStream(buffers[i])) {
-                    using (var decoder = new BinaryDecoder(stream, context)) {
-                        message.Decode(decoder);
-                        //
-                        // Last message: Read remaining messages from buffer if
-                        // possible. This is the case if the payload header was
-                        // missing and we must use the data set message decoder
-                        // to sort out the offset and lengths of the encoding.
-                        //
-                        if (i + 1 == Messages.Count) {
-                            while (decoder.Position < buffers[i].Length) {
-                                var extra = new UadpDataSetMessage {
-                                    DataSetWriterId = message.DataSetWriterId
-                                };
-                                try {
-                                    // Decode more until we hit end of stream
-                                    extra.Decode(decoder);
-                                    Messages.Add(extra);
-                                }
-                                catch (EndOfStreamException) {
-                                    break;
-                                }
-                            }
+            IReadOnlyList<byte[]> buffers, IDataSetMetaDataResolver resolver) {
+            var payloadLength = buffers.Sum(b => b.Length);
+            using (var stream = new RecyclableMemoryStream(Memory, Guid.NewGuid(),
+                PublisherId + _sequenceNumber, payloadLength)) {
+                foreach (var buffer in buffers) {
+                    stream.Write(buffer);
+                }
+                stream.Position = 0;
+                using (var decoder = new BinaryDecoder(stream, context)) {
+                    foreach (UadpDataSetMessage message in Messages) {
+                        if (!message.TryDecode(decoder, resolver)) {
+                            return;
                         }
+                    }
+                    //
+                    // Read remaining messages from buffer if possible.
+                    // This is the case if the payload header was missing
+                    // and we must use the data set message decoder to
+                    // sort out the offset and lengths of the encoding.
+                    //
+                    while (decoder.Position < payloadLength) {
+                        var extra = new UadpDataSetMessage();
+                        if (!extra.TryDecode(decoder, resolver)) {
+                            break;
+                        }
+                        Messages.Add(extra);
                     }
                 }
             }
@@ -550,16 +561,24 @@ namespace Opc.Ua.PubSub {
         /// Encode payload buffers
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="resolver"></param>
         /// <returns></returns>
-        protected virtual Message[] EncodePayloadChunks(IServiceMessageContext context) {
+        protected virtual Message[] EncodePayloadChunks(IServiceMessageContext context,
+            IDataSetMetaDataResolver resolver) {
             var chunks = new Message[Messages.Count];
             for (var i = 0; i < Messages.Count; i++) {
-                var message = Messages[i];
-                using (var stream = new MemoryStream()) {
-                    using (var encoder = new BinaryEncoder(stream, context)) {
-                        message.Encode(encoder, true, null);
+                var message = (UadpDataSetMessage)Messages[i];
+                using (var stream = Memory.GetStream()) {
+                    using (var encoder = new BinaryEncoder(stream, context, leaveOpen: true)) {
+                        message.Encode(encoder, resolver);
+
+                        // TODO: instead of copy using ToArray we shall include the
+                        // stream with the message and dispose it later when it is
+                        // consumed. To get here the bug in BinaryEncoder that it
+                        // disposes the underlying stream even if leaveOpen: true
+                        // is set must be fixed.
+                        chunks[i] = new Message(stream.ToArray(), message.DataSetWriterId);
                     }
-                    chunks[i] = new Message(stream.ToArray(), message.DataSetWriterId);
                 }
             }
             return chunks;
@@ -570,42 +589,42 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="decoder"></param>
         private void ReadNetworkMessageHeaderFlags(BinaryDecoder decoder) {
-            UadpFlags = (UADPFlagsEncodingMask)decoder.ReadByte("UadpFlags");
+            UadpFlags = (UADPFlagsEncodingMask)decoder.ReadByte(null);
 
             // Decode the ExtendedFlags1
             if ((UadpFlags & UADPFlagsEncodingMask.ExtendedFlags1) != 0) {
-                ExtendedFlags1 = (ExtendedFlags1EncodingMask)decoder.ReadByte("ExtendedFlags1");
+                ExtendedFlags1 = (ExtendedFlags1EncodingMask)decoder.ReadByte(null);
             }
 
             // Decode the ExtendedFlags2
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.ExtendedFlags2) != 0) {
-                ExtendedFlags2 = (ExtendedFlags2EncodingMask)decoder.ReadByte("ExtendedFlags2");
+                ExtendedFlags2 = (ExtendedFlags2EncodingMask)decoder.ReadByte(null);
             }
 
             // Decode PublisherId
             if ((UadpFlags & UADPFlagsEncodingMask.PublisherId) != 0) {
                 switch (ExtendedFlags1 & ExtendedFlags1EncodingMask.PublisherIdTypeBits) {
                     case ExtendedFlags1EncodingMask.PublisherIdTypeUInt16:
-                        PublisherId = decoder.ReadUInt16("PublisherId").ToString();
+                        PublisherId = decoder.ReadUInt16(null).ToString();
                         break;
                     case ExtendedFlags1EncodingMask.PublisherIdTypeUInt32:
-                        PublisherId = decoder.ReadUInt32("PublisherId").ToString();
+                        PublisherId = decoder.ReadUInt32(null).ToString();
                         break;
                     case ExtendedFlags1EncodingMask.PublisherIdTypeUInt64:
-                        PublisherId = decoder.ReadUInt64("PublisherId").ToString();
+                        PublisherId = decoder.ReadUInt64(null).ToString();
                         break;
                     case ExtendedFlags1EncodingMask.PublisherIdTypeString:
-                        PublisherId = decoder.ReadString("PublisherId");
+                        PublisherId = decoder.ReadString(null);
                         break;
                     case ExtendedFlags1EncodingMask.PublisherIdTypeByte:
-                        PublisherId = decoder.ReadByte("PublisherId").ToString();
+                        PublisherId = decoder.ReadByte(null).ToString();
                         break;
                 }
             }
 
             // Decode DataSetClassId
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.DataSetClassId) != 0) {
-                DataSetClassId = decoder.ReadGuid("DataSetClassId");
+                DataSetClassId = decoder.ReadGuid(null);
             }
         }
 
@@ -622,12 +641,12 @@ namespace Opc.Ua.PubSub {
                 ExtendedFlags2 |= ExtendedFlags2EncodingMask.ChunkMessage;
             }
 
-            encoder.WriteByte("UadpFlags", (byte)UadpFlags);
+            encoder.WriteByte(null, (byte)UadpFlags);
             if ((UadpFlags & UADPFlagsEncodingMask.ExtendedFlags1) != 0) {
-                encoder.WriteByte("ExtendedFlags1", (byte)ExtendedFlags1);
+                encoder.WriteByte(null, (byte)ExtendedFlags1);
             }
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.ExtendedFlags2) != 0) {
-                encoder.WriteByte("ExtendedFlags2", (byte)ExtendedFlags2);
+                encoder.WriteByte(null, (byte)ExtendedFlags2);
             }
             if ((UadpFlags & UADPFlagsEncodingMask.PublisherId) != 0) {
                 if (PublisherId == null) {
@@ -637,19 +656,19 @@ namespace Opc.Ua.PubSub {
                 else {
                     switch (ExtendedFlags1 & ExtendedFlags1EncodingMask.PublisherIdTypeBits) {
                         case ExtendedFlags1EncodingMask.PublisherIdTypeByte:
-                            encoder.WriteByte("PublisherId", byte.Parse(PublisherId));
+                            encoder.WriteByte(null, byte.Parse(PublisherId));
                             break;
                         case ExtendedFlags1EncodingMask.PublisherIdTypeUInt16:
-                            encoder.WriteUInt16("PublisherId", ushort.Parse(PublisherId));
+                            encoder.WriteUInt16(null, ushort.Parse(PublisherId));
                             break;
                         case ExtendedFlags1EncodingMask.PublisherIdTypeUInt32:
-                            encoder.WriteUInt32("PublisherId", uint.Parse(PublisherId));
+                            encoder.WriteUInt32(null, uint.Parse(PublisherId));
                             break;
                         case ExtendedFlags1EncodingMask.PublisherIdTypeUInt64:
-                            encoder.WriteUInt64("PublisherId", ulong.Parse(PublisherId));
+                            encoder.WriteUInt64(null, ulong.Parse(PublisherId));
                             break;
                         case ExtendedFlags1EncodingMask.PublisherIdTypeString:
-                            encoder.WriteString("PublisherId", PublisherId);
+                            encoder.WriteString(null, PublisherId);
                             break;
                         default:
                             // Reserved - no type provided
@@ -658,7 +677,7 @@ namespace Opc.Ua.PubSub {
                 }
             }
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0) {
-                encoder.WriteGuid("DataSetClassId", DataSetClassId);
+                encoder.WriteGuid(null, DataSetClassId);
             }
         }
 
@@ -669,23 +688,23 @@ namespace Opc.Ua.PubSub {
         private bool TryReadGroupMessageHeader(BinaryDecoder decoder) {
             // Decode GroupHeader (that holds GroupFlags)
             if ((UadpFlags & UADPFlagsEncodingMask.GroupHeader) != 0) {
-                GroupFlags = (GroupFlagsEncodingMask)decoder.ReadByte("GroupFlags");
+                GroupFlags = (GroupFlagsEncodingMask)decoder.ReadByte(null);
             }
             // Decode WriterGroupId
             if ((GroupFlags & GroupFlagsEncodingMask.WriterGroupId) != 0) {
-                WriterGroupId = decoder.ReadUInt16("WriterGroupId");
+                WriterGroupId = decoder.ReadUInt16(null);
             }
             // Decode GroupVersion
             if ((GroupFlags & GroupFlagsEncodingMask.GroupVersion) != 0) {
-                GroupVersion = decoder.ReadUInt32("GroupVersion");
+                GroupVersion = decoder.ReadUInt32(null);
             }
             // Decode NetworkMessageNumber
             if ((GroupFlags & GroupFlagsEncodingMask.NetworkMessageNumber) != 0) {
-                NetworkMessageNumber = decoder.ReadUInt16("NetworkMessageNumber");
+                NetworkMessageNumber = decoder.ReadUInt16(null);
             }
             // Decode SequenceNumber
             if ((GroupFlags & GroupFlagsEncodingMask.SequenceNumber) != 0) {
-                _sequenceNumber = decoder.ReadUInt16("SequenceNumber");
+                _sequenceNumber = decoder.ReadUInt16(null);
             }
             return true;
         }
@@ -702,19 +721,19 @@ namespace Opc.Ua.PubSub {
                      UadpNetworkMessageContentMask.GroupVersion |
                      UadpNetworkMessageContentMask.NetworkMessageNumber |
                      UadpNetworkMessageContentMask.SequenceNumber)) != 0) {
-                encoder.WriteByte("GroupFlags", (byte)GroupFlags);
+                encoder.WriteByte(null, (byte)GroupFlags);
             }
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.WriterGroupId) != 0) {
-                encoder.WriteUInt16("WriterGroupId", WriterGroupId);
+                encoder.WriteUInt16(null, WriterGroupId);
             }
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.GroupVersion) != 0) {
-                encoder.WriteUInt32("GroupVersion", GroupVersion);
+                encoder.WriteUInt32(null, GroupVersion);
             }
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.NetworkMessageNumber) != 0) {
-                encoder.WriteUInt16("NetworkMessageNumber", networkMessageNumber);
+                encoder.WriteUInt16(null, networkMessageNumber);
             }
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.SequenceNumber) != 0) {
-                encoder.WriteUInt16("SequenceNumber", SequenceNumber());
+                encoder.WriteUInt16(null, SequenceNumber());
             }
         }
 
@@ -722,20 +741,25 @@ namespace Opc.Ua.PubSub {
         /// Read Payload Header
         /// </summary>
         /// <param name="decoder"></param>
-        private bool TryReadPayloadHeader(BinaryDecoder decoder) {
+        /// <param name="isFirstChunk"></param>
+        private bool TryReadPayloadHeader(BinaryDecoder decoder, bool isFirstChunk) {
             // Decode PayloadHeader
             if ((UadpFlags & UADPFlagsEncodingMask.PayloadHeader) != 0) {
                 if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.ChunkMessage) != 0) {
+                    var dataSetWriterId = decoder.ReadUInt16(null);
                     // https://reference.opcfoundation.org/Core/Part14/v104/docs/7.2.2.2.4
-                    Messages.Add(new UadpDataSetMessage {
-                        DataSetWriterId = decoder.ReadUInt16("DataSetWriterId")
-                    });
+
+                    if (isFirstChunk) {
+                        Messages.Add(new UadpDataSetMessage {
+                            DataSetWriterId = dataSetWriterId
+                        });
+                    }
                 }
                 else {
-                    var count = decoder.ReadByte("Count");
+                    var count = decoder.ReadByte(null);
                     for (var i = 0; i < count; i++) {
                         Messages.Add(new UadpDataSetMessage {
-                            DataSetWriterId = decoder.ReadUInt16("DataSetWriterId")
+                            DataSetWriterId = decoder.ReadUInt16(null)
                         });
                     }
                 }
@@ -754,18 +778,18 @@ namespace Opc.Ua.PubSub {
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PayloadHeader) != 0) {
                 // Write data set message payload header
                 if (isChunkMessage) {
-                    Debug.Assert(messages.Length == 1);
+                    Debug.Assert(messages.Length >= 1);
                     // https://reference.opcfoundation.org/Core/Part14/v104/docs/7.2.2.2.4
 
                     // Write chunked NetworkMessage Payload Header (Table 77)
-                    encoder.WriteUInt16("DataSetWriterId", messages[0].DataSetWriterId);
+                    encoder.WriteUInt16(null, messages[0].DataSetWriterId);
                 }
                 else {
                     Debug.Assert(messages.Length <= byte.MaxValue);
-                    encoder.WriteByte("Count", (byte)messages.Length);
+                    encoder.WriteByte(null, (byte)messages.Length);
                     // Collect DataSetSetMessages headers
                     foreach (var message in messages) {
-                        encoder.WriteUInt16("DataSetWriterId", message.DataSetWriterId);
+                        encoder.WriteUInt16(null, message.DataSetWriterId);
                     }
                 }
             }
@@ -777,11 +801,11 @@ namespace Opc.Ua.PubSub {
         private bool TryReadExtendedNetworkMessageHeader(BinaryDecoder decoder) {
             // Decode Timestamp
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.Timestamp) != 0) {
-                Timestamp = decoder.ReadDateTime("Timestamp");
+                Timestamp = decoder.ReadDateTime(null);
             }
             // Decode PicoSeconds
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.PicoSeconds) != 0) {
-                PicoSeconds = decoder.ReadUInt16("PicoSeconds");
+                PicoSeconds = decoder.ReadUInt16(null);
             }
             return true;
         }
@@ -792,10 +816,10 @@ namespace Opc.Ua.PubSub {
         /// <param name="encoder"></param>
         private void WriteExtendedNetworkMessageHeader(BinaryEncoder encoder) {
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.Timestamp) != 0) {
-                encoder.WriteDateTime("Timestamp", Timestamp);
+                encoder.WriteDateTime(null, Timestamp);
             }
             if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PicoSeconds) != 0) {
-                encoder.WriteUInt16("PicoSeconds", PicoSeconds);
+                encoder.WriteUInt16(null, PicoSeconds);
             }
         }
 
@@ -805,14 +829,14 @@ namespace Opc.Ua.PubSub {
         /// <param name="decoder"></param>
         private bool TryReadSecurityHeader(BinaryDecoder decoder) {
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.Security) != 0) {
-                SecurityFlags = (SecurityFlagsEncodingMask)decoder.ReadByte("SecurityFlags");
+                SecurityFlags = (SecurityFlagsEncodingMask)decoder.ReadByte(null);
 
-                SecurityTokenId = decoder.ReadUInt32("SecurityTokenId");
-                NonceLength = decoder.ReadByte("NonceLength");
-                MessageNonce = decoder.ReadByteArray("MessageNonce").ToArray();
+                SecurityTokenId = decoder.ReadUInt32(null);
+                NonceLength = decoder.ReadByte(null);
+                MessageNonce = decoder.ReadByteArray(null).ToArray();
 
                 if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0) {
-                    SecurityFooterSize = decoder.ReadUInt16("SecurityFooterSize");
+                    SecurityFooterSize = decoder.ReadUInt16(null);
                 }
             }
             return true;
@@ -824,15 +848,15 @@ namespace Opc.Ua.PubSub {
         /// <param name="encoder"></param>
         private void WriteSecurityHeader(BinaryEncoder encoder) {
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.Security) != 0) {
-                encoder.WriteByte("SecurityFlags", (byte)SecurityFlags);
+                encoder.WriteByte(null, (byte)SecurityFlags);
 
-                encoder.WriteUInt32("SecurityTokenId", SecurityTokenId);
-                encoder.WriteByte("NonceLength", NonceLength);
+                encoder.WriteUInt32(null, SecurityTokenId);
+                encoder.WriteByte(null, NonceLength);
                 MessageNonce = new byte[NonceLength];
-                encoder.WriteByteArray("MessageNonce", MessageNonce);
+                encoder.WriteByteArray(null, MessageNonce);
 
                 if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0) {
-                    encoder.WriteUInt16("SecurityFooterSize", SecurityFooterSize);
+                    encoder.WriteUInt16(null, SecurityFooterSize);
                 }
             }
         }
@@ -847,12 +871,12 @@ namespace Opc.Ua.PubSub {
             if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.ChunkMessage) != 0) {
                 // Write Chunked NetworkMessage Payload Fields (Table 78)
                 // https://reference.opcfoundation.org/Core/Part14/v104/docs/7.2.2.2.4
-                var messageSequenceNumber = decoder.ReadUInt16("MessageSequenceNumber");
-                var chunkOffset = decoder.ReadUInt32("ChunkOffset");
-                var totalSize = decoder.ReadUInt32("TotalSize");
-                var buffer = decoder.ReadByteString("ChunkBuffer");
+                var messageSequenceNumber = decoder.ReadUInt16(null);
+                var chunkOffset = decoder.ReadUInt32(null);
+                var totalSize = decoder.ReadUInt32(null);
+                var buffer = decoder.ReadByteString(null);
 
-                var chunk = new Message(buffer, Messages[0].DataSetWriterId);
+                var chunk = new Message(buffer, Messages.Count > 0 ? Messages[0].DataSetWriterId : (ushort)0);
                 chunk.ChunkOffset = chunkOffset;
                 chunk.TotalSize = totalSize;
                 chunk.MessageSequenceNumber = messageSequenceNumber;
@@ -868,7 +892,7 @@ namespace Opc.Ua.PubSub {
                 if ((UadpFlags & UADPFlagsEncodingMask.PayloadHeader) != 0) {
                     // Read PayloadHeader Sizes
                     for (var i = 0; i < Messages.Count; i++) {
-                        var messageSize = decoder.ReadUInt16("Size");
+                        var messageSize = decoder.ReadUInt16(null);
                         messages.Add(new byte[messageSize]);
                     }
                     foreach (var buffer in messages) {
@@ -881,7 +905,6 @@ namespace Opc.Ua.PubSub {
                     messages.Add(decoder.BaseStream.ReadAsBuffer().Array);
                 }
             }
-            Debug.Assert(messages.Count == Messages.Count);
             return messages;
         }
 
@@ -947,12 +970,12 @@ namespace Opc.Ua.PubSub {
 
                 // Write Chunked NetworkMessage Payload Fields (Table 78)
                 // https://reference.opcfoundation.org/Core/Part14/v104/docs/7.2.2.2.4
-                encoder.WriteUInt16("MessageSequenceNumber", chunk.MessageSequenceNumber);
-                encoder.WriteUInt32("ChunkOffset", chunk.ChunkOffset);
-                encoder.WriteUInt32("TotalSize", (uint)chunk.ChunkData.Length);
+                encoder.WriteUInt16(null, chunk.MessageSequenceNumber);
+                encoder.WriteUInt32(null, chunk.ChunkOffset);
+                encoder.WriteUInt32(null, (uint)chunk.ChunkData.Length);
 
                 var chunkLength = Math.Min(chunk.Remaining, available);
-                encoder.WriteInt32("ChunkLength", chunkLength); // Write byte string
+                encoder.WriteInt32(null, chunkLength); // Write byte string
                 encoder.WriteRawBytes(chunk.ChunkData, (int)chunk.ChunkOffset, chunkLength);
                 chunk.ChunkOffset += (uint)chunkLength;
 
@@ -986,7 +1009,7 @@ namespace Opc.Ua.PubSub {
                 if (hasHeader) {
                     foreach (var buffer in writeSpan) {
                         Debug.Assert(buffer.ChunkData.Length <= ushort.MaxValue);
-                        encoder.WriteUInt16("Size", (ushort)buffer.ChunkData.Length);
+                        encoder.WriteUInt16(null, (ushort)buffer.ChunkData.Length);
                     }
                 }
                 foreach (var buffer in writeSpan) {
@@ -1005,7 +1028,7 @@ namespace Opc.Ua.PubSub {
         /// <param name="decoder"></param>
         protected void ReadSecurityFooter(BinaryDecoder decoder) {
             if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0) {
-                SecurityFooter = decoder.ReadByteArray("SecurityFooter").ToArray();
+                SecurityFooter = decoder.ReadByteArray(null).ToArray();
             }
         }
 
@@ -1015,7 +1038,7 @@ namespace Opc.Ua.PubSub {
         /// <param name="encoder"></param>
         protected void WriteSecurityFooter(BinaryEncoder encoder) {
             if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0) {
-                encoder.WriteByteArray("SecurityFooter", SecurityFooter);
+                encoder.WriteByteArray(null, SecurityFooter);
             }
         }
 
@@ -1024,7 +1047,9 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="decoder"></param>
         protected void ReadSignature(BinaryDecoder decoder) {
-            Signature = decoder.ReadByteArray("Signature").ToArray();
+            if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0) {
+                Signature = decoder.ReadByteArray(null).ToArray();
+            }
         }
 
         /// <summary>
@@ -1032,8 +1057,10 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="encoder"></param>
         protected void WriteSignature(BinaryEncoder encoder) {
-            if (Signature != null && Signature.Length > 0) {
-                encoder.WriteByteArray("Signature", Signature);
+            if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0) {
+                if (Signature != null && Signature.Length > 0) {
+                    encoder.WriteByteArray(null, Signature);
+                }
             }
         }
 
@@ -1086,9 +1113,9 @@ namespace Opc.Ua.PubSub {
                     chunks.Clear();
                     return Array.Empty<byte>();
                 }
-                var total = chunks.Sum(a => a.TotalSize);
+                var total = chunks.Sum(c => c.ChunkData.Length);
                 if (total >= totalSize) {
-                    var messages = new byte[total];
+                    var message = new byte[total];
                     int? firstIndex = null;
                     foreach (var c in chunks.OrderBy(a => a.MessageSequenceNumber)) {
                         if (firstIndex == null) {
@@ -1101,10 +1128,11 @@ namespace Opc.Ua.PubSub {
                                 return Array.Empty<byte>();
                             }
                         }
-                        Array.Copy(c.ChunkData, 0, messages, c.ChunkOffset, c.TotalSize);
+                        Array.Copy(c.ChunkData, 0, message, c.ChunkOffset,
+                            c.ChunkData.Length);
                     }
                     chunks.Clear();
-                    return messages;
+                    return message;
                 }
                 return null;
             }

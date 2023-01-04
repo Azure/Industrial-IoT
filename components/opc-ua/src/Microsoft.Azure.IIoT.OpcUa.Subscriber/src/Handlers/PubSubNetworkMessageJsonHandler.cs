@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                 var decoder = new JsonDecoderEx(new MemoryStream(payload), context);
                 while (decoder.ReadEncodeable(null, typeof(JsonNetworkMessage))
                      is JsonNetworkMessage message) {
-                    foreach (var dataSetMessage in message.Messages) {
+                    foreach (JsonDataSetMessage dataSetMessage in message.Messages) {
                         var dataset = new DataSetMessageModel {
                             PublisherId = message.PublisherId,
                             MessageId = message.MessageId,

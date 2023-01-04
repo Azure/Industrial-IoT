@@ -14,7 +14,6 @@ namespace Opc.Ua.Encoders {
     using System.Linq;
     using System.Text;
     using System.Xml;
-    using static Opc.Ua.RelativePathFormatter;
 
     /// <summary>
     /// Reads objects from reader or string
@@ -44,7 +43,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="reader"></param>
         /// <param name="context"></param>
         public JsonDecoderEx(JsonReader reader, IServiceMessageContext context = null) :
-            this(reader, context, false) {
+            this(reader, context, true) {
         }
 
         /// <summary>
@@ -515,12 +514,11 @@ namespace Opc.Ua.Encoders {
                 }
                 return null;
             }
-
             var tokenVariant = ReadVariantFromToken(token);
             if (tokenVariant == Variant.Null) {
-                return new DataValue(tokenVariant);
+                return new DataValue(StatusCodes.BadNoData);
             }
-            return null;
+            return new DataValue(ReadVariantFromToken(token));
         }
 
         /// <inheritdoc/>
@@ -529,12 +527,11 @@ namespace Opc.Ua.Encoders {
                 return null;
             }
             if (token is JObject o && HasAnyOf(o, "Body", "TypeId")) {
-                ExtensionObject extensionObject = null;
                 _stack.Push(o);
 
                 var typeId = ReadExpandedNodeId("TypeId");
                 var encoding = ReadEncoding("Encoding");
-                extensionObject = ReadExtensionObjectBody("Body",
+                var extensionObject = ReadExtensionObjectBody("Body",
                     encoding, typeId);
 
                 _stack.Pop();
@@ -1904,7 +1901,7 @@ namespace Opc.Ua.Encoders {
                     CommentHandling = CommentHandling.Ignore,
                     LineInfoHandling = LineInfoHandling.Ignore
                 });
-            return root as JObject;
+            return root;
         }
 
         /// <summary>

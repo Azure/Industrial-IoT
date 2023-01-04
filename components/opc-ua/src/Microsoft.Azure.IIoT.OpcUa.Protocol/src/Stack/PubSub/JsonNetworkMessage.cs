@@ -35,17 +35,19 @@ namespace Opc.Ua.PubSub {
         public const string MessageTypeUaData = "ua-data";
 
         /// <summary>
+        /// Message id
+        /// </summary>
+        public string MessageId { get; set; }
+
+        /// <summary>
+        /// Dataset writerGroup
+        /// </summary>
+        public string DataSetWriterGroup { get; set; }
+
+        /// <summary>
         /// Message type
         /// </summary>
         internal string MessageType { get; set; } = MessageTypeUaData;
-
-        /// <summary>
-        /// Create network message
-        /// </summary>
-        /// <param name="initialContentMask"></param>
-        public JsonNetworkMessage(JsonNetworkMessageContentMask initialContentMask = 0) {
-            NetworkMessageContentMask = (uint)initialContentMask;
-        }
 
         /// <summary>
         /// Get flag that indicates if message has network message header
@@ -104,12 +106,40 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context, Queue<byte[]> reader) {
+        public override bool Equals(object value) {
+            if (ReferenceEquals(this, value)) {
+                return true;
+            }
+            if (!(value is JsonNetworkMessage wrapper)) {
+                return false;
+            }
+            if (!base.Equals(value)) {
+                return false;
+            }
+            if (!Utils.IsEqual(wrapper.MessageId, MessageId) ||
+                !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup)) {
+                return false;
+            }
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() {
+            var hash = new HashCode();
+            hash.Add(base.GetHashCode());
+            hash.Add(MessageId);
+            hash.Add(DataSetWriterGroup);
+            return hash.ToHashCode();
+        }
+
+        /// <inheritdoc/>
+        public override bool TryDecode(IServiceMessageContext context, Queue<byte[]> reader,
+            IDataSetMetaDataResolver resolver = null) {
             // Decodes a single buffer
             if (reader.TryPeek(out var buffer)) {
-                using (var memoryStream = new MemoryStream(buffer)) {
+                using (var memoryStream = Memory.GetStream(buffer)) {
                     var compression = UseGzipCompression ?
-                        new GZipStream(memoryStream, CompressionMode.Decompress) : null;
+                        new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
                     try {
                         using var decoder = new JsonDecoderEx(UseGzipCompression ?
                             compression : memoryStream, context);
@@ -129,9 +159,10 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context, int maxChunkSize) {
+        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
+            int maxChunkSize, IDataSetMetaDataResolver resolver = null) {
             var chunks = new List<byte[]>();
-            var messages = Messages.ToArray().AsSpan();
+            var messages = Messages.OfType<JsonDataSetMessage>().ToArray().AsSpan();
             var messageId = MessageId;
             try {
                 if (HasSingleDataSetMessage && !UseArrayEnvelope) {
@@ -148,11 +179,11 @@ namespace Opc.Ua.PubSub {
             }
             return chunks;
 
-            void EncodeMessages(Span<BaseDataSetMessage> messages) {
+            void EncodeMessages(Span<JsonDataSetMessage> messages) {
                 byte[] messageBuffer;
-                using (var memoryStream = new MemoryStream()) {
+                using (var memoryStream = Memory.GetStream()) {
                     var compression = UseGzipCompression ?
-                        new GZipStream(memoryStream, CompressionLevel.Optimal) : null;
+                        new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true) : null;
                     try {
                         using var encoder = new JsonEncoderEx(
                             UseGzipCompression ? compression : memoryStream, context, JsonEncoderStartingState) {
@@ -167,6 +198,10 @@ namespace Opc.Ua.PubSub {
                     finally {
                         compression?.Dispose();
                     }
+
+                    // TODO: instead of copy using ToArray we shall include the
+                    // stream with the message and dispose it later when it is
+                    // consumed.
                     messageBuffer = memoryStream.ToArray();
                 }
 
@@ -199,7 +234,7 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="messages"></param>
-        private void WriteMessages(JsonEncoderEx encoder, Span<BaseDataSetMessage> messages) {
+        private void WriteMessages(JsonEncoderEx encoder, Span<JsonDataSetMessage> messages) {
             var messagesToInclude = messages.ToArray();
             if (UseArrayEnvelope) {
                 if (HasSingleDataSetMessage || HasNetworkMessageHeader) {
@@ -294,7 +329,7 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="messages"></param>
-        private void WriteNetworkMessage(JsonEncoderEx encoder, BaseDataSetMessage[] messages) {
+        private void WriteNetworkMessage(JsonEncoderEx encoder, JsonDataSetMessage[] messages) {
             if (HasNetworkMessageHeader) {
                 WriteNetworkMessageHeader(encoder);
 
@@ -302,7 +337,7 @@ namespace Opc.Ua.PubSub {
                     if (HasDataSetMessageHeader) {
                         // Write as a single object under messages property
                         encoder.WriteObject(nameof(Messages), messages[0],
-                            v => v.Encode(encoder, true));
+                            v => v.Encode(encoder, true, null));
                     }
                     else {
                         // Write raw data set object under messages property
@@ -312,31 +347,31 @@ namespace Opc.Ua.PubSub {
                 else if (HasDataSetMessageHeader) {
                     // Write as array of objects
                     encoder.WriteArray(nameof(Messages), messages, v =>
-                        encoder.WriteObject(null, v, v => v.Encode(encoder, true)));
+                        encoder.WriteObject(null, v, v => v.Encode(encoder, true, null)));
                 }
                 else {
                     // Write as array of dataset payload tokens
                     encoder.WriteArray(nameof(Messages), messages,
-                        v => v.Encode(encoder, false));
+                        v => v.Encode(encoder, false, null));
                 }
             }
             else {
                 // The encoder was set up as array or object beforehand
                 if (HasSingleDataSetMessage) {
                     // Write object content to current object
-                    messages[0].Encode(encoder, HasDataSetMessageHeader);
+                    messages[0].Encode(encoder, HasDataSetMessageHeader, null);
                 }
                 else if (HasDataSetMessageHeader) {
                     // Write each object to the array that is the initial state of the encoder
                     foreach (var message in messages) {
                         // Write as array of dataset messages with payload
-                        encoder.WriteObject(null, message, v => v.Encode(encoder, true));
+                        encoder.WriteObject(null, message, v => v.Encode(encoder, true, null));
                     }
                 }
                 else {
                     // Writes dataset directly the encoder was set up as token
                     foreach (var message in messages) {
-                        message.Encode(encoder, false);
+                        message.Encode(encoder, false, null);
                     }
                 }
             }

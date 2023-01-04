@@ -52,12 +52,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                         as UadpNetworkMessage).YieldReturn();
 
                 foreach (var message in messages) {
-                    foreach (var dataSetMessage in message.Messages) {
+                    foreach (UadpDataSetMessage dataSetMessage in message.Messages) {
                         var dataset = new DataSetMessageModel {
                             PublisherId = message.PublisherId,
-                            MessageId = message.MessageId,
+                            MessageId = message.NetworkMessageNumber.ToString(),
                             DataSetClassId = message.DataSetClassId.ToString(),
-                            DataSetWriterId = dataSetMessage.DataSetWriterName,
+                            DataSetWriterId = dataSetMessage.DataSetWriterId.ToString(),
                             SequenceNumber = dataSetMessage.SequenceNumber,
                             Status = StatusCode.LookupSymbolicId(dataSetMessage.Status.Code),
                             MetaDataVersion = $"{dataSetMessage.MetaDataVersion.MajorVersion}" +

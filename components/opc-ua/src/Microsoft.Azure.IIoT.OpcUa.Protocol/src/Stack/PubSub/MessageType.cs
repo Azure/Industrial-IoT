@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
+
     /// <summary>
     /// Message type
     /// </summary>

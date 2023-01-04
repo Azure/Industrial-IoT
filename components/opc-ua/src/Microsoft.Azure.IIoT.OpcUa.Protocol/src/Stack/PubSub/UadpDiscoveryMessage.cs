@@ -77,10 +77,11 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context, int maxChunkSize) {
+        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
+            int maxChunkSize, IDataSetMetaDataResolver resolver) {
             var messages = new List<byte[]>();
             bool isChunkMessage = false;
-            var remainingChunks = EncodePayloadChunks(context).AsSpan();
+            var remainingChunks = EncodePayloadChunks(context, resolver).AsSpan();
 
             // Re-evaluate flags every go around
             UadpFlags =
@@ -95,8 +96,8 @@ namespace Opc.Ua.PubSub {
                 ExtendedFlags2EncodingMask.DiscoveryAnnouncement;
 
             while (remainingChunks.Length == 1) {
-                using (var stream = new MemoryStream()) {
-                    using (var encoder = new BinaryEncoder(stream, context)) {
+                using (var stream = Memory.GetStream()) {
+                    using (var encoder = new BinaryEncoder(stream, context, leaveOpen: true)) {
                         var writeSpan = remainingChunks;
                         while (true) {
                             WriteNetworkMessageHeaderFlags(encoder, isChunkMessage);
@@ -113,8 +114,14 @@ namespace Opc.Ua.PubSub {
                             break;
                         }
                         stream.SetLength(encoder.Position);
+
+                        // TODO: instead of copy using ToArray we shall include the
+                        // stream with the message and dispose it later when it is
+                        // consumed. To get here the bug in BinaryEncoder that it
+                        // disposes the underlying stream even if leaveOpen: true
+                        // is set must be fixed.
+                        messages.Add(stream.ToArray());
                     }
-                    messages.Add(stream.ToArray());
                 }
             }
             Debug.Assert(remainingChunks.Length == 0);
@@ -122,16 +129,18 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        protected override bool TryReadNetworkMessageHeader(BinaryDecoder decoder) {
+        protected override bool TryReadNetworkMessageHeader(BinaryDecoder decoder, bool isFirstChunk) {
             if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryProbe) != 0) {
-                DiscoveryType = decoder.ReadByte("ProbeType");
-                DataSetWriterIds = decoder.ReadUInt16Array("DataSetWriterIds").ToArray();
+                // Read probetype
+                DiscoveryType = decoder.ReadByte(null);
+                DataSetWriterIds = decoder.ReadUInt16Array(null).ToArray();
                 IsProbe = true;
                 return true;
             }
             if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryAnnouncement) != 0) {
-                DiscoveryType = decoder.ReadByte("AnnouncementType");
-                _sequenceNumber = decoder.ReadUInt16("SequenceNumber");
+                // Read announcement type
+                DiscoveryType = decoder.ReadByte(null);
+                _sequenceNumber = decoder.ReadUInt16(null);
                 IsProbe = false;
                 return true;
             }
@@ -145,36 +154,34 @@ namespace Opc.Ua.PubSub {
         /// <param name="encoder"></param>
         private void WriteNetworkMessageHeader(BinaryEncoder encoder) {
             if (IsProbe) {
-                encoder.WriteByte("ProbeType", DiscoveryType);
-                encoder.WriteUInt16Array("DataSetWriterIds", DataSetWriterIds ?? Array.Empty<ushort>());
+                // Write probe type
+                encoder.WriteByte(null, DiscoveryType);
+                encoder.WriteUInt16Array(null, DataSetWriterIds ?? Array.Empty<ushort>());
                 ExtendedFlags2 &= ~ExtendedFlags2EncodingMask.DiscoveryAnnouncement;
                 ExtendedFlags2 |= ExtendedFlags2EncodingMask.DiscoveryProbe;
             }
             else {
-                encoder.WriteByte("AnnouncementType", DiscoveryType);
-                encoder.WriteUInt16("SequenceNumber", SequenceNumber());
+                // Write announcement type
+                encoder.WriteByte(null, DiscoveryType);
+                encoder.WriteUInt16(null, SequenceNumber());
                 ExtendedFlags2 &= ~ExtendedFlags2EncodingMask.DiscoveryProbe;
                 ExtendedFlags2 |= ExtendedFlags2EncodingMask.DiscoveryAnnouncement;
             }
         }
 
-
-        /// <summary>
-        /// Encode data set metadata
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        protected override Message[] EncodePayloadChunks(IServiceMessageContext context) {
-            using (var stream = new MemoryStream()) {
-                using (var encoder = new BinaryEncoder(stream, context)) {
+        /// <inheritdoc/>
+        protected override Message[] EncodePayloadChunks(IServiceMessageContext context,
+            IDataSetMetaDataResolver resolver) {
+            using (var stream = Memory.GetStream()) {
+                using (var encoder = new BinaryEncoder(stream, context, leaveOpen: true)) {
                     if (!IsProbe) {
                         switch ((UADPDiscoveryAnnouncementType)DiscoveryType) {
                             case UADPDiscoveryAnnouncementType.DataSetMetaData:
-                                encoder.WriteUInt16("DataSetWriterId", DataSetWriterId);
-                                encoder.WriteEncodeable("MetaData", MetaData,
+                                encoder.WriteUInt16(null, DataSetWriterId);
+                                encoder.WriteEncodeable(null, MetaData,
                                     typeof(DataSetMetaDataType));
                                 // temporary write StatusCode.Good
-                                encoder.WriteStatusCode("StatusCode", StatusCodes.Good);
+                                encoder.WriteStatusCode(null, StatusCodes.Good);
                                 break;
                             case UADPDiscoveryAnnouncementType.DataSetWriterConfiguration:
                             case UADPDiscoveryAnnouncementType.PublisherEndpoints:
@@ -192,28 +199,34 @@ namespace Opc.Ua.PubSub {
                                 break;
                         }
                     }
+
+                    // TODO: instead of copy using ToArray we shall include the
+                    // stream with the message and dispose it later when it is
+                    // consumed. To get here the bug in BinaryEncoder that it
+                    // disposes the underlying stream even if leaveOpen: true
+                    // is set must be fixed.
+                    return new[] { new Message(stream.ToArray(), DataSetWriterId) };
                 }
-                return new[] { new Message(stream.ToArray(), DataSetWriterId) };
             }
         }
 
         /// <inheritdoc/>
         protected override void DecodePayloadChunks(IServiceMessageContext context,
-            IReadOnlyList<byte[]> buffers) {
+            IReadOnlyList<byte[]> buffers, IDataSetMetaDataResolver resolver) {
             if (buffers.Count == 0) {
                 return;
             }
             Debug.Assert(buffers.Count == 1);
-            using (var stream = new MemoryStream(buffers[0])) {
+            using (var stream = Memory.GetStream(buffers[0])) {
                 using (var decoder = new BinaryDecoder(stream, context)) {
                     if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryAnnouncement) != 0) {
                         switch ((UADPDiscoveryAnnouncementType)DiscoveryType) {
                             case UADPDiscoveryAnnouncementType.DataSetMetaData:
-                                DataSetWriterId = decoder.ReadUInt16("DataSetWriterId");
-                                MetaData = (DataSetMetaDataType)decoder.ReadEncodeable("MetaData",
+                                DataSetWriterId = decoder.ReadUInt16(null);
+                                MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(null,
                                     typeof(DataSetMetaDataType));
                                 // temporary read
-                                var status = decoder.ReadStatusCode("StatusCode");
+                                var status = decoder.ReadStatusCode(null);
                                 break;
                             case UADPDiscoveryAnnouncementType.DataSetWriterConfiguration:
                             case UADPDiscoveryAnnouncementType.PublisherEndpoints:
@@ -246,8 +259,7 @@ namespace Opc.Ua.PubSub {
             if (!base.Equals(value)) {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup) ||
-                !Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
+            if (!Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
                 !Utils.IsEqual(wrapper.MetaData, MetaData)) {
                 return false;
             }
@@ -258,7 +270,6 @@ namespace Opc.Ua.PubSub {
         public override int GetHashCode() {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
-            hash.Add(DataSetWriterGroup);
             hash.Add(DataSetWriterId);
             hash.Add(MetaData);
             return hash.ToHashCode();

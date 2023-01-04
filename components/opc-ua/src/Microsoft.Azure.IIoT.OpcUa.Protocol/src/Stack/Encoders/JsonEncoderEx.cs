@@ -90,7 +90,7 @@ namespace Opc.Ua.Encoders {
         public JsonEncoderEx(Stream stream, IServiceMessageContext context = null,
             JsonEncoding encoding = JsonEncoding.Object,
             Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None,
-            bool leaveOpen = false) :
+            bool leaveOpen = true) :
             this(new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: leaveOpen),
                 context, encoding, formatting, leaveOpen) {
         }
@@ -106,7 +106,7 @@ namespace Opc.Ua.Encoders {
         public JsonEncoderEx(TextWriter writer, IServiceMessageContext context = null,
             JsonEncoding encoding = JsonEncoding.Object,
             Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None,
-            bool leaveOpen = false) :
+            bool leaveOpen = true) :
             this(new JsonTextWriter(writer) {
                 AutoCompleteOnClose = true,
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
@@ -153,11 +153,10 @@ namespace Opc.Ua.Encoders {
                         _writer.WriteEndArray();
                         break;
                 }
+
+                _writer.Flush();
                 if (_ownedWriter) {
-                    ((IDisposable)_writer).Dispose();
-                }
-                else {
-                    _writer.Flush();
+                    _writer.Close();
                 }
                 _writer = null;
             }

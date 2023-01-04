@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
-    using Microsoft.Azure.IIoT.OpcUa.Core;
+    using Microsoft.Azure.IIoT;
+    using Microsoft.IO;
     using System;
     using System.Collections.Generic;
 
@@ -13,11 +14,6 @@ namespace Opc.Ua.PubSub {
     /// <see href="https://reference.opcfoundation.org/v104/Core/docs/Part14/7.2.3/"/>
     /// </summary>
     public abstract class PubSubMessage {
-
-        /// <summary>
-        /// Message id
-        /// </summary>
-        public string MessageId { get; set; }
 
         /// <summary>
         /// Message schema
@@ -40,17 +36,24 @@ namespace Opc.Ua.PubSub {
         public string PublisherId { get; set; }
 
         /// <summary>
-        /// Dataset writerGroup
+        /// Routing information stashed into the message
         /// </summary>
-        public string DataSetWriterGroup { get; set; }
+        public string RoutingInfo { get; set; }
+
+        /// <summary>
+        /// Memory stream manager
+        /// </summary>
+        protected static RecyclableMemoryStreamManager Memory { get; }
+            = new RecyclableMemoryStreamManager();
 
         /// <summary>
         /// Decode the network message from the wire representation
         /// </summary>
         /// <param name="context"></param>
         /// <param name="reader"></param>
+        /// <param name="resolver"></param>
         public abstract bool TryDecode(IServiceMessageContext context,
-            Queue<byte[]> reader);
+            Queue<byte[]> reader, IDataSetMetaDataResolver resolver = null);
 
         /// <summary>
         /// Encode the network message into network message chunks
@@ -58,59 +61,101 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="maxChunkSize"></param>
+        /// <param name="resolver"></param>
         /// <returns></returns>
         public abstract IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
-            int maxChunkSize);
+            int maxChunkSize, IDataSetMetaDataResolver resolver = null);
 
         /// <summary>
         /// Decode pub sub messages from buffer
         /// </summary>
         /// <param name="buffer"></param>
-        /// <param name="messageSchema"></param>
+        /// <param name="contentType"></param>
         /// <param name="context"></param>
+        /// <param name="resolver"></param>
         /// <returns></returns>
-        public static PubSubMessage Decode(byte[] buffer,
-            string messageSchema, IServiceMessageContext context) {
+        public static PubSubMessage Decode(byte[] buffer, string contentType,
+            IServiceMessageContext context, IDataSetMetaDataResolver resolver = null) {
             var reader = new Queue<byte[]>();
             reader.Enqueue(buffer);
-            return Decode(reader, messageSchema, context);
+            return DecodeOne(reader, contentType, context, resolver);
         }
 
         /// <summary>
-        /// Decode pub sub messages from buffer
+        /// Decode all from reader
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="messageSchema"></param>
+        /// <param name="contentType"></param>
         /// <param name="context"></param>
+        /// <param name="resolver"></param>
         /// <returns></returns>
-        public static PubSubMessage Decode(Queue<byte[]> reader,
-            string messageSchema, IServiceMessageContext context) {
+        public static IEnumerable<PubSubMessage> Decode(Queue<byte[]> reader, string contentType,
+            IServiceMessageContext context, IDataSetMetaDataResolver resolver) {
+            while (true) {
+                var message = DecodeOne(reader, contentType, context, resolver);
+                if (message == null) {
+                    yield break;
+                }
+                else {
+                    yield return message;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Decode one pub sub messages from buffer
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="contentType"></param>
+        /// <param name="context"></param>
+        /// <param name="resolver"></param>
+        /// <returns></returns>
+        internal static PubSubMessage DecodeOne(Queue<byte[]> reader, string contentType,
+            IServiceMessageContext context, IDataSetMetaDataResolver resolver) {
             PubSubMessage message = null;
-            switch (messageSchema) {
-                case MessageSchemaTypes.NetworkMessageJson:
-                    message = new JsonNetworkMessage();
-                    if (!message.TryDecode(context, reader)) {
-                        message = new JsonMetaDataMessage();
-                        if (!message.TryDecode(context, reader)) {
-                            // Failed
-                            message = null;
-                        }
+            if (reader.Count == 0) {
+                return null;
+            }
+            switch (contentType.ToLowerInvariant()) {
+                case ContentMimeType.JsonGzip:
+                case ContentMimeType.Json:
+                case ContentMimeType.UaJson:
+                case ContentMimeType.UaLegacyPublisher:
+                case ContentMimeType.UaNonReversibleJson:
+                    message = new JsonNetworkMessage {
+                        UseGzipCompression = contentType.Equals(
+                            ContentMimeType.JsonGzip, StringComparison.OrdinalIgnoreCase)
+                    };
+                    if (message.TryDecode(context, reader, resolver)) {
+                        return message;
+                    }
+                    if (reader.Count == 0) {
+                        return null;
+                    }
+                    message = new JsonMetaDataMessage();
+                    if (message.TryDecode(context, reader, resolver)) {
+                        return message;
                     }
                     break;
-                case MessageSchemaTypes.NetworkMessageUadp:
+                case ContentMimeType.Binary:
+                case ContentMimeType.Uadp:
                     message = new UadpNetworkMessage();
-                    if (!message.TryDecode(context, reader)) {
-                        message = new UadpDiscoveryMessage();
-                        if (!message.TryDecode(context, reader)) {
-                            // Failed
-                            message = null;
-                        }
+                    if (message.TryDecode(context, reader, resolver)) {
+                        return message;
+                    }
+                    if (reader.Count == 0) {
+                        return null;
+                    }
+                    message = new UadpDiscoveryMessage();
+                    if (message.TryDecode(context, reader, resolver)) {
+                        return message;
                     }
                     break;
                 default:
                     break;
             }
-            return message;
+            // Failed
+            return null;
         }
 
         /// <inheritdoc/>
@@ -121,9 +166,7 @@ namespace Opc.Ua.PubSub {
             if (!(value is PubSubMessage wrapper)) {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.MessageId, MessageId) ||
-                !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup) ||
-                !Utils.IsEqual(wrapper.PublisherId, PublisherId)) {
+            if (!Utils.IsEqual(wrapper.PublisherId, PublisherId)) {
                 return false;
             }
             return true;
@@ -132,9 +175,7 @@ namespace Opc.Ua.PubSub {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hash = new HashCode();
-            hash.Add(MessageId);
             hash.Add(PublisherId);
-            hash.Add(DataSetWriterGroup);
             return hash.ToHashCode();
         }
     }

@@ -28,19 +28,14 @@ namespace Opc.Ua.PubSub {
         public ushort DataSetWriterId { get; set; }
 
         /// <summary>
-        /// Dataset writer name
+        /// Metadata version
         /// </summary>
-        public string DataSetWriterName { get; set; }
+        public ConfigurationVersionDataType MetaDataVersion { get; set; }
 
         /// <summary>
         /// Sequence number
         /// </summary>
         public uint SequenceNumber { get; set; }
-
-        /// <summary>
-        /// Metadata version
-        /// </summary>
-        public ConfigurationVersionDataType MetaDataVersion { get; set; }
 
         /// <summary>
         /// Timestamp
@@ -62,15 +57,6 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         public DataSet Payload { get; set; } = new DataSet();
 
-        /// <summary>
-        /// Encode data set message
-        /// </summary>
-        /// <param name="encoder"></param>
-        /// <param name="withHeader"></param>
-        /// <param name="property"></param>
-        public abstract void Encode(IEncoder encoder,
-            bool withHeader = true, string property = null);
-
         /// <inheritdoc/>
         public override bool Equals(object value) {
             if (ReferenceEquals(this, value)) {
@@ -79,9 +65,7 @@ namespace Opc.Ua.PubSub {
             if (!(value is BaseDataSetMessage wrapper)) {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.DataSetMessageContentMask, DataSetMessageContentMask) ||
-                !Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
-                !Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName) ||
+            if (!Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
                 !Utils.IsEqual(wrapper.SequenceNumber, SequenceNumber) ||
                 !Utils.IsEqual(wrapper.Status, Status) ||
                 !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
@@ -98,10 +82,8 @@ namespace Opc.Ua.PubSub {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hash = new HashCode();
-            hash.Add(DataSetMessageContentMask);
             hash.Add(MessageType);
             hash.Add(DataSetWriterId);
-            hash.Add(DataSetWriterName);
             hash.Add(SequenceNumber);
             hash.Add(MetaDataVersion);
             hash.Add(Timestamp);

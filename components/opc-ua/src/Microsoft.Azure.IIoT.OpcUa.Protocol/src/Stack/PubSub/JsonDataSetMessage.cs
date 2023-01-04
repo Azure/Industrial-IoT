@@ -17,8 +17,38 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         public bool UseCompatibilityMode { get; set; }
 
+        /// <summary>
+        /// Dataset writer name
+        /// </summary>
+        public string DataSetWriterName { get; set; }
+
         /// <inheritdoc/>
-        public override void Encode(IEncoder encoder, bool withHeader, string property) {
+        public override bool Equals(object value) {
+            if (ReferenceEquals(this, value)) {
+                return true;
+            }
+            if (!(value is JsonDataSetMessage wrapper)) {
+                return false;
+            }
+            if (!base.Equals(value)) {
+                return false;
+            }
+            if (!Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName)) {
+                return false;
+            }
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() {
+            var hash = new HashCode();
+            hash.Add(base.GetHashCode());
+            hash.Add(DataSetWriterName);
+            return hash.ToHashCode();
+        }
+
+        /// <inheritdoc/>
+        internal void Encode(JsonEncoderEx encoder, bool withHeader, string property) {
             if (withHeader) {
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterId) != 0) {
                     if (!UseCompatibilityMode) {
@@ -75,11 +105,7 @@ namespace Opc.Ua.PubSub {
             else {
                 WritePayload(encoder, property);
             }
-            void WritePayload(IEncoder encoder, string propertyName = null) {
-                var jsonEncoder = encoder as JsonEncoderEx;
-                if (jsonEncoder == null) {
-                    throw new NotSupportedException("Other encoders than JsonEncoderEx are not supported yet.");
-                }
+            void WritePayload(JsonEncoderEx jsonEncoder, string propertyName = null) {
                 var useReversibleEncoding =
                     (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0;
                 var prevReversibleEncoding = jsonEncoder.UseReversibleEncoding;
@@ -96,12 +122,7 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public bool TryDecode(IDecoder decoder, string property, ref bool withHeader) {
-            var jsonDecoder = decoder as JsonDecoderEx;
-            if (jsonDecoder == null) {
-                throw new NotSupportedException("Other decoders than JsonDecoderEx are not supported yet.");
-            }
-
+        internal bool TryDecode(JsonDecoderEx jsonDecoder, string property, ref bool withHeader) {
             if (TryReadDataSetMessageHeader(jsonDecoder, out var dataSetMessageContentMask)) {
                 withHeader |= true;
                 DataSetMessageContentMask = dataSetMessageContentMask;

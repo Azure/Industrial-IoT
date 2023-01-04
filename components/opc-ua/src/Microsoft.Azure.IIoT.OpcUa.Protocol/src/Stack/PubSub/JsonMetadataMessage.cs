@@ -49,6 +49,16 @@ namespace Opc.Ua.PubSub {
         public bool UseGzipCompression { get; set; }
 
         /// <summary>
+        /// Message id
+        /// </summary>
+        public string MessageId { get; set; }
+
+        /// <summary>
+        /// Dataset writerGroup
+        /// </summary>
+        public string DataSetWriterGroup { get; set; }
+
+        /// <summary>
         /// Data set writer name in case of ua-metadata message
         /// </summary>
         public ushort DataSetWriterId { get; set; }
@@ -74,7 +84,8 @@ namespace Opc.Ua.PubSub {
             if (!base.Equals(value)) {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup) ||
+            if (!Utils.IsEqual(wrapper.MessageId, MessageId) ||
+                !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup) ||
                 !Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName) ||
                 !Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
                 !Utils.IsEqual(wrapper.MetaData, MetaData)) {
@@ -87,6 +98,7 @@ namespace Opc.Ua.PubSub {
         public override int GetHashCode() {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
+            hash.Add(MessageId);
             hash.Add(DataSetWriterGroup);
             hash.Add(DataSetWriterName);
             hash.Add(DataSetWriterId);
@@ -95,11 +107,12 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context, Queue<byte[]> reader) {
+        public override bool TryDecode(IServiceMessageContext context,
+            Queue<byte[]> reader, IDataSetMetaDataResolver resolver) {
             if (reader.TryPeek(out var buffer)) {
-                using var memoryStream = new MemoryStream(buffer);
+                using var memoryStream = Memory.GetStream(buffer);
                 var compression = UseGzipCompression ?
-                    new GZipStream(memoryStream, CompressionMode.Decompress) : null;
+                    new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
                 try {
                     using var decoder = new JsonDecoderEx(
                         UseGzipCompression ? compression : memoryStream, context);
@@ -115,11 +128,12 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context, int maxChunkSize) {
+        public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
+            int maxChunkSize, IDataSetMetaDataResolver resolver) {
             var chunks = new List<byte[]>();
-            using var memoryStream = new MemoryStream();
+            using var memoryStream = Memory.GetStream();
             var compression = UseGzipCompression ?
-                new GZipStream(memoryStream, CompressionLevel.Optimal) : null;
+                new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true) : null;
             try {
                 using var encoder = new JsonEncoderEx(
                     UseGzipCompression ? compression : memoryStream, context) {
@@ -134,6 +148,9 @@ namespace Opc.Ua.PubSub {
             finally {
                 compression?.Dispose();
             }
+            // TODO: instead of copy using ToArray we shall include the
+            // stream with the message and dispose it later when it is
+            // consumed.
             var messageBuffer = memoryStream.ToArray();
             if (messageBuffer.Length < maxChunkSize) {
                 chunks.Add(messageBuffer);

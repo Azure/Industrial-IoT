@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         ContentEncoding = networkMessage.ContentEncoding,
                         ContentType = networkMessage.ContentType,
                         MessageSchema = networkMessage.MessageSchema,
-                        RoutingInfo = _enableRoutingInfo ? networkMessage.DataSetWriterGroup : null,
+                        RoutingInfo = networkMessage.RoutingInfo,
                     });
 
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + body.Length) /
@@ -164,13 +164,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                                     BaseDataSetMessage dataSetMessage = encoding.HasFlag(MessageEncoding.Json)
                                         ? new JsonDataSetMessage {
-                                            UseCompatibilityMode = !_useStandardsCompliantEncoding
-                                        } : new UadpDataSetMessage {
-                                            MetaData = message.MetaData
-                                        };
+                                            UseCompatibilityMode = !_useStandardsCompliantEncoding,
+                                            DataSetWriterName = message.Writer.DataSetWriterName
+                                        } : new UadpDataSetMessage();
 
                                     dataSetMessage.DataSetWriterId = message.SubscriptionId;
-                                    dataSetMessage.DataSetWriterName = message.Writer.DataSetWriterName;
                                     dataSetMessage.MessageType = message.MessageType;
                                     dataSetMessage.MetaDataVersion = message.MetaData?.ConfigurationVersion
                                         ?? new ConfigurationVersionDataType { MajorVersion = 1 };
@@ -211,14 +209,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
                                         DataSetWriterId = message.SubscriptionId,
                                         MetaData = metaData,
+                                        MessageId = Guid.NewGuid().ToString(),
+                                        DataSetWriterGroup = writerGroup.WriterGroupId,
                                         DataSetWriterName = message.Writer.DataSetWriterName
                                     } : new UadpMetaDataMessage {
                                         DataSetWriterId = message.SubscriptionId,
                                         MetaData = metaData
                                     };
-                                metadataMessage.MessageId = Guid.NewGuid().ToString();
                                 metadataMessage.PublisherId = publisherId;
-                                metadataMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
+
+                                // TODO: Overriding with metadata topic name
+                                metadataMessage.RoutingInfo = _enableRoutingInfo ? writerGroup.WriterGroupId : null;
                                 result.Add((0, metadataMessage));
                             }
                         }
@@ -231,7 +232,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             BaseNetworkMessage currentMessage = encoding.HasFlag(MessageEncoding.Json) ? new JsonNetworkMessage {
                                 UseAdvancedEncoding = !_useStandardsCompliantEncoding,
                                 UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
-                                UseArrayEnvelope = !_useStandardsCompliantEncoding && isBatched
+                                UseArrayEnvelope = !_useStandardsCompliantEncoding && isBatched,
+                                MessageId = Guid.NewGuid().ToString(),
+                                DataSetWriterGroup = writerGroup.WriterGroupId
                             } : new UadpNetworkMessage {
                                 //   WriterGroupId = writerGroup.Index,
                                 //   GroupVersion = writerGroup.Version,
@@ -239,11 +242,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 Timestamp = DateTime.UtcNow,
                                 PicoSeconds = 0
                             };
-                            currentMessage.MessageId = Guid.NewGuid().ToString();
                             currentMessage.NetworkMessageContentMask = networkMessageContentMask;
                             currentMessage.PublisherId = publisherId;
                             currentMessage.DataSetClassId = dataSetClassId;
-                            currentMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
+                            currentMessage.RoutingInfo = _enableRoutingInfo ? writerGroup.WriterGroupId : null;
                             return currentMessage;
                         }
                     }

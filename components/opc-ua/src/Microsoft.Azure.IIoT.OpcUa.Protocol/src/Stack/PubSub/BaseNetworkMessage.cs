@@ -39,8 +39,7 @@ namespace Opc.Ua.PubSub {
             if (!base.Equals(value)) {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.NetworkMessageContentMask, NetworkMessageContentMask) ||
-                !Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
+            if (!Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
                 !Utils.IsEqual(wrapper.Messages, Messages)) {
                 return false;
             }
@@ -51,7 +50,6 @@ namespace Opc.Ua.PubSub {
         public override int GetHashCode() {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
-            hash.Add(NetworkMessageContentMask);
             hash.Add(DataSetClassId);
             hash.Add(Messages);
             return hash.ToHashCode();
