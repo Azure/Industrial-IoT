@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
@@ -20,8 +21,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Clone notification
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="dataValue"></param>
         /// <returns></returns>
-        public static MonitoredItemNotificationModel Clone(this MonitoredItemNotificationModel model) {
+        public static MonitoredItemNotificationModel Clone(this MonitoredItemNotificationModel model,
+            uint? sequenceNumber = null, DataValue dataValue = null) {
             if (model == null) {
                 return null;
             }
@@ -31,9 +35,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 DisplayName = model.DisplayName,
                 NodeId = model.NodeId,
                 AttributeId = model.AttributeId,
-                Value = model.Value, // Not cloning, should be immutable
+                Value = dataValue ?? model.Value, // Not cloning, should be immutable
                 MessageId = model.MessageId,
-                SequenceNumber = model.SequenceNumber,
+                SequenceNumber = sequenceNumber ?? model.SequenceNumber,
                 IsHeartbeat = model.IsHeartbeat,
             };
         }

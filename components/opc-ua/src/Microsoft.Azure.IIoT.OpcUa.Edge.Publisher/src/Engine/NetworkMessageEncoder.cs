@@ -245,7 +245,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             } : new UadpNetworkMessage {
                                 //   WriterGroupId = writerGroup.Index,
                                 //   GroupVersion = writerGroup.Version,
-                                SequenceNumber = () => (ushort)Interlocked.Increment(ref _sequenceNumber),
+                                SequenceNumber = () => SequenceNumber.Increment16(ref _sequenceNumber),
                                 Timestamp = DateTime.UtcNow,
                                 PicoSeconds = 0
                             };
@@ -269,7 +269,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private readonly ILogger _logger;
         private readonly bool _enableRoutingInfo;
-        private volatile int _sequenceNumber;
+        private uint _sequenceNumber;
         private readonly bool _useStandardsCompliantEncoding;
     }
 }

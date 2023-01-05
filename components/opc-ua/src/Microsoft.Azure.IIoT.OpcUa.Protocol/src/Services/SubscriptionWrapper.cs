@@ -96,9 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     throw new ArgumentNullException(nameof(logger));
                 _lock = new SemaphoreSlim(1, 1);
                 _currentlyMonitored = ImmutableDictionary<uint, MonitoredItemWrapper>.Empty;
-                while (Id == 0) {
-                    Id = (ushort)Interlocked.Increment(ref _lastIndex);
-                }
+                Id = SequenceNumber.Increment16(ref _lastIndex);
             }
 
             /// <inheritdoc/>
@@ -1020,32 +1018,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     else {
                         var numOfEvents = 0;
                         for (var i = 0; i < notification.Events.Count; i++) {
-                            var item = notification.Events[i];
-                            Debug.Assert(item != null);
+                            var eventNotification = notification.Events[i];
+                            Debug.Assert(eventNotification != null);
 
-                            var monitoredItem = subscription.FindItemByClientHandle(item.ClientHandle);
-                            var sequenceNumber = item.Message.SequenceNumber;
+                            var monitoredItem = subscription.FindItemByClientHandle(eventNotification.ClientHandle);
+                            var sequenceNumber = eventNotification.Message.SequenceNumber;
 
                             if (monitoredItem == null || monitoredItem.Handle is not MonitoredItemWrapper wrapper) {
                                 _logger.Warning("Monitored item not found with client handle {clientHandle} " +
                                     "for Event received for subscription '{subscription}'/'{sessionId}' + " +
                                     "{sequenceNumber}, publishTime {PublishTime}",
-                                    item.ClientHandle, Name, Connection.CreateConnectionId(),
-                                    sequenceNumber, item.Message.PublishTime);
+                                    eventNotification.ClientHandle, Name, Connection.CreateConnectionId(),
+                                    sequenceNumber, eventNotification.Message.PublishTime);
                                 continue;
                             }
 
-                            if (!wrapper.ValidateSequenceNumber(sequenceNumber, out var expected)) {
+                            if (!wrapper.ValidateSequenceNumber(sequenceNumber, out var missingSequenceNumbers)) {
                                 _logger.Warning("Event for monitored item {clientHandle} subscription " +
                                     "'{subscription}'/'{sessionId}' has unexpected sequenceNumber {sequenceNumber} " +
-                                    "vs expected {expectedSequenceNumber}, publishTime {PublishTime}",
-                                    item.ClientHandle, Name, Connection.CreateConnectionId(), sequenceNumber,
-                                    expected, item.Message.PublishTime);
+                                    "missing {expectedSequenceNumber}, publishTime {PublishTime}",
+                                    eventNotification.ClientHandle, Name, Connection.CreateConnectionId(), sequenceNumber,
+                                    missingSequenceNumbers.Select(a => a.ToString()).Aggregate((a, b) => $"{a}, {b}"),
+                                    eventNotification.Message.PublishTime);
                             }
 
                             _logger.Verbose("Event for subscription: {Subscription}, sequence#: " +
                                 "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
-                                subscription.DisplayName, sequenceNumber, isKeepAlive, item.Message.PublishTime);
+                                subscription.DisplayName, sequenceNumber, isKeepAlive, eventNotification.Message.PublishTime);
 
                             var message = new SubscriptionNotificationModel {
                                 ServiceMessageContext = subscription?.Session?.MessageContext,
@@ -1055,12 +1054,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 SubscriptionId = Id,
                                 MessageType = Opc.Ua.PubSub.MessageType.Event,
                                 MetaData = _currentMetaData,
-                                Timestamp = item.Message.PublishTime,
+                                Timestamp = eventNotification.Message.PublishTime,
                                 Notifications = new List<MonitoredItemNotificationModel>(),
                             };
 
-                            wrapper.ProcessEventNotification(message, notification.Events[i]);
-
+                            wrapper.ProcessEventNotification(message, eventNotification, missingSequenceNumbers);
                             if (message.Notifications.Count > 0) {
                                 OnSubscriptionEventChange.Invoke(this, message);
                                 numOfEvents++;
@@ -1149,30 +1147,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 continue;
                             }
 
-                            if (!wrapper.ValidateSequenceNumber(sequenceNumber, out var expected)) {
+                            if (!wrapper.ValidateSequenceNumber(sequenceNumber, out var missingSequenceNumbers)) {
                                 _logger.Warning("DataChange for monitored item {clientHandle} subscription " +
                                     "'{subscription}'/'{sessionId}' has unexpected sequenceNumber {sequenceNumber} " +
-                                    "vs expected {expectedSequenceNumber}, publishTime {PublishTime}",
+                                    "missing {expectedSequenceNumber}, publishTime {PublishTime}",
                                     item.ClientHandle, Name, Connection.CreateConnectionId(), sequenceNumber,
-                                    expected, message.Timestamp);
-
-                                //   var diff = (int)sequenceNumber - (int)expected;
-                                //   if (diff > 0) {
-                                //       for (var j = 0; j < diff; j++) {
-                                //           var s = expected + i;
-                                //           if (s == 0) {
-                                //               continue;
-                                //           }
-                                //           // Emit missing notifications
-                                //       }
-                                //   }
+                                    missingSequenceNumbers.Select(a => a.ToString()).Aggregate((a, b) => $"{a}, {b}"),
+                                    item.Message.PublishTime);
                             }
 
                             _logger.Verbose("Data change for subscription: {Subscription}, sequence#: " +
                                 "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
                                 subscription.DisplayName, sequenceNumber, isKeepAlive, message.Timestamp);
 
-                            wrapper.ProcessMonitoredItemNotification(message, item);
+                            wrapper.ProcessMonitoredItemNotification(message, item, missingSequenceNumbers);
                         }
                     }
 
@@ -1180,7 +1168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var currentlyMonitored = _currentlyMonitored.ToBuilder();
                     currentlyMonitored.RemoveRange(notification.MonitoredItems.Select(m => m.ClientHandle));
                     foreach (var wrapper in currentlyMonitored.Values) {
-                        wrapper.ProcessMonitoredItemNotification(message, null);
+                        wrapper.ProcessMonitoredItemNotification(message, null, null);
                     }
 
                     if (_logger.IsEnabled(Serilog.Events.LogEventLevel.Debug)) {
@@ -1217,7 +1205,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private DataSetMetaDataType _currentMetaData;
             private bool _closed;
 
-            private static volatile int _lastIndex;
+            private static uint _lastIndex;
             private static readonly Gauge kMonitoredItems = Metrics.CreateGauge(
                 "iiot_edge_publisher_monitored_items", "monitored items count",
                 new GaugeConfiguration {

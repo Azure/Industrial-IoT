@@ -621,13 +621,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="message"></param>
         /// <param name="notification"></param>
+        /// <param name="missingSequenceNumbers"></param>
         public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message,
-            MonitoredItemNotification notification) {
+            MonitoredItemNotification notification, uint[] missingSequenceNumbers) {
 
             Debug.Assert(Item != null);
             Debug.Assert(Template != null);
             var shouldHeartbeat = ValidateHeartbeat(message.Timestamp);
             if (notification == null && shouldHeartbeat) {
+                Debug.Assert(missingSequenceNumbers == null);
+
                 MonitoredItemNotificationModel GetDefaultNotification(uint messageId) {
                     return new MonitoredItemNotificationModel {
                         DataSetFieldName = Template?.DataSetFieldName,
@@ -651,6 +654,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             else {
                 foreach (var n in notification.ToMonitoredItemNotifications(Item)) {
+                    foreach (var missingSequenceNumber in missingSequenceNumbers) {
+                        message.Notifications.Add(n.Clone(missingSequenceNumber, new DataValue(StatusCodes.BadDataLost)));
+                    }
                     message.Notifications.Add(n);
                 }
             }
@@ -676,7 +682,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="message"></param>
         /// <param name="notification"></param>
-        public void ProcessEventNotification(SubscriptionNotificationModel message, EventFieldList notification) {
+        /// <param name="missingSequenceNumbers"></param>
+        public void ProcessEventNotification(SubscriptionNotificationModel message, EventFieldList notification,
+            uint[] missingSequenceNumbers) {
             Debug.Assert(Item != null);
             var evFilter = Item.Filter as EventFilter;
             var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
@@ -763,8 +771,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             else {
                 // Send notifications as event
-                foreach (var eventNotification in monitoredItemNotifications.Where(n => n.DataSetFieldName != null)) {
-                    message.Notifications.Add(eventNotification);
+                foreach (var n in monitoredItemNotifications.Where(n => n.DataSetFieldName != null)) {
+                    foreach (var missingSequenceNumber in missingSequenceNumbers) {
+                        message.Notifications.Add(n.Clone(missingSequenceNumber, new DataValue(StatusCodes.BadDataLost)));
+                    }
+                    message.Notifications.Add(n);
                 }
             }
         }
@@ -788,6 +799,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
         }
 
+        /// <summary>
+        /// Called when the condition timer fires
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnConditionTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
             var now = DateTime.UtcNow;
             ConditionHandlingState state;
@@ -826,7 +842,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
-        /// Send pending alarms
+        /// Send pending conditions
         /// </summary>
         private void SendPendingConditions() {
             List<List<MonitoredItemNotificationModel>> notifications = null;
@@ -1100,17 +1116,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Validate sequence number
         /// </summary>
         /// <param name="sequenceNumber"></param>
-        /// <param name="expected"></param>
+        /// <param name="missing"></param>
         /// <returns></returns>
-        internal bool ValidateSequenceNumber(uint sequenceNumber, out uint expected) {
+        internal bool ValidateSequenceNumber(uint sequenceNumber, out uint[] missing) {
             lock (_lock) {
-                var isOk = _expectedSequenceNumber == sequenceNumber;
-                expected = _expectedSequenceNumber;
-                _expectedSequenceNumber = sequenceNumber + 1;
-                if (_expectedSequenceNumber == 0) {
-                    _expectedSequenceNumber = 1;
-                }
-                return isOk;
+                return SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber, out missing);
             }
         }
 
@@ -1147,7 +1157,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private ConditionHandlingState _conditionHandlingState;
         private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
         private Timer _conditionTimer;
-        private uint _expectedSequenceNumber = 1;
+        private uint _lastSequenceNumber = 1;
         private DateTime _lastSentPendingConditions = DateTime.UtcNow;
         private HashSet<uint> _newTriggers = new HashSet<uint>();
         private HashSet<uint> _triggers = new HashSet<uint>();
