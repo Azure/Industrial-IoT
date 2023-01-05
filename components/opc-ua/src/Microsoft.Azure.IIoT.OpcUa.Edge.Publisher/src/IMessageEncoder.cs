@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -43,12 +44,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         double AvgMessageSize { get; }
 
         /// <summary>
-        /// Encodes the list of messages into network messages to send
+        /// Encodes the list of notifications into network messages to send
         /// </summary>
-        /// <param name="messages">Messages to encode</param>
+        /// <param name="notifications">Notifications to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <param name="asBatch">Encode in batch mode</param>
-        IEnumerable<NetworkMessageModel> Encode(IEnumerable<DataSetMessageModel> messages,
+        IEnumerable<NetworkMessageModel> Encode(
+            IEnumerable<SubscriptionNotificationModel> notifications,
             int maxMessageSize, bool asBatch);
     }
 }

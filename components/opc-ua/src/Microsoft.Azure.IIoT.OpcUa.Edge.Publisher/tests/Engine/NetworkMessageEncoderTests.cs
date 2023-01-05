@@ -16,11 +16,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
     public static class NetworkMessageEncoderTests {
 
-        public static IList<DataSetMessageModel> GenerateSampleMessages(
+        public static IList<SubscriptionNotificationModel> GenerateSampleSubscriptionNotifications(
             uint numOfMessages, bool eventList = false,
             MessageEncoding encoding = MessageEncoding.Json,
             NetworkMessageContentMask extraNetworkMessageMask = 0) {
-            var messages = new List<DataSetMessageModel>();
+            var messages = new List<SubscriptionNotificationModel>();
             var publisherId = "Publisher";
             var writer = new DataSetWriterModel {
                 DataSet = new PublishedDataSetModel {
@@ -92,14 +92,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     }
                 }
 
-                var message = new DataSetMessageModel {
-                    SequenceNumber = i,
-                    PublisherId = publisherId,
-                    Writer = writer,
-                    WriterGroup = writerGroup,
-                    MessageType = Opc.Ua.PubSub.MessageType.KeyFrame,
+                var message = new SubscriptionNotificationModel {
+                    Context = new WriterGroupMessageContext {
+                        SequenceNumber = i,
+                        PublisherId = publisherId,
+                        Writer = writer,
+                        WriterGroup = writerGroup,
+                    },
+                    Timestamp = DateTime.UtcNow,
                     MetaData = null,
-                    TimeStamp = DateTime.UtcNow,
+                    MessageType = Opc.Ua.PubSub.MessageType.KeyFrame,
                     ServiceMessageContext = new ServiceMessageContext { },
                     Notifications = notifications,
                     SubscriptionId = 22,

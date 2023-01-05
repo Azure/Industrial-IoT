@@ -93,25 +93,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
-        /// validates if a heartbeat is required.
-        /// A heartbeat will be forced for the very first time
-        /// </summary>
-        public bool ValidateHeartbeat(DateTime currentPublish) {
-            if (DataTemplate == null) {
-                return false;
-            }
-            if (NextHeartbeat == DateTime.MaxValue) {
-                return false;
-            }
-            if (NextHeartbeat > currentPublish + TimeSpan.FromMilliseconds(50)) {
-                return false;
-            }
-            NextHeartbeat = TimeSpan.Zero < DataTemplate.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ?
-                currentPublish + DataTemplate.HeartbeatInterval.Value : DateTime.MaxValue;
-            return true;
-        }
-
-        /// <summary>
         /// Create wrapper
         /// </summary>
         public MonitoredItemWrapper(BaseMonitoredItemModel template, ILogger logger) {
@@ -123,26 +104,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            if (!(obj is MonitoredItemWrapper item)) {
+            if (!(obj is MonitoredItemWrapper wrapper)) {
                 return false;
             }
-            if (Template.GetType() != item.Template.GetType()) {
+            if (Template.GetType() != wrapper.Template.GetType()) {
                 // Event item is incompatible with a data item
                 return false;
             }
-            if (Template.Id != item.Template.Id) {
+            if (Template.Id != wrapper.Template.Id) {
                 return false;
             }
-            if (!Template.RelativePath.SequenceEqualsSafe(item.Template.RelativePath)) {
+            if (!Template.RelativePath.SequenceEqualsSafe(wrapper.Template.RelativePath)) {
                 return false;
             }
-            if (Template.StartNodeId != item.Template.StartNodeId) {
+            if (Template.StartNodeId != wrapper.Template.StartNodeId) {
                 return false;
             }
-            if (Template.IndexRange != item.Template.IndexRange) {
+            if (Template.IndexRange != wrapper.Template.IndexRange) {
                 return false;
             }
-            if (Template.AttributeId != item.Template.AttributeId) {
+            if (Template.AttributeId != wrapper.Template.AttributeId) {
                 return false;
             }
             return true;
@@ -202,6 +183,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         public void GetMetaData(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
             FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
+            Debug.Assert(Item != null);
             try {
                 if (Item.Filter is EventFilter eventFilter) {
                     GetEventMetadata(eventFilter, nodeCache, typeTree, fields, dataTypes);
@@ -433,6 +415,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         internal MonitoringMode? GetMonitoringModeChange() {
             var change = _modeChange.ToStackType();
             _modeChange = null;
+            Debug.Assert(Item != null);
             return Item.MonitoringMode == change ? null : change;
         }
 
@@ -634,13 +617,68 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
+        /// Process monitored item notification
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="notification"></param>
+        public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message,
+            MonitoredItemNotification notification) {
+
+            Debug.Assert(Item != null);
+            Debug.Assert(Template != null);
+            var shouldHeartbeat = ValidateHeartbeat(message.Timestamp);
+            if (notification == null && shouldHeartbeat) {
+                MonitoredItemNotificationModel GetDefaultNotification(uint messageId) {
+                    return new MonitoredItemNotificationModel {
+                        DataSetFieldName = Template?.DataSetFieldName,
+                        Id = Template.Id,
+                        DisplayName = Item.DisplayName,
+                        NodeId = Template.StartNodeId,
+                        AttributeId = Item.AttributeId,
+                        MessageId = messageId,
+                        Value = new DataValue(Item.Status?.Error?.StatusCode ?? StatusCodes.BadMonitoredItemIdInvalid),
+                    };
+                }
+                var heartbeatValues = Item.LastValue.ToMonitoredItemNotifications(Item, () => GetDefaultNotification(0));
+                foreach (var heartbeat in heartbeatValues) {
+                    var heartbeatValue = heartbeat.Clone();
+                    heartbeatValue.SequenceNumber = 0;
+                    heartbeatValue.IsHeartbeat = true;
+                    Debug.Assert(message.Notifications != null);
+                    message.Notifications.Add(heartbeatValue);
+                    message.MessageType = Opc.Ua.PubSub.MessageType.KeyFrame;
+                }
+            }
+            else {
+                foreach (var n in notification.ToMonitoredItemNotifications(Item)) {
+                    message.Notifications.Add(n);
+                }
+            }
+
+            bool ValidateHeartbeat(DateTime currentPublish) {
+                if (DataTemplate == null) {
+                    return false;
+                }
+                if (NextHeartbeat == DateTime.MaxValue) {
+                    return false;
+                }
+                if (NextHeartbeat > currentPublish + TimeSpan.FromMilliseconds(50)) {
+                    return false;
+                }
+                NextHeartbeat = TimeSpan.Zero < DataTemplate.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ?
+                    currentPublish + DataTemplate.HeartbeatInterval.Value : DateTime.MaxValue;
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Processing the monitored item notification
         /// </summary>
         /// <param name="message"></param>
         /// <param name="notification"></param>
-        public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message, EventFieldList notification) {
+        public void ProcessEventNotification(SubscriptionNotificationModel message, EventFieldList notification) {
+            Debug.Assert(Item != null);
             var evFilter = Item.Filter as EventFilter;
-
             var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
                 evFilter?.SelectClauses
                     .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
@@ -725,7 +763,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             else {
                 // Send notifications as event
-                message.Notifications?.AddRange(monitoredItemNotifications.Where(n => n.DataSetFieldName != null));
+                foreach (var eventNotification in monitoredItemNotifications.Where(n => n.DataSetFieldName != null)) {
+                    message.Notifications.Add(eventNotification);
+                }
             }
         }
 
@@ -1067,6 +1107,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var isOk = _expectedSequenceNumber == sequenceNumber;
                 expected = _expectedSequenceNumber;
                 _expectedSequenceNumber = sequenceNumber + 1;
+                if (_expectedSequenceNumber == 0) {
+                    _expectedSequenceNumber = 1;
+                }
                 return isOk;
             }
         }

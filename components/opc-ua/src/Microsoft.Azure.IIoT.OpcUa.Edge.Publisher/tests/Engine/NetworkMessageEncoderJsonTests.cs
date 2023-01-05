@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime;
     using Moq;
@@ -35,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EmptyMessagesTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = new List<DataSetMessageModel>();
+            var messages = new List<SubscriptionNotificationModel>();
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EmptyDataSetMessageModelTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = new[] { new DataSetMessageModel() };
+            var messages = new[] { new SubscriptionNotificationModel() };
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -67,7 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeTooBigJsonMessageTest(bool encodeBatchFlag) {
             var maxMessageSize = 100;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(3, false, MessageEncoding.Json);
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(3, false, MessageEncoding.Json);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -83,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(false)]
         public void EncodeJsonTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, false, MessageEncoding.Json);
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -104,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(false)]
         public void EncodeJsonChunkTest(bool encodeBatchFlag) {
             var maxMessageSize = 8 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(500, false, MessageEncoding.Json);
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(500, false, MessageEncoding.Json);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -120,7 +121,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Fact]
         public void EncodeJsonSingleMessageTest() {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, false, MessageEncoding.Json,
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json,
                 NetworkMessageContentMask.SingleDataSetMessage);
 
             var encoder = GetEncoder();
@@ -138,7 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeEventsJsonTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, true, MessageEncoding.Json);
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, true, MessageEncoding.Json);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -153,7 +154,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Fact]
         public void EncodeEventsSingleMessageJsonTest() {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, true, MessageEncoding.Json,
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, true, MessageEncoding.Json,
                 NetworkMessageContentMask.SingleDataSetMessage);
 
             var encoder = GetEncoder();
@@ -172,8 +173,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeMetadataJsonTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, false, MessageEncoding.Json);
-            messages[10].Notifications = null; // Emit metadata
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json);
+            messages[10].MessageType = Opc.Ua.PubSub.MessageType.Metadata; // Emit metadata
             messages[10].MetaData = new DataSetMetaDataType {
                 Name = "test",
                 Fields = new FieldMetaDataCollection {
@@ -198,9 +199,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeNothingTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(1, false, MessageEncoding.Json);
-            messages[0].Notifications = null;
-            messages[0].MetaData = null;
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Json);
+            messages[0].MessageType = Opc.Ua.PubSub.MessageType.KeepAlive;
+            messages[0].Notifications.Clear();
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);

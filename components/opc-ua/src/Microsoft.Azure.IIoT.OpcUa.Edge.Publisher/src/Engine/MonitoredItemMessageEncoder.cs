@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public IEnumerable<NetworkMessageModel> Encode(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool asBatch) {
+            IEnumerable<SubscriptionNotificationModel> messages, int maxMessageSize, bool asBatch) {
             // Deliberately cresh and log through caller
             if (!asBatch) {
                 var resultJson = EncodeAsJson(messages, maxMessageSize);
@@ -94,14 +94,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeBatchAsJson(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<SubscriptionNotificationModel> messages, int maxMessageSize) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext);
-            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
+            var routingInfo = messages.Select(m => m.Context).OfType<WriterGroupMessageContext>()
+                .FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
@@ -181,14 +182,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="maxMessageSize"></param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeBatchAsBinary(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<SubscriptionNotificationModel> messages, int maxMessageSize) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Binary, encodingContext);
-            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
+            var routingInfo = messages.Select(m => m.Context).OfType<WriterGroupMessageContext>()
+                .FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
@@ -248,14 +250,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsJson(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<SubscriptionNotificationModel> messages, int maxMessageSize) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext);
-            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
+            var routingInfo = messages.Select(m => m.Context).OfType<WriterGroupMessageContext>()
+                .FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 var writer = new StringWriter();
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
@@ -299,14 +302,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="maxMessageSize"></param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsBinary(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<SubscriptionNotificationModel> messages, int maxMessageSize) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Binary, encodingContext).ToList();
-            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
+            var routingInfo = messages.Select(m => m.Context).OfType<WriterGroupMessageContext>()
+                .FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
                 var encoder = new BinaryEncoder(encodingContext);
                 encoder.WriteBoolean(null, false); // is not Batch
@@ -342,7 +346,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="encoding"></param>
         /// <param name="context"></param>
         private IEnumerable<MonitoredItemMessage> GetMonitoredItemMessages(
-            IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
+            IEnumerable<SubscriptionNotificationModel> messages, MessageEncoding encoding,
             IServiceMessageContext context) {
             if (context?.NamespaceUris == null) {
                 // declare all notifications in messages dropped
@@ -354,14 +358,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             // Filter metadata message == no notifications, we do not handle those in samples mode
             foreach (var message in messages.Where(m => m.Notifications != null)) {
-                if (message.WriterGroup?.MessageType?.HasFlag(encoding) ?? true) {
+                var writerGroupContext = message.Context as WriterGroupMessageContext;
+                if (writerGroupContext?.WriterGroup?.MessageType?.HasFlag(encoding) ?? true) {
 
                     // Group by message id to collate event fields into a single key value pair dictionary view
                     foreach (var notification in message.Notifications.GroupBy(f => f.Id + f.MessageId)) {
                         var notificationsInGroup = notification.ToList();
                         if (notificationsInGroup.Count == 1) {
                             // This is a data change event
-                            yield return CreateMessage(message, notificationsInGroup[0], notificationsInGroup[0].Value);
+                            yield return CreateMessage(message, writerGroupContext,
+                                notificationsInGroup[0], notificationsInGroup[0].Value);
                         }
                         else if (notificationsInGroup.Count > 1) {
 
@@ -384,24 +390,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 ServerPicoseconds = notificationsInGroup[0].Value.ServerPicoseconds,
                                 StatusCode = notificationsInGroup[0].Value.StatusCode
                             };
-                            yield return CreateMessage(message, notificationsInGroup[0], dataValue);
+                            yield return CreateMessage(message, writerGroupContext, notificationsInGroup[0], dataValue);
                         }
                     }
                 }
             }
 
-            static MonitoredItemMessage CreateMessage(DataSetMessageModel message,
-                MonitoredItemNotificationModel notification, DataValue value) {
+            static MonitoredItemMessage CreateMessage(SubscriptionNotificationModel message,
+                WriterGroupMessageContext context, MonitoredItemNotificationModel notification, DataValue value) {
                 var sequenceNumber = notification.SequenceNumber.GetValueOrDefault(0);
                 var result = new MonitoredItemMessage {
-                    MessageContentMask = (message.Writer?.MessageSettings?
+                    MessageContentMask = (context?.Writer?.MessageSettings?
                         .DataSetMessageContentMask).ToMonitoredItemMessageMask(
-                            message.Writer?.DataSetFieldContentMask),
+                            context?.Writer?.DataSetFieldContentMask),
                     ApplicationUri = message.ApplicationUri,
                     EndpointUrl = message.EndpointUrl,
-                    ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
+                    ExtensionFields = context?.Writer?.DataSet?.ExtensionFields,
                     NodeId = notification.NodeId,
-                    Timestamp = message.TimeStamp ?? DateTime.UtcNow,
+                    Timestamp = message.Timestamp,
                     Value = value,
                     DisplayName = notification.DisplayName,
                     SequenceNumber = sequenceNumber

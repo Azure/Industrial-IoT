@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -53,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public IEnumerable<NetworkMessageModel> Encode(IEnumerable<DataSetMessageModel> messages,
+        public IEnumerable<NetworkMessageModel> Encode(IEnumerable<SubscriptionNotificationModel> messages,
             int maxMessageSize, bool asBatch) {
 
             //
@@ -117,39 +118,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="messages"></param>
         /// <param name="isBatched"></param>
         /// <returns></returns>
-        private List<(int, PubSubMessage)> GetNetworkMessages(IEnumerable<DataSetMessageModel> messages, bool isBatched) {
+        private List<(int, PubSubMessage)> GetNetworkMessages(IEnumerable<SubscriptionNotificationModel> messages, bool isBatched) {
             var result = new List<(int, PubSubMessage)>();
             // Group messages by publisher, then writer group and then by dataset class id
-            foreach (var publishers in messages.GroupBy(m => m.PublisherId)) {
+            foreach (var publishers in messages
+                .Select(m => (Notification: m, Context: m.Context as WriterGroupMessageContext))
+                .Where(m => m.Context != null)
+                .GroupBy(m => m.Context.PublisherId)) {
                 var publisherId = publishers.Key;
-                foreach (var groups in publishers.GroupBy(m => m.WriterGroup)) {
+                foreach (var groups in publishers.GroupBy(m => m.Context.WriterGroup)) {
                     var writerGroup = groups.Key;
                     if (writerGroup?.MessageSettings == null) {
                         // Must have a writer group
-                        Drop(groups);
+                        Drop(groups.Select(m => m.Notification));
                         continue;
                     }
                     var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
                     var networkMessageContentMask =
                         writerGroup.MessageSettings.NetworkMessageContentMask.ToStackType(encoding);
                     foreach (var dataSetClass in groups
-                        .GroupBy(m => m.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty)) {
+                        .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty)) {
 
                         var dataSetClassId = dataSetClass.Key;
                         var currentMessage = CreateMessage(writerGroup, encoding,
                             networkMessageContentMask, dataSetClassId, publisherId);
                         var currentNotificationCount = 0;
                         foreach (var message in dataSetClass) {
-                            if (message.Writer == null) {
+                            if (message.Context.Writer == null) {
                                 // Must have a writer
-                                Drop(message.YieldReturn());
+                                Drop(message.Notification.YieldReturn());
                                 continue;
                             }
                             var dataSetMessageContentMask =
-                                (message.Writer.MessageSettings?.DataSetMessageContentMask).ToStackType(encoding);
-                            var dataSetFieldContentMask = message.Writer.DataSetFieldContentMask.ToStackType();
-                            if (message.Notifications != null) {
-                                var notificationQueues = message.Notifications
+                                (message.Context.Writer.MessageSettings?.DataSetMessageContentMask).ToStackType(encoding);
+                            var dataSetFieldContentMask = message.Context.Writer.DataSetFieldContentMask.ToStackType();
+
+
+                            if (message.Notification.MessageType != MessageType.Metadata) {
+                                Debug.Assert(message.Notification.Notifications != null);
+                                var notificationQueues = message.Notification.Notifications
                                     .GroupBy(m => m.DataSetFieldName)
                                     .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
                                     .ToArray();
@@ -165,17 +172,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     BaseDataSetMessage dataSetMessage = encoding.HasFlag(MessageEncoding.Json)
                                         ? new JsonDataSetMessage {
                                             UseCompatibilityMode = !_useStandardsCompliantEncoding,
-                                            DataSetWriterName = message.Writer.DataSetWriterName
+                                            DataSetWriterName = message.Context.Writer.DataSetWriterName
                                         } : new UadpDataSetMessage();
 
-                                    dataSetMessage.DataSetWriterId = message.SubscriptionId;
-                                    dataSetMessage.MessageType = message.MessageType;
-                                    dataSetMessage.MetaDataVersion = message.MetaData?.ConfigurationVersion
+                                    dataSetMessage.DataSetWriterId = message.Notification.SubscriptionId;
+                                    dataSetMessage.MessageType = message.Notification.MessageType;
+                                    dataSetMessage.MetaDataVersion = message.Notification.MetaData?.ConfigurationVersion
                                         ?? new ConfigurationVersionDataType { MajorVersion = 1 };
                                     dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
-                                    dataSetMessage.Timestamp = message.TimeStamp ?? DateTime.UtcNow;
+                                    dataSetMessage.Timestamp = message.Notification.Timestamp;
                                     dataSetMessage.Picoseconds = 0;
-                                    dataSetMessage.SequenceNumber = message.SequenceNumber;
+                                    dataSetMessage.SequenceNumber = message.Context.SequenceNumber;
                                     dataSetMessage.Status = payload.Values.Any(s => StatusCode.IsNotGood(s.StatusCode)) ?
                                         StatusCodes.Bad : StatusCodes.Good;
                                     dataSetMessage.Payload = new DataSet(payload, (uint)dataSetFieldContentMask);
@@ -191,7 +198,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 }
                                 currentNotificationCount++;
                             }
-                            else if (message.MetaData != null) {
+                            else if (message.Notification.MetaData != null) {
                                 if (currentMessage.Messages.Count > 0) {
                                     // Start a new message but first emit current
                                     result.Add((currentNotificationCount, currentMessage));
@@ -199,21 +206,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         dataSetClassId, publisherId);
                                     currentNotificationCount = 0;
                                 }
-                                var metaData = (DataSetMetaDataType)Utils.Clone(message.MetaData);
-                                metaData.Description = message.Writer?.DataSet?.DataSetMetaData?.Description;
-                                metaData.Name = message.Writer?.DataSet?.DataSetMetaData?.Name;
+                                var metaData = (DataSetMetaDataType)Utils.Clone(message.Notification.MetaData);
+                                metaData.Description = message.Context.Writer?.DataSet?.DataSetMetaData?.Description;
+                                metaData.Name = message.Context.Writer?.DataSet?.DataSetMetaData?.Name;
 
                                 PubSubMessage metadataMessage = encoding.HasFlag(MessageEncoding.Json)
                                     ? new JsonMetaDataMessage {
                                         UseAdvancedEncoding = !_useStandardsCompliantEncoding,
                                         UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
-                                        DataSetWriterId = message.SubscriptionId,
+                                        DataSetWriterId = message.Notification.SubscriptionId,
                                         MetaData = metaData,
                                         MessageId = Guid.NewGuid().ToString(),
                                         DataSetWriterGroup = writerGroup.WriterGroupId,
-                                        DataSetWriterName = message.Writer.DataSetWriterName
+                                        DataSetWriterName = message.Context.Writer.DataSetWriterName
                                     } : new UadpMetaDataMessage {
-                                        DataSetWriterId = message.SubscriptionId,
+                                        DataSetWriterId = message.Notification.SubscriptionId,
                                         MetaData = metaData
                                     };
                                 metadataMessage.PublisherId = publisherId;
@@ -254,7 +261,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return result;
         }
 
-        private void Drop(IEnumerable<DataSetMessageModel> messages) {
+        private void Drop(IEnumerable<SubscriptionNotificationModel> messages) {
             int totalNotifications = messages.Sum(m => m?.Notifications?.Count ?? 0);
             NotificationsDroppedCount += (uint)totalNotifications;
             _logger.Warning("Dropped {totalNotifications} values", totalNotifications);

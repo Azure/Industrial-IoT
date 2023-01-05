@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
 
     /// <summary>
     /// Dataflow engine
@@ -45,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _identity = identity;
 
             if (_config.BatchSize.HasValue && _config.BatchSize.Value > 1) {
-                _dataSetMessageBufferSize = _config.BatchSize.Value;
+                _notificationBufferSize = _config.BatchSize.Value;
             }
             if (_config.MaxMessageSize.HasValue && _config.MaxMessageSize.Value > 0) {
                 _maxEncodedMessageSize = _config.MaxMessageSize.Value;
@@ -57,10 +58,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
             _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(4096); // = 1 GB
 
-            _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
+            _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], NetworkMessageModel>(
                 input => {
                     try {
-                        return _messageEncoder.Encode(input, _maxEncodedMessageSize, _dataSetMessageBufferSize != 1);
+                        return _messageEncoder.Encode(input, _maxEncodedMessageSize, _notificationBufferSize != 1);
                     }
                     catch (Exception e) {
                         _logger.Error(e, "Encoding failure.");
@@ -69,8 +70,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 },
                 new ExecutionDataflowBlockOptions());
 
-            _batchDataSetMessageBlock = new BatchBlock<DataSetMessageModel>(
-                _dataSetMessageBufferSize,
+            _batchDataSetMessageBlock = new BatchBlock<SubscriptionNotificationModel>(
+                _notificationBufferSize,
                 new GroupingDataflowBlockOptions ());
 
             _batchNetworkMessageBlock = new BatchBlock<NetworkMessageModel>(
@@ -338,7 +339,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Message received handler
         /// </summary>
-        private void MessageTriggerMessageReceived(object sender, DataSetMessageModel args) {
+        private void MessageTriggerMessageReceived(object sender, SubscriptionNotificationModel args) {
             _logger.Debug("Message trigger for {Name} received message with sequenceNumber {SequenceNumber}",
                     Name, args.SequenceNumber);
 
@@ -366,7 +367,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _diagnosticStart = DateTime.MinValue;
         }
 
-        private readonly int _dataSetMessageBufferSize = 1;
+        private readonly int _notificationBufferSize = 1;
         private readonly int _networkMessageBufferSize = 1;
         private readonly Timer _batchTriggerIntervalTimer;
         private readonly TimeSpan _batchTriggerInterval;
@@ -380,14 +381,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ILogger _logger;
         private readonly IIdentity _identity;
 
-        private BatchBlock<DataSetMessageModel> _batchDataSetMessageBlock;
+        private BatchBlock<SubscriptionNotificationModel> _batchDataSetMessageBlock;
         private BatchBlock<NetworkMessageModel> _batchNetworkMessageBlock;
 
         private readonly Timer _diagnosticsOutputTimer;
         private readonly TimeSpan _diagnosticInterval;
         private DateTime _diagnosticStart = DateTime.MinValue;
 
-        private TransformManyBlock<DataSetMessageModel[], NetworkMessageModel> _encodingBlock;
+        private TransformManyBlock<SubscriptionNotificationModel[], NetworkMessageModel> _encodingBlock;
         private ActionBlock<NetworkMessageModel[]> _sinkBlock;
 
         /// <summary>

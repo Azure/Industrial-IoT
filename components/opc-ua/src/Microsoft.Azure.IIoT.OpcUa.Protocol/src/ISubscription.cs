@@ -82,12 +82,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         int NumberOfBadNodes { get; }
 
         /// <summary>
-        /// Get a subscription notification with optional snapshot
+        /// Create a keep alive notification
         /// </summary>
-        /// <param name="withNotifications"></param>
         /// <returns></returns>
-        SubscriptionNotificationModel GetSubscriptionNotification(
-            bool withNotifications = false);
+        SubscriptionNotificationModel CreateKeepAlive();
+
+        /// <summary>
+        /// Adds a snapshot of all values to the notification
+        /// </summary>
+        /// <returns></returns>
+        bool TryUpgradeToKeyFrame(SubscriptionNotificationModel notification);
 
         /// <summary>
         /// Apply desired state

@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -163,7 +164,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public ulong EventCount { get; private set; }
 
         /// <inheritdoc/>
-        public event EventHandler<DataSetMessageModel> OnMessage;
+        public event EventHandler<SubscriptionNotificationModel> OnMessage;
 
         /// <inheritdoc/>
         public event EventHandler<EventArgs> OnCounterReset;
@@ -268,8 +269,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 var sc = await _outer._subscriptionManager.GetOrCreateSubscriptionAsync(
                     _subscriptionInfo).ConfigureAwait(false);
-                sc.OnSubscriptionDataChange += OnSubscriptionDataChanged;
-                sc.OnSubscriptionEventChange += OnSubscriptionEventChanged;
+                sc.OnSubscriptionDataChange += OnSubscriptionDataChangeNotification;
+                sc.OnSubscriptionEventChange += OnSubscriptionEventNotification;
                 sc.OnSubscriptionDataDiagnosticsChange += OnSubscriptionDataDiagnosticsChanged;
                 sc.OnSubscriptionEventDiagnosticsChange += OnSubscriptionEventDiagnosticsChanged;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
@@ -338,8 +339,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     return;
                 }
                 await Subscription.CloseAsync().ConfigureAwait(false);
-                Subscription.OnSubscriptionDataChange -= OnSubscriptionDataChanged;
-                Subscription.OnSubscriptionEventChange -= OnSubscriptionEventChanged;
+                Subscription.OnSubscriptionDataChange -= OnSubscriptionDataChangeNotification;
+                Subscription.OnSubscriptionEventChange -= OnSubscriptionEventNotification;
                 Subscription.OnSubscriptionDataDiagnosticsChange -= OnSubscriptionDataDiagnosticsChanged;
                 Subscription.OnSubscriptionEventDiagnosticsChange -= OnSubscriptionEventDiagnosticsChanged;
                 Subscription.Dispose();
@@ -405,7 +406,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 _outer._logger.Debug("Insert metadata message...");
-                var notification = Subscription.GetSubscriptionNotification();
+                var notification = Subscription.CreateKeepAlive();
                 if (notification != null) {
                     // This call udpates the message type, so no need to do it here.
                     CallMessageReceiverDelegates(this, notification, true);
@@ -419,17 +420,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Handle subscription data change messages
             /// </summary>
-            private void OnSubscriptionDataChanged(object sender, SubscriptionNotificationModel notification) {
+            private void OnSubscriptionDataChangeNotification(object sender, SubscriptionNotificationModel notification) {
                 CallMessageReceiverDelegates(sender, ProcessKeyFrame(notification));
 
                 SubscriptionNotificationModel ProcessKeyFrame(SubscriptionNotificationModel notification) {
                     if (_keyFrameCount > 0) {
                         var frameCount = Interlocked.Increment(ref _frameCount);
                         if ((frameCount % _keyFrameCount) == 0) {
-                            var snapshot = Subscription.GetSubscriptionNotification();
-                            if (snapshot != null) {
-                                notification = snapshot;
-                            }
+                            Subscription.TryUpgradeToKeyFrame(notification);
                         }
                     }
                     return notification;
@@ -461,7 +459,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Handle subscription change messages
             /// </summary>
-            private void OnSubscriptionEventChanged(object sender, SubscriptionNotificationModel notification) {
+            private void OnSubscriptionEventNotification(object sender, SubscriptionNotificationModel notification) {
                 CallMessageReceiverDelegates(sender, notification);
             }
 
@@ -513,19 +511,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 sendMetadata = true;
                             }
                             if (sendMetadata) {
-                                var message = CreateDataSetMessage(notification);
-                                message.MessageType = Opc.Ua.PubSub.MessageType.Metadata;
-                                _outer.OnMessage?.Invoke(sender, message);
+                                var metadata = new SubscriptionNotificationModel {
+                                    Context = CreateMessageContext(),
+                                    MessageType = Opc.Ua.PubSub.MessageType.Metadata,
+                                    SequenceNumber = _metadataSequenceNumber++,
+                                    ServiceMessageContext = notification.ServiceMessageContext,
+                                    MetaData = notification.MetaData,
+                                    Timestamp = notification.Timestamp,
+                                    SubscriptionId = notification.SubscriptionId,
+                                    SubscriptionName = notification.SubscriptionName,
+                                    ApplicationUri = notification.ApplicationUri,
+                                    EndpointUrl = notification.EndpointUrl
+                                };
+                                _outer.OnMessage?.Invoke(sender, metadata);
                                 InitializeMetaDataTrigger(_dataSetWriter);
                             }
                         }
 
-                        if (notification.Notifications != null) {
-                            var message = CreateDataSetMessage(notification);
-                            message.Notifications = notification.Notifications;
-                            _outer.OnMessage?.Invoke(sender, message);
-                            if (message.MessageType == Opc.Ua.PubSub.MessageType.KeyFrame) {
-                                // Reset keyframe trigger
+                        if (!metaDataTimer) {
+                            Debug.Assert(notification.Notifications != null);
+                            notification.Context = CreateMessageContext();
+                            _outer.OnMessage?.Invoke(sender, notification);
+
+                            if (notification.MessageType != Opc.Ua.PubSub.MessageType.DeltaFrame &&
+                                notification.MessageType != Opc.Ua.PubSub.MessageType.KeepAlive) {
+                                // Reset keyframe trigger for events, keyframe, and conditions
+                                // which are all key frame like messages
                                 InitializeKeyframeTrigger(_dataSetWriter);
                             }
                         }
@@ -535,20 +546,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _outer._logger.Warning(ex, "Failed to produce message.");
                 }
 
-                DataSetMessageModel CreateDataSetMessage(SubscriptionNotificationModel notification) {
-                    return new DataSetMessageModel {
-                        ServiceMessageContext = notification.ServiceMessageContext,
-                        SubscriptionId = notification.SubscriptionId,
-                        MessageType = notification.MessageType,
-                        ApplicationUri = notification.ApplicationUri,
-                        EndpointUrl = notification.EndpointUrl,
-                        TimeStamp = notification.Timestamp,
+                WriterGroupMessageContext CreateMessageContext() {
+                    return new WriterGroupMessageContext {
                         PublisherId = _outer._publisherId,
-                        MetaData = notification.MetaData,
                         Writer = _dataSetWriter,
                         SequenceNumber = _currentSequenceNumber++,
-                        WriterGroup = _outer._writerGroup,
-                        Notifications = null,
+                        WriterGroup = _outer._writerGroup
                     };
                 }
             }
@@ -588,6 +591,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             private uint _keyFrameCount;
             private volatile uint _frameCount;
             private uint _currentSequenceNumber;
+            private uint _metadataSequenceNumber;
             private uint _currentMetadataMajorVersion;
             private uint _currentMetadataMinorVersion;
         }

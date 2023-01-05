@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Moq;
@@ -31,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EmptyMessagesTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = new List<DataSetMessageModel>();
+            var messages = new List<SubscriptionNotificationModel>();
 
             var networkMessages = _encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
@@ -46,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EmptyDataSetMessageModelTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = new[] { new DataSetMessageModel() };
+            var messages = new[] { new SubscriptionNotificationModel() };
 
             var networkMessages = _encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
@@ -63,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Uadp)]
         public void EncodeTooBigMessageTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 100;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(3, false, encoding);
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(3, false, encoding);
 
             var networkMessages = _encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
@@ -80,7 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Uadp)]
         public void EncodeDataTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, false, encoding);
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, false, encoding);
 
             var networkMessages = _encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
@@ -107,7 +108,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Uadp)]
         public void EncodeEventTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(1, true, encoding);
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(1, true, encoding);
 
             var networkMessages = _encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
@@ -125,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Uadp)]
         public void EncodeEventsTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, true, encoding);
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, true, encoding);
 
             var networkMessages = _encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 

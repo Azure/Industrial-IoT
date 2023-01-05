@@ -15,6 +15,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     public class SubscriptionNotificationModel {
 
         /// <summary>
+        /// Sequence number of the message
+        /// </summary>
+        public uint SequenceNumber { get; set; }
+
+        /// <summary>
         /// Service message context
         /// </summary>
         public IServiceMessageContext ServiceMessageContext { get; set; }
@@ -22,7 +27,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Notification
         /// </summary>
-        public List<MonitoredItemNotificationModel> Notifications { get; set; }
+        public IList<MonitoredItemNotificationModel> Notifications { get; set; }
+            = Array.Empty<MonitoredItemNotificationModel>();
 
         /// <summary>
         /// Message type
@@ -58,5 +64,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Publishing time
         /// </summary>
         public DateTime Timestamp { get; set; }
+
+        /// <summary>
+        /// Additional context information
+        /// </summary>
+        public object Context { get; set; }
     }
 }

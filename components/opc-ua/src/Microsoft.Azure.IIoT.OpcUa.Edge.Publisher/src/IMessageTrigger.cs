@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using System;
     using System.Threading;
@@ -75,9 +75,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         ulong EventNotificationCount { get; }
 
         /// <summary>
-        /// Writer events
+        /// Subscribe to writer messages
         /// </summary>
-        event EventHandler<DataSetMessageModel> OnMessage;
+        event EventHandler<SubscriptionNotificationModel> OnMessage;
 
         /// <summary>
         /// Called when ValueChangesCount or DataChangesCount are resetted
