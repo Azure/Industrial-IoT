@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
     using Serilog;
     using System;
@@ -178,18 +179,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="messageContext"></param>
         /// <param name="nodeCache"></param>
         /// <param name="typeTree"></param>
+        /// <param name="typeSystem"></param>
         /// <param name="fields"></param>
         /// <param name="dataTypes"></param>
         /// <returns></returns>
         public void GetMetaData(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
-            FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
+            ComplexTypeSystem typeSystem, FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
             Debug.Assert(Item != null);
             try {
                 if (Item.Filter is EventFilter eventFilter) {
-                    GetEventMetadata(eventFilter, nodeCache, typeTree, fields, dataTypes);
+                    GetEventMetadata(eventFilter, nodeCache, typeTree, typeSystem, fields, dataTypes);
                 }
                 else {
-                    GetDataMetadata(messageContext, nodeCache, typeTree, fields, dataTypes);
+                    GetDataMetadata(messageContext, nodeCache, typeTree, typeSystem, fields, dataTypes);
                 }
             }
             catch (Exception e) {
@@ -655,7 +657,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             else {
                 foreach (var n in notification.ToMonitoredItemNotifications(Item)) {
                     foreach (var missingSequenceNumber in missingSequenceNumbers) {
-                        message.Notifications.Add(n.Clone(missingSequenceNumber, new DataValue(StatusCodes.BadDataLost)));
+                         message.Notifications.Add(n.Clone(missingSequenceNumber, new DataValue(StatusCodes.BadDataLost)));
                     }
                     message.Notifications.Add(n);
                 }
@@ -773,7 +775,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // Send notifications as event
                 foreach (var n in monitoredItemNotifications.Where(n => n.DataSetFieldName != null)) {
                     foreach (var missingSequenceNumber in missingSequenceNumbers) {
-                        message.Notifications.Add(n.Clone(missingSequenceNumber, new DataValue(StatusCodes.BadDataLost)));
+                        // message.Notifications.Add(n.Clone(missingSequenceNumber, new DataValue(StatusCodes.BadDataLost)));
                     }
                     message.Notifications.Add(n);
                 }
@@ -871,15 +873,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="messageContext"></param>
         /// <param name="nodeCache"></param>
         /// <param name="typeTree"></param>
+        /// <param name="typeSystem"></param>
         /// <param name="fields"></param>
         /// <param name="dataTypes"></param>
         private void GetDataMetadata(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
-            FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
+            ComplexTypeSystem typeSystem, FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
             var nodeId = Template.StartNodeId.ToExpandedNodeId(messageContext);
             try {
                 var variable = nodeCache.FetchNode(nodeId) as VariableNode;
                 if (variable != null) {
-                    AddVariableField(fields, dataTypes, nodeCache, typeTree, variable,
+                    AddVariableField(fields, dataTypes, nodeCache, typeTree, typeSystem, variable,
                         Template.DataSetFieldName, (Uuid)DataSetFieldId);
                 }
             }
@@ -896,12 +899,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="dataTypes"></param>
         /// <param name="nodeCache"></param>
         /// <param name="typeTree"></param>
+        /// <param name="typeSystem"></param>
         /// <param name="variable"></param>
         /// <param name="fieldName"></param>
         /// <param name="dataSetClassFieldId"></param>
         private void AddVariableField(FieldMetaDataCollection fields,
             NodeIdDictionary<DataTypeDescription> dataTypes, INodeCache nodeCache, ITypeTable typeTree,
-            VariableNode variable, string fieldName, Uuid dataSetClassFieldId) {
+            ComplexTypeSystem typeSystem, VariableNode variable, string fieldName, Uuid dataSetClassFieldId) {
             var builtInType = TypeInfo.GetBuiltInType(variable.DataType, nodeCache.TypeTree);
             fields.Add(new FieldMetaData {
                 Name = fieldName,
@@ -916,7 +920,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 Properties = null, // TODO: Add engineering units etc. to properties
                 BuiltInType = (byte)builtInType
             });
-            AddDataTypes(dataTypes, variable.DataType, nodeCache, typeTree);
+            AddDataTypes(dataTypes, variable.DataType, nodeCache, typeTree, typeSystem);
         }
 
         /// <summary>
@@ -925,11 +929,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="eventFilter"></param>
         /// <param name="nodeCache"></param>
         /// <param name="typeTree"></param>
+        /// <param name="typeSystem"></param>
         /// <param name="fields"></param>
         /// <param name="dataTypes"></param>
         /// <returns></returns>
         private void GetEventMetadata(EventFilter eventFilter, INodeCache nodeCache, ITypeTable typeTree,
-            FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
+            ComplexTypeSystem typeSystem, FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
             Debug.Assert(Fields.Count == eventFilter.SelectClauses.Count);
             for (var i = 0; i < eventFilter.SelectClauses.Count; i++) {
                 var selectClause = eventFilter.SelectClauses[i];
@@ -940,7 +945,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var dataSetClassFieldId = (Uuid)Fields[i].DataSetFieldId;
                 var targetNode = FindNodeWithBrowsePath(nodeCache, typeTree, selectClause.BrowsePath, selectClause.TypeDefinitionId);
                 if (targetNode is VariableNode variable) {
-                    AddVariableField(fields, dataTypes, nodeCache, typeTree, variable, fieldName, dataSetClassFieldId);
+                    AddVariableField(fields, dataTypes, nodeCache, typeTree, typeSystem, variable, fieldName, dataSetClassFieldId);
                 }
                 else {
                     fields.Add(new FieldMetaData {
@@ -994,8 +999,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="dataTypeId"></param>
         /// <param name="nodeCache"></param>
         /// <param name="typeTree"></param>
+        /// <param name="typeSystem"></param>
         private void AddDataTypes(NodeIdDictionary<DataTypeDescription> dataTypes, NodeId dataTypeId,
-            INodeCache nodeCache, ITypeTable typeTree) {
+            INodeCache nodeCache, ITypeTable typeTree, ComplexTypeSystem typeSystem) {
             var baseType = dataTypeId;
             while (!NodeId.IsNull(baseType)) {
                 try {
@@ -1018,40 +1024,63 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var builtInType = TypeInfo.GetBuiltInType(dataTypeId, typeTree);
                     baseType = typeTree.FindSuperType(dataTypeId);
 
-                    if (!dataTypes.ContainsKey(dataType.NodeId)) {
-                        switch (builtInType) {
-                            case BuiltInType.ExtensionObject:
-                                StructureDefinition structureDefinition = null;  // TODO: Use complex type system
-                                dataTypes.Add(dataTypeId, new StructureDescription {
-                                    DataTypeId = dataTypeId,
-                                    Name = dataType.BrowseName,
-                                    StructureDefinition = structureDefinition
-                                });
+                    switch (builtInType) {
+                        case BuiltInType.Enumeration:
+                        case BuiltInType.ExtensionObject:
+                            NodeIdDictionary<DataTypeDefinition> types = null;
+#if FULLMETADATA // Enable when supported in stack
+                            types = typeSystem?.GetDataTypeDefinitionsForDataType(dataType.NodeId);
+#endif
+                            if (types == null || types.Count == 0) {
+                                dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(dataType, builtInType));
                                 break;
-                            case BuiltInType.Enumeration:
-                                EnumDefinition enumDefinition = null;  // TODO: Use complex type system
-                                dataTypes.Add(dataTypeId, new EnumDescription {
-                                    DataTypeId = dataTypeId,
-                                    Name = dataType.BrowseName,
-                                    EnumDefinition = enumDefinition,
-                                    BuiltInType = (byte)builtInType
-                                });
-                                break;
-                            default:
-                                dataTypes.Add(dataTypeId, new SimpleTypeDescription {
-                                    DataTypeId = dataTypeId,
-                                    Name = dataType.BrowseName,
-                                    BaseDataType = baseType,
-                                    BuiltInType = (byte)builtInType
-                                });
-                                break;
-                        }
+                            }
+                            foreach (var type in types) {
+                                if (!dataTypes.ContainsKey(type.Key)) {
+                                    DataTypeDescription description = type.Value switch {
+                                        StructureDefinition s =>
+                                            new StructureDescription {
+                                                DataTypeId = type.Key,
+                                                Name = dataType.BrowseName,
+                                                StructureDefinition = s
+                                            },
+                                        EnumDefinition e =>
+                                            new EnumDescription {
+                                                DataTypeId = type.Key,
+                                                Name = dataType.BrowseName,
+                                                EnumDefinition = e
+                                            },
+                                        _ => GetDefault(dataType, builtInType),
+                                    };
+                                    dataTypes.AddOrUpdate(type.Key, description);
+                                }
+                            }
+                            break;
+                        default:
+                            dataTypes.Add(dataTypeId, new SimpleTypeDescription {
+                                DataTypeId = dataTypeId,
+                                Name = dataType.BrowseName,
+                                BaseDataType = baseType,
+                                BuiltInType = (byte)builtInType
+                            });
+                            break;
                     }
                 }
                 catch (Exception ex) {
                     _logger.Warning("{item}: Failed to get meta data for type {dataType} (base: {baseType}) with message: {message}",
                         this, dataTypeId, baseType, ex.Message);
                 }
+            }
+
+            static DataTypeDescription GetDefault(Node dataType, BuiltInType builtInType) {
+                return builtInType == BuiltInType.Enumeration
+                    ? new EnumDescription {
+                        DataTypeId = dataType.NodeId,
+                        Name = dataType.BrowseName
+                    } : new StructureDescription {
+                        DataTypeId = dataType.NodeId,
+                        Name = dataType.BrowseName
+                    };
             }
         }
 
@@ -1116,11 +1145,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Validate sequence number
         /// </summary>
         /// <param name="sequenceNumber"></param>
-        /// <param name="missing"></param>
+        /// <param name="missingSequenceNumbers"></param>
+        /// <param name="dropped"></param>
         /// <returns></returns>
-        internal bool ValidateSequenceNumber(uint sequenceNumber, out uint[] missing) {
+        internal bool ValidateSequenceNumber(uint sequenceNumber, out uint[] missingSequenceNumbers,
+            out bool dropped) {
             lock (_lock) {
-                return SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber, out missing);
+                return SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber,
+                    out missingSequenceNumbers, out dropped);
             }
         }
 
@@ -1157,7 +1189,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private ConditionHandlingState _conditionHandlingState;
         private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
         private Timer _conditionTimer;
-        private uint _lastSequenceNumber = 1;
+        private uint _lastSequenceNumber = 0;
         private DateTime _lastSentPendingConditions = DateTime.UtcNow;
         private HashSet<uint> _newTriggers = new HashSet<uint>();
         private HashSet<uint> _triggers = new HashSet<uint>();

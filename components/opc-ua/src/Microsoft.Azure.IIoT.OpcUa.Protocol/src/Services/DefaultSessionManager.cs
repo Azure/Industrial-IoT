@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public Session GetOrCreateSession(ConnectionModel connection,
+        public ISession GetOrCreateSession(ConnectionModel connection,
             bool ensureWorkingSession) {
 
             // Find session and if not exists create
@@ -132,6 +132,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _lock.Release();
             }
             return null;
+        }
+
+        /// <inheritdoc/>
+        public ComplexTypeSystem GetComplexTypeSystem(ISession session) {
+            return (session?.Handle as SessionWrapper)?.ComplexTypeSystem;
         }
 
         /// <inheritdoc/>
@@ -456,11 +461,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 foreach (var endpointUrl in endpointUrlCandidates) {
                     try {
                         if (!ct.IsCancellationRequested) {
-                            var session = await CreateSessionAsync(endpointUrl, id, ct).ConfigureAwait(false);
+                            var (session, complexTypeSystem) = await CreateSessionAsync(endpointUrl, id, ct).ConfigureAwait(false);
                             if (session != null) {
                                 _logger.Information("Connected to '{endpointUrl}'", endpointUrl);
                                 session.Handle = wrapper;
                                 wrapper.Session = session;
+                                wrapper.ComplexTypeSystem = complexTypeSystem;
                                 foreach (var subscription in wrapper._subscriptions.Values) {
                                     await subscription.EnableAsync(wrapper.Session).ConfigureAwait(false);
                                 }
@@ -632,7 +638,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="id"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<Session> CreateSessionAsync(string endpointUrl, ConnectionIdentifier id,
+        private async Task<(Session, ComplexTypeSystem)> CreateSessionAsync(string endpointUrl, ConnectionIdentifier id,
             CancellationToken ct) {
             var sessionName = $"Azure IIoT {id}";
 
@@ -663,6 +669,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             using (new PerfMarker(_logger, sessionName)) {
                 var userIdentity = id.Connection.User.ToStackModel() ??
                     new UserIdentity(new AnonymousIdentityToken());
+                ComplexTypeSystem complexTypeSystem = null;
                 var session = await Session.Create(
                     _applicationConfiguration, configuredEndpoint,
                     true, sessionName, _clientConfig.DefaultSessionTimeout,
@@ -679,7 +686,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 try {
                     if (!ct.IsCancellationRequested) {
                         _logger.Information("Session '{id}' created, loading complex type system ... ", id);
-                        var complexTypeSystem = new ComplexTypeSystem(session);
+                        complexTypeSystem = new ComplexTypeSystem(session);
                         await complexTypeSystem.Load().ConfigureAwait(false);
                         _logger.Information("Session '{id}' complex type system loaded", id);
                     }
@@ -693,7 +700,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     session.Notification += Session_Notification;
                 }
 
-                return session;
+                return (session, complexTypeSystem);
             }
         }
 
@@ -896,10 +903,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Session's identifier
             /// </summary>
             public string Id { get; set; }
+
             /// <summary>
             /// Session
             /// </summary>
-            public Session Session { get; set; }
+            public Session Session { get; internal set; }
+
+            /// <summary>
+            /// Complex type system
+            /// </summary>
+            public ComplexTypeSystem ComplexTypeSystem { get; internal set; }
 
             /// <summary>
             /// Missed keep alives

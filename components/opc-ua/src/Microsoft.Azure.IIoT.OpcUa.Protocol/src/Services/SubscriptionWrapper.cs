@@ -339,7 +339,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Reads the display name of the nodes to be monitored
             /// </summary>
-            private void ResolveDisplayNames(Session session) {
+            private void ResolveDisplayNames(ISession session) {
                 if (!(_subscription.Configuration?.ResolveDisplayName ?? false)) {
                     return;
                 }
@@ -645,7 +645,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     foreach (var monitoredItem in currentlyMonitored.Values) {
                         monitoredItem.GetMetaData(
                             rawSubscription.Session?.MessageContext, rawSubscription.Session?.NodeCache,
-                            rawSubscription.Session?.TypeTree, fields, dataTypes);
+                            rawSubscription.Session?.TypeTree,
+                            _outer._sessionManager.GetComplexTypeSystem(rawSubscription.Session),
+                            fields, dataTypes);
                     }
 
                     _currentMetaData = new DataSetMetaDataType {
@@ -763,7 +765,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Resets the operation timeout on the session accrding to the publishing intervals on all subscriptions
             /// </summary>
-            private void ReapplySessionOperationTimeout(Session session, Subscription newSubscription) {
+            private void ReapplySessionOperationTimeout(ISession session, Subscription newSubscription) {
                 if (session == null) {
                     return;
                 }
@@ -791,7 +793,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Retrieve a raw subscription with all settings applied (no lock)
             /// </summary>
-            private Subscription GetSubscription(Session session,
+            private Subscription GetSubscription(ISession session,
                 SubscriptionConfigurationModel configuration, bool activate) {
 
                 var hasNewConfig = false;
@@ -1017,6 +1019,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     else {
                         var numOfEvents = 0;
+                        var missingSequenceNumbers = Array.Empty<uint>();
+                        var dropped = false;
                         for (var i = 0; i < notification.Events.Count; i++) {
                             var eventNotification = notification.Events[i];
                             Debug.Assert(eventNotification != null);
@@ -1033,12 +1037,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 continue;
                             }
 
-                            if (!wrapper.ValidateSequenceNumber(sequenceNumber, out var missingSequenceNumbers)) {
+                            if (i == 0 && !wrapper.ValidateSequenceNumber(sequenceNumber, out missingSequenceNumbers, out dropped)) {
                                 _logger.Warning("Event for monitored item {clientHandle} subscription " +
                                     "'{subscription}'/'{sessionId}' has unexpected sequenceNumber {sequenceNumber} " +
-                                    "missing {expectedSequenceNumber}, publishTime {PublishTime}",
+                                    "missing {expectedSequenceNumber} which were {dropped}, publishTime {PublishTime}",
                                     eventNotification.ClientHandle, Name, Connection.CreateConnectionId(), sequenceNumber,
-                                    missingSequenceNumbers.Select(a => a.ToString()).Aggregate((a, b) => $"{a}, {b}"),
+                                    SequenceNumber.ToString(missingSequenceNumbers), dropped ? "dropped" : "already received",
                                     eventNotification.Message.PublishTime);
                             }
 
@@ -1058,7 +1062,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 Notifications = new List<MonitoredItemNotificationModel>(),
                             };
 
-                            wrapper.ProcessEventNotification(message, eventNotification, missingSequenceNumbers);
+                            wrapper.ProcessEventNotification(message, eventNotification,
+                                dropped ? missingSequenceNumbers : Array.Empty<uint>());
                             if (message.Notifications.Count > 0) {
                                 OnSubscriptionEventChange.Invoke(this, message);
                                 numOfEvents++;
@@ -1147,20 +1152,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 continue;
                             }
 
-                            if (!wrapper.ValidateSequenceNumber(sequenceNumber, out var missingSequenceNumbers)) {
+                            if (!wrapper.ValidateSequenceNumber(sequenceNumber, out var missingSequenceNumbers,
+                                out var dropped)) {
                                 _logger.Warning("DataChange for monitored item {clientHandle} subscription " +
                                     "'{subscription}'/'{sessionId}' has unexpected sequenceNumber {sequenceNumber} " +
-                                    "missing {expectedSequenceNumber}, publishTime {PublishTime}",
+                                    "missing {expectedSequenceNumber} which were {ropped}, publishTime {PublishTime}",
                                     item.ClientHandle, Name, Connection.CreateConnectionId(), sequenceNumber,
-                                    missingSequenceNumbers.Select(a => a.ToString()).Aggregate((a, b) => $"{a}, {b}"),
-                                    item.Message.PublishTime);
+                                    SequenceNumber.ToString(missingSequenceNumbers),
+                                    dropped ? "dropped" : "already received", item.Message.PublishTime);
                             }
 
                             _logger.Verbose("Data change for subscription: {Subscription}, sequence#: " +
                                 "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
                                 subscription.DisplayName, sequenceNumber, isKeepAlive, message.Timestamp);
 
-                            wrapper.ProcessMonitoredItemNotification(message, item, missingSequenceNumbers);
+                            wrapper.ProcessMonitoredItemNotification(message, item,
+                                dropped ? missingSequenceNumbers : Array.Empty<uint>());
                         }
                     }
 

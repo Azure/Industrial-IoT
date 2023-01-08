@@ -91,7 +91,29 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
         }
 
+        protected Task<(JsonElement? Metadata, List<JsonElement> Messages)> ProcessMessagesAndMetadataAsync(
+            string publishedNodesFile,
+            Func<JsonElement, JsonElement> predicate = null,
+            string messageType = null,
+            string[] arguments = default) {
+            // Collect messages from server with default settings
+            return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
+        }
+
         protected async Task<List<JsonElement>> ProcessMessagesAsync(
+            string publishedNodesFile,
+            TimeSpan messageCollectionTimeout,
+            int messageCount,
+            Func<JsonElement, JsonElement> predicate = null,
+            string messageType = null,
+            string[] arguments = default) {
+
+            var (_, messages) = await ProcessMessagesAndMetadataAsync(publishedNodesFile,
+                messageCollectionTimeout, messageCount, predicate, messageType, arguments);
+            return messages;
+        }
+
+        protected async Task<(JsonElement? Metadata, List<JsonElement> Messages)> ProcessMessagesAndMetadataAsync(
             string publishedNodesFile,
             TimeSpan messageCollectionTimeout,
             int messageCount,
@@ -101,27 +123,48 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
             await StartPublisherAsync(publishedNodesFile, arguments);
 
-            var messages = WaitForMessages(messageCollectionTimeout, messageCount, predicate, messageType);
+            JsonElement? metadata = null;
+            var messages = WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
 
             StopPublisher();
 
-            return messages;
+            return (metadata, messages);
         }
 
         /// <summary>
         /// Wait for one message
         /// </summary>
-        protected List<JsonElement> WaitForMessages(Func<JsonElement, JsonElement> predicate = null,
-            string messageType = null) {
+        protected List<JsonElement> WaitForMessages(
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
             // Collect messages from server with default settings
-            return WaitForMessages(TimeSpan.FromMinutes(2), 1, predicate, messageType);
+            JsonElement? metadata = null;
+            return WaitForMessagesAndMetadata(TimeSpan.FromMinutes(2), 1, ref metadata, predicate, messageType);
+        }
+
+        /// <summary>
+        /// Wait for one message
+        /// </summary>
+        protected List<JsonElement> WaitForMessagesAndMetadata(ref JsonElement? metadata,
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+            // Collect messages from server with default settings
+            return WaitForMessagesAndMetadata(TimeSpan.FromMinutes(2), 1, ref metadata, predicate, messageType);
+        }
+
+        /// <summary>
+        /// Wait for one message
+        /// </summary>
+        protected List<JsonElement> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+            // Collect messages from server with default settings
+            JsonElement? metadata = null;
+            return WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
         }
 
         /// <summary>
         /// Wait for messages
         /// </summary>
-        protected List<JsonElement> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
-            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+        protected List<JsonElement> WaitForMessagesAndMetadata(TimeSpan messageCollectionTimeout, int messageCount,
+            ref JsonElement? metadata, Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var messages = new List<JsonElement>();
@@ -134,20 +177,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 var element = document.RootElement;
                 if (element.ValueKind == JsonValueKind.Array) {
                     foreach (var item in element.EnumerateArray()) {
-                        Add(messages, item, predicate, messageType);
+                        Add(messages, item, ref metadata, predicate, messageType);
                     }
                 }
                 else if (element.ValueKind == JsonValueKind.Object) {
-                    Add(messages, element, predicate, messageType);
+                    Add(messages, element, ref metadata, predicate, messageType);
                 }
             }
             return messages.Take(messageCount).ToList();
 
-            static void Add(List<JsonElement> messages, JsonElement item,
+            static void Add(List<JsonElement> messages, JsonElement item, ref JsonElement? metadata,
                 Func<JsonElement, JsonElement> predicate, string messageType) {
                 if (messageType != null) {
                     if (item.TryGetProperty("MessageType", out var v)) {
                         var type = v.GetString();
+                        if (type == "ua-metadata") {
+                            metadata = item;
+                        }
                         if (type != messageType) {
                             return;
                         }

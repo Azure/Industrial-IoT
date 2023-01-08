@@ -46,41 +46,44 @@ namespace Opc.Ua {
         /// Create a range of values missing between 2 sequence numbers
         /// Considers wrap around
         /// </summary>
-        /// <param name="seq1"></param>
-        /// <param name="seq2"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="dropped"></param>
         /// <returns></returns>
-        public static IEnumerable<uint> Missing(uint seq1, uint seq2) {
+        public static uint[] Missing(uint from, uint to, out bool dropped) {
             unchecked {
-                var diff = Math.Abs((int)seq1 - (int)seq2);
+                var diff = Math.Abs((int)from - (int)to);
                 if (diff > 1) {
-                    var (startAt, endAt) = (((int)seq1 + diff) == (int)seq2) ? (seq1, seq2) : (seq2, seq1);
+                    var (startAt, endAt) = (((int)from + diff) == (int)to) ? (from, to) : (to, from);
+                    dropped = from == startAt;
+                    var missing = new List<uint>(diff - 1);
                     while (++startAt != endAt) {
                         if (startAt != 0) {
-                            yield return startAt;
+                            missing.Add(startAt);
                         }
+                    }
+                    if (missing.Count > 0) {
+                        return missing.ToArray();
                     }
                 }
             }
+            dropped = false;
+            return Array.Empty<uint>();
         }
 
         /// <summary>
-        /// Create a range of values missing between 2 sequence numbers
-        /// Considers wrap around
+        /// Convert missing sequence numbers to string
         /// </summary>
-        /// <param name="seq1"></param>
-        /// <param name="seq2"></param>
+        /// <param name="missingSequenceNumbers"></param>
         /// <returns></returns>
-        public static IEnumerable<ushort> Missing(ushort seq1, ushort seq2) {
-            unchecked {
-                var diff = Math.Abs((short)seq1 - (short)seq2);
-                if (diff > 1) {
-                    var (startAt, endAt) = (((short)seq1 + diff) == (short)seq2) ? (seq1, seq2) : (seq2, seq1);
-                    while (++startAt != endAt) {
-                        if (startAt != 0) {
-                            yield return startAt;
-                        }
-                    }
-                }
+        public static string ToString(uint[] missingSequenceNumbers) {
+            switch (missingSequenceNumbers.Length) {
+                case 0:
+                    return "none";
+                case 1:
+                    return missingSequenceNumbers[0].ToString();
+                default:
+                    return missingSequenceNumbers.Select(a => a.ToString()).Aggregate((a, b) => $"{a}, {b}");
             }
         }
 
@@ -90,16 +93,19 @@ namespace Opc.Ua {
         /// <param name="sequenceNumber"></param>
         /// <param name="lastSequenceNumber"></param>
         /// <param name="missing"></param>
+        /// <param name="dropped"></param>
         /// <returns></returns>
-        public static bool Validate(uint sequenceNumber, ref uint lastSequenceNumber, out uint[] missing) {
+        public static bool Validate(uint sequenceNumber, ref uint lastSequenceNumber,
+            out uint[] missing, out bool dropped) {
             try {
                 var expected = lastSequenceNumber + 1 == 0 ? 1 : lastSequenceNumber + 1;
                 var ok = sequenceNumber == expected;
                 if (!ok) {
-                    missing = Missing(lastSequenceNumber, sequenceNumber).ToArray();
+                    missing = Missing(lastSequenceNumber, sequenceNumber, out dropped).ToArray();
                     return false;
                 }
                 missing = Array.Empty<uint>();
+                dropped = false;
                 return true;
             }
             finally {

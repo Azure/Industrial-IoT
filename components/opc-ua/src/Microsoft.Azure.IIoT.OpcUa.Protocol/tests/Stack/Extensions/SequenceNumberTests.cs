@@ -43,58 +43,73 @@ namespace Opc.Ua.Extensions {
 
         [Fact]
         public void TestGetMissingSequenceNumbers0() {
-            var missing = SequenceNumber.Missing(4u, 4u).ToList();
+            var missing = SequenceNumber.Missing(4u, 4u, out var dropped).ToList();
             Assert.Empty(missing);
-            missing = SequenceNumber.Missing(0u, 0u).ToList();
+            Assert.False(dropped);
+            missing = SequenceNumber.Missing(0u, 0u, out dropped).ToList();
             Assert.Empty(missing);
-            missing = SequenceNumber.Missing(0xffffffffu, 0xffffffffu).ToList();
+            Assert.False(dropped);
+            missing = SequenceNumber.Missing(0xffffffffu, 0xffffffffu, out dropped).ToList();
             Assert.Empty(missing);
+            Assert.False(dropped);
         }
 
         [Fact]
         public void TestGetMissingSequenceNumbers1() {
-            var missing = SequenceNumber.Missing(0xffffffffu, 1u).ToList();
+            var missing = SequenceNumber.Missing(0xffffffffu, 1u, out var dropped).ToList();
             Assert.Empty(missing);
+            Assert.False(dropped);
         }
 
         [Fact]
         public void TestGetMissingSequenceNumbers2() {
-            var missing = SequenceNumber.Missing(1u, 0xffffffffu).ToList();
+            var missing = SequenceNumber.Missing(1u, 0xffffffffu, out var dropped).ToList();
             Assert.Empty(missing);
+            Assert.False(dropped);
         }
 
         [Fact]
         public void TestGetMissingSequenceNumbers3() {
-            var missing = SequenceNumber.Missing(0xfffffffeu, 2u).ToList();
+            var missing = SequenceNumber.Missing(0xfffffffeu, 2u, out var dropped).ToList();
             Assert.Equal(new uint[] { 0xffffffff, 1u }, missing);
-            missing = SequenceNumber.Missing(2u, 0xfffffffeu).ToList();
+            Assert.True(dropped);
+            missing = SequenceNumber.Missing(2u, 0xfffffffeu, out dropped).ToList();
             Assert.Equal(new uint[] { 0xffffffff, 1u }, missing);
+            Assert.False(dropped);
         }
 
         [Fact]
         public void TestGetMissingSequenceNumbers4() {
-            var missing = SequenceNumber.Missing(0xfffffffeu, 3u).ToList();
+            var missing = SequenceNumber.Missing(0xfffffffeu, 3u, out var dropped).ToList();
             Assert.Equal(new uint[] { 0xffffffff, 1u, 2u }, missing);
-            missing = SequenceNumber.Missing(3u, 0xfffffffeu).ToList();
+            Assert.True(dropped);
+            missing = SequenceNumber.Missing(3u, 0xfffffffeu, out dropped).ToList();
             Assert.Equal(new uint[] { 0xffffffff, 1u, 2u }, missing);
+            Assert.False(dropped);
         }
 
         [Fact]
         public void TestGetMissingSequenceNumbers5() {
             var maxInt = unchecked((uint)int.MaxValue);
             var minInt = unchecked((uint)int.MinValue);
-            var missing = SequenceNumber.Missing(maxInt - 1, minInt + 1).ToList();
+            var missing = SequenceNumber.Missing(maxInt - 1, minInt + 1, out var dropped).ToList();
             Assert.Equal(new uint[] { maxInt, minInt }, missing);
-            missing = SequenceNumber.Missing(minInt + 1, maxInt - 1).ToList();
+            Assert.True(dropped);
+            missing = SequenceNumber.Missing(minInt + 1, maxInt - 1, out dropped).ToList();
             Assert.Equal(new uint[] { maxInt, minInt }, missing);
-            missing = SequenceNumber.Missing(minInt, maxInt).ToList();
+            Assert.False(dropped);
+            missing = SequenceNumber.Missing(minInt, maxInt, out dropped).ToList();
             Assert.Empty(missing);
-            missing = SequenceNumber.Missing(maxInt, minInt).ToList();
+            Assert.False(dropped);
+            missing = SequenceNumber.Missing(maxInt, minInt, out dropped).ToList();
             Assert.Empty(missing);
-            missing = SequenceNumber.Missing(maxInt, maxInt).ToList();
+            Assert.False(dropped);
+            missing = SequenceNumber.Missing(maxInt, maxInt, out dropped).ToList();
             Assert.Empty(missing);
-            missing = SequenceNumber.Missing(minInt, minInt).ToList();
+            Assert.False(dropped);
+            missing = SequenceNumber.Missing(minInt, minInt, out dropped).ToList();
             Assert.Empty(missing);
+            Assert.False(dropped);
         }
     }
 }

@@ -55,34 +55,78 @@ The following is an example of the output you will se when listening to events f
 }
 ```
 
-The event is described by the corresponding metadata message, which is emitted prior to the first message and whenever the configuration is updated requiring an update of the metadata. Metadata can also be sent periodically, which can be configured using the control plane of OPC Publisher.
+The event is described by the corresponding metadata message, which is emitted prior to the first message and whenever the configuration is updated requiring an update of the metadata. Metadata can also be sent periodically, which can be configured using the control plane of OPC Publisher. The following metadata is provided in `--strict` mode:
 
 ```json
 {
   "body": [
     {
-      "MessageId": "0",
+      "MessageId": "edecf7ec-5ae8-4957-82ef-7f915dddb5be",
       "MessageType": "ua-metadata",
-      "PublisherId": "opc.tcp://localhost:57537/UA/SampleServer_A2425855",
-      "DataSetWriterId": "1000",
+      "PublisherId": "opc.tcp://localhost:55924/UA/SampleServer_E8BAB2AD",
+      "DataSetWriterId": 1,
       "MetaData": {
         "Namespaces": [
           "http://opcfoundation.org/UA/",
-          "urn:localhost:OPCFoundation:CoreSampleServer",
+          "urn:mschier205:OPCFoundation:CoreSampleServer",
           "http://test.org/UA/Data/",
-          ..l
+          "http://test.org/UA/Data//Instance",
+          "http://opcfoundation.org/UA/Boiler//Instance",
+          "urn:localhost:somecompany.com:VehiclesServer",
+          "http://opcfoundation.org/UA/Vehicles/Types",
+          "http://opcfoundation.org/UA/Vehicles/Instances",
+          "http://opcfoundation.org/ReferenceApplications",
+          "http://opcfoundation.org/HistoricalEvents",
+          "http://opcfoundation.org/HistoricalAccess",
+          "http://opcfoundation.org/UA/Views",
+          "http://opcfoundation.org/UA/Engineering",
+          "http://opcfoundation.org/UA/Operations",
+          "DataAccess",
+          "http://opcfoundation.org/AlarmCondition",
+          "http://opcfoundation.org/SimpleEvents",
+          "http://microsoft.com/Opc/OpcPlc/",
+          "http://opcfoundation.org/UA/Diagnostics",
+          "http://samples.org/UA/memorybuffer",
+          "http://samples.org/UA/memorybuffer/Instance",
           "http://opcfoundation.org/UA/Boiler/"
         ],
         "StructureDataTypes": [
           {
-            "DataTypeId": "http://opcfoundation.org/SimpleEvents#i=183",
+            "DataTypeId": {
+              "Id": 183,
+              "Namespace": "http://opcfoundation.org/SimpleEvents"
+            },
             "Name": {
               "Name": "CycleStepDataType",
               "Uri": "http://opcfoundation.org/SimpleEvents"
             },
             "StructureDefinition": {
+              "BaseDataType": {
+                "Id": 22
+              },
               "StructureType": "Structure_0",
-              "Fields": []
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "DataType": {
+                    "Id": 12
+                  },
+                  "ValueRank": -1,
+                  "ArrayDimensions": [],
+                  "MaxStringLength": 0,
+                  "IsOptional": false
+                },
+                {
+                  "Name": "Duration",
+                  "DataType": {
+                    "Id": 11
+                  },
+                  "ValueRank": -1,
+                  "ArrayDimensions": [],
+                  "MaxStringLength": 0,
+                  "IsOptional": false
+                }
+              ]
             }
           }
         ],
@@ -91,46 +135,64 @@ The event is described by the corresponding metadata message, which is emitted p
         "Fields": [
           {
             "Name": "EventId",
+            "FieldFlags": 0,
             "BuiltInType": 15,
-            "DataType": "ByteString",
+            "DataType": {
+              "Id": 15
+            },
             "ValueRank": -1,
             "ArrayDimensions": [],
-            "DataSetFieldId": "71792fb0-8fa9-4f31-91f0-d70a230e3908",
+            "MaxStringLength": 0,
+            "DataSetFieldId": "487f710c-9f43-4425-9a77-03f3396362f7",
             "Properties": []
           },
           {
             "Name": "Message",
+            "FieldFlags": 0,
             "BuiltInType": 21,
-            "DataType": "LocalizedText",
+            "DataType": {
+              "Id": 21
+            },
             "ValueRank": -1,
             "ArrayDimensions": [],
-            "DataSetFieldId": "909b61a6-d802-4625-9125-9c476faea577",
+            "MaxStringLength": 0,
+            "DataSetFieldId": "15c7bc3a-4714-4f5e-9874-d4671288f5a0",
             "Properties": []
           },
           {
             "Name": "http://opcfoundation.org/SimpleEvents#CycleId",
+            "FieldFlags": 0,
             "BuiltInType": 12,
-            "DataType": "String",
+            "DataType": {
+              "Id": 12
+            },
             "ValueRank": -1,
             "ArrayDimensions": [],
-            "DataSetFieldId": "9cfd5ab6-5275-4907-aa8a-b7f5ad9699e1",
+            "MaxStringLength": 0,
+            "DataSetFieldId": "03378140-f21b-4ee1-9bbe-01325e847128",
             "Properties": []
           },
           {
             "Name": "http://opcfoundation.org/SimpleEvents#CurrentStep",
+            "FieldFlags": 0,
             "BuiltInType": 22,
-            "DataType": "http://opcfoundation.org/SimpleEvents#i=183",
+            "DataType": {
+              "Id": 183,
+              "Namespace": "http://opcfoundation.org/SimpleEvents"
+            },
             "ValueRank": -1,
             "ArrayDimensions": [],
-            "DataSetFieldId": "ca368742-260d-4e48-89d2-18c1c8861d74",
+            "MaxStringLength": 0,
+            "DataSetFieldId": "a9cd0d57-ae64-4e20-b113-b3df52cb6a59",
             "Properties": []
           }
         ],
         "ConfigurationVersion": {
-          "MajorVersion": 1222304429,
-          "MinorVersion": 2395014937
+          "MajorVersion": 1222308210,
+          "MinorVersion": 2861644214
         }
-      }
+      },
+      "DataSetWriterName": "1000"
     }
   ],
   "enqueuedTime": "Mon Jan 23 2023 13:49:02 GMT+0200 (Central European Summer Time)",
