@@ -127,13 +127,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
                 .AsImplementedInterfaces();
 
             // Handle opc-ua pubsub subscriber messages
-            builder.RegisterType<MonitoredItemSampleBinaryHandler>()
-                .AsImplementedInterfaces();
             builder.RegisterType<MonitoredItemSampleJsonHandler>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<PubSubNetworkMessageBinaryHandler>()
+            builder.RegisterType<PubSubUadpNetworkMessageHandler>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<PubSubNetworkMessageJsonHandler>()
+            builder.RegisterType<PubSubJsonNetworkMessageHandler>()
                 .AsImplementedInterfaces();
 
             // ... and forward result to secondary eventhub

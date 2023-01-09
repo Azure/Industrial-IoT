@@ -4,19 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
-    using System;
     using Opc.Ua.Encoders;
+    using Opc.Ua.Models;
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
-    /// Encodeable monitored item message
+    /// Samples message
     /// </summary>
-    public class MonitoredItemMessage : IEncodeable {
-
-        /// <summary>
-        /// Content mask
-        /// </summary>
-        public uint MessageContentMask { get; set; }
+    public class MonitoredItemMessage : JsonDataSetMessage {
 
         /// <summary>
         /// Node Id in string format as configured
@@ -36,22 +33,12 @@ namespace Opc.Ua.PubSub {
         /// <summary>
         /// Display name
         /// </summary>
-        public string DisplayName { get; set; }
-
-        /// <summary>
-        /// Timestamp assigned by publisher
-        /// </summary>
-        public DateTime Timestamp { get; set; }
+        public string DisplayName => Payload.Keys.SingleOrDefault();
 
         /// <summary>
         /// Data value for variable change notification
         /// </summary>
-        public DataValue Value { get; set; }
-
-        /// <summary>
-        /// Sequence number
-        /// </summary>
-        public uint SequenceNumber { get; set; }
+        public DataValue Value => Payload.Values.SingleOrDefault();
 
         /// <summary>
         /// Extension fields
@@ -59,279 +46,187 @@ namespace Opc.Ua.PubSub {
         public Dictionary<string, string> ExtensionFields { get; set; }
 
         /// <inheritdoc/>
-        public ExpandedNodeId TypeId => ExpandedNodeId.Null;
-
-        /// <inheritdoc/>
-        public ExpandedNodeId BinaryEncodingId => ExpandedNodeId.Null;
-
-        /// <inheritdoc/>
-        public ExpandedNodeId XmlEncodingId => ExpandedNodeId.Null;
-
-        /// <inheritdoc/>
-        public void Decode(IDecoder decoder) {
-            switch (decoder.EncodingType) {
-                case EncodingType.Binary:
-                    DecodeBinary(decoder);
-                    break;
-                case EncodingType.Json:
-                    DecodeJson(decoder);
-                    break;
-                case EncodingType.Xml:
-                    throw new NotSupportedException("XML encoding is not supported.");
-                default:
-                    throw new NotImplementedException(
-                        $"Unknown encoding: {decoder.EncodingType}");
-            }
-        }
-
-        /// <inheritdoc/>
-        public void Encode(IEncoder encoder) {
-            ApplyEncodeMask();
-            switch (encoder.EncodingType) {
-                case EncodingType.Binary:
-                    EncodeBinary(encoder);
-                    break;
-                case EncodingType.Json:
-                    EncodeJson(encoder);
-                    break;
-                case EncodingType.Xml:
-                    throw new NotSupportedException("XML encoding is not supported.");
-                default:
-                    throw new NotImplementedException(
-                        $"Unknown encoding: {encoder.EncodingType}");
-            }
-        }
-
-        /// <inheritdoc/>
         public override bool Equals(object value) {
-            return IsEqual(value as IEncodeable);
-        }
-
-        /// <inheritdoc/>
-        public override int GetHashCode() {
-            return base.GetHashCode();
-        }
-
-        /// <inheritdoc/>
-        public bool IsEqual(IEncodeable encodeable) {
-            if (ReferenceEquals(this, encodeable)) {
+            if (ReferenceEquals(this, value)) {
                 return true;
             }
-            if (!(encodeable is MonitoredItemMessage wrapper)) {
+            if (!(value is MonitoredItemMessage wrapper)) {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
-                !Utils.IsEqual(wrapper.NodeId, NodeId) ||
-                !Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
+            if (!base.Equals(value)) {
+                return false;
+            }
+            if (!Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
                 !Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri) ||
-                !Utils.IsEqual(wrapper.DisplayName, DisplayName) ||
-                !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
-                !Utils.IsEqual(wrapper.Value, Value) ||
-                !Utils.IsEqual(wrapper.ExtensionFields, ExtensionFields) ||
-                !Utils.IsEqual(wrapper.BinaryEncodingId, BinaryEncodingId) ||
-                !Utils.IsEqual(wrapper.TypeId, TypeId) ||
-                !Utils.IsEqual(wrapper.XmlEncodingId, XmlEncodingId)) {
+                !Utils.IsEqual(wrapper.NodeId, NodeId)) {
+                return false;
+            }
+            if (!Utils.IsEqual(wrapper.ExtensionFields, ExtensionFields)) {
                 return false;
             }
             return true;
         }
 
         /// <inheritdoc/>
-        private void ApplyEncodeMask() {
+        public override int GetHashCode() {
+            var hash = new HashCode();
+            hash.Add(base.GetHashCode());
 
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) == 0) {
-                NodeId = null;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.EndpointUrl) == 0) {
-                EndpointUrl = null;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ApplicationUri) == 0) {
-                ApplicationUri = null;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.DisplayName) == 0) {
-                DisplayName = null;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) {
-                Timestamp = DateTime.MinValue;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) == 0) {
-                ExtensionFields = null;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SequenceNumber) == 0) {
-                SequenceNumber = 0;
-            }
-            if (Value == null) {
-                // no point to go further
+            hash.Add(EndpointUrl);
+            hash.Add(ApplicationUri);
+            hash.Add(NodeId);
+            hash.Add(ExtensionFields);
+            return hash.ToHashCode();
+        }
+
+        /// <inheritdoc/>
+        internal override void Encode(JsonEncoderEx encoder, bool withHeader, string property) {
+            //
+            // If not writing with samples header or writing to a property fail. This is a configuration
+            // error, rather than throwing constantly we just do not emit anything instead.
+            //
+            if (!withHeader || property != null) {
                 return;
             }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Status) == 0 &&
-                (MessageContentMask & (uint)MonitoredItemMessageContentMask.StatusCode) == 0) {
-                Value.StatusCode = StatusCodes.Good;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) == 0) {
-                Value.SourceTimestamp = DateTime.MinValue;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ServerTimestamp) == 0) {
-                Value.ServerTimestamp = DateTime.MinValue;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SourcePicoSeconds) == 0) {
-                Value.SourcePicoseconds = 0;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ServerPicoSeconds) == 0) {
-                Value.ServerPicoseconds = 0;
-            }
-        }
 
-        /// <inheritdoc/>
-        private void DecodeBinary(IDecoder decoder) {
-
-            MessageContentMask = decoder.ReadUInt32("ContentMask");
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) != 0) {
-                NodeId = decoder.ReadString(nameof(MonitoredItemMessageContentMask.NodeId));
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.NodeId) != 0) {
+                encoder.WriteString(nameof(NodeId), NodeId);
             }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.EndpointUrl) != 0) {
-                EndpointUrl = decoder.ReadString(nameof(MonitoredItemMessageContentMask.EndpointUrl));
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.EndpointUrl) != 0) {
+                encoder.WriteString(nameof(EndpointUrl), EndpointUrl);
             }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ApplicationUri) != 0) {
-                ApplicationUri = decoder.ReadString(nameof(MonitoredItemMessageContentMask.ApplicationUri));
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.ApplicationUri) != 0) {
+                encoder.WriteString(nameof(ApplicationUri), ApplicationUri);
             }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.DisplayName) != 0) {
-                DisplayName = decoder.ReadString(nameof(MonitoredItemMessageContentMask.DisplayName));
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) != 0) {
-                Timestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.Timestamp));
-            }
-            Value = decoder.ReadDataValue("Value");
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SequenceNumber) != 0) {
-                SequenceNumber = decoder.ReadUInt32(nameof(MonitoredItemMessageContentMask.SequenceNumber));
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
-                var dictionary = (KeyValuePairCollection)decoder.ReadEncodeableArray("ExtensionFields", typeof(Ua.KeyValuePair));
-                ExtensionFields = new Dictionary<string, string>(dictionary.Count);
-                foreach (var item in dictionary) {
-                    ExtensionFields[item.Key.Name] = item.Value.ToString();
-                }
-            }
-        }
-
-        private void DecodeJson(IDecoder decoder) {
-            NodeId = decoder.ReadString(nameof(MonitoredItemMessageContentMask.NodeId));
-            if (NodeId != null) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.NodeId;
-            }
-            EndpointUrl = decoder.ReadString(nameof(MonitoredItemMessageContentMask.EndpointUrl));
-            if (EndpointUrl != null) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.EndpointUrl;
-            }
-            ApplicationUri = decoder.ReadString(nameof(MonitoredItemMessageContentMask.ApplicationUri));
-            if (ApplicationUri != null) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.ApplicationUri;
-            }
-            DisplayName = decoder.ReadString(nameof(MonitoredItemMessageContentMask.DisplayName));
-            if (DisplayName != null) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.DisplayName;
-            }
-            Timestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.Timestamp));
-            if (Timestamp != DateTime.MinValue) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.Timestamp;
-            }
-            Value = decoder.ReadDataValue("Value");
-            if (Value.ServerTimestamp != DateTime.MinValue) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.ServerTimestamp;
-            }
-            if (Value.ServerPicoseconds != 0) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.ServerPicoSeconds;
-            }
-            if (Value.SourceTimestamp != DateTime.MinValue) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.SourceTimestamp;
-            }
-            if (Value.SourcePicoseconds != 0) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.SourcePicoSeconds;
-            }
-            if (Value.StatusCode != 0) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.StatusCode;
-            }
-            SequenceNumber = decoder.ReadUInt32(nameof(MonitoredItemMessageContentMask.SequenceNumber));
-            if (SequenceNumber != 0) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.SequenceNumber;
-            }
-            var jsonDecoder = decoder as JsonDecoderEx;
-            ExtensionFields = (Dictionary<string,string>)jsonDecoder.ReadStringDictionary(nameof(ExtensionFields));
-            if (ExtensionFields != null) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.ExtensionFields;
-            }
-        }
-
-        /// <inheritdoc/>
-        private void EncodeBinary(IEncoder encoder) {
-
-            encoder.WriteUInt32("ContentMask", MessageContentMask);
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) != 0) {
-                encoder.WriteString(nameof(MonitoredItemMessageContentMask.NodeId), NodeId);
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.EndpointUrl) != 0) {
-                encoder.WriteString(nameof(MonitoredItemMessageContentMask.EndpointUrl), EndpointUrl);
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ApplicationUri) != 0) {
-                encoder.WriteString(nameof(MonitoredItemMessageContentMask.ApplicationUri), ApplicationUri);
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.DisplayName) != 0) {
-                encoder.WriteString(nameof(MonitoredItemMessageContentMask.DisplayName), DisplayName);
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) != 0) {
-                encoder.WriteDateTime(nameof(MonitoredItemMessageContentMask.Timestamp), Timestamp);
-            }
-            encoder.WriteDataValue("Value", Value);
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SequenceNumber) != 0) {
-                encoder.WriteUInt32(nameof(MonitoredItemMessageContentMask.SequenceNumber), SequenceNumber);
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
-                if (ExtensionFields != null) {
-                    var dictionary = new KeyValuePairCollection();
-                    foreach (var item in ExtensionFields) {
-                        dictionary.Add(new Ua.KeyValuePair(){
-                            Key = item.Key,
-                            Value = item.Value});
-                    }
-                    encoder.WriteEncodeableArray("ExtensionFields", dictionary.ToArray(), typeof(Ua.KeyValuePair));
-                }
-            }
-        }
-
-        /// <inheritdoc/>
-        private void EncodeJson(IEncoder encoder) {
-
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) != 0) {
-                encoder.WriteString(nameof(MonitoredItemMessageContentMask.NodeId), NodeId);
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.EndpointUrl) != 0) {
-                encoder.WriteString(nameof(MonitoredItemMessageContentMask.EndpointUrl), EndpointUrl);
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ApplicationUri) != 0) {
-                encoder.WriteString(nameof(MonitoredItemMessageContentMask.ApplicationUri), ApplicationUri);
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.DisplayName) != 0 &&
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.DisplayName) != 0 &&
                 !string.IsNullOrEmpty(DisplayName)) {
-                encoder.WriteString(nameof(MonitoredItemMessageContentMask.DisplayName), DisplayName);
+                encoder.WriteString(nameof(DisplayName), DisplayName);
             }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) != 0) {
-                encoder.WriteDateTime(nameof(MonitoredItemMessageContentMask.Timestamp), Timestamp);
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Timestamp) != 0) {
+                encoder.WriteDateTime(nameof(Timestamp), Timestamp);
             }
-            //  add the status as a string for backwards compatibility
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Status) != 0 && Value != null) {
-                encoder.WriteString(nameof(MonitoredItemMessageContentMask.Status),
-                    StatusCode.LookupSymbolicId(Value.StatusCode.Code));
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0 && Value != null) {
+                var status = Status ?? Payload.Values
+                    .FirstOrDefault(s => StatusCode.IsNotGood(s.StatusCode))?.StatusCode ?? StatusCodes.Good;
+                encoder.WriteString(nameof(Status), StatusCode.LookupSymbolicId(status.Code));
             }
-            encoder.WriteDataValue("Value", Value);
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SequenceNumber) != 0) {
-                encoder.WriteUInt32(nameof(MonitoredItemMessageContentMask.SequenceNumber), SequenceNumber);
+
+            var value = new DataValue(Value.WrappedValue);
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0 ||
+                (Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.StatusCode) != 0) {
+                value.StatusCode = Value.StatusCode;
             }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
-                if (ExtensionFields != null) {
-                    var jsonEncoder = encoder as JsonEncoderEx;
-                    jsonEncoder.WriteStringDictionary(nameof(ExtensionFields), ExtensionFields);
+            if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0) {
+                value.SourceTimestamp = Value.SourceTimestamp;
+
+                if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) != 0) {
+                    value.SourcePicoseconds = Value.SourcePicoseconds;
                 }
             }
+            if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.ServerTimestamp) != 0) {
+                value.ServerTimestamp = Value.ServerTimestamp;
+                if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) != 0) {
+                    value.ServerPicoseconds = Value.ServerPicoseconds;
+                }
+            }
+
+            var reversibleMode = encoder.UseReversibleEncoding;
+            try {
+                encoder.UseReversibleEncoding =
+                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask2.ReversibleFieldEncoding) != 0;
+                encoder.WriteDataValue(nameof(Value), value);
+            }
+            finally {
+                encoder.UseReversibleEncoding = reversibleMode;
+            }
+
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.SequenceNumber) != 0) {
+                encoder.WriteUInt32(nameof(SequenceNumber), SequenceNumber);
+            }
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.ExtensionFields) != 0) {
+                if (ExtensionFields != null) {
+                    encoder.WriteStringDictionary(nameof(ExtensionFields), ExtensionFields);
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        internal override bool TryDecode(JsonDecoderEx decoder, string property, ref bool withHeader) {
+            // If reading from property return false as this means we are a standard dataset message
+            if (property != null) {
+                return false;
+            }
+
+            var value = decoder.ReadDataValue(nameof(Value));
+            var dataSetFieldContentMask = 0u;
+            if (value != null) {
+                if (value.ServerTimestamp != DateTime.MinValue) {
+                    dataSetFieldContentMask |= (uint)DataSetFieldContentMask.ServerTimestamp;
+                }
+                if (value.ServerPicoseconds != 0) {
+                    dataSetFieldContentMask |= (uint)DataSetFieldContentMask.ServerPicoSeconds;
+                }
+                if (value.SourceTimestamp != DateTime.MinValue) {
+                    dataSetFieldContentMask |= (uint)DataSetFieldContentMask.SourceTimestamp;
+                }
+                if (value.SourcePicoseconds != 0) {
+                    dataSetFieldContentMask |= (uint)DataSetFieldContentMask.SourcePicoSeconds;
+                }
+                if (value.StatusCode != 0) {
+                    dataSetFieldContentMask |= (uint)DataSetFieldContentMask.StatusCode;
+                }
+            }
+
+            // Read header
+            DataSetMessageContentMask = 0u;
+            var displayName = decoder.ReadString(nameof(DisplayName));
+            if (displayName != null) {
+                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.DisplayName;
+            }
+            NodeId = decoder.ReadString(nameof(NodeId));
+            if (NodeId != null) {
+                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.NodeId;
+            }
+            EndpointUrl = decoder.ReadString(nameof(EndpointUrl));
+            if (EndpointUrl != null) {
+                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.EndpointUrl;
+            }
+            ApplicationUri = decoder.ReadString(nameof(ApplicationUri));
+            if (ApplicationUri != null) {
+                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.ApplicationUri;
+            }
+            Timestamp = decoder.ReadDateTime(nameof(Timestamp));
+            if (Timestamp != DateTime.MinValue) {
+                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.Timestamp;
+            }
+            var status = decoder.ReadString(nameof(Status));
+            if (status != null) {
+                if (TypeMaps.StatusCodes.Value.TryGetIdentifier(status, out var statusCode)) {
+                    Status = statusCode;
+                }
+                else {
+                    Status = status == "Good" ? StatusCodes.Good : StatusCodes.Bad;
+                }
+            }
+            SequenceNumber = decoder.ReadUInt32(nameof(SequenceNumber));
+            if (SequenceNumber != 0) {
+                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.SequenceNumber;
+            }
+            ExtensionFields = (Dictionary<string, string>)decoder.ReadStringDictionary(nameof(ExtensionFields));
+            if (ExtensionFields != null) {
+                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.ExtensionFields;
+            }
+
+            withHeader |= (DataSetMessageContentMask != 0);
+            if (value != null || dataSetFieldContentMask != 0) {
+                Payload.Clear();
+                Payload.DataSetFieldContentMask = dataSetFieldContentMask;
+                Payload.Add(displayName ?? string.Empty, value);
+
+                return true;
+            }
+            // Only return true if we otherwise read a header value
+            return withHeader;
         }
     }
 }

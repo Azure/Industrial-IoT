@@ -3,14 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System;
 
     /// <summary>
     /// Monitored item message content fields
     /// </summary>
     [Flags]
-    public enum MonitoredItemMessageContentMask {
+    internal enum MonitoredItemMessageContentMask {
 
         /// <summary>
         /// Source timestamp included

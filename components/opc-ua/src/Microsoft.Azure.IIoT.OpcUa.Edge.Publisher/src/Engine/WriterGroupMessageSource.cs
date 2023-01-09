@@ -443,8 +443,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
                         // reset both
                         _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
-                            "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
-                            " value changes were invoked by message source.",
+                            "So far, {DataChangesCount} data changes and {ValueChangesCount} " +
+                            "value changes were invoked by message source.",
                             _outer.DataChangesCount, _outer.ValueChangesCount);
                         _outer.DataChangesCount = 0;
                         _outer.ValueChangesCount = 0;
@@ -474,8 +474,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _outer.EventNotificationCount >= kNumberOfInvokedMessagesResetThreshold) {
                         // reset both
                         _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
-                            "So far, {EventChangesCount} event changes and {EventValueChangesCount}" +
-                            " event value changes were invoked by message source.",
+                            "So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
+                            "event value changes were invoked by message source.",
                             _outer.EventCount, _outer.EventNotificationCount);
                         _outer.EventCount = 0;
                         _outer.EventNotificationCount = 0;

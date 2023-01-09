@@ -6,6 +6,7 @@
 namespace Opc.Ua.PubSub {
     using Opc.Ua.Encoders;
     using System;
+    using System.Linq;
 
     /// <summary>
     /// Data set message
@@ -13,7 +14,7 @@ namespace Opc.Ua.PubSub {
     public class JsonDataSetMessage : BaseDataSetMessage {
 
         /// <summary>
-        /// Use capability mode when encoding and decoding
+        /// Compatibility with 2.8 when encoding and decoding
         /// </summary>
         public bool UseCompatibilityMode { get; set; }
 
@@ -48,7 +49,7 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        internal void Encode(JsonEncoderEx encoder, bool withHeader, string property) {
+        internal virtual void Encode(JsonEncoderEx encoder, bool withHeader, string property) {
             if (withHeader) {
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterId) != 0) {
                     if (!UseCompatibilityMode) {
@@ -69,12 +70,14 @@ namespace Opc.Ua.PubSub {
                     encoder.WriteDateTime(nameof(Timestamp), Timestamp);
                 }
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0) {
+                    var status = Status ?? Payload.Values
+                        .FirstOrDefault(s => StatusCode.IsNotGood(s.StatusCode))?.StatusCode ?? StatusCodes.Good;
                     if (!UseCompatibilityMode) {
-                        encoder.WriteUInt32(nameof(Status), Status.Code);
+                        encoder.WriteUInt32(nameof(Status), status.Code);
                     }
                     else {
                         // Up to version 2.8 we wrote the full status code
-                        encoder.WriteStatusCode(nameof(Status), Status);
+                        encoder.WriteStatusCode(nameof(Status), status);
                     }
                 }
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.MessageType) != 0) {
@@ -122,7 +125,7 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        internal bool TryDecode(JsonDecoderEx jsonDecoder, string property, ref bool withHeader) {
+        internal virtual bool TryDecode(JsonDecoderEx jsonDecoder, string property, ref bool withHeader) {
             if (TryReadDataSetMessageHeader(jsonDecoder, out var dataSetMessageContentMask)) {
                 withHeader |= true;
                 DataSetMessageContentMask = dataSetMessageContentMask;
@@ -153,7 +156,6 @@ namespace Opc.Ua.PubSub {
                 }
                 return true;
             }
-
 
             // Read the data set message header
             bool TryReadDataSetMessageHeader(JsonDecoderEx jsonDecoder, out uint dataSetMessageContentMask) {

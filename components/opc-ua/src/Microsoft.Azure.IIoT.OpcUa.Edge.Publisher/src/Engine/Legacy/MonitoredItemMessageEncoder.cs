@@ -6,13 +6,11 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Core;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Encoders;
-    using Opc.Ua.PubSub;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -131,7 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         processing = current.MoveNext();
                     }
                     else {
-                        messageCompleted = maxMessageSize < (messageSize + notificationSize);
+                        messageCompleted = maxMessageSize < messageSize + notificationSize;
                         if (!messageCompleted) {
                             NotificationsProcessedCount++;
                             chunk.Add(notification);
@@ -140,7 +138,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
                 }
-                if (messageCompleted || (!processing && chunk.Count > 0)) {
+                if (messageCompleted || !processing && chunk.Count > 0) {
                     var writer = new StringWriter();
                     var encoder = new JsonEncoderEx(writer, encodingContext, JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = _useAdvancedEncoding,
@@ -188,7 +186,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Binary, encodingContext);
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext);
             var routingInfo = messages.Select(m => m.Context).OfType<WriterGroupMessageContext>()
                 .FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             var current = notifications.GetEnumerator();
@@ -210,7 +208,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         processing = current.MoveNext();
                     }
                     else {
-                        messageCompleted = maxMessageSize < (messageSize + notificationSize);
+                        messageCompleted = maxMessageSize < messageSize + notificationSize;
 
                         if (!messageCompleted) {
                             chunk.Add(notification);
@@ -220,7 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
                 }
-                if (messageCompleted || (!processing && chunk.Count > 0)) {
+                if (messageCompleted || !processing && chunk.Count > 0) {
                     var encoder = new BinaryEncoder(encodingContext);
                     encoder.WriteBoolean(null, true); // is Batch
                     encoder.WriteEncodeableArray(null, chunk);
@@ -308,7 +306,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Binary, encodingContext).ToList();
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext).ToList();
             var routingInfo = messages.Select(m => m.Context).OfType<WriterGroupMessageContext>()
                 .FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
             foreach (var networkMessage in notifications) {
@@ -414,8 +412,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 };
                 // force published timestamp into to source timestamp for the legacy heartbeat compatibility
                 if (notification.IsHeartbeat &&
-                    ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) &&
-                    ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0)) {
+                    (result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0 &&
+                    (result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0) {
                     result.Value.SourceTimestamp = result.Timestamp;
                 }
                 return result;

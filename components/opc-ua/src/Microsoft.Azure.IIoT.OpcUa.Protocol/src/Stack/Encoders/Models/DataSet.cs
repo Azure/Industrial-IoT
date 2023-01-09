@@ -30,6 +30,17 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <summary>
+        /// Create payload
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <param name="fieldContentMask"></param>
+        public DataSet(string field, DataValue value, uint fieldContentMask)
+            : this(fieldContentMask) {
+            this[field] = value;
+        }
+
+        /// <summary>
         /// Create default dataset
         /// </summary>
         public DataSet(uint fieldContentMask = (uint)(

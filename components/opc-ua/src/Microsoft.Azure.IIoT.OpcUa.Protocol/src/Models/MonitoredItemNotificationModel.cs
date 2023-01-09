@@ -12,14 +12,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     public class MonitoredItemNotificationModel {
 
         /// <summary>
+        /// Identifier of the monitored item that originated the message
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Identifier to relate notifications to a value
+        /// </summary>
+        public uint MessageId => SequenceNumber ?? (uint)GetHashCode();
+
+        /// <summary>
         /// Data set field identifier as configured
         /// </summary>
         public string DataSetFieldName { get; set; }
-
-        /// <summary>
-        /// Identifier of the monitored item in the message
-        /// </summary>
-        public string Id { get; set; }
 
         /// <summary>
         /// Node Id in string format as configured
@@ -35,11 +40,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Display name
         /// </summary>
         public string DisplayName { get; internal set; }
-
-        /// <summary>
-        /// Identifier to relate notifications to a value
-        /// </summary>
-        public uint MessageId { get; internal set; }
 
         /// <summary>
         /// Sequence number

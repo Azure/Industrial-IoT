@@ -50,7 +50,7 @@ namespace Opc.Ua.PubSub {
         /// <summary>
         /// Status
         /// </summary>
-        public StatusCode Status { get; set; }
+        public StatusCode? Status { get; set; }
 
         /// <summary>
         /// Payload

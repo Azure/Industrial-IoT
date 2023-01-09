@@ -18,11 +18,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         Uadp = 0x1,
 
         /// <summary>
-        /// Binary encoding (same as uadp)
-        /// </summary>
-        Binary = Uadp,
-
-        /// <summary>
         /// Json encoding (default)
         /// </summary>
         Json = 0x2,

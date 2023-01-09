@@ -300,12 +300,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                         NetworkMessageContentMask =
                                 NetworkMessageContentMask.PublisherId |
                                 NetworkMessageContentMask.WriterGroupId |
-                                NetworkMessageContentMask.NetworkMessageNumber |
                                 NetworkMessageContentMask.SequenceNumber |
-                                NetworkMessageContentMask.PayloadHeader |
-                                NetworkMessageContentMask.Timestamp |
-                                NetworkMessageContentMask.DataSetClassId |
-                                NetworkMessageContentMask.NetworkMessageHeader |
+                                NetworkMessageContentMask.MonitoredItemMessage |
                                 NetworkMessageContentMask.DataSetMessageHeader
                     },
                 },

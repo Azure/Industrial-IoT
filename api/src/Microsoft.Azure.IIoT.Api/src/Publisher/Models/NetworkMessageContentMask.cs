@@ -18,90 +18,96 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Publisher id
         /// </summary>
         [EnumMember]
-        PublisherId = 1,
+        PublisherId = 0x1,
 
         /// <summary>
         /// Group header
         /// </summary>
         [EnumMember]
-        GroupHeader = 2,
+        GroupHeader = 0x2,
 
         /// <summary>
         /// Writer group id
         /// </summary>
         [EnumMember]
-        WriterGroupId = 4,
+        WriterGroupId = 0x4,
 
         /// <summary>
         /// Group version
         /// </summary>
         [EnumMember]
-        GroupVersion = 8,
+        GroupVersion = 0x8,
 
         /// <summary>
         /// Network message number
         /// </summary>
         [EnumMember]
-        NetworkMessageNumber = 16,
+        NetworkMessageNumber = 0x10,
 
         /// <summary>
         /// Sequence number
         /// </summary>
         [EnumMember]
-        SequenceNumber = 32,
+        SequenceNumber = 0x20,
 
         /// <summary>
         /// Payload header
         /// </summary>
         [EnumMember]
-        PayloadHeader = 64,
+        PayloadHeader = 0x40,
 
         /// <summary>
         /// Timestamp
         /// </summary>
         [EnumMember]
-        Timestamp = 128,
+        Timestamp = 0x80,
 
         /// <summary>
         /// Picoseconds
         /// </summary>
         [EnumMember]
-        Picoseconds = 256,
+        Picoseconds = 0x100,
 
         /// <summary>
         /// Dataset class id
         /// </summary>
         [EnumMember]
-        DataSetClassId = 512,
+        DataSetClassId = 0x200,
 
         /// <summary>
         /// Promoted fields
         /// </summary>
         [EnumMember]
-        PromotedFields = 1024,
+        PromotedFields = 0x400,
 
         /// <summary>
         /// Network message header
         /// </summary>
         [EnumMember]
-        NetworkMessageHeader = 2048,
+        NetworkMessageHeader = 0x800,
 
         /// <summary>
         /// Dataset message header
         /// </summary>
         [EnumMember]
-        DataSetMessageHeader = 4096,
+        DataSetMessageHeader = 0x1000,
 
         /// <summary>
         /// Single dataset messages
         /// </summary>
         [EnumMember]
-        SingleDataSetMessage = 8192,
+        SingleDataSetMessage = 0x2000,
 
         /// <summary>
         /// Reply to
         /// </summary>
         [EnumMember]
-        ReplyTo = 16384
+        ReplyTo = 0x4000,
+
+        /// <summary>
+        /// Monitored item message (publisher extension)
+        /// </summary>
+        [EnumMember]
+        MonitoredItemMessage = 0x8000000 | DataSetMessageHeader,
     }
 }

@@ -10,10 +10,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.Hub;
     using Opc.Ua;
     using Opc.Ua.PubSub;
-    using Opc.Ua.Encoders;
     using Serilog;
     using System;
-    using System.IO;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -21,10 +19,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     /// <summary>
     /// Publisher message handling
     /// </summary>
-    public sealed class PubSubNetworkMessageJsonHandler : IDeviceTelemetryHandler {
+    public sealed class PubSubUadpNetworkMessageHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string MessageSchema => Core.MessageSchemaTypes.NetworkMessageJson;
+        public string MessageSchema => Core.MessageSchemaTypes.NetworkMessageUadp;
 
         /// <summary>
         /// Create handler
@@ -32,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// <param name="encoder"></param>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public PubSubNetworkMessageJsonHandler(IVariantEncoderFactory encoder,
+        public PubSubUadpNetworkMessageHandler(IVariantEncoderFactory encoder,
             IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
             _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -45,17 +43,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
 
             try {
                 var context = new ServiceMessageContext();
-                var decoder = new JsonDecoderEx(new MemoryStream(payload), context);
-                while (decoder.ReadEncodeable(null, typeof(JsonNetworkMessage))
-                     is JsonNetworkMessage message) {
-                    foreach (JsonDataSetMessage dataSetMessage in message.Messages) {
+                var pubSubMessage = PubSubMessage.Decode(payload, ContentMimeType.Uadp, context, null, MessageSchema);
+                if (pubSubMessage is not BaseNetworkMessage networkMessage) {
+                    _logger.Information("Received non network message.");
+                    return;
+                }
+                if (pubSubMessage is UadpNetworkMessage message) {
+                    foreach (UadpDataSetMessage dataSetMessage in message.Messages) {
                         var dataset = new DataSetMessageModel {
                             PublisherId = message.PublisherId,
-                            MessageId = message.MessageId,
+                            MessageId = message.NetworkMessageNumber.ToString(),
                             DataSetClassId = message.DataSetClassId.ToString(),
-                            DataSetWriterId = dataSetMessage.DataSetWriterName,
+                            DataSetWriterId = dataSetMessage.DataSetWriterId.ToString(),
                             SequenceNumber = dataSetMessage.SequenceNumber,
-                            Status = StatusCode.LookupSymbolicId(dataSetMessage.Status.Code),
+                            Status = dataSetMessage.Status == null ? null :
+                                StatusCode.LookupSymbolicId(dataSetMessage.Status.Value.Code),
                             MetaDataVersion = $"{dataSetMessage.MetaDataVersion.MajorVersion}" +
                                 $".{dataSetMessage.MetaDataVersion.MinorVersion}",
                             Timestamp = dataSetMessage.Timestamp,
@@ -86,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Subscriber json network message handling failed - skip");
+                _logger.Error(ex, "Subscriber binary network message handling failed - skip");
             }
         }
 

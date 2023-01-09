@@ -70,29 +70,33 @@ namespace Opc.Ua.PubSub {
         /// Decode pub sub messages from buffer
         /// </summary>
         /// <param name="buffer"></param>
+        /// <param name="messageSchema"></param>
         /// <param name="contentType"></param>
         /// <param name="context"></param>
         /// <param name="resolver"></param>
         /// <returns></returns>
         public static PubSubMessage Decode(byte[] buffer, string contentType,
-            IServiceMessageContext context, IDataSetMetaDataResolver resolver = null) {
+            IServiceMessageContext context, IDataSetMetaDataResolver resolver = null,
+            string messageSchema = null) {
             var reader = new Queue<byte[]>();
             reader.Enqueue(buffer);
-            return DecodeOne(reader, contentType, context, resolver);
+            return DecodeOne(reader, contentType, context, resolver, messageSchema);
         }
 
         /// <summary>
         /// Decode all from reader
         /// </summary>
         /// <param name="reader"></param>
+        /// <param name="messageSchema"></param>
         /// <param name="contentType"></param>
         /// <param name="context"></param>
         /// <param name="resolver"></param>
         /// <returns></returns>
         public static IEnumerable<PubSubMessage> Decode(Queue<byte[]> reader, string contentType,
-            IServiceMessageContext context, IDataSetMetaDataResolver resolver) {
+            IServiceMessageContext context, IDataSetMetaDataResolver resolver,
+            string messageSchema = null) {
             while (true) {
-                var message = DecodeOne(reader, contentType, context, resolver);
+                var message = DecodeOne(reader, contentType, context, resolver, messageSchema);
                 if (message == null) {
                     yield break;
                 }
@@ -106,16 +110,18 @@ namespace Opc.Ua.PubSub {
         /// Decode one pub sub messages from buffer
         /// </summary>
         /// <param name="reader"></param>
+        /// <param name="messageSchema"></param>
         /// <param name="contentType"></param>
         /// <param name="context"></param>
         /// <param name="resolver"></param>
         /// <returns></returns>
         internal static PubSubMessage DecodeOne(Queue<byte[]> reader, string contentType,
-            IServiceMessageContext context, IDataSetMetaDataResolver resolver) {
-            PubSubMessage message = null;
+            IServiceMessageContext context, IDataSetMetaDataResolver resolver,
+            string messageSchema = null) {
             if (reader.Count == 0) {
                 return null;
             }
+            PubSubMessage message;
             switch (contentType.ToLowerInvariant()) {
                 case ContentMimeType.JsonGzip:
                 case ContentMimeType.Json:
@@ -123,6 +129,7 @@ namespace Opc.Ua.PubSub {
                 case ContentMimeType.UaLegacyPublisher:
                 case ContentMimeType.UaNonReversibleJson:
                     message = new JsonNetworkMessage {
+                        MessageSchemaToUse = messageSchema,
                         UseGzipCompression = contentType.Equals(
                             ContentMimeType.JsonGzip, StringComparison.OrdinalIgnoreCase)
                     };

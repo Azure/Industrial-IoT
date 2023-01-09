@@ -189,6 +189,84 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
+            AssertCompliantSimpleEventsMetadata(metadata);
+        }
+
+        [Theory]
+        [InlineData(@"./PublishedNodes/SimpleEvents.json")]
+        public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestTest(string publishedNodesFile) {
+            // Arrange
+            // Act
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(
+                publishedNodesFile, TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                arguments: new[] { "-c", "--mm=PubSub", "--me=JsonReversible" }
+            ).ConfigureAwait(false);
+
+            var messages = result
+                .SelectMany(x => x.GetProperty("Messages").EnumerateArray())
+                .ToArray();
+
+            // Assert
+            Assert.NotEmpty(messages);
+            Assert.All(messages, m => {
+                var body = m.GetProperty("Payload");
+                var eventId = body.GetProperty(kEventId).GetProperty("Value");
+                Assert.Equal(15, eventId.GetProperty("Type").GetInt32());
+                Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
+
+                var message = body.GetProperty(kMessage).GetProperty("Value");
+                Assert.Equal(21, message.GetProperty("Type").GetInt32());
+                Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
+                Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
+
+                var cycleId = body.GetProperty(kCycleId).GetProperty("Value");
+                Assert.Equal(12, cycleId.GetProperty("Type").GetInt32());
+                Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
+
+                var currentStep = body.GetProperty(kCurrentStep).GetProperty("Value");
+                body = currentStep.GetProperty("Body");
+                Assert.Equal(22, currentStep.GetProperty("Type").GetInt32());
+                Assert.Equal(183, body.GetProperty("TypeId").GetProperty("Id").GetInt32());
+                Assert.Equal(2, body.GetProperty("Encoding").GetInt32());
+                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("CycleStepDataType").GetProperty("Name").ValueKind);
+                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("CycleStepDataType").GetProperty("Duration").ValueKind);
+            });
+
+            AssertCompliantSimpleEventsMetadata(metadata);
+        }
+
+        [Fact]
+        public async Task CanSendPendingConditionsToIoTHubTest() {
+            // Arrange
+            // Act
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(@"./PublishedNodes/PendingAlarms.json", GetAlarmCondition,
+                messageType: "ua-data", arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
+
+            // Assert
+            _output.WriteLine(messages.ToString());
+            var evt = Assert.Single(messages);
+
+            Assert.Equal(JsonValueKind.Object, evt.ValueKind);
+            Assert.True(evt.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);
+
+            Assert.NotNull(metadata);
+        }
+
+        private static JsonElement GetAlarmCondition(JsonElement jsonElement) {
+            var messages = jsonElement.GetProperty("Messages");
+            if (messages.ValueKind != JsonValueKind.Array) {
+                return default;
+            }
+            return messages.EnumerateArray().FirstOrDefault(element => {
+                return element.GetProperty("MessageType").GetString() == "ua-condition" &&
+                    element.GetProperty("Payload").TryGetProperty("SourceNode", out var node) &&
+                        node.TryGetProperty("Value", out node) &&
+                            node.ValueKind != JsonValueKind.Null &&
+                            node.GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a");
+            });
+        }
+
+        private static void AssertCompliantSimpleEventsMetadata(JsonElement? metadata) {
             Assert.NotNull(metadata);
             var eventFields = metadata.Value.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, eventFields.ValueKind);
@@ -232,80 +310,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     Assert.Equal(11, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                 });
 #endif
-        }
-
-        [Theory]
-        [InlineData(@"./PublishedNodes/SimpleEvents.json")]
-        public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestTest(string publishedNodesFile) {
-            // Arrange
-            // Act
-            var (metadata, result) = await ProcessMessagesAndMetadataAsync(
-                publishedNodesFile, TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
-                arguments: new[] { "-c", "--mm=PubSub", "--me=JsonReversible" }
-            ).ConfigureAwait(false);
-
-            var messages = result
-                .SelectMany(x => x.GetProperty("Messages").EnumerateArray())
-                .ToArray();
-
-            // Assert
-            Assert.NotEmpty(messages);
-            Assert.All(messages, m => {
-                var body = m.GetProperty("Payload");
-                var eventId = body.GetProperty(kEventId).GetProperty("Value");
-                Assert.Equal(15, eventId.GetProperty("Type").GetInt32());
-                Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
-
-                var message = body.GetProperty(kMessage).GetProperty("Value");
-                Assert.Equal(21, message.GetProperty("Type").GetInt32());
-                Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
-                Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
-
-                var cycleId = body.GetProperty(kCycleId).GetProperty("Value");
-                Assert.Equal(12, cycleId.GetProperty("Type").GetInt32());
-                Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
-
-                var currentStep = body.GetProperty(kCurrentStep).GetProperty("Value");
-                body = currentStep.GetProperty("Body");
-                Assert.Equal(22, currentStep.GetProperty("Type").GetInt32());
-                Assert.Equal(183, body.GetProperty("TypeId").GetProperty("Id").GetInt32());
-                Assert.Equal(2, body.GetProperty("Encoding").GetInt32());
-                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("CycleStepDataType").GetProperty("Name").ValueKind);
-                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("CycleStepDataType").GetProperty("Duration").ValueKind);
-            });
-
-            AssertSimpleEventsMetadata(metadata);
-        }
-
-        [Fact]
-        public async Task CanSendPendingConditionsToIoTHubTest() {
-            // Arrange
-            // Act
-            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(@"./PublishedNodes/PendingAlarms.json", GetAlarmCondition,
-                messageType: "ua-data", arguments: new string[] { "--mm=PubSub" }).ConfigureAwait(false);
-
-            // Assert
-            _output.WriteLine(messages.ToString());
-            var evt = Assert.Single(messages);
-
-            Assert.Equal(JsonValueKind.Object, evt.ValueKind);
-            Assert.True(evt.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);
-
-            Assert.NotNull(metadata);
-        }
-
-        private static JsonElement GetAlarmCondition(JsonElement jsonElement) {
-            var messages = jsonElement.GetProperty("Messages");
-            if (messages.ValueKind != JsonValueKind.Array) {
-                return default;
-            }
-            return messages.EnumerateArray().FirstOrDefault(element => {
-                return element.GetProperty("MessageType").GetString() == "ua-condition" &&
-                    element.GetProperty("Payload").TryGetProperty("SourceNode", out var node) &&
-                        node.TryGetProperty("Value", out node) &&
-                            node.ValueKind != JsonValueKind.Null &&
-                            node.GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a");
-            });
         }
 
         private static void AssertSimpleEventsMetadata(JsonElement? metadata) {

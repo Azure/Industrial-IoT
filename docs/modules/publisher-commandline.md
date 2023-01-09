@@ -432,8 +432,6 @@ Currently supported combinations of `--mm` snd `--me` are:
     --mm FullSamples and --me Json
     --mm PubSub and --me Json
     --mm FullNetworkMessages and --me Json
-    --mm Samples and --me Uadp
-    --mm FullSamples and --me Uadp
     --mm PubSub and --me JsonGzip
     --mm FullNetworkMessages and --me JsonGzip
     --mm PubSub and --me JsonReversible
@@ -454,7 +452,4 @@ Currently supported combinations of `--mm` snd `--me` are:
     --mm FullNetworkMessages and --me Uadp
     --mm DataSetMessages and --me Uadp
     --mm RawDataSets and --me Uadp
-
 ```
-
-(*) Check [here](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#using-the-mqtt-protocol-directly-as-a-device) and [here](https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#for-azure-iot-tools) how to retrieve the device connection string or generate a SharedAccessSignature for one.

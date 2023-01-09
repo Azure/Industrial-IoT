@@ -9,7 +9,6 @@ namespace Opc.Ua.PubSub {
     using Opc.Ua.Encoders;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.IO.Compression;
     using System.Linq;
     using System.Text;
@@ -21,10 +20,12 @@ namespace Opc.Ua.PubSub {
     public class JsonNetworkMessage : BaseNetworkMessage {
 
         /// <inheritdoc/>
-        public override string MessageSchema => MessageSchemaTypes.NetworkMessageJson;
+        public override string MessageSchema => HasSamplesPayload ?
+            MessageSchemaTypes.MonitoredItemMessageJson : MessageSchemaTypes.NetworkMessageJson;
 
         /// <inheritdoc/>
-        public override string ContentType => UseGzipCompression ? ContentMimeType.JsonGzip : ContentMimeType.Json;
+        public override string ContentType => UseGzipCompression ?
+            ContentMimeType.JsonGzip : ContentMimeType.Json;
 
         /// <inheritdoc/>
         public override string ContentEncoding => Encoding.UTF8.EncodingName;
@@ -66,6 +67,44 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         public bool HasDataSetMessageHeader
             => (NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetMessageHeader) != 0;
+
+        /// <summary>
+        /// Flag that indicates if the Network message payload is monitored item samples
+        /// </summary>
+        public bool HasSamplesPayload {
+            get {
+                if (_hasSamplesPayload == null) {
+                    if (Messages.Count > 0) {
+                        _hasSamplesPayload = Messages.Any(m => m is MonitoredItemMessage);
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                return _hasSamplesPayload.Value;
+            }
+            set {
+                _hasSamplesPayload = value;
+            }
+        }
+
+        /// <summary>
+        /// Sets the message schema to use
+        /// </summary>
+        internal string MessageSchemaToUse {
+            get {
+                return MessageSchema;
+            }
+            set {
+                if (value != null &&
+                    value.Equals(MessageSchemaTypes.MonitoredItemMessageJson, StringComparison.OrdinalIgnoreCase)) {
+                    HasSamplesPayload = true;
+                }
+                else {
+                    HasSamplesPayload = false;
+                }
+            }
+        }
 
         /// <summary>
         /// Flag that indicates if advanced encoding should be used
@@ -266,7 +305,7 @@ namespace Opc.Ua.PubSub {
         /// <param name="decoder"></param>
         /// <returns></returns>
         private bool TryReadNetworkMessage(JsonDecoderEx decoder) {
-            if (TryReadNetworkMessageHeader(decoder, out var networkMessageContentMask)) {
+            if (!HasSamplesPayload && TryReadNetworkMessageHeader(decoder, out var networkMessageContentMask)) {
                 if (decoder.IsObject(nameof(Messages))) {
                     // Single message
                     networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
@@ -301,7 +340,7 @@ namespace Opc.Ua.PubSub {
             bool TryReadDataSetMessages(JsonDecoderEx decoder, string property) {
                 var hasDataSetMessageHeader = false;
                 var messages = decoder.ReadArray<BaseDataSetMessage>(property, () => {
-                    var message = new JsonDataSetMessage();
+                    var message = !HasSamplesPayload ? new JsonDataSetMessage() : new MonitoredItemMessage();
                     if (!message.TryDecode(decoder, property, ref hasDataSetMessageHeader)) {
                         return null;
                     }
@@ -310,7 +349,6 @@ namespace Opc.Ua.PubSub {
                 // Add decoded messages to messages array
                 foreach (var message in messages) {
                     if (message == null) {
-
                         // Reset
                         Messages.Clear();
                         return false;
@@ -385,7 +423,7 @@ namespace Opc.Ua.PubSub {
         /// <returns></returns>
         private bool TryReadNetworkMessageHeader(JsonDecoderEx decoder, out uint networkMessageContentMask) {
             networkMessageContentMask = 0;
-            if (!decoder.HasField(nameof(MessageId))) {
+            if (!decoder.HasField(nameof(MessageId)) || HasSamplesPayload) {
                 return false;
             }
             MessageId = decoder.ReadString(nameof(MessageId));
@@ -454,5 +492,7 @@ namespace Opc.Ua.PubSub {
                 encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
             }
         }
+
+        private bool? _hasSamplesPayload;
     }
 }

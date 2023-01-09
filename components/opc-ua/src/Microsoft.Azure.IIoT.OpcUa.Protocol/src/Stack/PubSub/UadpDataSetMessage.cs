@@ -357,7 +357,9 @@ namespace Opc.Ua.PubSub {
             if ((DataSetFlags1 & DataSetFlags1EncodingMask.Status) != 0) {
                 // This is the high order 16 bits of the StatusCode DataType representing
                 // the numeric value of the Severity and SubCode of the StatusCode DataType.
-                encoder.WriteUInt16(null, (ushort)(Status.Code >> 16));
+                var status = Status ?? Payload.Values
+                    .FirstOrDefault(s => StatusCode.IsNotGood(s.StatusCode))?.StatusCode ?? StatusCodes.Good;
+                encoder.WriteUInt16(null, (ushort)(status.Code >> 16));
             }
             if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0) {
                 encoder.WriteUInt32(null, MetaDataVersion.MajorVersion);

@@ -188,10 +188,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     .Where(dataSetBatches => dataSetBatches.Any())
                     .Select(dataSetBatches => (First: dataSetBatches.First(), Items: dataSetBatches))
                     .Select(dataSetBatches => new WriterGroupJobModel {
-                        MessagingMode = standaloneCliModel.MessagingMode,
-                        Engine = _engineConfig == null
-                        ? null
-                        : new EngineConfigurationModel {
+                        Engine = _engineConfig == null ? null : new EngineConfigurationModel {
                             BatchSize = _engineConfig.BatchSize,
                             BatchTriggerInterval = _engineConfig.BatchTriggerInterval,
                             DiagnosticsInterval = _engineConfig.DiagnosticsInterval,

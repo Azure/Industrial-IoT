@@ -1020,7 +1020,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     else {
                         var numOfEvents = 0;
                         var missingSequenceNumbers = Array.Empty<uint>();
-                        var dropped = false;
                         for (var i = 0; i < notification.Events.Count; i++) {
                             var eventNotification = notification.Events[i];
                             Debug.Assert(eventNotification != null);
@@ -1028,16 +1027,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             var monitoredItem = subscription.FindItemByClientHandle(eventNotification.ClientHandle);
                             var sequenceNumber = eventNotification.Message.SequenceNumber;
 
-                            if (monitoredItem == null || monitoredItem.Handle is not MonitoredItemWrapper wrapper) {
-                                _logger.Warning("Monitored item not found with client handle {clientHandle} " +
-                                    "for Event received for subscription '{subscription}'/'{sessionId}' + " +
-                                    "{sequenceNumber}, publishTime {PublishTime}",
-                                    eventNotification.ClientHandle, Name, Connection.CreateConnectionId(),
-                                    sequenceNumber, eventNotification.Message.PublishTime);
-                                continue;
-                            }
-
-                            if (i == 0 && !wrapper.ValidateSequenceNumber(sequenceNumber, out missingSequenceNumbers, out dropped)) {
+                            if (i == 0 && !SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber,
+                                out missingSequenceNumbers, out var dropped)) {
                                 _logger.Warning("Event for monitored item {clientHandle} subscription " +
                                     "'{subscription}'/'{sessionId}' has unexpected sequenceNumber {sequenceNumber} " +
                                     "missing {expectedSequenceNumber} which were {dropped}, publishTime {PublishTime}",
@@ -1050,23 +1041,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
                                 subscription.DisplayName, sequenceNumber, isKeepAlive, eventNotification.Message.PublishTime);
 
-                            var message = new SubscriptionNotificationModel {
-                                ServiceMessageContext = subscription?.Session?.MessageContext,
-                                ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
-                                EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
-                                SubscriptionName = Name,
-                                SubscriptionId = Id,
-                                MessageType = Opc.Ua.PubSub.MessageType.Event,
-                                MetaData = _currentMetaData,
-                                Timestamp = eventNotification.Message.PublishTime,
-                                Notifications = new List<MonitoredItemNotificationModel>(),
-                            };
+                            if (monitoredItem?.Handle is MonitoredItemWrapper wrapper) {
+                                var message = new SubscriptionNotificationModel {
+                                    ServiceMessageContext = subscription?.Session?.MessageContext,
+                                    ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
+                                    EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
+                                    SubscriptionName = Name,
+                                    SubscriptionId = Id,
+                                    MessageType = Opc.Ua.PubSub.MessageType.Event,
+                                    MetaData = _currentMetaData,
+                                    Timestamp = eventNotification.Message.PublishTime,
+                                    Notifications = new List<MonitoredItemNotificationModel>(),
+                                };
 
-                            wrapper.ProcessEventNotification(message, eventNotification,
-                                dropped ? missingSequenceNumbers : Array.Empty<uint>());
-                            if (message.Notifications.Count > 0) {
-                                OnSubscriptionEventChange.Invoke(this, message);
-                                numOfEvents++;
+                                wrapper.ProcessEventNotification(message, eventNotification);
+
+                                if (message.Notifications.Count > 0) {
+                                    OnSubscriptionEventChange.Invoke(this, message);
+                                    numOfEvents++;
+                                }
+                            }
+                            else {
+                                _logger.Warning("Monitored item not found with client handle {clientHandle} " +
+                                    "for Event received for subscription '{subscription}'/'{sessionId}' + " +
+                                    "{sequenceNumber}, publishTime {PublishTime}",
+                                    eventNotification.ClientHandle, Name, Connection.CreateConnectionId(),
+                                    sequenceNumber, eventNotification.Message.PublishTime);
                             }
                         }
                         OnSubscriptionEventDiagnosticsChange.Invoke(this, numOfEvents);
@@ -1134,6 +1134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             MetaData = _currentMetaData,
                             Notifications = new List<MonitoredItemNotificationModel>(),
                         };
+                        var missingSequenceNumbers = Array.Empty<uint>();
                         for (var i = 0; i < notification.MonitoredItems.Count; i++) {
                             Debug.Assert(notification?.MonitoredItems != null);
                             var item = notification.MonitoredItems[i];
@@ -1143,17 +1144,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             var sequenceNumber = item.Message.SequenceNumber;
                             message.Timestamp = item.Message.PublishTime;
 
-                            if (monitoredItem == null || monitoredItem.Handle is not MonitoredItemWrapper wrapper) {
-                                _logger.Warning("Monitored item not found with client handle {clientHandle} " +
-                                    "for DataChange received for subscription '{subscription}'/'{sessionId}' + " +
-                                    "{sequenceNumber}, publishTime {PublishTime}",
-                                    item.ClientHandle, Name, Connection.CreateConnectionId(),
-                                    sequenceNumber, message.Timestamp);
-                                continue;
-                            }
-
-                            if (!wrapper.ValidateSequenceNumber(sequenceNumber, out var missingSequenceNumbers,
-                                out var dropped)) {
+                            // All notifications have the same message and thus sequence number
+                            if (i == 0 && !SequenceNumber.Validate(sequenceNumber, ref _lastSequenceNumber,
+                                out missingSequenceNumbers, out var dropped)) {
                                 _logger.Warning("DataChange for monitored item {clientHandle} subscription " +
                                     "'{subscription}'/'{sessionId}' has unexpected sequenceNumber {sequenceNumber} " +
                                     "missing {expectedSequenceNumber} which were {ropped}, publishTime {PublishTime}",
@@ -1166,8 +1159,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
                                 subscription.DisplayName, sequenceNumber, isKeepAlive, message.Timestamp);
 
-                            wrapper.ProcessMonitoredItemNotification(message, item,
-                                dropped ? missingSequenceNumbers : Array.Empty<uint>());
+                            if (monitoredItem?.Handle is MonitoredItemWrapper wrapper) {
+                                wrapper.ProcessMonitoredItemNotification(message, item);
+                            }
+                            else {
+                                _logger.Warning("Monitored item not found with client handle {clientHandle} " +
+                                    "for DataChange received for subscription '{subscription}'/'{sessionId}' + " +
+                                    "{sequenceNumber}, publishTime {PublishTime}",
+                                    item.ClientHandle, Name, Connection.CreateConnectionId(),
+                                    sequenceNumber, message.Timestamp);
+                            }
                         }
                     }
 
@@ -1175,7 +1176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var currentlyMonitored = _currentlyMonitored.ToBuilder();
                     currentlyMonitored.RemoveRange(notification.MonitoredItems.Select(m => m.ClientHandle));
                     foreach (var wrapper in currentlyMonitored.Values) {
-                        wrapper.ProcessMonitoredItemNotification(message, null, null);
+                        wrapper.ProcessMonitoredItemNotification(message, null);
                     }
 
                     if (_logger.IsEnabled(Serilog.Events.LogEventLevel.Debug)) {
@@ -1210,6 +1211,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private readonly SemaphoreSlim _lock;
             private ImmutableDictionary<uint, MonitoredItemWrapper> _currentlyMonitored;
             private DataSetMetaDataType _currentMetaData;
+            private uint _lastSequenceNumber;
             private bool _closed;
 
             private static uint _lastIndex;

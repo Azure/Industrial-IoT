@@ -17,7 +17,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using UaDataChangeTrigger = Opc.Ua.DataChangeTrigger;
     using UaPermissionType = Opc.Ua.PermissionType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
-    using UaMonitoredItemMessageContentMask = Opc.Ua.MonitoredItemMessageContentMask;
     using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;
     using JsonNetworkMessageContentMask = Opc.Ua.JsonNetworkMessageContentMask;
     using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
@@ -537,85 +536,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
-        /// Get message content mask
-        /// </summary>
-        /// <returns></returns>
-        public static uint ToMonitoredItemMessageMask(this DataSetContentMask? message,
-            DataSetFieldContentMask? field) {
-            UaMonitoredItemMessageContentMask result = 0;
-            if (field == null) {
-                result |=
-                    UaMonitoredItemMessageContentMask.SourceTimestamp |
-                    UaMonitoredItemMessageContentMask.ServerTimestamp |
-                    UaMonitoredItemMessageContentMask.StatusCode |
-                    UaMonitoredItemMessageContentMask.NodeId |
-                    UaMonitoredItemMessageContentMask.EndpointUrl |
-                    UaMonitoredItemMessageContentMask.ApplicationUri |
-                    UaMonitoredItemMessageContentMask.DisplayName |
-                    UaMonitoredItemMessageContentMask.ExtensionFields |
-                    UaMonitoredItemMessageContentMask.SequenceNumber;
-            }
-            else {
-                if (0 != (field & DataSetFieldContentMask.SourceTimestamp)) {
-                    result |= UaMonitoredItemMessageContentMask.SourceTimestamp;
-                }
-                if (0 != (field & DataSetFieldContentMask.SourcePicoSeconds)) {
-                    result |= UaMonitoredItemMessageContentMask.SourcePicoSeconds;
-                }
-                if (0 != (field & DataSetFieldContentMask.ServerTimestamp)) {
-                    result |= UaMonitoredItemMessageContentMask.ServerTimestamp;
-                }
-                if (0 != (field & DataSetFieldContentMask.ServerPicoSeconds)) {
-                    result |= UaMonitoredItemMessageContentMask.ServerPicoSeconds;
-                }
-                if (0 != (field & DataSetFieldContentMask.StatusCode)) {
-                    result |= UaMonitoredItemMessageContentMask.StatusCode;
-                }
-                if (0 != (field & DataSetFieldContentMask.NodeId)) {
-                    result |= UaMonitoredItemMessageContentMask.NodeId;
-                }
-                if (0 != (field & DataSetFieldContentMask.EndpointUrl)) {
-                    result |= UaMonitoredItemMessageContentMask.EndpointUrl;
-                }
-                if (0 != (field & DataSetFieldContentMask.ApplicationUri)) {
-                    result |= UaMonitoredItemMessageContentMask.ApplicationUri;
-                }
-                if (0 != (field & DataSetFieldContentMask.DisplayName)) {
-                    result |= UaMonitoredItemMessageContentMask.DisplayName;
-                }
-                if (0 != (field & DataSetFieldContentMask.ExtensionFields)) {
-                    result |= UaMonitoredItemMessageContentMask.ExtensionFields;
-                }
-            }
-            if (message == null) {
-                result |=
-                    UaMonitoredItemMessageContentMask.Timestamp |
-                    UaMonitoredItemMessageContentMask.Status;
-            }
-            else {
-                if (0 != (message & DataSetContentMask.Timestamp)) {
-                    result |= UaMonitoredItemMessageContentMask.Timestamp;
-                }
-                if (0 != (message & DataSetContentMask.PicoSeconds)) {
-                    result |= UaMonitoredItemMessageContentMask.PicoSeconds;
-                }
-                if (0 != (message & DataSetContentMask.Status)) {
-                    result |= UaMonitoredItemMessageContentMask.Status;
-                }
-                if (0 != (message & DataSetContentMask.SequenceNumber)) {
-                    result |= UaMonitoredItemMessageContentMask.SequenceNumber;
-                }
-                if (0 != (message & DataSetContentMask.MessageType)) {
-                    result |= UaMonitoredItemMessageContentMask.MessageType;
-                }
-                if (0 != (message & DataSetContentMask.ReversibleFieldEncoding)) {
-                    result |= UaMonitoredItemMessageContentMask.ReversibleFieldEncoding;
-                }
-            }
-            return (uint)result;
-        }
-
-        /// <summary>
         /// Get network message content mask
         /// </summary>
         /// <param name="mask"></param>
@@ -643,9 +563,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Get network message content mask
         /// </summary>
         /// <param name="mask"></param>
+        /// <param name="fieldMask"></param>
         /// <param name="encoding"></param>
         /// <returns></returns>
-        public static uint ToStackType(this DataSetContentMask? mask, MessageEncoding? encoding) {
+        public static uint ToStackType(this DataSetContentMask? mask,
+            DataSetFieldContentMask? fieldMask, MessageEncoding? encoding) {
             if (mask == null) {
                 mask =
                     DataSetContentMask.DataSetWriterId |
@@ -662,9 +584,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 case MessageEncoding.Uadp:
                     return (uint)ToUadpStackType(mask.Value);
                 case MessageEncoding.Json:
-                    return (uint)ToJsonStackType(mask.Value);
+                    return (uint)ToJsonStackType(mask.Value, fieldMask);
             }
-            return (uint)ToJsonStackType(mask.Value);
+            return (uint)ToJsonStackType(mask.Value, fieldMask);
         }
 
         /// <summary>
@@ -690,6 +612,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 // If not set, bits 3, 4 and 5 can also not be set
                 result = JsonNetworkMessageContentMask.None;
             }
+            if (0 != (mask & NetworkMessageContentMask.MonitoredItemMessage)) {
+                // If monitored item message, then no network message header
+                result = JsonNetworkMessageContentMask.None;
+            }
             if (0 != (mask & NetworkMessageContentMask.DataSetMessageHeader)) {
                 result |= JsonNetworkMessageContentMask.DataSetMessageHeader;
             }
@@ -703,8 +629,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Get dataset message content mask
         /// </summary>
         /// <param name="mask"></param>
+        /// <param name="fieldMask"></param>
         /// <returns></returns>
-        private static JsonDataSetMessageContentMask ToJsonStackType(this DataSetContentMask mask) {
+        private static JsonDataSetMessageContentMask ToJsonStackType(this DataSetContentMask mask,
+            DataSetFieldContentMask? fieldMask) {
             var result = JsonDataSetMessageContentMask.None;
             if (0 != (mask & DataSetContentMask.Timestamp)) {
                 result |= JsonDataSetMessageContentMask.Timestamp;
@@ -729,6 +657,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             }
             if (0 != (mask & DataSetContentMask.ReversibleFieldEncoding)) {
                 result |= JsonDataSetMessageContentMask2.ReversibleFieldEncoding;
+            }
+
+            if (fieldMask != null) {
+                if (0 != (fieldMask & DataSetFieldContentMask.NodeId)) {
+                    result |= JsonDataSetMessageContentMaskEx.NodeId;
+                }
+                if (0 != (fieldMask & DataSetFieldContentMask.DisplayName)) {
+                    result |= JsonDataSetMessageContentMaskEx.DisplayName;
+                }
+                if (0 != (fieldMask & DataSetFieldContentMask.ExtensionFields)) {
+                    result |= JsonDataSetMessageContentMaskEx.ExtensionFields;
+                }
+                if (0 != (fieldMask & DataSetFieldContentMask.EndpointUrl)) {
+                    result |= JsonDataSetMessageContentMaskEx.EndpointUrl;
+                }
+                if (0 != (fieldMask & DataSetFieldContentMask.ApplicationUri)) {
+                    result |= JsonDataSetMessageContentMaskEx.ApplicationUri;
+                }
             }
             return result;
         }

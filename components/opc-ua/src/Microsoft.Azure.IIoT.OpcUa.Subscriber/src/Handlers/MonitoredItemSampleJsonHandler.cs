@@ -45,9 +45,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
 
             try {
                 var context = new ServiceMessageContext();
-                var decoder = new JsonDecoderEx(new MemoryStream(payload), context);
-                while (decoder.ReadEncodeable(null, typeof(MonitoredItemMessage))
-                     is MonitoredItemMessage message) {
+                var pubSubMessage = PubSubMessage.Decode(payload, ContentMimeType.Json, context, null, MessageSchema);
+                if (pubSubMessage is not BaseNetworkMessage networkMessage) {
+                    _logger.Information("Received non network message.");
+                    return;
+                }
+
+                foreach (MonitoredItemMessage message in networkMessage.Messages) {
                     var type = BuiltInType.Null;
                     var codec = _encoder.Create(context);
                     var sample = new MonitoredItemMessageModel {

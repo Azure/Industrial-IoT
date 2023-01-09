@@ -36,7 +36,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 NodeId = model.NodeId,
                 AttributeId = model.AttributeId,
                 Value = dataValue ?? model.Value, // Not cloning, should be immutable
-                MessageId = model.MessageId,
                 SequenceNumber = sequenceNumber ?? model.SequenceNumber,
                 IsHeartbeat = model.IsHeartbeat,
             };
@@ -116,7 +115,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 NodeId = handleId?.Template?.StartNodeId,
                 AttributeId = monitoredItem.AttributeId,
                 Value = notification.Value,
-                MessageId = sequence ?? (uint)notification.GetHashCode(),
                 SequenceNumber = sequence,
                 IsHeartbeat = false
             };
@@ -144,7 +142,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                         AttributeId = monitoredItem.AttributeId,
                         Value = new DataValue(eventFieldList.EventFields[i]),
                         SequenceNumber = sequenceNumber,
-                        MessageId = sequenceNumber ?? (uint)eventFieldList.GetHashCode(),
                         IsHeartbeat = false,
                     };
                 }
