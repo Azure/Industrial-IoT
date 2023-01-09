@@ -145,8 +145,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             networkMessageContentMask, dataSetClassId, publisherId);
                         var currentNotificationCount = 0;
                         foreach (var message in dataSetClass) {
-                            if (message.Context.Writer == null) {
-                                // Must have a writer
+                            if (message.Context.Writer == null ||
+                                (hasSamplesPayload && !encoding.HasFlag(MessageEncoding.Json))) {
+                                // Must have a writer or if samples mode, must be json
                                 Drop(message.Notification.YieldReturn());
                                 continue;
                             }
@@ -217,7 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                                     StatusCode = notificationsInGroup[0].Value.StatusCode
                                                 };
                                             }
-                                            var dataSetMessage = new Opc.Ua.PubSub.MonitoredItemMessage {
+                                            var dataSetMessage = new MonitoredItemMessage {
                                                 UseCompatibilityMode = !_useStandardsCompliantEncoding,
                                                 ApplicationUri = message.Notification.ApplicationUri,
                                                 EndpointUrl = message.Notification.EndpointUrl,

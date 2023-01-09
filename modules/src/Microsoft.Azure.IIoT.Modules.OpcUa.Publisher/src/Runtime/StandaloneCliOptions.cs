@@ -179,7 +179,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 { $"fd|fetchdisplayname:|{StandaloneCliConfigKeys.FetchOpcNodeDisplayName}:",
                     "Fetches the displayname for the monitored items subscribed if a display name was not specified in the configuration.\nNote: This has high impact on OPC Publisher startup performance.\nDefault: `False` (disabled).\n",
                     (bool? b) => this[StandaloneCliConfigKeys.FetchOpcNodeDisplayName] = b?.ToString() ?? "True" },
-                { $"mq|monitoreditemqueuecapacity=|{StandaloneCliConfigKeys.DefaultQueueSize}=",
+                { $"qs|queuesize=|{StandaloneCliConfigKeys.DefaultQueueSize}=",
                     "Default queue size for all monitored items if queue size was not specified in the configuration.\nDefault: `1` (for backwards compatibility).\n",
                     (uint u) => this[StandaloneCliConfigKeys.DefaultQueueSize] = u.ToString() },
                 { $"ndo|nodiscardold:|{StandaloneCliConfigKeys.DiscardNewDefault}:",
@@ -315,6 +315,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
                 // Legacy: unsupported and hidden
                 { "s|site=", "Legacy - do not use.", b => {legacyOptions.Add("s|site"); }, true },
+                { "mq|monitoreditemqueuecapacity=", "Legacy - do not use.", b => {legacyOptions.Add("mq|monitoreditemqueuecapacity"); }, true },
                 { "tc|telemetryconfigfile=", "Legacy - do not use.", b => {legacyOptions.Add("tc|telemetryconfigfile"); }, true },
                 { "ic|iotcentral=", "Legacy - do not use.", b => {legacyOptions.Add("ic|iotcentral"); }, true },
                 { "ns|noshutdown=", "Legacy - do not use.", b => {legacyOptions.Add("ns|noshutdown"); }, true },
@@ -385,10 +386,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 options.WriteOptionDescriptions(Console.Out);
 #if DEBUG
                 Console.WriteLine();
-                Console.WriteLine("Currently supported combinations of --mm snd --me are:");
-                foreach (var supported in MessagingProfile.Supported.Select(p => $"    --mm {p.MessagingMode} and --me {p.MessageEncoding}")) {
-                    Console.WriteLine(supported);
-                }
+                Console.WriteLine();
+                Console.WriteLine("The following messaging profiles are supported (selected with --mm and --me):");
+                Console.WriteLine();
+                Console.WriteLine(MessagingProfile.GetAllAsMarkdownTable());
 #endif
                 Exit(0);
             }

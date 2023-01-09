@@ -5,8 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using System;
     using System.Collections.Generic;
+    using System.Text;
 
     /// <summary>
     /// Messaging profiles supported by OPC Publisher
@@ -141,7 +143,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
 
         /// <inheritdoc/>
         public override string ToString() {
-            return $"({MessagingMode} and {MessageEncoding})";
+            var builder = new StringBuilder("| ");
+            builder.Append(MessagingMode);
+            builder.Append(" | ");
+            builder.Append(MessageEncoding);
+            builder.Append(" | ");
+            builder.Append(NetworkMessageContentMask);
+            builder.Append("<br>(");
+            builder.AppendFormat("0x{0:X}", (uint)StackTypesEx.ToStackType(
+                NetworkMessageContentMask, MessageEncoding));
+            builder.Append(") | ");
+            builder.Append(DataSetMessageContentMask);
+            builder.Append("<br>(");
+            builder.AppendFormat("0x{0:X}", (uint)StackTypesEx.ToStackType(
+                DataSetMessageContentMask, DataSetFieldContentMask, MessageEncoding));
+            builder.Append(") | ");
+            builder.Append(DataSetFieldContentMask);
+            builder.Append("<br>(");
+            builder.AppendFormat("0x{0:X}", (uint)StackTypesEx.ToStackType(
+                DataSetFieldContentMask));
+            builder.Append(") | ");
+            builder.Append(SupportsMetadata ? "X" : " ");
+            builder.Append(" | ");
+            builder.Append(SupportsKeyFrames ? "X" : " ");
+            builder.AppendLine(" |");
+            return builder.ToString();
         }
 
         static MessagingProfile() {
@@ -152,11 +178,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
 
             // Sample mode
             AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false),
-                    BuildNetworkMessageContentMask() | NetworkMessageContentMask.MonitoredItemMessage,
+                    BuildNetworkMessageContentMask(true),
                     BuildDataSetFieldContentMask(false),
                     MessageEncoding.Json);
             AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true),
-                    BuildNetworkMessageContentMask() | NetworkMessageContentMask.MonitoredItemMessage,
+                    BuildNetworkMessageContentMask(true),
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.Json);
 
@@ -198,11 +224,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
             AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false, true),
-                    BuildNetworkMessageContentMask() | NetworkMessageContentMask.MonitoredItemMessage,
+                    BuildNetworkMessageContentMask(true),
                     BuildDataSetFieldContentMask(false),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
             AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true, true),
-                    BuildNetworkMessageContentMask() | NetworkMessageContentMask.MonitoredItemMessage,
+                    BuildNetworkMessageContentMask(true),
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
 
@@ -242,6 +268,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         }
 
         /// <summary>
+        /// Get a markdown compatible string of all message profiles
+        /// </summary>
+        /// <returns></returns>
+        public static string GetAllAsMarkdownTable() {
+            var builder = new StringBuilder();
+            builder.Append(
+$@"| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported |
+   |--------------------------|----------------------------|---------------------------|---------------------------|-------------------------|--------------------|---------------------|
+");
+            foreach (var profile in kProfiles) {
+                builder.Append(profile.Value.ToString());
+            }
+            return builder.ToString();
+        }
+
+        /// <summary>
         /// Massage the message encoding
         /// </summary>
         /// <param name="encoding"></param>
@@ -272,34 +314,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             bool fullFeaturedMessage) =>
             DataSetFieldContentMask.StatusCode |
             DataSetFieldContentMask.SourceTimestamp |
-            (fullFeaturedMessage ? DataSetFieldContentMask.ServerTimestamp : 0) |
+            (fullFeaturedMessage ?
+                 (DataSetFieldContentMask.ServerTimestamp |
+                  DataSetFieldContentMask.ApplicationUri |
+                  DataSetFieldContentMask.ExtensionFields) : 0) |
             DataSetFieldContentMask.NodeId |
             DataSetFieldContentMask.DisplayName |
-            (fullFeaturedMessage ? DataSetFieldContentMask.ApplicationUri : 0) |
-            DataSetFieldContentMask.EndpointUrl |
-            (fullFeaturedMessage ? DataSetFieldContentMask.ExtensionFields : 0);
+            DataSetFieldContentMask.EndpointUrl;
 
         private static DataSetContentMask BuildDataSetContentMask(
             bool fullFeaturedMessage, bool reversibleEncoding = false) =>
-            (reversibleEncoding ? DataSetContentMask.ReversibleFieldEncoding : 0) |
-            (fullFeaturedMessage ? DataSetContentMask.Timestamp : 0) |
+            (reversibleEncoding ?
+                 (DataSetContentMask.ReversibleFieldEncoding) : 0) |
+            (fullFeaturedMessage ?
+                 (DataSetContentMask.Timestamp |
+                  DataSetContentMask.DataSetWriterId |
+                  DataSetContentMask.SequenceNumber) : 0) |
             DataSetContentMask.MetaDataVersion |
             DataSetContentMask.MajorVersion |
             DataSetContentMask.MinorVersion |
-            (fullFeaturedMessage ? DataSetContentMask.DataSetWriterId : 0) |
             DataSetContentMask.DataSetWriterName |
-            DataSetContentMask.MessageType |
-            (fullFeaturedMessage ? DataSetContentMask.SequenceNumber : 0);
+            DataSetContentMask.MessageType;
 
-        private static NetworkMessageContentMask BuildNetworkMessageContentMask() =>
-            NetworkMessageContentMask.PublisherId |
-            NetworkMessageContentMask.WriterGroupId |
-            NetworkMessageContentMask.NetworkMessageNumber |
-            NetworkMessageContentMask.SequenceNumber |
-            NetworkMessageContentMask.PayloadHeader |
-            NetworkMessageContentMask.Timestamp |
-            NetworkMessageContentMask.DataSetClassId |
-            NetworkMessageContentMask.NetworkMessageHeader |
+        private static NetworkMessageContentMask BuildNetworkMessageContentMask(
+            bool isSampleMessage = false) =>
+            (isSampleMessage ? NetworkMessageContentMask.MonitoredItemMessage
+                 : (NetworkMessageContentMask.NetworkMessageHeader |
+                    NetworkMessageContentMask.PublisherId |
+                    NetworkMessageContentMask.SequenceNumber |
+                    NetworkMessageContentMask.Timestamp |
+                    NetworkMessageContentMask.WriterGroupId |
+                    NetworkMessageContentMask.PayloadHeader |
+                    NetworkMessageContentMask.DataSetClassId |
+                    NetworkMessageContentMask.NetworkMessageNumber)) |
             NetworkMessageContentMask.DataSetMessageHeader;
 
         private static Dictionary<(MessagingMode, MessageEncoding), MessagingProfile> kProfiles

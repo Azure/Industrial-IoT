@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime;
@@ -63,6 +64,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public void EncodeTooBigMessageTest(bool encodeBatchFlag) {
             var maxMessageSize = 100;
             var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(3, false, isSampleMode: true);
+
+            var encoder = GetEncoder();
+            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
+
+            Assert.Empty(networkMessages);
+            Assert.Equal((uint)0, encoder.NotificationsProcessedCount);
+            Assert.Equal((uint)6, encoder.NotificationsDroppedCount);
+            Assert.Equal((uint)0, encoder.MessagesProcessedCount);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void EncodeAsUadpNotSupportedTest(bool encodeBatchFlag) {
+            var maxMessageSize = 100;
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(3, false, encoding: MessageEncoding.Uadp, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);

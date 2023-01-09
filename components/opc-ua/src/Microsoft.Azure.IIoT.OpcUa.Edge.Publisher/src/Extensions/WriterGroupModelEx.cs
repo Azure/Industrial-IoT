@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 }
                 //
                 // Adjust network message content mask based on samples messaging mode for
-                // backwards compatbility with existing database stored writer group models.
+                // backwards compatibility with existing database stored writer group models.
                 //
                 if (model.MessagingMode == MessagingMode.Samples ||
                     model.MessagingMode == MessagingMode.FullSamples) {
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
                         &= ~NetworkMessageContentMask.NetworkMessageHeader;
                 }
-                else {
+                else if (model.MessagingMode != null) {
                     writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
                         &= ~NetworkMessageContentMask.MonitoredItemMessage;
                 }
