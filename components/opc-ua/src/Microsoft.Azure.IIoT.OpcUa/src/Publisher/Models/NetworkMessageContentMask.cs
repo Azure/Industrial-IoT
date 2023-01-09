@@ -90,6 +90,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Monitored item message (publisher extension)
         /// </summary>
-        MonitoredItemMessage = 0x8000000 | DataSetMessageHeader,
+        MonitoredItemMessage = 0x8000000,
     }
 }

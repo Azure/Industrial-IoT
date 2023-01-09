@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 ? (uint?)null
                 : notification.Message.SequenceNumber;
             yield return new MonitoredItemNotificationModel {
-                Id = handleId?.Template?.Id,
+                Id = handleId?.Template?.Id ?? string.Empty,
                 DataSetFieldName = handleId?.Template?.DataSetFieldName ?? monitoredItem.DisplayName,
                 DisplayName = monitoredItem.DisplayName,
                 NodeId = handleId?.Template?.StartNodeId,
@@ -135,7 +135,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                             ? (uint?)null
                             : eventFieldList.Message.SequenceNumber;
                     yield return new MonitoredItemNotificationModel {
-                        Id = handleId?.Template?.Id,
+                        Id = handleId?.Template?.Id ?? string.Empty,
                         DataSetFieldName = handleId?.Fields[i].Name,
                         DisplayName = monitoredItem.DisplayName,
                         NodeId = handleId?.Template?.StartNodeId,

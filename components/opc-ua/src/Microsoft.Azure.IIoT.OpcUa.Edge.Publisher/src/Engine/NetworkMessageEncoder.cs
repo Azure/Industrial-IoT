@@ -131,10 +131,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         continue;
                     }
                     var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
-                    var hasSamplesPayload =
-                        (writerGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0;
-                    var networkMessageContentMask =
-                        writerGroup.MessageSettings.NetworkMessageContentMask.ToStackType(encoding);
+                    var messageMask = writerGroup.MessageSettings.NetworkMessageContentMask;
+                    var hasSamplesPayload = (messageMask & NetworkMessageContentMask.MonitoredItemMessage) != 0;
+                    if (hasSamplesPayload && !isBatched) {
+                        messageMask |= NetworkMessageContentMask.SingleDataSetMessage;
+                    }
+                    var networkMessageContentMask = messageMask.ToStackType(encoding);
                     foreach (var dataSetClass in groups
                         .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty)) {
 

@@ -44,6 +44,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
                         |= NetworkMessageContentMask.MonitoredItemMessage;
                     writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
+                        |= NetworkMessageContentMask.DataSetMessageHeader;
+                    writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
                         &= ~NetworkMessageContentMask.NetworkMessageHeader;
                 }
                 else {

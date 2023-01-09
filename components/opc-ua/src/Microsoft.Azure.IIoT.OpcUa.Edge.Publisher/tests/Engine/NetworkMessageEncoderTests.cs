@@ -19,7 +19,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public static IList<SubscriptionNotificationModel> GenerateSampleSubscriptionNotifications(
             uint numOfMessages, bool eventList = false,
             MessageEncoding encoding = MessageEncoding.Json,
-            NetworkMessageContentMask extraNetworkMessageMask = 0) {
+            NetworkMessageContentMask extraNetworkMessageMask = 0,
+            bool isSampleMode = false) {
             var messages = new List<SubscriptionNotificationModel>();
             var publisherId = "Publisher";
             var writer = new DataSetWriterModel {
@@ -45,12 +46,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         NetworkMessageContentMask.PayloadHeader |
                         NetworkMessageContentMask.Timestamp |
                         NetworkMessageContentMask.DataSetClassId |
-                        NetworkMessageContentMask.NetworkMessageHeader |
+                        (isSampleMode ? NetworkMessageContentMask.MonitoredItemMessage : NetworkMessageContentMask.NetworkMessageHeader) |
                         NetworkMessageContentMask.DataSetMessageHeader |
                         extraNetworkMessageMask
                 },
                 MessageType = encoding
             };
+            var seq = 1u;
             for (uint i = 0; i < numOfMessages; i++) {
                 var suffix = $"-{i}";
 
@@ -76,7 +78,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         var eventFieldList = new EventFieldList {
                             ClientHandle = k,
                             EventFields = new Variant[] { 1, 2, 3, 4, 5, 6 },
-                            Message = new NotificationMessage()
+                            Message = new NotificationMessage {
+                                SequenceNumber = seq++
+                            }
                         };
                         var notification = eventFieldList.ToMonitoredItemNotifications(monitoredItem);
                         notifications.AddRange(notification);
@@ -85,7 +89,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         var monitoredItemNotification = new MonitoredItemNotification {
                             ClientHandle = k,
                             Value = new DataValue(new Variant(k), new StatusCode(0), DateTime.UtcNow),
-                            Message = new NotificationMessage()
+                            Message = new NotificationMessage {
+                                SequenceNumber = seq++
+                            }
                         };
                         var notification = monitoredItemNotification.ToMonitoredItemNotifications(monitoredItem);
                         notifications.AddRange(notification);

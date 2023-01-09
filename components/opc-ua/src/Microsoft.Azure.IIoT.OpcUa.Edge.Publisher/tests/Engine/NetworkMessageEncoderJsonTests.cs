@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void EncodeJsonChunkTest(bool encodeBatchFlag) {
+        public void EncodeChunkTest(bool encodeBatchFlag) {
             var maxMessageSize = 8 * 1024;
             var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(500, false, MessageEncoding.Json);
 
@@ -111,6 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
 
             var count = networkMessages.Count();
+            Assert.All(networkMessages, m => Assert.True(m.Body.Length <= maxMessageSize, m.Body.Length.ToString()));
             Assert.InRange(count, 66, 68);
             Assert.Equal((uint)96, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)500 - 96, encoder.NotificationsDroppedCount);
