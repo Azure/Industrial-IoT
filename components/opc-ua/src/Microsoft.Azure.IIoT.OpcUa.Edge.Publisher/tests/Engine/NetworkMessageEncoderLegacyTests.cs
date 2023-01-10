@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void EncodeJsonChunkTest(bool encodeBatchFlag) {
+        public void EncodeChunkTest(bool encodeBatchFlag) {
             var maxMessageSize = 8 * 1024;
             var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(500, false, MessageEncoding.Json);
 
