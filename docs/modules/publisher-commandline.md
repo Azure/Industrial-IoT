@@ -56,7 +56,6 @@ Messaging configuration
                                otherwise `Samples` for backwards compatibility.
       --me, --messageencoding, --MessageEncoding=VALUE
                              The message encoding for messages Allowed values:
-                                   `Binary`
                                    `Uadp`
                                    `Json`
                                    `JsonReversible`
@@ -114,6 +113,13 @@ Messaging configuration
                                encodings.
                                Default: `0` which means periodic sending of
                                metadata is disabled.
+      --dm, --disablemetadata, --DisableDataSetMetaData[=VALUE]
+                             Disables sending any metadata when metadata
+                               version changes. Only valid for network message
+                               encodings. If `--mm=*Samples` is specified this
+                               setting is ignored.
+                               Default: `False` which means sending metadata is
+                               enabled.
       --ri, --enableroutinginfo, --EnableRoutingInfo[=VALUE]
                              Add the routing info to telemetry messages. The
                                name of the property is `$$RoutingInfo` and the
@@ -225,7 +231,7 @@ Subscription settings
                                Note: This has high impact on OPC Publisher
                                startup performance.
                                Default: `False` (disabled).
-      --mq, --monitoreditemqueuecapacity, --DefaultQueueSize=VALUE
+      --qs, --queuesize, --DefaultQueueSize=VALUE
                              Default queue size for all monitored items if
                                queue size was not specified in the
                                configuration.
@@ -289,36 +295,41 @@ OPC UA Client configuration
                              Minimum subscription lifetime in seconds as per
                                OPC UA definition.
                                Default: `not set`.
-      --SecurityTokenLifetime=VALUE
+      --otl, --opctokenlifetime, --SecurityTokenLifetime=VALUE
                              OPC UA Stack Transport Secure Channel - Security
                                token lifetime in milliseconds.
                                Default: `3600000` (1h).
-      --ChannelLifetime=VALUE
+      --ocl, --opcchannellifetime, --ChannelLifetime=VALUE
                              OPC UA Stack Transport Secure Channel - Channel
                                lifetime in milliseconds.
                                Default: `300000` (5 min).
-      --MaxBufferSize=VALUE  OPC UA Stack Transport Secure Channel - Max buffer
+      --omb, --opcmaxbufferlen, --MaxBufferSize=VALUE
+                             OPC UA Stack Transport Secure Channel - Max buffer
                                size.
                                Default: `65535` (64KB -1).
-      --MaxMessageSize=VALUE OPC UA Stack Transport Secure Channel - Max
+      --oml, --opcmaxmessagelen, --MaxMessageSize=VALUE
+                             OPC UA Stack Transport Secure Channel - Max
                                message size.
                                Default: `4194304` (4 MB).
-      --MaxArrayLength=VALUE OPC UA Stack Transport Secure Channel - Max array
+      --oal, --opcmaxarraylen, --MaxArrayLength=VALUE
+                             OPC UA Stack Transport Secure Channel - Max array
                                length.
                                Default: `65535` (64KB - 1).
       --ol, --opcmaxstringlen, --MaxStringLength=VALUE
                              The max length of a string opc can transmit/
                                receive over the OPC UA secure channel.
                                Default: `130816` (128KB - 256).
-      --MaxByteStringLength=VALUE
+      --obl, --opcmaxbytestringlen, --MaxByteStringLength=VALUE
                              OPC UA Stack Transport Secure Channel - Max byte
                                string length.
                                Default: `1048576` (1MB).
-      --ApplicationUri=VALUE Application URI as per OPC UA definition inside
+      --au, --appuri, --ApplicationUri=VALUE
+                             Application URI as per OPC UA definition inside
                                the OPC UA client application configuration
                                presented to the server.
                                Default: `not set`.
-      --ProductUri=VALUE     The Product URI as per OPC UA definition insde the
+      --pu, --producturi, --ProductUri=VALUE
+                             The Product URI as per OPC UA definition insde the
                                OPC UA client application configuration
                                presented to the server.
                                Default: `not set`.
@@ -329,7 +340,7 @@ OPC UA Client configuration
                                to `True` if the connected OPC UA servers does
                                not use Sha1 signed certificates.
                                Default: `False` (to support older equipment).
-      --MinimumCertificateKeySize=VALUE
+      --mks, --minkeysize, --MinimumCertificateKeySize=VALUE
                              Minimum accepted certificate size.
                                Note: It is recommended to this value to the
                                highest certificate key size possible based on
@@ -348,7 +359,8 @@ OPC UA Client configuration
                              The name for the app (used during OPC UA
                                authentication).
                                Default: `Microsoft.Azure.IIoT`
-      --PkiRootPath=VALUE    PKI certificate store root path.
+      --pki, --pkirootpath, --PkiRootPath=VALUE
+                             PKI certificate store root path.
                                Default: `pki`.
       --ap, --appcertstorepath, --ApplicationCertificateStorePath=PkiRootPath
                              The path where the own application cert should be
@@ -425,31 +437,4 @@ Diagnostic options
                                metrics exporting).
 ```
 
-Currently supported combinations of `--mm` snd `--me` are:
-
-| Messaging Mode | MessageEncoding | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata | KeyFrames |
-   |----------------|-----------------|---------------------------|---------------------------|-------------------------|----------|-----------|
-| Samples | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage (0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName (0x2952790114) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl (0xStatusCode, SourceTimestamp) |   |   |
-| FullSamples | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage (0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName (0x4060086383) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) |   |   |
-| PubSub | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader (0x27) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName (0x2952790114) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl (0xStatusCode, SourceTimestamp) | X | X |
-| FullNetworkMessages | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader (0x27) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName (0x4060086383) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) | X | X |
-| PubSub | JsonGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader (0x27) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName (0x2952790114) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl (0xStatusCode, SourceTimestamp) | X | X |
-| FullNetworkMessages | JsonGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader (0x27) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName (0x4060086383) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) | X | X |
-| PubSub | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader (0x27) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x2952790242) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl (0xStatusCode, SourceTimestamp) | X | X |
-| PubSub | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader (0x27) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x2952790242) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl (0xStatusCode, SourceTimestamp) | X | X |
-| FullNetworkMessages | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader (0x27) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x4060086511) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) | X | X |
-| FullNetworkMessages | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader (0x27) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x4060086511) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) | X | X |
-| Samples | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage (0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x2952790242) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl (0xStatusCode, SourceTimestamp) |   |   |
-| Samples | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage (0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x2952790242) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl (0xStatusCode, SourceTimestamp) |   |   |
-| FullSamples | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage (0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x4060086511) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) |   |   |
-| FullSamples | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, DataSetMessageHeader, MonitoredItemMessage (0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x4060086511) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) |   |   |
-| DataSetMessages | Json | DataSetMessageHeader (0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName (0x4060086383) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) | X | X |
-| DataSetMessages | JsonGzip | DataSetMessageHeader (0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName (0x4060086383) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) | X | X |
-| DataSetMessages | JsonReversible | DataSetMessageHeader (0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x4060086511) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) | X | X |
-| DataSetMessages | JsonReversibleGzip | DataSetMessageHeader (0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x4060086511) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) | X | X |
-| RawDataSets | Json | 0 (0x0) | 0 (0x0) | RawData (0xRawData) |   | X |
-| RawDataSets | JsonGzip | 0 (0x0) | 0 (0x0) | RawData (0xRawData) |   | X |
-| PubSub | Uadp | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader (0x757) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName (0x24) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl (0xStatusCode, SourceTimestamp) | X | X |
-| FullNetworkMessages | Uadp | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader (0x757) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName (0x57) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) | X | X |
-| DataSetMessages | Uadp | DataSetMessageHeader (0x0) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding (0x57) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields (0xStatusCode, SourceTimestamp, ServerTimestamp) | X | X |
-| RawDataSets | Uadp | 0 (0x0) | 0 (0x0) | RawData (0xRawData) |   | X |
+Currently supported combinations of `--mm` snd `--me` can be found [here](./telemetry-messages-format.md).

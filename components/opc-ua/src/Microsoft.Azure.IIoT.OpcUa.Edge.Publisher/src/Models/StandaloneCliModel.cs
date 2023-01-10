@@ -56,6 +56,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public TimeSpan? DefaultMetaDataSendInterval { get; set; }
 
         /// <summary>
+        /// Whether to disable metadata sending
+        /// </summary>
+        public bool? DisableDataSetMetaData { get; set; }
+
+        /// <summary>
         /// Default keyframe count
         /// </summary>
         public uint? DefaultKeyFrameCount { get; set; }

@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Opc.Ua.Extensions;
     using Prometheus;
     using Serilog;
-    using Serilog.Formatting.Json;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
@@ -627,7 +626,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
 
-                if (metadataChanged) {
+                if (metadataChanged && _subscription.Configuration?.MetaData != null) {
                     //
                     // Use the date time to version across reboots. This could be done more elegantly by
                     // saving the last version to persistent storage such as twin, but this is ok for
@@ -651,11 +650,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     _currentMetaData = new DataSetMetaDataType {
+                        Name = _subscription.Configuration.MetaData.Name,
+                        DataSetClassId = (Uuid)_subscription.Configuration.MetaData.DataSetClassId,
                         Namespaces = rawSubscription.Session?.NamespaceUris.ToArray(),
                         EnumDataTypes = dataTypes.Values.OfType<EnumDescription>().ToArray(),
                         StructureDataTypes = dataTypes.Values.OfType<StructureDescription>().ToArray(),
                         SimpleDataTypes = dataTypes.Values.OfType<SimpleTypeDescription>().ToArray(),
                         Fields = fields,
+                        Description = _subscription.Configuration.MetaData.Description,
                         ConfigurationVersion = new ConfigurationVersionDataType {
                             MajorVersion = major,
                             MinorVersion = minor

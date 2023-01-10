@@ -18,9 +18,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Create subscription
         /// </summary>
         /// <param name="dataSetSource"></param>
+        /// <param name="dataSetMetaData"></param>
         /// <returns></returns>
         public static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
-            this PublishedDataSetSourceModel dataSetSource) {
+            this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel dataSetMetaData) {
             if (dataSetSource == null) {
                 throw new ArgumentNullException(nameof(dataSetSource));
             }
@@ -29,7 +30,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 LifetimeCount = dataSetSource.SubscriptionSettings?.LifeTimeCount,
                 KeepAliveCount = dataSetSource.SubscriptionSettings?.MaxKeepAliveCount,
                 PublishingInterval = dataSetSource.SubscriptionSettings?.PublishingInterval,
-                ResolveDisplayName = dataSetSource.SubscriptionSettings?.ResolveDisplayName
+                ResolveDisplayName = dataSetSource.SubscriptionSettings?.ResolveDisplayName,
+                MetaData = dataSetMetaData
             };
         }
 

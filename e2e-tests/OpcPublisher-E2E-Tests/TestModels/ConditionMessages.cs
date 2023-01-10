@@ -7,7 +7,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
     using System.Collections.Generic;
     using Newtonsoft.Json;
 
-    public class PendingAlarmMessages<T> where T : BaseEventTypePayload {
+    public class ConditionMessages<T> where T : BaseEventTypePayload {
         [JsonProperty("i=2253")]
         public List<T> PendingMessages { get; set; }
     }

@@ -181,7 +181,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         dataSetMessage.DataSetWriterId = message.Notification.SubscriptionId;
                                         dataSetMessage.MessageType = message.Notification.MessageType;
                                         dataSetMessage.MetaDataVersion = message.Notification.MetaData?.ConfigurationVersion
-                                            ?? new ConfigurationVersionDataType { MajorVersion = 1 };
+                                            ?? kEmptyConfiguration;
                                         dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
                                         dataSetMessage.Timestamp = message.Notification.Timestamp;
                                         dataSetMessage.SequenceNumber = message.Context.SequenceNumber;
@@ -255,22 +255,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         dataSetClassId, publisherId);
                                     currentNotificationCount = 0;
                                 }
-                                var metaData = (DataSetMetaDataType)Utils.Clone(message.Notification.MetaData);
-                                metaData.Description = message.Context.Writer?.DataSet?.DataSetMetaData?.Description;
-                                metaData.Name = message.Context.Writer?.DataSet?.DataSetMetaData?.Name;
-
                                 PubSubMessage metadataMessage = encoding.HasFlag(MessageEncoding.Json)
                                     ? new JsonMetaDataMessage {
                                         UseAdvancedEncoding = !_useStandardsCompliantEncoding,
                                         UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
                                         DataSetWriterId = message.Notification.SubscriptionId,
-                                        MetaData = metaData,
+                                        MetaData = message.Notification.MetaData,
                                         MessageId = Guid.NewGuid().ToString(),
                                         DataSetWriterGroup = writerGroup.WriterGroupId,
                                         DataSetWriterName = message.Context.Writer.DataSetWriterName
                                     } : new UadpMetaDataMessage {
                                         DataSetWriterId = message.Notification.SubscriptionId,
-                                        MetaData = metaData
+                                        MetaData = message.Notification.MetaData
                                     };
                                 metadataMessage.PublisherId = publisherId;
 
@@ -317,6 +313,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger.Warning("Dropped {totalNotifications} values", totalNotifications);
         }
 
+        private static readonly ConfigurationVersionDataType kEmptyConfiguration =
+            new ConfigurationVersionDataType { MajorVersion = 1u };
         private readonly ILogger _logger;
         private readonly bool _enableRoutingInfo;
         private uint _sequenceNumber;

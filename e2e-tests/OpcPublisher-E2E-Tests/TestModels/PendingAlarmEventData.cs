@@ -7,6 +7,6 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
     public class PendingAlarmEventData<T> where T : BaseEventTypePayload {
         public bool IsPayloadCompressed { get; set; }
 
-        public PendingAlarmMessages<T> Messages { get; set; }
+        public ConditionMessages<T> Messages { get; set; }
     }
 }

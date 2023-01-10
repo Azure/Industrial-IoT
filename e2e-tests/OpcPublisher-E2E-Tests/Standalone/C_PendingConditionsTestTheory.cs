@@ -17,8 +17,8 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
-    public class C_PendingAlarmTestTheory : DynamicAciTestBase, IClassFixture<IIoTStandaloneTestContext> {
-        public C_PendingAlarmTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
+    public class C_PendingConditionsTestTheory : DynamicAciTestBase, IClassFixture<IIoTStandaloneTestContext> {
+        public C_PendingConditionsTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output)
         : base(context, output) {
         }
 
@@ -30,20 +30,20 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 {"/bin/sh", "-c", "./opcplc --autoaccept --alm --pn=50000"},
                 _timeoutToken);
 
-            var messages = _consumer.ReadPendingAlarmMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken);
+            var messages = _consumer.ReadConditionMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
-            TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView());
+            TestConstants.PublishedNodesConfigurations.PendingConditionForAlarmsView());
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
             // take any message
             var ev = await messages
                 .FirstAsync(_timeoutToken);
 
             // Assert
-            ValidatePendingAlarmsView(ev);
+            ValidatePendingConditionsView(ev);
         }
     }
 }

@@ -85,12 +85,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for default keyframe count
         /// </summary>
-        public static string DefaultKeyFrameCount = "DefaultKeyFrameCount";
+        public const string DefaultKeyFrameCount = "DefaultKeyFrameCount";
 
         /// <summary>
         /// Key for default metadata send interval
         /// </summary>
-        public static string DefaultMetaDataSendInterval = "DefaultMetaDataSendInterval";
+        public const string DefaultMetaDataSendInterval = "DefaultMetaDataSendInterval";
+
+        /// <summary>
+        /// Key to disable metadata sending
+        /// </summary>
+        public const string DisableDataSetMetaData = "DisableDataSetMetaData";
 
         /// <summary>
         /// Key for the default queue size fro monitored items

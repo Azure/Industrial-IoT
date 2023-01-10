@@ -22,7 +22,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public PublishedDataSetSourceModel DataSetSource { get; set; }
 
         /// <summary>
-        /// Dataset meta data to emit
+        /// Dataset meta data to emit. If null no dataset
+        /// metadata is emitted.
         /// </summary>
         public DataSetMetaDataModel DataSetMetaData { get; set; }
 

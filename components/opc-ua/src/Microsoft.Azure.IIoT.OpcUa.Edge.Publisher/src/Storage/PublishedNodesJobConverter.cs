@@ -202,13 +202,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             WriterGroupId = dataSetBatches.First.Source.Connection.Group,
                             DataSetWriters = dataSetBatches.Items.Select(dataSet => new DataSetWriterModel {
                                 DataSetWriterName = GetUniqueWriterName(dataSetBatches.Items, dataSet.Source),
-                                DataSetMetaDataSendInterval = !GetMessagingProfile(standaloneCliModel).SupportsMetadata ? null :
+                                DataSetMetaDataSendInterval = IsMetaDataDisabled(standaloneCliModel) ? null :
                                     dataSetBatches.First.Header.DataSetMetaDataSendInterval ?? standaloneCliModel.DefaultMetaDataSendInterval,
                                 KeyFrameCount = !GetMessagingProfile(standaloneCliModel).SupportsKeyFrames ? null :
                                     dataSetBatches.First.Header.DataSetKeyFrameCount ?? standaloneCliModel.DefaultKeyFrameCount,
                                 DataSet = new PublishedDataSetModel {
-                                    Name = null,
-                                    DataSetMetaData = !GetMessagingProfile(standaloneCliModel).SupportsMetadata ? null :
+                                    Name = dataSetBatches.First.Header.DataSetName,
+                                    DataSetMetaData = IsMetaDataDisabled(standaloneCliModel) ? null :
                                         new DataSetMetaDataModel {
                                             DataSetClassId = dataSetBatches.First.Header.DataSetClassId,
                                             Description = dataSetBatches.First.Header.DataSetDescription,
@@ -267,8 +267,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             return Enumerable.Empty<WriterGroupJobModel>();
         }
 
+        /// <summary>
+        /// Get the messaging profile from the command line options
+        /// </summary>
+        /// <param name="standaloneCliModel"></param>
+        /// <returns></returns>
         private static MessagingProfile GetMessagingProfile(StandaloneCliModel standaloneCliModel) {
             return MessagingProfile.Get(standaloneCliModel.MessagingMode, standaloneCliModel.MessageEncoding);
+        }
+
+        /// <summary>
+        /// Returns true if metadata is disabled
+        /// </summary>
+        private static bool IsMetaDataDisabled(StandaloneCliModel standaloneCliModel) {
+            // Use the message profile by default, but allow override to emit or not emit metadata
+            if (standaloneCliModel.DisableDataSetMetaData == null) {
+                return !GetMessagingProfile(standaloneCliModel).SupportsMetadata;
+            }
+            return standaloneCliModel.DisableDataSetMetaData.Value;
         }
 
         /// <summary>
@@ -287,7 +303,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         : SecurityMode.None,
                 },
                 User = model.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
-                            null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult(),
+                    null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult(),
             };
         }
 

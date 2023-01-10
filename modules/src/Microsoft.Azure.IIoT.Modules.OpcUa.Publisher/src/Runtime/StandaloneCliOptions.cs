@@ -114,7 +114,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 { $"ms|maxmessagesize=|iothubmessagesize=|{StandaloneCliConfigKeys.IoTHubMaxMessageSize}=",
                     "The maximum size of the messages to emit. In case the encoder cannot encode a message because the size would be exceeded, the message is dropped. Otherwise the encoder will aim to chunk messages if possible. \nDefault: `256k` in case of IoT Hub messages, `0` otherwise.\n",
                     (int i) => this[StandaloneCliConfigKeys.IoTHubMaxMessageSize] = i.ToString() },
+
                 // TODO: Add ConfiguredMessageSize
+
                 { $"npd|maxnodesperdataset=|{StandaloneCliConfigKeys.MaxNodesPerDataSet}=",
                     "Maximum number of nodes within a Subscription. When there are more nodes configured for a data set writer, they will be added to new subscriptions. This also affects metadata message size. \nDefault: `1000`.\n",
                     (int i) => this[StandaloneCliConfigKeys.MaxNodesPerDataSet] = i.ToString() },
@@ -124,8 +126,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 { $"msi|metadatasendinterval=|{StandaloneCliConfigKeys.DefaultMetaDataSendInterval}=",
                     "Default value in milliseconds for the metadata send interval which determines in which interval metadata is sent.\nEven when disabled, metadata is still sent when the metadata version changes unless `--mm=*Samples` is set in which case this setting is ignored. Only valid for network message encodings. \nDefault: `0` which means periodic sending of metadata is disabled.\n",
                     (int i) => this[StandaloneCliConfigKeys.DefaultMetaDataSendInterval] = TimeSpan.FromMilliseconds(i).ToString() },
+                { $"dm|disablemetadata:|{StandaloneCliConfigKeys.DisableDataSetMetaData}:",
+                    "Disables sending any metadata when metadata version changes. This setting can be used to also override the messaging profile's default support for metadata sending. \nDefault: `False` if the messaging profile selected supports sending metadata, `True` otherwise.\n",
+                    (bool? b) => this[StandaloneCliConfigKeys.DisableDataSetMetaData] = b?.ToString() ?? "True" },
 
-                // TODO: Disable metadata
                 // TODO: Default metadata output name
 
                 { $"ri|enableroutinginfo:|{StandaloneCliConfigKeys.EnableRoutingInfo}:",
@@ -215,38 +219,38 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     "Minimum subscription lifetime in seconds as per OPC UA definition.\nDefault: `not set`.\n",
                     (int i) => this[StandaloneCliConfigKeys.MinSubscriptionLifetimeKey] = i.ToString() },
 
-                { $"{StandaloneCliConfigKeys.SecurityTokenLifetimeKey}=",
+                { $"otl|opctokenlifetime=|{StandaloneCliConfigKeys.SecurityTokenLifetimeKey}=",
                     "OPC UA Stack Transport Secure Channel - Security token lifetime in milliseconds.\nDefault: `3600000` (1h).\n",
                     (uint u) => this[StandaloneCliConfigKeys.SecurityTokenLifetimeKey] = u.ToString() },
-                { $"{StandaloneCliConfigKeys.ChannelLifetimeKey}=",
+                { $"ocl|opcchannellifetime=|{StandaloneCliConfigKeys.ChannelLifetimeKey}=",
                     "OPC UA Stack Transport Secure Channel - Channel lifetime in milliseconds.\nDefault: `300000` (5 min).\n",
                     (uint u) => this[StandaloneCliConfigKeys.ChannelLifetimeKey] = u.ToString() },
-                { $"{StandaloneCliConfigKeys.MaxBufferSizeKey}=",
+                { $"omb|opcmaxbufferlen=|{StandaloneCliConfigKeys.MaxBufferSizeKey}=",
                     "OPC UA Stack Transport Secure Channel - Max buffer size.\nDefault: `65535` (64KB -1).\n",
                     (uint u) => this[StandaloneCliConfigKeys.MaxBufferSizeKey] = u.ToString() },
-                { $"{StandaloneCliConfigKeys.MaxMessageSizeKey}=",
+                { $"oml|opcmaxmessagelen=|{StandaloneCliConfigKeys.MaxMessageSizeKey}=",
                     "OPC UA Stack Transport Secure Channel - Max message size.\nDefault: `4194304` (4 MB).\n",
                     (uint u) => this[StandaloneCliConfigKeys.MaxMessageSizeKey] = u.ToString() },
-                { $"{StandaloneCliConfigKeys.MaxArrayLengthKey}=",
+                { $"oal|opcmaxarraylen=|{StandaloneCliConfigKeys.MaxArrayLengthKey}=",
                     "OPC UA Stack Transport Secure Channel - Max array length.\nDefault: `65535` (64KB - 1).\n",
                     (uint u) => this[StandaloneCliConfigKeys.MaxArrayLengthKey] = u.ToString() },
                 { $"ol|opcmaxstringlen=|{StandaloneCliConfigKeys.OpcMaxStringLength}=",
                     "The max length of a string opc can transmit/receive over the OPC UA secure channel.\nDefault: `130816` (128KB - 256).\n",
                     (uint u) => this[StandaloneCliConfigKeys.OpcMaxStringLength] = u.ToString() },
-                { $"{StandaloneCliConfigKeys.MaxByteStringLengthKey}=",
+                { $"obl|opcmaxbytestringlen=|{StandaloneCliConfigKeys.MaxByteStringLengthKey}=",
                     "OPC UA Stack Transport Secure Channel - Max byte string length.\nDefault: `1048576` (1MB).\n",
                     (uint u) => this[StandaloneCliConfigKeys.MaxByteStringLengthKey] = u.ToString() },
-                { $"{StandaloneCliConfigKeys.ApplicationUriKey}=",
+                { $"au|appuri=|{StandaloneCliConfigKeys.ApplicationUriKey}=",
                     "Application URI as per OPC UA definition inside the OPC UA client application configuration presented to the server.\nDefault: `not set`.\n",
                     s => this[StandaloneCliConfigKeys.ApplicationUriKey] = s },
-                { $"{StandaloneCliConfigKeys.ProductUriKey}=",
+                { $"pu|producturi=|{StandaloneCliConfigKeys.ProductUriKey}=",
                     "The Product URI as per OPC UA definition insde the OPC UA client application configuration presented to the server.\nDefault: `not set`.\n",
                     s => this[StandaloneCliConfigKeys.ProductUriKey] = s },
 
                 { $"rejectsha1=|{StandaloneCliConfigKeys.RejectSha1SignedCertificatesKey}=",
                     "The publisher rejects deprecated SHA1 certificates.\nNote: It is recommended to always set this value to `True` if the connected OPC UA servers does not use Sha1 signed certificates.\nDefault: `False` (to support older equipment).\n",
                     (bool b) => this[StandaloneCliConfigKeys.RejectSha1SignedCertificatesKey] = b.ToString() },
-                { $"{StandaloneCliConfigKeys.MinimumCertificateKeySizeKey}=",
+                { $"mks|minkeysize=|{StandaloneCliConfigKeys.MinimumCertificateKeySizeKey}=",
                     "Minimum accepted certificate size.\nNote: It is recommended to this value to the highest certificate key size possible based on the connected OPC UA servers.\nDefault: 1024.\n",
                     s => this[StandaloneCliConfigKeys.MinimumCertificateKeySizeKey] = s },
                 { $"tm|trustmyself=|{StandaloneCliConfigKeys.TrustMyself}=",
@@ -258,7 +262,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 { $"an|appname=|{StandaloneCliConfigKeys.OpcApplicationName}=",
                     "The name for the app (used during OPC UA authentication).\nDefault: `Microsoft.Azure.IIoT`\n",
                     s => this[StandaloneCliConfigKeys.OpcApplicationName] = s },
-                { $"{StandaloneCliConfigKeys.PkiRootPathKey}=",
+                { $"pki|pkirootpath=|{StandaloneCliConfigKeys.PkiRootPathKey}=",
                     "PKI certificate store root path.\nDefault: `pki`.\n",
                     s => this[StandaloneCliConfigKeys.PkiRootPathKey] = s },
                 { $"ap|appcertstorepath=|{StandaloneCliConfigKeys.OpcOwnCertStorePath}=",
@@ -384,7 +388,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
             if (showHelp) {
                 options.WriteOptionDescriptions(Console.Out);
-#if DEBUG
+#if WRITETABLE
                 Console.WriteLine();
                 Console.WriteLine();
                 Console.WriteLine("The following messaging profiles are supported (selected with --mm and --me):");
@@ -532,6 +536,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.DefaultSamplingInterval = GetValueOrDefault(StandaloneCliConfigKeys.OpcSamplingInterval, model.DefaultSamplingInterval);
             model.DefaultPublishingInterval = GetValueOrDefault(StandaloneCliConfigKeys.OpcPublishingInterval, model.DefaultPublishingInterval);
             model.DefaultMetaDataSendInterval = GetValueOrDefault(StandaloneCliConfigKeys.DefaultMetaDataSendInterval, model.DefaultMetaDataSendInterval);
+            model.DisableDataSetMetaData = GetValueOrDefault(StandaloneCliConfigKeys.DisableDataSetMetaData, model.DisableDataSetMetaData);
             model.DefaultKeyFrameCount = GetValueOrDefault(StandaloneCliConfigKeys.DefaultKeyFrameCount, model.DefaultKeyFrameCount);
             model.FetchOpcNodeDisplayName = GetValueOrDefault(StandaloneCliConfigKeys.FetchOpcNodeDisplayName, model.FetchOpcNodeDisplayName);
             model.DefaultQueueSize = GetValueOrDefault(StandaloneCliConfigKeys.DefaultQueueSize, model.DefaultQueueSize);

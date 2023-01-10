@@ -59,7 +59,8 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
             var createOptions = JsonConvert.SerializeObject(new {
                 Hostname = ModuleName,
                 Cmd = new[] {
-                "--PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
+                "--pki=" + TestConstants.PublishedNodesFolder + "/pki",
+                "--dm", // Disable metadata support
                 "--aa",
                 "--pf=" + TestConstants.PublishedNodesFullName,
                 "--mm=" + MessagingMode.ToString(),

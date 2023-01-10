@@ -45,6 +45,22 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         }
 
         [Fact]
+        public async Task CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTest() {
+            // Arrange
+            // Act
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(@"./PublishedNodes/DataItems.json",
+                arguments: new string[] { "--dm", "--mm=DataSetMessages" }).ConfigureAwait(false);
+
+            // Assert
+            var message = Assert.Single(messages);
+            var output = message.GetProperty("Payload").GetProperty("Output");
+            Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
+            Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
+
+            Assert.Null(metadata);
+        }
+
+        [Fact]
         public async Task CanSendDataItemAsDataSetMessagesToIoTHubWithCompliantEncodingTest() {
             // Arrange
             // Act
@@ -65,13 +81,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(@"./PublishedNodes/DataItems.json",
-                messageType: "ua-deltaframe", arguments: new string[] { "-c", "--mm=RawDataSets" }).ConfigureAwait(false);
+                messageType: "ua-deltaframe", arguments: new string[] { "-c", "--dm=False", "--mm=RawDataSets" }).ConfigureAwait(false);
 
             // Assert
             var output = Assert.Single(messages);
             Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
             Assert.InRange(output.GetProperty("Output").GetDouble(), double.MinValue, double.MaxValue);
 
+            // Explicitely enabled metadata despite messaging profile
             Assert.NotNull(metadata);
         }
 

@@ -23,20 +23,20 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(10)]
-        public async void Test_VerifyDataAvailableAtIoTHub_Expect_PendingAlarmsView() {
+        public async void Test_VerifyDataAvailableAtIoTHub_Expect_PendingConditionsView() {
 
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
                 {"/bin/sh", "-c", "./opcplc --autoaccept --alm --pn=50000"},
                 _timeoutToken);
 
-            var messages = _consumer.ReadPendingAlarmMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken);
+            var messages = _consumer.ReadConditionMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
                 50000,
                 _writerId,
-                TestConstants.PublishedNodesConfigurations.PendingAlarmsForAlarmsView());
+                TestConstants.PublishedNodesConfigurations.PendingConditionForAlarmsView());
             await PublishNodesAsync(pnJson, _timeoutToken);
 
             // take any message
@@ -45,7 +45,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
-            ValidatePendingAlarmsView(ev);
+            ValidatePendingConditionsView(ev);
         }
     }
 }

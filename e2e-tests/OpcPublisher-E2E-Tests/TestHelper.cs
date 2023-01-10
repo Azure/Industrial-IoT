@@ -535,12 +535,12 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
-        public static IAsyncEnumerable<PendingAlarmEventData<T>> ReadPendingAlarmMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId, CancellationToken cancellationToken) where T : BaseEventTypePayload {
+        public static IAsyncEnumerable<PendingAlarmEventData<T>> ReadConditionMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId, CancellationToken cancellationToken) where T : BaseEventTypePayload {
             return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken)
                 .Select(x =>
                     new PendingAlarmEventData<T> {
                         IsPayloadCompressed = x.isPayloadCompressed,
-                        Messages = x.messages.ToObject<PendingAlarmMessages<T>>()
+                        Messages = x.messages.ToObject<ConditionMessages<T>>()
                     }
                 );
         }
@@ -565,7 +565,7 @@ namespace OpcPublisher_AE_E2E_Tests {
             await foreach (var partitionEvent in events.WithCancellation(cancellationToken)) {
                 var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[MessageSystemPropertyNames.EnqueuedTime];
                 JToken json = null;
-                bool isPayloadCompressed = (string)partitionEvent.Data.Properties["$$ContentEncoding"] == "gzip";
+                bool isPayloadCompressed = (string)partitionEvent.Data.Properties["$$ContentType"] == "application/json+gzip";
                 if (isPayloadCompressed) {
                     var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
                     using (var input = new MemoryStream(compressedPayload)) {
@@ -604,6 +604,8 @@ namespace OpcPublisher_AE_E2E_Tests {
                         if (messageWriterId != dataSetWriterId) {
                             continue;
                         }
+
+                        // Metadata disabled, always sending version 1
                         Assert.Equal(1, innerMessage.MetaDataVersion.MajorVersion.Value);
                         Assert.Equal(0, innerMessage.MetaDataVersion.MinorVersion.Value);
 
