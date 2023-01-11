@@ -217,7 +217,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             }
         }
 
-        protected static void ValidatePendingConditionsView(PendingAlarmEventData<ConditionTypePayload> eventData) {
+        protected static void ValidatePendingConditionsView(PendingConditionEventData<ConditionTypePayload> eventData) {
             foreach (var pendingMessage in eventData.Messages.PendingMessages) {
                 pendingMessage.ConditionId.Should().StartWith("http://microsoft.com/Opc/OpcPlc/AlarmsInstance#");
                 eventData.Messages.PendingMessages.Where(x => x.ConditionId == pendingMessage.ConditionId).ToList().Should().HaveCount(1);

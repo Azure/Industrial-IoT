@@ -4,12 +4,14 @@
 // ------------------------------------------------------------
 
 namespace OpcPublisher_AE_E2E_Tests.TestModels {
+    using Newtonsoft.Json;
     using System;
 
     /// <summary>Base class for system events types.</summary>
     public class SystemEventTypePayload : BaseEventTypePayload {
 
         /// <summary>Gets or sets the time.</summary>
+        [JsonProperty("Time/Value")]
         public DateTime? Time { get; set; }
     }
 }

@@ -753,8 +753,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             state.Active.Remove(conditionId, out _);
                             state.Dirty = true;
                         }
-                        else if (retain) {
+                        else if (retain && !monitoredItemNotifications.All(m => m.Value?.Value == null)) {
                             state.Dirty = true;
+                            monitoredItemNotifications.ForEach(notification => {
+                                if (notification.Value == null) {
+                                    notification.Value = new DataValue(StatusCodes.BadNoData);
+                                }
+                                // Set SourceTimestamp to publish time
+                                notification.Value.SourceTimestamp = message.Timestamp;
+                            });
                             state.Active.AddOrUpdate(conditionId, monitoredItemNotifications);
                         }
                     }
@@ -847,8 +854,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _conditionHandlingState.Dirty = false;
             }
             if (Item.Subscription?.Handle is SubscriptionServices.SubscriptionWrapper subscription) {
-                foreach (var pendingAlarm in notifications) {
-                    subscription.SendConditionNotification(Item.Subscription, pendingAlarm);
+                foreach (var conditionNotification in notifications) {
+                    subscription.SendConditionNotification(Item.Subscription, conditionNotification);
                 }
             }
         }
@@ -1043,7 +1050,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             }
                             break;
                         default:
-                            dataTypes.Add(dataTypeId, new SimpleTypeDescription {
+                            dataTypes.AddOrUpdate(dataTypeId, new SimpleTypeDescription {
                                 DataTypeId = dataTypeId,
                                 Name = dataType.BrowseName,
                                 BaseDataType = baseType,

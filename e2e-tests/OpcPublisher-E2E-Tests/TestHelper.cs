@@ -535,10 +535,10 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
-        public static IAsyncEnumerable<PendingAlarmEventData<T>> ReadConditionMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId, CancellationToken cancellationToken) where T : BaseEventTypePayload {
+        public static IAsyncEnumerable<PendingConditionEventData<T>> ReadConditionMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId, CancellationToken cancellationToken) where T : BaseEventTypePayload {
             return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken)
                 .Select(x =>
-                    new PendingAlarmEventData<T> {
+                    new PendingConditionEventData<T> {
                         IsPayloadCompressed = x.isPayloadCompressed,
                         Messages = x.messages.ToObject<ConditionMessages<T>>()
                     }
