@@ -200,7 +200,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.Equal("i=2253", evt.GetProperty("NodeId").GetString());
             Assert.Equal("PendingAlarms", evt.GetProperty("DisplayName").GetString());
 
-            Assert.True(evt.GetProperty("Value").GetProperty("Severity").GetInt32() >= 100);
+            Assert.True(evt.TryGetProperty("Value", out var sev));
+            Assert.True(sev.TryGetProperty("Severity", out sev));
+            Assert.True(sev.TryGetProperty("Value", out sev));
+            Assert.True(sev.GetInt32() >= 100);
         }
 
         [Fact]
@@ -291,7 +294,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 Assert.Equal("i=2253", evt.GetProperty("NodeId").GetString());
                 Assert.Equal("PendingAlarms", evt.GetProperty("DisplayName").GetString());
 
-                Assert.True(evt.GetProperty("Value").GetProperty("Severity").GetInt32() >= 100);
+                Assert.True(evt.TryGetProperty("Value", out var sev));
+                Assert.True(sev.TryGetProperty("Severity", out sev));
+                Assert.True(sev.TryGetProperty("Value", out sev));
+                Assert.True(sev.GetInt32() >= 100);
 
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);
                 var e = Assert.Single(endpoints.Endpoints);
@@ -388,7 +394,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 Assert.Equal("i=2253", evt.GetProperty("NodeId").GetString());
                 Assert.Equal("PendingAlarms", evt.GetProperty("DisplayName").GetString());
 
-                Assert.True(evt.GetProperty("Value").GetProperty("Severity").GetInt32() >= 100);
+                Assert.True(evt.TryGetProperty("Value", out var sev));
+                Assert.True(sev.TryGetProperty("Severity", out sev));
+                Assert.True(sev.TryGetProperty("Value", out sev));
+                Assert.True(sev.GetInt32() >= 100);
 
                 // Disable pending alarms
                 testInput[0].OpcNodes[0].ConditionHandling = null;
@@ -406,14 +415,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 // Wait until it was applied and we receive normal events again
                 messages = WaitForMessages(TimeSpan.FromMinutes(5), 1,
                     message => message.GetProperty("DisplayName").GetString() == "SimpleEvents"
-                        && message.GetProperty("Value").GetProperty("ReceiveTime").ValueKind != JsonValueKind.Null ? message : default);
+                        && message.GetProperty("Value").GetProperty("ReceiveTime").ValueKind
+                            == JsonValueKind.String ? message : default);
                 _output.WriteLine(messages.ToString());
 
                 var message = Assert.Single(messages);
                 Assert.Equal("i=2253", message.GetProperty("NodeId").GetString());
                 Assert.Equal("SimpleEvents", message.GetProperty("DisplayName").GetString());
 
-                var sev = message.GetProperty("Value").GetProperty("Severity");
+                Assert.True(message.TryGetProperty("Value", out sev));
+                Assert.True(sev.TryGetProperty("Severity", out sev));
                 Assert.True(sev.GetInt32() >= 100, $"{message.ToJsonString()}");
 
                 result = await PublisherApi.UnpublishNodesAsync(DeviceId, ModuleId, testInput[0]);
@@ -433,8 +444,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         }
 
         private static JsonElement GetAlarmCondition(JsonElement jsonElement) {
-            return jsonElement.GetProperty("Value").TryGetProperty("SourceNode", out var node) &&
-                node.GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a")
+            return jsonElement
+                .TryGetProperty("Value", out var node) && node
+                .TryGetProperty("SourceNode", out node) && node
+                .TryGetProperty("Value", out node) && node
+                .GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a")
                     ? jsonElement : default;
         }
     }

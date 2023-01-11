@@ -210,12 +210,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                                         .Select(n => new KeyDataValuePair {
                                                             Key = n.DataSetFieldName,
                                                             Value = n.Value
-                                                        })),
-                                                    SourceTimestamp = notificationsInGroup[0].Value.SourceTimestamp,
-                                                    SourcePicoseconds = notificationsInGroup[0].Value.SourcePicoseconds,
-                                                    ServerTimestamp = notificationsInGroup[0].Value.ServerTimestamp,
-                                                    ServerPicoseconds = notificationsInGroup[0].Value.ServerPicoseconds,
-                                                    StatusCode = notificationsInGroup[0].Value.StatusCode
+                                                        }))
                                                 };
                                             }
                                             var dataSetMessage = new MonitoredItemMessage {

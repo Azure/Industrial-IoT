@@ -116,9 +116,9 @@ namespace Opc.Ua.PubSub {
                 (Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.StatusCode) != 0) {
                 value.StatusCode = Value.StatusCode;
             }
+
             if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0) {
                 value.SourceTimestamp = Value.SourceTimestamp;
-
                 if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) != 0) {
                     value.SourcePicoseconds = Value.SourcePicoseconds;
                 }
@@ -128,6 +128,13 @@ namespace Opc.Ua.PubSub {
                 if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) != 0) {
                     value.ServerPicoseconds = Value.ServerPicoseconds;
                 }
+            }
+
+            // force published timestamp into to source timestamp for the legacy heartbeat compatibility
+            if (MessageType == MessageType.KeepAlive &&
+                ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Timestamp) == 0) &&
+                ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0)) {
+                value.SourceTimestamp = Timestamp;
             }
 
             var reversibleMode = encoder.UseReversibleEncoding;

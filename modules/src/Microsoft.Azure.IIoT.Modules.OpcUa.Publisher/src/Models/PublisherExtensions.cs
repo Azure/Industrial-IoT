@@ -94,7 +94,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DeadbandType = (IIoT.OpcUa.Publisher.Models.DeadbandType?)model.DeadbandType,
                 DeadbandValue = model.DeadbandValue,
                 DataChangeTrigger = (IIoT.OpcUa.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
-                EventFilter = model.EventFilter.ToServiceModel()
+                EventFilter = model.EventFilter.ToServiceModel(),
+                ConditionHandling = model.ConditionHandling.ToServiceModel(),
             };
         }
 
@@ -184,7 +185,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DeadbandType = (DeadbandType?)model.DeadbandType,
                 DeadbandValue = model.DeadbandValue,
                 DataChangeTrigger = (DataChangeTriggerType?)model.DataChangeTrigger,
-                EventFilter = model.EventFilter.ToApiModel()
+                EventFilter = model.EventFilter.ToApiModel(),
+                ConditionHandling = model.ConditionHandling.ToApiModel()
             };
         }
 
