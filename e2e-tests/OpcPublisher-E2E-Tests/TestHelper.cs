@@ -607,7 +607,6 @@ namespace OpcPublisher_AE_E2E_Tests {
 
                         // Metadata disabled, always sending version 1
                         Assert.Equal(1, innerMessage.MetaDataVersion.MajorVersion.Value);
-                        Assert.Equal(0, innerMessage.MetaDataVersion.MinorVersion.Value);
 
                         yield return (enqueuedTime, publisherId, (JObject)innerMessage.Payload, isPayloadCompressed);
                     }

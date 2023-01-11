@@ -82,11 +82,11 @@ namespace OpcPublisher_AE_E2E_Tests {
                         new JProperty("Id", "i=2253"),
                         new JProperty("QueueSize", 10),
                         new JProperty("EventFilter", new JObject(
-                            new JProperty("TypeDefinitionId", "i=2915")),
+                            new JProperty("TypeDefinitionId", "i=2915"))),
                         new JProperty("ConditionHandling", new JObject(
                             new JProperty("UpdateInterval", 10),
                             new JProperty("SnapshotInterval", 20)
-                        )))));
+                        ))));
             }
         }
     }
