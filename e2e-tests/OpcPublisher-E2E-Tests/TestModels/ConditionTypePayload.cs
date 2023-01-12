@@ -11,64 +11,60 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
     public class ConditionTypePayload : BaseEventTypePayload {
         /// <summary>Gets or sets Condition Id.</summary>
         /// <example>"http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#i=1"</example>
-        [JsonProperty("ConditionId/Value")]
-        public string ConditionId { get; set; }
+        [JsonProperty("ConditionId")]
+        public DataValueObject<string> ConditionId { get; set; }
 
         /// <summary>Gets or sets comment source timestamp.</summary>
-        [JsonProperty("Comment/SourceTimestamp")]
-        public DateTime? CommentSourceTimestamp { get; set; }
+        [JsonProperty("Comment")]
+        public DataValueObject<string> CommentSourceTimestamp { get; set; }
 
         /// <summary>Gets or sets the condition name.</summary>
         /// <example>"VendingMachine1_DoorOpen"</example>
-        [JsonProperty("ConditionName/Value")]
-        public string ConditionName { get; set; }
+        [JsonProperty("ConditionName")]
+        public DataValueObject<string> ConditionName { get; set; }
 
         /// <summary>Gets or sets the enabled state.</summary>
         /// <example>"Enabled"</example>
-        [JsonProperty("Enabled/Value")]
-        public string EnabledState { get; set; }
+        [JsonProperty("Enabled")]
+        public DataValueObject<string> EnabledState { get; set; }
 
-        /// <summary>Gets or sets the enabled state effective display name.</summary>
-        /// <example>"Active | Unacknowledged"</example>
-        [JsonProperty("EnabledState/Value/EffectiveDisplayName")]
-        public string EnabledStateEffectiveDisplayName { get; set; }
-
-        /// <summary>Gets or sets the enabled state effective transition time.</summary>
-        [JsonProperty("EnabledState/Value/EffectiveTransitionTime")]
-        public DateTime? EnabledStateEffectiveTransitionTime { get; set; }
-
-        /// <summary>Gets or sets the enabled state Id.</summary>
-        /// <example>true</example>
-        [JsonProperty("EnabledState/Value/Id")]
-        public bool EnabledStateId { get; set; }
-
-        /// <summary>Gets or sets the enabled state transition time.</summary>
-        [JsonProperty("EnabledState/Value/TransitionTime")]
-        public DateTime? EnabledStateTransitionTime { get; set; }
+      //  /// <summary>Gets or sets the enabled state effective display name.</summary>
+      //  /// <example>"Active | Unacknowledged"</example>
+      //  [JsonProperty("EnabledState/Value/EffectiveDisplayName")]
+      //  public DataValueObject<string> EnabledStateEffectiveDisplayName { get; set; }
+      //
+      //  /// <summary>Gets or sets the enabled state effective transition time.</summary>
+      //  [JsonProperty("EnabledState/Value/EffectiveTransitionTime")]
+      //  public DataValueObject<DateTime?> EnabledStateEffectiveTransitionTime { get; set; }
+      //
+      //  /// <summary>Gets or sets the enabled state Id.</summary>
+      //  /// <example>true</example>
+      //  [JsonProperty("EnabledState/Value/Id")]
+      //  public DataValueObject<bool> EnabledStateId { get; set; }
+      //
+      //  /// <summary>Gets or sets the enabled state transition time.</summary>
+      //  [JsonProperty("EnabledState/Value/TransitionTime")]
+      //  public DataValueObject<DateTime?> EnabledStateTransitionTime { get; set; }
 
         /// <summary>Gets or sets the event last severity.</summary>
         /// <example>500</example>
-        [JsonProperty("LastSeverity/Value")]
-        public int LastSeverity { get; set; }
-
-        /// <summary>Gets or sets the event last severity source timestamp.</summary>
-        [JsonProperty("LastSeverity/SourceTimestamp")]
-        public DateTime? LastSeveritySourceTimestamp { get; set; }
+        [JsonProperty("LastSeverity")]
+        public DataValueObject<int> LastSeverity { get; set; }
 
         /// <summary>Gets or sets the quality.</summary>
-        [JsonProperty("Quality/Value")]
-        public string Quality { get; set; }
+        [JsonProperty("Quality")]
+        public DataValueObject<string> Quality { get; set; }
 
         /// <summary>Gets or sets the quality source timestamp.</summary>
-        [JsonProperty("Quality/SourceTimestamp")]
-        public DateTime? QualitySourceTimestamp { get; set; }
+        [JsonProperty("Quality")]
+        public DataValueObject<DateTime?> QualitySourceTimestamp { get; set; }
 
         /// <summary>Gets or sets the retain flag.</summary>
-        [JsonProperty("Retain/Value")]
-        public bool Retain { get; set; }
+        [JsonProperty("Retain")]
+        public DataValueObject<bool> Retain { get; set; }
 
         /// <summary>Gets or sets the time.</summary>
-        [JsonProperty("Time/Value")]
-        public DateTime? Time { get; set; }
+        [JsonProperty("Time")]
+        public DataValueObject<DateTime?> Time { get; set; }
     }
 }

@@ -4,14 +4,22 @@
 // ------------------------------------------------------------
 
 namespace OpcPublisher_AE_E2E_Tests.TestModels {
+    using Microsoft.Azure.Management.Monitor.Fluent.Models;
     using Newtonsoft.Json;
     using System;
 
-    /// <summary>Base class for system events types.</summary>
-    public class SystemEventTypePayload : BaseEventTypePayload {
+    public class DataValueObject<T> {
 
-        /// <summary>Gets or sets the time.</summary>
-        [JsonProperty("Time")]
-        public DataValueObject<DateTime?> Time { get; set; }
+        /// <summary>
+        /// Value
+        /// </summary>
+        [JsonProperty]
+        public T Value { get; set; }
+
+        [JsonProperty]
+        public DateTime? SourceTimestamp { get; set; }
+
+        [JsonProperty]
+        public DateTime? ServerTimestamp { get; set; }
     }
 }
