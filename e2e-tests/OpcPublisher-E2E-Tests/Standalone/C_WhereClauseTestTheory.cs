@@ -95,12 +95,9 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
 
         private static void ValidateBaseEventTypeFields(JToken ev) {
             // navigate to the event fields (nested several layers)
-            var fields = ev.Children()
-                .First()
-                    .Children()
-                        .First();
+            var fields = ev.Children();
             Assert.NotNull(fields);
-            Assert.Equal(8, fields.Count());
+            Assert.Equal(9, fields.Count());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventId")).Any());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventType")).Any());
             Assert.True(fields.Where(x => x.Path.EndsWith("Message")).Any());
@@ -113,10 +110,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
 
         private static void ValidateSimpleEventFields(JToken ev) {
             // navigate to the event fields (nested several layers)
-            var fields = ev.Children()
-                .First()
-                    .Children()
-                        .First();
+            var fields = ev.Children();
             Assert.NotNull(fields);
             Assert.Equal(4, fields.Count());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventId")).Any());
