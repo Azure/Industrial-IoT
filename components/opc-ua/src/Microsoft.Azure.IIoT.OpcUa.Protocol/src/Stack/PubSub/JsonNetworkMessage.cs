@@ -162,7 +162,7 @@ namespace Opc.Ua.PubSub {
             if (!base.Equals(value)) {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.MessageId, MessageId) ||
+            if (!Utils.IsEqual(wrapper.MessageId(), MessageId()) ||
                 !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup)) {
                 return false;
             }
