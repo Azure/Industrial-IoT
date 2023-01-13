@@ -41,7 +41,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 _timeoutToken,
                 numInstances: instances);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemEventTypePayload>(_writerId, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemEventTypePayload>(_writerId, _timeoutToken, -1);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
@@ -55,7 +55,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 .ConsumeDuring(_context, FromSeconds(nSecondsTotal))
 
                 // Get time of event attached Server node
-                .Select(e => (e.EnqueuedTime, SourceTimestamp: e.Messages["i=2253"].ReceiveTime))
+                .Select(e => (e.EnqueuedTime, SourceTimestamp: e.Payload.ReceiveTime.Value))
                 .ToListAsync(_timeoutToken);
 
             // Assert throughput

@@ -38,7 +38,7 @@ namespace Opc.Ua.PubSub {
         /// <summary>
         /// Message id
         /// </summary>
-        public string MessageId { get; set; }
+        public Func<string> MessageId { get; set; } = () => Guid.NewGuid().ToString();
 
         /// <summary>
         /// Dataset writerGroup
@@ -142,6 +142,13 @@ namespace Opc.Ua.PubSub {
                 }
                 return JsonEncoderEx.JsonEncoding.Object;
             }
+        }
+
+        /// <summary>
+        /// Create message
+        /// </summary>
+        public JsonNetworkMessage() {
+            MessageId = () => _messageId;
         }
 
         /// <inheritdoc/>
@@ -259,12 +266,6 @@ namespace Opc.Ua.PubSub {
                     EncodeMessages(first);
                     EncodeMessages(second);
                 }
-                //
-                // Assign a new message id for other messages
-                // The first message should have the original
-                // message id.
-                //
-                MessageId = Guid.NewGuid().ToString();
             }
         }
 
@@ -426,7 +427,7 @@ namespace Opc.Ua.PubSub {
             if (!decoder.HasField(nameof(MessageId)) || HasSamplesPayload) {
                 return false;
             }
-            MessageId = decoder.ReadString(nameof(MessageId));
+            _messageId = decoder.ReadString(nameof(MessageId));
             if (MessageId == null) {
                 // Field is there but not of type string, cannot be a network message header
                 return false;
@@ -479,7 +480,7 @@ namespace Opc.Ua.PubSub {
         /// <param name="encoder"></param>
         private void WriteNetworkMessageHeader(JsonEncoderEx encoder) {
             // The encoder was set up as object beforehand based on IsJsonArray result
-            encoder.WriteString(nameof(MessageId), MessageId);
+            encoder.WriteString(nameof(MessageId), MessageId());
             encoder.WriteString(nameof(MessageType), MessageType);
             if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
                 encoder.WriteString(nameof(PublisherId), PublisherId);
@@ -494,5 +495,7 @@ namespace Opc.Ua.PubSub {
         }
 
         private bool? _hasSamplesPayload;
+        /// <summary> To update message id </summary>
+        protected string _messageId;
     }
 }

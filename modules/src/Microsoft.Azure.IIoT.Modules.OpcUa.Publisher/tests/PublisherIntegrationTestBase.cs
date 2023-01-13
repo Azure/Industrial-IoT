@@ -47,6 +47,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using Xunit;
     using static Microsoft.Azure.IIoT.Hub.Mock.IoTHubServices;
 
     /// <summary>
@@ -177,17 +178,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 var element = document.RootElement;
                 if (element.ValueKind == JsonValueKind.Array) {
                     foreach (var item in element.EnumerateArray()) {
-                        Add(messages, item, ref metadata, predicate, messageType);
+                        Add(messages, item, ref metadata, predicate, messageType, _messageIds);
                     }
                 }
                 else if (element.ValueKind == JsonValueKind.Object) {
-                    Add(messages, element, ref metadata, predicate, messageType);
+                    Add(messages, element, ref metadata, predicate, messageType, _messageIds);
                 }
             }
             return messages.Take(messageCount).ToList();
 
             static void Add(List<JsonElement> messages, JsonElement item, ref JsonElement? metadata,
-                Func<JsonElement, JsonElement> predicate, string messageType) {
+                Func<JsonElement, JsonElement> predicate, string messageType, HashSet<string> messageIds) {
                 if (messageType != null) {
                     if (item.TryGetProperty("MessageType", out var v)) {
                         var type = v.GetString();
@@ -197,6 +198,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                         if (type != messageType) {
                             return;
                         }
+                    }
+                    if (item.TryGetProperty("MessageId", out var id)) {
+                        Assert.True(messageIds.Add(id.GetString()));
                     }
                 }
                 var add = item;
@@ -421,6 +425,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         private readonly TaskCompletionSource<bool> _running;
         private readonly ConnectionString _typedConnectionString;
         private readonly ReferenceServerFixture _serverFixture;
+        HashSet<string> _messageIds = new HashSet<string>();
         private IContainer _apiScope;
     }
 }

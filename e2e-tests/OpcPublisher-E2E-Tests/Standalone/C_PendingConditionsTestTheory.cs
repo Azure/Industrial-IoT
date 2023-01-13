@@ -30,7 +30,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 {"/bin/sh", "-c", "./opcplc --autoaccept --alm --pn=50000"},
                 _timeoutToken);
 
-            var messages = _consumer.ReadConditionMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken);
+            var messages = _consumer.ReadConditionMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken, 1);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
@@ -38,12 +38,11 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 _writerId,
             TestConstants.PublishedNodesConfigurations.PendingConditionForAlarmsView());
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
-            // take any message
-            var ev = await messages
-                .FirstAsync(_timeoutToken);
+            // Act
+            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
 
             // Assert
-            ValidatePendingConditionsView(ev);
+            ValidatePendingConditionsView(payloads);
         }
     }
 }

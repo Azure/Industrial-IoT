@@ -15,7 +15,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
         /// <summary>Message origin host.</summary>
         public string PublisherId { get; set; }
 
-        /// <summary>Messages.</summary>
-        public PubSubMessages<T> Messages { get; set; }
+        /// <summary>Payload</summary>
+        public T Payload { get; set; }
     }
 }

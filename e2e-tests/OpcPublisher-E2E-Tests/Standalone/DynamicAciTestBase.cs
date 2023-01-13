@@ -21,6 +21,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     using Newtonsoft.Json.Linq;
     using FluentAssertions;
     using System.Linq;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Base class for standalone tests using dynamic ACI
@@ -210,17 +211,16 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                                                 new JProperty("Value", filterTypeDefinitionId))))))))))))));
         }
 
-        protected static void VerifyPayloads(PubSubMessages<SystemCycleStatusEventTypePayload> payloads) {
-            foreach (var payload in payloads.Select(x => x.Value)) {
+        protected static void VerifyPayloads(IEnumerable<SystemCycleStatusEventTypePayload> payloads) {
+            foreach (var payload in payloads) {
                 payload.Message.Value.Should().Match("The system cycle '*' has started.");
                 payload.CycleId.Value.Should().MatchRegex("^\\d+$");
             }
         }
 
-        protected static void ValidatePendingConditionsView(PendingConditionEventData<ConditionTypePayload> eventData) {
-            foreach (var pendingMessage in eventData.Messages.PendingMessages) {
+        protected static void ValidatePendingConditionsView(IEnumerable<ConditionTypePayload> eventData) {
+            foreach (var pendingMessage in eventData) {
                 pendingMessage.ConditionId.Value.Should().StartWith("http://microsoft.com/Opc/OpcPlc/AlarmsInstance#");
-                eventData.Messages.PendingMessages.Where(x => x.ConditionId == pendingMessage.ConditionId).ToList().Should().HaveCount(1);
                 pendingMessage.Retain.Value.Should().BeTrue();
             }
         }

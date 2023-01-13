@@ -4,9 +4,12 @@
 // ------------------------------------------------------------
 
 namespace OpcPublisher_AE_E2E_Tests.TestModels {
-    using Microsoft.Azure.Management.Monitor.Fluent.Models;
     using Newtonsoft.Json;
     using System;
+
+    public static class DataValueObject {
+        public static DataValueObject<T> Create<T>(T value) => new DataValueObject<T> { Value = value };
+    }
 
     public class DataValueObject<T> {
 

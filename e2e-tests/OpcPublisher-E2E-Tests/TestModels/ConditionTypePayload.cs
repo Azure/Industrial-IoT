@@ -16,7 +16,7 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
 
         /// <summary>Gets or sets comment source timestamp.</summary>
         [JsonProperty("Comment")]
-        public DataValueObject<string> CommentSourceTimestamp { get; set; }
+        public DataValueObject<string> Comment { get; set; }
 
         /// <summary>Gets or sets the condition name.</summary>
         /// <example>"VendingMachine1_DoorOpen"</example>
@@ -25,26 +25,26 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
 
         /// <summary>Gets or sets the enabled state.</summary>
         /// <example>"Enabled"</example>
-        [JsonProperty("Enabled")]
+        [JsonProperty("EnabledState")]
         public DataValueObject<string> EnabledState { get; set; }
 
-      //  /// <summary>Gets or sets the enabled state effective display name.</summary>
-      //  /// <example>"Active | Unacknowledged"</example>
-      //  [JsonProperty("EnabledState/Value/EffectiveDisplayName")]
-      //  public DataValueObject<string> EnabledStateEffectiveDisplayName { get; set; }
-      //
-      //  /// <summary>Gets or sets the enabled state effective transition time.</summary>
-      //  [JsonProperty("EnabledState/Value/EffectiveTransitionTime")]
-      //  public DataValueObject<DateTime?> EnabledStateEffectiveTransitionTime { get; set; }
-      //
-      //  /// <summary>Gets or sets the enabled state Id.</summary>
-      //  /// <example>true</example>
-      //  [JsonProperty("EnabledState/Value/Id")]
-      //  public DataValueObject<bool> EnabledStateId { get; set; }
-      //
-      //  /// <summary>Gets or sets the enabled state transition time.</summary>
-      //  [JsonProperty("EnabledState/Value/TransitionTime")]
-      //  public DataValueObject<DateTime?> EnabledStateTransitionTime { get; set; }
+        /// <summary>Gets or sets the enabled state effective display name.</summary>
+        /// <example>"Active | Unacknowledged"</example>
+        [JsonProperty("EnabledState/EffectiveDisplayName")]
+        public DataValueObject<string> EnabledStateEffectiveDisplayName { get; set; }
+
+        /// <summary>Gets or sets the enabled state effective transition time.</summary>
+        [JsonProperty("EnabledState/EffectiveTransitionTime")]
+        public DataValueObject<DateTime?> EnabledStateEffectiveTransitionTime { get; set; }
+
+        /// <summary>Gets or sets the enabled state Id.</summary>
+        /// <example>true</example>
+        [JsonProperty("EnabledState/Id")]
+        public DataValueObject<bool> EnabledStateId { get; set; }
+
+        /// <summary>Gets or sets the enabled state transition time.</summary>
+        [JsonProperty("EnabledState/TransitionTime")]
+        public DataValueObject<DateTime?> EnabledStateTransitionTime { get; set; }
 
         /// <summary>Gets or sets the event last severity.</summary>
         /// <example>500</example>
@@ -54,10 +54,6 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
         /// <summary>Gets or sets the quality.</summary>
         [JsonProperty("Quality")]
         public DataValueObject<string> Quality { get; set; }
-
-        /// <summary>Gets or sets the quality source timestamp.</summary>
-        [JsonProperty("Quality")]
-        public DataValueObject<DateTime?> QualitySourceTimestamp { get; set; }
 
         /// <summary>Gets or sets the retain flag.</summary>
         [JsonProperty("Retain")]

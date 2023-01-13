@@ -281,7 +281,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 UseAdvancedEncoding = !_useStandardsCompliantEncoding,
                                 UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
                                 UseArrayEnvelope = !_useStandardsCompliantEncoding && isBatched,
-                                MessageId = Guid.NewGuid().ToString(),
+                                MessageId = () => Guid.NewGuid().ToString(),
                                 DataSetWriterGroup = writerGroup.WriterGroupId
                             } : new UadpNetworkMessage {
                                 //   WriterGroupId = writerGroup.Index,
