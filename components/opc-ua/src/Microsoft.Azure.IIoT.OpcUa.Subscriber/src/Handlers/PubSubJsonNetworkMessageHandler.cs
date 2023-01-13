@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                     foreach (JsonDataSetMessage dataSetMessage in message.Messages) {
                         var dataset = new DataSetMessageModel {
                             PublisherId = message.PublisherId,
-                            MessageId = message.MessageId,
+                            MessageId = message.MessageId(),
                             DataSetClassId = message.DataSetClassId.ToString(),
                             DataSetWriterId = dataSetMessage.DataSetWriterName,
                             SequenceNumber = dataSetMessage.SequenceNumber,

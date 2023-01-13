@@ -595,7 +595,7 @@ namespace OpcPublisher_AE_E2E_Tests {
                 var messageIds = new HashSet<string>();
                 foreach (dynamic message in batchedMessages) {
                     Assert.NotNull(message.MessageId.Value);
-                  //  Assert.True(messageIds.Add(message.MessageId.Value));
+                    Assert.True(messageIds.Add(message.MessageId.Value));
                     var publisherId = (string)message.PublisherId.Value;
                     Assert.NotNull(publisherId);
                     Assert.Equal("ua-data", message.MessageType.Value);

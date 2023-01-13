@@ -401,7 +401,7 @@ namespace Opc.Ua.PubSub.Tests {
             return new JsonNetworkMessage {
                 DataSetClassId = Guid.Parse("5ae1a63a-9757-4aa7-ab71-0d88931266fc"),
                 NetworkMessageContentMask = messageMask,
-                MessageId = "9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
+                MessageId = () => "9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
                 PublisherId = "MyPublisher",
                 Messages = new List<BaseDataSetMessage> {
                     new JsonDataSetMessage {

@@ -381,7 +381,7 @@ namespace Opc.Ua.PubSub.Tests {
         private static JsonNetworkMessage CreateNetworkMessage(
             JsonNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages) {
             var networkMessage = new JsonNetworkMessage {
-                MessageId = Guid.NewGuid().ToString(), // TODO
+                MessageId = () => Guid.NewGuid().ToString(), // TODO
                 Messages = messages,
                 DataSetWriterGroup = "group",
                 DataSetClassId = Guid.NewGuid(),
