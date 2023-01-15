@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
     public static class NetworkMessageEncoderTests {
 
-        public static IList<SubscriptionNotificationModel> GenerateSampleSubscriptionNotifications(
+        public static List<SubscriptionNotificationModel> GenerateSampleSubscriptionNotifications(
             uint numOfMessages, bool eventList = false,
             MessageEncoding encoding = MessageEncoding.Json,
             NetworkMessageContentMask extraNetworkMessageMask = 0,
@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     },
                     Timestamp = DateTime.UtcNow,
                     MetaData = null,
-                    MessageType = Opc.Ua.PubSub.MessageType.KeyFrame,
+                    MessageType = eventList ? Opc.Ua.PubSub.MessageType.Event : Opc.Ua.PubSub.MessageType.KeyFrame,
                     ServiceMessageContext = new ServiceMessageContext { },
                     Notifications = notifications,
                     SubscriptionId = 22,

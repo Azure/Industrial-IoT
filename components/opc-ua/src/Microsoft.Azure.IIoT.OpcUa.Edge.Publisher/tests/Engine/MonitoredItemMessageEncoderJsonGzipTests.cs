@@ -101,6 +101,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         }
 
         [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void EncodeDataWithMultipleNotificationsTest(bool encodeBatchFlag) {
+            var maxMessageSize = 256 * 1024;
+            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, false, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var notifications = messages.SelectMany(n => n.Notifications).ToList();
+            messages[0].Notifications = notifications;
+            messages = new List<SubscriptionNotificationModel> { messages[0] };
+
+            var encoder = GetEncoder();
+            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
+
+            if (encodeBatchFlag) {
+                Assert.Equal(1, networkMessages.Count());
+                Assert.Equal((uint)1, encoder.NotificationsProcessedCount);
+                Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
+                Assert.Equal((uint)1, encoder.MessagesProcessedCount);
+                Assert.Equal(1, encoder.AvgNotificationsPerMessage);
+            }
+            else {
+                Assert.Equal(210, networkMessages.Count());
+                Assert.Equal((uint)1, encoder.NotificationsProcessedCount);
+                Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
+                Assert.Equal((uint)210, encoder.MessagesProcessedCount);
+                Assert.Equal(0.005, Math.Round(encoder.AvgNotificationsPerMessage, 3));
+            }
+        }
+
+        [Theory]
         [InlineData(true)]
         [InlineData(false)]
         public void EncodeChunkTest(bool encodeBatchFlag) {

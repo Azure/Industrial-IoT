@@ -187,48 +187,60 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         dataSetMessage.SequenceNumber = message.Context.SequenceNumber;
                                         dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
                                             s => s.DataSetFieldName, s => s.Value), (uint)dataSetFieldContentMask);
+
                                         AddMessage(dataSetMessage);
                                     }
                                     else {
-                                        // Add samples payload to network message
+                                        // Add monitored item message payload to network message to handle backcompat
                                         foreach (var itemNotifications in orderedNotifications.GroupBy(f => f.Id + f.MessageId)) {
                                             var notificationsInGroup = itemNotifications.ToList();
                                             Debug.Assert(notificationsInGroup.Count != 0);
-                                            var displayName = notificationsInGroup[0].DataSetFieldName;
-                                            var dataValue = notificationsInGroup[0].Value;
-                                            if (notificationsInGroup.Count > 1) {
-                                                // Collate all values into a single key value data value to cover events
+                                            if (notificationsInGroup.Count > 1 &&
+                                                (message.Notification.MessageType == MessageType.Event ||
+                                                 message.Notification.MessageType == MessageType.Condition)) {
+                                                //
+                                                // Special monitored item handling for events and conditions. Collate all
+                                                // values into a single key value data dictionary extension object value.
+                                                // Regular notifications we send as single messages.
+                                                //
                                                 Debug.Assert(notificationsInGroup
                                                     .Select(n => n.DataSetFieldName).Distinct().Count() == notificationsInGroup.Count,
                                                     "There should not be duplicates in fields in a group.");
                                                 Debug.Assert(notificationsInGroup
                                                     .All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
                                                     "All notifications in the group should have the same sequence number.");
-                                                displayName = notificationsInGroup[0].DisplayName;
-                                                dataValue = new DataValue {
+                                                notificationsInGroup[0].DataSetFieldName = notificationsInGroup[0].DisplayName;
+                                                notificationsInGroup[0].Value = new DataValue {
                                                     Value = new EncodeableDictionary(notificationsInGroup
-                                                        .Select(n => new KeyDataValuePair {
-                                                            Key = n.DataSetFieldName,
-                                                            Value = n.Value
-                                                        }))
+                                                        .Select(n => new KeyDataValuePair(n.DataSetFieldName, n.Value)))
+                                                };
+                                                notificationsInGroup = new List<MonitoredItemNotificationModel> {
+                                                    notificationsInGroup[0]
                                                 };
                                             }
-                                            var dataSetMessage = new MonitoredItemMessage {
-                                                UseCompatibilityMode = !_useStandardsCompliantEncoding,
-                                                ApplicationUri = message.Notification.ApplicationUri,
-                                                EndpointUrl = message.Notification.EndpointUrl,
-                                                ExtensionFields = message.Context?.Writer?.DataSet?.ExtensionFields,
-                                                NodeId = notificationsInGroup[0].NodeId,
-                                                MessageType = message.Notification.MessageType,
-                                                DataSetMessageContentMask = dataSetMessageContentMask,
-                                                Timestamp = message.Notification.Timestamp,
-                                                SequenceNumber = notificationsInGroup[0].SequenceNumber ?? 0,
-                                                Payload = new DataSet(displayName, dataValue, (uint)dataSetFieldContentMask)
-                                            };
-                                            AddMessage(dataSetMessage);
+                                            foreach (var notification in notificationsInGroup) {
+                                                var dataSetMessage = new MonitoredItemMessage {
+                                                    UseCompatibilityMode = !_useStandardsCompliantEncoding,
+                                                    ApplicationUri = message.Notification.ApplicationUri,
+                                                    EndpointUrl = message.Notification.EndpointUrl,
+                                                    ExtensionFields = message.Context?.Writer?.DataSet?.ExtensionFields,
+                                                    NodeId = notification.NodeId,
+                                                    MessageType = message.Notification.MessageType,
+                                                    DataSetMessageContentMask = dataSetMessageContentMask,
+                                                    Timestamp = message.Notification.Timestamp,
+                                                    SequenceNumber = notification.SequenceNumber ?? 0,
+                                                    Payload = new DataSet(notification.DataSetFieldName, notification.Value,
+                                                        (uint)dataSetFieldContentMask)
+                                                };
+                                                AddMessage(dataSetMessage);
+                                            }
                                         }
                                     }
 
+                                    //
+                                    // Add message and number of notifications processed count to method result.
+                                    // Checks current length and splits if max items reached if configured.
+                                    //
                                     void AddMessage(BaseDataSetMessage dataSetMessage) {
                                         currentMessage.Messages.Add(dataSetMessage);
                                         if (writerGroup.MessageSettings?.MaxMessagesPerPublish != null &&

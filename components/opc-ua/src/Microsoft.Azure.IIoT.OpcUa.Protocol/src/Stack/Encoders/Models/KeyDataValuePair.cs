@@ -18,6 +18,14 @@ namespace Opc.Ua {
         /// </summary>
         public KeyDataValuePair() {}
 
+        /// <summary>
+        /// The default constructor.
+        /// </summary>
+        public KeyDataValuePair(string key, DataValue value) {
+            Key = key;
+            Value = value;
+        }
+
         /// <remarks />
         [DataMember(Name = "Key", IsRequired = true, Order = 1)]
         public string Key { get; set; }

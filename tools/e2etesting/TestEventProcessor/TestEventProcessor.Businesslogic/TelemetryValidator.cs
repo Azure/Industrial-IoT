@@ -428,6 +428,9 @@ namespace TestEventProcessor.BusinessLogic {
                                 if (!dataValue.TryGetValue("Value", out var value)) {
                                     value = JValue.CreateNull();
                                 }
+                                if (entry.TryGetValue("Status", out var status) && status.ToString() != "Good") {
+                                    _logger.LogInformation("Value has status {Status}.", status.ToString());
+                                }
                                 FeedDataCheckers(
                                     (string)nodeId,
                                     sourceTimeStamp.ToObject<DateTime>(),
