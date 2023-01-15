@@ -209,13 +209,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                                 Debug.Assert(notificationsInGroup
                                                     .All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
                                                     "All notifications in the group should have the same sequence number.");
-                                                notificationsInGroup[0].DataSetFieldName = notificationsInGroup[0].DisplayName;
-                                                notificationsInGroup[0].Value = new DataValue {
+
+                                                var eventNotification = notificationsInGroup[0]; // No clone, mutate ok.
+                                                eventNotification.Value = new DataValue {
                                                     Value = new EncodeableDictionary(notificationsInGroup
                                                         .Select(n => new KeyDataValuePair(n.DataSetFieldName, n.Value)))
                                                 };
+                                                eventNotification.DataSetFieldName = notificationsInGroup[0].DisplayName;
                                                 notificationsInGroup = new List<MonitoredItemNotificationModel> {
-                                                    notificationsInGroup[0]
+                                                    eventNotification
                                                 };
                                             }
                                             foreach (var notification in notificationsInGroup) {
