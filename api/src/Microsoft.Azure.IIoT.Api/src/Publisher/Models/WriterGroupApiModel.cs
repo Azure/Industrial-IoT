@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class WriterGroupApiModel {
 
         /// <summary>
-        /// Dataset writer group id
+        /// Dataset writer group identifier
         /// </summary>
         [DataMember(Name = "writerGroupId", Order = 0)]
         public string WriterGroupId { get; set; }

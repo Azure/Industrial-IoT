@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module;
@@ -19,7 +20,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
 
     /// <summary>
     /// Dataflow engine
@@ -308,6 +308,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 .Set(info.EncoderNotificationsProcessed);
             kNotificationsDroppedCount.WithLabels(deviceId, moduleId, Name)
                 .Set(info.EncoderNotificationsDropped);
+            kMaxMessageSplitRatio.WithLabels(deviceId, moduleId, Name)
+               .Set(info.EncoderMaxMessageSplitRatio);
             kMessagesProcessedCount.WithLabels(deviceId, moduleId, Name)
                 .Set(info.EncoderIoTMessagesProcessed);
             kNotificationsPerMessageAvg.WithLabels(deviceId, moduleId, Name)
@@ -467,6 +469,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kNotificationsDroppedCount = Metrics.CreateGauge(
             "iiot_edge_publisher_dropped_notifications",
             "publisher engine dropped opc notifications count", kGaugeConfig);
+        private static readonly Gauge kMaxMessageSplitRatio = Metrics.CreateGauge(
+            "iiot_edge_publisher_message_split_ratio_max",
+            "publisher engine worst message split ratio", kGaugeConfig);
         private static readonly Gauge kMessagesProcessedCount = Metrics.CreateGauge(
             "iiot_edge_publisher_processed_messages",
             "publisher engine processed iot messages count", kGaugeConfig);

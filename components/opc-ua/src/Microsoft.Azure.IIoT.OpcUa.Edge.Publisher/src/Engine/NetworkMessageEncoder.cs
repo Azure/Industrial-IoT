@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // split size to provide users with an indication how many times chunks had to
                 // be created so they can configure publisher to improve performance.
                 //
-                if (chunkedMessages.Count > notificationsPerMessage) {
+                if (notificationsPerMessage > 0 && notificationsPerMessage < chunkedMessages.Count) {
                     var splitSize = chunkedMessages.Count / notificationsPerMessage;
                     if (splitSize > MaxMessageSplitRatio) {
                         MaxMessageSplitRatio = splitSize;
