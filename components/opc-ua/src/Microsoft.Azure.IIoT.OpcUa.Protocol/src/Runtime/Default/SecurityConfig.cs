@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
     using System;
+    using System.IO;
 
     /// <summary>
     /// Security configuration
@@ -54,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// <inheritdoc/>
         public CertificateStore TrustedIssuerCertificates => new CertificateStore {
             StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey,
-                () => $"{PkiRootPath}/issuers"),
+                () => _issuersFolderName.Value),
             StoreType = GetStringOrDefault(TrustedIssuerCertificatesTypeKey,
                 () => CertificateStoreType.Directory),
         };
@@ -99,8 +100,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public SecurityConfig(IClientServicesConfig application, IConfiguration configuration) :
             base(configuration) {
             _application = application ?? throw new ArgumentNullException(nameof(application));
+            _issuersFolderName = new Lazy<string>(GetIssuersFolder);
+        }
+
+        /// <summary>
+        /// Returns the legacy 'issuers' if folder already exists or per specification. For more information
+        /// <see href="https://github.com/OPCFoundation/UA-.NETStandard/blob/master/Docs/Certificates.md"/>.
+        /// </summary>
+        /// <returns>The issuer folder name</returns>
+        private string GetIssuersFolder() {
+            var legacyPath = $"{PkiRootPath}/issuers";
+            return Directory.Exists(legacyPath) ? legacyPath : $"{PkiRootPath}/issuer";
         }
 
         private readonly IClientServicesConfig _application;
+        private readonly Lazy<string> _issuersFolderName;
     }
 }
