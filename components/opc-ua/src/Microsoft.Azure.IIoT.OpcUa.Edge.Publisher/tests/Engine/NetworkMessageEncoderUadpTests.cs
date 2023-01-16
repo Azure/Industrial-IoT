@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeChunkedUadpMessageTest1(bool encodeBatchFlag) {
             var maxMessageSize = 100;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(10, false, MessageEncoding.Uadp);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(10, false, MessageEncoding.Uadp);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeChunkedUadpMessageTest2(bool encodeBatchFlag) {
             var maxMessageSize = 100;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(100, false, MessageEncoding.Uadp);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(100, false, MessageEncoding.Uadp);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeUadpTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Uadp);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Uadp);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeEventsUadpTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, true, MessageEncoding.Uadp);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(20, true, MessageEncoding.Uadp);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeMetadataUadpTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Uadp);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Uadp);
             messages[10].MessageType = Opc.Ua.PubSub.MessageType.Metadata; // Emit metadata
             messages[10].MetaData = new DataSetMetaDataType {
                 Name = "test",
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeMetadataUadpChunkTest(bool encodeBatchFlag) {
             var maxMessageSize = 100;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Uadp);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Uadp);
             messages[0].MessageType = Opc.Ua.PubSub.MessageType.Metadata; // Emit metadata
             messages[0].MetaData = new DataSetMetaDataType {
                 Name = "test",
@@ -148,7 +148,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeNothingTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Uadp);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Uadp);
             messages[0].MessageType = Opc.Ua.PubSub.MessageType.KeepAlive;
             messages[0].Notifications.Clear();
 

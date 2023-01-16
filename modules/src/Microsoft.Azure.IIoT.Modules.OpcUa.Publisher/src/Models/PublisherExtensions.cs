@@ -236,6 +236,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 EncodingBlockOutputSize = model.EncodingBlockOutputSize,
                 EncoderNotificationsProcessed = model.EncoderNotificationsProcessed,
                 EncoderNotificationsDropped = model.EncoderNotificationsDropped,
+                EncoderMaxMessageSplitRatio = model.EncoderMaxMessageSplitRatio,
                 EncoderIoTMessagesProcessed = model.EncoderIoTMessagesProcessed,
                 EncoderAvgNotificationsMessage = model.EncoderAvgNotificationsMessage,
                 EncoderAvgIoTMessageBodySize = model.EncoderAvgIoTMessageBodySize,

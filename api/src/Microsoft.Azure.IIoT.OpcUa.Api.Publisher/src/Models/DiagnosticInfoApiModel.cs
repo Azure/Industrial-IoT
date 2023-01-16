@@ -137,5 +137,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "ingressEvents", Order = 24,
             EmitDefaultValue = true)]
         public ulong IngressEvents { get; set; }
+
+        /// <summary> Encoder max message split ratio </summary>
+        [DataMember(Name = "encoderMaxMessageSplitRatio", Order = 25,
+            EmitDefaultValue = true)]
+        public double EncoderMaxMessageSplitRatio { get; set; }
     }
 }

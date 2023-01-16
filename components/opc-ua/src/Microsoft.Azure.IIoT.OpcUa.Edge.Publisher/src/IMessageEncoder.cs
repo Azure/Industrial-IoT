@@ -44,6 +44,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         double AvgMessageSize { get; }
 
         /// <summary>
+        /// The message split ration specifies into how many messages a
+        /// subscription notification had to be split. Less is better
+        /// for performance. If the number is large user should attempt
+        /// to limit the number of notifications in a message using
+        /// configuration.
+        /// </summary>
+        double MaxMessageSplitRatio { get; }
+
+        /// <summary>
         /// Encodes the list of notifications into network messages to send
         /// </summary>
         /// <param name="notifications">Notifications to encode</param>

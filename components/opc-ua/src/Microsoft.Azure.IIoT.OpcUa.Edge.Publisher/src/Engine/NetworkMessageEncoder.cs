@@ -38,6 +38,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
 
+        /// <inheritdoc/>
+        public double MaxMessageSplitRatio { get; private set; }
+
         /// <summary>
         /// Create instance of NetworkMessageEncoder.
         /// </summary>
@@ -103,6 +106,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 NotificationsDroppedCount += (uint)tooBig;
                 if (notificationsPerMessage > tooBig) {
                     NotificationsProcessedCount += (uint)(notificationsPerMessage - tooBig);
+                }
+
+                //
+                // how many notifications per message resulted in how many buffers. We track the
+                // split size to provide users with an indication how many times chunks had to
+                // be created so they can configure publisher to improve performance.
+                //
+                if (chunkedMessages.Count > notificationsPerMessage) {
+                    var splitSize = chunkedMessages.Count / notificationsPerMessage;
+                    if (splitSize > MaxMessageSplitRatio) {
+                        MaxMessageSplitRatio = splitSize;
+                    }
                 }
             }
             return chunkedMessages;

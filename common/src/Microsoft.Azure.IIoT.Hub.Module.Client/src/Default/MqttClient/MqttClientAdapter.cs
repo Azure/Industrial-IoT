@@ -36,21 +36,21 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     /// MQTT client adapter implementation
     /// </summary>
     public sealed class MqttClientAdapter : IClient {
+
         /// <summary>
         /// Whether the client is closed
         /// </summary>
         public bool IsClosed { get; private set; }
 
-        private const string DEVICE_ID_TEMPLATE_PLACEHOLDER = "{device_id}";
+        /// <inheritdoc />
+        public int MaxMessageSize => int.MaxValue;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="client">MQTT server client.</param>
-        /// <param name="product">Custom product information.</param>
         /// <param name="deviceId">Id of the device.</param>
         /// <param name="timeout">Timeout used for operations.</param>
-        /// <param name="retry">Retry policy used for operations.</param>
         /// <param name="onConnectionLost">Handler for when the MQTT server connection is lost.</param>
         /// <param name="messageExpiryInterval">Period of time (seconds) for the broker to store the message for any subscribers that are not yet connected</param>
         /// <param name="qualityOfServiceLevel">Quality of service level to use for MQTT messages.</param>
@@ -59,10 +59,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="logger">Logger used for operations</param>
         private MqttClientAdapter(
             IManagedMqttClient client,
-            string product,
             string deviceId,
             TimeSpan timeout,
-            IRetryPolicy retry,
             Action onConnectionLost,
             uint? messageExpiryInterval,
             MqttQualityOfServiceLevel qualityOfServiceLevel,
@@ -70,10 +68,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             string telemetryTopicTemplate,
             ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _product = product ?? throw new ArgumentNullException(nameof(product));
             _deviceId = deviceId ?? throw new ArgumentNullException(nameof(deviceId));
             _timeout = timeout;
-            _retry = retry;
             _onConnectionLost = onConnectionLost ?? throw new ArgumentNullException(nameof(onConnectionLost));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _messageExpiryInterval = messageExpiryInterval;
@@ -138,16 +134,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
             var adapter = new MqttClientAdapter(
                 client,
-                product,
                 deviceId,
                 timeout,
-                retry,
                 onConnectionLost,
                 cs.MessageExpiryInterval,
                 qualityOfServiceLevel: MqttQualityOfServiceLevel.AtLeastOnce,
                 useIoTHubTopics: cs.UsingIoTHub,
-                telemetryTopicTemplate,
-                logger);
+                telemetryTopicTemplate: telemetryTopicTemplate,
+                logger: logger);
 
             client.UseConnectedHandler(adapter.OnConnected);
             client.UseDisconnectedHandler(adapter.OnDisconnected);
@@ -220,7 +214,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 }
             }
             else {
-                topic = _telemetryTopicTemplate.Replace(DEVICE_ID_TEMPLATE_PLACEHOLDER, _deviceId);
+                topic = _telemetryTopicTemplate.Replace(kDeviceIdTemplatePlaceholder, _deviceId);
             }
 
             return InternalSendEventAsync(topic, message.BodyStream, properties);
@@ -579,11 +573,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private const string kContentEncodingPropertyName = "iothub-content-encoding";
         private const string kContentTypePropertyName = "iothub-content-type";
         private const string kContentType = "application/json";
+        private const string kDeviceIdTemplatePlaceholder = "{device_id}";
 
-        private readonly string _product;
         private readonly string _deviceId;
         private readonly TimeSpan _timeout;
-        private readonly IRetryPolicy _retry;
         private readonly Action _onConnectionLost;
         private readonly ILogger _logger;
         private readonly uint? _messageExpiryInterval;

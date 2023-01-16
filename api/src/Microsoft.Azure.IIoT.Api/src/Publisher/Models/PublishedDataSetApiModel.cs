@@ -27,8 +27,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public PublishedDataSetSourceApiModel DataSetSource { get; set; }
 
         /// <summary>
-        /// Dataset meta data to emit. If null no dataset
-        /// metadata is emitted.
+        /// Provides context of the dataset meta data that is to
+        /// be emitted. If set to null no dataset metadata is emitted.
         /// </summary>
         [DataMember(Name = "dataSetMetaData", Order = 2,
             EmitDefaultValue = false)]

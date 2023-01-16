@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeTooBigMessageTest(bool encodeBatchFlag) {
             var maxMessageSize = 100;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(3, false, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(3, false, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeDataTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, false, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(20, false, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeDataWithMultipleNotificationsTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, false, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(20, false, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
             var notifications = messages.SelectMany(n => n.Notifications).ToList();
             messages[0].Notifications = notifications;
             messages = new List<SubscriptionNotificationModel> { messages[0] };
@@ -134,7 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(false)]
         public void EncodeChunkTest(bool encodeBatchFlag) {
             var maxMessageSize = 8 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(50, false, MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(50, false, MessageEncoding.JsonGzip, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeEventTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(1, true, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(1, true, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
@@ -180,7 +180,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeEventsTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
-            var messages = NetworkMessageEncoderTests.GenerateSampleSubscriptionNotifications(20, true, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
+            var messages = NetworkMessageEncoderTestHelper.GenerateSampleSubscriptionNotifications(20, true, encoding: MessageEncoding.JsonGzip, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);

@@ -13,9 +13,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// A hub client
+    /// The messaging client
     /// </summary>
     public interface IClient : IDisposable {
+
+        /// <summary>
+        /// Maximum size message client can process
+        /// </summary>
+        int MaxMessageSize { get; }
 
         /// <summary>
         /// Sends an event to device hub

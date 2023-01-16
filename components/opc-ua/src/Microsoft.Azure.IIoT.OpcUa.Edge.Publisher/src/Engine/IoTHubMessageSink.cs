@@ -20,10 +20,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// <summary>
     /// Iot hub client sink
     /// </summary>
-    public class IoTHubMessageSink : IMessageSink, IDisposable {
+    public class IoTHubMessageSink : IMessageSink {
 
         /// <inheritdoc/>
         public long SentMessagesCount { get; private set; }
+
+        /// <inheritdoc/>
+        public int MaxMessageSize => _clientAccessor.Client.MaxMessageSize;
 
         /// <summary>
         /// Create IoT hub message sink
@@ -35,10 +38,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 ?? throw new ArgumentNullException(nameof(clientAccessor));
             _logger = logger
                 ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        /// <inheritdoc/>
-        public void Dispose() {
         }
 
         /// <inheritdoc/>

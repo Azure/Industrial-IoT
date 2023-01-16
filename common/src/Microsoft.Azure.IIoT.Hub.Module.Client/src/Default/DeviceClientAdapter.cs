@@ -24,6 +24,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// </summary>
         public bool IsClosed { get; internal set; }
 
+        /// <inheritdoc />
+        public int MaxMessageSize => 256 * 1024;
+
         /// <summary>
         /// Create client
         /// </summary>
