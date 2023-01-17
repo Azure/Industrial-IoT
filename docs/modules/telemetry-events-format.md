@@ -68,7 +68,6 @@ The event is described by the corresponding metadata message, which is emitted p
       "MetaData": {
         "Namespaces": [
           "http://opcfoundation.org/UA/",
-          "urn:mschier205:OPCFoundation:CoreSampleServer",
           "http://test.org/UA/Data/",
           "http://test.org/UA/Data//Instance",
           "http://opcfoundation.org/UA/Boiler//Instance",
@@ -76,18 +75,7 @@ The event is described by the corresponding metadata message, which is emitted p
           "http://opcfoundation.org/UA/Vehicles/Types",
           "http://opcfoundation.org/UA/Vehicles/Instances",
           "http://opcfoundation.org/ReferenceApplications",
-          "http://opcfoundation.org/HistoricalEvents",
-          "http://opcfoundation.org/HistoricalAccess",
-          "http://opcfoundation.org/UA/Views",
-          "http://opcfoundation.org/UA/Engineering",
-          "http://opcfoundation.org/UA/Operations",
-          "DataAccess",
-          "http://opcfoundation.org/AlarmCondition",
-          "http://opcfoundation.org/SimpleEvents",
-          "http://microsoft.com/Opc/OpcPlc/",
           "http://opcfoundation.org/UA/Diagnostics",
-          "http://samples.org/UA/memorybuffer",
-          "http://samples.org/UA/memorybuffer/Instance",
           "http://opcfoundation.org/UA/Boiler/"
         ],
         "StructureDataTypes": [

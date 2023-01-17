@@ -115,7 +115,6 @@ The data set is described by the corresponding metadata message (message type `u
           "http://opcfoundation.org/UA/",
           "urn:localhost:OPCFoundation:CoreSampleServer",
           "http://test.org/UA/Data/",
-          ..l
           "http://opcfoundation.org/UA/Boiler/"
         ],
         "StructureDataTypes": [],
