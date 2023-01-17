@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 Id = model.Id,
                 DiscardNew = model.DiscardNew,
                 Attribute = model.Attribute,
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 DataChangeTrigger = model.DataChangeTrigger,
                 DeadbandType = model.DeadbandType,
                 DeadbandValue = model.DeadbandValue,

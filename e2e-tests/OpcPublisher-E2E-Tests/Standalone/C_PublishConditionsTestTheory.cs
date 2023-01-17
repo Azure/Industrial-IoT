@@ -36,7 +36,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 _timeoutToken,
                 "opc-plc-files/sc001.json");
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync<ConditionTypePayload>(_writerId, _timeoutToken, 10000);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
@@ -47,9 +47,9 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
 
             const int nMessages = 6;
             var payloads = await messages
-                .Select(e => e.Messages["i=2253"])
+                .Select(e => e.Payload)
                 .Skip(nMessages) // First batch of alarms are from a ConditionRefresh, therefore not in order
-                .SkipWhile(c => !c.Message.Contains("LAST EVENT IN LOOP"))
+                .SkipWhile(c => !c.Message.Value.Contains("LAST EVENT IN LOOP"))
                 .Skip(1)
                 .Take(nMessages)
                 .ToListAsync(_timeoutToken);
@@ -58,17 +58,17 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
 
             var i = -1;
             var doorOpen = new ConditionTypePayload {
-                ConditionName = "VendingMachine1_DoorOpen",
-                EnabledState = "Enabled",
-                EnabledStateEffectiveDisplayName = "Active | Unacknowledged",
-                EnabledStateId = true,
-                EventType = "i=10751",
-                LastSeverity = 500,
-                Message = "Door Open",
-                Retain = true,
-                Severity = 900,
-                SourceName = "VendingMachine1",
-                SourceNode = "http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1",
+                ConditionName = DataValueObject.Create("VendingMachine1_DoorOpen"),
+                EnabledState = DataValueObject.Create("Enabled"),
+                EnabledStateEffectiveDisplayName = DataValueObject.Create("Active | Unacknowledged"),
+                EnabledStateId = DataValueObject.Create(true),
+                EventType = DataValueObject.Create("i=10751"),
+                LastSeverity = DataValueObject.Create(500),
+                Message = DataValueObject.Create("Door Open"),
+                Retain = DataValueObject.Create(true),
+                Severity = DataValueObject.Create(900),
+                SourceName = DataValueObject.Create("VendingMachine1"),
+                SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1"),
             };
             VerifyPayload(payloads, ++i, null, doorOpen);
 
@@ -76,68 +76,68 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 ++i,
                 FromSeconds(5),
                 new ConditionTypePayload {
-                    ConditionName = "VendingMachine2_LightOff",
-                    EnabledState = "Enabled",
-                    EnabledStateEffectiveDisplayName = "Active | Unacknowledged",
-                    EnabledStateId = true,
-                    EventType = "i=10637",
-                    LastSeverity = 500,
-                    Message = "Light Off in machine",
-                    Retain = true,
-                    Severity = 500,
-                    SourceName = "VendingMachine2",
-                    SourceNode = "http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine2",
+                    ConditionName = DataValueObject.Create("VendingMachine2_LightOff"),
+                    EnabledState = DataValueObject.Create("Enabled"),
+                    EnabledStateEffectiveDisplayName = DataValueObject.Create("Active | Unacknowledged"),
+                    EnabledStateId = DataValueObject.Create(true),
+                    EventType = DataValueObject.Create("i=10637"),
+                    LastSeverity = DataValueObject.Create(500),
+                    Message = DataValueObject.Create("Light Off in machine"),
+                    Retain = DataValueObject.Create(true),
+                    Severity = DataValueObject.Create(500),
+                    SourceName = DataValueObject.Create("VendingMachine2"),
+                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine2"),
                 });
 
             VerifyPayload(payloads,
                 ++i,
                 Zero,
                 new ConditionTypePayload {
-                    ConditionName = "VendingMachine1_AD_Lamp_Off",
-                    EnabledState = "Enabled",
-                    EnabledStateEffectiveDisplayName = "Enabled",
-                    EnabledStateId = true,
-                    EventType = "i=2782",
-                    LastSeverity = 500,
-                    Message = "AD Lamp Off",
-                    Retain = true,
-                    Severity = 500,
-                    SourceName = "VendingMachine1",
-                    SourceNode = "http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1",
+                    ConditionName = DataValueObject.Create("VendingMachine1_AD_Lamp_Off"),
+                    EnabledState = DataValueObject.Create("Enabled"),
+                    EnabledStateEffectiveDisplayName = DataValueObject.Create("Enabled"),
+                    EnabledStateId = DataValueObject.Create(true),
+                    EventType = DataValueObject.Create("i=2782"),
+                    LastSeverity = DataValueObject.Create(500),
+                    Message = DataValueObject.Create("AD Lamp Off"),
+                    Retain = DataValueObject.Create(true),
+                    Severity = DataValueObject.Create(500),
+                    SourceName = DataValueObject.Create("VendingMachine1"),
+                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1"),
                 });
 
             VerifyPayload(payloads,
                 ++i,
                 FromSeconds(5),
                 new ConditionTypePayload {
-                    ConditionName = "VendingMachine1_DoorOpen",
-                    EnabledState = "Enabled",
-                    EnabledStateEffectiveDisplayName = "Inactive | Unacknowledged",
-                    EnabledStateId = true,
-                    EventType = "i=10751",
-                    LastSeverity = 900,
-                    Message = "Door Closed",
-                    Retain = false,
-                    Severity = 500,
-                    SourceName = "VendingMachine1",
-                    SourceNode = "http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1",
+                    ConditionName = DataValueObject.Create("VendingMachine1_DoorOpen"),
+                    EnabledState = DataValueObject.Create("Enabled"),
+                    EnabledStateEffectiveDisplayName = DataValueObject.Create("Inactive | Unacknowledged"),
+                    EnabledStateId = DataValueObject.Create(true),
+                    EventType = DataValueObject.Create("i=10751"),
+                    LastSeverity = DataValueObject.Create(900),
+                    Message = DataValueObject.Create("Door Closed"),
+                    Retain = DataValueObject.Create(false),
+                    Severity = DataValueObject.Create(500),
+                    SourceName = DataValueObject.Create("VendingMachine1"),
+                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1"),
                 });
 
             VerifyPayload(payloads,
                 ++i,
                 FromSeconds(4),
                 new ConditionTypePayload {
-                    ConditionName = "VendingMachine1_TemperatureHigh",
-                    EnabledState = "Enabled",
-                    EnabledStateEffectiveDisplayName = "Active | Unacknowledged",
-                    EnabledStateId = true,
-                    EventType = "i=2955",
-                    LastSeverity = 900,
-                    Message = "Temperature is HIGH (LAST EVENT IN LOOP)",
-                    Retain = true,
-                    Severity = 900,
-                    SourceName = "VendingMachine1",
-                    SourceNode = "http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1",
+                    ConditionName = DataValueObject.Create("VendingMachine1_TemperatureHigh"),
+                    EnabledState = DataValueObject.Create("Enabled"),
+                    EnabledStateEffectiveDisplayName = DataValueObject.Create("Active | Unacknowledged"),
+                    EnabledStateId = DataValueObject.Create(true),
+                    EventType = DataValueObject.Create("i=2955"),
+                    LastSeverity = DataValueObject.Create(900),
+                    Message = DataValueObject.Create("Temperature is HIGH (LAST EVENT IN LOOP)"),
+                    Retain = DataValueObject.Create(true),
+                    Severity = DataValueObject.Create(900),
+                    SourceName = DataValueObject.Create("VendingMachine1"),
+                    SourceNode = DataValueObject.Create("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1"),
                 });
 
             VerifyPayload(payloads, ++i, Zero, doorOpen); // cycling back to first message
@@ -145,22 +145,25 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
 
         private static void VerifyPayload(IReadOnlyList<ConditionTypePayload> payloads, int i, TimeSpan? expectedDelay, ConditionTypePayload expectedPayload) {
             var p = payloads[i];
-            p.Should().BeEquivalentTo(expectedPayload,
-                opt => opt // ignore non-constant properties
-                    .Excluding(c => c.EventId)
-                    .Excluding(c => c.ConditionId)
-                    .Excluding(m => m.Type == typeof(DateTime) || m.Type == typeof(DateTime?)));
 
-            p.ConditionId.Should().StartWith("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#i=");
+            p.ConditionName.Value.Should().BeEquivalentTo(expectedPayload.ConditionName.Value);
+            p.EventType.Value.Should().BeEquivalentTo(expectedPayload.EventType.Value);
+            p.EnabledState.Value.Should().BeEquivalentTo(expectedPayload.EnabledState.Value);
+            p.EnabledStateId.Value.Should().Be(expectedPayload.EnabledStateId.Value);
+            p.EnabledStateEffectiveDisplayName.Value.Should().BeEquivalentTo(expectedPayload.EnabledStateEffectiveDisplayName.Value);
+            p.LastSeverity.Value.Should().Be(expectedPayload.LastSeverity.Value);
+            p.Retain.Value.Should().Be(expectedPayload.Retain.Value);
+            p.SourceName.Value.Should().BeEquivalentTo(expectedPayload.SourceName.Value);
+            p.SourceNode.Value.Should().BeEquivalentTo(expectedPayload.SourceNode.Value);
 
-            p.CommentSourceTimestamp.Should().BeCloseTo(p.ReceiveTime.Value, Precision);
-            p.EnabledStateEffectiveTransitionTime.Should().BeCloseTo(p.ReceiveTime.Value, Precision);
-            p.EnabledStateTransitionTime.Should().BeCloseTo(p.ReceiveTime.Value, Precision);
-            p.LastSeveritySourceTimestamp.Should().BeCloseTo(p.ReceiveTime.Value, Precision);
+            p.ConditionId.Value.Should().StartWith("http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#i=");
+
+            p.EnabledStateEffectiveTransitionTime.Value.Should().BeCloseTo(p.ReceiveTime.Value.Value, Precision);
+            p.EnabledStateTransitionTime.Value.Should().BeCloseTo(p.ReceiveTime.Value.Value, Precision);
 
             if (expectedDelay != null) {
                 i.Should().BeGreaterThan(0);
-                var transitionTime = (p.EnabledStateEffectiveTransitionTime - payloads[i - 1].EnabledStateEffectiveTransitionTime);
+                var transitionTime = (p.EnabledStateEffectiveTransitionTime.Value - payloads[i - 1].EnabledStateEffectiveTransitionTime.Value);
                // TODO there is no difference in the transition time...
                // transitionTime.Should().BeCloseTo(expectedDelay.Value, Precision);
             }

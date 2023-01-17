@@ -4,38 +4,47 @@
 // ------------------------------------------------------------
 
 namespace OpcPublisher_AE_E2E_Tests.TestModels {
+    using Newtonsoft.Json;
     using System;
 
     /// <summary>Base class for payload types.</summary>
     public class BaseEventTypePayload {
         /// <summary>Gets or sets event id.</summary>
         /// <example>"V1_DoorOpen(294)" represented as JSON base-64 encoded string "VjFfRG9vck9wZW4oMjk0KQ==".</example>
-        public byte[] EventId { get; set; }
+        [JsonProperty("EventId")]
+        public DataValueObject<byte[]> EventId { get; set; }
 
         /// <summary>Gets or sets message.</summary>
         /// <example>"The system cycle '29813' has started."</example>
-        public string Message { get; set; }
+        [JsonProperty("Message")]
+        public DataValueObject<string> Message { get; set; }
 
         /// <summary>Gets or sets the severity.</summary>
         /// <example>900</example>
-        public int Severity { get; set; }
+        [JsonProperty("Severity")]
+        public DataValueObject<int> Severity { get; set; }
 
         /// <summary>Gets or sets the source name.</summary>
         /// <example>"VendingMachine1"</example>
-        public string SourceName { get; set; }
+        [JsonProperty("SourceName")]
+        public DataValueObject<string> SourceName { get; set; }
 
         /// <summary>Gets or sets the source node.</summary>
         /// <example>"http://microsoft.com/Opc/OpcPlc/DetermAlarmsInstance#s=VendingMachine1"</example>
-        public string SourceNode { get; set; }
+        [JsonProperty("SourceNode")]
+        public DataValueObject<string> SourceNode { get; set; }
 
         /// <summary>Gets or sets the event type.</summary>
         /// <example>"i=10751"</example>
-        public string EventType { get; set; }
+        [JsonProperty("EventType")]
+        public DataValueObject<string> EventType { get; set; }
 
         /// <summary>Gets or sets the receive time.</summary>
-        public DateTime? ReceiveTime { get; set; }
+        [JsonProperty("ReceiveTime")]
+        public DataValueObject<DateTime?> ReceiveTime { get; set; }
 
         /// <summary>Gets or sets the local time.</summary>
-        public DateTime? LocalTime { get; set; }
+        [JsonProperty("LocalTime")]
+        public DataValueObject<DateTime?> LocalTime { get; set; }
     }
 }

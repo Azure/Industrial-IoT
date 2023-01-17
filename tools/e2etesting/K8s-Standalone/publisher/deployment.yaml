@@ -22,10 +22,9 @@ spec:
           "--lf=/mount/publisher.log",  # Path to log file 
           "--mm=PubSub",                # Message Format OPC UA PubSub
           "--me=Json",                  # Message Encoding Json
-          "--fm=false",                 # Deactivate FullFeaturesMessage
           "--fd=false",                 # Deactivate Fetch Display Names
           "--bs=150",                   # BatchSize 150 incoming messages
-          "--bi=1000",                     # Batch Interval 1s
+          "--bi=1000",                  # Batch Interval 1s
           "--di=20",                    # Diagnostic Interval 20s
           "--aa"                        # Auto Accept OPC UA Server certificates
           ]

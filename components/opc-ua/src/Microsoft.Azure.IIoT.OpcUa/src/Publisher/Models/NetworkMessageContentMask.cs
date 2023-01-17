@@ -85,6 +85,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Reply to
         /// </summary>
-        ReplyTo = 0x4000
+        ReplyTo = 0x4000,
+
+        /// <summary>
+        /// Monitored item message (publisher extension)
+        /// </summary>
+        MonitoredItemMessage = 0x8000000,
     }
 }

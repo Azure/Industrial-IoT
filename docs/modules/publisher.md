@@ -25,16 +25,16 @@ Container create options can be specified in the "Update IoT Edge Module" page o
 {
     "Hostname": "opcpublisher",
     "Cmd": [
+        "-c",
         "--PkiRootPath=/mount/pki",
         "--pf=/mount/published_nodes.json",
         "--lf=/mount/publisher.log",
         "--mm=PubSub",
         "--me=Json",
-        "--fm=true",
         "--fd=false",
         "--bs=100",
-        "--di=20",
-        "--sc=1",
+        "--bi=1000",
+        "--di=20"
         "--aa"
     ],
     "HostConfig": {
@@ -159,7 +159,7 @@ A cloud-based, companion microservice with a REST interface is described and ava
 
 ## OPC Publisher Telemetry Format
 
-OPC Publisher version 2.6 and above supports standardized OPC UA PubSub JSON format as specified in [part 14 of the OPC UA specification](https://opcfoundation.org/developer-tools/specifications-unified-architecture/part-14-pubsub/):
+OPC Publisher version 2.6 and above supports standardized OPC UA PubSub network messages in JSON format as specified in [part 14 of the OPC UA specification](https://opcfoundation.org/developer-tools/specifications-unified-architecture/part-14-pubsub/).
 
 ``` json
 {
@@ -169,34 +169,36 @@ OPC Publisher version 2.6 and above supports standardized OPC UA PubSub JSON for
   "DataSetClassId": "78c4e91c-82cb-444e-a8e0-6bbacc9a946d",
   "Messages": [
     {
-      "DataSetWriterId": "uat46f9f8f82fd5c1b42a7de31b5dc2c11ef418a62f",
+      "DataSetWriterId": 2,
       "SequenceNumber": 18,
       "MetaDataVersion": {
-        "MajorVersion": 1,
-        "MinorVersion": 1
-    },
-    "Timestamp": "2020-03-24T23:30:56.9597112Z",
-    "Status": null,
-    "Payload": {
-      "http://test.org/UA/Data/#i=10845": {
-        "Value": 99,
+        "MajorVersion": 452345324,
+        "MinorVersion": 234523542
+      },
+      "Timestamp": "2020-03-24T23:30:56.9597112Z",
+      "Status": 0,
+      "Payload": {
+        "Temperature": {
+          "Value": 99,
           "SourceTimestamp": "2020-03-24T23:30:55.9891469Z",
           "ServerTimestamp": "2020-03-24T23:30:55.9891469Z"
         },
-        "http://test.org/UA/Data/#i=10846": {
+        "Counter": {
           "Value": 251,
           "SourceTimestamp": "2020-03-24T23:30:55.9891469Z",
           "ServerTimestamp": "2020-03-24T23:30:55.9891469Z"
         }
-      }
+      },
+      "DataSetWriterName": "uat46f9f8f82fd5c1b42a7de31b5dc2c11ef418a62f"
     }
   ]
 }
 ```
 
-You can find more examples [here](./telemetry-messages-format.md) and [here](./telemetry-events-format.md).
+OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` command line option. For backwards compatibilty this option is off by default. 
+> It is highly recommended to always run OPC Publisher with strict adherence turned on.
 
-All versions of OPC Publisher support a non-standardized, simple JSON telemetry format, which is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
+All versions of OPC Publisher support a non-standard, simple JSON telemetry format (typically referred to as "Samples" format and which is the default setting). Samples mode is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
 
 ``` json
 [
@@ -231,6 +233,8 @@ All versions of OPC Publisher support a non-standardized, simple JSON telemetry 
 
 **Warning: The `Samples` format changed over time**
 
+You can find more examples [here](./telemetry-messages-format.md) and [here](./telemetry-events-format.md).
+
 ### Persisting OPC Publisher Configuration
 
 To ensure operation of OPC Publisher over restarts, it's required to map configuration files to the host file system. The mapping can be achieved via the "Container Create Option" in the Azure portal. The configuration files are:
@@ -262,16 +266,18 @@ The `om` parameter controls the upper limit of the capacity of the internal mess
 
 - Decrease the IoT Hub send interval (`si`)
 - Use latest OPC Publisher in standalone mode
-  - Use PubSub format (`--mm=PubSub`)
+  - Use PubSub format (`--mm=PubSub`).
+    - Choose the smallest message providing the information you need. E.g., instead of `--mm=PubSub` use `--mm=DataSetMessages`, or event `--mm=RawDataSets`. You can find sample messages [here](telemetry-messages-format.md).
+    - If you are able to decompress messages back to json at the receiver side, use `--me=JsonGzip` or `--me=JsonReversibleGzip` encoding.
+    - If you are able to decode binary network messages at the receiver side, choose `--me=Uadp` instead of `--me=Json`, `--me=JsonReversible` or a compressed form of Json
   - When Samples format (`--mm=Samples`) is required
-    - Don't use FullFeaturedMessage (`--fm=false`). You can find a sample of full featured telemetry message [here](telemetry-messages-format.md).
-  - Use batching (`--bs=600`) in combination with batch interval (`--si=20`)
-    - Batching is also useable with PubSub but current implementation of PubSub batches automatically based on Publishing Interval of OPC UA nodes. When most nodes are using the same publishing interval it isn't necessary.
-  - Increase Monitored Items Queue capacity (`--mq=25000`)
+    - Don't use FullFeaturedMessage (`--mm=FullSamples` or `--mm=Samples` with `--fm=false`). You can find a sample of full featured telemetry message [here](telemetry-messages-format.md).
+  - Use batching (`--bs=600`) in combination with batch publishing interval (`--si=20`).
+  - Increase Monitored Items Queue capacity (e.g., `--mq=10`)
   - Don't use "fetch display name" (`--fd=false`)
 - General recommendations
-  - Try to use less different publishing intervals
-  - Experiment with the numbers, depending on the IoT Hub connectivity it seems to be better to have fewer messages with more OPC UA value changes in it (check OPC Publisher logs) but it could also be better to have more messages with fewer OPC UA value changes, this is specific to every factory
+  - Try to use less different publishing intervals, rather aim to use the same for all nodes.
+  - Experiment with the command line and configuration. E.g., depending on the IoT Hub connectivity it seems to be better to have fewer messages with more OPC UA value changes in it (check OPC Publisher logs) but it could also be better to have more messages with fewer OPC UA value changes, this is specific to every application.
 
 If the queue keeps growing even though the parameters have been adjusted, eventually the maximum queue capacity will be reached and messages will be lost. This is because all parameters have physical limits and the Internet connection between OPC Publisher and IoT Hub isn't fast enough for the number of messages that must be sent in a given scenario. In that case, only setting up several, parallel OPC Publishers will help. The `om` parameter also has the biggest impact on the memory consumption by OPC Publisher.
 

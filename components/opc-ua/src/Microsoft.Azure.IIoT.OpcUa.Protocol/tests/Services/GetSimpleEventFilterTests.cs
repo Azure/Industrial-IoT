@@ -101,14 +101,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         [Fact]
-        public void SetupSimpleFilterForConditionTypeWithPendingAlarmsEnabled() {
+        public void SetupSimpleFilterForConditionTypeWithConditionHandlingEnabled() {
             // Arrange
             var template = new EventMonitoredItemModel {
                 EventFilter = new EventFilterModel {
                     TypeDefinitionId = ObjectTypeIds.ConditionType.ToString(),
                 },
-                PendingAlarms = new PendingAlarmsOptionsModel {
-                    IsEnabled = true
+                ConditionHandling = new ConditionHandlingOptionsModel {
+                    SnapshotInterval = 10
                 }
             };
 

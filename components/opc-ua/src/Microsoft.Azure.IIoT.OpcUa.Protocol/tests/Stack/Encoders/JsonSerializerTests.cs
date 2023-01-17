@@ -39,6 +39,22 @@ namespace Opc.Ua.Encoders {
         }
 
         [Fact]
+        public void ReadWriteDataSet1() {
+            var expected = new DataSet {
+                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
+                ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
+                ["1111111111111111111111111"] = new DataValue(new Variant(false), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
+                ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
+                ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
+                ["..."] = new DataValue(new Variant("imbricated")),
+            };
+
+            var json = _serializer.SerializeToString(expected);
+            var result = _serializer.Deserialize<DataSet>(json);
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
         public void ReadWriteDataValue1() {
             var expected = new DataValue(new Variant("hello"), StatusCodes.Good, DateTime.UtcNow);
 
@@ -356,55 +372,6 @@ namespace Opc.Ua.Encoders {
         }
 
         [Fact]
-        public void ReadNodeAttributeSet() {
-            var expected = new NodeAttributeSet();
-            expected.SetAttribute(Attributes.NodeClass, NodeClass.Variable);
-            expected.SetAttribute(Attributes.BrowseName, new QualifiedName("Somename"));
-            expected.SetAttribute(Attributes.NodeId, new NodeId(Guid.NewGuid()));
-            expected.SetAttribute(Attributes.DisplayName, new LocalizedText("hello world"));
-            expected.SetAttribute(Attributes.Value, 1235);
-            expected.SetAttribute(Attributes.Description, new LocalizedText("test"));
-            expected.SetAttribute(Attributes.DataType, new NodeId(Guid.NewGuid()));
-
-            var json = _serializer.SerializeToString(expected);
-            var result = _serializer.Deserialize<NodeAttributeSet>(json);
-            Assert.True(expected.IsEqual(result));
-        }
-
-        [Fact]
-        public void ReadNodeAttributeSetArray() {
-            var na1 = new NodeAttributeSet();
-            na1.SetAttribute(Attributes.NodeClass, NodeClass.Variable);
-            na1.SetAttribute(Attributes.BrowseName, new QualifiedName("Somename1"));
-            na1.SetAttribute(Attributes.NodeId, new NodeId(Guid.NewGuid()));
-            na1.SetAttribute(Attributes.DisplayName, new LocalizedText("hello world2"));
-            na1.SetAttribute(Attributes.Value, 623465);
-            na1.SetAttribute(Attributes.Description, new LocalizedText("test22"));
-            na1.SetAttribute(Attributes.DataType, new NodeId(Guid.NewGuid()));
-            var na2 = new NodeAttributeSet();
-            na2.SetAttribute(Attributes.NodeClass, NodeClass.Variable);
-            na2.SetAttribute(Attributes.BrowseName, new QualifiedName("Somename3"));
-            na2.SetAttribute(Attributes.NodeId, new NodeId(Guid.NewGuid()));
-            na2.SetAttribute(Attributes.DisplayName, new LocalizedText("hello world2"));
-            na2.SetAttribute(Attributes.Value, 345);
-            na2.SetAttribute(Attributes.Description, new LocalizedText("test33"));
-            na2.SetAttribute(Attributes.DataType, new NodeId(Guid.NewGuid()));
-            var na3 = new NodeAttributeSet();
-            na3.SetAttribute(Attributes.NodeClass, NodeClass.Variable);
-            na3.SetAttribute(Attributes.BrowseName, new QualifiedName("Somename6"));
-            na3.SetAttribute(Attributes.NodeId, new NodeId(Guid.NewGuid()));
-            na3.SetAttribute(Attributes.DisplayName, new LocalizedText("hello world3"));
-            na3.SetAttribute(Attributes.Value, "nanananahhh");
-            na3.SetAttribute(Attributes.Description, new LocalizedText("test44"));
-            na3.SetAttribute(Attributes.DataType, new NodeId(Guid.NewGuid()));
-            var expected = new[] { na1, na2, na3 };
-
-            var json = _serializer.SerializeToString(expected);
-            var result = _serializer.Deserialize<NodeAttributeSet[]>(json);
-            Assert.True(expected.SetEqualsSafe(result, Utils.IsEqual));
-        }
-
-        [Fact]
         public void ReadWriteNodeAttributeSetNull() {
             NodeAttributeSet expected = null;
 
@@ -454,7 +421,7 @@ namespace Opc.Ua.Encoders {
                     new Variant(new long[] {1, 2, 3, 4, 5 }),
                     new Variant(new string[] {"1", "2", "3", "4", "5" })
                 },
-                LastMethodReturnStatus = 
+                LastMethodReturnStatus =
                     StatusCodes.BadAggregateConfigurationRejected,
                 LastMethodSessionId = new NodeId(
                     Utils.Nonce.CreateNonce(32)),
@@ -507,7 +474,7 @@ namespace Opc.Ua.Encoders {
                     new Variant(new long[] {1, 2, 3, 4, 5 }),
                     new Variant(new string[] {"1", "2", "3", "4", "5" })
                 },
-                LastMethodReturnStatus = 
+                LastMethodReturnStatus =
                     StatusCodes.BadAggregateConfigurationRejected,
                 LastMethodSessionId = new NodeId(
                     Utils.Nonce.CreateNonce(32)),

@@ -18,6 +18,14 @@ namespace Opc.Ua {
         /// </summary>
         public KeyDataValuePair() {}
 
+        /// <summary>
+        /// The default constructor.
+        /// </summary>
+        public KeyDataValuePair(string key, DataValue value) {
+            Key = key;
+            Value = value;
+        }
+
         /// <remarks />
         [DataMember(Name = "Key", IsRequired = true, Order = 1)]
         public string Key { get; set; }
@@ -61,7 +69,7 @@ namespace Opc.Ua {
             return true;
         }
 
-        /// <summary cref="Object.MemberwiseClone" />
+        /// <summary cref="object.MemberwiseClone" />
         public new object MemberwiseClone() {
             KeyDataValuePair clone = (KeyDataValuePair)base.MemberwiseClone();
             clone.Key = (string)Utils.Clone(this.Key);
@@ -109,7 +117,7 @@ namespace Opc.Ua {
             return null;
         }
 
-        /// <summary cref="Object.MemberwiseClone" />
+        /// <summary cref="object.MemberwiseClone" />
         public new object MemberwiseClone() {
             KeyDataValuePairCollection clone = new KeyDataValuePairCollection(this.Count);
             for (int ii = 0; ii < this.Count; ii++) {

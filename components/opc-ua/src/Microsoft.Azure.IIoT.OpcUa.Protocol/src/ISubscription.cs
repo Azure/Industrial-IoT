@@ -37,14 +37,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         event EventHandler<int> OnSubscriptionEventDiagnosticsChange;
 
         /// <summary>
-        /// Item change events
-        /// </summary>
-        event EventHandler<SubscriptionNotificationModel> OnMonitoredItemChange;
-
-        /// <summary>
         /// Identifier of the subscription
         /// </summary>
-        string Id { get; }
+        string Name { get; }
+
+        /// <summary>
+        /// Index inside the publisher
+        /// </summary>
+        ushort Id { get; }
 
         /// <summary>
         /// Enabled - successfully created on server
@@ -82,10 +82,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         int NumberOfBadNodes { get; }
 
         /// <summary>
-        /// Create snapshot
+        /// Create a keep alive notification
         /// </summary>
         /// <returns></returns>
-        Task<SubscriptionNotificationModel> GetSnapshotAsync();
+        SubscriptionNotificationModel CreateKeepAlive();
+
+        /// <summary>
+        /// Adds a snapshot of all values to the notification
+        /// </summary>
+        /// <returns></returns>
+        bool TryUpgradeToKeyFrame(SubscriptionNotificationModel notification);
 
         /// <summary>
         /// Apply desired state

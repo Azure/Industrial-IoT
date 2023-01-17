@@ -43,9 +43,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string HeartbeatIntervalDefault = "DefaultHeartbeatInterval";
 
         /// <summary>
-        /// Key for the default flag to skip the first event
+        /// Key for the default flag to skip the first notification
         /// </summary>
         public const string SkipFirstDefault = "DefaultSkipFirst";
+
+        /// <summary>
+        /// Key for the default flag to discard new items in server queue
+        /// </summary>
+        public const string DiscardNewDefault = "DiscardNew";
 
         /// <summary>
         /// Key for the messaging mode
@@ -63,9 +68,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string FullFeaturedMessage = "FullFeaturedMessage";
 
         /// <summary>
-        /// Flag to use reversible encoding for messages
+        /// Flag to force strict encoding for messages
         /// </summary>
-        public const string UseReversibleEncoding = "UseReversibleEncoding";
+        public const string UseStandardsCompliantEncoding = "UseStandardsCompliantEncoding";
 
         /// <summary>
         /// Key for the default sampling interval in milliseconds.
@@ -78,10 +83,25 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string OpcPublishingInterval = "DefaultPublishingInterval";
 
         /// <summary>
+        /// Key for default keyframe count
+        /// </summary>
+        public const string DefaultKeyFrameCount = "DefaultKeyFrameCount";
+
+        /// <summary>
+        /// Key for default metadata send interval
+        /// </summary>
+        public const string DefaultMetaDataSendInterval = "DefaultMetaDataSendInterval";
+
+        /// <summary>
+        /// Key to disable metadata sending
+        /// </summary>
+        public const string DisableDataSetMetaData = "DisableDataSetMetaData";
+
+        /// <summary>
         /// Key for the default queue size fro monitored items
         /// </summary>
         public const string DefaultQueueSize = "DefaultQueueSize";
-        
+
         /// <summary>
         /// Key for the default data change filter for monitored items.
         /// </summary>

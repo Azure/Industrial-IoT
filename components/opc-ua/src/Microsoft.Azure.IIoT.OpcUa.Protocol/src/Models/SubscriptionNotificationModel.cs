@@ -7,11 +7,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using System.Collections.Generic;
     using Opc.Ua;
     using System;
+    using Opc.Ua.PubSub;
 
     /// <summary>
     /// Subscription notification model
     /// </summary>
     public class SubscriptionNotificationModel {
+
+        /// <summary>
+        /// Sequence number of the message
+        /// </summary>
+        public uint SequenceNumber { get; set; }
 
         /// <summary>
         /// Service message context
@@ -21,31 +27,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Notification
         /// </summary>
-        public List<MonitoredItemNotificationModel> Notifications { get; set; }
+        public IList<MonitoredItemNotificationModel> Notifications { get; set; }
+            = Array.Empty<MonitoredItemNotificationModel>();
+
+        /// <summary>
+        /// Message type
+        /// </summary>
+        public MessageType MessageType { get; set; }
+
+        /// <summary>
+        /// Meta data
+        /// </summary>
+        public DataSetMetaDataType MetaData { get; set; }
 
         /// <summary>
         /// Subscription from which message originated
         /// </summary>
-        public string SubscriptionId { get; internal set; }
+        public string SubscriptionName { get; set; }
+
+        /// <summary>
+        /// Subscription identifier
+        /// </summary>
+        public ushort SubscriptionId { get; set; }
 
         /// <summary>
         /// Endpoint url
         /// </summary>
-        public string EndpointUrl { get; internal set; }
+        public string EndpointUrl { get; set; }
 
         /// <summary>
         /// Appplication url
         /// </summary>
-        public string ApplicationUri { get; internal set; }
-
-        /// <summary>
-        /// set if message contains data changes for every monitored item
-        /// </summary>
-        public bool IsKeyMessage { get; internal set; }
+        public string ApplicationUri { get; set; }
 
         /// <summary>
         /// Publishing time
         /// </summary>
-        public DateTime Timestamp { get; internal set; }
+        public DateTime Timestamp { get; set; }
+
+        /// <summary>
+        /// Additional context information
+        /// </summary>
+        public object Context { get; set; }
     }
 }

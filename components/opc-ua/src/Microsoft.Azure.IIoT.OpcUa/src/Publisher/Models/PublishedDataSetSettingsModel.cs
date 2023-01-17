@@ -40,15 +40,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Triggers automatic monitored items display name discovery
         /// </summary>
         public bool? ResolveDisplayName { get; set; }
-    //
-    //   /// <summary>
-    //   /// Whether to send change messages
-    //   /// </summary>
-    //   public bool? SendChangeMessages { get; set; }
-    //
-    //   /// <summary>
-    //   /// Messaging mode - defaults to monitoreditem
-    //   /// </summary>
-    //   public MessageModes? MessageMode { get; set; }
     }
 }

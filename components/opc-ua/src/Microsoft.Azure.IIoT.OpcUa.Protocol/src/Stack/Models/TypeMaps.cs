@@ -32,6 +32,12 @@ namespace Opc.Ua.Models {
             new Lazy<TypeMaps>(() => new TypeMaps(typeof(Attributes)), true);
 
         /// <summary>
+        /// Attributes type map
+        /// </summary>
+        public static Lazy<TypeMaps> StatusCodes { get; } =
+            new Lazy<TypeMaps>(() => new TypeMaps(typeof(StatusCodes)), true);
+
+        /// <summary>
         /// Identifiers
         /// </summary>
         public IEnumerable<uint> Identifiers => _forward.Keys;

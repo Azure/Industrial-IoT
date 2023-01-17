@@ -10,11 +10,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Opc.Ua;
     using Opc.Ua.PubSub;
-    using Opc.Ua.Encoders;
     using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -45,17 +43,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
 
             try {
                 var context = new ServiceMessageContext();
-                var decoder = new JsonDecoderEx(new MemoryStream(payload), context);
-                while (decoder.ReadEncodeable(null, typeof(MonitoredItemMessage))
-                     is MonitoredItemMessage message) {
+                var pubSubMessage = PubSubMessage.Decode(payload, ContentMimeType.Json, context, null, MessageSchema);
+                if (pubSubMessage is not BaseNetworkMessage networkMessage) {
+                    _logger.Information("Received non network message.");
+                    return;
+                }
+
+                foreach (MonitoredItemMessage message in networkMessage.Messages) {
                     var type = BuiltInType.Null;
                     var codec = _encoder.Create(context);
+                    var extensionFields = message.ExtensionFields.ToDictionary(k => k.Key, v => v.Value);
                     var sample = new MonitoredItemMessageModel {
                         PublisherId = (message.ExtensionFields != null &&
-                            message.ExtensionFields.TryGetValue("PublisherId", out var publisherId))
+                            extensionFields.TryGetValue("PublisherId", out var publisherId))
                                 ? publisherId : message.ApplicationUri ?? message.EndpointUrl,
                         DataSetWriterId = (message.ExtensionFields != null &&
-                            message.ExtensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
+                            extensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
                                 ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
                         NodeId = message.NodeId,
                         DisplayName = message.DisplayName,
@@ -76,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                         ServerPicoseconds = (message?.Value?.ServerPicoseconds == 0)
                             ? null : message?.Value?.ServerPicoseconds,
                         EndpointId = (message.ExtensionFields != null &&
-                            message.ExtensionFields.TryGetValue("EndpointId", out var endpointId))
+                            extensionFields.TryGetValue("EndpointId", out var endpointId))
                                 ? endpointId : message.ApplicationUri ?? message.EndpointUrl,
                     };
                     await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));

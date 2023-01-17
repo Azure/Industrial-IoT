@@ -4,14 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Moq;
     using Opc.Ua;
     using System;
@@ -20,7 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
     /// Test
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Single(jobs);
             Assert.Equal("testid", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSetWriterId);
+                .Single().DataSetWriterName);
             Assert.Equal("testid", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Id);
@@ -168,7 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Single(jobs);
             Assert.Equal("1000", jobs
                 .Single().WriterGroup.DataSetWriters
-                .Single().DataSetWriterId);
+                .Single().DataSetWriterName);
             Assert.Equal("1000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Id);
@@ -493,7 +493,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                 .First().DataSet.DataSetSource.Connection.Group);
             Assert.Equal("testwriterid_2000", jobs
                 .Single().WriterGroup.DataSetWriters
-                .First().DataSetWriterId);
+                .First().DataSetWriterName);
             Assert.Equal("testwriterid_2000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .First().DataSet.DataSetSource.Connection.Id);
@@ -1144,15 +1144,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
+            var j = Assert.Single(jobs);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
             Assert.Single(jobs
                 .Single().WriterGroup.DataSetWriters);
             Assert.Equal("opc.tcp://localhost:50000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
-            Assert.Equal(2, jobs.Single()
+            Assert.Equal(2, j
                 .WriterGroup.DataSetWriters.Single()
                 .DataSet.DataSetSource.PublishedVariables.PublishedData.Single()
                 .HeartbeatInterval.Value.TotalSeconds);
@@ -1188,15 +1189,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
+            var j = Assert.Single(jobs);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
             Assert.Single(jobs
                 .Single().WriterGroup.DataSetWriters);
             Assert.Equal("opc.tcp://localhost:50000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
-            Assert.Equal(1500, jobs.Single()
+            Assert.Equal(1500, j
                 .WriterGroup.DataSetWriters.Single()
                 .DataSet.DataSetSource.PublishedVariables.PublishedData.Single()
                 .HeartbeatInterval.Value.TotalMilliseconds);
@@ -1232,8 +1234,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
+            var j = Assert.Single(jobs);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
             Assert.All(jobs, j => Assert.Null(j.ConnectionString));
             Assert.Single(jobs
                 .Single().WriterGroup.DataSetWriters);
@@ -1311,15 +1314,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
+            var j = Assert.Single(jobs);
+            Assert.Single(j.WriterGroup.DataSetWriters);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
             Assert.Equal("opc.tcp://localhost:50000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
-            Assert.Equal(2000, jobs.Single().WriterGroup.DataSetWriters.Single()
+            Assert.Equal(2000, j.WriterGroup.DataSetWriters.Single()
                 .DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
@@ -1354,15 +1357,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
+            var j = Assert.Single(jobs);
+            Assert.Single(j.WriterGroup.DataSetWriters);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
             Assert.Equal("opc.tcp://localhost:50000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
-            Assert.Equal(10000, jobs.Single().WriterGroup.DataSetWriters.Single()
+            Assert.Equal(10000, j.WriterGroup.DataSetWriters.Single()
                 .DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
         }
 
@@ -1397,15 +1400,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
 
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
+            var j = Assert.Single(jobs);
+            Assert.Single(j.WriterGroup.DataSetWriters);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
             Assert.Equal("opc.tcp://localhost:50000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
-            Assert.Equal(2000, jobs.Single()
+            Assert.Equal(2000, j
              .WriterGroup.DataSetWriters.Single()
              .DataSet.DataSetSource.PublishedVariables.PublishedData.Single()
              .SamplingInterval.Value.TotalMilliseconds);
@@ -1441,11 +1444,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
 
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
+            var j = Assert.Single(jobs);
+            Assert.Single(j.WriterGroup.DataSetWriters);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
             Assert.Equal("opc.tcp://localhost:50000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
@@ -1496,13 +1499,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
 
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            var j = Assert.Single(jobs);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
+            Assert.Single(j.WriterGroup.DataSetWriters);
+            Assert.Equal("opc.tcp://localhost:50000", j.WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
@@ -1542,13 +1544,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
-            Assert.Single(jobs
-              .Single().WriterGroup.DataSetWriters);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            var j = Assert.Single(jobs);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
+            Assert.Single(j.WriterGroup.DataSetWriters);
+            Assert.Equal("opc.tcp://localhost:50000", j.WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
@@ -1609,13 +1610,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli);
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
-            Assert.Single(jobs
-                .Single().WriterGroup.DataSetWriters);
-            Assert.Equal("opc.tcp://localhost:50000", jobs
-                .Single().WriterGroup.DataSetWriters
+            var j = Assert.Single(jobs);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
+            Assert.Single(j.WriterGroup.DataSetWriters);
+            Assert.Equal("opc.tcp://localhost:50000", j.WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
         }
 
@@ -1677,7 +1677,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             // No jobs
             Assert.NotEmpty(jobs);
             Assert.Equal(4, jobs.Count());
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
+            Assert.All(jobs, j => Assert.Null(j.MessagingMode));
+            Assert.All(jobs, j => Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0));
             Assert.All(jobs, j => Assert.Null(j.ConnectionString));
             Assert.All(jobs, j => Assert.Single(j.WriterGroup.DataSetWriters));
         }
@@ -1750,7 +1751,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             // No jobs
             Assert.NotEmpty(jobs);
             Assert.Equal(4, jobs.Count());
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
+            Assert.All(jobs, j => Assert.Null(j.MessagingMode));
+            Assert.All(jobs, j => Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0));
             Assert.All(jobs, j => Assert.Null(j.ConnectionString));
             Assert.All(jobs, j => Assert.Single(j.WriterGroup.DataSetWriters));
             Assert.Equal(endpointUrls,
@@ -1824,7 +1826,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             // No jobs
             Assert.NotEmpty(jobs);
             Assert.Equal(2, jobs.Count());
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
+            Assert.All(jobs, j => Assert.Null(j.MessagingMode));
+            Assert.All(jobs, j => Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0));
             Assert.All(jobs, j => Assert.Null(j.ConnectionString));
             Assert.All(jobs, j => Assert.Single(j.WriterGroup.DataSetWriters));
             Assert.Equal(endpointUrls,
@@ -1896,7 +1899,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             // No jobs
             Assert.NotEmpty(jobs);
             Assert.Equal(2, jobs.Count());
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
+            Assert.All(jobs, j => Assert.Null(j.MessagingMode));
+            Assert.All(jobs, j => Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0));
             Assert.All(jobs, j => Assert.Null(j.ConnectionString));
             var enumerator = jobs.GetEnumerator();
             enumerator.MoveNext();
@@ -1925,20 +1929,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
-            Assert.Equal(2, jobs.Single().WriterGroup.DataSetWriters.Count);
-            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://10.0.0.1:59412",
+            var j = Assert.Single(jobs);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
+            Assert.Equal(2, j.WriterGroup.DataSetWriters.Count);
+            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://10.0.0.1:59412",
                 dataSetWriter.DataSet.DataSetSource.Connection.Endpoint.Url));
-            Assert.Single(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => TimeSpan.FromMinutes(15) ==
+            Assert.Single(j.WriterGroup.DataSetWriters, dataSetWriter => TimeSpan.FromMinutes(15) ==
                 dataSetWriter.DataSet.DataSetSource.SubscriptionSettings.PublishingInterval);
-            Assert.Single(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => TimeSpan.FromMinutes(1) ==
+            Assert.Single(j.WriterGroup.DataSetWriters, dataSetWriter => TimeSpan.FromMinutes(1) ==
                 dataSetWriter.DataSet.DataSetSource.SubscriptionSettings.PublishingInterval);
-            Assert.Single(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
+            Assert.Single(j.WriterGroup.DataSetWriters, dataSetWriter =>
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Any(
                     p => TimeSpan.FromMinutes(15) == p.SamplingInterval));
-            Assert.Equal(3, jobs.Single().WriterGroup.DataSetWriters.SelectMany(dataSetWriter =>
+            Assert.Equal(3, j.WriterGroup.DataSetWriters.SelectMany(dataSetWriter =>
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData).Count());
         }
 
@@ -1980,18 +1985,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
 
             // No jobs
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
+            var j = Assert.Single(jobs);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
             Assert.All(jobs, j => Assert.Null(j.ConnectionString));
-            Assert.Equal(10, jobs.Single().WriterGroup.DataSetWriters.Count);
-            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
+            Assert.Equal(10, j.WriterGroup.DataSetWriters.Count);
+            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
                 dataSetWriter.DataSet.DataSetSource.Connection.Endpoint.Url));
-            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal(TimeSpan.FromSeconds(1),
+            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal(TimeSpan.FromSeconds(1),
                 dataSetWriter.DataSet.DataSetSource.SubscriptionSettings.PublishingInterval));
-            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => Assert.All(
+            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.All(
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,
                     p => Assert.Equal(TimeSpan.FromSeconds(1), p.SamplingInterval)));
-            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
+            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter =>
                 Assert.Equal(1000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
@@ -2035,13 +2041,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
 
             // No jobs
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.All(jobs, j => Assert.Equal(MessagingMode.Samples, j.MessagingMode));
-            Assert.All(jobs, j => Assert.Null(j.ConnectionString));
-            Assert.Equal(10, jobs.Single().WriterGroup.DataSetWriters.Count);
-            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
+            var j = Assert.Single(jobs);
+            Assert.Null(j.MessagingMode);
+            Assert.True((j.WriterGroup.MessageSettings.NetworkMessageContentMask & NetworkMessageContentMask.MonitoredItemMessage) != 0);
+            Assert.Null(j.ConnectionString);
+            Assert.Equal(10, j.WriterGroup.DataSetWriters.Count);
+            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
                 dataSetWriter.DataSet.DataSetSource.Connection.Endpoint.Url));
-            Assert.Equal(jobs.Single().WriterGroup.DataSetWriters.Select(dataSetWriter =>
+            Assert.Equal(j.WriterGroup.DataSetWriters.Select(dataSetWriter =>
                 dataSetWriter.DataSet.DataSetSource.SubscriptionSettings?.PublishingInterval).ToList(),
                 new TimeSpan?[] {
                     TimeSpan.FromMilliseconds(2000),
@@ -2056,10 +2063,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                     TimeSpan.FromMilliseconds(1000)
                 });
 
-            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => Assert.All(
+            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter => Assert.All(
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,
                     p => Assert.Equal(TimeSpan.FromSeconds(1), p.SamplingInterval)));
-            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
+            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter =>
                 Assert.Equal(1000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
@@ -2412,12 +2419,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
+            var j = Assert.Single(jobs);
             Assert.Single(jobs[0].WriterGroup.DataSetWriters);
             Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
             Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
-            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
+            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter =>
                Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
 
             var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
@@ -2444,7 +2451,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
         }
 
         [Fact]
-        public void PnPlcJobTestWithPendingAlarms() {
+        public void PnPlcJobTestWithConditionHandling() {
             var pn = @"
 [
     {
@@ -2455,12 +2462,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
                 ""Id"": ""i=2253"",
                 ""OpcPublishingInterval"": 5000,
                 ""EventFilter"": {
-                    ""TypeDefinitionId"": ""ns=2;i=235"",
-                    ""PendingAlarms"": {
-                        ""IsEnabled"": true,
-                        ""UpdateInterval"": 10000,
-                        ""SnapshotInterval"": 20000
-                    }
+                    ""TypeDefinitionId"": ""ns=2;i=235""
+                },
+                ""ConditionHandling"": {
+                    ""UpdateInterval"": 10,
+                    ""SnapshotInterval"": 30
                 }
             }
         ]
@@ -2487,21 +2493,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             var jobs = converter.ToWriterGroupJobs(entries, standaloneCli).ToList();
 
             Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
+            var j = Assert.Single(jobs);
             Assert.Single(jobs[0].WriterGroup.DataSetWriters);
             Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
             Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
-            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
+            Assert.All(j.WriterGroup.DataSetWriters, dataSetWriter =>
                Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
 
             var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
             Assert.Equal("i=2253", eventModel.EventNotifier);
             Assert.Equal("ns=2;i=235", eventModel.TypeDefinitionId);
-            Assert.NotNull(eventModel.PendingAlarms);
-            Assert.True(eventModel.PendingAlarms.IsEnabled);
-            Assert.Equal(10000, eventModel.PendingAlarms.UpdateInterval);
-            Assert.Equal(20000, eventModel.PendingAlarms.SnapshotInterval);
+            Assert.NotNull(eventModel.ConditionHandling);
+            Assert.Equal(10, eventModel.ConditionHandling.UpdateInterval);
+            Assert.Equal(30, eventModel.ConditionHandling.SnapshotInterval);
         }
 
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();

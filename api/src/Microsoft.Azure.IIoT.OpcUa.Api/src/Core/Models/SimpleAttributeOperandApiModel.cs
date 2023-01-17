@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
+    using System;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -41,10 +42,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         public string IndexRange { get; set; }
 
         /// <summary>
-        /// Optional display name
+        /// Optional display name (Publisher extension)
         /// </summary>
         [DataMember(Name = "displayName", Order = 4,
             EmitDefaultValue = false)]
         public string DisplayName { get; set; }
+
+        /// <summary>
+        /// Optional data set class field id (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "dataSetClassFieldId", Order = 5,
+            EmitDefaultValue = false)]
+        public Guid DataSetClassFieldId { get; set; }
     }
 }

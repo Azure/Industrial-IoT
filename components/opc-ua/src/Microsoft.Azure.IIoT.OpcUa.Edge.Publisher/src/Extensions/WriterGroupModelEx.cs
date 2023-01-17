@@ -19,17 +19,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <returns></returns>
         public static IWriterGroupConfig ToWriterGroupJobConfiguration(
             this WriterGroupJobModel model, string publisherId) {
-            return new WriterGroupJobConfig {
+            var writerGroupJobConfig = new WriterGroupJobConfig {
                 BatchSize = model.Engine?.BatchSize,
                 BatchTriggerInterval = model.Engine?.BatchTriggerInterval,
                 PublisherId = publisherId,
                 DiagnosticsInterval = model.Engine?.DiagnosticsInterval,
-                WriterGroup = model.WriterGroup,
+                WriterGroup = model.WriterGroup.Clone(),
                 MaxMessageSize = model.Engine?.MaxMessageSize,
                 MaxOutgressMessages = model.Engine?.MaxOutgressMessages,
-                EnableRoutingInfo = model.Engine?.EnableRoutingInfo,
-                UseReversibleEncoding = model.Engine?.UseReversibleEncoding,
+                EnableRoutingInfo = model.Engine?.EnableRoutingInfo ?? false,
+                UseStandardsCompliantEncoding = model.Engine?.UseStandardsCompliantEncoding ?? false,
             };
+
+            if (writerGroupJobConfig.WriterGroup != null) {
+                if (writerGroupJobConfig.WriterGroup.MessageSettings == null) {
+                    writerGroupJobConfig.WriterGroup.MessageSettings = new WriterGroupMessageSettingsModel();
+                }
+                //
+                // Adjust network message content mask based on samples messaging mode for
+                // backwards compatibility with existing database stored writer group models.
+                //
+                if (model.MessagingMode == MessagingMode.Samples ||
+                    model.MessagingMode == MessagingMode.FullSamples) {
+                    writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
+                        |= NetworkMessageContentMask.MonitoredItemMessage;
+                    writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
+                        |= NetworkMessageContentMask.DataSetMessageHeader;
+                    writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
+                        &= ~NetworkMessageContentMask.NetworkMessageHeader;
+                }
+                else if (model.MessagingMode != null) {
+                    writerGroupJobConfig.WriterGroup.MessageSettings.NetworkMessageContentMask
+                        &= ~NetworkMessageContentMask.MonitoredItemMessage;
+                }
+            }
+            return writerGroupJobConfig;
         }
     }
 }

@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -61,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Pending alarm settings
         /// </summary>
-        public PendingAlarmsOptionsModel PendingAlarms { get; set; }
+        public ConditionHandlingOptionsModel ConditionHandling { get; set; }
 
         /// <summary>
         /// Simple event Type id

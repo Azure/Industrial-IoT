@@ -76,18 +76,17 @@ namespace OpcPublisher_AE_E2E_Tests {
                             new JProperty("TypeDefinitionId", typeDefinitionId)))));
             }
 
-            public static JArray PendingAlarmsForAlarmsView() {
+            public static JArray PendingConditionForAlarmsView() {
                 return new JArray(
                     new JObject(
                         new JProperty("Id", "i=2253"),
                         new JProperty("QueueSize", 10),
                         new JProperty("EventFilter", new JObject(
-                            new JProperty("TypeDefinitionId", "i=2915"),
-                            new JProperty("PendingAlarms", new JObject(
-                                new JProperty("IsEnabled", "true"),
-                                new JProperty("UpdateInterval", 10),
-                                new JProperty("SnapshotInterval", 20)
-                            ))))));
+                            new JProperty("TypeDefinitionId", "i=2915"))),
+                        new JProperty("ConditionHandling", new JObject(
+                            new JProperty("UpdateInterval", 10),
+                            new JProperty("SnapshotInterval", 20)
+                        ))));
             }
         }
     }

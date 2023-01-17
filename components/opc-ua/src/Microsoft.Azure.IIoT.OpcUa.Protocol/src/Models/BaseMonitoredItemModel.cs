@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
 
@@ -68,6 +68,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Monitored item that triggers reporting of this item
         /// </summary>
         public string TriggerId { get; set; }
+
+        /// <summary>
+        ///  Identifier to show for notification in payload of IoT Hub method
+        ///  Prio 1: Id = DataSetFieldId - if already configured
+        ///  Prio 2: Id = DisplayName - if already configured
+        ///  Prio 3: NodeId as configured
+        /// </summary>
+        public string DataSetFieldName => !string.IsNullOrEmpty(Id) ?
+            Id : !string.IsNullOrEmpty(DisplayName) ? DisplayName : StartNodeId;
 
         /// <summary>
         /// Clones this object

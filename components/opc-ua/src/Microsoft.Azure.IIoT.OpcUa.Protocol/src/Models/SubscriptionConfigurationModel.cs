@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
 
     /// <summary>
@@ -27,11 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public uint? KeepAliveCount { get; set; }
 
         /// <summary>
-        /// Max notifications per publish
-        /// </summary>
-        public uint? MaxNotificationsPerPublish { get; set; }
-
-        /// <summary>
         /// Priority
         /// </summary>
         public byte? Priority { get; set; }
@@ -40,5 +36,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Resolves the display names for the monitored items
         /// </summary>
         public bool? ResolveDisplayName { get; set; }
+
+        /// <summary>
+        /// The metadata header information or null if disabled.
+        /// </summary>
+        public DataSetMetaDataModel MetaData { get; set; }
     }
 }

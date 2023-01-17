@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module;
@@ -45,10 +46,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _identity = identity;
 
             if (_config.BatchSize.HasValue && _config.BatchSize.Value > 1) {
-                _dataSetMessageBufferSize = _config.BatchSize.Value;
+                _notificationBufferSize = _config.BatchSize.Value;
             }
             if (_config.MaxMessageSize.HasValue && _config.MaxMessageSize.Value > 0) {
                 _maxEncodedMessageSize = _config.MaxMessageSize.Value;
+            }
+
+            if (_maxEncodedMessageSize <= 0) {
+                _maxEncodedMessageSize = int.MaxValue;
+            }
+            if (_maxEncodedMessageSize > _messageSink.MaxMessageSize) {
+                _maxEncodedMessageSize = _messageSink.MaxMessageSize;
             }
 
             _diagnosticInterval = _config.DiagnosticsInterval.GetValueOrDefault(TimeSpan.Zero);
@@ -57,25 +65,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
             _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(4096); // = 1 GB
 
-            _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
-                async input => {
+            _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], NetworkMessageModel>(
+                input => {
                     try {
-                        if (_dataSetMessageBufferSize == 1) {
-                            return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
-                        }
-                        else {
-                            return await _messageEncoder.EncodeBatchAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
-                        }
+                        return _messageEncoder.Encode(input, _maxEncodedMessageSize, _notificationBufferSize != 1);
                     }
                     catch (Exception e) {
-                        _logger.Error(e, "Encoding failure");
+                        _logger.Error(e, "Encoding failure.");
                         return Enumerable.Empty<NetworkMessageModel>();
                     }
                 },
                 new ExecutionDataflowBlockOptions());
 
-            _batchDataSetMessageBlock = new BatchBlock<DataSetMessageModel>(
-                _dataSetMessageBufferSize,
+            _batchDataSetMessageBlock = new BatchBlock<SubscriptionNotificationModel>(
+                _notificationBufferSize,
                 new GroupingDataflowBlockOptions ());
 
             _batchNetworkMessageBlock = new BatchBlock<NetworkMessageModel>(
@@ -183,6 +186,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagnosticInfo.EncodingBlockInputSize = _encodingBlock.InputCount;
             diagnosticInfo.EncodingBlockOutputSize = _encodingBlock.OutputCount;
             diagnosticInfo.EncoderNotificationsProcessed = _messageEncoder.NotificationsProcessedCount;
+            diagnosticInfo.EncoderMaxMessageSplitRatio = _messageEncoder.MaxMessageSplitRatio;
             diagnosticInfo.EncoderNotificationsDropped = _messageEncoder.NotificationsDroppedCount;
             diagnosticInfo.EncoderIoTMessagesProcessed = _messageEncoder.MessagesProcessedCount;
             diagnosticInfo.EncoderAvgNotificationsMessage = _messageEncoder.AvgNotificationsPerMessage;
@@ -241,6 +245,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  # Encoder Notifications dropped      : {notificationsDroppedCount,14:n0}");
             diagInfo.AppendLine("  # Encoder IoT Messages processed     : {messagesProcessedCount,14:n0}");
             diagInfo.AppendLine("  # Encoder avg Notifications/Message  : {notificationsPerMessage,14:0}");
+            diagInfo.AppendLine("  # Encoder worst Message split ratio  : {encoderMaxMessageSplitRatio,14:0.#}");
             diagInfo.AppendLine("  # Encoder avg IoT Message body size  : {messageSizeAverage,14:n0} {messageSizeAveragePercentFormatted}");
             diagInfo.AppendLine("  # Encoder avg IoT Chunk (4 KB) usage : {chunkSizeAverage,14:0.#}");
             diagInfo.AppendLine("  # Estimated IoT Chunks (4 KB) per day: {estimatedMsgChunksPerDay,14:n0}");
@@ -268,6 +273,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 info.EncoderNotificationsDropped,
                 info.EncoderIoTMessagesProcessed,
                 info.EncoderAvgNotificationsMessage,
+                info.EncoderMaxMessageSplitRatio,
                 info.EncoderAvgIoTMessageBodySize, messageSizeAveragePercentFormatted,
                 info.EncoderAvgIoTChunkUsage,
                 info.EstimatedIoTChunksPerDay,
@@ -302,6 +308,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 .Set(info.EncoderNotificationsProcessed);
             kNotificationsDroppedCount.WithLabels(deviceId, moduleId, Name)
                 .Set(info.EncoderNotificationsDropped);
+            kMaxMessageSplitRatio.WithLabels(deviceId, moduleId, Name)
+               .Set(info.EncoderMaxMessageSplitRatio);
             kMessagesProcessedCount.WithLabels(deviceId, moduleId, Name)
                 .Set(info.EncoderIoTMessagesProcessed);
             kNotificationsPerMessageAvg.WithLabels(deviceId, moduleId, Name)
@@ -343,7 +351,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Message received handler
         /// </summary>
-        private void MessageTriggerMessageReceived(object sender, DataSetMessageModel args) {
+        private void MessageTriggerMessageReceived(object sender, SubscriptionNotificationModel args) {
             _logger.Debug("Message trigger for {Name} received message with sequenceNumber {SequenceNumber}",
                     Name, args.SequenceNumber);
 
@@ -371,13 +379,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _diagnosticStart = DateTime.MinValue;
         }
 
-        private readonly int _dataSetMessageBufferSize = 1;
+        private readonly int _notificationBufferSize = 1;
         private readonly int _networkMessageBufferSize = 1;
         private readonly Timer _batchTriggerIntervalTimer;
         private readonly TimeSpan _batchTriggerInterval;
-
-        private readonly int _maxEncodedMessageSize = 256 * 1024;
-
+        private readonly int _maxEncodedMessageSize;
         private readonly IEngineConfiguration _config;
         private readonly IMessageSink _messageSink;
         private readonly IMessageEncoder _messageEncoder;
@@ -385,15 +391,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ILogger _logger;
         private readonly IIdentity _identity;
 
-        private BatchBlock<DataSetMessageModel> _batchDataSetMessageBlock;
-        private BatchBlock<NetworkMessageModel> _batchNetworkMessageBlock;
+        private readonly BatchBlock<SubscriptionNotificationModel> _batchDataSetMessageBlock;
+        private readonly BatchBlock<NetworkMessageModel> _batchNetworkMessageBlock;
 
         private readonly Timer _diagnosticsOutputTimer;
         private readonly TimeSpan _diagnosticInterval;
         private DateTime _diagnosticStart = DateTime.MinValue;
 
-        private TransformManyBlock<DataSetMessageModel[], NetworkMessageModel> _encodingBlock;
-        private ActionBlock<NetworkMessageModel[]> _sinkBlock;
+        private readonly TransformManyBlock<SubscriptionNotificationModel[], NetworkMessageModel> _encodingBlock;
+        private readonly ActionBlock<NetworkMessageModel[]> _sinkBlock;
 
         /// <summary>
         /// Define the maximum size of messages
@@ -463,6 +469,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kNotificationsDroppedCount = Metrics.CreateGauge(
             "iiot_edge_publisher_dropped_notifications",
             "publisher engine dropped opc notifications count", kGaugeConfig);
+        private static readonly Gauge kMaxMessageSplitRatio = Metrics.CreateGauge(
+            "iiot_edge_publisher_message_split_ratio_max",
+            "publisher engine worst message split ratio", kGaugeConfig);
         private static readonly Gauge kMessagesProcessedCount = Metrics.CreateGauge(
             "iiot_edge_publisher_processed_messages",
             "publisher engine processed iot messages count", kGaugeConfig);

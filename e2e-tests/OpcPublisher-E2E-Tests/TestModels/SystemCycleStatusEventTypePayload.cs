@@ -11,10 +11,10 @@ namespace OpcPublisher_AE_E2E_Tests.TestModels {
         /// <summary>Gets or sets the cycle id.</summary>
         /// <example>"29813"</example>
         [JsonProperty("http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId")]
-        public string CycleId { get; set; }
+        public DataValueObject<string> CycleId { get; set; }
 
         /// <summary>Gets or sets the current step.</summary>
         [JsonProperty("http://microsoft.com/Opc/OpcPlc/SimpleEvents#CurrentStep")]
-        public SimpleEventsStep CurrentStep { get; set; }
+        public DataValueObject<SimpleEventsStep> CurrentStep { get; set; }
     }
 }

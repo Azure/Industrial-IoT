@@ -33,7 +33,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// The default flag whether to skip the first value if
         /// not set on node level.
         /// </summary>
-        public bool DefaultSkipFirst { get; set; } = false;
+        public bool DefaultSkipFirst { get; set; }
+
+        /// <summary>
+        /// The default flag whether to descard new items in queue
+        /// </summary>
+        public bool? DefaultDiscardNew { get; set; }
 
         /// <summary>
         /// The default sampling interval.
@@ -44,6 +49,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// The default publishing interval.
         /// </summary>
         public TimeSpan? DefaultPublishingInterval { get; set; } = TimeSpan.FromSeconds(1);
+
+        /// <summary>
+        /// Default metadata send interval.
+        /// </summary>
+        public TimeSpan? DefaultMetaDataSendInterval { get; set; }
+
+        /// <summary>
+        /// Whether to disable metadata sending
+        /// </summary>
+        public bool? DisableDataSetMetaData { get; set; }
+
+        /// <summary>
+        /// Default keyframe count
+        /// </summary>
+        public uint? DefaultKeyFrameCount { get; set; }
 
         /// <summary>
         /// Flag wether to grab the display name of nodes form
@@ -82,7 +102,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// The messaging mode for outgoing messages.
         /// </summary>
-        public MessagingMode MessagingMode { get; set; } = MessagingMode.Samples;
+        public MessagingMode MessagingMode {
+            get {
+                // Depends on fm and standards compliant encoding mode
+                var messagingMode = _messagingMode ??
+                    (UseStandardsCompliantEncoding ? MessagingMode.PubSub : MessagingMode.Samples);
+                if (_fullFeaturedMessage) {
+                    if (messagingMode == MessagingMode.PubSub) {
+                        return MessagingMode.FullNetworkMessages;
+                    }
+                    if (messagingMode == MessagingMode.Samples) {
+                        return MessagingMode.FullSamples;
+                    }
+                }
+                return messagingMode;
+            }
+            set => _messagingMode = value;
+        }
+
+        /// <summary>
+        /// Set flag to demand full featured message creation from publisher
+        /// </summary>
+        public void SetFullFeaturedMessage(bool value) {
+            _fullFeaturedMessage = value;
+        }
 
         /// <summary>
         /// The messaging mode for outgoing messages.
@@ -90,22 +133,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public MessageEncoding MessageEncoding { get; set; } = MessageEncoding.Json;
 
         /// <summary>
-        /// Flag to demand full featured message creation from publisher
+        /// Number of messages that trigger a batch
         /// </summary>
-        public bool FullFeaturedMessage { get; set; } = false;
+        public int? BatchSize { get; set; } = 100;
 
         /// <summary>
-        /// The size of the message batching buffer
+        /// The interval to trigger publishing
         /// </summary>
-        public int? BatchSize { get; set; } = 50;
+        public TimeSpan? BatchTriggerInterval { get; set; } = TimeSpan.FromSeconds(1);
 
         /// <summary>
-        /// The interval to trigger batching
+        /// Max messages packed into an outgoing message
         /// </summary>
-        public TimeSpan? BatchTriggerInterval { get; set; } = TimeSpan.FromSeconds(10);
+        public uint? MaxMessagesPerPublish { get; set; }
 
         /// <summary>
-        /// The maximum size of the (IoT D2C ) message
+        /// The maximum size of the (IoT D2C) message
         /// </summary>
         public int? MaxMessageSize { get; set; } = 0;
 
@@ -120,29 +163,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public int? MaxOutgressMessages { get; set; } = 4096;
 
         /// <summary>
-        /// Flag to use reversible encoding for messages
+        /// Flag to use standards compliant encoding for pub sub messages (default to false for backcompat)
         /// </summary>
-        public bool? UseReversibleEncoding { get; set; } = false;
+        public bool UseStandardsCompliantEncoding { get; set; }
 
         /// <summary>
-        /// Flag to determine if a telemetry header helper is enabled.
+        /// Flag to determine if a telemetry header helper is enabled. (default to false)
         /// </summary>
-        public bool? EnableRoutingInfo { get; set; } = false;
+        public bool EnableRoutingInfo { get; set; }
 
         /// <summary>
         /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured
         /// for a dataSetWriter, they will be added in a different DataSet/Subscription.
         /// </summary>
-        public int? MaxNodesPerDataSet { get; set; } = 1000;
+        public int MaxNodesPerDataSet { get; set; } = 1000;
 
         /// <summary>
-        /// Run in legacy compatibility mode
+        /// Run in 2.5.* compatibility mode
         /// </summary>
-        public bool LegacyCompatibility { get; set; } = false;
+        public bool LegacyCompatibility { get; set; }
 
         /// <summary>
         /// Configuration flag for enabling/disabling runtime state reporting.
         /// </summary>
-        public bool EnableRuntimeStateReporting { get; set; } = false;
+        public bool EnableRuntimeStateReporting { get; set; }
+
+        private bool _fullFeaturedMessage;
+        private MessagingMode? _messagingMode;
     }
 }

@@ -71,6 +71,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// </summary>
             public bool IsClosed { get; internal set; }
 
+            /// <inheritdoc />
+            public int MaxMessageSize => 256 * 1024;
+
             /// <summary>
             /// Connection to iot hub
             /// </summary>

@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Encoder to encode data set writer messages
@@ -14,44 +14,52 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     public interface IMessageEncoder {
 
         /// <summary>
-        /// Number of notifications that are too big to be processed to IotHub Messages
+        /// Number of incoming subscription notifications that are
+        /// too big to be processed based on the message size limits
+        /// or other issues with the notification.
         /// </summary>
         uint NotificationsDroppedCount { get; }
 
         /// <summary>
-        /// Number of successfully processed notifications from OPC client
+        /// Number of successfully processed subscription notifications
+        /// from OPC client
         /// </summary>
         uint NotificationsProcessedCount { get; }
 
         /// <summary>
-        /// Number of successfully processed messages
+        /// Number of successfully generated messages that are to be
+        /// sent using the message sender
         /// </summary>
         uint MessagesProcessedCount { get; }
 
         /// <summary>
-        /// Average notifications in a message
+        /// Average subscription notifications packed into a message
         /// </summary>
         double AvgNotificationsPerMessage { get; }
 
         /// <summary>
-        /// Average notifications in a message
+        /// Average size of a message through the lifetime of the
+        /// encoders.
         /// </summary>
         double AvgMessageSize { get; }
 
         /// <summary>
-        /// Encodes the list of messages into single message NetworkMessageModel list
+        /// The message split ration specifies into how many messages a
+        /// subscription notification had to be split. Less is better
+        /// for performance. If the number is large user should attempt
+        /// to limit the number of notifications in a message using
+        /// configuration.
         /// </summary>
-        /// <param name="message">Messages to encode</param>
-        /// <param name="maxMessageSize">Maximum size of messages</param>
-        Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            IEnumerable<DataSetMessageModel> message, int maxMessageSize);
+        double MaxMessageSplitRatio { get; }
 
         /// <summary>
-        /// Encodes the list of messages into batched NetworkMessageModel list
+        /// Encodes the list of notifications into network messages to send
         /// </summary>
-        /// <param name="messages">Messages to encode</param>
+        /// <param name="notifications">Notifications to encode</param>
         /// <param name="maxMessageSize">Maximum size of messages</param>
-        Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync
-            (IEnumerable<DataSetMessageModel> messages, int maxMessageSize);
+        /// <param name="asBatch">Encode in batch mode</param>
+        IEnumerable<NetworkMessageModel> Encode(
+            IEnumerable<SubscriptionNotificationModel> notifications,
+            int maxMessageSize, bool asBatch);
     }
 }

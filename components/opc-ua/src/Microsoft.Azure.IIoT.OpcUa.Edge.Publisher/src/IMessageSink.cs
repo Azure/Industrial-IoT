@@ -19,6 +19,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         long SentMessagesCount { get; }
 
         /// <summary>
+        /// Max message size sink can deal with
+        /// </summary>
+        int MaxMessageSize { get; }
+
+        /// <summary>
         /// Send network message
         /// </summary>
         /// <param name="messages"></param>

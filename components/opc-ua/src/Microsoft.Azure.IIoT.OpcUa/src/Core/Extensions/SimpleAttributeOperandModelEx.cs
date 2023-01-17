@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 IndexRange = model.IndexRange,
                 TypeDefinitionId = model.TypeDefinitionId,
                 DisplayName = model.DisplayName,
+                DataSetClassFieldId = model.DataSetClassFieldId
             };
         }
 
@@ -55,6 +56,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 return false;
             }
             if (model.DisplayName != other.DisplayName) {
+                return false;
+            }
+            if (model.DataSetClassFieldId != other.DataSetClassFieldId) {
                 return false;
             }
             return true;

@@ -14,13 +14,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     [DataContract]
     public class PublishedNodesEntryModel {
 
-        /// <summary> Id Identifier of the DataFlow - DataSetWriterId. </summary>
+        /// <summary> Name of the data set writer. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DataSetWriterId { get; set; }
 
-        /// <summary> The Group the stream belongs to - DataSetWriterGroup. </summary>
+        /// <summary> The Group the writer belongs to. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DataSetWriterGroup { get; set; }
+
+        /// <summary> A dataset class id. </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public Guid DataSetClassId { get; set; }
+
+        /// <summary> The optional short name of the dataset. </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public string DataSetName { get; set; }
+
+        /// <summary> The optional description of the dataset. </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public string DataSetDescription { get; set; }
 
         /// <summary> The Publishing interval for a dataset writer in miliseconds.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
@@ -29,6 +41,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> The Publishing interval for a dataset writer in timespan format.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public TimeSpan? DataSetPublishingIntervalTimespan { get; set; }
+
+        /// <summary> Insert a key frame every x messages </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public uint? DataSetKeyFrameCount { get; set; }
+
+        /// <summary> Send metadata at the configured interval even when not changing </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public TimeSpan? DataSetMetaDataSendInterval { get; set; }
 
         /// <summary> The endpoint URL of the OPC UA server.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = true)]

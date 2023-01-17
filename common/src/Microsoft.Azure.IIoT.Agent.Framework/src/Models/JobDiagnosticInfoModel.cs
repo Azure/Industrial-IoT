@@ -141,6 +141,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// MonitoredOpcNodesFailedCount
         /// </summary>
         public int MonitoredOpcNodesFailedCount { get; set; }
+
+        /// <summary>
+        /// Encoder max message split ratio
+        /// </summary>
+        public double EncoderMaxMessageSplitRatio { get; set; }
     }
 }
 

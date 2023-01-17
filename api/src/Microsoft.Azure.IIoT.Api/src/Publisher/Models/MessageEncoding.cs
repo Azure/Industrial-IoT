@@ -13,15 +13,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public enum MessageEncoding {
 
         /// <summary>
-        /// Json encoding
+        /// Uadp or Binary encoding
         /// </summary>
         [EnumMember]
-        Json,
+        Uadp = 0x1,
 
         /// <summary>
-        /// Uadp encoding
+        /// Json encoding (default)
         /// </summary>
         [EnumMember]
-        Uadp
+        Json = 0x2,
+
+        /// <summary>
+        /// Json reversible encoding
+        /// </summary>
+        [EnumMember]
+        JsonReversible = Json | 0x10,
+
+        /// <summary>
+        /// Json gzip
+        /// </summary>
+        [EnumMember]
+        JsonGzip = Json | Gzip,
+
+        /// <summary>
+        /// Json reversible
+        /// </summary>
+        [EnumMember]
+        JsonReversibleGzip = JsonReversible | JsonGzip,
+
+        /// <summary>
+        /// Gzip flag
+        /// </summary>
+        Gzip = 0x20
     }
 }

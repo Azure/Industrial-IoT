@@ -65,7 +65,7 @@ namespace Opc.Ua.Encoders {
             if (!(decoder is JsonDecoderEx jsonDecoder)) {
                 throw new Exception($"Cannot decode using the decoder: {decoder.GetType()}.");
             }
-            var dictionary = jsonDecoder.ReadDataValueDictionary(null);
+            var dictionary = jsonDecoder.ReadDataSet(null);
             foreach (var keyValuePair in dictionary) {
                 Add(new KeyDataValuePair {
                     Key = keyValuePair.Key,

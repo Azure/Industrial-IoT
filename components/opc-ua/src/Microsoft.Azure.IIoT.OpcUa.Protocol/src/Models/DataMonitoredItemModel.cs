@@ -12,6 +12,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     /// Data monitored item
     /// </summary>
     public class DataMonitoredItemModel : BaseMonitoredItemModel {
+
+        /// <summary>
+        /// Field id in class
+        /// </summary>
+        public Guid DataSetClassFieldId { get; set; }
+
         /// <summary>
         /// Data change filter
         /// </summary>
@@ -52,6 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 MonitoringMode = MonitoringMode,
                 DisplayName = DisplayName,
                 RelativePath = RelativePath,
+                DataSetClassFieldId = DataSetClassFieldId,
                 HeartbeatInterval = HeartbeatInterval
             };
         }
@@ -64,6 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public override bool Equals(object obj) {
             return obj is DataMonitoredItemModel model &&
                 base.Equals(obj) &&
+                DataSetClassFieldId == model.DataSetClassFieldId &&
                 SkipFirst == model.SkipFirst &&
                 DataChangeFilter.IsSameAs(model.DataChangeFilter) &&
                 AggregateFilter.IsSameAs(model.AggregateFilter) &&
@@ -76,6 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <returns>The hash code</returns>
         public override int GetHashCode() {
             var hash = new HashCode();
+            hash.Add(DataSetClassFieldId);
             hash.Add(base.GetHashCode());
             hash.Add(DataChangeFilter);
             hash.Add(AggregateFilter);

@@ -21,6 +21,11 @@ namespace Microsoft.Azure.IIoT {
         public const string Json =
             "application/json";
         /// <summary>
+        /// Json+Gzip encoding
+        /// </summary>
+        public const string JsonGzip =
+            "application/json+gzip";
+        /// <summary>
         /// Bson encoding
         /// </summary>
         public const string Bson =
@@ -62,11 +67,6 @@ namespace Microsoft.Azure.IIoT {
         /// </summary>
         public const string UaXml =
             "application/ua+xml";
-        /// <summary>
-        /// OPC UA nodset xml encoding
-        /// </summary>
-        public const string UaNodesetXml =
-            "application/ua-nodeset+xml";
 
         /// <summary>
         /// (For testing) Reference encoder

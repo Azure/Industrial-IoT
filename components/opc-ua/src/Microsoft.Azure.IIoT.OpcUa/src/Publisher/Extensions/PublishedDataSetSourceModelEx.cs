@@ -48,6 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             sb.Append(model.SubscriptionSettings?.PublishingInterval.ToString());
             sb.Append(publishedVariableData?.Id);
             sb.Append(publishedVariableData?.PublishedVariableNodeId);
+            sb.Append(publishedVariableData?.DataSetClassFieldId);
             sb.Append(publishedVariableData?.PublishedVariableDisplayName);
             sb.Append(publishedVariableData?.SamplingInterval);
             sb.Append(publishedVariableData?.HeartbeatInterval);
@@ -59,9 +60,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     sb.Append(browsePath);
                 }
             }
-            sb.Append(publishedEventData?.PendingAlarms?.IsEnabled);
-            sb.Append(publishedEventData?.PendingAlarms?.UpdateInterval);
-            sb.Append(publishedEventData?.PendingAlarms?.SnapshotInterval);
+            sb.Append(publishedEventData?.ConditionHandling?.UpdateInterval);
+            sb.Append(publishedEventData?.ConditionHandling?.SnapshotInterval);
             sb.Append(publishedEventData?.TypeDefinitionId);
             return sb.ToString().ToSha1Hash();
         }

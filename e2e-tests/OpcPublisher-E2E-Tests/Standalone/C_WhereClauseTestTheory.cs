@@ -29,7 +29,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
                 _timeoutToken);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, _timeoutToken, -1);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
@@ -43,7 +43,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 .FirstAsync(_timeoutToken);
 
             // Assert
-            ValidateBaseEventTypeFields(ev.messages);
+            ValidateBaseEventTypeFields(ev.payload);
         }
 
         [Fact, PriorityOrder(11)]
@@ -54,7 +54,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
                 _timeoutToken);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, _timeoutToken, -1);
 
             // Act
             var pnJson = _context.PublishedNodesJson(
@@ -67,7 +67,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 .FirstAsync(_timeoutToken);
 
             // Assert
-            ValidateBaseEventTypeFields(ev.messages);
+            ValidateBaseEventTypeFields(ev.payload);
         }
 
         [Fact, PriorityOrder(12)]
@@ -78,7 +78,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 {"/bin/sh", "-c", "./opcplc --autoaccept --ses --pn=50000"},
                 _timeoutToken);
 
-            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync(_writerId, _timeoutToken, -1);
 
             // Act
             var pnJson = TestConstants.PublishedNodesConfigurations.SimpleEvents(_context.PlcAciDynamicUrls[0],
@@ -90,17 +90,14 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 .FirstAsync(_timeoutToken);
 
             // Assert
-            ValidateSimpleEventFields(ev.messages);
+            ValidateSimpleEventFields(ev.payload);
         }
 
         private static void ValidateBaseEventTypeFields(JToken ev) {
             // navigate to the event fields (nested several layers)
-            var fields = ev.Children()
-                .First()
-                    .Children()
-                        .First();
+            var fields = ev.Children();
             Assert.NotNull(fields);
-            Assert.Equal(8, fields.Count());
+            Assert.Equal(9, fields.Count());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventId")).Any());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventType")).Any());
             Assert.True(fields.Where(x => x.Path.EndsWith("Message")).Any());
@@ -113,10 +110,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
 
         private static void ValidateSimpleEventFields(JToken ev) {
             // navigate to the event fields (nested several layers)
-            var fields = ev.Children()
-                .First()
-                    .Children()
-                        .First();
+            var fields = ev.Children();
             Assert.NotNull(fields);
             Assert.Equal(4, fields.Count());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventId")).Any());

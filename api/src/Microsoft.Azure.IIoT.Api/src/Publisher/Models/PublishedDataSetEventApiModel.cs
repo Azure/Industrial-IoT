@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using System.Runtime.Serialization;
     using System.Collections.Generic;
+    using System;
 
     /// <summary>
     /// Describes event fields to be published
@@ -76,13 +77,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public string TriggerId { get; set; }
 
         /// <summary>
-        /// Pending alarm settings
+        /// Condition handling settings
         /// </summary>
-        [DataMember(Name = "pendingAlarms", Order = 9)]
-        public PendingAlarmsOptionsApiModel PendingAlarms { get; set; }
+        [DataMember(Name = "conditionHandling", Order = 9)]
+        public ConditionHandlingOptionsApiModel ConditionHandling { get; set; }
 
         /// <summary>
-        /// Simple event Type id
+        /// Simple event Type definition id
         /// </summary>
         [DataMember(Name = "typeDefinitionId", Order = 10)]
         public string TypeDefinitionId { get; set; }

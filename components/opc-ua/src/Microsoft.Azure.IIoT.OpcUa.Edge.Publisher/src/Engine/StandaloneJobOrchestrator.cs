@@ -481,35 +481,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
         }
 
-        private JobProcessingInstructionModel ToJobProcessingInstructionModel (WriterGroupJobModel job){
+        private JobProcessingInstructionModel ToJobProcessingInstructionModel(WriterGroupJobModel job){
             if (job == null) {
                 return null;
             }
 
             var jobId = job.GetJobId();
-
-            job.WriterGroup.DataSetWriters.ForEach(d => {
-                d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
-                d.DataSet.ExtensionFields["PublisherId"] = jobId;
-                d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterId;
-            });
-            var dataSetWriters = string.Join(", ", job.WriterGroup.DataSetWriters.Select(w => w.DataSetWriterId));
+            var dataSetWriters = string.Join(", ", job.WriterGroup.DataSetWriters.Select(w => w.DataSetWriterName));
             _logger.Information("Job {jobId} loaded with dataSetGroup {group} with dataSetWriters {dataSetWriters}",
                 jobId, job.WriterGroup.WriterGroupId, dataSetWriters);
             var serializedJob = _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);
 
             return new JobProcessingInstructionModel {
-                    Job = new JobInfoModel {
-                        Demands = new List<DemandModel>(),
-                        Id = jobId,
-                        JobConfiguration = serializedJob,
-                        JobConfigurationType = jobConfigurationType,
-                        LifetimeData = new JobLifetimeDataModel(),
-                        Name = jobId,
-                        RedundancyConfig = new RedundancyConfigModel { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 },
-                    },
-                    ProcessMode = ProcessMode.Active,
-                };
+                Job = new JobInfoModel {
+                    Demands = new List<DemandModel>(),
+                    Id = jobId,
+                    JobConfiguration = serializedJob,
+                    JobConfigurationType = jobConfigurationType,
+                    LifetimeData = new JobLifetimeDataModel(),
+                    Name = jobId,
+                    RedundancyConfig = new RedundancyConfigModel { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 },
+                },
+                ProcessMode = ProcessMode.Active,
+            };
         }
 
         /// <summary>
@@ -1157,6 +1151,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     OpcAuthenticationUsername = model.OpcAuthenticationUsername,
                     DataSetWriterGroup = model.DataSetWriterGroup,
                     DataSetWriterId = model.DataSetWriterId,
+                    DataSetName = model.DataSetName,
+                    DataSetDescription = model.DataSetDescription,
+                    DataSetKeyFrameCount = model.DataSetKeyFrameCount,
+                    DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
+                    DataSetClassId = model.DataSetClassId,
                     Tag = model.Tag,
                     DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
                     DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue

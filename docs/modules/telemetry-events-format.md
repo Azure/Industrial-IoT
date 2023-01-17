@@ -4,9 +4,9 @@
 
 This section describes what the output looks like when listening for events in the OPC Publisher.
 
-To use the OPC UA PubSub format specify the `--mm=PubSub` command line. This needs to be done because the OPC publisher defaults to `--mm=Samples` mode which existed before the introduction of OPC UA standards compliant PubSub format.
+To use the OPC UA PubSub format specify the `--mm=PubSub` command line. This needs to be done because the OPC publisher defaults to `--mm=Samples` [mode](#event-messages-in-samples-mode) which existed before the introduction of OPC UA standards compliant PubSub format.
 
-Events should be produced in the PubSub format specified in the OPC UA Standard. We might decide to not support the non standards compliant Samples mode in future versions of OPC Publisher. The payload is an event which consists of fields selected in the select clause and its values. Details for data messages can be found [in this seperate document](./telemetry-messages-format.md).
+Events should be produced in the PubSub format specified in the OPC UA Standard. The payload is an event which consists of fields selected in the select clause and its values. Details for data messages can be found [in this seperate document](./telemetry-messages-format.md).
 
 ## JSON encoded events in OPC UA PubSub Mode
 
@@ -24,30 +24,29 @@ The following is an example of the output you will se when listening to events f
         {
           "DataSetWriterId": "SIMPLE-EVENTS",
           "MetaDataVersion": {
-            "MajorVersion": 1,
-            "MinorVersion": 0
+            "MajorVersion": 1222304427,
+            "MinorVersion": 801860751
           },
+          "MessageType": "ua-event",
           "Payload": {
-            "SimpleEvents": {
-              "EventId": "+6CQjN1eqkO6+yHJnxMz5w==",
-              "EventType": "http://microsoft.com/Opc/OpcPlc/SimpleEvents#i=14",
-              "Message": "The system cycle '59' has started.",
-              "ReceiveTime": "2021-06-21T12:38:55.5814091Z",
-              "Severity": 1,
-              "SourceName": "System",
-              "SourceNode": "i=2253",
-              "http://opcfoundation.org/SimpleEvents#CurrentStep": {
-                "Name": "Step 1",
-                "Duration": 1000.0
-              },
-              "Time": "2021-06-21T12:38:55.5814078Z"
-            }
+            "EventId": "+6CQjN1eqkO6+yHJnxMz5w==",
+            "EventType": "http://microsoft.com/Opc/OpcPlc/SimpleEvents#i=14",
+            "Message": "The system cycle '59' has started.",
+            "ReceiveTime": "2021-06-21T12:38:55.5814091Z",
+            "Severity": 1,
+            "SourceName": "System",
+            "SourceNode": "i=2253",
+            "http://opcfoundation.org/SimpleEvents#CurrentStep": {
+              "Name": "Step 1",
+              "Duration": 1000.0
+            },
+            "Time": "2021-06-21T12:38:55.5814078Z"
           }
         }
       ]
     }
   ],
-  "enqueuedTime": "Mon Jun 21 2021 14:39:02 GMT+0200 (Central European Summer Time)",
+  "enqueuedTime": "Mon Jan 21 2023 14:39:02 GMT+0200 (Central European Summer Time)",
   "properties": {
     "$$ContentType": "application/x-network-message-json-v1",
     "iothub-message-schema": "application/ua+json",
@@ -56,7 +55,143 @@ The following is an example of the output you will se when listening to events f
 }
 ```
 
-The event in the payload is named "SimpleEvents" which was configured by setting the DisplayName property of the `OPCNodes` configuration. Also note that all fields and values reside under the Value key.
+The event is described by the corresponding metadata message, which is emitted prior to the first message and whenever the configuration is updated requiring an update of the metadata. Metadata can also be sent periodically, which can be configured using the control plane of OPC Publisher. The following metadata is provided in `--strict` mode:
+
+```json
+{
+  "body": [
+    {
+      "MessageId": "edecf7ec-5ae8-4957-82ef-7f915dddb5be",
+      "MessageType": "ua-metadata",
+      "PublisherId": "opc.tcp://localhost:55924/UA/SampleServer_E8BAB2AD",
+      "DataSetWriterId": 1,
+      "MetaData": {
+        "Namespaces": [
+          "http://opcfoundation.org/UA/",
+          "http://test.org/UA/Data/",
+          "http://test.org/UA/Data//Instance",
+          "http://opcfoundation.org/UA/Boiler//Instance",
+          "urn:localhost:somecompany.com:VehiclesServer",
+          "http://opcfoundation.org/UA/Vehicles/Types",
+          "http://opcfoundation.org/UA/Vehicles/Instances",
+          "http://opcfoundation.org/ReferenceApplications",
+          "http://opcfoundation.org/UA/Diagnostics",
+          "http://opcfoundation.org/UA/Boiler/"
+        ],
+        "StructureDataTypes": [
+          {
+            "DataTypeId": {
+              "Id": 183,
+              "Namespace": "http://opcfoundation.org/SimpleEvents"
+            },
+            "Name": {
+              "Name": "CycleStepDataType",
+              "Uri": "http://opcfoundation.org/SimpleEvents"
+            },
+            "StructureDefinition": {
+              "BaseDataType": {
+                "Id": 22
+              },
+              "StructureType": "Structure_0",
+              "Fields": [
+                {
+                  "Name": "Name",
+                  "DataType": {
+                    "Id": 12
+                  },
+                  "ValueRank": -1,
+                  "ArrayDimensions": [],
+                  "MaxStringLength": 0,
+                  "IsOptional": false
+                },
+                {
+                  "Name": "Duration",
+                  "DataType": {
+                    "Id": 11
+                  },
+                  "ValueRank": -1,
+                  "ArrayDimensions": [],
+                  "MaxStringLength": 0,
+                  "IsOptional": false
+                }
+              ]
+            }
+          }
+        ],
+        "EnumDataTypes": [],
+        "SimpleDataTypes": [],
+        "Fields": [
+          {
+            "Name": "EventId",
+            "FieldFlags": 0,
+            "BuiltInType": 15,
+            "DataType": {
+              "Id": 15
+            },
+            "ValueRank": -1,
+            "ArrayDimensions": [],
+            "MaxStringLength": 0,
+            "DataSetFieldId": "487f710c-9f43-4425-9a77-03f3396362f7",
+            "Properties": []
+          },
+          {
+            "Name": "Message",
+            "FieldFlags": 0,
+            "BuiltInType": 21,
+            "DataType": {
+              "Id": 21
+            },
+            "ValueRank": -1,
+            "ArrayDimensions": [],
+            "MaxStringLength": 0,
+            "DataSetFieldId": "15c7bc3a-4714-4f5e-9874-d4671288f5a0",
+            "Properties": []
+          },
+          {
+            "Name": "http://opcfoundation.org/SimpleEvents#CycleId",
+            "FieldFlags": 0,
+            "BuiltInType": 12,
+            "DataType": {
+              "Id": 12
+            },
+            "ValueRank": -1,
+            "ArrayDimensions": [],
+            "MaxStringLength": 0,
+            "DataSetFieldId": "03378140-f21b-4ee1-9bbe-01325e847128",
+            "Properties": []
+          },
+          {
+            "Name": "http://opcfoundation.org/SimpleEvents#CurrentStep",
+            "FieldFlags": 0,
+            "BuiltInType": 22,
+            "DataType": {
+              "Id": 183,
+              "Namespace": "http://opcfoundation.org/SimpleEvents"
+            },
+            "ValueRank": -1,
+            "ArrayDimensions": [],
+            "MaxStringLength": 0,
+            "DataSetFieldId": "a9cd0d57-ae64-4e20-b113-b3df52cb6a59",
+            "Properties": []
+          }
+        ],
+        "ConfigurationVersion": {
+          "MajorVersion": 1222308210,
+          "MinorVersion": 2861644214
+        }
+      },
+      "DataSetWriterName": "1000"
+    }
+  ],
+  "enqueuedTime": "Mon Jan 23 2023 13:49:02 GMT+0200 (Central European Summer Time)",
+  "properties": {
+    "$$ContentType": "application/x-network-message-json-v1",
+    "iothub-message-schema": "application/ua+json",
+    "$$ContentEncoding": "utf-8"
+  }
+}
+
+```
 
 ### Reversible encoding
 
@@ -66,61 +201,41 @@ The format produced here does not contain enough information to decode the messa
 {
   "body": [
     {
-      "MessageId": "15",
+      "MessageId": "5",
       "MessageType": "ua-data",
-      "PublisherId": "SIMPLE-EVENTS",
-      "DataSetWriterGroup": "SIMPLE-EVENTS",
+      "PublisherId": "opc.tcp://localhost:54340/UA/SampleServer_5CB8F1A5",
       "Messages": [
         {
           "DataSetWriterId": "SIMPLE-EVENTS",
           "MetaDataVersion": {
-            "MajorVersion": 1,
-            "MinorVersion": 0
+            "MajorVersion": 1222304426,
+            "MinorVersion": 3462403799
           },
+          "MessageType": "ua-event",
           "Payload": {
-            "SimpleEvents": {
-              "Value": {
-                "Type": "ExtensionObject",
+            "EventId": {
+              "Type": "ByteString",
+              "Body": "88C2T817uUWMVNDclyOFnA=="
+            },
+            "Message": {
+              "Type": "LocalizedText",
+              "Body": {
+                "Text": "The system cycle \u00275\u0027 has started.",
+                "Locale": "en-US"
+              }
+            },
+            "http://opcfoundation.org/SimpleEvents#CycleId": {
+              "Type": "String",
+              "Body": "5"
+            },
+            "http://opcfoundation.org/SimpleEvents#CurrentStep": {
+              "Type": "ExtensionObject",
+              "Body": {
+                "TypeId": "http://opcfoundation.org/SimpleEvents#i=183",
+                "Encoding": "Json",
                 "Body": {
-                  "TypeId": "http://microsoft.com/Industrial-IoT/OpcPublisher#i=1",
-                  "Encoding": "Json",
-                  "Body": {
-                    "EventId": {
-                      "Type": "ByteString",
-                      "Body": "DYg+y18fTE6jpQNTu9KB7A=="
-                    },
-                    "EventType": {
-                      "Type": "NodeId",
-                      "Body": "http://microsoft.com/Opc/OpcPlc/SimpleEvents#i=14"
-                    },
-                    "Message": {
-                      "Type": "LocalizedText",
-                      "Body": {
-                        "Text": "The system cycle '318' has started.",
-                        "Locale": "en-US"
-                      }
-                    },
-                    "ReceiveTime": {
-                      "Type": "DateTime",
-                      "Body": "2021-06-21T12:45:22.5819817Z"
-                    },
-                    "Severity": {
-                      "Type": "UInt16",
-                      "Body": 2
-                    },
-                    "SourceName": {
-                      "Type": "String",
-                      "Body": "System"
-                    },
-                    "SourceNode": {
-                      "Type": "NodeId",
-                      "Body": "i=2253"
-                    },
-                    "Time": {
-                      "Type": "DateTime",
-                      "Body": "2021-06-21T12:45:22.5819815Z"
-                    }
-                  }
+                  "Name": "Step 1",
+                  "Duration": 1000.0
                 }
               }
             }
@@ -138,25 +253,13 @@ The format produced here does not contain enough information to decode the messa
 }
 ```
 
-This JSON contains enough metadata information to decode it properly.
-
-The output is contained within an *EncodeableDictionary* object, as indicated by the the type identifier: *http://microsoft.com/Industrial-IoT/OpcPublisher#i=1*. At this point, the best way to consume the type is by getting a copy of the [*EncodeableDictionary*](../components/opc-ua/src/Microsoft.Azure.IIoT.OpcUa.Protocol/src/Stack/Encoders/Models/EncodeableDictionary.cs) class and registering it in the *ServiceMessageContext*. Then, the *JsonDecoderEx* can properly decode the EncodeableDictionary:
-
-```cs
-var serviceMessageContext = new ServiceMessageContext();
-serviceMessageContext.Factory.AddEncodeableType(typeof(EncodeableDictionary));
-
-using (var stream = new MemoryStream(buffer)) {
-    using var decoder = new JsonDecoderEx(stream, serviceMessageContext);
-    var data = new EncodeableDictionary();
-    data.Decode(decoder);
-
-    ...
-```
+This JSON contains the metadata information to decode each variant value.
 
 ### Pending Alarm snapshots
 
-The OPC Publisher also supports sending Pending Alarms snapshots when listening for events, as described in the user guide for [configuration of events](./publisher-event-configuration.md). When this feature is enabled, it will listen to all ConditionType derived events and cache all that have has the `Retain` property set to true. It will then periodically generate output with an array of all these retained events. When running against the OPC Foundation's Alarms & Conditions reference server sample the output will look like this:
+The OPC Publisher also supports sending Pending Alarms (or conditions) which are events that are associated with a condition, as described in the user guide for [configuration of events](./publisher-event-configuration.md). When this feature is enabled, it will listen to all ConditionType derived events and cache all that have has the `Retain` property set to true. It will then periodically generate output to broadcast the condition case still being in effect. 
+
+When running against the OPC Foundation's Alarms & Conditions reference server sample the output will look like this:
 
 ```json
 {
@@ -173,79 +276,20 @@ The OPC Publisher also supports sending Pending Alarms snapshots when listening 
             "MajorVersion": 1,
             "MinorVersion": 0
           },
+          "MessageType": "ua-condition",
           "Payload": {
-            "AlarmConditions": [
-              {
-                "EventId": "5SPXIwZK2U\u002BFqYJJahmL7A==",
-                "EventType": "i=2830",
-                "LocalTime": {
-                  "Offset": 60,
-                  "DaylightSavingInOffset": true
-                },
-                "Message": "The dialog was activated",
-                "ReceiveTime": "2022-12-05T08:50:25.6398546Z",
-                "Severity": 100,
-                "SourceName": "EastTank",
-                "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank",
-                "Time": "2022-12-05T08:50:25.6398546Z"
-              },
-              {
-                "EventId": "ixCh7U2YkEW361Wg4gHv8g==",
-                "EventType": "i=9764",
-                "LocalTime": {
-                  "Offset": 60,
-                  "DaylightSavingInOffset": true
-                },
-                "Message": "Alarm created.",
-                "ReceiveTime": "2022-12-05T08:50:25.6619305Z",
-                "Severity": 100,
-                "SourceName": "EastTank",
-                "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank",
-                "Time": "2022-12-05T08:50:25.6310398Z"
-              },
-              {
-                "EventId": "MRGtsM\u002BTJEyEP2Lh3gNpvQ==",
-                "EventType": "i=10060",
-                "LocalTime": {
-                  "Offset": 60,
-                  "DaylightSavingInOffset": true
-                },
-                "Message": "Alarm created.",
-                "ReceiveTime": "2022-12-05T08:50:25.6700818Z",
-                "Severity": 100,
-                "SourceName": "EastTank",
-                "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank",
-                "Time": "2022-12-05T08:50:25.6314869Z"
-              },
-              {
-                "EventId": "ZhX7mhYdBUGhzUlV\u002BG\u002BDMg==",
-                "EventType": "i=2830",
-                "LocalTime": {
-                  "Offset": 60,
-                  "DaylightSavingInOffset": true
-                },
-                "Message": "The dialog was activated",
-                "ReceiveTime": "2022-12-05T08:50:25.6761535Z",
-                "Severity": 100,
-                "SourceName": "NorthMotor",
-                "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fNorthMotor",
-                "Time": "2022-12-05T08:50:25.6761535Z"
-              },
-              {
-                "EventId": "6eoJjec2ckyKhoBk5SbVtg==",
-                "EventType": "i=9764",
-                "LocalTime": {
-                  "Offset": 60,
-                  "DaylightSavingInOffset": true
-                },
-                "Message": "Alarm created.",
-                "ReceiveTime": "2022-12-05T08:50:25.6787723Z",
-                "Severity": 100,
-                "SourceName": "NorthMotor",
-                "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fNorthMotor",
-                "Time": "2022-12-05T08:50:25.675634Z"
-              }
-            ]
+            "EventId": "PQpa0fNNwUym272/HW40ww==",
+            "EventType": "i=2830",
+            "LocalTime": {
+              "Offset": 60,
+              "DaylightSavingInOffset": true
+            },
+            "Message": "The dialog was activated",
+            "ReceiveTime": "2022-12-20T17:03:02.1338153Z",
+            "Severity": 100,
+            "SourceName": "EastTank",
+            "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank",
+            "Time": "2022-12-20T17:03:02.1338153Z"
           }
         }
       ]
@@ -263,6 +307,8 @@ The OPC Publisher also supports sending Pending Alarms snapshots when listening 
 The important part to highlight here is that the payload is an array of events which have the Retain property set to true. Otherwise it's very similar to the regular [telematry messages](./telemetry-messages-format.md).
 
 ## Event messages in Samples Mode
+
+> IMPORTANT: Legacy `Samples` encoding mode is a message format that predates OPC UA Pub Sub message encoding and is thus considered legacy and not standards conform. We might decide to not support the non standards compliant Samples mode in future versions of OPC Publisher.
 
 The following sample messages show how events look like in legacy samples mode:
 
@@ -325,58 +371,28 @@ With `--fm=True` enabling full featured messages, these would then look like:
 }
 ```
 
-Pending Alarms sent in Samples mode look as follows:
+Pending Alarms (or conditions) sent in Samples mode look as follows:
 
 ```json
 {
-  "body":   {
+  "body": {
     "NodeId": "i=2253",
-    "EndpointUrl": "opc.tcp://localhost:53780/UA/SampleServer",
+    "EndpointUrl": "opc.tcp://localhost:56692/UA/SampleServer",
     "DisplayName": "PendingAlarms",
-    "Value": [
-      {
-        "EventId": "PEl7MUVIJE6tTaGDOt21bw==",
-        "EventType": "i=2830",
-        "LocalTime": {
-          "Offset": 60,
-          "DaylightSavingInOffset": true
-        },
-        "Message": "The dialog was activated",
-        "ReceiveTime": "2022-12-05T10:33:20.182657Z",
-        "Severity": 100,
-        "SourceName": "EastTank",
-        "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank",
-        "Time": "2022-12-05T10:33:20.182657Z"
+    "Value": {
+      "EventId": "xW5uvGPSuUWBdvp8IfSueQ==",
+      "EventType": "i=2830",
+      "LocalTime": {
+        "Offset": 60,
+        "DaylightSavingInOffset": true
       },
-      {
-        "EventId": "gYwW3oaH6EuQJs/XTQJrHw==",
-        "EventType": "i=9764",
-        "LocalTime": {
-          "Offset": 60,
-          "DaylightSavingInOffset": true
-        },
-        "Message": "The alarm severity has increased.",
-        "ReceiveTime": "2022-12-05T10:33:30.3550587Z",
-        "Severity": 300,
-        "SourceName": "WestTank",
-        "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aMetals%2fWestTank",
-        "Time": "2022-12-05T10:33:30.3550517Z"
-      },
-      {
-        "EventId": "ruJUGazMLUqhQ6X8cGVm7A==",
-        "EventType": "i=10751",
-        "LocalTime": {
-          "Offset": 60,
-          "DaylightSavingInOffset": true
-        },
-        "Message": "The alarm severity has increased.",
-        "ReceiveTime": "2022-12-05T10:33:29.3460232Z",
-        "Severity": 300,
-        "SourceName": "SouthMotor",
-        "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aMetals%2fSouthMotor",
-        "Time": "2022-12-05T10:33:29.3460157Z"
-      }
-    ]
+      "Message": "The dialog was activated",
+      "ReceiveTime": "2022-12-20T15:53:10.3815705Z",
+      "Severity": 100,
+      "SourceName": "EastTank",
+      "SourceNode": "http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank",
+      "Time": "2022-12-20T15:53:10.3815705Z"
+    }
   },
   "enqueuedTime": "Fri Mar 18 2022 14:04:18 GMT+0100 (Central European Standard Time)",
   "properties": {
@@ -387,7 +403,7 @@ Pending Alarms sent in Samples mode look as follows:
 }
 ```
 
-Finally, in reversable mode, legacy samples messages will look as follows:
+Finally, using reversable mode, legacy samples messages will look as follows:
 
 ```json
 {
@@ -440,4 +456,17 @@ Finally, in reversable mode, legacy samples messages will look as follows:
 }
 ```
 
-Samples mode messages are always JSON encoded.
+The value is an *EncodeableDictionary* object, as indicated by the the type identifier: *http://microsoft.com/Industrial-IoT/OpcPublisher#i=1*. You can consume the type by getting a copy of the [*EncodeableDictionary*](../components/opc-ua/src/Microsoft.Azure.IIoT.OpcUa.Protocol/src/Stack/Encoders/Models/EncodeableDictionary.cs) class and registering it in the *ServiceMessageContext*. Then, the *JsonDecoderEx* can properly decode the EncodeableDictionary:
+
+```cs
+var serviceMessageContext = new ServiceMessageContext();
+serviceMessageContext.Factory.AddEncodeableType(typeof(EncodeableDictionary));
+
+using (var stream = new MemoryStream(buffer)) {
+    using var decoder = new JsonDecoderEx(stream, serviceMessageContext);
+    var data = new EncodeableDictionary();
+    data.Decode(decoder);
+
+    ...
+```
+

@@ -4,11 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
-    using Opc.Ua.Extensions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -30,10 +31,12 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="context"></param>
-        public JsonDecoderEx(Stream stream, IServiceMessageContext context = null) :
+        /// <param name="useJsonLoader"></param>
+        public JsonDecoderEx(Stream stream, IServiceMessageContext context = null,
+            bool useJsonLoader = true) :
             this(new JsonTextReader(new StreamReader(stream)) {
                 FloatParseHandling = FloatParseHandling.Double
-            }, context) {
+            }, context, useJsonLoader) {
         }
 
         /// <summary>
@@ -41,31 +44,11 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="reader"></param>
         /// <param name="context"></param>
-        public JsonDecoderEx(JsonReader reader, IServiceMessageContext context = null) :
-            this(reader, context, false) {
-        }
-
-        /// <summary>
-        /// Create decoder
-        /// </summary>
-        /// <param name="root"></param>
-        /// <param name="context"></param>
-        public JsonDecoderEx(JObject root, IServiceMessageContext context = null) {
-            Context = context ?? new ServiceMessageContext();
-            _reader = null;
-            _stack.Push(root ?? throw new ArgumentException(nameof(root)));
-        }
-
-        /// <summary>
-        /// Create decoder
-        /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="context"></param>
-        /// <param name="useReaderAsIs"></param>
+        /// <param name="useJsonLoader"></param>
         internal JsonDecoderEx(JsonReader reader, IServiceMessageContext context,
-            bool useReaderAsIs) {
+            bool useJsonLoader = true) {
             Context = context ?? new ServiceMessageContext();
-            _reader = useReaderAsIs ? reader : new JsonLoader(
+            _reader = !useJsonLoader ? reader : new JsonLoader(
                 reader ?? throw new ArgumentException(nameof(reader)));
         }
 
@@ -89,27 +72,6 @@ namespace Opc.Ua.Encoders {
         /// <inheritdoc/>
         public void SetMappingTables(NamespaceTable namespaceUris, StringTable serverUris) {
             // No op
-        }
-
-        /// <summary>
-        /// Read a decoded JSON field.
-        /// </summary>
-        /// <param name="fieldName">The name of the field.</param>
-        /// <param name="token">The returned object token of the field.</param>
-        public bool ReadField(string fieldName, out object token) {
-            token = null;
-
-            if (string.IsNullOrEmpty(fieldName)) {
-                token = this._stack.Peek();
-                return true;
-            }
-
-            var context = _stack.Peek().ToObject< Dictionary<string, object>>();
-            if (context == null || !context.TryGetValue(fieldName, out token)) {
-                return false;
-            }
-
-            return true;
         }
 
         /// <inheritdoc/>
@@ -534,12 +496,11 @@ namespace Opc.Ua.Encoders {
                 }
                 return null;
             }
-
             var tokenVariant = ReadVariantFromToken(token);
             if (tokenVariant == Variant.Null) {
-                return new DataValue(tokenVariant);
+                return null;
             }
-            return null;
+            return new DataValue(tokenVariant);
         }
 
         /// <inheritdoc/>
@@ -548,12 +509,11 @@ namespace Opc.Ua.Encoders {
                 return null;
             }
             if (token is JObject o && HasAnyOf(o, "Body", "TypeId")) {
-                ExtensionObject extensionObject = null;
                 _stack.Push(o);
 
                 var typeId = ReadExpandedNodeId("TypeId");
                 var encoding = ReadEncoding("Encoding");
-                extensionObject = ReadExtensionObjectBody("Body",
+                var extensionObject = ReadExtensionObjectBody("Body",
                     encoding, typeId);
 
                 _stack.Pop();
@@ -563,7 +523,8 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public IEncodeable ReadEncodeable(string property, Type systemType, ExpandedNodeId encodeableTypeId = null) {
+        public IEncodeable ReadEncodeable(string property, Type systemType,
+            ExpandedNodeId encodeableTypeId = null) {
             if (systemType == null) {
                 throw new ArgumentNullException(nameof(systemType));
             }
@@ -608,64 +569,63 @@ namespace Opc.Ua.Encoders {
             return null;
         }
 
-        /// <summary>
-        /// Reads an array with the specified valueRank and the specified BuiltInType
-        /// </summary>
-        public Array ReadArray(string fieldName, int valueRank, BuiltInType builtInType, Type systemType, ExpandedNodeId nodeId) {
+        /// <inheritdoc/>
+        public Array ReadArray(string property, int valueRank, BuiltInType builtInType,
+            Type systemType, ExpandedNodeId nodeId) {
             if (valueRank == ValueRanks.OneDimension) {
                 switch (builtInType) {
                     case BuiltInType.Boolean:
-                        return ReadBooleanArray(fieldName).ToArray();
+                        return ReadBooleanArray(property).ToArray();
                     case BuiltInType.SByte:
-                        return ReadSByteArray(fieldName).ToArray();
+                        return ReadSByteArray(property).ToArray();
                     case BuiltInType.Byte:
-                        return ReadByteArray(fieldName).ToArray();
+                        return ReadByteArray(property).ToArray();
                     case BuiltInType.Int16:
-                        return ReadInt16Array(fieldName).ToArray();
+                        return ReadInt16Array(property).ToArray();
                     case BuiltInType.UInt16:
-                        return ReadUInt16Array(fieldName).ToArray();
+                        return ReadUInt16Array(property).ToArray();
                     case BuiltInType.Int32:
-                        return ReadInt32Array(fieldName).ToArray();
+                        return ReadInt32Array(property).ToArray();
                     case BuiltInType.UInt32:
-                        return ReadUInt32Array(fieldName).ToArray();
+                        return ReadUInt32Array(property).ToArray();
                     case BuiltInType.Int64:
-                        return ReadInt64Array(fieldName).ToArray();
+                        return ReadInt64Array(property).ToArray();
                     case BuiltInType.UInt64:
-                        return ReadUInt64Array(fieldName).ToArray();
+                        return ReadUInt64Array(property).ToArray();
                     case BuiltInType.Float:
-                        return ReadFloatArray(fieldName).ToArray();
+                        return ReadFloatArray(property).ToArray();
                     case BuiltInType.Double:
-                        return ReadDoubleArray(fieldName).ToArray();
+                        return ReadDoubleArray(property).ToArray();
                     case BuiltInType.String:
-                        return ReadStringArray(fieldName).ToArray();
+                        return ReadStringArray(property).ToArray();
                     case BuiltInType.DateTime:
-                        return ReadDateTimeArray(fieldName).ToArray();
+                        return ReadDateTimeArray(property).ToArray();
                     case BuiltInType.Guid:
-                        return ReadGuidArray(fieldName).ToArray();
+                        return ReadGuidArray(property).ToArray();
                     case BuiltInType.ByteString:
-                        return ReadByteStringArray(fieldName).ToArray();
+                        return ReadByteStringArray(property).ToArray();
                     case BuiltInType.XmlElement:
-                        return ReadXmlElementArray(fieldName).ToArray();
+                        return ReadXmlElementArray(property).ToArray();
                     case BuiltInType.NodeId:
-                        return ReadNodeIdArray(fieldName).ToArray();
+                        return ReadNodeIdArray(property).ToArray();
                     case BuiltInType.ExpandedNodeId:
-                        return ReadExpandedNodeIdArray(fieldName).ToArray();
+                        return ReadExpandedNodeIdArray(property).ToArray();
                     case BuiltInType.StatusCode:
-                        return ReadStatusCodeArray(fieldName).ToArray();
+                        return ReadStatusCodeArray(property).ToArray();
                     case BuiltInType.QualifiedName:
-                        return ReadQualifiedNameArray(fieldName).ToArray();
+                        return ReadQualifiedNameArray(property).ToArray();
                     case BuiltInType.LocalizedText:
-                        return ReadLocalizedTextArray(fieldName).ToArray();
+                        return ReadLocalizedTextArray(property).ToArray();
                     case BuiltInType.DataValue:
-                        return ReadDataValueArray(fieldName).ToArray();
+                        return ReadDataValueArray(property).ToArray();
                     case BuiltInType.Enumeration:
-                        return ReadInt32Array(fieldName).ToArray();
+                        return ReadInt32Array(property).ToArray();
                     case BuiltInType.Variant:
-                        return ReadVariantArray(fieldName).ToArray();
+                        return ReadVariantArray(property).ToArray();
                     case BuiltInType.ExtensionObject:
-                        return ReadExtensionObjectArray(fieldName).ToArray();
+                        return ReadExtensionObjectArray(property).ToArray();
                     case BuiltInType.DiagnosticInfo:
-                        return ReadDiagnosticInfoArray(fieldName).ToArray();
+                        return ReadDiagnosticInfoArray(property).ToArray();
                     default: {
                             throw new ServiceResultException(
                                 StatusCodes.BadDecodingError,
@@ -675,12 +635,12 @@ namespace Opc.Ua.Encoders {
             }
             else if (valueRank > ValueRanks.OneDimension) {
                 List<object> array;
-                if (!ReadArrayField(fieldName, out array)) {
+                if (!ReadArrayField(property, out array)) {
                     return null;
                 }
                 List<object> elements = new List<object>();
                 List<int> dimensions = new List<int>();
-                ReadMatrixPart(fieldName, array, builtInType, ref elements, ref dimensions, 0);
+                ReadMatrixPart(property, array, builtInType, ref elements, ref dimensions, 0);
 
                 switch (builtInType) {
                     case BuiltInType.Boolean:
@@ -856,8 +816,38 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public IDictionary<string, DataValue> ReadDataValueDictionary(string property) {
-            return ReadDictionary(property, () => ReadDataValue(null));
+        public DataSet ReadDataSet(string property) {
+            var fieldMask = 0u;
+            bool couldBeRawData = false;
+            var dictionary = ReadDictionary(property, () => {
+                if (TryGetToken(property, out var token)) {
+                    if (token is JObject o) {
+                        if (HasAnyOf(o, "StatusCode")) {
+                            fieldMask |= (uint)DataSetFieldContentMask.StatusCode;
+                        }
+                        if (HasAnyOf(o, "SourceTimestamp")) {
+                            fieldMask |= (uint)DataSetFieldContentMask.SourceTimestamp;
+                        }
+                        if (HasAnyOf(o, "ServerTimestamp")) {
+                            fieldMask |= (uint)DataSetFieldContentMask.ServerTimestamp;
+                        }
+                        if (HasAnyOf(o, "SourcePicoseconds")) {
+                            fieldMask |= (uint)DataSetFieldContentMask.SourcePicoSeconds;
+                        }
+                        if (HasAnyOf(o, "ServerPicoseconds")) {
+                            fieldMask |= (uint)DataSetFieldContentMask.ServerPicoSeconds;
+                        }
+                    }
+                    else if (token is JValue) {
+                        // Could be raw data
+                        couldBeRawData = true;
+                    }
+                }
+                return ReadDataValue(null);
+            });
+            return dictionary == null ? null : new DataSet(dictionary,
+                fieldMask != 0 || !couldBeRawData ? fieldMask :
+                    (uint)DataSetFieldContentMask.RawData);
         }
 
         /// <inheritdoc/>
@@ -1035,6 +1025,27 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <summary>
+        /// Read a dictionary
+        /// </summary>
+        /// <param name="fieldName">The name of the field.</param>
+        /// <param name="token">The returned object token of the field.</param>
+        private bool ReadField(string fieldName, out object token) {
+            token = null;
+
+            if (string.IsNullOrEmpty(fieldName)) {
+                token = _stack.Peek();
+                return true;
+            }
+
+            var context = _stack.Peek().ToObject<Dictionary<string, object>>();
+            if (context == null || !context.TryGetValue(fieldName, out token)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Read extension object body
         /// </summary>
         /// <param name="property"></param>
@@ -1140,7 +1151,7 @@ namespace Opc.Ua.Encoders {
                             return !unsigned ? new Variant((long)token) :
                                 new Variant((ulong)token);
                         }
-                        catch (OverflowException){
+                        catch (OverflowException) {
                             return new Variant((ulong)token);
                         }
                     case JTokenType.Boolean:
@@ -1734,7 +1745,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="property"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        private T[] ReadArray<T>(string property, Func<T> reader) {
+        internal T[] ReadArray<T>(string property, Func<T> reader) {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
@@ -1744,6 +1755,13 @@ namespace Opc.Ua.Encoders {
             return ReadToken(token, reader).YieldReturn().ToArray();
         }
 
+        /// <summary>
+        /// Read dictionary
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         private IDictionary<string, T> ReadDictionary<T>(string property,
             Func<T> reader) {
             if (!TryGetToken(property, out var token) || !(token is JObject o)) {
@@ -1751,7 +1769,7 @@ namespace Opc.Ua.Encoders {
             }
             var dictionary = new Dictionary<string, T>();
             foreach (var p in o.Properties()) {
-                    dictionary[p.Name] = ReadToken(p.Value, reader);
+                dictionary[p.Name] = ReadToken(p.Value, reader);
             }
             return dictionary;
         }
@@ -1763,7 +1781,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="token"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        private T ReadToken<T>(JToken token, Func<T> reader) {
+        internal T ReadToken<T>(JToken token, Func<T> reader) {
             try {
                 _stack.Push(token);
                 return reader();
@@ -1779,7 +1797,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="o"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
-        private static bool HasAnyOf(JObject o, params string[] properties) {
+        internal static bool HasAnyOf(JObject o, params string[] properties) {
             foreach (var property in properties) {
                 if (o.TryGetValue(property,
                     StringComparison.InvariantCultureIgnoreCase, out _)) {
@@ -1795,7 +1813,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="property"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private bool TryGetToken(string property, out JToken token) {
+        internal bool TryGetToken(string property, out JToken token) {
             JToken top;
             if (_stack.Count == 0) {
                 top = ReadNextToken();
@@ -1866,9 +1884,16 @@ namespace Opc.Ua.Encoders {
                     CommentHandling = CommentHandling.Ignore,
                     LineInfoHandling = LineInfoHandling.Ignore
                 });
-            return root as JObject;
+            return root;
         }
 
+        /// <summary>
+        /// Read array field
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="array"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         private bool ReadArrayField(string fieldName, out List<object> array) {
             array = null;
             object token;
@@ -1876,17 +1901,13 @@ namespace Opc.Ua.Encoders {
             if (!ReadField(fieldName, out token)) {
                 return false;
             }
-
             array = token as List<object>;
-
             if (array == null) {
                 return false;
             }
-
             if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < array.Count) {
                 throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded);
             }
-
             return true;
         }
 

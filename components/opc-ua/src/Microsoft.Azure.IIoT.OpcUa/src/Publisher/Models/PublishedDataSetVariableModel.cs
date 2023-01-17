@@ -15,9 +15,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     public class PublishedDataSetVariableModel {
 
         /// <summary>
-        /// Identifier of variable in the dataset.
+        /// Name of variable in the dataset.
         /// </summary>
         public string Id { get; set; }
+
+        /// <summary>
+        /// Identifier of variable in the dataset class.
+        /// </summary>
+        public Guid DataSetClassFieldId { get; set; }
 
         /// <summary>
         /// Node id of the variable

@@ -38,14 +38,14 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 "ns=5;i=2");
 
             await PublishNodesAsync(pnJson, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken, 1);
 
             // Act
-            var payloads = await messages.FirstAsync(_timeoutToken);
+            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
-            VerifyPayloads(payloads.Messages);
+            VerifyPayloads(payloads);
         }
 
         [Fact, PriorityOrder(12)]
@@ -59,14 +59,14 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 "nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2");
 
             await PublishNodesAsync(pnJson, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken, 1);
 
             // Act
-            var payloads = await messages.FirstAsync(_timeoutToken);
+            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
-            VerifyPayloads(payloads.Messages);
+            VerifyPayloads(payloads);
         }
 
         [Fact, PriorityOrder(13)]
@@ -78,14 +78,14 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("ns=5;i=2"));
 
             await PublishNodesAsync(pnJson, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken, 1);
 
             // Act
-            var payloads = await messages.FirstAsync(_timeoutToken);
+            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
-            VerifyPayloads(payloads.Messages);
+            VerifyPayloads(payloads);
         }
 
         [Fact, PriorityOrder(14)]
@@ -97,14 +97,14 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter("nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"));
 
             await PublishNodesAsync(pnJson, _timeoutToken);
-            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken);
+            var messages = _consumer.ReadMessagesFromWriterIdAsync<SystemCycleStatusEventTypePayload>(_writerId, _timeoutToken, 1);
 
             // Act
-            var payloads = await messages.FirstAsync(_timeoutToken);
+            var payloads = await messages.Select(v => v.Payload).ToListAsync(_timeoutToken);
             await UnpublishAllNodesAsync(_timeoutToken);
 
             // Assert
-            VerifyPayloads(payloads.Messages);
+            VerifyPayloads(payloads);
         }
     }
 }

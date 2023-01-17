@@ -511,13 +511,14 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
-        public static IAsyncEnumerable<EventData<T>> ReadMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId, CancellationToken cancellationToken) where T : BaseEventTypePayload
-            => ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken)
+        public static IAsyncEnumerable<EventData<T>> ReadMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId,
+            CancellationToken cancellationToken, int numberOfBatchesToRead) where T : BaseEventTypePayload
+            => ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken, numberOfBatchesToRead)
                 .Select(x =>
                     new EventData<T> {
                         EnqueuedTime = x.enqueuedTime,
                         PublisherId = x.publisherId,
-                        Messages = x.messages.ToObject<PubSubMessages<T>>()
+                        Payload = x.payload.ToObject<T>()
                     });
 
         /// <summary>
@@ -535,12 +536,13 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{T}"/> to be used for iterating over messages.</returns>
-        public static IAsyncEnumerable<PendingAlarmEventData<T>> ReadPendingAlarmMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer, string dataSetWriterId, CancellationToken cancellationToken) where T : BaseEventTypePayload {
-            return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken)
+        public static IAsyncEnumerable<PendingConditionEventData<T>> ReadConditionMessagesFromWriterIdAsync<T>(this EventHubConsumerClient consumer,
+            string dataSetWriterId, CancellationToken cancellationToken, int numberOfBatchesToRead) where T : BaseEventTypePayload {
+            return ReadMessagesFromWriterIdAsync(consumer, dataSetWriterId, cancellationToken, numberOfBatchesToRead)
                 .Select(x =>
-                    new PendingAlarmEventData<T> {
+                    new PendingConditionEventData<T> {
                         IsPayloadCompressed = x.isPayloadCompressed,
-                        Messages = x.messages.ToObject<PendingAlarmMessages<T>>()
+                        Payload = x.payload.ToObject<T>()
                     }
                 );
         }
@@ -560,12 +562,13 @@ namespace OpcPublisher_AE_E2E_Tests {
         /// <param name="consumer">The Event Hubs consumer.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <returns>An <see cref="IAsyncEnumerable{JObject}"/> to be used for iterating over messages.</returns>
-        public static async IAsyncEnumerable<(DateTime enqueuedTime, string publisherId, JObject messages, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId, [EnumeratorCancellation] CancellationToken cancellationToken) {
+        public static async IAsyncEnumerable<(DateTime enqueuedTime, string publisherId, JObject payload, bool isPayloadCompressed)> ReadMessagesFromWriterIdAsync(this EventHubConsumerClient consumer, string dataSetWriterId,
+            [EnumeratorCancellation] CancellationToken cancellationToken, int numberOfBatchesToRead) {
             var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
             await foreach (var partitionEvent in events.WithCancellation(cancellationToken)) {
                 var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[MessageSystemPropertyNames.EnqueuedTime];
                 JToken json = null;
-                bool isPayloadCompressed = (string)partitionEvent.Data.Properties["$$ContentEncoding"] == "gzip";
+                bool isPayloadCompressed = (string)partitionEvent.Data.Properties["$$ContentType"] == "application/json+gzip";
                 if (isPayloadCompressed) {
                     var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
                     using (var input = new MemoryStream(compressedPayload)) {
@@ -604,11 +607,16 @@ namespace OpcPublisher_AE_E2E_Tests {
                         if (messageWriterId != dataSetWriterId) {
                             continue;
                         }
+
+                        // Metadata disabled, always sending version 1
                         Assert.Equal(1, innerMessage.MetaDataVersion.MajorVersion.Value);
-                        Assert.Equal(0, innerMessage.MetaDataVersion.MinorVersion.Value);
 
                         yield return (enqueuedTime, publisherId, (JObject)innerMessage.Payload, isPayloadCompressed);
                     }
+                }
+
+                if (batchedMessages.Count > 0 && --numberOfBatchesToRead == 0) {
+                    break;
                 }
             }
         }

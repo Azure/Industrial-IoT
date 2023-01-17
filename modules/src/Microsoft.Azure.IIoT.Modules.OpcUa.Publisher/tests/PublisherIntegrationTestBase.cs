@@ -47,6 +47,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using Xunit;
     using static Microsoft.Azure.IIoT.Hub.Mock.IoTHubServices;
 
     /// <summary>
@@ -82,58 +83,134 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             _serverFixture = serverFixture;
         }
 
-        protected Task<List<JsonDocument>> ProcessMessagesAsync(
+        protected Task<List<JsonElement>> ProcessMessagesAsync(
             string publishedNodesFile,
-            Func<JsonDocument, bool> predicate = null,
+            Func<JsonElement, JsonElement> predicate = null,
+            string messageType = null,
             string[] arguments = default) {
             // Collect messages from server with default settings
-            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, arguments);
+            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
         }
 
-        protected async Task<List<JsonDocument>> ProcessMessagesAsync(
+        protected Task<(JsonElement? Metadata, List<JsonElement> Messages)> ProcessMessagesAndMetadataAsync(
+            string publishedNodesFile,
+            Func<JsonElement, JsonElement> predicate = null,
+            string messageType = null,
+            string[] arguments = default) {
+            // Collect messages from server with default settings
+            return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
+        }
+
+        protected async Task<List<JsonElement>> ProcessMessagesAsync(
             string publishedNodesFile,
             TimeSpan messageCollectionTimeout,
             int messageCount,
-            Func<JsonDocument, bool> predicate = null,
+            Func<JsonElement, JsonElement> predicate = null,
+            string messageType = null,
+            string[] arguments = default) {
+
+            var (_, messages) = await ProcessMessagesAndMetadataAsync(publishedNodesFile,
+                messageCollectionTimeout, messageCount, predicate, messageType, arguments);
+            return messages;
+        }
+
+        protected async Task<(JsonElement? Metadata, List<JsonElement> Messages)> ProcessMessagesAndMetadataAsync(
+            string publishedNodesFile,
+            TimeSpan messageCollectionTimeout,
+            int messageCount,
+            Func<JsonElement, JsonElement> predicate = null,
+            string messageType = null,
             string[] arguments = default) {
 
             await StartPublisherAsync(publishedNodesFile, arguments);
 
-            var messages = WaitForMessages(messageCollectionTimeout, messageCount, predicate);
+            JsonElement? metadata = null;
+            var messages = WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
 
             StopPublisher();
 
-            return messages;
+            return (metadata, messages);
         }
 
         /// <summary>
         /// Wait for one message
         /// </summary>
-        protected List<JsonDocument> WaitForMessages(Func<JsonDocument, bool> predicate = null) {
+        protected List<JsonElement> WaitForMessages(
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
             // Collect messages from server with default settings
-            return WaitForMessages(TimeSpan.FromMinutes(2), 1, predicate);
+            JsonElement? metadata = null;
+            return WaitForMessagesAndMetadata(TimeSpan.FromMinutes(2), 1, ref metadata, predicate, messageType);
+        }
+
+        /// <summary>
+        /// Wait for one message
+        /// </summary>
+        protected List<JsonElement> WaitForMessagesAndMetadata(ref JsonElement? metadata,
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+            // Collect messages from server with default settings
+            return WaitForMessagesAndMetadata(TimeSpan.FromMinutes(2), 1, ref metadata, predicate, messageType);
+        }
+
+        /// <summary>
+        /// Wait for one message
+        /// </summary>
+        protected List<JsonElement> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
+            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
+            // Collect messages from server with default settings
+            JsonElement? metadata = null;
+            return WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
         }
 
         /// <summary>
         /// Wait for messages
         /// </summary>
-        protected List<JsonDocument> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
-            Func<JsonDocument, bool> predicate = null) {
+        protected List<JsonElement> WaitForMessagesAndMetadata(TimeSpan messageCollectionTimeout, int messageCount,
+            ref JsonElement? metadata, Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            var messages = new List<JsonDocument>();
+            var messages = new List<JsonElement>();
             while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
                 && Events.TryTake(out var evt, messageCollectionTimeout)) {
                 messageCollectionTimeout -= stopWatch.Elapsed;
                 var json = Encoding.UTF8.GetString(evt.Message.GetBytes());
                 var document = JsonDocument.Parse(json);
                 json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
-                if (predicate != null && !predicate(document)) {
-                    continue;
+                var element = document.RootElement;
+                if (element.ValueKind == JsonValueKind.Array) {
+                    foreach (var item in element.EnumerateArray()) {
+                        Add(messages, item, ref metadata, predicate, messageType, _messageIds);
+                    }
                 }
-                messages.Add(document);
+                else if (element.ValueKind == JsonValueKind.Object) {
+                    Add(messages, element, ref metadata, predicate, messageType, _messageIds);
+                }
             }
             return messages.Take(messageCount).ToList();
+
+            static void Add(List<JsonElement> messages, JsonElement item, ref JsonElement? metadata,
+                Func<JsonElement, JsonElement> predicate, string messageType, HashSet<string> messageIds) {
+                if (messageType != null) {
+                    if (item.TryGetProperty("MessageType", out var v)) {
+                        var type = v.GetString();
+                        if (type == "ua-metadata") {
+                            metadata = item;
+                        }
+                        if (type != messageType) {
+                            return;
+                        }
+                    }
+                    if (item.TryGetProperty("MessageId", out var id)) {
+                        Assert.True(messageIds.Add(id.GetString()));
+                    }
+                }
+                var add = item;
+                if (predicate != null) {
+                    add = predicate(item);
+                }
+                if (add.ValueKind == JsonValueKind.Object) {
+                    messages.Add(add);
+                }
+            }
         }
 
         /// <summary>
@@ -348,6 +425,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         private readonly TaskCompletionSource<bool> _running;
         private readonly ConnectionString _typedConnectionString;
         private readonly ReferenceServerFixture _serverFixture;
+        HashSet<string> _messageIds = new HashSet<string>();
         private IContainer _apiScope;
     }
 }

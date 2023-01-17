@@ -22,9 +22,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 DataSet = model.DataSet.Clone(),
                 DataSetFieldContentMask = model.DataSetFieldContentMask,
                 DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
-                DataSetWriterId = model.DataSetWriterId,
+                DataSetWriterName = model.DataSetWriterName,
                 KeyFrameCount = model.KeyFrameCount,
-                KeyFrameInterval = model.KeyFrameInterval,
                 MessageSettings = model.MessageSettings.Clone()
             };
         }

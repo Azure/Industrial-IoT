@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Subscription model extensions
@@ -23,8 +24,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 PublishingInterval = model.PublishingInterval,
                 LifetimeCount = model.LifetimeCount,
                 KeepAliveCount = model.KeepAliveCount,
-                MaxNotificationsPerPublish = model.MaxNotificationsPerPublish,
                 Priority = model.Priority,
+                MetaData = model.MetaData.Clone(),
                 ResolveDisplayName = model.ResolveDisplayName
             };
         }
@@ -52,10 +53,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             if (model.KeepAliveCount != other.KeepAliveCount) {
                 return false;
             }
-            if (model.MaxNotificationsPerPublish != other.MaxNotificationsPerPublish) {
+            if (model.Priority != other.Priority) {
                 return false;
             }
-            if (model.Priority != other.Priority) {
+            if (!model.MetaData.IsSameAs(other.MetaData)) {
                 return false;
             }
             if (model.ResolveDisplayName != other.ResolveDisplayName) {

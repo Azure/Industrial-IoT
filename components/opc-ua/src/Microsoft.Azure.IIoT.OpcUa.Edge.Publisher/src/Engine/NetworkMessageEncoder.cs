@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
-    using Microsoft.Azure.IIoT.OpcUa.Core;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
@@ -13,14 +12,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using Opc.Ua.PubSub;
+    using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.IO;
+    using System.Diagnostics;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Serilog;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -42,14 +38,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
 
-        /// <summary> Logger for reporting. </summary>
-        private readonly ILogger _logger;
-
-        /// <summary> Flag to determine if extra routing information is enabled </summary>
-        private readonly bool _enableRoutingInfo;
-
-        /// <summary> Flag to use reversible encoding for messages </summary>
-        private readonly bool _useReversibleEncoding;
+        /// <inheritdoc/>
+        public double MaxMessageSplitRatio { get; private set; }
 
         /// <summary>
         /// Create instance of NetworkMessageEncoder.
@@ -58,377 +48,300 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="engineConfig"> injected configuration. </param>
         public NetworkMessageEncoder(ILogger logger, IEngineConfiguration engineConfig) {
             _logger = logger;
-            _enableRoutingInfo = engineConfig.EnableRoutingInfo.GetValueOrDefault(false);
-            _useReversibleEncoding = engineConfig.UseReversibleEncoding.GetValueOrDefault(false);
+            _enableRoutingInfo = engineConfig.EnableRoutingInfo;
+            _useStandardsCompliantEncoding = engineConfig.UseStandardsCompliantEncoding;
         }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-            try {
-                var resultJson = EncodeAsJson(messages, maxMessageSize);
-                var resultUadp = EncodeAsUadp(messages, maxMessageSize);
-                var result = resultJson.Concat(resultUadp);
-                return Task.FromResult<IEnumerable<NetworkMessageModel>>(result.ToList());
-            }
-            catch (Exception e) {
-                _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
-                return Task.FromResult(Enumerable.Empty<NetworkMessageModel>());
-            }
-        }
+        public IEnumerable<NetworkMessageModel> Encode(IEnumerable<SubscriptionNotificationModel> messages,
+            int maxMessageSize, bool asBatch) {
 
-        /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-            try {
-                var resultJson = EncodeBatchAsJson(messages, maxMessageSize);
-                var resultUadp = EncodeBatchAsUadp(messages, maxMessageSize);
-                var result = resultJson.Concat(resultUadp);
-                return Task.FromResult<IEnumerable<NetworkMessageModel>>(result.ToList());
+            //
+            // by design all messages are generated in the same session context, therefore it is safe to
+            // get the first message's context
+            //
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
+            var chunkedMessages = new List<NetworkMessageModel>();
+            if (encodingContext == null) {
+                // Drop all messages
+                Drop(messages);
+                return chunkedMessages;
             }
-            catch (Exception e) {
-                _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
-                return Task.FromResult(Enumerable.Empty<NetworkMessageModel>());
-            }
-        }
 
-        /// <summary>
-        /// DataSetMessage to NetworkMessage Json batched encoding
-        /// </summary>
-        /// <param name="messages">Messages to encode</param>
-        /// <param name="maxMessageSize">Maximum size of messages</param>
-        /// <returns></returns>
-        private IEnumerable<NetworkMessageModel> EncodeBatchAsJson(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            var networkMessages = GetNetworkMessages(messages, asBatch);
+            foreach (var (notificationsPerMessage, networkMessage) in networkMessages) {
+                var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
+                var tooBig = 0;
+                var notificationsPerChunk = notificationsPerMessage / (double)chunks.Count;
+                foreach (var body in chunks) {
+                    if (body == null) {
+                        //
+                        // Failed to press a notification into message size limit
+                        // This is somewhat correct as the smallest dropped chunk is
+                        // a message containing only a single data set message which
+                        // contains (parts) of a notification.
+                        //
+                        _logger.Warning("Resulting chunk is too large, dropped a notification.");
+                        tooBig++;
+                        continue;
+                    }
 
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
-                ?.ServiceMessageContext;
-            var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
-            if (!notifications.Any()) {
-                yield break;
-            }
-            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
-            var current = notifications.GetEnumerator();
-            var processing = current.MoveNext();
-            var messageSize = 2; // array brackets
-            var chunk = new Collection<NetworkMessage>();
-            int notificationsPerMessage = 0;
-            while (processing) {
-                var notification = current.Current;
-                var messageCompleted = false;
-                if (notification != null) {
-                    var helperWriter = new StringWriter();
-                    var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
-                        UseAdvancedEncoding = true,
-                        UseUriEncoding = true,
-                        UseReversibleEncoding = _useReversibleEncoding
-                    };
-                    notification.Encode(helperEncoder);
-                    helperEncoder.Close();
-                    var notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
-                    var notificationsInBatch = notification.Messages.Sum(m => m.Payload.Count);
-                    if (notificationSize > maxMessageSize) {
-                        // Message too large, drop it.
-                        NotificationsDroppedCount += (uint)notificationsInBatch;
-                        _logger.Warning("Message too large, dropped {notificationsInBatch} values", notificationsInBatch);
-                        processing = current.MoveNext();
-                    }
-                    else {
-                        messageCompleted = maxMessageSize < (messageSize + notificationSize);
-                        if (!messageCompleted) {
-                            chunk.Add(notification);
-                            NotificationsProcessedCount += (uint)notificationsInBatch;
-                            notificationsPerMessage += notificationsInBatch;
-                            processing = current.MoveNext();
-                            messageSize += notificationSize + (processing ? 1 : 0);
-                        }
-                    }
-                }
-                if (messageCompleted || (!processing && chunk.Count > 0)) {
-                    var writer = new StringWriter();
-                    var encoder = new JsonEncoderEx(writer, encodingContext,
-                        JsonEncoderEx.JsonEncoding.Array) {
-                        UseAdvancedEncoding = true,
-                        UseUriEncoding = true,
-                        UseReversibleEncoding = _useReversibleEncoding
-                    };
-                    foreach (var element in chunk) {
-                        encoder.WriteEncodeable(null, element);
-                    }
-                    encoder.Close();
-                    var encoded = new NetworkMessageModel {
-                        Body = Encoding.UTF8.GetBytes(writer.ToString()),
-                        ContentEncoding = "utf-8",
+                    chunkedMessages.Add(new NetworkMessageModel {
                         Timestamp = DateTime.UtcNow,
-                        ContentType = ContentMimeType.Json,
-                        MessageSchema = MessageSchemaTypes.NetworkMessageJson,
-                        RoutingInfo = _enableRoutingInfo ? routingInfo : null,
-                    };
-                    AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
+                        Body = body,
+                        ContentEncoding = networkMessage.ContentEncoding,
+                        ContentType = networkMessage.ContentType,
+                        MessageSchema = networkMessage.MessageSchema,
+                        RoutingInfo = networkMessage.RoutingInfo,
+                    });
+
+                    AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + body.Length) /
                         (MessagesProcessedCount + 1);
                     AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
-                        notificationsPerMessage) / (MessagesProcessedCount + 1);
+                        notificationsPerChunk) / (MessagesProcessedCount + 1);
                     MessagesProcessedCount++;
-                    chunk.Clear();
-                    messageSize = 2;
-                    notificationsPerMessage = 0;
-                    yield return encoded;
                 }
-            }
-        }
 
-        /// <summary>
-        /// DataSetMessage to NetworkMessage binary batched encoding
-        /// </summary>
-        /// <param name="messages"></param>
-        /// <param name="maxMessageSize"></param>
-        /// <returns></returns>
-        private IEnumerable<NetworkMessageModel> EncodeBatchAsUadp(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+                // We dropped a number of notifications but processed the remainder successfully
+                NotificationsDroppedCount += (uint)tooBig;
+                if (notificationsPerMessage > tooBig) {
+                    NotificationsProcessedCount += (uint)(notificationsPerMessage - tooBig);
+                }
 
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
-                ?.ServiceMessageContext;
-            var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp, encodingContext);
-            if (!notifications.Any()) {
-                yield break;
-            }
-            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
-            var current = notifications.GetEnumerator();
-            var processing = current.MoveNext();
-            var messageSize = 4; // array length size
-            var chunk = new Collection<NetworkMessage>();
-            int notificationsPerMessage = 0;
-            while (processing) {
-                var notification = current.Current;
-                var messageCompleted = false;
-                if (notification != null) {
-                    var helperEncoder = new BinaryEncoder(encodingContext);
-                    helperEncoder.WriteEncodeable(null, notification);
-                    var notificationSize = helperEncoder.CloseAndReturnBuffer().Length;
-                    var notificationsInBatch = notification.Messages.Sum(m => m.Payload.Count);
-                    if (notificationSize > maxMessageSize) {
-                        // Message too large, drop it.
-                        NotificationsDroppedCount += (uint)notificationsInBatch;
-                        _logger.Warning("Message too large, dropped {notificationsInBatch} values", notificationsInBatch);
-                        processing = current.MoveNext();
-                    }
-                    else {
-                        messageCompleted = maxMessageSize < (messageSize + notificationSize);
-                        if (!messageCompleted) {
-                            chunk.Add(notification);
-                            NotificationsProcessedCount += (uint)notificationsInBatch;
-                            notificationsPerMessage += notificationsInBatch;
-                            processing = current.MoveNext();
-                            messageSize += notificationSize;
-                        }
+                //
+                // how many notifications per message resulted in how many buffers. We track the
+                // split size to provide users with an indication how many times chunks had to
+                // be created so they can configure publisher to improve performance.
+                //
+                if (notificationsPerMessage > 0 && notificationsPerMessage < chunkedMessages.Count) {
+                    var splitSize = chunkedMessages.Count / notificationsPerMessage;
+                    if (splitSize > MaxMessageSplitRatio) {
+                        MaxMessageSplitRatio = splitSize;
                     }
                 }
-                if (messageCompleted || (!processing && chunk.Count > 0)) {
-                    var encoder = new BinaryEncoder(encodingContext);
-                    encoder.WriteBoolean(null, true); // is Batch
-                    encoder.WriteEncodeableArray(null, chunk);
-                    var encoded = new NetworkMessageModel {
-                        Body = encoder.CloseAndReturnBuffer(),
-                        Timestamp = DateTime.UtcNow,
-                        ContentType = ContentMimeType.Uadp,
-                        MessageSchema = MessageSchemaTypes.NetworkMessageUadp,
-                        RoutingInfo = _enableRoutingInfo ? routingInfo : null,
-                    };
-                    AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
-                        (MessagesProcessedCount + 1);
-                    AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
-                        notificationsPerMessage) / (MessagesProcessedCount + 1);
-                    MessagesProcessedCount++;
-                    chunk.Clear();
-                    messageSize = 4;
-                    notificationsPerMessage = 0;
-                    yield return encoded;
-                }
             }
-        }
-
-        /// <summary>
-        /// Perform json encoding
-        /// </summary>
-        /// <param name="messages">Messages to encode</param>
-        /// <param name="maxMessageSize">Maximum size of messages</param>
-        /// <returns></returns>
-        private IEnumerable<NetworkMessageModel> EncodeAsJson(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
-                ?.ServiceMessageContext;
-            var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
-            if (!notifications.Any()) {
-                yield break;
-            }
-            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
-            foreach (var networkMessage in notifications) {
-                int notificationsPerMessage = networkMessage.Messages.Sum(m => m.Payload.Count);
-                var writer = new StringWriter();
-                var encoder = new JsonEncoderEx(writer, encodingContext) {
-                    UseAdvancedEncoding = true,
-                    UseUriEncoding = true,
-                    UseReversibleEncoding = _useReversibleEncoding
-                };
-                networkMessage.Encode(encoder);
-                encoder.Close();
-                var encoded = new NetworkMessageModel {
-                    Body = Encoding.UTF8.GetBytes(writer.ToString()),
-                    ContentEncoding = "utf-8",
-                    Timestamp = DateTime.UtcNow,
-                    ContentType = ContentMimeType.Json,
-                    MessageSchema = MessageSchemaTypes.NetworkMessageJson,
-                    RoutingInfo = _enableRoutingInfo ? routingInfo : null,
-                };
-                if (encoded.Body.Length > maxMessageSize) {
-                    // Message too large, drop it.
-                    NotificationsDroppedCount += (uint)notificationsPerMessage;
-                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
-                    continue;
-                }
-                NotificationsProcessedCount += (uint)notificationsPerMessage;
-                AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
-                    (MessagesProcessedCount + 1);
-                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + notificationsPerMessage) /
-                    (MessagesProcessedCount + 1);
-                MessagesProcessedCount++;
-                yield return encoded;
-            }
-        }
-
-        /// <summary>
-        /// Perform uadp encoding
-        /// </summary>
-        /// <param name="messages"></param>
-        /// <param name="maxMessageSize"></param>
-        /// <returns></returns>
-        private IEnumerable<NetworkMessageModel> EncodeAsUadp(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
-                ?.ServiceMessageContext;
-            var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp, encodingContext);
-            if (!notifications.Any()) {
-                yield break;
-            }
-            var routingInfo = messages.FirstOrDefault(m => m?.WriterGroup != null)?.WriterGroup.WriterGroupId;
-            foreach (var networkMessage in notifications) {
-                int notificationsPerMessage = networkMessage.Messages.Sum(m => m.Payload.Count);
-                var encoder = new BinaryEncoder(encodingContext);
-                encoder.WriteBoolean(null, false); // is not Batch
-                encoder.WriteEncodeable(null, networkMessage);
-                networkMessage.Encode(encoder);
-                var encoded = new NetworkMessageModel {
-                    Body = encoder.CloseAndReturnBuffer(),
-                    Timestamp = DateTime.UtcNow,
-                    ContentType = ContentMimeType.Uadp,
-                    MessageSchema = MessageSchemaTypes.NetworkMessageUadp,
-                    RoutingInfo = _enableRoutingInfo ? routingInfo : null,
-                };
-                if (encoded.Body.Length > maxMessageSize) {
-                    // Message too large, drop it.
-                    NotificationsDroppedCount += (uint)notificationsPerMessage;
-                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
-                    continue;
-                }
-                NotificationsProcessedCount += (uint)notificationsPerMessage;
-                AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
-                    (MessagesProcessedCount + 1);
-                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + notificationsPerMessage) /
-                    (MessagesProcessedCount + 1);
-                MessagesProcessedCount++;
-                yield return encoded;
-            }
+            return chunkedMessages;
         }
 
         /// <summary>
         /// Produce network messages from the data set message model
         /// </summary>
         /// <param name="messages"></param>
-        /// <param name="encoding"></param>
-        /// <param name="context"></param>
+        /// <param name="isBatched"></param>
         /// <returns></returns>
-        private IEnumerable<NetworkMessage> GetNetworkMessages(
-            IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
-            IServiceMessageContext context) {
-            if (context?.NamespaceUris == null) {
-                // Declare all notifications in messages as dropped.
-                int totalNotifications = messages.Sum(m => m?.Notifications?.Count() ?? 0);
-                NotificationsDroppedCount += (uint)totalNotifications;
-                _logger.Warning("Namespace is empty, dropped {totalNotifications} values", totalNotifications);
-                yield break;
-            }
-
-            // TODO: Honor single message
-            // TODO: Group by writer
-            foreach (var message in messages) {
-                if (message.WriterGroup?.MessageType
-                    .GetValueOrDefault(MessageEncoding.Json) == encoding) {
-                    var networkMessage = new NetworkMessage() {
-                        MessageContentMask = message.WriterGroup
-                            .MessageSettings.NetworkMessageContentMask
-                            .ToStackType(message.WriterGroup?.MessageType),
-                        PublisherId = message.PublisherId,
-                        DataSetClassId = message.Writer?.DataSet?
-                            .DataSetMetaData?.DataSetClassId.ToString(),
-                        DataSetWriterGroup = message.WriterGroup.WriterGroupId,
-                        MessageId = message.SequenceNumber.ToString()
-                    };
-                    var notificationQueues = message.Notifications
-                        .GroupBy(m => !string.IsNullOrEmpty(m.Id) ?
-                                        m.Id :
-                                        !string.IsNullOrEmpty(m.DisplayName) ?
-                                            m.DisplayName :
-                                            m.NodeId)
-                        .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
-                        .ToArray();
-
-                    while (notificationQueues.Any(q => q.Any())) {
-                        var payload = notificationQueues
-                            .Select(q => q.Any() ? q.Dequeue() : null)
-                            .Where(s => s != null)
-                            .ToDictionary(
-                                //  Identifier to show for notification in payload of IoT Hub method
-                                //  Prio 1: Id = DataSetFieldId - if already configured
-                                //  Prio 2: Id = DisplayName - if already configured
-                                //  Prio 3: NodeId as configured
-                                s => !string.IsNullOrEmpty(s.Id) ?
-                                        s.Id :
-                                        !string.IsNullOrEmpty(s.DisplayName) ?
-                                            s.DisplayName :
-                                            s.NodeId,
-                                s => s.Value);
-
-                        var dataSetMessage = new DataSetMessage() {
-                            DataSetWriterId = message.Writer.DataSetWriterId,
-                            MetaDataVersion = new ConfigurationVersionDataType {
-                                MajorVersion = message.Writer?.DataSet?.DataSetMetaData?
-                                    .ConfigurationVersion?.MajorVersion ?? 1,
-                                MinorVersion = message.Writer?.DataSet?.DataSetMetaData?
-                                    .ConfigurationVersion?.MinorVersion ?? 0
-                            },
-                            MessageContentMask = (message.Writer?.MessageSettings?.DataSetMessageContentMask)
-                                .ToStackType(message.WriterGroup?.MessageType),
-                            Timestamp = message.TimeStamp ?? DateTime.UtcNow,
-                            SequenceNumber = message.SequenceNumber,
-                            Status = payload.Values.Any(s => StatusCode.IsNotGood(s.StatusCode)) ?
-                                StatusCodes.Bad : StatusCodes.Good,
-                            Payload = new DataSet(payload, (uint)message.Writer?.DataSetFieldContentMask.ToStackType())
-                        };
-                        networkMessage.Messages.Add(dataSetMessage);
+        private List<(int, PubSubMessage)> GetNetworkMessages(IEnumerable<SubscriptionNotificationModel> messages,
+            bool isBatched) {
+            var result = new List<(int, PubSubMessage)>();
+            // Group messages by publisher, then writer group and then by dataset class id
+            foreach (var publishers in messages
+                .Select(m => (Notification: m, Context: m.Context as WriterGroupMessageContext))
+                .Where(m => m.Context != null)
+                .GroupBy(m => m.Context.PublisherId)) {
+                var publisherId = publishers.Key;
+                foreach (var groups in publishers.GroupBy(m => m.Context.WriterGroup)) {
+                    var writerGroup = groups.Key;
+                    if (writerGroup?.MessageSettings == null) {
+                        // Must have a writer group
+                        Drop(groups.Select(m => m.Notification));
+                        continue;
                     }
-                    yield return networkMessage;
+                    var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
+                    var messageMask = writerGroup.MessageSettings.NetworkMessageContentMask;
+                    var hasSamplesPayload = (messageMask & NetworkMessageContentMask.MonitoredItemMessage) != 0;
+                    if (hasSamplesPayload && !isBatched) {
+                        messageMask |= NetworkMessageContentMask.SingleDataSetMessage;
+                    }
+                    var networkMessageContentMask = messageMask.ToStackType(encoding);
+                    foreach (var dataSetClass in groups
+                        .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty)) {
+
+                        var dataSetClassId = dataSetClass.Key;
+                        var currentMessage = CreateMessage(writerGroup, encoding,
+                            networkMessageContentMask, dataSetClassId, publisherId);
+                        var currentNotificationCount = 0;
+                        foreach (var message in dataSetClass) {
+                            if (message.Context.Writer == null ||
+                                (hasSamplesPayload && !encoding.HasFlag(MessageEncoding.Json))) {
+                                // Must have a writer or if samples mode, must be json
+                                Drop(message.Notification.YieldReturn());
+                                continue;
+                            }
+                            var dataSetMessageContentMask =
+                                (message.Context.Writer.MessageSettings?.DataSetMessageContentMask).ToStackType(
+                                    message.Context.Writer.DataSetFieldContentMask, encoding);
+                            var dataSetFieldContentMask =
+                                    message.Context.Writer.DataSetFieldContentMask.ToStackType();
+
+                            if (message.Notification.MessageType != MessageType.Metadata) {
+                                Debug.Assert(message.Notification.Notifications != null);
+                                var notificationQueues = message.Notification.Notifications
+                                    .GroupBy(m => m.DataSetFieldName)
+                                    .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray()))
+                                    .ToArray();
+
+                                while (notificationQueues.Any(q => q.Count > 0)) {
+                                    var orderedNotifications = notificationQueues
+                                        .Select(q => q.Count > 0 ? q.Dequeue() : null)
+                                        .Where(s => s != null);
+
+                                    if (!hasSamplesPayload) {
+                                        // Create regular data set messages
+                                        BaseDataSetMessage dataSetMessage = encoding.HasFlag(MessageEncoding.Json)
+                                            ? new JsonDataSetMessage {
+                                                UseCompatibilityMode = !_useStandardsCompliantEncoding,
+                                                DataSetWriterName = message.Context.Writer.DataSetWriterName
+                                            }
+                                            : new UadpDataSetMessage();
+
+                                        dataSetMessage.DataSetWriterId = message.Notification.SubscriptionId;
+                                        dataSetMessage.MessageType = message.Notification.MessageType;
+                                        dataSetMessage.MetaDataVersion = message.Notification.MetaData?.ConfigurationVersion
+                                            ?? kEmptyConfiguration;
+                                        dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
+                                        dataSetMessage.Timestamp = message.Notification.Timestamp;
+                                        dataSetMessage.SequenceNumber = message.Context.SequenceNumber;
+                                        dataSetMessage.Payload = new DataSet(orderedNotifications.ToDictionary(
+                                            s => s.DataSetFieldName, s => s.Value), (uint)dataSetFieldContentMask);
+
+                                        AddMessage(dataSetMessage);
+                                    }
+                                    else {
+                                        // Add monitored item message payload to network message to handle backcompat
+                                        foreach (var itemNotifications in orderedNotifications.GroupBy(f => f.Id + f.MessageId)) {
+                                            var notificationsInGroup = itemNotifications.ToList();
+                                            Debug.Assert(notificationsInGroup.Count != 0);
+                                            //
+                                            // Special monitored item handling for events and conditions. Collate all
+                                            // values into a single key value data dictionary extension object value.
+                                            // Regular notifications we send as single messages.
+                                            //
+                                            if (notificationsInGroup.Count > 1 &&
+                                                (message.Notification.MessageType == MessageType.Event ||
+                                                 message.Notification.MessageType == MessageType.Condition)) {
+                                                Debug.Assert(notificationsInGroup
+                                                    .Select(n => n.DataSetFieldName).Distinct().Count() == notificationsInGroup.Count,
+                                                    "There should not be duplicates in fields in a group.");
+                                                Debug.Assert(notificationsInGroup
+                                                    .All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
+                                                    "All notifications in the group should have the same sequence number.");
+
+                                                var eventNotification = notificationsInGroup[0]; // No clone, mutate ok.
+                                                eventNotification.Value = new DataValue {
+                                                    Value = new EncodeableDictionary(notificationsInGroup
+                                                        .Select(n => new KeyDataValuePair(n.DataSetFieldName, n.Value)))
+                                                };
+                                                eventNotification.DataSetFieldName = notificationsInGroup[0].DisplayName;
+                                                notificationsInGroup = new List<MonitoredItemNotificationModel> {
+                                                    eventNotification
+                                                };
+                                            }
+                                            foreach (var notification in notificationsInGroup) {
+                                                var dataSetMessage = new MonitoredItemMessage {
+                                                    UseCompatibilityMode = !_useStandardsCompliantEncoding,
+                                                    ApplicationUri = message.Notification.ApplicationUri,
+                                                    EndpointUrl = message.Notification.EndpointUrl,
+                                                    NodeId = notification.NodeId,
+                                                    MessageType = message.Notification.MessageType,
+                                                    DataSetMessageContentMask = dataSetMessageContentMask,
+                                                    Timestamp = message.Notification.Timestamp,
+                                                    SequenceNumber = message.Context.SequenceNumber,
+                                                    ExtensionFields = message.Context.Writer.DataSet.ExtensionFields,
+                                                    Payload = new DataSet(notification.DataSetFieldName, notification.Value,
+                                                        (uint)dataSetFieldContentMask)
+                                                };
+                                                AddMessage(dataSetMessage);
+                                            }
+                                        }
+                                    }
+
+                                    //
+                                    // Add message and number of notifications processed count to method result.
+                                    // Checks current length and splits if max items reached if configured.
+                                    //
+                                    void AddMessage(BaseDataSetMessage dataSetMessage) {
+                                        currentMessage.Messages.Add(dataSetMessage);
+                                        if (writerGroup.MessageSettings?.MaxMessagesPerPublish != null &&
+                                            currentMessage.Messages.Count >= writerGroup.MessageSettings.MaxMessagesPerPublish) {
+                                            result.Add((currentNotificationCount, currentMessage));
+                                            currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
+                                                dataSetClassId, publisherId);
+                                            currentNotificationCount = 0;
+                                        }
+                                    }
+                                }
+                                currentNotificationCount++;
+                            }
+                            else if (message.Notification.MetaData != null && !hasSamplesPayload) {
+                                if (currentMessage.Messages.Count > 0) {
+                                    // Start a new message but first emit current
+                                    result.Add((currentNotificationCount, currentMessage));
+                                    currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
+                                        dataSetClassId, publisherId);
+                                    currentNotificationCount = 0;
+                                }
+                                PubSubMessage metadataMessage = encoding.HasFlag(MessageEncoding.Json)
+                                    ? new JsonMetaDataMessage {
+                                        UseAdvancedEncoding = !_useStandardsCompliantEncoding,
+                                        UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
+                                        DataSetWriterId = message.Notification.SubscriptionId,
+                                        MetaData = message.Notification.MetaData,
+                                        MessageId = Guid.NewGuid().ToString(),
+                                        DataSetWriterGroup = writerGroup.WriterGroupId,
+                                        DataSetWriterName = message.Context.Writer.DataSetWriterName
+                                    } : new UadpMetaDataMessage {
+                                        DataSetWriterId = message.Notification.SubscriptionId,
+                                        MetaData = message.Notification.MetaData
+                                    };
+                                metadataMessage.PublisherId = publisherId;
+
+                                // TODO: Overriding with metadata topic name
+                                metadataMessage.RoutingInfo = _enableRoutingInfo ? writerGroup.WriterGroupId : null;
+                                result.Add((0, metadataMessage));
+                            }
+                        }
+                        if (currentMessage.Messages.Count > 0) {
+                            result.Add((currentNotificationCount, currentMessage));
+                        }
+
+                        BaseNetworkMessage CreateMessage(WriterGroupModel writerGroup, MessageEncoding encoding,
+                            uint networkMessageContentMask, Guid dataSetClassId, string publisherId) {
+                            BaseNetworkMessage currentMessage = encoding.HasFlag(MessageEncoding.Json) ?
+                                new JsonNetworkMessage {
+                                UseAdvancedEncoding = !_useStandardsCompliantEncoding,
+                                UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
+                                UseArrayEnvelope = !_useStandardsCompliantEncoding && isBatched,
+                                MessageId = () => Guid.NewGuid().ToString(),
+                                DataSetWriterGroup = writerGroup.WriterGroupId
+                            } : new UadpNetworkMessage {
+                                //   WriterGroupId = writerGroup.Index,
+                                //   GroupVersion = writerGroup.Version,
+                                SequenceNumber = () => SequenceNumber.Increment16(ref _sequenceNumber),
+                                Timestamp = DateTime.UtcNow,
+                                PicoSeconds = 0
+                            };
+                            currentMessage.NetworkMessageContentMask = networkMessageContentMask;
+                            currentMessage.PublisherId = publisherId;
+                            currentMessage.DataSetClassId = dataSetClassId;
+                            currentMessage.RoutingInfo = _enableRoutingInfo ? writerGroup.WriterGroupId : null;
+                            return currentMessage;
+                        }
+                    }
                 }
             }
+            return result;
         }
+
+        private void Drop(IEnumerable<SubscriptionNotificationModel> messages) {
+            int totalNotifications = messages.Sum(m => m?.Notifications?.Count ?? 0);
+            NotificationsDroppedCount += (uint)totalNotifications;
+            _logger.Warning("Dropped {totalNotifications} values", totalNotifications);
+        }
+
+        private static readonly ConfigurationVersionDataType kEmptyConfiguration =
+            new ConfigurationVersionDataType { MajorVersion = 1u };
+        private readonly ILogger _logger;
+        private readonly bool _enableRoutingInfo;
+        private uint _sequenceNumber;
+        private readonly bool _useStandardsCompliantEncoding;
     }
 }

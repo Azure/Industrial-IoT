@@ -21,8 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             if (dataSetWriter == null) {
                 return null;
             }
-            if (dataSetWriter.DataSetWriterId == null) {
-                throw new ArgumentNullException(nameof(dataSetWriter.DataSetWriterId));
+            if (dataSetWriter.DataSetWriterName == null) {
+                throw new ArgumentNullException(nameof(dataSetWriter.DataSetWriterName));
             }
             if (dataSetWriter.DataSet == null) {
                 throw new ArgumentNullException(nameof(dataSetWriter.DataSet));
@@ -40,11 +40,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             }
             var model = new SubscriptionModel {
                 Connection = dataSetWriter.DataSet.DataSetSource.Connection.Clone(),
-                Id = dataSetWriter.DataSetWriterId,
+                Id = dataSetWriter.DataSetWriterName,
                 MonitoredItems = monitoredItems,
                 ExtensionFields = dataSetWriter.DataSet.ExtensionFields,
                 Configuration = dataSetWriter.DataSet.DataSetSource
-                    .ToSubscriptionConfigurationModel()
+                    .ToSubscriptionConfigurationModel(dataSetWriter.DataSet.DataSetMetaData)
             };
 
             model.Connection.Group ??= groupConfig?.WriterGroup?.WriterGroupId;

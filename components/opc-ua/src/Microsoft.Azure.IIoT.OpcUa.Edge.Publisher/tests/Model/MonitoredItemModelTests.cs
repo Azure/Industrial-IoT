@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
                 ProcessingInterval = 25,
                 StartTime = DateTime.Now
             },
+            DataSetClassFieldId = Guid.NewGuid(),
             SamplingInterval = TimeSpan.FromMilliseconds(5000),
             QueueSize = 10,
             AttributeId = NodeAttribute.DataType,
@@ -64,6 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
                         IndexRange = "SelectClauseIndexRange",
                         TypeDefinitionId = "SelectClauseTypeDefinitionId",
                         DisplayName = "SelectClauseDisplayName",
+                        DataSetClassFieldId = Guid.NewGuid(),
                     }
                 }
             }

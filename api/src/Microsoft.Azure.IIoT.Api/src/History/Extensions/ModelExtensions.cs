@@ -1166,6 +1166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
                 AttributeId = (OpcUa.Core.Models.NodeAttribute?)model.AttributeId,
                 BrowsePath = model.BrowsePath,
                 IndexRange = model.IndexRange,
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 DisplayName = model.DisplayName
             };
         }
@@ -1183,6 +1184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
                 AttributeId = (Core.Models.NodeAttribute?)model.AttributeId,
                 BrowsePath = model.BrowsePath,
                 IndexRange = model.IndexRange,
+                DataSetClassFieldId = model.DataSetClassFieldId,
                 DisplayName = model.DisplayName
             };
         }

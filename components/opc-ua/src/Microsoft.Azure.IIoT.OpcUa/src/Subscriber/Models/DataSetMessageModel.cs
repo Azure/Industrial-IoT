@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         public string DataSetClassId { get; set; }
 
         /// <summary>
-        /// Subscription id
+        /// Data set writer name
         /// </summary>
         [DataMember(Name = "dataSetWriterId", Order = 3,
             EmitDefaultValue = false)]

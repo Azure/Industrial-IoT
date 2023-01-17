@@ -68,7 +68,7 @@ The following table describes the command line arguments, which were available i
 | --s, --site=VALUE                       |  yes                     |                 |
 | --ic, --iotcentral                      |  no                      |                 |
 | --sw, --sessionconnectwait=VALUE        |  no                      |                 |
-| --mq, --monitoreditemqueuecapacity=VALUE|  yes                     |                 |
+| --mq, --monitoreditemqueuecapacity=VALUE|  no                      | use --om, --maxoutgressmessages=VALUE       |
 | --di, --diagnosticsinterval=VALUE       |  yes                     |                 |
 | --ns, --noshutdown=VALUE                |  no                      |                 |
 | --rf, --runforever                      |  no                      |                 |

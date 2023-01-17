@@ -129,7 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             var sw = Stopwatch.StartNew();
             var result = await _client.CallMethodAsync(deviceId, moduleId, service,
                 _serializer.SerializeToString(request));
-            _logger.Debug("Twin call '{service}' took {elapsed} ms)!",
+            _logger.Debug("Publisher call '{service}' took {elapsed} ms)!",
                 service, sw.ElapsedMilliseconds);
             return _serializer.Deserialize<R>(result);
         }

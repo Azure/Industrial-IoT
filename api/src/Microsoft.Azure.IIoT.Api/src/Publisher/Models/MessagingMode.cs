@@ -13,15 +13,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public enum MessagingMode {
 
         /// <summary>
-        /// Network and dataset messages (default)
+        /// Standard pub sub mode cloud message mode (default)
         /// </summary>
         [EnumMember]
         PubSub,
 
         /// <summary>
-        /// Monitored item samples
+        /// Monitored item sample mode
         /// </summary>
         [EnumMember]
-        Samples
+        Samples,
+
+        /// <summary>
+        /// Network and dataset messages fully featured
+        /// </summary>
+        [EnumMember]
+        FullNetworkMessages,
+
+        /// <summary>
+        /// Monitored item sample full mode
+        /// </summary>
+        [EnumMember]
+        FullSamples,
+
+        /// <summary>
+        /// Messages without network message header.
+        /// </summary>
+        [EnumMember]
+        DataSetMessages,
+
+        /// <summary>
+        /// Datasets are pure key value pairs without headers.
+        /// </summary>
+        [EnumMember]
+        RawDataSets
     }
 }

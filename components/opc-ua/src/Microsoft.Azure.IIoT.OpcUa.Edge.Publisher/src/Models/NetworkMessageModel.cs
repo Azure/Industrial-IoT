@@ -7,14 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System;
 
     /// <summary>
-    /// Encoded message model
+    /// Network message model
     /// </summary>
     public class NetworkMessageModel {
-
-        /// <summary>
-        /// Message identifier
-        /// </summary>
-        public string MessageId { get; set; }
 
         /// <summary>
         /// Processing timestamp

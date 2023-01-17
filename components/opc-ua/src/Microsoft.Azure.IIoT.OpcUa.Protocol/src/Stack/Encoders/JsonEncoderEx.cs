@@ -4,16 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+    using System.Linq;
     using System.Text;
     using System.Xml;
-    using System.IO;
-    using System.Globalization;
-    using System.Linq;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Writes objects to a json
@@ -25,6 +25,8 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public IServiceMessageContext Context { get; }
+
+        private readonly bool _ownedWriter;
 
         /// <summary>
         /// Whether to use reversible encoding or not
@@ -84,11 +86,13 @@ namespace Opc.Ua.Encoders {
         /// <param name="context"></param>
         /// <param name="encoding"></param>
         /// <param name="formatting"></param>
-        public JsonEncoderEx(Stream stream,
-            IServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object,
-            Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None) :
-            this(new StreamWriter(stream, new UTF8Encoding(false)),
-                context, encoding, formatting) {
+        /// <param name="leaveOpen"></param>
+        public JsonEncoderEx(Stream stream, IServiceMessageContext context = null,
+            JsonEncoding encoding = JsonEncoding.Object,
+            Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None,
+            bool leaveOpen = true) :
+            this(new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: leaveOpen),
+                context, encoding, formatting, leaveOpen) {
         }
 
         /// <summary>
@@ -98,15 +102,18 @@ namespace Opc.Ua.Encoders {
         /// <param name="context"></param>
         /// <param name="encoding"></param>
         /// <param name="formatting"></param>
-        public JsonEncoderEx(TextWriter writer,
-            IServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object,
-            Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None) :
+        /// <param name="leaveOpen"></param>
+        public JsonEncoderEx(TextWriter writer, IServiceMessageContext context = null,
+            JsonEncoding encoding = JsonEncoding.Object,
+            Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None,
+            bool leaveOpen = true) :
             this(new JsonTextWriter(writer) {
                 AutoCompleteOnClose = true,
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
                 FloatFormatHandling = FloatFormatHandling.String,
-                Formatting = formatting
-            }, context, encoding) {
+                Formatting = formatting,
+                CloseOutput = !leaveOpen,
+            }, context, encoding, true) {
         }
 
         /// <summary>
@@ -115,10 +122,12 @@ namespace Opc.Ua.Encoders {
         /// <param name="writer"></param>
         /// <param name="context"></param>
         /// <param name="encoding"></param>
-        public JsonEncoderEx(JsonWriter writer,
-            IServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object) {
+        /// <param name="ownedWriter"></param>
+        public JsonEncoderEx(JsonWriter writer, IServiceMessageContext context = null,
+            JsonEncoding encoding = JsonEncoding.Object, bool ownedWriter = false) {
             _namespaces = new Stack<string>();
             Context = context ?? new ServiceMessageContext();
+            _ownedWriter = ownedWriter;
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
             _encoding = encoding;
             switch (encoding) {
@@ -139,12 +148,15 @@ namespace Opc.Ua.Encoders {
                 switch (_encoding) {
                     case JsonEncoding.Object:
                         _writer.WriteEndObject();
-                        _writer.Close();
                         break;
                     case JsonEncoding.Array:
                         _writer.WriteEndArray();
-                        _writer.Close();
                         break;
+                }
+
+                _writer.Flush();
+                if (_ownedWriter) {
+                    _writer.Close();
                 }
                 _writer = null;
             }
@@ -774,16 +786,7 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public void WriteEncodeable(string property, IEncodeable value, Type systemType) {
-            if (value == null) {
-                WriteNull(property);
-            }
-            else {
-                PushObject(property);
-                if (value != null) {
-                    value.Encode(this);
-                }
-                PopObject();
-            }
+            WriteObject(property, value, v => v.Encode(this));
         }
 
         /// <inheritdoc/>
@@ -865,7 +868,8 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteStringDictionary(string property, IDictionary<string, string> values) {
+        public void WriteStringDictionary(string property,
+            IEnumerable<KeyValuePair<string, string>> values) {
             WriteDictionary(property, values, (k, v) => WriteString(k, v));
         }
 
@@ -935,19 +939,81 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteDataValueDictionary(string property, IDictionary<string, DataValue> values) {
-            WriteDictionary(property, values, (k, v) => WriteDataValue(k, v));
-        }
-
-        /// <inheritdoc/>
         public void WriteExtensionObjectArray(string property, IList<ExtensionObject> values) {
             WriteArray(property, values, v => WriteExtensionObject(null, v));
         }
 
         /// <inheritdoc/>
-        public void WriteEncodeableArray(string property, IList<IEncodeable> values,
-            Type systemType) {
+        public void WriteEncodeableArray(string property, IList<IEncodeable> values, Type systemType) {
             WriteArray(property, values, v => WriteEncodeable(null, v, systemType));
+        }
+
+        /// <inheritdoc/>
+        public void WriteDataSet(string property, DataSet dataSet) {
+            if (dataSet == null) {
+                WriteNull(property);
+                return;
+            }
+            var useUriEncoding = UseUriEncoding;
+            var useReversibleEncoding = UseReversibleEncoding;
+            try {
+                var fieldContentMask = dataSet.DataSetFieldContentMask;
+                if ((fieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0) {
+                    //
+                    // If the DataSetFieldContentMask results in a RawData representation,
+                    // the field value is a Variant encoded using the non-reversible OPC UA
+                    // JSON Data Encoding defined in OPC 10000-6
+                    //
+                    UseUriEncoding = true;
+                    UseReversibleEncoding = false;
+                    WriteDictionary(property, dataSet, (k, v) => WriteVariant(k, v.WrappedValue));
+                }
+                else if (fieldContentMask == 0) {
+                    //
+                    // If the DataSetFieldContentMask results in a Variant representation,
+                    // the field value is encoded as a Variant encoded using the reversible
+                    // OPC UA JSON Data Encoding defined in OPC 10000-6.
+                    //
+                    UseUriEncoding = false;
+                    UseReversibleEncoding = true;
+                    WriteDictionary(property, dataSet, (k, v) => WriteVariant(k, v.WrappedValue));
+                }
+                else {
+                    //
+                    // If the DataSetFieldContentMask results in a DataValue representation,
+                    // the field value is a DataValue encoded using the non-reversible OPC UA
+                    // JSON Data Encoding or reversible depending on encoder configuration.
+                    //
+                    WriteDictionary(property, dataSet, (k, value) => {
+                        PushObject(k);
+                        try {
+                            WriteVariant("Value", value.WrappedValue);
+                            if ((fieldContentMask & (uint)DataSetFieldContentMask.StatusCode) != 0) {
+                                WriteStatusCode("StatusCode", value.StatusCode);
+                            }
+                            if ((fieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0) {
+                                WriteDateTime("SourceTimestamp", value.SourceTimestamp);
+                                if ((fieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) != 0) {
+                                    WriteUInt16("SourcePicoseconds", value.SourcePicoseconds);
+                                }
+                            }
+                            if ((fieldContentMask & (uint)DataSetFieldContentMask.ServerTimestamp) != 0) {
+                                WriteDateTime("ServerTimestamp", value.ServerTimestamp);
+                                if ((fieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) != 0) {
+                                    WriteUInt16("ServerPicoseconds", value.ServerPicoseconds);
+                                }
+                            }
+                        }
+                        finally {
+                            PopObject();
+                        }
+                    });
+                }
+            }
+            finally {
+                UseUriEncoding = useUriEncoding;
+                UseReversibleEncoding = useReversibleEncoding;
+            }
         }
 
         /// <inheritdoc/>
@@ -1285,7 +1351,7 @@ namespace Opc.Ua.Encoders {
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
         /// <returns></returns>
-        private T ToTypedScalar<T>(object value) {
+        private static T ToTypedScalar<T>(object value) {
             try {
                 if (value == null) {
                     return default;
@@ -1528,7 +1594,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="property"></param>
         /// <param name="values"></param>
         /// <param name="writer"></param>
-        private void WriteArray<T>(string property, IList<T> values,
+        internal void WriteArray<T>(string property, IList<T> values,
             Action<T> writer) {
             if (values == null) {
                 WriteNull(property);
@@ -1542,6 +1608,20 @@ namespace Opc.Ua.Encoders {
             }
         }
 
+        /// <inheritdoc/>
+        internal void WriteObject<T>(string property, T value, Action<T> writer) {
+            if (value == null) {
+                WriteNull(property);
+            }
+            else {
+                PushObject(property);
+                if (value != null) {
+                    writer(value);
+                }
+                PopObject();
+            }
+        }
+
         /// <summary>
         /// Write array to stream
         /// </summary>
@@ -1549,8 +1629,8 @@ namespace Opc.Ua.Encoders {
         /// <param name="property"></param>
         /// <param name="values"></param>
         /// <param name="writer"></param>
-        private void WriteDictionary<T>(string property, IDictionary<string, T> values,
-            Action<string, T> writer) {
+        private void WriteDictionary<T>(string property,
+            IEnumerable<KeyValuePair<string, T>> values, Action<string, T> writer) {
             if (values == null) {
                 WriteNull(property);
             }
@@ -1562,6 +1642,7 @@ namespace Opc.Ua.Encoders {
                 PopObject();
             }
         }
+
         /// <summary>
         /// Check whether to write the simple value.  If so
         /// andthis is not called in the context of array
@@ -1584,7 +1665,7 @@ namespace Opc.Ua.Encoders {
         /// Write null
         /// </summary>
         /// <param name="property"></param>
-        private void WriteNull(string property) {
+        public void WriteNull(string property) {
             if (!string.IsNullOrEmpty(property)) {
                 if (IgnoreNullValues || IgnoreDefaultValues) {
                     // only skip null if not in array context.

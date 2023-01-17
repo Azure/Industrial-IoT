@@ -43,6 +43,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DataSetFieldId { get; set; }
 
+        /// <summary> DataSetClassFieldId </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public Guid DataSetClassFieldId { get; set; }
+
         /// <summary> Display name </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DisplayName { get; set; }
@@ -63,6 +67,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public uint? QueueSize { get; set; }
 
+        /// <summary> Discard new values instead of old </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public bool? DiscardNew { get; set; }
+
         /// <summary> Data change filter </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public DataChangeTriggerType? DataChangeTrigger { get; set; }
@@ -78,5 +86,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary>Event Filter</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public EventFilterModel EventFilter { get; set; }
+
+        /// <summary> Settings for pending condition handling </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public ConditionHandlingOptionsModel ConditionHandling { get; set; }
     }
 }

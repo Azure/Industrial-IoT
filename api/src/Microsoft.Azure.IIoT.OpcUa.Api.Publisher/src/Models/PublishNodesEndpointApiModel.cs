@@ -69,5 +69,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "opcNodes", Order = 10,
             EmitDefaultValue = false)]
         public List<PublishedNodeApiModel> OpcNodes { get; set; }
+
+        /// <summary> The name of the dataset. </summary>
+        [DataMember(Name = "dataSetName", Order = 11,
+            EmitDefaultValue = false)]
+        public string DataSetName { get; set; }
+
+        /// <summary> The description of the dataset. </summary>
+        [DataMember(Name = "dataSetDescription", Order = 12,
+            EmitDefaultValue = false)]
+        public string DataSetDescription { get; set; }
+
+        /// <summary> The dataset class id. </summary>
+        [DataMember(Name = "dataSetClassId", Order = 13,
+            EmitDefaultValue = false)]
+        public Guid DataSetClassId { get; set; }
+
+        /// <summary> Insert a key frame every x messages </summary>
+        [DataMember(Name = "dataSetKeyFrameCount", Order = 14,
+            EmitDefaultValue = false)]
+        public uint? DataSetKeyFrameCount { get; set; }
+
+        /// <summary> Send metadata at the configured interval even when not changing </summary>
+        [DataMember(Name = "dataSetMetaDataSendInterval", Order = 15,
+            EmitDefaultValue = false)]
+        public TimeSpan? DataSetMetaDataSendInterval { get; set; }
     }
 }
