@@ -340,9 +340,10 @@ namespace Opc.Ua.PubSub {
 
             bool TryReadDataSetMessages(JsonDecoderEx decoder, string property) {
                 var hasDataSetMessageHeader = false;
+                string publisherId = null;
                 var messages = decoder.ReadArray<BaseDataSetMessage>(property, () => {
                     var message = !HasSamplesPayload ? new JsonDataSetMessage() : new MonitoredItemMessage();
-                    if (!message.TryDecode(decoder, property, ref hasDataSetMessageHeader)) {
+                    if (!message.TryDecode(decoder, property, ref hasDataSetMessageHeader, ref publisherId)) {
                         return null;
                     }
                     return message;
@@ -359,6 +360,10 @@ namespace Opc.Ua.PubSub {
                 if (hasDataSetMessageHeader) {
                     NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetMessageHeader;
                 }
+                if (publisherId != null) {
+                    NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
+                    PublisherId = null;
+                }
                 return true;
             }
         }
@@ -369,6 +374,9 @@ namespace Opc.Ua.PubSub {
         /// <param name="encoder"></param>
         /// <param name="messages"></param>
         private void WriteNetworkMessage(JsonEncoderEx encoder, JsonDataSetMessage[] messages) {
+            var publisherId =
+                (NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) == 0
+                    ? null : PublisherId;
             if (HasNetworkMessageHeader) {
                 WriteNetworkMessageHeader(encoder);
 
@@ -376,41 +384,41 @@ namespace Opc.Ua.PubSub {
                     if (HasDataSetMessageHeader) {
                         // Write as a single object under messages property
                         encoder.WriteObject(nameof(Messages), messages[0],
-                            v => v.Encode(encoder, true, null));
+                            v => v.Encode(encoder, publisherId, true, null));
                     }
                     else {
                         // Write raw data set object under messages property
-                        messages[0].Encode(encoder, false, nameof(Messages));
+                        messages[0].Encode(encoder, publisherId, false, nameof(Messages));
                     }
                 }
                 else if (HasDataSetMessageHeader) {
                     // Write as array of objects
                     encoder.WriteArray(nameof(Messages), messages, v =>
-                        encoder.WriteObject(null, v, v => v.Encode(encoder, true, null)));
+                        encoder.WriteObject(null, v, v => v.Encode(encoder, publisherId, true, null)));
                 }
                 else {
                     // Write as array of dataset payload tokens
                     encoder.WriteArray(nameof(Messages), messages,
-                        v => v.Encode(encoder, false, null));
+                        v => v.Encode(encoder, publisherId, false, null));
                 }
             }
             else {
                 // The encoder was set up as array or object beforehand
                 if (HasSingleDataSetMessage) {
                     // Write object content to current object
-                    messages[0].Encode(encoder, HasDataSetMessageHeader, null);
+                    messages[0].Encode(encoder, publisherId, HasDataSetMessageHeader, null);
                 }
                 else if (HasDataSetMessageHeader) {
                     // Write each object to the array that is the initial state of the encoder
                     foreach (var message in messages) {
                         // Write as array of dataset messages with payload
-                        encoder.WriteObject(null, message, v => v.Encode(encoder, true, null));
+                        encoder.WriteObject(null, message, v => v.Encode(encoder, publisherId, true, null));
                     }
                 }
                 else {
                     // Writes dataset directly the encoder was set up as token
                     foreach (var message in messages) {
-                        message.Encode(encoder, false, null);
+                        message.Encode(encoder, publisherId, false, null);
                     }
                 }
             }

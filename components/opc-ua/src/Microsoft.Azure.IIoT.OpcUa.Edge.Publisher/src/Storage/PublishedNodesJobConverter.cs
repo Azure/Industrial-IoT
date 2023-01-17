@@ -214,7 +214,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                             Description = dataSetBatches.First.Header.DataSetDescription,
                                             Name = dataSetBatches.First.Header.DataSetName
                                         },
-                                    ExtensionFields = null, // TODO: Add extension information from configuration
+                                    // TODO: Add extension information from configuration
+                                    ExtensionFields = new Dictionary<string, string>(),
                                     DataSetSource = new PublishedDataSetSourceModel {
                                         Connection = new ConnectionModel {
                                             Endpoint = dataSet.Source.Connection.Endpoint.Clone(),

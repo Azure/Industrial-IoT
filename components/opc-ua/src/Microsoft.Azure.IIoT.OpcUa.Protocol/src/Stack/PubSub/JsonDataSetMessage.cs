@@ -49,7 +49,7 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        internal virtual void Encode(JsonEncoderEx encoder, bool withHeader, string property) {
+        internal virtual void Encode(JsonEncoderEx encoder, string publisherId, bool withHeader, string property) {
             if (withHeader) {
                 if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterId) != 0) {
                     if (!UseCompatibilityMode) {
@@ -125,7 +125,8 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        internal virtual bool TryDecode(JsonDecoderEx jsonDecoder, string property, ref bool withHeader) {
+        internal virtual bool TryDecode(JsonDecoderEx jsonDecoder, string property, ref bool withHeader,
+            ref string publisherId) {
             if (TryReadDataSetMessageHeader(jsonDecoder, out var dataSetMessageContentMask)) {
                 withHeader |= true;
                 DataSetMessageContentMask = dataSetMessageContentMask;

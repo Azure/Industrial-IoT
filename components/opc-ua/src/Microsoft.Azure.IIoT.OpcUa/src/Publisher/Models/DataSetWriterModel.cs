@@ -9,8 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     /// <summary>
     /// Data set writer
     /// </summary>
-    public class DataSetWriterModel
-    {
+    public class DataSetWriterModel {
         /// <summary>
         /// Dataset writer name
         /// </summary>
@@ -40,5 +39,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Metadata message sending interval (publisher extension)
         /// </summary>
         public TimeSpan? DataSetMetaDataSendInterval { get; set; }
+
+        /// <summary>
+        /// Dataset writer id property for backwards compatibility.
+        /// TODO: Remove when removing orchestrated mode
+        /// </summary>
+        public string DataSetWriterId { set => DataSetWriterName = value; }
     }
 }

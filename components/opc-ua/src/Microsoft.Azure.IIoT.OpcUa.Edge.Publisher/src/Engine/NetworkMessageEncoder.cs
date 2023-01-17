@@ -210,14 +210,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         foreach (var itemNotifications in orderedNotifications.GroupBy(f => f.Id + f.MessageId)) {
                                             var notificationsInGroup = itemNotifications.ToList();
                                             Debug.Assert(notificationsInGroup.Count != 0);
+                                            //
+                                            // Special monitored item handling for events and conditions. Collate all
+                                            // values into a single key value data dictionary extension object value.
+                                            // Regular notifications we send as single messages.
+                                            //
                                             if (notificationsInGroup.Count > 1 &&
                                                 (message.Notification.MessageType == MessageType.Event ||
                                                  message.Notification.MessageType == MessageType.Condition)) {
-                                                //
-                                                // Special monitored item handling for events and conditions. Collate all
-                                                // values into a single key value data dictionary extension object value.
-                                                // Regular notifications we send as single messages.
-                                                //
                                                 Debug.Assert(notificationsInGroup
                                                     .Select(n => n.DataSetFieldName).Distinct().Count() == notificationsInGroup.Count,
                                                     "There should not be duplicates in fields in a group.");
@@ -240,12 +240,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                                     UseCompatibilityMode = !_useStandardsCompliantEncoding,
                                                     ApplicationUri = message.Notification.ApplicationUri,
                                                     EndpointUrl = message.Notification.EndpointUrl,
-                                                    ExtensionFields = message.Context?.Writer?.DataSet?.ExtensionFields,
                                                     NodeId = notification.NodeId,
                                                     MessageType = message.Notification.MessageType,
                                                     DataSetMessageContentMask = dataSetMessageContentMask,
                                                     Timestamp = message.Notification.Timestamp,
-                                                    SequenceNumber = notification.SequenceNumber ?? 0,
+                                                    SequenceNumber = message.Context.SequenceNumber,
+                                                    ExtensionFields = message.Context.Writer.DataSet.ExtensionFields,
                                                     Payload = new DataSet(notification.DataSetFieldName, notification.Value,
                                                         (uint)dataSetFieldContentMask)
                                                 };

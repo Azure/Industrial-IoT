@@ -868,7 +868,8 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public void WriteStringDictionary(string property, IDictionary<string, string> values) {
+        public void WriteStringDictionary(string property,
+            IEnumerable<KeyValuePair<string, string>> values) {
             WriteDictionary(property, values, (k, v) => WriteString(k, v));
         }
 
@@ -1628,8 +1629,8 @@ namespace Opc.Ua.Encoders {
         /// <param name="property"></param>
         /// <param name="values"></param>
         /// <param name="writer"></param>
-        private void WriteDictionary<T>(string property, IDictionary<string, T> values,
-            Action<string, T> writer) {
+        private void WriteDictionary<T>(string property,
+            IEnumerable<KeyValuePair<string, T>> values, Action<string, T> writer) {
             if (values == null) {
                 WriteNull(property);
             }

@@ -487,29 +487,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             var jobId = job.GetJobId();
-
-            job.WriterGroup.DataSetWriters.ForEach(d => {
-                d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
-                d.DataSet.ExtensionFields["PublisherId"] = jobId;
-                d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterName;
-            });
             var dataSetWriters = string.Join(", ", job.WriterGroup.DataSetWriters.Select(w => w.DataSetWriterName));
             _logger.Information("Job {jobId} loaded with dataSetGroup {group} with dataSetWriters {dataSetWriters}",
                 jobId, job.WriterGroup.WriterGroupId, dataSetWriters);
             var serializedJob = _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);
 
             return new JobProcessingInstructionModel {
-                    Job = new JobInfoModel {
-                        Demands = new List<DemandModel>(),
-                        Id = jobId,
-                        JobConfiguration = serializedJob,
-                        JobConfigurationType = jobConfigurationType,
-                        LifetimeData = new JobLifetimeDataModel(),
-                        Name = jobId,
-                        RedundancyConfig = new RedundancyConfigModel { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 },
-                    },
-                    ProcessMode = ProcessMode.Active,
-                };
+                Job = new JobInfoModel {
+                    Demands = new List<DemandModel>(),
+                    Id = jobId,
+                    JobConfiguration = serializedJob,
+                    JobConfigurationType = jobConfigurationType,
+                    LifetimeData = new JobLifetimeDataModel(),
+                    Name = jobId,
+                    RedundancyConfig = new RedundancyConfigModel { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 },
+                },
+                ProcessMode = ProcessMode.Active,
+            };
         }
 
         /// <summary>

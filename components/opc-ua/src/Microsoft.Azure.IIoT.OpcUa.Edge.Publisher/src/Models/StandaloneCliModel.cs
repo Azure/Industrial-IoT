@@ -188,7 +188,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// </summary>
         public bool EnableRuntimeStateReporting { get; set; }
 
-
         private bool _fullFeaturedMessage;
         private MessagingMode? _messagingMode;
     }

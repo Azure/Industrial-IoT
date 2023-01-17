@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Dataset writer name.
         /// </summary>
-        [DataMember(Name = "dataSetWriterId", Order = 0)] // Do not change for backcompat with database schema
+        [DataMember(Name = "dataSetWriterName", Order = 0)]
         public string DataSetWriterName { get; set; }
 
         /// <summary>

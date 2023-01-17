@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Read default batch trigger interval from environment.
         /// </summary>
-        internal Lazy<TimeSpan> DefaultBatchTriggerInterval => new Lazy<TimeSpan>(() => {
+        internal static Lazy<TimeSpan> DefaultBatchTriggerInterval => new Lazy<TimeSpan>(() => {
             var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL");
             if (!string.IsNullOrEmpty(env)) {
                 if (int.TryParse(env, out var milliseconds) &&
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Read default batch trigger size from environment.
         /// </summary>
-        internal Lazy<int> DefaultBatchSize => new Lazy<int>(() => {
+        internal static Lazy<int> DefaultBatchSize => new Lazy<int>(() => {
             var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE");
             if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var size) &&
                 size > 1 && size <= 1000) {
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
         /// <summary>
         /// Read default max outgress message buffer size from environment
         /// </summary>
-        internal Lazy<int> DefaultMaxOutgressMessages => new Lazy<int>(() => {
+        internal static Lazy<int> DefaultMaxOutgressMessages => new Lazy<int>(() => {
             var env = Environment.GetEnvironmentVariable(PcsVariable.PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES);
             if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var maxOutgressMessages) &&
                 maxOutgressMessages > 1 && maxOutgressMessages <= 25000) {
@@ -325,14 +325,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
         /// <param name="publisherId"></param>
         /// <param name="connection"></param>
         /// <param name="dataSetWriterName"></param>
-        private void AddOrUpdateItemInJob(WriterGroupJobModel publishJob,
+        private static void AddOrUpdateItemInJob(WriterGroupJobModel publishJob,
             PublishedItemModel publishedItem, string endpointId, string publisherId,
             ConnectionModel connection, string dataSetWriterName = null) {
 
-            var dataSetWriterId =
+            var uniqueDataSetWriterName =
                 (string.IsNullOrEmpty(dataSetWriterName) ? GetDefaultId(endpointId) : dataSetWriterName) +
                 (publishedItem.PublishingInterval.HasValue ?
-                    ('_' + publishedItem.PublishingInterval.Value.TotalMilliseconds.ToString()) : String.Empty);
+                    ('_' + publishedItem.PublishingInterval.Value.TotalMilliseconds.ToString()) : string.Empty);
 
             // Simple - first remove - then add.
             RemoveItemFromJob(publishJob, publishedItem.NodeId, connection);
@@ -341,7 +341,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             List<PublishedDataSetVariableModel> variables = null;
             foreach (var writer in publishJob.WriterGroup.DataSetWriters) {
                 if (writer.DataSet.DataSetSource.Connection.IsSameAs(connection) &&
-                    writer.DataSetWriterName == dataSetWriterId) {
+                    writer.DataSetWriterName == uniqueDataSetWriterName) {
                     System.Diagnostics.Debug.Assert(writer.DataSet.DataSetSource.PublishedVariables.PublishedData != null);
                     variables = writer.DataSet.DataSetSource.PublishedVariables.PublishedData;
                     break;
@@ -350,7 +350,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             if (variables == null) {
                 // No writer found - add new one with a published dataset
                 var dataSetWriter = new DataSetWriterModel {
-                    DataSetWriterName = dataSetWriterId,
+                    DataSetWriterName = uniqueDataSetWriterName,
                     DataSet = new PublishedDataSetModel {
                         DataSetMetaData = new DataSetMetaDataModel {
                             DataSetClassId = Guid.NewGuid(),
@@ -360,7 +360,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                             ["EndpointId"] = endpointId,
                             ["PublisherId"] = publisherId,
                             // todo, probably not needed
-                            ["DataSetWriterId"] = dataSetWriterId
+                            ["DataSetWriterId"] = uniqueDataSetWriterName
                         },
                         DataSetSource = new PublishedDataSetSourceModel {
                             Connection = connection,
@@ -415,7 +415,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
         /// <param name="publishJob"></param>
         /// <param name="nodeId"></param>
         /// <param name="connection"></param>
-        private bool RemoveItemFromJob(WriterGroupJobModel publishJob,
+        private static bool RemoveItemFromJob(WriterGroupJobModel publishJob,
             string nodeId, ConnectionModel connection) {
             var found = false;
             foreach (var writer in publishJob.WriterGroup.DataSetWriters.ToList()) {

@@ -512,9 +512,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
                             if (sendMetadata) {
                                 var metadata = new SubscriptionNotificationModel {
-                                    Context = CreateMessageContext(),
+                                    Context = CreateMessageContext(ref _metadataSequenceNumber),
                                     MessageType = Opc.Ua.PubSub.MessageType.Metadata,
-                                    SequenceNumber = _metadataSequenceNumber++,
+                                    SequenceNumber = notification.SequenceNumber,
                                     ServiceMessageContext = notification.ServiceMessageContext,
                                     MetaData = notification.MetaData,
                                     Timestamp = notification.Timestamp,
@@ -530,7 +530,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                         if (!metaDataTimer) {
                             Debug.Assert(notification.Notifications != null);
-                            notification.Context = CreateMessageContext();
+                            notification.Context = CreateMessageContext(ref _dataSetSequenceNumber);
                             _outer.OnMessage?.Invoke(sender, notification);
 
                             if (notification.MessageType != Opc.Ua.PubSub.MessageType.DeltaFrame &&
@@ -546,11 +546,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _outer._logger.Warning(ex, "Failed to produce message.");
                 }
 
-                WriterGroupMessageContext CreateMessageContext() {
+                WriterGroupMessageContext CreateMessageContext(ref uint sequenceNumber) {
+                    while (sequenceNumber == 0) {
+                        unchecked { sequenceNumber++; }
+                    }
                     return new WriterGroupMessageContext {
                         PublisherId = _outer._publisherId,
                         Writer = _dataSetWriter,
-                        SequenceNumber = _currentSequenceNumber++,
+                        SequenceNumber = sequenceNumber,
                         WriterGroup = _outer._writerGroup
                     };
                 }
@@ -590,7 +593,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             private Timer _metadataTimer;
             private uint _keyFrameCount;
             private volatile uint _frameCount;
-            private uint _currentSequenceNumber;
+            private uint _dataSetSequenceNumber;
             private uint _metadataSequenceNumber;
             private uint _currentMetadataMajorVersion;
             private uint _currentMetadataMinorVersion;

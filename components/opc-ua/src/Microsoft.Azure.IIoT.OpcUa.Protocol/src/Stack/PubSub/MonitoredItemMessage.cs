@@ -43,7 +43,7 @@ namespace Opc.Ua.PubSub {
         /// <summary>
         /// Extension fields
         /// </summary>
-        public Dictionary<string, string> ExtensionFields { get; set; }
+        public IEnumerable<KeyValuePair<string, string>> ExtensionFields { get; set; }
 
         /// <inheritdoc/>
         public override bool Equals(object value) {
@@ -61,7 +61,8 @@ namespace Opc.Ua.PubSub {
                 !Utils.IsEqual(wrapper.NodeId, NodeId)) {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.ExtensionFields, ExtensionFields)) {
+            if (!wrapper.ExtensionFields.SetEqualsSafe(ExtensionFields,
+                (a, b) => a.Equals(b))) {
                 return false;
             }
             return true;
@@ -80,10 +81,10 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        internal override void Encode(JsonEncoderEx encoder, bool withHeader, string property) {
+        internal override void Encode(JsonEncoderEx encoder, string publisherId, bool withHeader, string property) {
             //
-            // If not writing with samples header or writing to a property fail. This is a configuration
-            // error, rather than throwing constantly we just do not emit anything instead.
+            // If not writing with samples header or writing to a property we fail. This is a
+            // configuration error, rather than throwing constantly we just do not emit anything instead.
             //
             if (!withHeader || property != null) {
                 return;
@@ -151,14 +152,24 @@ namespace Opc.Ua.PubSub {
                 encoder.WriteUInt32(nameof(SequenceNumber), SequenceNumber);
             }
             if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.ExtensionFields) != 0) {
-                if (ExtensionFields != null) {
-                    encoder.WriteStringDictionary(nameof(ExtensionFields), ExtensionFields);
+                var extensionFields = new KeyValuePair<string, string>(nameof(DataSetWriterId), DataSetWriterName)
+                    .YieldReturn();
+                if (publisherId != null) {
+                    extensionFields = extensionFields
+                        .Append(new KeyValuePair<string, string>(nameof(JsonNetworkMessage.PublisherId), publisherId));
                 }
+                if (ExtensionFields != null) {
+                    extensionFields = extensionFields.Concat(ExtensionFields
+                        .Where(e => e.Key != nameof(DataSetWriterId) &&
+                                    e.Key != nameof(JsonNetworkMessage.PublisherId)));
+                }
+                encoder.WriteStringDictionary(nameof(ExtensionFields), extensionFields);
             }
         }
 
         /// <inheritdoc/>
-        internal override bool TryDecode(JsonDecoderEx decoder, string property, ref bool withHeader) {
+        internal override bool TryDecode(JsonDecoderEx decoder, string property, ref bool withHeader,
+            ref string publisherId) {
             // If reading from property return false as this means we are a standard dataset message
             if (property != null) {
                 return false;
@@ -219,9 +230,15 @@ namespace Opc.Ua.PubSub {
             if (SequenceNumber != 0) {
                 DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.SequenceNumber;
             }
-            ExtensionFields = (Dictionary<string, string>)decoder.ReadStringDictionary(nameof(ExtensionFields));
-            if (ExtensionFields != null) {
+            var extensionFields = decoder.ReadStringDictionary(nameof(ExtensionFields));
+            if (extensionFields != null) {
                 DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.ExtensionFields;
+                ExtensionFields = extensionFields;
+
+                if (extensionFields.TryGetValue(nameof(DataSetWriterId), out var dataSetWriterName)) {
+                    DataSetWriterName = dataSetWriterName;
+                }
+                extensionFields.TryGetValue(nameof(JsonNetworkMessage.PublisherId), out publisherId);
             }
 
             withHeader |= (DataSetMessageContentMask != 0);
