@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private const string kSharedAccessSignaturePropertyName = nameof(SharedAccessSignature);
         private const string kUsingIoTHubPropertyName = nameof(UsingIoTHub);
         private const string kStateFilePropertyName = nameof(StateFile);
-        private const string kMessageExpiryIntervalPropertyName = nameof(MessageExpiryInterval);
+        private const string kMqttV5PropertyName = nameof(MqttV5);
 
         private const int kDefaultMqttPort = 1883;
         private const int kDefaultIoTHubMqttPort = 8883;
@@ -100,9 +100,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         public bool UsingStateFile => !string.IsNullOrWhiteSpace(StateFile);
 
         /// <summary>
-        /// Gets or sets the period of time (seconds) for the broker to store the message for any subscribers that are not yet connected.
+        /// Use mqtt v5 instead of 3.11
         /// </summary>
-        public uint? MessageExpiryInterval { get; private set; }
+        public bool MqttV5 { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MqttClientConnectionStringBuilder"/> class.
@@ -167,8 +167,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 mqttClientConnectionStringBuilder.Password = properties.GetOptional<string>(kAuthPropertyName);
             }
 
-            if (properties.ContainsKey(kMessageExpiryIntervalPropertyName)) {
-                mqttClientConnectionStringBuilder.MessageExpiryInterval = properties.GetRequired<uint>(kMessageExpiryIntervalPropertyName);
+            if (properties.ContainsKey(kMqttV5PropertyName)) {
+                mqttClientConnectionStringBuilder.MqttV5 = properties.GetRequired<bool>(kMqttV5PropertyName);
             }
 
             mqttClientConnectionStringBuilder.Validate();
@@ -258,6 +258,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             stringBuilder.AppendKeyValuePairIfNotEmpty(kUsernamePropertyName, Username);
             stringBuilder.AppendKeyValuePairIfNotEmpty(kAuthPropertyName, Password);
             stringBuilder.AppendKeyValuePairIfNotEmpty(kUsingIoTHubPropertyName, UsingIoTHub);
+            stringBuilder.AppendKeyValuePairIfNotEmpty(kMqttV5PropertyName, MqttV5);
             if (stringBuilder.Length > 0) {
                 stringBuilder.Remove(stringBuilder.Length - 1, 1);
             }

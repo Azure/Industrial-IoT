@@ -6,11 +6,14 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IIoT.Hub;
     using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
+    using System.Net.Mime;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -81,37 +84,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(Message message) {
-            if (IsClosed) {
-                return;
-            }
-            await _client.SendEventAsync(message);
+        public ITelemetryEvent CreateMessage() {
+            return new DeviceMessage();
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(string outputName, Message message) {
-			if (IsClosed) {
-            	return;
-            }
-            _logger.Debug("DeviceClientAdapter does not support output routing. Falling back to regular SendEventAsync()");
-            await _client.SendEventAsync(message);
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventBatchAsync(IEnumerable<Message> messages) {
+        public async Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages, string outputName) {
             if (IsClosed) {
                 return;
             }
-            await _client.SendEventBatchAsync(messages);
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
-            if (IsClosed) {
-                return;
+            if (messages.Count == 1) {
+                await _client.SendEventAsync(((DeviceMessage)messages[0]).Message);
             }
-            _logger.Debug("DeviceClientAdapter does not support output routing. Falling back to regular SendEventBatchAsync()");
-            await _client.SendEventBatchAsync(messages);
+            await _client.SendEventBatchAsync(messages.Cast<DeviceMessage>().Select(m => m.Message));
         }
 
         /// <inheritdoc />
@@ -224,6 +209,72 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     new ITransportSettings[] { transportSetting });
             }
             return DeviceClient.CreateFromConnectionString(cs.ToString());
+        }
+
+        /// <summary>
+        /// Message wrapper
+        /// </summary>
+        internal sealed class DeviceMessage : ITelemetryEvent {
+
+            /// <summary>
+            /// Build message
+            /// </summary>
+            internal Message Message {
+                get {
+                    var msg = new Message(Body) {
+                        ContentType = ContentType,
+                        ContentEncoding = ContentEncoding,
+                        // TODO - setting CreationTime causes issues in the Azure IoT java SDK
+                        //  revert the comment whrn the issue is fixed
+                        //  CreationTimeUtc = DateTime.UtcNow
+                    };
+                    if (!string.IsNullOrEmpty(MessageSchema)) {
+                        msg.Properties.Add(CommonProperties.EventSchemaType, MessageSchema);
+                    }
+                    if (!string.IsNullOrEmpty(ContentType)) {
+                        msg.Properties.Add(SystemProperties.MessageSchema, ContentType);
+                    }
+                    if (!string.IsNullOrEmpty(ContentEncoding)) {
+                        msg.Properties.Add(CommonProperties.ContentEncoding, ContentEncoding);
+                    }
+                    if (!string.IsNullOrEmpty(RoutingInfo)) {
+                        msg.Properties.Add(CommonProperties.RoutingInfo, RoutingInfo);
+                    }
+                    if (!string.IsNullOrEmpty(RoutingInfo)) {
+                        msg.Properties.Add(CommonProperties.RoutingInfo, RoutingInfo);
+                    }
+                    if (!string.IsNullOrEmpty(RoutingInfo)) {
+                        msg.Properties.Add(CommonProperties.RoutingInfo, RoutingInfo);
+                    }
+                    return msg;
+                }
+            }
+
+            /// <inheritdoc/>
+            public DateTime Timestamp { get; set; }
+            /// <inheritdoc/>
+            public string ContentType { get; set; }
+            /// <inheritdoc/>
+            public string ContentEncoding { get; set; }
+            /// <inheritdoc/>
+            public string MessageSchema { get; set; }
+            /// <inheritdoc/>
+            public string RoutingInfo { get; set; }
+            /// <inheritdoc/>
+            public string OutputName { get; set; }
+            /// <inheritdoc/>
+            public bool Retain { get; set; }
+            /// <inheritdoc/>
+            public TimeSpan Ttl { get; set; }
+            /// <inheritdoc/>
+            public byte[] Body { get; set; }
+            public string DeviceId { get; set; }
+            public string ModuleId { get; set; }
+
+            /// <inheritdoc/>
+            public void Dispose() {
+                // TODO: Return to pool
+            }
         }
 
         private readonly DeviceClient _client;

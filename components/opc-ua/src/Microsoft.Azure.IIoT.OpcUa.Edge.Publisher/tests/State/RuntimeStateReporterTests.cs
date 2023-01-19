@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            _client.Verify(c => c.SendEventAsync(It.IsAny<string>(), It.IsAny<Message>()), Times.Never());
+            _client.Verify(c => c.SendEventAsync(It.IsAny<IReadOnlyList<ITelemetryEvent>>(), It.IsAny<string>()), Times.Never());
         }
 
         [Fact]
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
 
             var _client = new Mock<IClient>();
             _client
-                .Setup(c => c.SendEventAsync(It.IsAny<string>(), It.IsAny<Message>()))
+                .Setup(c => c.SendEventAsync(It.IsAny<IReadOnlyList<ITelemetryEvent>>(), It.IsAny<string>()))
                 .Callback<string, Message>((outputName, message) => receivedParameters.Add(Tuple.Create(outputName, message)))
                 .Returns(Task.CompletedTask);
 
@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            _client.Verify(c => c.SendEventAsync(It.IsAny<string>(), It.IsAny<Message>()), Times.Once());
+            _client.Verify(c => c.SendEventAsync(It.IsAny<IReadOnlyList<ITelemetryEvent>>(), It.IsAny<string>()), Times.Once());
 
             Assert.Equal(1, receivedParameters.Count);
             Assert.Equal("runtimeinfo", receivedParameters[0].Item1);

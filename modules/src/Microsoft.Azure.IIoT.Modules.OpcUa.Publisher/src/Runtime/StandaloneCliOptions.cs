@@ -129,12 +129,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 { $"dm|disablemetadata:|{StandaloneCliConfigKeys.DisableDataSetMetaData}:",
                     "Disables sending any metadata when metadata version changes. This setting can be used to also override the messaging profile's default support for metadata sending. \nDefault: `False` if the messaging profile selected supports sending metadata, `True` otherwise.\n",
                     (bool? b) => this[StandaloneCliConfigKeys.DisableDataSetMetaData] = b?.ToString() ?? "True" },
-
-                // TODO: Default metadata output name
-
-                { $"ri|enableroutinginfo:|{StandaloneCliConfigKeys.EnableRoutingInfo}:",
-                    "Add the routing info to telemetry messages. The name of the property is `$$RoutingInfo` and the value is the `DataSetWriterGroup` for that particular message.\nWhen the `DataSetWriterGroup` is not configured, the `$$RoutingInfo` property will not be added to the message even if this argument is set.\nDefault: `False` (disabled).\n",
-                    (bool? b) => this[StandaloneCliConfigKeys.EnableRoutingInfo] = b?.ToString() ?? "True" },
                     { $"lc|legacycompatibility=|{StandaloneCliConfigKeys.LegacyCompatibility}=",
                         "Run the publisher in legacy (2.5.x) compatibility mode.\nDefault: `False` (disabled).\n",
                         (string b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b, true },
@@ -150,6 +144,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 { $"ttt|telemetrytopictemplate=|{StandaloneCliConfigKeys.TelemetryTopicTemplateKey}=",
                     "A template that shall be used to build the topic for outgoing telemetry messages. If not specified IoT Hub and EdgeHub compatible topics will be used. The placeholder '{device_id}' can be used to inject the device id and '{output_name}' to inject routing info into the topic template.\nDefault: `not set`.\n",
                     ttt => this[StandaloneCliConfigKeys.TelemetryTopicTemplateKey] = ttt },
+                { $"ri|enableroutinginfo:|{StandaloneCliConfigKeys.EnableRoutingInfo}:",
+                    "Add routing information to telemetry messages. The name of the property is `$$RoutingInfo` and the value is the `DataSetWriterGroup` for that particular message.\nWhen the `DataSetWriterGroup` is not configured, the `$$RoutingInfo` property will not be added to the message even if this argument is set.\nDefault: `False` (disabled).\n",
+                    (bool? b) => this[StandaloneCliConfigKeys.EnableRoutingInfo] = b?.ToString() ?? "True" },
+                { $"mst|metadatasubpath:|{StandaloneCliConfigKeys.DataSetMetaDataSubPath}:",
+                    "The sub output path metadata should be sent to.\nThis will be a subpath of the MQTT telemetry topic, or in case of using EdgeHub, an output name or a subpath to existing configured output name.\nIn case of MQTT the message will be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled. \nDefault: `disabled` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `$metadata`.\n",
+                    (string s) => this[StandaloneCliConfigKeys.DataSetMetaDataSubPath] = !string.IsNullOrEmpty(s) ? s : "$metadata" },
                 { $"ht|ih=|iothubprotocol=|{StandaloneCliConfigKeys.HubTransport}=",
                     $"Protocol to use for communication with EdgeHub. Allowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(TransportOption)))}`\nDefault: `{nameof(TransportOption.Mqtt)}` if device or edge hub connection string is provided, ignored otherwise.\n",
                     (TransportOption p) => this[StandaloneCliConfigKeys.HubTransport] = p.ToString() },

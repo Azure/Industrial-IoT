@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             Username = builder.Username;
             Password = builder.Password;
             StateFile = builder.StateFile;
-            MessageExpiryInterval = builder.MessageExpiryInterval;
+            MqttV5 = builder.MqttV5;
         }
 
         /// <summary>
@@ -64,8 +64,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         public string StateFile { get; }
 
         /// <summary>
-        /// Gets the period of time (seconds) for the broker to store the message for any subscribers that are not yet connected.
+        /// Whether to use mqtt v5 instead of mqtt v3.11
         /// </summary>
-        public uint? MessageExpiryInterval { get; }
+        public bool MqttV5 { get; }
     }
 }

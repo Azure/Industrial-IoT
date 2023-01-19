@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Collections;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
@@ -96,38 +97,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(Message message) {
-                // Add event to telemetry list
-                if (!IsClosed) {
-                    Connection.SendEvent(message);
-                }
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc />
-            public Task SendEventAsync(string outputName, Message message) {
-                // Add event to telemetry list
-                if (!IsClosed) {
-                    Connection.SendEvent(outputName, message);
-                }
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc />
-            public Task SendEventBatchAsync(IEnumerable<Message> messages) {
+            public Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages, string outputName) {
                 if (!IsClosed) {
                     foreach (var message in messages) {
-                        Connection.SendEvent(message);
-                    }
-                }
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc />
-            public Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
-                if (!IsClosed) {
-                    foreach (var message in messages) {
-                        Connection.SendEvent(outputName, message);
+                        Connection.SendEvent(message.OutputName, ((TelemetryMessage)message).Message);
                     }
                 }
                 return Task.CompletedTask;
@@ -249,13 +222,133 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 IsClosed = true;
             }
 
+            /// <inheritdoc />
+            public ITelemetryEvent CreateMessage() {
+                return new TelemetryMessage();
+            }
+
+            /// <summary>
+            /// Message wrapper
+            /// </summary>
+            internal sealed class TelemetryMessage : ITelemetryEvent {
+
+                /// <summary>
+                /// Build message
+                /// </summary>
+                internal Message Message => _msg;
+
+                /// <inheritdoc/>
+                public DateTime Timestamp { get; set; }
+
+                /// <inheritdoc/>
+                public string ContentType {
+                    get {
+                        return _msg.ContentType;
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.ContentType = value;
+                            _msg.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string ContentEncoding {
+                    get {
+                        return _msg.ContentEncoding;
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.ContentEncoding = value;
+                            _msg.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string MessageSchema {
+                    get {
+                        return _msg.Properties[CommonProperties.EventSchemaType];
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string RoutingInfo {
+                    get {
+                        return _msg.Properties[CommonProperties.RoutingInfo];
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string DeviceId {
+                    get {
+                        return _msg.Properties[CommonProperties.DeviceId];
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.Properties.AddOrUpdate(CommonProperties.DeviceId, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string ModuleId {
+                    get {
+                        return _msg.Properties[CommonProperties.ModuleId];
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.Properties.AddOrUpdate(CommonProperties.ModuleId, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public byte[] Body {
+                    get {
+                        var buffer = _msg.BodyStream.ReadAsBuffer().Array;
+                        _msg.BodyStream.Position = 0;
+                        return buffer;
+                    }
+                    set {
+                        if (value != null) {
+                            _msg = _msg.CloneWithBody(value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string OutputName { get; set; }
+                /// <inheritdoc/>
+                public bool Retain { get; set; }
+                /// <inheritdoc/>
+                public TimeSpan Ttl { get; set; }
+
+                /// <inheritdoc/>
+                public void Dispose() {
+                    // TODO: Return to pool
+                    _msg.Dispose();
+                }
+
+                Message _msg = new Message();
+            }
+
             private readonly Dictionary<string, (MethodCallback, object)> _methods =
                 new Dictionary<string, (MethodCallback, object)>();
             private readonly List<(DesiredPropertyUpdateCallback, object)> _properties =
                 new List<(DesiredPropertyUpdateCallback, object)>();
-#pragma warning disable IDE0052 // Remove unread private members
             private readonly IProcessControl _ctrl;
-#pragma warning restore IDE0052 // Remove unread private members
         }
 
         private readonly IIoTHub _hub;

@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Threading.Tasks;
     using System.Threading;
     using Prometheus;
+    using System.Linq;
 
     /// <summary>
     /// Adapts module client to interface
@@ -90,35 +91,36 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(Message message) {
-            if (IsClosed) {
-                return;
-            }
-            await _client.SendEventAsync(message);
+        public ITelemetryEvent CreateMessage() {
+            return new DeviceClientAdapter.DeviceMessage();
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(string outputName, Message message) {
+        public async Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages, string outputName) {
             if (IsClosed) {
                 return;
             }
-            await _client.SendEventAsync(outputName, message);
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventBatchAsync(IEnumerable<Message> messages) {
-            if (IsClosed) {
-                return;
+            if (messages.Count == 1) {
+                var msg = (DeviceClientAdapter.DeviceMessage)messages[0];
+                if (string.IsNullOrEmpty(messages[0].OutputName)) {
+                    await _client.SendEventAsync(msg.Message);
+                }
+                else {
+                    await _client.SendEventAsync(messages[0].OutputName, msg.Message);
+                }
             }
-            await _client.SendEventBatchAsync(messages);
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
-            if (IsClosed) {
-                return;
+            else {
+                var outputMessages = messages.GroupBy(m => m.OutputName);
+                foreach (var events in outputMessages) {
+                    var msgs = events.OfType<DeviceClientAdapter.DeviceMessage>().Select(m => m.Message);
+                    if (string.IsNullOrEmpty(events.Key)) {
+                        await _client.SendEventBatchAsync(msgs);
+                    }
+                    else {
+                        await _client.SendEventBatchAsync(events.Key, msgs);
+                    }
+                }
             }
-            await _client.SendEventBatchAsync(outputName, messages);
         }
 
         /// <inheritdoc />

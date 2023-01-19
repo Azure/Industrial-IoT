@@ -98,6 +98,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string DisableDataSetMetaData = "DisableDataSetMetaData";
 
         /// <summary>
+        /// Key to configure metadata sub path for metadata message routing.
+        /// </summary>
+        public const string DataSetMetaDataSubPath = "DataSetMetaDataSubPath";
+
+        /// <summary>
         /// Key for the default queue size fro monitored items
         /// </summary>
         public const string DefaultQueueSize = "DefaultQueueSize";

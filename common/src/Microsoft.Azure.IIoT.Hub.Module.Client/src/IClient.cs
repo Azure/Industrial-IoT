@@ -23,28 +23,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         int MaxMessageSize { get; }
 
         /// <summary>
-        /// Sends an event to device hub
+        /// Create a message to send
         /// </summary>
-        /// <param name="message">The message containing the event.</param>
-        Task SendEventAsync(Message message);
-
-        /// <summary>
-        /// Sends an event to device hub
-        /// </summary>
-        /// <param name="outputName">The output target for sending the given message.</param>
-        /// <param name="message">The message containing the event.</param>
         /// <returns></returns>
-        Task SendEventAsync(string outputName, Message message);
+        ITelemetryEvent CreateMessage();
 
         /// <summary>
-        /// Sends a batch of events to device hub
+        /// Sends messages
         /// </summary>
-        Task SendEventBatchAsync(IEnumerable<Message> messages);
-
-        /// <summary>
-        /// Sends a batch of events to device hub on a specific output
-        /// </summary>
-        Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages);
+        /// <param name="messages">The message containing the event.</param>
+        /// <param name="outputName">The output target for sending the given message.</param>
+        /// <returns></returns>
+        Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages,
+            string outputName = null);
 
         /// <summary>
         /// Registers a new delegate that is called for a method that

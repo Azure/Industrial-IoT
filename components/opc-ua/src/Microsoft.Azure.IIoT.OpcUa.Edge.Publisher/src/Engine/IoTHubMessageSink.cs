@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Prometheus;
     using Serilog;
     using System;
@@ -48,8 +48,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var routingInfo = messages.First().RoutingInfo;
 
             var messageObjects = messages
-                .Select(m => CreateMessage(m.Body, m.MessageSchema,
-                    m.ContentType, m.ContentEncoding, m.RoutingInfo))
+                .Select(m => _clientAccessor.Client.CreateMessage(m.Body, contentEncoding: m.ContentEncoding,
+                    contentType: m.ContentType, messageSchema: m.MessageSchema, routingInfo: m.RoutingInfo))
                 .ToList();
             try {
                 var messagesCount = messageObjects.Count;
@@ -63,39 +63,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     SentMessagesCount = 0;
                 }
                 using (kSendingDuration.NewTimer()) {
-                    var sw = new Stopwatch();
-                    sw.Start();
-
                     try {
-                        if (string.IsNullOrEmpty(routingInfo)) {
-                            if (messagesCount == 1) {
-                                await _clientAccessor.Client.SendEventAsync(messageObjects.First()).ConfigureAwait(false);
-                            }
-                            else {
-                                await _clientAccessor.Client.SendEventBatchAsync(messageObjects).ConfigureAwait(false);
-                            }
-                        }
-                        else {
-                            if (messagesCount == 1) {
-                                await _clientAccessor.Client.SendEventAsync(routingInfo, messageObjects.First()).ConfigureAwait(false);
-                            }
-                            else {
-                                await _clientAccessor.Client.SendEventBatchAsync(routingInfo, messageObjects).ConfigureAwait(false);
-                            }
-                        }
+                        await _clientAccessor.Client.SendEventAsync(messageObjects, routingInfo).ConfigureAwait(false);
                     }
                     catch (Exception e) {
                         _logger.Error(e, "Error sending message(s) to IoT Hub");
                     }
-
-                    sw.Stop();
-                    _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
                 }
                 SentMessagesCount += messagesCount;
                 kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
+            }
+            finally {
+                messageObjects.ForEach(m => m.Dispose());
             }
         }
 

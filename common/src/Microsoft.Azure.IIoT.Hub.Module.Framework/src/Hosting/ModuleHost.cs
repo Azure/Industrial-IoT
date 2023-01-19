@@ -203,11 +203,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 if (Client != null) {
                     var messages = batch
                         .Select(ev =>
-                             CreateMessage(ev, contentEncoding, contentType, eventSchema,
+                             Client.CreateMessage(ev, contentEncoding, contentType, eventSchema,
                                 DeviceId, ModuleId))
                         .ToList();
                     try {
-                        await Client.SendEventBatchAsync(messages);
+                        await Client.SendEventAsync(messages, null);
                     }
                     finally {
                         messages.ForEach(m => m?.Dispose());
@@ -225,10 +225,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             try {
                 await _lock.WaitAsync();
                 if (Client != null) {
-                    using (var msg = CreateMessage(data, contentEncoding, contentType,
-                        eventSchema, DeviceId, ModuleId)) {
-                        await Client.SendEventAsync(msg);
-                    }
+                    using var msg = Client.CreateMessage(data, contentEncoding, contentType,
+                        eventSchema, DeviceId, ModuleId);
+
+                    await Client.SendEventAsync(new[] { msg }, null);
                 }
             }
             finally {
@@ -307,41 +307,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 StopAsync().Wait();
             }
             _lock.Dispose();
-        }
-
-        /// <summary>
-        /// Create message
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="contentEncoding"></param>
-        /// <param name="contentType"></param>
-        /// <param name="eventSchema"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
-        private static Message CreateMessage(byte[] data, string contentEncoding,
-            string contentType, string eventSchema, string deviceId, string moduleId) {
-            var msg = new Message(data) {
-
-                ContentType = contentType,
-                ContentEncoding = contentEncoding,
-                // TODO - setting CreationTime causes issues in the Azure IoT java SDK
-                // revert the comment when the issue is fixed
-                //  CreationTimeUtc = DateTime.UtcNow
-            };
-            if (!string.IsNullOrEmpty(contentEncoding)) {
-                msg.Properties.Add(CommonProperties.ContentEncoding, contentEncoding);
-            }
-            if (!string.IsNullOrEmpty(eventSchema)) {
-                msg.Properties.Add(CommonProperties.EventSchemaType, eventSchema);
-            }
-            if (!string.IsNullOrEmpty(deviceId)) {
-                msg.Properties.Add(CommonProperties.DeviceId, deviceId);
-            }
-            if (!string.IsNullOrEmpty(moduleId)) {
-                msg.Properties.Add(CommonProperties.ModuleId, moduleId);
-            }
-            return msg;
         }
 
         /// <summary>

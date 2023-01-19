@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
     using MQTTnet.Protocol;
     using Serilog;
     using System;
+    using System.Linq;
     using System.Runtime.InteropServices;
     using System.Security.Authentication;
     using System.Text;
@@ -76,15 +77,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         public async Task SendEventTest() {
             const string payload = @"{ ""key"": ""value"" }";
             var payloadBytes = Encoding.UTF8.GetBytes(payload);
-            var message = new Message(payloadBytes);
-            message.ContentType = "application/json";
-            message.Properties["iothub-content-type"] = "application/ua+json";
-            message.Properties["iothub-content-encoding"] = "utf-8";
-
             var mock = new Mock<IManagedMqttClient>();
+
             mock.SetupGet(x => x.IsStarted).Returns(true);
-            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), null, () => { }, _logger);
-            await mqttClientAdapter.SendEventAsync(message);
+            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1",
+                _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), null, () => { }, _logger);
+
+            var message = mqttClientAdapter.CreateMessage();
+            message.Body = payloadBytes;
+            message.ContentType = "application/json";
+            message.ContentEncoding = "utf-8";
+
+            await mqttClientAdapter.SendEventAsync(new[] { message }, null);
 
             mock.Verify(x => x.PublishAsync(
                 It.Is<MqttApplicationMessage>(x =>
@@ -114,17 +118,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         public async Task IsClosedTest() {
             const string payload = @"{ ""key"": ""value"" }";
             var payloadBytes = Encoding.UTF8.GetBytes(payload);
-            var message = new Message(payloadBytes);
-            message.ContentType = "application/json";
-            message.Properties["iothub-content-type"] = "application/ua+json";
-            message.Properties["iothub-content-encoding"] = "utf-8";
 
             var mock = new Mock<IManagedMqttClient>();
             mock.SetupGet(x => x.IsStarted).Returns(false);
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
+
             var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, null, () => { }, _logger);
+            var message = mqttClientAdapter.CreateMessage();
+            message.Body = payloadBytes;
+            message.ContentType = "application/json";
+            message.ContentEncoding = "utf-8";
+
             await mqttClientAdapter.CloseAsync();
-            await mqttClientAdapter.SendEventAsync(message);
+            await mqttClientAdapter.SendEventAsync(new[] { message }, null);
 
             mock.VerifyGet(x => x.IsStarted);
             mock.VerifySet(x => x.ConnectedHandler = It.IsAny<IMqttClientConnectedHandler>());

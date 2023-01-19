@@ -3,57 +3,67 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
+namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System;
 
     /// <summary>
-    /// Network message model
+    /// Telemetry message event to send
     /// </summary>
-    public class NetworkMessageModel {
+    public interface ITelemetryEvent : IDisposable {
 
         /// <summary>
         /// Processing timestamp
         /// </summary>
-        public DateTime Timestamp { get; set; }
+        DateTime Timestamp { get; set; }
 
         /// <summary>
         /// Content type
         /// </summary>
-        public string ContentType { get; set; }
+        string ContentType { get; set; }
 
         /// <summary>
         /// Content encoding
         /// </summary>
-        public string ContentEncoding { get; set; }
+        string ContentEncoding { get; set; }
 
         /// <summary>
         /// Message schema
         /// </summary>
-        public string MessageSchema { get; set; }
+        string MessageSchema { get; set; }
+
+        /// <summary>
+        /// Optional device id
+        /// </summary>
+        string DeviceId { get; set; }
+
+        /// <summary>
+        /// Optional module id
+        /// </summary>
+        string ModuleId { get; set; }
 
         /// <summary>
         /// Custom routing info to be added to the header.
         /// </summary>
-        public string RoutingInfo { get; set; }
+        string RoutingInfo { get; set; }
 
         /// <summary>
-        /// Custom routing info to be added to the header.
+        /// Output path to use
         /// </summary>
-        public string OutputName { get; set; }
+        string OutputName { get; set; }
 
         /// <summary>
         /// Whether to retain the message on the receiving end.
         /// </summary>
-        public bool Retain { get; set; }
+        bool Retain { get; set; }
 
         /// <summary>
         /// The time to live for the message
         /// </summary>
-        public TimeSpan Ttl { get; set; }
+        TimeSpan Ttl { get; set; }
 
         /// <summary>
         /// Message body
         /// </summary>
-        public byte[] Body { get; set; }
+        byte[] Body { get; set; }
     }
 }

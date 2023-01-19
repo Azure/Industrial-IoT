@@ -379,18 +379,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc/>
-            public void SendEvent(Message message) {
-                if (!_outer.Events.TryAdd(new EventMessage {
-                    DeviceId = Device.Id,
-                    ModuleId = Device.ModuleId,
-                    Message = message,
-                    EnqueuedTimeUtc = DateTime.UtcNow
-                })) {
-                    throw new CommunicationException("Failed to send event.");
-                }
-            }
-
-            /// <inheritdoc/>
             public void SendEvent(string outputName, Message message) {
                 if (!_outer.Events.TryAdd(new EventMessage {
                     DeviceId = Device.Id,
