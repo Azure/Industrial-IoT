@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
+    using MQTTnet.Formatter;
     using System;
 
     /// <summary>
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             Username = builder.Username;
             Password = builder.Password;
             StateFile = builder.StateFile;
-            MqttV5 = builder.MqttV5;
+            Protocol = builder.Protocol;
         }
 
         /// <summary>
@@ -64,8 +65,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         public string StateFile { get; }
 
         /// <summary>
-        /// Whether to use mqtt v5 instead of mqtt v3.11
+        /// Whether to use mqtt v5 or mqtt v3.11
         /// </summary>
-        public bool MqttV5 { get; }
+        public MqttProtocolVersion Protocol { get; }
     }
 }

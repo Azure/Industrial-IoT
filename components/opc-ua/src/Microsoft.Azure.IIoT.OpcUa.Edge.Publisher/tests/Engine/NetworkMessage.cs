@@ -13,8 +13,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
+    using Microsoft.Azure.IIoT.Messaging;
 
-    public static class NetworkMessageEncoderTestHelper {
+    public sealed class NetworkMessage : ITelemetryEvent {
+        public DateTime Timestamp { get; set; }
+        public string ContentType { get; set; }
+        public string ContentEncoding { get; set; }
+        public string MessageSchema { get; set; }
+        public string DeviceId { get; set; }
+        public string ModuleId { get; set; }
+        public string RoutingInfo { get; set; }
+        public string OutputName { get; set; }
+        public bool Retain { get; set; }
+        public TimeSpan Ttl { get; set; }
+        public byte[] Body { get; set; }
+
+        public static ITelemetryEvent Create() {
+            return new NetworkMessage();
+        }
 
         public static List<SubscriptionNotificationModel> GenerateSampleSubscriptionNotifications(
             uint numOfMessages, bool eventList = false,
@@ -119,6 +135,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             }
 
             return messages;
+        }
+
+        public void Dispose() {
         }
     }
 }

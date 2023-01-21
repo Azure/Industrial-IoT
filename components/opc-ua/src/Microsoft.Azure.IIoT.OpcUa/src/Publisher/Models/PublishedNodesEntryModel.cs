@@ -48,7 +48,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
 
         /// <summary> Send metadata at the configured interval even when not changing </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public TimeSpan? DataSetMetaDataSendInterval { get; set; }
+        public TimeSpan? MetaDataUpdateTime { get; set; }
+
+        /// <summary> Queue name to send metadata to</summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public string MetaDataQueueName { get; set; }
 
         /// <summary> The endpoint URL of the OPC UA server.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = true)]

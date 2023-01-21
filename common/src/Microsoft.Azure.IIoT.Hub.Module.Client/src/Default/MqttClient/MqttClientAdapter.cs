@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="deviceId">Id of the device.</param>
         /// <param name="timeout">Timeout used for operations.</param>
         /// <param name="onConnectionLost">Handler for when the MQTT server connection is lost.</param>
-        /// <param name="useMqttV5">Use mqtt v5</param>
+        /// <param name="protocolVersion">Use mqtt v5 or 311</param>
         /// <param name="qualityOfServiceLevel">Quality of service level to use for MQTT messages.</param>
         /// <param name="useIoTHubTopics">A flag determining whether IoT Hub compatible Topics shall be used.</param>
         /// <param name="telemetryTopicTemplate">A template to build Topics. Valid Placeholders are : {device_id}</param>
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             string deviceId,
             TimeSpan timeout,
             Action onConnectionLost,
-            bool useMqttV5,
+            MqttProtocolVersion protocolVersion,
             MqttQualityOfServiceLevel qualityOfServiceLevel,
             bool useIoTHubTopics,
             string telemetryTopicTemplate,
@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             _timeout = timeout;
             _onConnectionLost = onConnectionLost ?? throw new ArgumentNullException(nameof(onConnectionLost));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _useMqttV5 = useMqttV5;
+            _protocolVersion = protocolVersion;
             _qualityOfServiceLevel = qualityOfServiceLevel;
             _useIoTHubTopics = useIoTHubTopics;
             _telemetryTopicTemplate = telemetryTopicTemplate;
@@ -130,8 +130,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             options = options.WithTls(tls_options);
 
             // Use MQTT 5.0 if desired.
-            if (cs.MqttV5) {
-                options = options.WithProtocolVersion(MqttProtocolVersion.V500);
+            if (cs.Protocol != MqttProtocolVersion.Unknown) {
+                options = options.WithProtocolVersion(cs.Protocol);
             }
 
             var adapter = new MqttClientAdapter(
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 deviceId,
                 timeout,
                 onConnectionLost,
-                cs.MqttV5,
+                cs.Protocol,
                 qualityOfServiceLevel: MqttQualityOfServiceLevel.AtLeastOnce,
                 useIoTHubTopics: cs.UsingIoTHub,
                 telemetryTopicTemplate: telemetryTopicTemplate,
@@ -202,7 +202,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             if (IsClosed) {
                 return Task.CompletedTask;
             }
-            if (messages.Count == 0) {
+            if (messages.Count == 1) {
                 return InternalSendEventAsync((MqttClientAdapterMessage)messages[0]);
             }
             return Task.WhenAll(messages.OfType<MqttClientAdapterMessage>().Select(x => InternalSendEventAsync(x)));
@@ -394,14 +394,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     mqttApplicationMessageBuilder = mqttApplicationMessageBuilder.WithPayload(payload);
                 }
                 if (ttl.HasValue && ttl.Value > TimeSpan.Zero) {
-                    mqttApplicationMessageBuilder = mqttApplicationMessageBuilder.WithMessageExpiryInterval((uint)ttl.Value.Seconds);
+                    mqttApplicationMessageBuilder = mqttApplicationMessageBuilder.WithMessageExpiryInterval((uint)ttl.Value.TotalSeconds);
                 }
                 if (properties != null) {
                     foreach (var userProperty in properties) {
                         mqttApplicationMessageBuilder.WithUserProperty(userProperty.Key, userProperty.Value);
                     }
                 }
-                return _client.PublishAsync(mqttApplicationMessageBuilder.Build(), cancellationToken);
+                var mqttmessage = mqttApplicationMessageBuilder.Build();
+                return _client.PublishAsync(mqttmessage, cancellationToken);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to publish MQTT message.");
@@ -690,7 +691,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private readonly TimeSpan _timeout;
         private readonly Action _onConnectionLost;
         private readonly ILogger _logger;
-        private readonly bool _useMqttV5;
+        private readonly MqttProtocolVersion _protocolVersion;
         private ManualResetEvent _responseHandle = new ManualResetEvent(false);
         private ManualResetEvent _connectedHandle = new ManualResetEvent(false);
         private ConcurrentDictionary<string, MqttApplicationMessage> _responses

@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Messaging;
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using Opc.Ua.PubSub;
@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Net.Mime;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -50,7 +49,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="engineConfig"> injected configuration. </param>
         public NetworkMessageEncoder(ILogger logger, IEngineConfiguration engineConfig) {
             _logger = logger;
-            _enableRoutingInfo = engineConfig.EnableRoutingInfo;
             _useStandardsCompliantEncoding = engineConfig.UseStandardsCompliantEncoding;
         }
 
@@ -71,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             var networkMessages = GetNetworkMessages(messages, asBatch);
-            foreach (var (notificationsPerMessage, networkMessage) in networkMessages) {
+            foreach (var (notificationsPerMessage, networkMessage, output, retain, ttl) in networkMessages) {
                 var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
                 var tooBig = 0;
                 var notificationsPerChunk = notificationsPerMessage / (double)chunks.Count;
@@ -94,7 +92,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     chunkedMessage.ContentEncoding = networkMessage.ContentEncoding;
                     chunkedMessage.ContentType = networkMessage.ContentType;
                     chunkedMessage.MessageSchema = networkMessage.MessageSchema;
-                    chunkedMessage.RoutingInfo = networkMessage.RoutingInfo;
+                    chunkedMessage.RoutingInfo = networkMessage.DataSetWriterGroup;
+                    chunkedMessage.OutputName = output;
+                    chunkedMessage.Retain = retain;
+                    chunkedMessage.Ttl = ttl;
                     chunkedMessages.Add(chunkedMessage);
 
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + body.Length) /
@@ -131,9 +132,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="messages"></param>
         /// <param name="isBatched"></param>
         /// <returns></returns>
-        private List<(int, PubSubMessage)> GetNetworkMessages(IEnumerable<SubscriptionNotificationModel> messages,
+        private List<(int, PubSubMessage, string, bool, TimeSpan)> GetNetworkMessages(IEnumerable<SubscriptionNotificationModel> messages,
             bool isBatched) {
-            var result = new List<(int, PubSubMessage)>();
+            var result = new List<(int, PubSubMessage, string, bool, TimeSpan)>();
             // Group messages by publisher, then writer group and then by dataset class id
             foreach (var publishers in messages
                 .Select(m => (Notification: m, Context: m.Context as WriterGroupMessageContext))
@@ -264,7 +265,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         currentMessage.Messages.Add(dataSetMessage);
                                         if (writerGroup.MessageSettings?.MaxMessagesPerPublish != null &&
                                             currentMessage.Messages.Count >= writerGroup.MessageSettings.MaxMessagesPerPublish) {
-                                            result.Add((currentNotificationCount, currentMessage));
+                                            result.Add((currentNotificationCount, currentMessage, default, false, default));
                                             currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
                                                 dataSetClassId, publisherId);
                                             currentNotificationCount = 0;
@@ -276,7 +277,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             else if (message.Notification.MetaData != null && !hasSamplesPayload) {
                                 if (currentMessage.Messages.Count > 0) {
                                     // Start a new message but first emit current
-                                    result.Add((currentNotificationCount, currentMessage));
+                                    result.Add((currentNotificationCount, currentMessage, default, false, default));
                                     currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
                                         dataSetClassId, publisherId);
                                     currentNotificationCount = 0;
@@ -288,21 +289,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         DataSetWriterId = message.Notification.SubscriptionId,
                                         MetaData = message.Notification.MetaData,
                                         MessageId = Guid.NewGuid().ToString(),
-                                        DataSetWriterGroup = writerGroup.WriterGroupId,
                                         DataSetWriterName = message.Context.Writer.DataSetWriterName
                                     } : new UadpMetaDataMessage {
                                         DataSetWriterId = message.Notification.SubscriptionId,
                                         MetaData = message.Notification.MetaData
                                     };
                                 metadataMessage.PublisherId = publisherId;
+                                metadataMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
 
-                                // TODO: Overriding with metadata topic name
-                                metadataMessage.RoutingInfo = _enableRoutingInfo ? writerGroup.WriterGroupId : null;
-                                result.Add((0, metadataMessage));
+                                result.Add((0, metadataMessage, message.Context.Writer.MetaDataQueueName,
+                                    true, message.Context.Writer.MetaDataUpdateTime ?? default));
                             }
                         }
                         if (currentMessage.Messages.Count > 0) {
-                            result.Add((currentNotificationCount, currentMessage));
+                            result.Add((currentNotificationCount, currentMessage, default, false, default));
                         }
 
                         BaseNetworkMessage CreateMessage(WriterGroupModel writerGroup, MessageEncoding encoding,
@@ -312,8 +312,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 UseAdvancedEncoding = !_useStandardsCompliantEncoding,
                                 UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
                                 UseArrayEnvelope = !_useStandardsCompliantEncoding && isBatched,
-                                MessageId = () => Guid.NewGuid().ToString(),
-                                DataSetWriterGroup = writerGroup.WriterGroupId
+                                MessageId = () => Guid.NewGuid().ToString()
                             } : new UadpNetworkMessage {
                                 //   WriterGroupId = writerGroup.Index,
                                 //   GroupVersion = writerGroup.Version,
@@ -324,7 +323,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             currentMessage.NetworkMessageContentMask = networkMessageContentMask;
                             currentMessage.PublisherId = publisherId;
                             currentMessage.DataSetClassId = dataSetClassId;
-                            currentMessage.RoutingInfo = _enableRoutingInfo ? writerGroup.WriterGroupId : null;
+                            currentMessage.DataSetWriterGroup = writerGroup.WriterGroupId;
                             return currentMessage;
                         }
                     }
@@ -342,7 +341,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly ConfigurationVersionDataType kEmptyConfiguration =
             new ConfigurationVersionDataType { MajorVersion = 1u };
         private readonly ILogger _logger;
-        private readonly bool _enableRoutingInfo;
         private uint _sequenceNumber;
         private readonly bool _useStandardsCompliantEncoding;
     }

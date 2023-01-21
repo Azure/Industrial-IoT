@@ -21,7 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             return new DataSetWriterModel {
                 DataSet = model.DataSet.Clone(),
                 DataSetFieldContentMask = model.DataSetFieldContentMask,
-                DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
+                MetaDataUpdateTime = model.MetaDataUpdateTime,
+                MetaDataQueueName = model.MetaDataQueueName,
                 DataSetWriterName = model.DataSetWriterName,
                 KeyFrameCount = model.KeyFrameCount,
                 MessageSettings = model.MessageSettings.Clone()

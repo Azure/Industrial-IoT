@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         public MqttClientAdapterTests() {
             _logger = new Mock<ILogger>().Object;
             // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
-            _mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create("HostName=hub1.azure-devices.net;DeviceId=device1;ModuleId=module1;SharedAccessSignature=SharedAccessSignature sr=hub1.azure-devices.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860;StateFile=file1;MessageExpiryInterval=1234");
+            _mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create("HostName=hub1.azure-devices.net;DeviceId=device1;ModuleId=module1;SharedAccessSignature=SharedAccessSignature sr=hub1.azure-devices.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860;StateFile=file1;Protocol=v500");
         }
 
         [Fact]
@@ -87,15 +87,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             message.Body = payloadBytes;
             message.ContentType = "application/json";
             message.ContentEncoding = "utf-8";
+            message.Ttl = TimeSpan.FromSeconds(1234);
+            message.Retain = true;
 
             await mqttClientAdapter.SendEventAsync(new[] { message });
 
             mock.Verify(x => x.PublishAsync(
                 It.Is<MqttApplicationMessage>(x =>
                     string.Equals(x.ContentType, "application/json") &&
-                    string.Equals(x.Topic, "devices/device1/messages/events/iothub-content-type=application%2Fjson&iothub-content-encoding=utf-8/") &&
+                    string.Equals(x.Topic, "devices/device1/messages/events/iothub-content-type=application%2Fjson&iothub-message-schema=application%2Fjson&iothub-content-encoding=utf-8&%24%24ContentEncoding=utf-8/") &&
                     x.QualityOfServiceLevel == MqttQualityOfServiceLevel.AtLeastOnce &&
                     string.Equals(Encoding.UTF8.GetString(x.Payload), payload) &&
+                    x.Retain == true &&
                     x.MessageExpiryInterval == 1234),
                 It.IsAny<CancellationToken>()));
         }

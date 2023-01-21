@@ -277,6 +277,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
 
             /// <inheritdoc/>
             public bool EnableMetrics => false;
+            /// <inheritdoc/>
+            public bool EnableOutputRouting => false;
 
             private readonly DeviceModel _device;
         }

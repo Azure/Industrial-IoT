@@ -33,9 +33,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Create client
         /// </summary>
         /// <param name="client"></param>
-        internal ModuleClientAdapter(ModuleClient client) {
+        /// <param name="enableOutputRouting"></param>
+        internal ModuleClientAdapter(ModuleClient client, bool enableOutputRouting) {
             _client = client ??
                 throw new ArgumentNullException(nameof(client));
+            _enableOutputRouting = enableOutputRouting;
         }
 
         /// <summary>
@@ -45,6 +47,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="cs"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
+        /// <param name="enableOutputRouting"></param>
         /// <param name="transportSetting"></param>
         /// <param name="timeout"></param>
         /// <param name="retry"></param>
@@ -53,9 +56,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <returns></returns>
         public static async Task<IClient> CreateAsync(string product,
             IotHubConnectionStringBuilder cs, string deviceId, string moduleId,
-            ITransportSettings transportSetting,
-            TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost,
-            ILogger logger) {
+            bool enableOutputRouting, ITransportSettings transportSetting,
+            TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
 
             if (cs == null) {
                 logger.Information("Running in iotedge context.");
@@ -65,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             var client = await CreateAsync(cs, transportSetting);
-            var adapter = new ModuleClientAdapter(client);
+            var adapter = new ModuleClientAdapter(client, enableOutputRouting);
 
             // Configure
             client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
@@ -100,6 +102,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public async Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages) {
             if (IsClosed) {
                 return;
+            }
+            if (!_enableOutputRouting) {
+                if (messages.Count == 1) {
+                    var msg = (DeviceClientAdapter.DeviceMessage)messages[0];
+                    await _client.SendEventAsync(msg.Message);
+                }
+                else {
+                    var msgs = messages.OfType<DeviceClientAdapter.DeviceMessage>().Select(m => m.Message);
+                    await _client.SendEventBatchAsync(msgs);
+                }
             }
             if (messages.Count == 1) {
                 var msg = (DeviceClientAdapter.DeviceMessage)messages[0];
@@ -236,6 +248,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         private readonly ModuleClient _client;
+        private readonly bool _enableOutputRouting;
         private int _reconnectCounter;
         private static readonly Gauge kReconnectionStatus = Metrics
             .CreateGauge("iiot_edge_reconnected", "reconnected count",

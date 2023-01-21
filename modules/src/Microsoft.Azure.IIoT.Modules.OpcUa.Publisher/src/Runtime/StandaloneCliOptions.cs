@@ -123,9 +123,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 { $"kfc|keyframecount=|{StandaloneCliConfigKeys.DefaultKeyFrameCount}=",
                     "The default number of delta messages to send until a key frame message is sent. If 0, no key frame messages are sent, if 1, every message will be a key frame. \nDefault: `0`.\n",
                     (int i) => this[StandaloneCliConfigKeys.DefaultKeyFrameCount] = TimeSpan.FromMilliseconds(i).ToString() },
-                { $"msi|metadatasendinterval=|{StandaloneCliConfigKeys.DefaultMetaDataSendInterval}=",
+                { $"msi|metadatasendinterval=|{StandaloneCliConfigKeys.DefaultMetaDataUpdateTime}=",
                     "Default value in milliseconds for the metadata send interval which determines in which interval metadata is sent.\nEven when disabled, metadata is still sent when the metadata version changes unless `--mm=*Samples` is set in which case this setting is ignored. Only valid for network message encodings. \nDefault: `0` which means periodic sending of metadata is disabled.\n",
-                    (int i) => this[StandaloneCliConfigKeys.DefaultMetaDataSendInterval] = TimeSpan.FromMilliseconds(i).ToString() },
+                    (int i) => this[StandaloneCliConfigKeys.DefaultMetaDataUpdateTime] = TimeSpan.FromMilliseconds(i).ToString() },
                 { $"dm|disablemetadata:|{StandaloneCliConfigKeys.DisableDataSetMetaData}:",
                     "Disables sending any metadata when metadata version changes. This setting can be used to also override the messaging profile's default support for metadata sending. \nDefault: `False` if the messaging profile selected supports sending metadata, `True` otherwise.\n",
                     (bool? b) => this[StandaloneCliConfigKeys.DisableDataSetMetaData] = b?.ToString() ?? "True" },
@@ -147,9 +147,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 { $"ri|enableroutinginfo:|{StandaloneCliConfigKeys.EnableRoutingInfo}:",
                     "Add routing information to telemetry messages. The name of the property is `$$RoutingInfo` and the value is the `DataSetWriterGroup` for that particular message.\nWhen the `DataSetWriterGroup` is not configured, the `$$RoutingInfo` property will not be added to the message even if this argument is set.\nDefault: `False` (disabled).\n",
                     (bool? b) => this[StandaloneCliConfigKeys.EnableRoutingInfo] = b?.ToString() ?? "True" },
-                { $"mst|metadatasubpath:|{StandaloneCliConfigKeys.DataSetMetaDataSubPath}:",
+                { $"mst|metadatasubpath:|{StandaloneCliConfigKeys.DefaultDataSetMetaDataQueueName}:",
                     "The sub output path metadata should be sent to.\nThis will be a subpath of the MQTT telemetry topic, or in case of using EdgeHub, an output name or a subpath to existing configured output name.\nIn case of MQTT the message will be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled. \nDefault: `disabled` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `$metadata`.\n",
-                    (string s) => this[StandaloneCliConfigKeys.DataSetMetaDataSubPath] = !string.IsNullOrEmpty(s) ? s : "$metadata" },
+                    (string s) => this[StandaloneCliConfigKeys.DefaultDataSetMetaDataQueueName] = !string.IsNullOrEmpty(s) ? s : "$metadata" },
                 { $"ht|ih=|iothubprotocol=|{StandaloneCliConfigKeys.HubTransport}=",
                     $"Protocol to use for communication with EdgeHub. Allowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(TransportOption)))}`\nDefault: `{nameof(TransportOption.Mqtt)}` if device or edge hub connection string is provided, ignored otherwise.\n",
                     (TransportOption p) => this[StandaloneCliConfigKeys.HubTransport] = p.ToString() },
@@ -535,7 +535,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.DefaultDiscardNew = GetValueOrDefault(StandaloneCliConfigKeys.DiscardNewDefault, model.DefaultDiscardNew);
             model.DefaultSamplingInterval = GetValueOrDefault(StandaloneCliConfigKeys.OpcSamplingInterval, model.DefaultSamplingInterval);
             model.DefaultPublishingInterval = GetValueOrDefault(StandaloneCliConfigKeys.OpcPublishingInterval, model.DefaultPublishingInterval);
-            model.DefaultMetaDataSendInterval = GetValueOrDefault(StandaloneCliConfigKeys.DefaultMetaDataSendInterval, model.DefaultMetaDataSendInterval);
+            model.DefaultMetaDataUpdateTime = GetValueOrDefault(StandaloneCliConfigKeys.DefaultMetaDataUpdateTime, model.DefaultMetaDataUpdateTime);
+            model.DefaultDataSetMetaDataQueueName = GetValueOrDefault(StandaloneCliConfigKeys.DefaultDataSetMetaDataQueueName, model.DefaultDataSetMetaDataQueueName);
             model.DisableDataSetMetaData = GetValueOrDefault(StandaloneCliConfigKeys.DisableDataSetMetaData, model.DisableDataSetMetaData);
             model.DefaultKeyFrameCount = GetValueOrDefault(StandaloneCliConfigKeys.DefaultKeyFrameCount, model.DefaultKeyFrameCount);
             model.FetchOpcNodeDisplayName = GetValueOrDefault(StandaloneCliConfigKeys.FetchOpcNodeDisplayName, model.FetchOpcNodeDisplayName);

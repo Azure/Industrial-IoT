@@ -135,6 +135,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     _bypassCertValidation = true;
                 }
             }
+            _enableOutputRouting = config.EnableOutputRouting;
+
             if (!string.IsNullOrEmpty(ehubHost)) {
                 // Running in edge mode
                 // the configured transport (if provided) will be forced to it's OverTcp
@@ -242,7 +244,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
             }
             return ModuleClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId, ModuleId,
-                transportSetting, timeout: _timeout, RetryPolicy, onError, _logger);
+                _enableOutputRouting, transportSetting, timeout: _timeout, retry: RetryPolicy,
+                onConnectionLost: onError, logger: _logger);
         }
 
         /// <summary>
@@ -301,5 +304,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private readonly string _telemetryTopicTemplate;
         private readonly IDisposable _logHook;
         private readonly bool _bypassCertValidation;
+        private readonly bool _enableOutputRouting;
     }
 }
