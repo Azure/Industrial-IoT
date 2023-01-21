@@ -207,7 +207,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                                 DeviceId, ModuleId))
                         .ToList();
                     try {
-                        await Client.SendEventAsync(messages, null);
+                        await Client.SendEventAsync(messages);
                     }
                     finally {
                         messages.ForEach(m => m?.Dispose());
@@ -228,7 +228,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     using var msg = Client.CreateMessage(data, contentEncoding, contentType,
                         eventSchema, DeviceId, ModuleId);
 
-                    await Client.SendEventAsync(new[] { msg }, null);
+                    await Client.SendEventAsync(new[] { msg });
                 }
             }
             finally {

@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
     using System;
@@ -13,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Collections;
+    using Microsoft.Azure.Devices.Common;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
@@ -97,10 +98,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages, string outputName) {
+            public Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages) {
                 if (!IsClosed) {
                     foreach (var message in messages) {
-                        Connection.SendEvent(message.OutputName, ((TelemetryMessage)message).Message);
+                        Connection.SendEvent(message);
                     }
                 }
                 return Task.CompletedTask;
@@ -269,7 +270,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 /// <inheritdoc/>
                 public string MessageSchema {
                     get {
-                        return _msg.Properties[CommonProperties.EventSchemaType];
+                        return _msg.Properties.GetValueOrDefault(CommonProperties.EventSchemaType);
                     }
                     set {
                         if (!string.IsNullOrWhiteSpace(value)) {
@@ -281,7 +282,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 /// <inheritdoc/>
                 public string RoutingInfo {
                     get {
-                        return _msg.Properties[CommonProperties.RoutingInfo];
+                        return _msg.Properties.GetValueOrDefault(CommonProperties.RoutingInfo);
                     }
                     set {
                         if (!string.IsNullOrWhiteSpace(value)) {
@@ -293,7 +294,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 /// <inheritdoc/>
                 public string DeviceId {
                     get {
-                        return _msg.Properties[CommonProperties.DeviceId];
+                        return _msg.Properties.GetValueOrDefault(CommonProperties.DeviceId);
                     }
                     set {
                         if (!string.IsNullOrWhiteSpace(value)) {
@@ -305,7 +306,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 /// <inheritdoc/>
                 public string ModuleId {
                     get {
-                        return _msg.Properties[CommonProperties.ModuleId];
+                        return _msg.Properties.GetValueOrDefault(CommonProperties.ModuleId);
                     }
                     set {
                         if (!string.IsNullOrWhiteSpace(value)) {
@@ -317,7 +318,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 /// <inheritdoc/>
                 public byte[] Body {
                     get {
-                        var buffer = _msg.BodyStream.ReadAsBuffer().Array;
+                        var buffer = _msg.BodyStream.ReadAsBuffer().ToArray();
                         _msg.BodyStream.Position = 0;
                         return buffer;
                     }

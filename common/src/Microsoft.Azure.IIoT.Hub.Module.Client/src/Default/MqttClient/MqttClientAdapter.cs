@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using Microsoft.Azure.Devices.Shared;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Messaging;
     using MQTTnet;
     using MQTTnet.Client;
     using MQTTnet.Client.Connecting;
@@ -128,7 +129,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
             options = options.WithTls(tls_options);
 
-            // Use MQTT 5.0 if desired
+            // Use MQTT 5.0 if desired.
             if (cs.MqttV5) {
                 options = options.WithProtocolVersion(MqttProtocolVersion.V500);
             }
@@ -197,7 +198,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         }
 
         /// <inheritdoc />
-        public Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages, string outputName) {
+        public Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages) {
             if (IsClosed) {
                 return Task.CompletedTask;
             }

@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Prometheus;
@@ -41,16 +42,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task SendAsync(IEnumerable<NetworkMessageModel> messages) {
-            if (messages == null || !messages.Any()) {
+        public ITelemetryEvent CreateMessage() {
+            return _clientAccessor.Client.CreateMessage();
+        }
+
+        /// <inheritdoc/>
+        public async Task SendAsync(IReadOnlyList<ITelemetryEvent> messageObjects) {
+            if (messageObjects == null || messageObjects.Count == 0) {
                 return;
             }
-            var routingInfo = messages.First().RoutingInfo;
-
-            var messageObjects = messages
-                .Select(m => _clientAccessor.Client.CreateMessage(m.Body, contentEncoding: m.ContentEncoding,
-                    contentType: m.ContentType, messageSchema: m.MessageSchema, routingInfo: m.RoutingInfo))
-                .ToList();
             try {
                 var messagesCount = messageObjects.Count;
                 _logger.Verbose("Sending {count} objects to IoT Hub...", messagesCount);
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 using (kSendingDuration.NewTimer()) {
                     try {
-                        await _clientAccessor.Client.SendEventAsync(messageObjects, routingInfo).ConfigureAwait(false);
+                        await _clientAccessor.Client.SendEventAsync(messageObjects).ConfigureAwait(false);
                     }
                     catch (Exception e) {
                         _logger.Error(e, "Error sending message(s) to IoT Hub");
@@ -77,41 +77,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
             }
             finally {
-                messageObjects.ForEach(m => m.Dispose());
+                foreach (var message in messageObjects) {
+                    message.Dispose();
+                }
             }
-        }
-
-        /// <summary>
-        /// Create messages
-        /// </summary>
-        /// <param name="body"></param>
-        /// <param name="eventSchema"></param>
-        /// <param name="contentType"></param>
-        /// <param name="contentEncoding"></param>
-        /// <param name="routingInfo"></param>
-        /// <returns></returns>
-        private static Message CreateMessage(byte[] body, string eventSchema,
-            string contentType, string contentEncoding, string routingInfo) {
-            var msg = new Message(body) {
-                ContentType = contentType,
-                ContentEncoding = contentEncoding,
-                // TODO - setting CreationTime causes issues in the Azure IoT java SDK
-                //  revert the comment whrn the issue is fixed
-                //  CreationTimeUtc = DateTime.UtcNow
-            };
-            if (!string.IsNullOrEmpty(eventSchema)) {
-                msg.Properties.Add(CommonProperties.EventSchemaType, eventSchema);
-            }
-            if (!string.IsNullOrEmpty(contentType)) {
-                msg.Properties.Add(SystemProperties.MessageSchema, contentType);
-            }
-            if (!string.IsNullOrEmpty(contentEncoding)) {
-                msg.Properties.Add(CommonProperties.ContentEncoding, contentEncoding);
-            }
-            if (!string.IsNullOrEmpty(routingInfo)) {
-                msg.Properties.Add(CommonProperties.RoutingInfo, routingInfo);
-            }
-            return msg;
         }
 
         private const long kMessageCounterResetThreshold = long.MaxValue - 10000;

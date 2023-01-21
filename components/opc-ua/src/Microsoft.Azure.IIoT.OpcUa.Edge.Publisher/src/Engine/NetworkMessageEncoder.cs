@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
@@ -17,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Net.Mime;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -53,15 +55,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public IEnumerable<NetworkMessageModel> Encode(IEnumerable<SubscriptionNotificationModel> messages,
-            int maxMessageSize, bool asBatch) {
+        public IEnumerable<ITelemetryEvent> Encode(Func<ITelemetryEvent> factory,
+            IEnumerable<SubscriptionNotificationModel> messages, int maxMessageSize, bool asBatch) {
 
             //
             // by design all messages are generated in the same session context, therefore it is safe to
             // get the first message's context
             //
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)?.ServiceMessageContext;
-            var chunkedMessages = new List<NetworkMessageModel>();
+            var chunkedMessages = new List<ITelemetryEvent>();
             if (encodingContext == null) {
                 // Drop all messages
                 Drop(messages);
@@ -86,14 +88,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         continue;
                     }
 
-                    chunkedMessages.Add(new NetworkMessageModel {
-                        Timestamp = DateTime.UtcNow,
-                        Body = body,
-                        ContentEncoding = networkMessage.ContentEncoding,
-                        ContentType = networkMessage.ContentType,
-                        MessageSchema = networkMessage.MessageSchema,
-                        RoutingInfo = networkMessage.RoutingInfo,
-                    });
+                    var chunkedMessage = factory();
+                    chunkedMessage.Timestamp = DateTime.UtcNow;
+                    chunkedMessage.Body = body;
+                    chunkedMessage.ContentEncoding = networkMessage.ContentEncoding;
+                    chunkedMessage.ContentType = networkMessage.ContentType;
+                    chunkedMessage.MessageSchema = networkMessage.MessageSchema;
+                    chunkedMessage.RoutingInfo = networkMessage.RoutingInfo;
+                    chunkedMessages.Add(chunkedMessage);
 
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + body.Length) /
                         (MessagesProcessedCount + 1);

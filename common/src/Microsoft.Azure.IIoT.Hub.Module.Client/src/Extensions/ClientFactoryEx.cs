@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+    using Microsoft.Azure.IIoT.Messaging;
     using System.Threading.Tasks;
 
     /// <summary>

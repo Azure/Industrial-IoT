@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -32,10 +33,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Sends messages
         /// </summary>
         /// <param name="messages">The message containing the event.</param>
-        /// <param name="outputName">The output target for sending the given message.</param>
         /// <returns></returns>
-        Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages,
-            string outputName = null);
+        Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages);
 
         /// <summary>
         /// Registers a new delegate that is called for a method that

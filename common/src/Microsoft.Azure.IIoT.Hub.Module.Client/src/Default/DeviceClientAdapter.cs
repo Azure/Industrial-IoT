@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Messaging;
     using Prometheus;
     using Serilog;
     using System;
@@ -89,7 +90,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages, string outputName) {
+        public async Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages) {
             if (IsClosed) {
                 return;
             }
@@ -211,6 +212,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             return DeviceClient.CreateFromConnectionString(cs.ToString());
         }
 
+
         /// <summary>
         /// Message wrapper
         /// </summary>
@@ -219,62 +221,125 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <summary>
             /// Build message
             /// </summary>
-            internal Message Message {
+            internal Message Message => _msg;
+
+            /// <inheritdoc/>
+            public DateTime Timestamp { get; set; }
+
+            /// <inheritdoc/>
+            public string ContentType {
                 get {
-                    var msg = new Message(Body) {
-                        ContentType = ContentType,
-                        ContentEncoding = ContentEncoding,
-                        // TODO - setting CreationTime causes issues in the Azure IoT java SDK
-                        //  revert the comment whrn the issue is fixed
-                        //  CreationTimeUtc = DateTime.UtcNow
-                    };
-                    if (!string.IsNullOrEmpty(MessageSchema)) {
-                        msg.Properties.Add(CommonProperties.EventSchemaType, MessageSchema);
+                    return _msg.ContentType;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _msg.ContentType = value;
+                        _msg.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
                     }
-                    if (!string.IsNullOrEmpty(ContentType)) {
-                        msg.Properties.Add(SystemProperties.MessageSchema, ContentType);
-                    }
-                    if (!string.IsNullOrEmpty(ContentEncoding)) {
-                        msg.Properties.Add(CommonProperties.ContentEncoding, ContentEncoding);
-                    }
-                    if (!string.IsNullOrEmpty(RoutingInfo)) {
-                        msg.Properties.Add(CommonProperties.RoutingInfo, RoutingInfo);
-                    }
-                    if (!string.IsNullOrEmpty(RoutingInfo)) {
-                        msg.Properties.Add(CommonProperties.RoutingInfo, RoutingInfo);
-                    }
-                    if (!string.IsNullOrEmpty(RoutingInfo)) {
-                        msg.Properties.Add(CommonProperties.RoutingInfo, RoutingInfo);
-                    }
-                    return msg;
                 }
             }
 
             /// <inheritdoc/>
-            public DateTime Timestamp { get; set; }
+            public string ContentEncoding {
+                get {
+                    return _msg.ContentEncoding;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _msg.ContentEncoding = value;
+                        _msg.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
+                    }
+                }
+            }
+
             /// <inheritdoc/>
-            public string ContentType { get; set; }
+            public string MessageSchema {
+                get {
+                    if (_msg.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value)) {
+                        return value;
+                    }
+                    return null;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _msg.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
+                    }
+                }
+            }
+
             /// <inheritdoc/>
-            public string ContentEncoding { get; set; }
+            public string RoutingInfo {
+                get {
+                    if (_msg.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value)) {
+                        return value;
+                    }
+                    return null;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _msg.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
+                    }
+                }
+            }
+
             /// <inheritdoc/>
-            public string MessageSchema { get; set; }
+            public string DeviceId {
+                get {
+                    if (_msg.Properties.TryGetValue(CommonProperties.DeviceId, out var value)) {
+                        return value;
+                    }
+                    return null;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _msg.Properties.AddOrUpdate(CommonProperties.DeviceId, value);
+                    }
+                }
+            }
+
             /// <inheritdoc/>
-            public string RoutingInfo { get; set; }
+            public string ModuleId {
+                get {
+                    if (_msg.Properties.TryGetValue(CommonProperties.ModuleId, out var value)) {
+                        return value;
+                    }
+                    return null;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _msg.Properties.AddOrUpdate(CommonProperties.ModuleId, value);
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public byte[] Body {
+                get {
+                    var buffer = _msg.BodyStream.ReadAsBuffer().ToArray();
+                    _msg.BodyStream.Position = 0;
+                    return buffer;
+                }
+                set {
+                    if (value != null) {
+                        _msg = _msg.CloneWithBody(value);
+                    }
+                }
+            }
+
             /// <inheritdoc/>
             public string OutputName { get; set; }
             /// <inheritdoc/>
             public bool Retain { get; set; }
             /// <inheritdoc/>
             public TimeSpan Ttl { get; set; }
-            /// <inheritdoc/>
-            public byte[] Body { get; set; }
-            public string DeviceId { get; set; }
-            public string ModuleId { get; set; }
 
             /// <inheritdoc/>
             public void Dispose() {
                 // TODO: Return to pool
+                _msg.Dispose();
             }
+
+            Message _msg = new Message();
         }
 
         private readonly DeviceClient _client;

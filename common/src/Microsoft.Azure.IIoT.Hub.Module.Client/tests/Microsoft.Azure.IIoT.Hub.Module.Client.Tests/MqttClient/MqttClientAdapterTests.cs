@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             message.ContentType = "application/json";
             message.ContentEncoding = "utf-8";
 
-            await mqttClientAdapter.SendEventAsync(new[] { message }, null);
+            await mqttClientAdapter.SendEventAsync(new[] { message });
 
             mock.Verify(x => x.PublishAsync(
                 It.Is<MqttApplicationMessage>(x =>
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             message.ContentEncoding = "utf-8";
 
             await mqttClientAdapter.CloseAsync();
-            await mqttClientAdapter.SendEventAsync(new[] { message }, null);
+            await mqttClientAdapter.SendEventAsync(new[] { message });
 
             mock.VerifyGet(x => x.IsStarted);
             mock.VerifySet(x => x.ConnectedHandler = It.IsAny<IMqttClientConnectedHandler>());

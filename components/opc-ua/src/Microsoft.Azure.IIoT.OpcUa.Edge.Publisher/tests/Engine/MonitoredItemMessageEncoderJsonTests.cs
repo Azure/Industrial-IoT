@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var messages = new List<SubscriptionNotificationModel>();
 
             var encoder = GetEncoder();
-            var networkMessages = encoder.Encode(messages, maxMessageSize, encodeBatchFlag);
+            var networkMessages = encoder.Encode( messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
             Assert.Equal((uint)0, encoder.NotificationsProcessedCount);

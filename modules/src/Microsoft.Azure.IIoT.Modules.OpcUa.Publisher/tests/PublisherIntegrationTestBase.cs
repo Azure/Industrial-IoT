@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -57,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// <summary>
         /// Whether the module is running.
         /// </summary>
-        private BlockingCollection<EventMessage> Events { get; set; }
+        private BlockingCollection<ITelemetryEvent> Events { get; set; }
 
         /// <summary>
         /// Device Id
@@ -172,7 +173,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
                 && Events.TryTake(out var evt, messageCollectionTimeout)) {
                 messageCollectionTimeout -= stopWatch.Elapsed;
-                var json = Encoding.UTF8.GetString(evt.Message.GetBytes());
+                var json = Encoding.UTF8.GetString(evt.Body);
                 var document = JsonDocument.Parse(json);
                 json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
                 var element = document.RootElement;
