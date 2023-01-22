@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Messaging {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Telemetry message event to send
@@ -62,8 +63,8 @@ namespace Microsoft.Azure.IIoT.Messaging {
         TimeSpan Ttl { get; set; }
 
         /// <summary>
-        /// Message body
+        /// Message payload
         /// </summary>
-        byte[] Body { get; set; }
+        IReadOnlyList<byte[]> Payload { get; set; }
     }
 }

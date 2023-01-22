@@ -173,17 +173,22 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
                 && Events.TryTake(out var evt, messageCollectionTimeout)) {
                 messageCollectionTimeout -= stopWatch.Elapsed;
-                var json = Encoding.UTF8.GetString(evt.Body);
-                var document = JsonDocument.Parse(json);
-                json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
-                var element = document.RootElement;
-                if (element.ValueKind == JsonValueKind.Array) {
-                    foreach (var item in element.EnumerateArray()) {
-                        Add(messages, item, ref metadata, predicate, messageType, _messageIds);
+                foreach (var body in evt.Payload) {
+                    var json = Encoding.UTF8.GetString(body);
+                    var document = JsonDocument.Parse(json);
+                    json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
+                    var element = document.RootElement;
+                    if (element.ValueKind == JsonValueKind.Array) {
+                        foreach (var item in element.EnumerateArray()) {
+                            Add(messages, item, ref metadata, predicate, messageType, _messageIds);
+                        }
                     }
-                }
-                else if (element.ValueKind == JsonValueKind.Object) {
-                    Add(messages, element, ref metadata, predicate, messageType, _messageIds);
+                    else if (element.ValueKind == JsonValueKind.Object) {
+                        Add(messages, element, ref metadata, predicate, messageType, _messageIds);
+                    }
+                    if (messages.Count >= messageCount) {
+                        break;
+                    }
                 }
             }
             return messages.Take(messageCount).ToList();

@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            _client.Verify(c => c.SendEventAsync(It.IsAny<IReadOnlyList<ITelemetryEvent>>()), Times.Never());
+            _client.Verify(c => c.SendEventAsync(It.IsAny<ITelemetryEvent>()), Times.Never());
         }
 
         [Fact]
@@ -77,7 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
 
         [Fact]
         public async Task ReportingTest() {
-            var receivedParameters = new List<IReadOnlyList<ITelemetryEvent>>();
+            var receivedParameters = new List<ITelemetryEvent>();
 
             var _client = new Mock<IClient>();
 
@@ -89,8 +89,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
                 .Setup(c => c.CreateMessage())
                 .Returns(_message.Object);
             _client
-                .Setup(c => c.SendEventAsync(It.IsAny<IReadOnlyList<ITelemetryEvent>>()))
-                .Callback<IReadOnlyList<ITelemetryEvent>>(messages => receivedParameters.Add(messages))
+                .Setup(c => c.SendEventAsync(It.IsAny<ITelemetryEvent>()))
+                .Callback<ITelemetryEvent>(message => receivedParameters.Add(message))
                 .Returns(Task.CompletedTask);
 
             var _clientAccessorMock = new Mock<IClientAccessor>();
@@ -115,18 +115,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            _client.Verify(c => c.SendEventAsync(It.IsAny<IReadOnlyList<ITelemetryEvent>>()), Times.Once());
+            _client.Verify(c => c.SendEventAsync(It.IsAny<ITelemetryEvent>()), Times.Once());
 
             _message.Verify(m => m.Dispose(), Times.Once());
 
             Assert.Equal(1, receivedParameters.Count);
 
-            var message = receivedParameters[0][0];
+            var message = receivedParameters[0];
             Assert.Equal("runtimeinfo", message.RoutingInfo);
             Assert.Equal("application/json", message.ContentType);
             Assert.Equal("utf-8", message.ContentEncoding);
 
-            var body = Encoding.UTF8.GetString(message.Body);
+            Assert.Equal(1, message.Payload.Count);
+            var body = Encoding.UTF8.GetString(message.Payload[0]);
             Assert.Equal("{\"MessageType\":\"restartAnnouncement\",\"MessageVersion\":1}", body);
         }
     }

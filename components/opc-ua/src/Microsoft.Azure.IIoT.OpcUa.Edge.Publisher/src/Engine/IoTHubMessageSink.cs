@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public long SentMessagesCount { get; private set; }
 
         /// <inheritdoc/>
-        public int MaxMessageSize => _clientAccessor.Client.MaxMessageSize;
+        public int MaxBodySize => _clientAccessor.Client.MaxBodySize;
 
         /// <summary>
         /// Create IoT hub message sink
@@ -47,14 +47,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task SendAsync(IReadOnlyList<ITelemetryEvent> messageObjects) {
-            if (messageObjects == null || messageObjects.Count == 0) {
+        public async Task SendAsync(ITelemetryEvent message) {
+            if (message == null) {
                 return;
             }
             try {
-                var messagesCount = messageObjects.Count;
-                _logger.Verbose("Sending {count} objects to IoT Hub...", messagesCount);
-
                 if (SentMessagesCount > kMessageCounterResetThreshold) {
                     _logger.Debug("Message counter has been reset to prevent overflow. " +
                         "So far, {SentMessagesCount} messages has been sent to IoT Hub.",
@@ -64,22 +61,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 using (kSendingDuration.NewTimer()) {
                     try {
-                        await _clientAccessor.Client.SendEventAsync(messageObjects).ConfigureAwait(false);
+                        await _clientAccessor.Client.SendEventAsync(message).ConfigureAwait(false);
                     }
                     catch (Exception e) {
                         _logger.Error(e, "Error sending message(s) to IoT Hub");
                     }
                 }
-                SentMessagesCount += messagesCount;
+                SentMessagesCount++;
                 kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
             }
             finally {
-                foreach (var message in messageObjects) {
-                    message.Dispose();
-                }
+                message.Dispose();
             }
         }
 

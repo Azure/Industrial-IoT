@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         public bool IsClosed { get; private set; }
 
         /// <inheritdoc />
-        public int MaxMessageSize => int.MaxValue;
+        public int MaxBodySize => int.MaxValue;
 
         /// <summary>
         /// Constructor
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="protocolVersion">Use mqtt v5 or 311</param>
         /// <param name="qualityOfServiceLevel">Quality of service level to use for MQTT messages.</param>
         /// <param name="useIoTHubTopics">A flag determining whether IoT Hub compatible Topics shall be used.</param>
-        /// <param name="telemetryTopicTemplate">A template to build Topics. Valid Placeholders are : {device_id}</param>
+        /// <param name="telemetryTopicTemplate">A template to build Topics.</param>
         /// <param name="logger">Logger used for operations</param>
         private MqttClientAdapter(
             IManagedMqttClient client,
@@ -77,7 +77,22 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             _protocolVersion = protocolVersion;
             _qualityOfServiceLevel = qualityOfServiceLevel;
             _useIoTHubTopics = useIoTHubTopics;
-            _telemetryTopicTemplate = telemetryTopicTemplate;
+
+            if (!string.IsNullOrWhiteSpace(telemetryTopicTemplate)) {
+                if (!telemetryTopicTemplate.Contains(kOutputNamePlaceholder)) {
+                    if (telemetryTopicTemplate.EndsWith('/')) {
+                        _telemetryTopicTemplate =
+                            $"{telemetryTopicTemplate}{kOutputNamePlaceholder}/";
+                    }
+                    else {
+                        _telemetryTopicTemplate =
+                            $"{telemetryTopicTemplate}/{kOutputNamePlaceholder}";
+                    }
+                }
+                else {
+                    _telemetryTopicTemplate = telemetryTopicTemplate;
+                }
+            }
         }
 
         /// <summary>
@@ -198,14 +213,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         }
 
         /// <inheritdoc />
-        public Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages) {
+        public async Task SendEventAsync(ITelemetryEvent message) {
             if (IsClosed) {
-                return Task.CompletedTask;
+                return;
             }
-            if (messages.Count == 1) {
-                return InternalSendEventAsync((MqttClientAdapterMessage)messages[0]);
+            var msg = (MqttClientAdapterMessage)message;
+            var topic = msg.Topic;
+            foreach (var body in msg.Payload) {
+                if (body != null) {
+                    await InternalSendEventAsync(topic, body, msg.ContentType, msg.Retain,
+                        msg.Ttl, msg.UserProperties);
+                }
             }
-            return Task.WhenAll(messages.OfType<MqttClientAdapterMessage>().Select(x => InternalSendEventAsync(x)));
         }
 
         /// <inheritdoc />
@@ -342,27 +361,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <summary>
         /// Send event as MQTT message with configured properties for the client.
         /// </summary>
-        /// <param name="message">The MQTT message.</param>
-        /// <param name="cancellationToken">Optional cancellation token for operation.</param>
-        /// <returns></returns>
-        private Task InternalSendEventAsync(MqttClientAdapterMessage message, CancellationToken cancellationToken = default) {
-            return InternalSendEventAsync(message.Topic, message.Body, message.Retain, message.Ttl,
-                message.UserProperties, cancellationToken);
-        }
-
-        /// <summary>
-        /// Send event as MQTT message with configured properties for the client.
-        /// </summary>
         /// <param name="payload"></param>
         /// <param name="topic"></param>
         /// <param name="retain"></param>
         /// <param name="ttl"></param>
         /// <param name="properties"></param>
         /// <param name="cancellationToken"></param>
+        /// <param name="contentType"></param>
         /// <returns></returns>
         /// <exception cref="MessageTooLargeException"></exception>
-        private Task InternalSendEventAsync(string topic, byte[] payload = null, bool retain = false, TimeSpan? ttl = null,
-            Dictionary<string, string> properties = null, CancellationToken cancellationToken = default) {
+        private Task InternalSendEventAsync(string topic, byte[] payload = null, string contentType = null, bool retain = false,
+            TimeSpan? ttl = null, Dictionary<string, string> properties = null, CancellationToken cancellationToken = default) {
             _logger.Debug("Publishing {ByteCount} bytes to {Topic}", payload != null ? payload.Length : 0, topic);
 
             // Check topic length.
@@ -386,7 +395,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 // Build MQTT message.
                 var mqttApplicationMessageBuilder = new MqttApplicationMessageBuilder()
                     .WithQualityOfServiceLevel(_qualityOfServiceLevel)
-                    .WithContentType(kContentType)
+                    .WithContentType(contentType ?? kContentType)
                     .WithTopic(topic)
                     .WithRetainFlag(retain)
                     ;
@@ -545,7 +554,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// <summary>
             /// User properties
             /// </summary>
-            internal Dictionary<string, string> UserProperties => IsIoTHubLikeMessage ? null : _userProperties;
+            internal Dictionary<string, string> UserProperties
+                => IsIoTHubLikeMessage ? null : _userProperties;
 
             /// <summary>
             /// Topic
@@ -561,7 +571,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                         return topic;
                     }
                     else {
-                        return _outer._telemetryTopicTemplate.Replace(kDeviceIdTemplatePlaceholder, _outer._deviceId);
+                        return _outer._telemetryTopicTemplate
+                            .Replace(kDeviceIdTemplatePlaceholder, _outer._deviceId)
+                            .Replace(kOutputNamePlaceholder, OutputName ?? string.Empty)
+                            .Replace("//", "/")
+                            ;
                     }
                 }
             }
@@ -654,7 +668,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// <inheritdoc/>
             public TimeSpan Ttl { get; set; }
             /// <inheritdoc/>
-            public byte[] Body { get; set; }
+            public IReadOnlyList<byte[]> Payload { get; set; }
 
             /// <inheritdoc/>
             public void Dispose() {
@@ -668,7 +682,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             internal MqttClientAdapterMessage(MqttClientAdapter outer) {
                 _outer = outer;
                 IsIoTHubLikeMessage = _outer._useIoTHubTopics
-                    || string.IsNullOrWhiteSpace(_outer._telemetryTopicTemplate);
+                    || _outer._telemetryTopicTemplate == null;
             }
 
             private readonly MqttClientAdapter _outer;
@@ -686,6 +700,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private const string kContentTypePropertyName = "iothub-content-type";
         private const string kContentType = "application/json";
         private const string kDeviceIdTemplatePlaceholder = "{device_id}";
+        private const string kOutputNamePlaceholder = "{output_name}";
 
         private readonly string _deviceId;
         private readonly TimeSpan _timeout;

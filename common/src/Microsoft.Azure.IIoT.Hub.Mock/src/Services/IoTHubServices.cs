@@ -114,7 +114,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 DeviceId = deviceId,
                 ModuleId = moduleId,
                 Timestamp = DateTime.UtcNow,
-                Body = payload,
+                Payload = new[] { payload },
                 Properties = message.Properties
             };
             Events.TryAdd(ev);
@@ -525,7 +525,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 MessageSchema = message.MessageSchema;
                 RoutingInfo = message.RoutingInfo;
                 OutputName = message.OutputName;
-                Body = message.Body;
+                Payload = message.Payload;
                 DeviceId = device.Id;
                 ModuleId = device.ModuleId;
                 Retain = message.Retain;
@@ -553,7 +553,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// <inheritdoc/>
             public TimeSpan Ttl { get; set; }
             /// <inheritdoc/>
-            public byte[] Body { get; set; }
+            public IReadOnlyList<byte[]> Payload { get; set; }
 
             /// <summary>
             /// Event properties

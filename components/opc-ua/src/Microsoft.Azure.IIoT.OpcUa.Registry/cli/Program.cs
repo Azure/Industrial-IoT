@@ -364,7 +364,7 @@ Operations (Mutually exclusive):
             }
 
             /// <inheritdoc/>
-            public async Task SendEventAsync(IEnumerable<byte[]> batch, string contentType,
+            public async Task SendEventAsync(IReadOnlyList<byte[]> batch, string contentType,
                 string eventSchema, string contentEncoding) {
                 foreach (var data in batch) {
                     await SendEventAsync(data, contentType, contentType, contentEncoding);

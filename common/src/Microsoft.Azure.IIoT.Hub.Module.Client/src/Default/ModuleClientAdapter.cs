@@ -4,17 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IIoT.Messaging;
+    using Prometheus;
     using Serilog;
     using System;
-    using System.Collections.Generic;
     using System.IO;
-    using System.Threading.Tasks;
-    using System.Threading;
-    using Prometheus;
     using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Adapts module client to interface
@@ -27,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public bool IsClosed { get; internal set; }
 
         /// <inheritdoc />
-        public int MaxMessageSize => 256 * 1024;
+        public int MaxBodySize => 256 * 1024;
 
         /// <summary>
         /// Create client
@@ -99,39 +98,33 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages) {
+        public async Task SendEventAsync(ITelemetryEvent message) {
             if (IsClosed) {
                 return;
             }
-            if (!_enableOutputRouting) {
-                if (messages.Count == 1) {
-                    var msg = (DeviceClientAdapter.DeviceMessage)messages[0];
-                    await _client.SendEventAsync(msg.Message);
-                }
-                else {
-                    var msgs = messages.OfType<DeviceClientAdapter.DeviceMessage>().Select(m => m.Message);
-                    await _client.SendEventBatchAsync(msgs);
-                }
-            }
-            if (messages.Count == 1) {
-                var msg = (DeviceClientAdapter.DeviceMessage)messages[0];
-                if (string.IsNullOrEmpty(messages[0].OutputName)) {
-                    await _client.SendEventAsync(msg.Message);
-                }
-                else {
-                    await _client.SendEventAsync(messages[0].OutputName, msg.Message);
-                }
-            }
-            else {
-                var outputMessages = messages.GroupBy(m => m.OutputName);
-                foreach (var events in outputMessages) {
-                    var msgs = events.OfType<DeviceClientAdapter.DeviceMessage>().Select(m => m.Message);
-                    if (string.IsNullOrEmpty(events.Key)) {
-                        await _client.SendEventBatchAsync(msgs);
+            var msg = (DeviceClientAdapter.DeviceMessage)message;
+            var messages = msg.AsMessages();
+            try {
+                if (!_enableOutputRouting || string.IsNullOrEmpty(msg.OutputName)) {
+                    if (messages.Count == 1) {
+                        await _client.SendEventAsync(messages[0]);
                     }
                     else {
-                        await _client.SendEventBatchAsync(events.Key, msgs);
+                        await _client.SendEventBatchAsync(messages);
                     }
+                }
+                else {
+                    if (messages.Count == 1) {
+                        await _client.SendEventAsync(msg.OutputName, messages[0]);
+                    }
+                    else {
+                        await _client.SendEventBatchAsync(msg.OutputName, messages);
+                    }
+                }
+            }
+            finally {
+                foreach (var hubMessage in messages) {
+                    hubMessage.Dispose();
                 }
             }
         }

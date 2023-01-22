@@ -32,8 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(33, networkMessages.Count());
-            Assert.All(networkMessages, m => Assert.True(m.Body.Length <= maxMessageSize, m.Body.Length.ToString()));
+            Assert.Equal(33, networkMessages.Sum(m => m.Payload.Count));
+            Assert.All(networkMessages, m => Assert.All(m.Payload, m => Assert.True((m?.Length ?? 0) <= maxMessageSize, m?.Length.ToString())));
             Assert.Equal((uint)10, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)33, encoder.MessagesProcessedCount);
@@ -50,8 +50,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(2025, networkMessages.Count());
-            Assert.All(networkMessages, m => Assert.True(m.Body.Length <= maxMessageSize, m.Body.Length.ToString()));
+            Assert.Equal(2025, networkMessages.Sum(m => m.Payload.Count));
+            Assert.All(networkMessages, m => Assert.All(m.Payload, m => Assert.True((m?.Length ?? 0) <= maxMessageSize, m?.Length.ToString())));
             Assert.Equal((uint)100, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)2025, encoder.MessagesProcessedCount);
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(1, networkMessages.Count());
+            Assert.Equal(1, networkMessages.Sum(m => m.Payload.Count));
             Assert.Equal((uint)20, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)1, encoder.MessagesProcessedCount);
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(1, networkMessages.Count());
+            Assert.Equal(1, networkMessages.Sum(m => m.Payload.Count));
             Assert.Equal((uint)20, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)1, encoder.MessagesProcessedCount);
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(3, networkMessages.Count());
+            Assert.Equal(3, networkMessages.Sum(m => m.Payload.Count));
             Assert.Equal((uint)19, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)3, encoder.MessagesProcessedCount);
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
-            Assert.Equal(8194, networkMessages.Count());
+            Assert.Equal(8194, networkMessages.Sum(m => m.Payload.Count));
             Assert.Equal((uint)0, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)0, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)8194, encoder.MessagesProcessedCount);

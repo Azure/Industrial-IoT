@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Messaging;
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using Opc.Ua.PubSub;
@@ -71,8 +71,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var networkMessages = GetNetworkMessages(messages, asBatch);
             foreach (var (notificationsPerMessage, networkMessage, output, retain, ttl) in networkMessages) {
                 var chunks = networkMessage.Encode(encodingContext, maxMessageSize);
-                var tooBig = 0;
+
                 var notificationsPerChunk = notificationsPerMessage / (double)chunks.Count;
+                var validChunks = 0;
                 foreach (var body in chunks) {
                     if (body == null) {
                         //
@@ -82,22 +83,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         // contains (parts) of a notification.
                         //
                         _logger.Warning("Resulting chunk is too large, dropped a notification.");
-                        tooBig++;
                         continue;
                     }
-
-                    var chunkedMessage = factory();
-                    chunkedMessage.Timestamp = DateTime.UtcNow;
-                    chunkedMessage.Body = body;
-                    chunkedMessage.ContentEncoding = networkMessage.ContentEncoding;
-                    chunkedMessage.ContentType = networkMessage.ContentType;
-                    chunkedMessage.MessageSchema = networkMessage.MessageSchema;
-                    chunkedMessage.RoutingInfo = networkMessage.DataSetWriterGroup;
-                    chunkedMessage.OutputName = output;
-                    chunkedMessage.Retain = retain;
-                    chunkedMessage.Ttl = ttl;
-                    chunkedMessages.Add(chunkedMessage);
-
+                    validChunks++;
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + body.Length) /
                         (MessagesProcessedCount + 1);
                     AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
@@ -105,7 +93,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     MessagesProcessedCount++;
                 }
 
+                if (validChunks > 0) {
+                    var chunkedMessage = factory();
+                    chunkedMessage.Timestamp = DateTime.UtcNow;
+                    chunkedMessage.ContentEncoding = networkMessage.ContentEncoding;
+                    chunkedMessage.ContentType = networkMessage.ContentType;
+                    chunkedMessage.MessageSchema = networkMessage.MessageSchema;
+                    chunkedMessage.RoutingInfo = networkMessage.DataSetWriterGroup;
+                    chunkedMessage.OutputName = output;
+                    chunkedMessage.Retain = retain;
+                    chunkedMessage.Ttl = ttl;
+                    chunkedMessage.Payload = chunks;
+                    chunkedMessages.Add(chunkedMessage);
+                }
+
                 // We dropped a number of notifications but processed the remainder successfully
+                var tooBig = chunks.Count - validChunks;
                 NotificationsDroppedCount += (uint)tooBig;
                 if (notificationsPerMessage > tooBig) {
                     NotificationsProcessedCount += (uint)(notificationsPerMessage - tooBig);
@@ -116,8 +119,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // split size to provide users with an indication how many times chunks had to
                 // be created so they can configure publisher to improve performance.
                 //
-                if (notificationsPerMessage > 0 && notificationsPerMessage < chunkedMessages.Count) {
-                    var splitSize = chunkedMessages.Count / notificationsPerMessage;
+                if (notificationsPerMessage > 0 && notificationsPerMessage < validChunks) {
+                    var splitSize = validChunks / notificationsPerMessage;
                     if (splitSize > MaxMessageSplitRatio) {
                         MaxMessageSplitRatio = splitSize;
                     }
@@ -309,17 +312,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             uint networkMessageContentMask, Guid dataSetClassId, string publisherId) {
                             BaseNetworkMessage currentMessage = encoding.HasFlag(MessageEncoding.Json) ?
                                 new JsonNetworkMessage {
-                                UseAdvancedEncoding = !_useStandardsCompliantEncoding,
-                                UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
-                                UseArrayEnvelope = !_useStandardsCompliantEncoding && isBatched,
-                                MessageId = () => Guid.NewGuid().ToString()
-                            } : new UadpNetworkMessage {
-                                //   WriterGroupId = writerGroup.Index,
-                                //   GroupVersion = writerGroup.Version,
-                                SequenceNumber = () => SequenceNumber.Increment16(ref _sequenceNumber),
-                                Timestamp = DateTime.UtcNow,
-                                PicoSeconds = 0
-                            };
+                                    UseAdvancedEncoding = !_useStandardsCompliantEncoding,
+                                    UseGzipCompression = encoding.HasFlag(MessageEncoding.Gzip),
+                                    UseArrayEnvelope = !_useStandardsCompliantEncoding && isBatched,
+                                    MessageId = () => Guid.NewGuid().ToString()
+                                } : new UadpNetworkMessage {
+                                    //   WriterGroupId = writerGroup.Index,
+                                    //   GroupVersion = writerGroup.Version,
+                                    SequenceNumber = () => SequenceNumber.Increment16(ref _sequenceNumber),
+                                    Timestamp = DateTime.UtcNow,
+                                    PicoSeconds = 0
+                                };
                             currentMessage.NetworkMessageContentMask = networkMessageContentMask;
                             currentMessage.PublisherId = publisherId;
                             currentMessage.DataSetClassId = dataSetClassId;

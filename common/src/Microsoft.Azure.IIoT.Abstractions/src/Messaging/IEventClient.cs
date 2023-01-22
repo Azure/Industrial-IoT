@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <param name="eventSchema"></param>
         /// <param name="contentEncoding"></param>
         /// <returns></returns>
-        Task SendEventAsync(IEnumerable<byte[]> batch,
+        Task SendEventAsync(IReadOnlyList<byte[]> batch,
             string contentType, string eventSchema,
             string contentEncoding);
     }

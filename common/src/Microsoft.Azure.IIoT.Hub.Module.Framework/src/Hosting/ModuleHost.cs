@@ -196,22 +196,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task SendEventAsync(IEnumerable<byte[]> batch, string contentType,
+        public async Task SendEventAsync(IReadOnlyList<byte[]> batch, string contentType,
             string eventSchema, string contentEncoding) {
             try {
                 await _lock.WaitAsync();
                 if (Client != null) {
-                    var messages = batch
-                        .Select(ev =>
-                             Client.CreateMessage(ev, contentEncoding, contentType, eventSchema,
-                                DeviceId, ModuleId))
-                        .ToList();
-                    try {
-                        await Client.SendEventAsync(messages);
-                    }
-                    finally {
-                        messages.ForEach(m => m?.Dispose());
-                    }
+                    using var message = Client.CreateMessage(batch,
+                        contentEncoding, contentType, eventSchema, DeviceId, ModuleId);
+                    await Client.SendEventAsync(message);
                 }
             }
             finally {
@@ -225,10 +217,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             try {
                 await _lock.WaitAsync();
                 if (Client != null) {
-                    using var msg = Client.CreateMessage(data, contentEncoding, contentType,
-                        eventSchema, DeviceId, ModuleId);
-
-                    await Client.SendEventAsync(new[] { msg });
+                    using var msg = Client.CreateMessage(new[] { data },
+                        contentEncoding, contentType, eventSchema, DeviceId, ModuleId);
+                    await Client.SendEventAsync(msg);
                 }
             }
             finally {

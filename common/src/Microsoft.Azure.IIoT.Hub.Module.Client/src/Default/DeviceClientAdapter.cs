@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+    using Microsoft.Azure.Amqp.Framing;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
     using Microsoft.Azure.IIoT.Hub;
@@ -29,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public bool IsClosed { get; internal set; }
 
         /// <inheritdoc />
-        public int MaxMessageSize => 256 * 1024;
+        public int MaxBodySize => 256 * 1024;
 
         /// <summary>
         /// Create client
@@ -90,14 +91,22 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages) {
+        public async Task SendEventAsync(ITelemetryEvent message) {
             if (IsClosed) {
                 return;
             }
-            if (messages.Count == 1) {
-                await _client.SendEventAsync(((DeviceMessage)messages[0]).Message);
+            var messages = ((DeviceMessage)message).AsMessages();
+            try {
+                if (messages.Count == 1) {
+                    await _client.SendEventAsync(messages[0]);
+                }
+                await _client.SendEventBatchAsync(messages);
             }
-            await _client.SendEventBatchAsync(messages.Cast<DeviceMessage>().Select(m => m.Message));
+            finally {
+                foreach (var hubMessage in messages) {
+                    hubMessage.Dispose();
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -221,7 +230,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <summary>
             /// Build message
             /// </summary>
-            internal Message Message => _msg;
+            internal IReadOnlyList<Message> AsMessages() {
+                return Payload
+                    .Where(b => b != null)
+                    .Select(m => _template.CloneWithBody(m))
+                    .ToList();
+            }
 
             /// <inheritdoc/>
             public DateTime Timestamp { get; set; }
@@ -229,12 +243,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public string ContentType {
                 get {
-                    return _msg.ContentType;
+                    return _template.ContentType;
                 }
                 set {
                     if (!string.IsNullOrWhiteSpace(value)) {
-                        _msg.ContentType = value;
-                        _msg.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
+                        _template.ContentType = value;
+                        _template.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
                     }
                 }
             }
@@ -242,12 +256,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public string ContentEncoding {
                 get {
-                    return _msg.ContentEncoding;
+                    return _template.ContentEncoding;
                 }
                 set {
                     if (!string.IsNullOrWhiteSpace(value)) {
-                        _msg.ContentEncoding = value;
-                        _msg.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
+                        _template.ContentEncoding = value;
+                        _template.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
                     }
                 }
             }
@@ -255,14 +269,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public string MessageSchema {
                 get {
-                    if (_msg.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value)) {
+                    if (_template.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value)) {
                         return value;
                     }
                     return null;
                 }
                 set {
                     if (!string.IsNullOrWhiteSpace(value)) {
-                        _msg.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
+                        _template.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
                     }
                 }
             }
@@ -270,14 +284,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public string RoutingInfo {
                 get {
-                    if (_msg.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value)) {
+                    if (_template.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value)) {
                         return value;
                     }
                     return null;
                 }
                 set {
                     if (!string.IsNullOrWhiteSpace(value)) {
-                        _msg.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
+                        _template.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
                     }
                 }
             }
@@ -285,14 +299,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public string DeviceId {
                 get {
-                    if (_msg.Properties.TryGetValue(CommonProperties.DeviceId, out var value)) {
+                    if (_template.Properties.TryGetValue(CommonProperties.DeviceId, out var value)) {
                         return value;
                     }
                     return null;
                 }
                 set {
                     if (!string.IsNullOrWhiteSpace(value)) {
-                        _msg.Properties.AddOrUpdate(CommonProperties.DeviceId, value);
+                        _template.Properties.AddOrUpdate(CommonProperties.DeviceId, value);
                     }
                 }
             }
@@ -300,31 +314,20 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public string ModuleId {
                 get {
-                    if (_msg.Properties.TryGetValue(CommonProperties.ModuleId, out var value)) {
+                    if (_template.Properties.TryGetValue(CommonProperties.ModuleId, out var value)) {
                         return value;
                     }
                     return null;
                 }
                 set {
                     if (!string.IsNullOrWhiteSpace(value)) {
-                        _msg.Properties.AddOrUpdate(CommonProperties.ModuleId, value);
+                        _template.Properties.AddOrUpdate(CommonProperties.ModuleId, value);
                     }
                 }
             }
 
             /// <inheritdoc/>
-            public byte[] Body {
-                get {
-                    var buffer = _msg.BodyStream.ReadAsBuffer().ToArray();
-                    _msg.BodyStream.Position = 0;
-                    return buffer;
-                }
-                set {
-                    if (value != null) {
-                        _msg = _msg.CloneWithBody(value);
-                    }
-                }
-            }
+            public IReadOnlyList<byte[]> Payload { get; set; }
 
             /// <inheritdoc/>
             public string OutputName { get; set; }
@@ -336,10 +339,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public void Dispose() {
                 // TODO: Return to pool
-                _msg.Dispose();
+                _template.Dispose();
             }
 
-            Message _msg = new Message();
+            Message _template = new Message();
         }
 
         private readonly DeviceClient _client;

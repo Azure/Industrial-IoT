@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Max message size sink can deal with
         /// </summary>
-        int MaxMessageSize { get; }
+        int MaxBodySize { get; }
 
         /// <summary>
         /// Create message
@@ -35,6 +35,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// </summary>
         /// <param name="messages"></param>
         /// <returns></returns>
-        Task SendAsync(IReadOnlyList<ITelemetryEvent> messages);
+        Task SendAsync(ITelemetryEvent messages);
     }
 }

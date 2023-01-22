@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Azure.Devices.Common;
+    using System.Linq;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
@@ -74,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             public bool IsClosed { get; internal set; }
 
             /// <inheritdoc />
-            public int MaxMessageSize => 256 * 1024;
+            public int MaxBodySize => 256 * 1024;
 
             /// <summary>
             /// Connection to iot hub
@@ -98,11 +99,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages) {
+            public Task SendEventAsync(ITelemetryEvent message) {
                 if (!IsClosed) {
-                    foreach (var message in messages) {
-                        Connection.SendEvent(message);
-                    }
+                    Connection.SendEvent(message);
                 }
                 return Task.CompletedTask;
             }
@@ -233,11 +232,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// </summary>
             internal sealed class TelemetryMessage : ITelemetryEvent {
 
-                /// <summary>
-                /// Build message
-                /// </summary>
-                internal Message Message => _msg;
-
                 /// <inheritdoc/>
                 public DateTime Timestamp { get; set; }
 
@@ -316,18 +310,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 }
 
                 /// <inheritdoc/>
-                public byte[] Body {
-                    get {
-                        var buffer = _msg.BodyStream.ReadAsBuffer().ToArray();
-                        _msg.BodyStream.Position = 0;
-                        return buffer;
-                    }
-                    set {
-                        if (value != null) {
-                            _msg = _msg.CloneWithBody(value);
-                        }
-                    }
-                }
+                public IReadOnlyList<byte[]> Payload { get; set; }
 
                 /// <inheritdoc/>
                 public string OutputName { get; set; }

@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.IIoT.Messaging;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -32,11 +33,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="moduleId"></param>
         /// <param name="routingInfo"></param>
         /// <returns></returns>
-        public static ITelemetryEvent CreateMessage(this IClient client, byte[] data, string contentEncoding,
+        public static ITelemetryEvent CreateMessage(this IClient client, IReadOnlyList<byte[]> data, string contentEncoding,
             string contentType, string messageSchema, string deviceId = null, string moduleId = null,
             string routingInfo = null) {
             var msg = client.CreateMessage();
-            msg.Body = data;
+            msg.Payload = data;
             msg.ContentType = contentType;
             msg.ContentEncoding = contentEncoding;
             msg.MessageSchema = messageSchema;

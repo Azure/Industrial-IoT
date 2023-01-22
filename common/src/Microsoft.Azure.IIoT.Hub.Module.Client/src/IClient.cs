@@ -19,9 +19,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     public interface IClient : IDisposable {
 
         /// <summary>
-        /// Maximum size message client can process
+        /// Maximum size body of message client can process
         /// </summary>
-        int MaxMessageSize { get; }
+        int MaxBodySize { get; }
 
         /// <summary>
         /// Create a message to send
@@ -32,9 +32,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <summary>
         /// Sends messages
         /// </summary>
-        /// <param name="messages">The message containing the event.</param>
+        /// <param name="message">The message containing the event.</param>
         /// <returns></returns>
-        Task SendEventAsync(IReadOnlyList<ITelemetryEvent> messages);
+        Task SendEventAsync(ITelemetryEvent message);
 
         /// <summary>
         /// Registers a new delegate that is called for a method that

@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         }
 
         [Fact]
-        public async Task SendEventTest() {
+        public async Task SendIoTHubEventTest() {
             const string payload = @"{ ""key"": ""value"" }";
             var payloadBytes = Encoding.UTF8.GetBytes(payload);
             var mock = new Mock<IManagedMqttClient>();
@@ -84,13 +84,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
                 _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), null, () => { }, _logger);
 
             var message = mqttClientAdapter.CreateMessage();
-            message.Body = payloadBytes;
+            message.Payload = new[] { payloadBytes };
             message.ContentType = "application/json";
             message.ContentEncoding = "utf-8";
+            message.OutputName = "testoutput";
             message.Ttl = TimeSpan.FromSeconds(1234);
             message.Retain = true;
 
-            await mqttClientAdapter.SendEventAsync(new[] { message });
+            await mqttClientAdapter.SendEventAsync(message);
 
             mock.Verify(x => x.PublishAsync(
                 It.Is<MqttApplicationMessage>(x =>
@@ -100,7 +101,70 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
                     string.Equals(Encoding.UTF8.GetString(x.Payload), payload) &&
                     x.Retain == true &&
                     x.MessageExpiryInterval == 1234),
-                It.IsAny<CancellationToken>()));
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SendBrokerEventTest1() {
+            const string payload = @"{ ""key"": ""value"" }";
+            var payloadBytes = Encoding.UTF8.GetBytes(payload);
+            var mock = new Mock<IManagedMqttClient>();
+
+            mock.SetupGet(x => x.IsStarted).Returns(true);
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
+            var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create("HostName=localhost;DeviceId=deviceId;Username=user;Password=SAHEh7J7dPzpIh;Protocol=v500");
+            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1",
+                mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), null, () => { }, _logger);
+
+            var message = mqttClientAdapter.CreateMessage();
+            message.Payload = new[] { payloadBytes, payloadBytes, payloadBytes };
+            message.ContentType = "application/json";
+            message.OutputName = "testoutput";
+            message.ContentEncoding = "utf-8";
+            message.Ttl = TimeSpan.FromSeconds(1234);
+            message.Retain = true;
+
+            await mqttClientAdapter.SendEventAsync(message);
+
+            mock.Verify(x => x.PublishAsync(
+                It.Is<MqttApplicationMessage>(x =>
+                    string.Equals(x.ContentType, "application/json") &&
+                    string.Equals(x.Topic, "/topic/device1/testoutput") &&
+                    x.QualityOfServiceLevel == MqttQualityOfServiceLevel.AtLeastOnce &&
+                    string.Equals(Encoding.UTF8.GetString(x.Payload), payload) &&
+                    x.Retain == true &&
+                    x.MessageExpiryInterval == 1234),
+                It.IsAny<CancellationToken>()), Times.Exactly(3));
+        }
+
+        [Fact]
+        public async Task SendBrokerEventTest2() {
+            const string payload = @"{ ""key"": ""value"" }";
+            var payloadBytes = Encoding.UTF8.GetBytes(payload);
+            var mock = new Mock<IManagedMqttClient>();
+
+            mock.SetupGet(x => x.IsStarted).Returns(true);
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
+            var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create("HostName=localhost;DeviceId=deviceId;Username=user;Password=SAHEh7J7dPzpIh;Protocol=v500");
+            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1",
+                mqttClientConnectionStringBuilder, "device1", "/topic/{output_name}/super", TimeSpan.FromMinutes(5), null, () => { }, _logger);
+
+            var message = mqttClientAdapter.CreateMessage();
+            message.Payload = new[] { payloadBytes, null, payloadBytes };
+            message.ContentType = "application/json";
+            message.ContentEncoding = "utf-8";
+
+            await mqttClientAdapter.SendEventAsync(message);
+
+            mock.Verify(x => x.PublishAsync(
+                It.Is<MqttApplicationMessage>(x =>
+                    string.Equals(x.ContentType, "application/json") &&
+                    string.Equals(x.Topic, "/topic/super") &&
+                    x.QualityOfServiceLevel == MqttQualityOfServiceLevel.AtLeastOnce &&
+                    string.Equals(Encoding.UTF8.GetString(x.Payload), payload) &&
+                    x.Retain == false &&
+                    x.MessageExpiryInterval == null),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
         [Fact]
@@ -128,12 +192,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
 
             var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, "product1", _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, null, () => { }, _logger);
             var message = mqttClientAdapter.CreateMessage();
-            message.Body = payloadBytes;
+            message.Payload = new[] { payloadBytes };
             message.ContentType = "application/json";
             message.ContentEncoding = "utf-8";
 
             await mqttClientAdapter.CloseAsync();
-            await mqttClientAdapter.SendEventAsync(new[] { message });
+            await mqttClientAdapter.SendEventAsync(message);
 
             mock.VerifyGet(x => x.IsStarted);
             mock.VerifySet(x => x.ConnectedHandler = It.IsAny<IMqttClientConnectedHandler>());

@@ -242,7 +242,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 EncoderAvgIoTMessageBodySize = model.EncoderAvgIoTMessageBodySize,
                 EncoderAvgIoTChunkUsage = model.EncoderAvgIoTChunkUsage,
                 EstimatedIoTChunksPerDay = model.EstimatedIoTChunksPerDay,
-                OutgressBatchBlockBufferSize = model.OutgressBatchBlockBufferSize,
                 OutgressInputBufferCount = model.OutgressInputBufferCount,
                 OutgressInputBufferDropped = model.OutgressInputBufferDropped,
                 OutgressIoTMessageCount = model.OutgressIoTMessageCount,
