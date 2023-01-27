@@ -206,9 +206,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 "---------------------------",
                 "",
 
-                { $"aa|autoaccept:|{StandaloneCliConfigKeys.AutoAcceptCerts}:",
-                    "The publisher trusts all servers it is establishing a connection to. WARNING: This setting should never be used in production environments!\n",
+                { $"au|acceptuntrusted:|{StandaloneCliConfigKeys.AutoAcceptCerts}:",
+                    "The publisher accepts untrusted certificates presented by a server it connects to.\nThis does not include servers presenting bad certificates or certificates that fail chain validation. These errors cannot be suppressed and connection will always be rejected.\nWARNING: This setting should never be used in production environments!\n",
                     (bool? b) => this[StandaloneCliConfigKeys.AutoAcceptCerts] = b?.ToString() ?? "True" },
+                     { $"aa|autoaccept:", "Maintained for backwards compatibility, do not use.",
+                        (string b) => this[StandaloneCliConfigKeys.SkipFirstDefault] = b ?? "True", /* hidden = */ true },
                 { $"ot|operationtimeout=|{StandaloneCliConfigKeys.OpcOperationTimeout}=",
                     "The operation service call timeout of the publisher OPC UA client in milliseconds. \nDefault: `120000` (2 minutes).\n",
                     (uint u) => this[StandaloneCliConfigKeys.OpcOperationTimeout] = u.ToString() },

@@ -38,6 +38,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
 
             Assert.NotNull(metadata);
+            Assert.EndsWith(metadata.Value.Topic, "/datasetmetadata");
         }
 
         [Fact]

@@ -263,7 +263,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     {
 $"--mqc=HostName=localhost;Port={broker.Port};Username={broker.UserName};Password={broker.Password};Protocol=v500",
 $"--ttt={topicRoot}",
-                        "--aa",
+                        "--au",
                         $"--pf={publishedNodesFilePath}"
                     }
                     ).ToArray();

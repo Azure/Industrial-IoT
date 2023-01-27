@@ -194,7 +194,7 @@ Options:
                 var arguments = args.ToList();
                 arguments.Add($"--ec={cs}");
                 if (acceptAll) {
-                    arguments.Add("--aa");
+                    arguments.Add("--au");
                 }
                 Publisher.Program.Main(arguments.ToArray());
                 logger.Information("Publisher module {deviceId} {moduleId} exited.",

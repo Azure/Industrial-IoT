@@ -269,7 +269,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                      new[]
                             {
                                 $"--ec={_typedConnectionString}",
-                                "--aa",
+                                "--au",
                                 $"--pf={publishedNodesFilePath}"
                             }
                     ).ToArray();
