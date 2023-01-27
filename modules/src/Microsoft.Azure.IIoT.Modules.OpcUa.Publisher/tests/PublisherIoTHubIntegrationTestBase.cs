@@ -49,12 +49,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using static Microsoft.Azure.IIoT.Hub.Mock.IoTHubServices;
 
     /// <summary>
     /// Base class for integration testing, it connects to the server, runs publisher and injects mocked IoTHub services.
     /// </summary>
-    public class PublisherIntegrationTestBase {
+    public class PublisherIoTHubIntegrationTestBase {
         /// <summary>
         /// Whether the module is running.
         /// </summary>
@@ -70,7 +69,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// </summary>
         protected string ModuleId { get; }
 
-        public PublisherIntegrationTestBase(ReferenceServerFixture serverFixture) {
+        public PublisherIoTHubIntegrationTestBase(ReferenceServerFixture serverFixture) {
             // This is a fake but correctly formatted connection string.
             var connectionString = $"HostName=dummy.azure-devices.net;" +
                 $"DeviceId={DeviceId};" +
@@ -404,7 +403,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
             builder.RegisterType<IoTHubClientFactory>().AsImplementedInterfaces().InstancePerLifetimeScope();
 
-            builder.Register(ctx => Create(devices)).AsImplementedInterfaces().SingleInstance();
+            builder.Register(ctx => IoTHubServices.Create(devices)).AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<ModuleHost>().AsImplementedInterfaces().SingleInstance();
             // Published nodes file provider

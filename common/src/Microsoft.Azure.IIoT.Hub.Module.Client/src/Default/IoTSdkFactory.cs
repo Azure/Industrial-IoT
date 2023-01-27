@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                         throw new InvalidConfigurationException(
                             "Connection string is missing shared access key.");
                     }
-                    if (string.IsNullOrEmpty(_mqttClientCs.DeviceId)) {
+                    if (_mqttClientCs.UsingIoTHub && string.IsNullOrEmpty(_mqttClientCs.DeviceId)) {
                         throw new InvalidConfigurationException(
                             "Connection string is missing device id.");
                     }
@@ -114,14 +114,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             DeviceId = deviceId;
             Gateway = ehubHost;
 
-            if (string.IsNullOrEmpty(DeviceId)) {
+            if (string.IsNullOrEmpty(config.MqttClientConnectionString) && string.IsNullOrEmpty(DeviceId)) {
                 var ex = new InvalidConfigurationException(
                     "If you are running outside of an IoT Edge context or in EdgeHubDev mode, then the " +
                     "host configuration is incomplete and missing the EdgeHubConnectionString setting." +
                     "You can run the module using the command line interface or in IoT Edge context, or " +
                     "manually set the 'EdgeHubConnectionString' environment variable.");
 
-                _logger.Error(ex, "The Twin module was not configured correctly.");
+                _logger.Error(ex, "The sdk factory was not configured correctly. Device Id is missing.");
                 throw ex;
             }
 
@@ -231,8 +231,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             ITransportSettings transportSetting = null) {
             if (string.IsNullOrEmpty(ModuleId)) {
                 if (_mqttClientCs != null) {
-                    return MqttClientAdapter.CreateAsync(product, _mqttClientCs, DeviceId,
-                        _telemetryTopicTemplate, timeout: _timeout, RetryPolicy, onError, _logger);
+                    return MqttClientAdapter.CreateAsync(_mqttClientCs, DeviceId, _telemetryTopicTemplate,
+                        timeout: _timeout, logger: _logger);
                 }
                 else if (_deviceClientCs != null) {
                     return DeviceClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId,

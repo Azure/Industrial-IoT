@@ -4,18 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Prometheus;
     using Serilog;
     using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Globalization;
-    using System.Linq;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -43,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public ITelemetryEvent CreateMessage() {
-            return _clientAccessor.Client.CreateMessage();
+            return _clientAccessor.Client.CreateTelemetryEvent();
         }
 
         /// <inheritdoc/>

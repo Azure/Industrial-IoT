@@ -252,7 +252,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task RunAsync(CancellationToken ct) {
-
             while (!ct.IsCancellationRequested) {
                 _triggerKeepAlive = new TaskCompletionSource<bool>();
                 foreach (var sessionWrapper in _sessions.ToList()) {
@@ -317,7 +316,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private async Task HandleRetryAsync(ConnectionIdentifier id,
             SessionWrapper wrapper, CancellationToken ct) {
             try {
-
                 if (!wrapper._subscriptions.Any()) {
                     // if the session is idle, just drop it immediately
                     _logger.Information("Idle expired session '{id}' set to {disconnect} state from {state}",

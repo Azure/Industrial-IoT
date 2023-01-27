@@ -194,14 +194,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 throw new ArgumentException($"{kHostNamePropertyName} must be specified in the connection string");
             }
 
-            if (string.IsNullOrWhiteSpace(DeviceId)) {
-                throw new ArgumentException($"{kDeviceIdPropertyName} must be specified in the connection string");
-            }
-
-            ValidateFormat(DeviceId, kDeviceIdPropertyName, kIdNameRegex);
-            ValidateFormatIfSpecified(ModuleId, kModuleIdPropertyName, kIdNameRegex);
-
             if (UsingIoTHub) {
+                if (string.IsNullOrWhiteSpace(DeviceId)) {
+                    throw new ArgumentException($"{kDeviceIdPropertyName} must be specified in the connection string");
+                }
+
+                ValidateFormat(DeviceId, kDeviceIdPropertyName, kIdNameRegex);
+                ValidateFormatIfSpecified(ModuleId, kModuleIdPropertyName, kIdNameRegex);
+
                 if (string.IsNullOrWhiteSpace(SharedAccessSignature)) {
                     throw new ArgumentException($"{kSharedAccessSignaturePropertyName} must be specified in the connection string");
                 }
@@ -217,6 +217,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
                 if (string.IsNullOrWhiteSpace(Password)) {
                     throw new ArgumentException($"{kAuthPropertyName} was not configured and is required for the Azure IoT Hub");
+                }
+            }
+            else {
+                if (string.IsNullOrWhiteSpace(DeviceId)) {
+                    DeviceId = string.Empty;
                 }
             }
         }

@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
             _message
                 .Setup(m => m.Dispose());
             _client
-                .Setup(c => c.CreateMessage())
+                .Setup(c => c.CreateTelemetryEvent())
                 .Returns(_message.Object);
             _client
                 .Setup(c => c.SendEventAsync(It.IsAny<ITelemetryEvent>()))

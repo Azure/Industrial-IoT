@@ -6,20 +6,11 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.IIoT.Messaging;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
 
     /// <summary>
-    /// Factory extensions
+    /// Message client extensions
     /// </summary>
-    public static class ClientFactoryEx {
-
-        /// <summary>
-        /// Create client
-        /// </summary>
-        /// <returns></returns>
-        public static Task<IClient> CreateAsync(this IClientFactory factory) {
-            return factory.CreateAsync("Module");
-        }
+    public static class MessageClientEx {
 
         /// <summary>
         /// Create message
@@ -33,10 +24,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="moduleId"></param>
         /// <param name="routingInfo"></param>
         /// <returns></returns>
-        public static ITelemetryEvent CreateMessage(this IClient client, IReadOnlyList<byte[]> data, string contentEncoding,
-            string contentType, string messageSchema, string deviceId = null, string moduleId = null,
+        public static ITelemetryEvent CreateMessage(this IMessageClient client,
+            IReadOnlyList<byte[]> data, string contentEncoding,
+            string contentType, string messageSchema,
+            string deviceId = null, string moduleId = null,
             string routingInfo = null) {
-            var msg = client.CreateMessage();
+            var msg = client.CreateTelemetryEvent();
             msg.Payload = data;
             msg.ContentType = contentType;
             msg.ContentEncoding = contentEncoding;

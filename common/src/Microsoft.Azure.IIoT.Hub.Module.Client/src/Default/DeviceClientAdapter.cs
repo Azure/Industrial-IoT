@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
-    using Microsoft.Azure.Amqp.Framing;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
     using Microsoft.Azure.IIoT.Hub;
@@ -13,9 +12,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Net.Mime;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -75,7 +72,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task CloseAsync() {
+        public async ValueTask DisposeAsync() {
             if (IsClosed) {
                 return;
             }
@@ -86,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public ITelemetryEvent CreateMessage() {
+        public ITelemetryEvent CreateTelemetryEvent() {
             return new DeviceMessage();
         }
 
@@ -110,21 +107,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public Task SetMethodHandlerAsync(string methodName,
-            MethodCallback methodHandler, object userContext) {
-            return _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
+        public Task SetMethodHandlerAsync(MethodCallback methodHandler) {
+            return _client.SetMethodDefaultHandlerAsync(methodHandler, null);
         }
 
         /// <inheritdoc />
-        public Task SetMethodDefaultHandlerAsync(
-            MethodCallback methodHandler, object userContext) {
-            return _client.SetMethodDefaultHandlerAsync(methodHandler, userContext);
-        }
-
-        /// <inheritdoc />
-        public Task SetDesiredPropertyUpdateCallbackAsync(
-            DesiredPropertyUpdateCallback callback, object userContext) {
-            return _client.SetDesiredPropertyUpdateCallbackAsync(callback, userContext);
+        public Task SetDesiredPropertyUpdateCallbackAsync(DesiredPropertyUpdateCallback callback) {
+            return _client.SetDesiredPropertyUpdateCallbackAsync(callback, null);
         }
 
         /// <inheritdoc />
@@ -141,23 +130,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task UploadToBlobAsync(string blobName, Stream source) {
-            if (IsClosed) {
-                return;
-            }
-#pragma warning disable CS0618 // Type or member is obsolete
-            await _client.UploadToBlobAsync(blobName, source);
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
-
-        /// <inheritdoc />
         public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-            MethodRequest methodRequest, CancellationToken cancellationToken) {
-            throw new NotSupportedException("Device client does not support methods");
-        }
-
-        /// <inheritdoc />
-        public Task<MethodResponse> InvokeMethodAsync(string deviceId,
             MethodRequest methodRequest, CancellationToken cancellationToken) {
             throw new NotSupportedException("Device client does not support methods");
         }

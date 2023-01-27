@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task CloseAsync() {
+        public async ValueTask DisposeAsync() {
             if (IsClosed) {
                 return;
             }
@@ -93,7 +93,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public ITelemetryEvent CreateMessage() {
+        public void Dispose() {
+            IsClosed = true;
+            _client?.Dispose();
+        }
+
+        /// <inheritdoc />
+        public ITelemetryEvent CreateTelemetryEvent() {
             return new DeviceClientAdapter.DeviceMessage();
         }
 
@@ -130,21 +136,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public Task SetMethodHandlerAsync(string methodName,
-            MethodCallback methodHandler, object userContext) {
-            return _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
-        }
-
-        /// <inheritdoc />
-        public Task SetMethodDefaultHandlerAsync(
-            MethodCallback methodHandler, object userContext) {
-            return _client.SetMethodDefaultHandlerAsync(methodHandler, userContext);
+        public Task SetMethodHandlerAsync(
+            MethodCallback methodHandler) {
+            return _client.SetMethodDefaultHandlerAsync(methodHandler, null);
         }
 
         /// <inheritdoc />
         public Task SetDesiredPropertyUpdateCallbackAsync(
-            DesiredPropertyUpdateCallback callback, object userContext) {
-            return _client.SetDesiredPropertyUpdateCallbackAsync(callback, userContext);
+            DesiredPropertyUpdateCallback callback) {
+            return _client.SetDesiredPropertyUpdateCallbackAsync(callback, null);
         }
 
         /// <inheritdoc />
@@ -161,26 +161,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public Task UploadToBlobAsync(string blobName, Stream source) {
-            throw new NotSupportedException("Module client does not support upload");
-        }
-
-        /// <inheritdoc />
         public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
             MethodRequest methodRequest, CancellationToken cancellationToken) {
-            return _client.InvokeMethodAsync(deviceId, moduleId, methodRequest, cancellationToken);
-        }
-
-        /// <inheritdoc />
-        public Task<MethodResponse> InvokeMethodAsync(string deviceId,
-            MethodRequest methodRequest, CancellationToken cancellationToken) {
-            return _client.InvokeMethodAsync(deviceId, methodRequest, cancellationToken);
-        }
-
-        /// <inheritdoc />
-        public void Dispose() {
-            IsClosed = true;
-            _client?.Dispose();
+            if (string.IsNullOrEmpty(moduleId)) {
+                return _client.InvokeMethodAsync(deviceId, methodRequest, cancellationToken);
+            }
+            else {
+                return _client.InvokeMethodAsync(deviceId, moduleId, methodRequest, cancellationToken);
+            }
         }
 
         /// <summary>

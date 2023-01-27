@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var messages = new List<SubscriptionNotificationModel>();
 
             var encoder = GetEncoder();
-            var networkMessages = encoder.Encode(NetworkMessage.Create,  messages, maxMessageSize, encodeBatchFlag);
+            var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             Assert.Empty(networkMessages);
             Assert.Equal((uint)0, encoder.NotificationsProcessedCount);
@@ -79,7 +79,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true)]
         public void EncodeAsUadpNotSupportedTest(bool encodeBatchFlag) {
             var maxMessageSize = 100;
-            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(3, false, encoding: MessageEncoding.Uadp, isSampleMode: true);
+            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(3, false,
+                encoding: MessageEncoding.Uadp, isSampleMode: true);
 
             var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);

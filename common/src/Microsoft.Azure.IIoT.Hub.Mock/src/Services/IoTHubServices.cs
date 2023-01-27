@@ -456,7 +456,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// </summary>
             /// <param name="target"></param>
             /// <param name="source"></param>
-            private Dictionary<string, VariantValue> Merge(
+            private static Dictionary<string, VariantValue> Merge(
                 Dictionary<string, VariantValue> target,
                 Dictionary<string, VariantValue> source) {
 
