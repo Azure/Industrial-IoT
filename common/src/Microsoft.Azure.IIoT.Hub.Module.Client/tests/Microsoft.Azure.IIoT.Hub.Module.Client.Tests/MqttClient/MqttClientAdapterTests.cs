@@ -14,6 +14,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
     using MQTTnet.Protocol;
     using Serilog;
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.InteropServices;
     using System.Security.Authentication;
     using System.Text;
@@ -39,8 +41,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
             _ = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, _logger);
 
-            mock.VerifyGet(x => x.IsStarted);
             mock.VerifyAdd(x => x.ConnectedAsync += It.IsAny<Func<MqttClientConnectedEventArgs, Task>>());
+            mock.VerifyAdd(x => x.ConnectingFailedAsync += It.IsAny<Func<ConnectingFailedEventArgs, Task>>());
+            mock.VerifyAdd(x => x.ConnectionStateChangedAsync += It.IsAny<Func<EventArgs, Task>>());
+            mock.VerifyAdd(x => x.SynchronizingSubscriptionsFailedAsync += It.IsAny<Func<ManagedProcessFailedEventArgs, Task>>());
             mock.VerifyAdd(x => x.DisconnectedAsync += It.IsAny<Func<MqttClientDisconnectedEventArgs, Task>>());
             mock.VerifyAdd(x => x.ApplicationMessageReceivedAsync += It.IsAny<Func<MqttApplicationMessageReceivedEventArgs, Task>>());
             mock.Verify(x => x.StartAsync(
@@ -58,12 +62,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
                    // x.ClientOptions.Credentials.GetPassword().Length > 0 &&
                     x.Storage is ManagedMqttClientStorage)));
             mock.Verify(x => x.SubscribeAsync(
-                It.Is<MqttTopicFilter[]>(x =>
-                    x.Length == 3 &&
-                    string.Equals(x[0].Topic, "$iothub/twin/res/#") &&
-                    string.Equals(x[1].Topic, "$iothub/twin/PATCH/properties/desired/#") &&
-                    string.Equals(x[2].Topic, "$iothub/methods/POST/#"))));
-            mock.Verify(x => x.InternalClient.SubscribeAsync(It.IsAny<MqttClientSubscribeOptions>(), It.IsAny<CancellationToken>()));
+                It.Is<ICollection<MqttTopicFilter>>(x =>
+                    x.Count == 3 &&
+                    string.Equals(x.First().Topic, "$iothub/twin/res/#") &&
+                    string.Equals(x.Skip(1).First().Topic, "$iothub/twin/PATCH/properties/desired/#") &&
+                    string.Equals(x.Last().Topic, "$iothub/methods/#"))));
             mock.VerifyNoOtherCalls();
         }
 
@@ -190,13 +193,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             await mqttClientAdapter.DisposeAsync();
             await mqttClientAdapter.SendEventAsync(message);
 
-            mock.VerifyGet(x => x.IsStarted);
             mock.VerifyAdd(x => x.ConnectedAsync += It.IsAny<Func<MqttClientConnectedEventArgs, Task>>());
+            mock.VerifyAdd(x => x.ConnectingFailedAsync += It.IsAny<Func<ConnectingFailedEventArgs, Task>>());
+            mock.VerifyAdd(x => x.ConnectionStateChangedAsync += It.IsAny<Func<EventArgs, Task>>());
+            mock.VerifyAdd(x => x.SynchronizingSubscriptionsFailedAsync += It.IsAny<Func<ManagedProcessFailedEventArgs, Task>>());
             mock.VerifyAdd(x => x.DisconnectedAsync += It.IsAny<Func<MqttClientDisconnectedEventArgs, Task>>());
             mock.VerifyAdd(x => x.ApplicationMessageReceivedAsync += It.IsAny<Func<MqttApplicationMessageReceivedEventArgs, Task>>());
             mock.Verify(x => x.StartAsync(It.IsAny<ManagedMqttClientOptions>()));
-            mock.Verify(x => x.SubscribeAsync(It.IsAny<MqttTopicFilter[]>()));
-            mock.Verify(x => x.InternalClient.SubscribeAsync(It.IsAny<MqttClientSubscribeOptions>(), It.IsAny<CancellationToken>()));
+            mock.Verify(x => x.SubscribeAsync(It.IsAny<ICollection<MqttTopicFilter>>()));
             mock.Verify(x => x.StopAsync(It.IsAny<bool>()));
             mock.VerifyNoOtherCalls();
         }
@@ -207,10 +211,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             mock.SetupGet(x => x.IsStarted).Returns(false);
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
             mock.Setup(x => x.StartAsync(It.IsAny<ManagedMqttClientOptions>())).Returns(() => { throw new TaskCanceledException(); });
-            _ = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, _logger);
-
-            mock.VerifyGet(x => x.IsStarted);
+            try {
+                _ = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, _logger);
+            }
+            catch (TaskCanceledException) {
+            }
             mock.VerifyAdd(x => x.ConnectedAsync += It.IsAny<Func<MqttClientConnectedEventArgs, Task>>());
+            mock.VerifyAdd(x => x.ConnectingFailedAsync += It.IsAny<Func<ConnectingFailedEventArgs, Task>>());
+            mock.VerifyAdd(x => x.ConnectionStateChangedAsync += It.IsAny<Func<EventArgs, Task>>());
+            mock.VerifyAdd(x => x.SynchronizingSubscriptionsFailedAsync += It.IsAny<Func<ManagedProcessFailedEventArgs, Task>>());
             mock.VerifyAdd(x => x.DisconnectedAsync += It.IsAny<Func<MqttClientDisconnectedEventArgs, Task>>());
             mock.VerifyAdd(x => x.ApplicationMessageReceivedAsync += It.IsAny<Func<MqttApplicationMessageReceivedEventArgs, Task>>());
             mock.Verify(x => x.StartAsync(

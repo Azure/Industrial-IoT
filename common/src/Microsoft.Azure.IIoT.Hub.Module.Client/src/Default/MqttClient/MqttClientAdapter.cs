@@ -163,10 +163,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 managedOptions = managedOptions.WithStorage(new ManagedMqttClientStorage(cs.StateFile, logger));
             }
 
-            // Start the client which connects to the server in the background.
-            await client.StartAsync(managedOptions.Build());
-            // Subscribe to required topics
-            await adapter.SubscribeAsync();
+            await adapter.StartAsync(managedOptions.Build());
             return adapter;
         }
 
@@ -422,34 +419,21 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// Subscribe to all required topics
         /// </summary>
         /// <returns></returns>
-        private async Task SubscribeAsync() {
-            var topicFilters = new List<MqttTopicFilter>();
-            if (_methodTopicRoot != null) {
-                topicFilters.Add(new MqttTopicFilter {
-                    Topic = $"{_twinTopicRoot}/res/#"
-                });
-                topicFilters.Add(new MqttTopicFilter {
-                    Topic = $"{_twinTopicRoot}/PATCH/properties/desired/#"
-                });
-                topicFilters.Add(new MqttTopicFilter {
-                    Topic = $"{_methodTopicRoot}/#"
-                });
-            }
-
-          //  //
-          //  // The managed client is too slow when subscribing to the topics and can miss immediate
-          //  // messages. Call the internal client and subscribe directly to solve the issue. According
-          //  // to the MQTT specification, the approach is compliant. It is not possible to end up with
-          //  // multiple subscriptions with identical topic filters. While the server replaces a
-          //  // subscription, the flow of publications will not be interrupted. See specification:
-          //  // http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718067
-          //  //
-          //  await _client.InternalClient.SubscribeAsync(new MqttClientSubscribeOptions {
-          //      TopicFilters = topicFilters
-          //  });
-
+        private async Task StartAsync(ManagedMqttClientOptions options) {
+            // Start the client which connects to the server in the background.
+            await _client.StartAsync(options);
             // Now subscribe using managed client
-            await _client.SubscribeAsync(topicFilters);
+            await _client.SubscribeAsync(new List<MqttTopicFilter> {
+                new MqttTopicFilter {
+                    Topic = $"{_twinTopicRoot}/res/#"
+                },
+                new MqttTopicFilter {
+                    Topic = $"{_twinTopicRoot}/PATCH/properties/desired/#"
+                },
+                new MqttTopicFilter {
+                    Topic = $"{_methodTopicRoot}/#"
+                }
+            });
         }
 
         /// <summary>
