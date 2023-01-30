@@ -100,6 +100,8 @@ The following messages are emitted for data value changes in a subscription if `
 
 The data set messages in the `ua-data` network message can be delta frames (`ua-deltaframe`, containing only changed values in the dataset), key frames (`ua-keyframe`, containing all values of the dataset), keep alives (`ua-keepalive`, containing no payload), or [events and conditions](./telemetry-events-format.md).
 
+IMPORTANT: Depending on the number of nodes in a subscription and the data type of properties inside a single dataset, data set messages contained in a network message can be very large.  Indeed, it can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB.  In this case messages might not be sent. You can try to use `--me=JsonGzip` to compress messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking (and overcomes any transport limitation). If neither help or are an option it is recommended to create smaller subscriptions (by adding less nodes to an endpoint) or disable dataset metadata message sending using `--dm=False`.
+
 The data set is described by a corresponding metadata message (message type `ua-metdata`), which is emitted prior to the first message and whenever the configuration is updated requiring an update of the metadata. Metadata can also be sent periodically, which can be configured using the control plane of OPC Publisher.
 
 ```json

@@ -91,8 +91,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public uint? DataSetKeyFrameCount { get; set; }
 
         /// <summary> Send metadata at the configured interval even when not changing </summary>
-        [DataMember(Name = "dataSetMetaDataSendInterval", Order = 15,
+        [DataMember(Name = "metaDataUpdateTime", Order = 15,
             EmitDefaultValue = false)]
-        public TimeSpan? DataSetMetaDataSendInterval { get; set; }
+        public TimeSpan? MetaDataUpdateTime { get; set; }
+
+        /// <summary> Metadata queue name </summary>
+        [DataMember(Name = "metaDataQueueName", Order = 15,
+            EmitDefaultValue = false)]
+        public string MetaDataQueueName { get; set; }
     }
 }
