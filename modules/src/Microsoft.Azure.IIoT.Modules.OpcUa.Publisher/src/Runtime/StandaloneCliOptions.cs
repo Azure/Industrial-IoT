@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
+    using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -361,6 +362,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             catch (Exception e) {
                 Warning("Parse args exception: " + e.Message);
                 Exit(160);
+                return;
             }
 
             if (_logger.IsEnabled(LogEventLevel.Debug)) {
@@ -382,13 +384,27 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 }
             }
 
-            if (!MessagingProfile.IsSupported(StandaloneCliModel.MessagingMode, StandaloneCliModel.MessageEncoding)) {
-                Warning("The specified combination of --mm, and --me is not (yet) supported. Currently supported combinations are: {MessageProfiles}).",
-                    MessagingProfile.Supported.Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})").Aggregate((a, b) => $"{a}, {b}"));
-                Exit(170);
-            }
+            if (!showHelp) {
+                if (!MessagingProfile.IsSupported(StandaloneCliModel.MessagingMode, StandaloneCliModel.MessageEncoding)) {
+                    Warning("The specified combination of --mm, and --me is not (yet) supported. Currently supported combinations are: {MessageProfiles}), " +
+                            "please use -h option to get all the supported options.",
+                        MessagingProfile.Supported.Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})").Aggregate((a, b) => $"{a}, {b}"));
+                    Exit(170);
+                    return;
+                }
 
-            if (showHelp) {
+                // Check that the important values are provided
+                else if (!ContainsKey(StandaloneCliConfigKeys.MqttClientConnectionString) &&
+                    !ContainsKey(StandaloneCliConfigKeys.EdgeHubConnectionString) &&
+                    Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID) == null &&
+                    Environment.GetEnvironmentVariable(StandaloneCliConfigKeys.EdgeHubConnectionString) == null) {
+                    Warning("You must specify a connection string or run inside IoT Edge context, " +
+                            "please use -h option to get all the supported options.");
+                    Exit(180);
+                    return;
+                }
+            }
+            else {
                 options.WriteOptionDescriptions(Console.Out);
 #if WRITETABLE
                 Console.WriteLine();
@@ -399,8 +415,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 #endif
                 Exit(0);
             }
-            Config = ToAgentConfigModel();
 
+            Config = ToAgentConfigModel();
 
             void SetStoreType(string s, string storeTypeKey, string optionName) {
                 if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||

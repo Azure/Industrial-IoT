@@ -5,13 +5,19 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using Microsoft.Azure.IIoT.Abstractions;
     using FluentAssertions;
     using Xunit;
+    using System;
 
     /// <summary>
     /// Class to test Cli options
     /// </summary>
     public class StandaloneCliTests {
+
+        public StandaloneCliTests() {
+            Environment.SetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID, "deviceId");
+        }
 
         /// <summary>
         /// ValidOptionTest

@@ -193,6 +193,8 @@ The event is described by the corresponding metadata message, which is emitted p
 
 ```
 
+IMPORTANT: Depending on the number of members in an event type and their data types, data set messages contained in a network message can be large.  In some cases a JSON metadata message can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB. In this case messages might not be sent. You can try to use `--me=JsonGzip` to compress event data set messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking (and overcomes any transport limitation). If neither help or are an option it is recommended to use an event filter and select the properties needed or disable dataset metadata message sending altogether using `--dm=False`.
+
 ### Reversible encoding
 
 The format produced here does not contain enough information to decode the message using the OPC UA type system. If you need to decode messages using a OPC UA JSON decoder the command-line option called `UseReversibleEncoding` can be set to `true`. If you enable this setting the output will look like as follows:
