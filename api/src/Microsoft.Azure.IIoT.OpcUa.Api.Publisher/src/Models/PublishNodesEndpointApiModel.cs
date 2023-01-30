@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public TimeSpan? MetaDataUpdateTime { get; set; }
 
         /// <summary> Metadata queue name </summary>
-        [DataMember(Name = "metaDataQueueName", Order = 15,
+        [DataMember(Name = "metaDataQueueName", Order = 16,
             EmitDefaultValue = false)]
         public string MetaDataQueueName { get; set; }
     }
