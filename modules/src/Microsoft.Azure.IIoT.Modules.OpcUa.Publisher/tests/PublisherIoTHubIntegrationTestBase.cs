@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
                 && Events.TryTake(out var evt, messageCollectionTimeout)) {
                 messageCollectionTimeout -= stopWatch.Elapsed;
-                foreach (var body in evt.Payload) {
+                foreach (var body in evt.Buffers) {
                     var json = Encoding.UTF8.GetString(body);
                     var document = JsonDocument.Parse(json);
                     json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
@@ -269,7 +269,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                      new[]
                             {
                                 $"--ec={_typedConnectionString}",
-                                "--au",
+                                "--aa",
                                 $"--pf={publishedNodesFilePath}"
                             }
                     ).ToArray();

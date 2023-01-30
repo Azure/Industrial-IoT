@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
                 "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), _logger);
 
             var message = mqttClientAdapter.CreateTelemetryEvent();
-            message.Payload = new[] { payloadBytes };
+            message.Buffers = new[] { payloadBytes };
             message.ContentType = "application/json";
             message.ContentEncoding = "utf-8";
             message.OutputName = "testoutput";
@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
                 "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), _logger);
 
             var message = mqttClientAdapter.CreateTelemetryEvent();
-            message.Payload = new[] { payloadBytes, payloadBytes, payloadBytes };
+            message.Buffers = new[] { payloadBytes, payloadBytes, payloadBytes };
             message.ContentType = "application/json";
             message.OutputName = "testoutput";
             message.ContentEncoding = "utf-8";
@@ -145,7 +145,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
                 "device1", "/topic/{output_name}/super", TimeSpan.FromMinutes(5), _logger);
 
             var message = mqttClientAdapter.CreateTelemetryEvent();
-            message.Payload = new[] { payloadBytes, null, payloadBytes };
+            message.Buffers = new[] { payloadBytes, null, payloadBytes };
             message.ContentType = "application/json";
             message.ContentEncoding = "utf-8";
 
@@ -186,7 +186,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             using var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object,
                 _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, _logger);
             var message = mqttClientAdapter.CreateTelemetryEvent();
-            message.Payload = new[] { payloadBytes };
+            message.Buffers = new[] { payloadBytes };
             message.ContentType = "application/json";
             message.ContentEncoding = "utf-8";
 

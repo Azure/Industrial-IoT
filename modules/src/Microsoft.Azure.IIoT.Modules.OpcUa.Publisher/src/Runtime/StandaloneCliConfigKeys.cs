@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key to configure metadata sub path for metadata message routing.
         /// </summary>
-        public const string DefaultDataSetMetaDataQueueName = "DataSetMetaDataQueueName";
+        public const string DefaultDataSetMetaDataQueueName = "DefaultDataSetMetaDataQueueName";
 
         /// <summary>
         /// Key for the default queue size fro monitored items

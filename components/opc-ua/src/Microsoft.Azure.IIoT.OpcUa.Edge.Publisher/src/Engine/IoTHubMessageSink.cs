@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public long SentMessagesCount { get; private set; }
 
         /// <inheritdoc/>
-        public int MaxBodySize => _clientAccessor.Client.MaxBodySize;
+        public int MaxMessageSize => _clientAccessor.Client.MaxEventBufferSize;
 
         /// <summary>
         /// Create IoT hub message sink

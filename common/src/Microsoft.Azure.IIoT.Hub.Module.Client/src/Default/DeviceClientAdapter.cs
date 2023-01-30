@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public bool IsClosed { get; internal set; }
 
         /// <inheritdoc />
-        public int MaxBodySize => 256 * 1024;
+        public int MaxEventBufferSize => 256 * 1024;
 
         /// <summary>
         /// Create client
@@ -204,7 +204,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// Build message
             /// </summary>
             internal IReadOnlyList<Message> AsMessages() {
-                return Payload
+                return Buffers
                     .Where(b => b != null)
                     .Select(m => _template.CloneWithBody(m))
                     .ToList();
@@ -300,7 +300,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc/>
-            public IReadOnlyList<byte[]> Payload { get; set; }
+            public IReadOnlyList<byte[]> Buffers { get; set; }
 
             /// <inheritdoc/>
             public string OutputName { get; set; }

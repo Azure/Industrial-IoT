@@ -123,9 +123,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         /// <returns></returns>
         private async Task<R> CallServiceOnPublisherAsync<T, R>(string service,
             string deviceId, string moduleId, T request) {
-            if (string.IsNullOrEmpty(deviceId)) {
-                throw new ArgumentNullException(nameof(deviceId));
-            }
             var sw = Stopwatch.StartNew();
             var result = await _client.CallMethodAsync(deviceId, moduleId, service,
                 _serializer.SerializeToString(request));

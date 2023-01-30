@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public bool IsClosed { get; internal set; }
 
         /// <inheritdoc />
-        public int MaxBodySize => 256 * 1024;
+        public int MaxEventBufferSize => 256 * 1024;
 
         /// <summary>
         /// Create client

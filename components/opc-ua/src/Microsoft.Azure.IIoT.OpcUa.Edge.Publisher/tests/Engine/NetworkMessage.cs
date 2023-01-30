@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public string OutputName { get; set; }
         public bool Retain { get; set; }
         public TimeSpan Ttl { get; set; }
-        public IReadOnlyList<byte[]> Payload { get; set; }
+        public IReadOnlyList<byte[]> Buffers { get; set; }
 
         public static ITelemetryEvent Create() {
             return new NetworkMessage();

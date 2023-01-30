@@ -55,8 +55,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (_maxMessageSize <= 0) {
                 _maxMessageSize = int.MaxValue;
             }
-            if (_maxMessageSize > _messageSink.MaxBodySize) {
-                _maxMessageSize = _messageSink.MaxBodySize;
+            if (_maxMessageSize > _messageSink.MaxMessageSize) {
+                _maxMessageSize = _messageSink.MaxMessageSize;
             }
 
             _diagnosticInterval = _config.DiagnosticsInterval.GetValueOrDefault(TimeSpan.Zero);

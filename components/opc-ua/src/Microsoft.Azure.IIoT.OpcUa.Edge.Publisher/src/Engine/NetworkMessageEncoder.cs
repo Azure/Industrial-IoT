@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     chunkedMessage.OutputName = output;
                     chunkedMessage.Retain = retain;
                     chunkedMessage.Ttl = ttl;
-                    chunkedMessage.Payload = chunks;
+                    chunkedMessage.Buffers = chunks;
                     chunkedMessages.Add(chunkedMessage);
                 }
 

@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <summary>
         /// Maximum size body of message client can process
         /// </summary>
-        int MaxBodySize { get; }
+        int MaxEventBufferSize { get; }
 
         /// <summary>
         /// Create a message to send

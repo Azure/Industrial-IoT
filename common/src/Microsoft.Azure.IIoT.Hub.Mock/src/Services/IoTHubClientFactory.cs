@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             public bool IsClosed { get; internal set; }
 
             /// <inheritdoc />
-            public int MaxBodySize => 256 * 1024;
+            public int MaxEventBufferSize => 256 * 1024;
 
             /// <summary>
             /// Connection to iot hub
@@ -261,7 +261,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 }
 
                 /// <inheritdoc/>
-                public IReadOnlyList<byte[]> Payload { get; set; }
+                public IReadOnlyList<byte[]> Buffers { get; set; }
 
                 /// <inheritdoc/>
                 public string OutputName { get; set; }

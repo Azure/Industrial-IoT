@@ -20,9 +20,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         long SentMessagesCount { get; }
 
         /// <summary>
-        /// Max message size sink can deal with
+        /// Max message size sink can handle
         /// </summary>
-        int MaxBodySize { get; }
+        int MaxMessageSize { get; }
 
         /// <summary>
         /// Create message

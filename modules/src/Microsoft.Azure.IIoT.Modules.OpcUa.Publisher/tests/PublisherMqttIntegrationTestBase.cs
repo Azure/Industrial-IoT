@@ -47,6 +47,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using System.Threading.Tasks;
     using Xunit;
     using Microsoft.Azure.IIoT.Exceptions;
+    using MQTTnet.Formatter;
 
     public readonly record struct JsonMessage(string Topic, JsonElement Message, string ContentType);
 
@@ -63,32 +64,36 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
         protected Task<List<JsonMessage>> ProcessMessagesAsync(
             string publishedNodesFile,
+            bool useMqtt5,
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
             string[] arguments = default) {
             // Collect messages from server with default settings
-            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
+            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, useMqtt5, predicate, messageType, arguments);
         }
 
         protected Task<(JsonMessage? Metadata, List<JsonMessage> Messages)> ProcessMessagesAndMetadataAsync(
             string publishedNodesFile,
+            bool useMqtt5,
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
             string[] arguments = default) {
             // Collect messages from server with default settings
-            return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
+            return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1,
+                useMqtt5, predicate, messageType, arguments);
         }
 
         protected async Task<List<JsonMessage>> ProcessMessagesAsync(
             string publishedNodesFile,
             TimeSpan messageCollectionTimeout,
             int messageCount,
+            bool useMqtt5,
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
             string[] arguments = default) {
 
             var (_, messages) = await ProcessMessagesAndMetadataAsync(publishedNodesFile,
-                messageCollectionTimeout, messageCount, predicate, messageType, arguments);
+                messageCollectionTimeout, messageCount, useMqtt5, predicate, messageType, arguments);
             return messages;
         }
 
@@ -96,11 +101,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             string publishedNodesFile,
             TimeSpan messageCollectionTimeout,
             int messageCount,
+            bool useMqtt5,
             Func<JsonElement, JsonElement> predicate = null,
             string messageType = null,
             string[] arguments = default) {
 
-            await StartPublisherAsync(publishedNodesFile, arguments);
+            await StartPublisherAsync(useMqtt5, publishedNodesFile, arguments);
 
             JsonMessage? metadata = null;
             var messages = WaitForMessagesAndMetadata(messageCollectionTimeout, messageCount, ref metadata, predicate, messageType);
@@ -201,10 +207,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// <summary>
         /// Start publisher
         /// </summary>
-        protected Task StartPublisherAsync(string publishedNodesFile = null, string[] arguments = default) {
+        protected Task StartPublisherAsync(bool useMqtt5, string publishedNodesFile = null,
+            string[] arguments = default) {
             _ = Task.Run(() => HostPublisherAsync(
                 Mock.Of<ILogger>(),
                 publishedNodesFile,
+                useMqtt5 ? "v500" : "v311",
                 arguments ?? Array.Empty<string>()
             ));
             return _running.Task;
@@ -241,11 +249,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// <summary>
         /// Setup publishing from sample server.
         /// </summary>
-        private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile, string[] arguments) {
+        private async Task HostPublisherAsync(ILogger logger, string publishedNodesFile,
+            string protocol, string[] arguments) {
 
             var topicRoot = "/publishers/mypublishertest";
 
-            using var broker = await MqttBroker.CreateAsync((topic, buffer, contentType) => {
+            using var broker = await MqttBroker.CreateAsync(protocol, (topic, buffer, contentType) => {
                 Events.Add((topic, buffer, contentType));
                 return Task.CompletedTask;
             }, topicRoot);
@@ -261,9 +270,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 arguments = arguments.Concat(
                     new[]
                     {
-$"--mqc=HostName=localhost;Port={broker.Port};Username={broker.UserName};Password={broker.Password};Protocol=v500",
+$"--mqc=HostName=localhost;Port={broker.Port};Username={broker.UserName};Password={broker.Password};Protocol={protocol}",
 $"--ttt={topicRoot}",
-                        "--au",
+                        "--aa",
                         $"--pf={publishedNodesFilePath}"
                     }
                     ).ToArray();
@@ -444,11 +453,13 @@ $"--ttt={topicRoot}",
             /// Create service client
             /// </summary>
             private MqttBroker(ILogger logger, MqttServer server, int port,
-                Func<string, ReadOnlyMemory<byte>, string, Task> subscription, string topicRoot) {
+                Func<string, ReadOnlyMemory<byte>, string, Task> subscription,
+                string topicRoot, string protocol) {
                 _logger = logger;
                 _server = server;
                 _subscription = subscription;
                 _topicRoot = topicRoot;
+                _useMqtt5 = Enum.Parse<MqttProtocolVersion>(protocol, true) == MqttProtocolVersion.V500;
                 Port = port;
             }
 
@@ -462,26 +473,39 @@ $"--ttt={topicRoot}",
             public async Task<string> CallMethodAsync(string deviceId, string moduleId,
                 string method, string json, TimeSpan? timeout = null, CancellationToken ct = default) {
                 var payload = Encoding.UTF8.GetBytes(json);
-                var requestId = Guid.NewGuid().ToString();
-
-                // TODO: Mqtt5 or 311
-                var requestTopic = $"{_topicRoot}/methods/{method}?$rid={requestId}";
-                var responseFilter = $"{_topicRoot}/methods/res/#";
+                var requestId = Guid.NewGuid();
 
                 // Cancel previous call, only one allowed at a time.
                 _currentCall.callback?.TrySetCanceled(default);
-                _currentCall = (responseFilter, new TaskCompletionSource<(string, byte[])>());
-                await SendMessageAsync(requestTopic, payload.AsMemory(), "application/json", ct);
+                var responseFilter = _useMqtt5 ? $"{_topicRoot}/responses/{method}" : $"{_topicRoot}/methods/res/#";
+                _currentCall = (responseFilter, new TaskCompletionSource<(string, MqttApplicationMessage)>());
+
+                await SendMessageAsync(
+                    _useMqtt5 ? $"{_topicRoot}/methods/{method}"    : $"{_topicRoot}/methods/{method}/?$rid={requestId}",
+                    _useMqtt5 ? $"{_topicRoot}/responses/{method}"  : null,
+                    _useMqtt5 ? requestId.ToByteArray()             : null,
+                    payload.AsMemory(), "application/json", ct: ct);
 
                 var result = await _currentCall.callback.Task;
-                var components = result.Item1.Replace($"{_topicRoot}/methods/res/", "").Split('/');
-                var status = components[components.Length - 2];
-                if (requestId != components[components.Length - 1].Substring("?$rid=".Length)) {
-                    throw new MethodCallException("Did not get correct request id back.");
+                var status = 0;
+                if (_useMqtt5) {
+                    status = int.Parse(result.Item2.UserProperties
+                        .FirstOrDefault(p => p.Name == "StatusCode")?.Value ?? "500");
+                    if (!requestId.ToByteArray().SequenceEqual(result.Item2.CorrelationData)) {
+                        throw new MethodCallException("Did not get correct correlation data back.");
+                    }
                 }
-                var jsonResponse = Encoding.UTF8.GetString(result.Item2);
-                if (status != "200") {
-                    throw new MethodCallStatusException(jsonResponse, int.Parse(status));
+                else {
+                    var components = result.Item1.Replace($"{_topicRoot}/methods/res/", "").Split('/');
+                    status = int.Parse(components[components.Length - 2]);
+                    if (requestId.ToString() != components[components.Length - 1].Substring("?$rid=".Length)) {
+                        throw new MethodCallException("Did not get correct request id back.");
+                    }
+                }
+
+                var jsonResponse = Encoding.UTF8.GetString(result.Item2.Payload);
+                if (status != 200) {
+                    throw new MethodCallStatusException(jsonResponse, status);
                 }
                 return jsonResponse;
             }
@@ -489,12 +513,8 @@ $"--ttt={topicRoot}",
             /// <summary>
             /// Send message to client
             /// </summary>
-            /// <param name="topic"></param>
-            /// <param name="payload"></param>
-            /// <param name="contentType"></param>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private Task SendMessageAsync(string topic, ReadOnlyMemory<byte> payload,
+            private Task SendMessageAsync(string topic, string responseTopic,
+                byte[] correlationData, ReadOnlyMemory<byte> payload,
                 string contentType, CancellationToken ct = default) {
                 if (topic == null) {
                     throw new ArgumentNullException(nameof(topic));
@@ -504,6 +524,8 @@ $"--ttt={topicRoot}",
                     Payload = payload.ToArray(),
                     ContentType = contentType,
                     QualityOfServiceLevel = MqttQualityOfServiceLevel.AtLeastOnce,
+                    ResponseTopic = responseTopic,
+                    CorrelationData = correlationData,
                     Retain = false
                 }) {
                     SenderClientId = ClientId
@@ -514,7 +536,6 @@ $"--ttt={topicRoot}",
             /// <summary>
             /// Handle connection
             /// </summary>
-            /// <param name="args"></param>
             private Task HandleClientConnectedAsync(ClientConnectedEventArgs args) {
                 _logger.Information("Client {ClientId} connected.", args.ClientId);
                 return Task.CompletedTask;
@@ -556,16 +577,13 @@ $"--ttt={topicRoot}",
                     var current = _currentCall;
                     if (current.topic != null &&
                         MqttTopicFilterComparer.Compare(topic, current.topic) == MqttTopicFilterCompareResult.IsMatch) {
-                        current.callback.TrySetResult((topic, args.ApplicationMessage.Payload));
-                        return;
+                        current.callback.TrySetResult((topic, args.ApplicationMessage));
                     }
-                    if (MqttTopicFilterComparer.Compare(topic, $"{_topicRoot}/twin/#") == MqttTopicFilterCompareResult.IsMatch ||
-                        MqttTopicFilterComparer.Compare(topic, $"{_topicRoot}/methods/#") == MqttTopicFilterCompareResult.IsMatch) {
-                        return;
+                    else if (MqttTopicFilterComparer.Compare(topic, $"{_topicRoot}/twin/#") != MqttTopicFilterCompareResult.IsMatch &&
+                        MqttTopicFilterComparer.Compare(topic, $"{_topicRoot}/methods/#") != MqttTopicFilterCompareResult.IsMatch) {
+                        await _subscription.Invoke(topic, args.ApplicationMessage.Payload,
+                            args.ApplicationMessage.ContentType ?? "NoContentType_UseMqttv5").ConfigureAwait(false);
                     }
-                    await _subscription.Invoke(topic, args.ApplicationMessage.Payload,
-                        args.ApplicationMessage.ContentType ?? "NoContentType_UseMqttv5")
-                        .ConfigureAwait(false);
                 }
                 finally {
                     _lock.Release();
@@ -604,12 +622,12 @@ $"--ttt={topicRoot}",
             /// Create broker
             /// </summary>
             /// <returns></returns>
-            public static async Task<MqttBroker> CreateAsync(
+            public static async Task<MqttBroker> CreateAsync(string protocol,
                 Func<string, ReadOnlyMemory<byte>, string, Task> subscription, string topicRoot,
                 ILogger logger = null) {
                 for (var port = 1883; ; port++) {
                     try {
-                        return await CreateAsync(subscription, port, topicRoot, logger);
+                        return await CreateAsync(protocol, subscription, port, topicRoot, logger);
                     }
                     catch {
                         continue;
@@ -620,7 +638,7 @@ $"--ttt={topicRoot}",
             /// <summary>ping
             /// Create client and start it
             /// </summary>
-            public static async Task<MqttBroker> CreateAsync(
+            public static async Task<MqttBroker> CreateAsync(string protocol,
                 Func<string, ReadOnlyMemory<byte>, string, Task> subscription, int port, string topicRoot,
                 ILogger logger = null) {
                 logger ??= ConsoleLogger.Create();
@@ -629,7 +647,7 @@ $"--ttt={topicRoot}",
                     .WithDefaultEndpointPort(port)
                     ;
                 var server = new MqttFactory().CreateMqttServer(optionsBuilder.Build());
-                var mqttBroker = new MqttBroker(logger, server, port, subscription, topicRoot);
+                var mqttBroker = new MqttBroker(logger, server, port, subscription, topicRoot, protocol);
                 try {
                     server.ValidatingConnectionAsync += mqttBroker.ValidateConnectionAsync;
                     server.ClientConnectedAsync += mqttBroker.HandleClientConnectedAsync;
@@ -650,8 +668,9 @@ $"--ttt={topicRoot}",
             private readonly MqttServer _server;
             private readonly SemaphoreSlim _lock = new(1, 1);
             private readonly Func<string, ReadOnlyMemory<byte>, string, Task> _subscription;
-            private (string topic, TaskCompletionSource<(string, byte[])> callback) _currentCall;
+            private (string topic, TaskCompletionSource<(string, MqttApplicationMessage)> callback) _currentCall;
             private readonly string _topicRoot;
+            private readonly bool _useMqtt5;
         }
 
         private readonly TaskCompletionSource<bool> _exit;

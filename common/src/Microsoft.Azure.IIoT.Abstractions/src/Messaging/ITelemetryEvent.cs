@@ -63,8 +63,8 @@ namespace Microsoft.Azure.IIoT.Messaging {
         TimeSpan Ttl { get; set; }
 
         /// <summary>
-        /// Message payload
+        /// Message payload buffers.
         /// </summary>
-        IReadOnlyList<byte[]> Payload { get; set; }
+        IReadOnlyList<byte[]> Buffers { get; set; }
     }
 }

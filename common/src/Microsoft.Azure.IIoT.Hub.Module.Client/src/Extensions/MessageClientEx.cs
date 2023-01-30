@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             string deviceId = null, string moduleId = null,
             string routingInfo = null) {
             var msg = client.CreateTelemetryEvent();
-            msg.Payload = data;
+            msg.Buffers = data;
             msg.ContentType = contentType;
             msg.ContentEncoding = contentEncoding;
             msg.MessageSchema = messageSchema;

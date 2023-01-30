@@ -126,8 +126,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
             Assert.Equal("application/json", message.ContentType);
             Assert.Equal("utf-8", message.ContentEncoding);
 
-            Assert.Equal(1, message.Payload.Count);
-            var body = Encoding.UTF8.GetString(message.Payload[0]);
+            Assert.Equal(1, message.Buffers.Count);
+            var body = Encoding.UTF8.GetString(message.Buffers[0]);
             Assert.Equal("{\"MessageType\":\"restartAnnouncement\",\"MessageVersion\":1}", body);
         }
     }
