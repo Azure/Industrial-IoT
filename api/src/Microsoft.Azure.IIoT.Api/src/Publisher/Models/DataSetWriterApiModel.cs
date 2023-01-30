@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Metadata message sending interval
         /// </summary>
-        [DataMember(Name = "metaDataSendInterval", Order = 6,
+        [DataMember(Name = "metaDataUpdateTime", Order = 6,
             EmitDefaultValue = false)]
         public TimeSpan? MetaDataUpdateTime { get; set; }
 

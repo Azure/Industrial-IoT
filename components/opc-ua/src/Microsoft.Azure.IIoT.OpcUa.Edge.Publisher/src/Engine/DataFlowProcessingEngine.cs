@@ -49,14 +49,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _notificationBufferSize = _config.BatchSize.Value;
             }
             if (_config.MaxMessageSize.HasValue && _config.MaxMessageSize.Value > 0) {
-                _maxMessageSize = _config.MaxMessageSize.Value;
+                _maxEncodedMessageSize = _config.MaxMessageSize.Value;
             }
 
-            if (_maxMessageSize <= 0) {
-                _maxMessageSize = int.MaxValue;
+            if (_maxEncodedMessageSize <= 0) {
+                _maxEncodedMessageSize = int.MaxValue;
             }
-            if (_maxMessageSize > _messageSink.MaxMessageSize) {
-                _maxMessageSize = _messageSink.MaxMessageSize;
+            if (_maxEncodedMessageSize > _messageSink.MaxMessageSize) {
+                _maxEncodedMessageSize = _messageSink.MaxMessageSize;
             }
 
             _diagnosticInterval = _config.DiagnosticsInterval.GetValueOrDefault(TimeSpan.Zero);
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 input => {
                     try {
                         return _messageEncoder.Encode(_messageSink.CreateMessage,
-                            input, _maxMessageSize, _notificationBufferSize != 1);
+                            input, _maxEncodedMessageSize, _notificationBufferSize != 1);
                     }
                     catch (Exception e) {
                         _logger.Error(e, "Encoding failure.");
@@ -204,7 +204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             double dataChangesPerSec = info.IngressDataChanges / info.IngestionDuration.TotalSeconds;
             double valueChangesPerSecLastMin = _messageTrigger.ValueChangesCountLastMinute / Math.Min(totalSeconds, 60d);
             double dataChangesPerSecLastMin = _messageTrigger.DataChangesCountLastMinute / Math.Min(totalSeconds, 60d);
-            double messageSizeAveragePercent = Math.Round(info.EncoderAvgIoTMessageBodySize / _maxMessageSize * 100);
+            double messageSizeAveragePercent = Math.Round(info.EncoderAvgIoTMessageBodySize / _maxEncodedMessageSize * 100);
             string messageSizeAveragePercentFormatted = $"({messageSizeAveragePercent}%)";
 
             _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
@@ -364,7 +364,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly int _notificationBufferSize = 1;
         private readonly Timer _batchTriggerIntervalTimer;
         private readonly TimeSpan _batchTriggerInterval;
-        private readonly int _maxMessageSize;
+        private readonly int _maxEncodedMessageSize;
         private readonly IEngineConfiguration _config;
         private readonly IMessageSink _messageSink;
         private readonly IMessageEncoder _messageEncoder;

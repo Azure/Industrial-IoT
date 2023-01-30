@@ -307,7 +307,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                         v.GetProperty("DataType").GetProperty("Namespace").GetString());
                 });
 
-#if FULLMETADATA // Enable when supported in stack
             var namespaces = metadata.Value.GetProperty("MetaData").GetProperty("Namespaces");
             Assert.Equal(JsonValueKind.Array, namespaces.ValueKind);
             Assert.Equal(22, namespaces.GetArrayLength());
@@ -326,7 +325,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     Assert.Equal("Duration", v.GetProperty("Name").GetString());
                     Assert.Equal(11, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                 });
-#endif
         }
 
         internal static void AssertSimpleEventsMetadata(JsonElement? metadata) {
@@ -351,7 +349,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", v.GetProperty("DataType").GetString());
                 });
 
-#if FULLMETADATA // Enable when supported in stack
        var namespaces = metadata.Value.GetProperty("MetaData").GetProperty("Namespaces");
             Assert.Equal(JsonValueKind.Array, namespaces.ValueKind);
             Assert.Equal(22, namespaces.GetArrayLength());
@@ -370,7 +367,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     Assert.Equal("Duration", v.GetProperty("Name").GetString());
                     Assert.Equal("Double", v.GetProperty("DataType").GetString());
                 });
-#endif
         }
     }
 }
