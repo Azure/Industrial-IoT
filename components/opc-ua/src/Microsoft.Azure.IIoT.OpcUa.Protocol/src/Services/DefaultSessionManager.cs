@@ -317,13 +317,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             SessionWrapper wrapper, CancellationToken ct) {
             try {
                 if (!wrapper._subscriptions.Any()) {
-                    if (wrapper.State != SessionState.Disconnect) {
-                        // if the session is idle, just drop it immediately
-                        _logger.Information("Idle expired session '{id}' set to {disconnect} state from {state}",
-                            id, SessionState.Disconnect, wrapper.State);
-                        wrapper.State = SessionState.Disconnect;
-                        await HandleDisconnectAsync(id, wrapper).ConfigureAwait(false);
-                    }
+                    // if the session is idle, just drop it immediately
+                    _logger.Information("Idle expired session '{id}' set to {disconnect} state from {state}",
+                        id, SessionState.Disconnect, wrapper.State);
+                    wrapper.State = SessionState.Disconnect;
+                    await HandleDisconnectAsync(id, wrapper).ConfigureAwait(false);
                     return;
                 }
                 else {
@@ -444,13 +442,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     wrapper.Session = null;
                 }
                 if (!wrapper._subscriptions.Any()) {
-                    if (wrapper.State != SessionState.Disconnect) {
-                        // The session is idle, stop initialization phase
-                        _logger.Information("Idle failed session '{id}' set to {disconnect} state from {state}",
-                            wrapper.Id, SessionState.Disconnect, wrapper.State);
-                        wrapper.State = SessionState.Disconnect;
-                        TriggerKeepAlive();
-                    }
+                    // The session is idle, stop initialization phase
+                    _logger.Information("Idle failed session '{id}' set to {disconnect} state from {state}",
+                        wrapper.Id, SessionState.Disconnect, wrapper.State);
+                    wrapper.State = SessionState.Disconnect;
+                    TriggerKeepAlive();
                     return;
                 }
                 _logger.Debug("Initializing session '{id}'...", id);
@@ -755,7 +751,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             if (wrapper.IdleCount < wrapper.MaxKeepAlives) {
                                 wrapper.IdleCount++;
                             }
-                            else if (wrapper.State != SessionState.Disconnect) {
+                            else {
                                 _logger.Information("Idle expired session '{id}' set to {disconnect} state from {state}",
                                     wrapper.Id, SessionState.Disconnect, wrapper.State);
                                 wrapper.State = SessionState.Disconnect;
@@ -780,13 +776,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             if (wrapper.IdleCount < wrapper.MaxKeepAlives) {
                                 wrapper.IdleCount++;
                             }
-                            else if (wrapper.State != SessionState.Disconnect) {
+                            else {
                                 _logger.Information("Idle expired session '{id}' set to {disconnect} state from {state}",
                                    wrapper.Id, SessionState.Disconnect, wrapper.State);
                                 wrapper.State = SessionState.Disconnect;
-                            }
-                            else {
-                                return;
                             }
                         }
                         else {
