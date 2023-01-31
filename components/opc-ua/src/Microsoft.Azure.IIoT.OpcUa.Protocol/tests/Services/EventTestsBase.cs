@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Opc.Ua;
     using Opc.Ua.Client;
     using Serilog;
-    using static Microsoft.Azure.IIoT.OpcUa.Protocol.Services.SubscriptionServices;
 
     public abstract class EventTestsBase {
         protected INodeCache GetNodeCache(NamespaceTable namespaceTable = null) {
@@ -28,12 +27,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             return nodeCache;
         }
 
-        protected MonitoredItemWrapper GetMonitoredItemWrapper(
+        protected OpcUaMonitoredItem GetMonitoredItemWrapper(
             BaseMonitoredItemModel template,
             ServiceMessageContext messageContext = null,
             INodeCache nodeCache = null,
-            IVariantEncoder codec = null,
-            bool activate = true) {
+            IVariantEncoder codec = null) {
 
             if (codec == null) {
                 codec = messageContext == null
@@ -42,13 +40,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             nodeCache ??= GetNodeCache();
-            var monitoredItemWrapper = new MonitoredItemWrapper(template, Log.Logger);
+            var monitoredItemWrapper = new OpcUaMonitoredItem(template, Log.Logger);
             monitoredItemWrapper.Create(
                 messageContext ?? new ServiceMessageContext(),
                 nodeCache,
                 nodeCache.TypeTree,
-                codec,
-                activate);
+                codec);
             return monitoredItemWrapper;
         }
     }

@@ -31,15 +31,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public bool IsConnectionOk(ConnectionModel connection);
+        bool IsConnectionOk(ConnectionModel connection);
 
         /// <summary>
-        /// Get or create session for subscription
+        /// Get a connected session
         /// </summary>
         /// <param name="connection"></param>
-        /// <param name="ensureWorkingSession"></param>
         /// <returns></returns>
-        ISession GetOrCreateSession(ConnectionModel connection, bool ensureWorkingSession);
+        Task<ISessionHandle> GetOrCreateSessionAsync(ConnectionModel connection);
+
+        /// <summary>
+        /// Get session for connection
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        ISessionHandle FindSession(ConnectionModel connection);
 
         /// <summary>
         /// Get complex type system from session
@@ -54,26 +60,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="connection"></param>
         /// <param name="onlyIfEmpty"></param>
         /// <returns></returns>
-        Task RemoveSessionAsync(ConnectionModel connection, bool onlyIfEmpty = true);
-
-        /// <summary>
-        /// Get or create a subscription
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <returns></returns>
-        void RegisterSubscription(ISubscription subscription);
-
-        /// <summary>
-        /// Removes a subscription
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <returns></returns>
-        void UnregisterSubscription(ISubscription subscription);
-
-        /// <summary>
-        /// stops all pending sessions
-        /// </summary>
-        /// <returns></returns>
-        Task StopAsync();
+        Task DisconnectSessionAsync(ConnectionModel connection, bool onlyIfEmpty = true);
     }
 }

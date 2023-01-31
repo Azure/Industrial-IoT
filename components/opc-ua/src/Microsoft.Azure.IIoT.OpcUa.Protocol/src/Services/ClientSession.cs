@@ -58,15 +58,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             // Align the default device method timeout
             _opTimeout = maxOpTimeout ?? TimeSpan.FromMinutes(8);
             _session = null;
-            _acquired = new TaskCompletionSource<Session>();
             _urlQueue = new ConcurrentQueue<string>(_connection.Endpoint.GetAllUrls());
             _queue = new System.Collections.Concurrent.PriorityQueue<int, SessionOperation>();
             _enqueueEvent = new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
-#pragma warning disable RECS0002 // Convert anonymous method to method group
             _processor = Task.Factory.StartNew(() => RunAsync(), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
-#pragma warning restore RECS0002 // Convert anonymous method to method group
             _logger.Information("Session created.");
         }
 
@@ -608,17 +605,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             catch (Exception ex) {
                 _logger.Error(ex, "Exception during state callback");
             }
-
-            if (state == EndpointConnectivityState.Ready) {
-                // Notify waiting threads that a session is ready
-                _acquired.TrySetResult(_session);
-            }
-            else {
-                // Keep any thread waiting
-                if (_acquired.Task.IsCompleted) {
-                    _acquired = new TaskCompletionSource<Session>();
-                }
-            }
         }
 
         /// <summary>
@@ -957,7 +943,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public ConnectionModel Connection => _outer._connection;
 
             /// <inheritdoc/>
-            public Session Session => _outer._session;
+            public ISession Session => _outer._session;
 
             /// <inheritdoc/>
             public EndpointConnectivityState State => _outer._lastState;
@@ -971,14 +957,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <inheritdoc/>
-            public Task<Session> AcquireSessionAsync() {
-                if (_disposed) {
-                    throw new ObjectDisposedException(nameof(ClientSessionHandle));
-                }
-                return _outer._acquired.Task;
-            }
-
-            /// <inheritdoc/>
             public void Dispose() {
                 if (_disposed) {
                     throw new ObjectDisposedException(nameof(ClientSessionHandle));
@@ -987,6 +965,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 lock (_outer._handles) {
                     _outer._handles.Remove(this);
                 }
+            }
+
+            /// <inheritdoc/>
+            public void RegisterSubscription(ISubscription subscription) {
+                throw new NotImplementedException();
+            }
+
+            /// <inheritdoc/>
+            public void UnregisterSubscription(ISubscription subscription) {
+                throw new NotImplementedException();
             }
 
             private readonly ClientSession _outer;
@@ -1004,7 +992,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private SessionOperation _curOperation;  // Only update from RunAsync task
         private DateTime _lastActivity;
         private Session _session;
-        private TaskCompletionSource<Session> _acquired;
         private EndpointConnectivityState _lastState;
         private string _endpointUrl;
         private readonly TimeSpan _opTimeout;

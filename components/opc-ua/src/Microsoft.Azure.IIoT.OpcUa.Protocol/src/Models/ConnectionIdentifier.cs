@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Lookup key for connections
@@ -55,6 +56,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             }
             return true;
         }
+
+        /// <inheritdoc/>
+        public static bool operator ==(ConnectionIdentifier r1,
+            ConnectionIdentifier r2) =>
+            EqualityComparer<ConnectionIdentifier>.Default.Equals(r1, r2);
+        /// <inheritdoc/>
+        public static bool operator !=(ConnectionIdentifier r1,
+            ConnectionIdentifier r2) =>
+            !(r1 == r2);
 
         /// <inheritdoc/>
         public override int GetHashCode() {

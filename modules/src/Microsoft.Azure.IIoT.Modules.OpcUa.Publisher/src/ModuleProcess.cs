@@ -107,9 +107,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var identity = hostScope.Resolve<IIdentity>();
                     var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
-                    ISessionManager sessionManager = null;
                     var server = new MetricServer(port: kPublisherPrometheusPort);
-
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.Information("Starting module OpcPublisher version {version}.", version);
@@ -132,7 +130,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                             await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false);
                         }
 
-                        sessionManager = hostScope.Resolve<ISessionManager>();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task).ConfigureAwait(false);
                         if (_exit.Task.IsCompleted) {
@@ -148,7 +145,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     finally {
                         OnRunning?.Invoke(this, false);
                         await workerSupervisor.StopAsync().ConfigureAwait(false);
-                        await (sessionManager?.StopAsync()?? Task.CompletedTask).ConfigureAwait(false);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         healthCheckManager.Stop();
@@ -239,9 +235,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
 
             // Opc specific parts
-            builder.RegisterType<DefaultSessionManager>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<SubscriptionServices>()
+            builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();

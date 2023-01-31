@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             if (notification == null || monitoredItem == null) {
                 yield break;
             }
-            var handleId = monitoredItem.Handle as MonitoredItemWrapper;
+            var handleId = monitoredItem.Handle as OpcUaMonitoredItem;
             if (handleId?.SkipMonitoredItemNotification() ?? false) {
                 // Skip change notification
                 yield break;
@@ -128,7 +128,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <returns></returns>
         public static IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
             this EventFieldList eventFieldList, MonitoredItem monitoredItem) {
-            var handleId = monitoredItem.Handle as MonitoredItemWrapper;
+            var handleId = monitoredItem.Handle as OpcUaMonitoredItem;
             if (eventFieldList != null && monitoredItem != null) {
                 for (var i = 0; i < eventFieldList.EventFields.Count; i++) {
                     var sequenceNumber = eventFieldList.Message == null || eventFieldList.Message.IsEmpty

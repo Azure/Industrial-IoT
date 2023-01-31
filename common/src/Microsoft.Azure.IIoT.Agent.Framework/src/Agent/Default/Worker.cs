@@ -265,7 +265,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                         _jobProcess = new JobProcess(this, currentProcessInstruction, _lifetimeScope, _logger);
                     }
                     else {
-                        _jobProcess.ProcessNewInstruction(currentProcessInstruction);
+                        await _jobProcess.ProcessNewInstruction(currentProcessInstruction);
                     }
                     await _jobProcess.WaitAsync(ct).ConfigureAwait(false); // Does not throw
 
@@ -349,14 +349,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// <summary>
             /// Reconfigure the existing process
             /// </summary>
-            public void ProcessNewInstruction(JobProcessingInstructionModel jobProcessInstruction) {
+            public async Task ProcessNewInstruction(JobProcessingInstructionModel jobProcessInstruction) {
                 _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                     _outer._cts.Token);
                 _currentJobProcessInstruction = jobProcessInstruction;
                 var jobConfig = _outer._jobConfigurationFactory.DeserializeJobConfiguration(
                     Job.JobConfiguration, Job.JobConfigurationType);
 
-                _currentProcessingEngine.ReconfigureTrigger(jobConfig);
+                await _currentProcessingEngine.ReconfigureTriggerAsync(jobConfig);
                 JobContinuation = null;
                 _processor = Task.Run(() => ProcessAsync());
             }

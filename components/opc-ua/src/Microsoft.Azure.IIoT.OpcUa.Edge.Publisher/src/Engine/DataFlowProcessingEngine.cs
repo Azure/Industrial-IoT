@@ -206,8 +206,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public void ReconfigureTrigger(object config) {
-            _messageTrigger.Reconfigure(config);
+        public Task ReconfigureTriggerAsync(object config) {
+            return _messageTrigger.ReconfigureAsync(config);
         }
 
         /// <summary>
@@ -215,6 +215,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private void DiagnosticsOutputTimer_Elapsed(object state) {
             var info = GetDiagnosticInfo();
+            if (info == null) {
+                return;
+            }
             var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
             double valueChangesPerSec = info.IngressValueChanges / info.IngestionDuration.TotalSeconds;
             double dataChangesPerSec = info.IngressDataChanges / info.IngestionDuration.TotalSeconds;

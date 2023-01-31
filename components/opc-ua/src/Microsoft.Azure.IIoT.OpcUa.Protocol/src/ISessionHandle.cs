@@ -28,11 +28,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Session
         /// </summary>
-        Session Session { get; }
+        ISession Session { get; }
 
         /// <summary>
-        /// Get access to the raw session
+        /// Get or create a subscription
         /// </summary>
-        Task<Session> AcquireSessionAsync();
+        /// <param name="subscription"></param>
+        /// <returns></returns>
+        void RegisterSubscription(ISubscription subscription);
+
+        /// <summary>
+        /// Removes a subscription
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <returns></returns>
+        void UnregisterSubscription(ISubscription subscription);
     }
 }

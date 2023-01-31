@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         AttributeId = k
                     };
                     if (eventList) {
-                        var handle = new MonitoredItemWrapper(new EventMonitoredItemModel(), ConsoleLogger.Create());
+                        var handle = new OpcUaMonitoredItem(new EventMonitoredItemModel(), ConsoleLogger.Create());
                         handle.Fields.Add(("1", default));
                         handle.Fields.Add(("2", default));
                         handle.Fields.Add(("3", default));

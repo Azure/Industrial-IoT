@@ -313,7 +313,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                         var moduleConfig = hostScope.Resolve<IModuleConfig>();
                         var identity = hostScope.Resolve<IIdentity>();
                         var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
-                        ISessionManager sessionManager = null;
 
                         Events = hostScope.Resolve<IIoTHub>().Events;
 
@@ -324,7 +323,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                             // Start module
                             await module.StartAsync(IdentityType.Publisher, "IntegrationTests", "OpcPublisher", version, null);
                             await workerSupervisor.StartAsync();
-                            sessionManager = hostScope.Resolve<ISessionManager>();
 
                             _apiScope = ConfigureContainer(configurationRoot, hostScope.Resolve<IIoTHubTwinServices>());
                             _running.TrySetResult(true);
@@ -336,7 +334,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                         }
                         finally {
                             await workerSupervisor.StopAsync();
-                            await sessionManager?.StopAsync();
                             healthCheckManager.Stop();
                             await module.StopAsync();
 
@@ -377,14 +374,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// <summary>
         /// Configures DI for the types required.
         /// </summary>
-        private static IContainer ConfigureContainer(IConfiguration configuration, List<(DeviceTwinModel, DeviceModel)> devices) {
+        private static IContainer ConfigureContainer(IConfiguration configuration,
+            List<(DeviceTwinModel, DeviceModel)> devices) {
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
             var standaloneCliOptions = new StandaloneCliOptions(configuration);
 
             // Register configuration interfaces
-            builder.RegisterInstance(config).AsImplementedInterfaces();
-            builder.RegisterInstance(config.Configuration).AsImplementedInterfaces();
+            builder.RegisterInstance(config)
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(config.Configuration)
+                .AsImplementedInterfaces();
 
             builder.RegisterModule<PublisherJobsConfiguration>();
 
@@ -394,29 +394,40 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             builder.AddDiagnostics(config, standaloneCliOptions.ToLoggerConfiguration());
-            builder.RegisterInstance(standaloneCliOptions).AsImplementedInterfaces();
+            builder.RegisterInstance(standaloneCliOptions)
+                .AsImplementedInterfaces();
 
-            builder.RegisterType<IoTHubClientFactory>().AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<IoTHubClientFactory>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
 
-            builder.Register(ctx => Create(devices)).AsImplementedInterfaces().SingleInstance();
+            builder.Register(ctx => Create(devices))
+                .AsImplementedInterfaces().SingleInstance();
 
-            builder.RegisterType<ModuleHost>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ModuleHost>()
+                .AsImplementedInterfaces().SingleInstance();
             // Published nodes file provider
-            builder.RegisterType<PublishedNodesProvider>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublishedNodesProvider>()
+                .AsImplementedInterfaces().SingleInstance();
             // Local orchestrator
-            builder.RegisterType<StandaloneJobOrchestrator>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<StandaloneJobOrchestrator>()
+                .AsImplementedInterfaces().SingleInstance();
             // Create jobs from published nodes file
-            builder.RegisterType<PublishedNodesJobConverter>().SingleInstance();
-            builder.RegisterType<PublisherMethodsController>().AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<PublishedNodesJobConverter>()
+                .SingleInstance();
+            builder.RegisterType<PublisherMethodsController>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
 
-            builder.RegisterType<IdentityTokenSettingsController>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IdentityTokenSettingsController>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Opc specific parts
-            builder.RegisterType<DefaultSessionManager>().AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<SubscriptionServices>().AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<VariantEncoderFactory>().AsImplementedInterfaces();
+            builder.RegisterType<OpcUaClientManager>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<VariantEncoderFactory>()
+                .AsImplementedInterfaces();
 
-            builder.RegisterType<HealthCheckManager>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<HealthCheckManager>()
+                .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
         }

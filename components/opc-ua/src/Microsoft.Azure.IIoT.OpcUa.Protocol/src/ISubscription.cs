@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Opc.Ua.Client;
 
     /// <summary>
     /// Subscription abstraction
@@ -45,16 +44,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Index inside the publisher
         /// </summary>
         ushort Id { get; }
-
-        /// <summary>
-        /// Enabled - successfully created on server
-        /// </summary>
-        bool Enabled { get; }
-
-        /// <summary>
-        /// Publishing is active
-        /// </summary>
-        bool Active { get; }
 
         /// <summary>
         /// Connection
@@ -94,45 +83,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         bool TryUpgradeToKeyFrame(SubscriptionNotificationModel notification);
 
         /// <summary>
-        /// Apply desired state
+        /// Apply desired state of the subscription and its monitored items.
+        /// This will attempt a differential update of the subscription
+        /// and monitored items state. It is called periodically, when the
+        /// configuration is updated or when a session is reconnected and
+        /// the subscription needs to be recreated.
         /// </summary>
-        /// <param name="monitoredItems"></param>
         /// <param name="configuration"></param>
         /// <returns>enabled</returns>
-        Task ApplyAsync(IEnumerable<BaseMonitoredItemModel> monitoredItems,
-            SubscriptionConfigurationModel configuration);
+        Task UpdateAsync(SubscriptionModel configuration);
 
         /// <summary>
-        /// Creates the subscription and it's associated monitored items
+        /// Reapply current configuration
         /// </summary>
-        /// <param name="session"></param>
         /// <returns></returns>
-        Task EnableAsync(Session session);
+        Task ReapplyToSessionAsync(ISessionHandle session);
 
         /// <summary>
-        /// Sets the subscription and it's monitored items in publishing respective
-        /// reporting state
+        /// Called to signal the underlying session is disconnected and the
+        /// subscription is offline, or when it is reconnected and the
+        /// session is back online. This is the case during reconnect handler
+        /// execution or when the subscription was disconnected.
         /// </summary>
-        /// <param name="session"></param>
-        /// <returns></returns>
-        Task ActivateAsync(Session session);
-
-        /// <summary>
-        /// disables publishing for the subscription
-        /// </summary>
-        /// <param name="session"></param>
-        /// <returns></returns>
-        Task DeactivateAsync(Session session);
+        /// <param name="online"></param>
+        void OnSubscriptionStateChanged(bool online);
 
         /// <summary>
         /// Close and delete subscription
         /// </summary>
         /// <returns></returns>
         Task CloseAsync();
-
-        /// <summary>
-        /// Function that gets called when subscription state changes between online/offline
-        /// </summary>
-        void OnSubscriptionStateChanged(bool online);
     }
 }

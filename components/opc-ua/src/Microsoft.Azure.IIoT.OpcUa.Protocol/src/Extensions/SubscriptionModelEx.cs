@@ -24,14 +24,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             }
             return new SubscriptionModel {
                 Configuration = model.Configuration.Clone(),
-                Id = model.Id,
+                Id = model.Id.Clone(),
                 MonitoredItems = model.MonitoredItems?
                     .Select(n => n.Clone())
                     .ToList(),
                 ExtensionFields = model.ExtensionFields?
                     .ToDictionary(k => k.Key, v => v.Value),
-                Connection = model.Connection.Clone()
             };
+        }
+
+        /// <summary>
+        /// Clone id
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static SubscriptionIdentifier Clone(this SubscriptionIdentifier model) {
+            if (model == null) {
+                return null;
+            }
+            return new SubscriptionIdentifier(model.Connection, model.Id);
         }
     }
 }

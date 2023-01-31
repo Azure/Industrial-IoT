@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     /// <summary>
     /// Monitored item
     /// </summary>
-    public class MonitoredItemWrapper {
+    public class OpcUaMonitoredItem {
 
         /// <summary>
         /// Assigned monitored item id on server
@@ -37,17 +37,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Monitored item as data
         /// </summary>
-        public DataMonitoredItemModel DataTemplate { get { return Template as DataMonitoredItemModel; } }
+        public DataMonitoredItemModel DataTemplate => Template as DataMonitoredItemModel;
 
         /// <summary>
         /// Monitored item as event
         /// </summary>
-        public EventMonitoredItemModel EventTemplate { get { return Template as EventMonitoredItemModel; } }
+        public EventMonitoredItemModel EventTemplate => Template as EventMonitoredItemModel;
 
         /// <summary>
         /// Monitored item created from template
         /// </summary>
         public MonitoredItem Item { get; private set; }
+
+        /// <summary>
+        /// Status Code
+        /// </summary>
+        public StatusCode Status => Item?.Status?.Created == true ?
+            Item.Status.Error?.StatusCode ?? StatusCodes.Good : StatusCodes.BadMonitoredItemIdInvalid;
 
         /// <summary>
         /// Last published time
@@ -96,8 +102,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create wrapper
         /// </summary>
-        public MonitoredItemWrapper(BaseMonitoredItemModel template, ILogger logger) {
-            _logger = logger?.ForContext<MonitoredItemWrapper>() ??
+        public OpcUaMonitoredItem(BaseMonitoredItemModel template, ILogger logger) {
+            _logger = logger?.ForContext<OpcUaMonitoredItem>() ??
                 throw new ArgumentNullException(nameof(logger));
             Template = template?.Clone() ??
                 throw new ArgumentNullException(nameof(template));
@@ -105,7 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            if (!(obj is MonitoredItemWrapper wrapper)) {
+            if (!(obj is OpcUaMonitoredItem wrapper)) {
                 return false;
             }
             if (Template.GetType() != wrapper.Template.GetType()) {
@@ -158,8 +164,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create new stack monitored item
         /// </summary>
-        public void Create(ISession session, IVariantEncoder codec, bool activate) {
-            Create(session.MessageContext as ServiceMessageContext, session.NodeCache, session.TypeTree, codec, activate);
+        public void Create(ISession session, IVariantEncoder codec) {
+            Create(session.MessageContext as ServiceMessageContext,
+                session.NodeCache, session.TypeTree, codec);
         }
 
         /// <summary>
@@ -203,20 +210,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Create new stack monitored item
         /// </summary>
         public void Create(ServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
-            IVariantEncoder codec, bool activate) {
+            IVariantEncoder codec) {
 
             Item = new MonitoredItem {
                 Handle = this,
                 DisplayName = Template.DisplayName ?? Template.Id,
                 AttributeId = (uint)Template.AttributeId.GetValueOrDefault((NodeAttribute)Attributes.Value),
                 IndexRange = Template.IndexRange,
-                RelativePath = Template.RelativePath?
-                            .ToRelativePath(messageContext)?
-                            .Format(typeTree),
-                MonitoringMode = activate
-                    ? Template.MonitoringMode.ToStackType().
-                        GetValueOrDefault(Opc.Ua.MonitoringMode.Reporting)
-                    : Opc.Ua.MonitoringMode.Disabled,
+                RelativePath = Template.RelativePath?.ToRelativePath(messageContext)?.Format(typeTree),
+                MonitoringMode = Template.MonitoringMode.ToStackType().GetValueOrDefault(MonitoringMode.Reporting),
                 StartNodeId = Template.StartNodeId.ToNodeId(messageContext),
                 QueueSize = Template.QueueSize,
                 SamplingInterval = (int)Template.SamplingInterval.
@@ -261,7 +263,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="metadataChange"></param>
         /// <returns>Whether apply changes should be called on the subscription</returns>
         internal bool MergeWith(IServiceMessageContext messageContext, INodeCache nodeCache, ITypeTable typeTree,
-            IVariantEncoder codec, MonitoredItemWrapper model, out bool metadataChange) {
+            IVariantEncoder codec, OpcUaMonitoredItem model, out bool metadataChange) {
 
             metadataChange = false;
             if (model == null || Item == null) {
@@ -853,7 +855,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     .ToList();
                 _conditionHandlingState.Dirty = false;
             }
-            if (Item.Subscription?.Handle is SubscriptionServices.SubscriptionWrapper subscription) {
+            if (Item.Subscription?.Handle is OpcUaSubscription subscription) {
                 foreach (var conditionNotification in notifications) {
                     subscription.SendConditionNotification(Item.Subscription, conditionNotification);
                 }

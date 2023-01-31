@@ -58,6 +58,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <summary>
         /// Reconfigure Trigger and take over the exsting resources
         /// </summary>
-        void ReconfigureTrigger(object config);
+        Task ReconfigureTriggerAsync(object config);
     }
 }

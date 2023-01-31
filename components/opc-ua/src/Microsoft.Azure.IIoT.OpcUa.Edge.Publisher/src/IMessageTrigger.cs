@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Allow takeover of newly configured subscriptions
         /// </summary>
-        void Reconfigure(object config);
+        Task ReconfigureAsync(object config);
 
         /// <summary>
         /// EndpointUrl

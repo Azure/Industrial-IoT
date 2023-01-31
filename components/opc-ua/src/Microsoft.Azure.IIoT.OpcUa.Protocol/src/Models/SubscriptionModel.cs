@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -15,12 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Id of the subscription
         /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
-        /// Connection configuration
-        /// </summary>
-        public ConnectionModel Connection { get; set; }
+        public SubscriptionIdentifier Id { get; set; }
 
         /// <summary>
         /// Subscription configuration
