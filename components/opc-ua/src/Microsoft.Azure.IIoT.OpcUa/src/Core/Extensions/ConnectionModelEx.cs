@@ -25,9 +25,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             if (model == null || that == null) {
                 return false;
             }
-            if (that.Id != model.Id) {
-                return false;
-            }
             if (that.Group != model.Group) {
                 return false;
             }
@@ -69,7 +66,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 return null;
             }
             return new ConnectionModel {
-                Id = model.Id,
                 Group = model.Group,
                 Endpoint = model.Endpoint.Clone(),
                 User = model.User.Clone(),

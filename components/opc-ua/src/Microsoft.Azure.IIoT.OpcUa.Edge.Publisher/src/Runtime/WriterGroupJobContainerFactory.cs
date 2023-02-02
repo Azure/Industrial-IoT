@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime {
                 // Register processing engine - trigger, transform, sink
                 builder.RegisterType<DataFlowProcessingEngine>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
-                builder.RegisterType<WriterGroupMessageTrigger>()
+                builder.RegisterType<WriterGroupMessageSource>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
                 builder.RegisterType<NetworkMessageEncoder>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();

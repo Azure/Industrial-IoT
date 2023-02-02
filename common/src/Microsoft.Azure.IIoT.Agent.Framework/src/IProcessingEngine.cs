@@ -5,8 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Agent.Framework {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -29,16 +27,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// Run engine
         /// </summary>
         /// <param name="processMode"></param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task RunAsync(ProcessMode processMode,
-            CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Returns the current state of a job
-        /// </summary>
-        /// <returns></returns>
-        Task<VariantValue> GetCurrentJobState();
+        Task RunAsync(ProcessMode processMode, CancellationToken ct);
 
         /// <summary>
         /// Returns the diagnostic info of a job
@@ -47,17 +38,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         JobDiagnosticInfoModel GetDiagnosticInfo();
 
         /// <summary>
-        /// Switch processing mode
+        /// Reconfigure engine
         /// </summary>
-        /// <param name="processMode"></param>
-        /// <param name="timestamp"></param>
-        /// <returns></returns>
-        Task SwitchProcessMode(ProcessMode processMode,
-            DateTime? timestamp);
-
-        /// <summary>
-        /// Reconfigure Trigger and take over the exsting resources
-        /// </summary>
-        Task ReconfigureTriggerAsync(object config);
+        ValueTask ReconfigureAsync(object config, CancellationToken ct);
     }
 }

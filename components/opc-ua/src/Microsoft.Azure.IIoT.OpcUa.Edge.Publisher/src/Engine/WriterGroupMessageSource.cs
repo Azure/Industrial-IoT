@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
-    public class WriterGroupMessageTrigger : IMessageTrigger, IDisposable {
+    public class WriterGroupMessageSource : IMessageTrigger, IDisposable {
         /// <inheritdoc/>
         public string Id => _subscriptions.Values.FirstOrDefault()?.Subscription?.Connection?.CreateConnectionId() ?? _writerGroup.WriterGroupId;
 
@@ -169,10 +169,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public event EventHandler<EventArgs> OnCounterReset;
 
+        /// <inheritdoc/>
+        // TODO: This should go
+        public async Task RunAsync(CancellationToken ct) {
+            try {
+                await StartAsync(ct);
+                await Task.Delay(-1, ct).ConfigureAwait(false);
+            }
+            finally {
+                await DisposeAsync();
+            }
+        }
+
+        /// <inheritdoc/>
+        // TODO: This should go
+        public ValueTask ReconfigureAsync(object config, CancellationToken ct) {
+            var jobConfig = config as WriterGroupJobModel ?? throw new ArgumentNullException(nameof(config));
+            return UpdateAsync(jobConfig, ct);
+        }
+
         /// <summary>
         /// Create trigger from writer group
         /// </summary>
-        public WriterGroupMessageTrigger(IWriterGroupConfig writerGroupConfig,
+        public WriterGroupMessageSource(IWriterGroupConfig writerGroupConfig,
             ISubscriptionManager subscriptionManager, ILogger logger, IJsonSerializer serializer) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -187,28 +206,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task RunAsync(CancellationToken ct) {
+        public async ValueTask StartAsync(CancellationToken ct) {
             await _lock.WaitAsync(ct);
             try {
                 Debug.Assert(_subscriptions.Count == 0);
 
                 foreach (var writer in _writerGroup.DataSetWriters) {
                     // Create writer subscriptions
-                    var writerSubscription = await DataSetWriterSubscription.CreateAsync(this, writer);
+                    var writerSubscription = await DataSetWriterSubscription.CreateAsync(
+                        this, writer, ct);
                     _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                 }
             }
             finally {
                 _lock.Release();
             }
-
-            // Wait - TODO: This should go
-            await Task.Delay(-1, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task ReconfigureAsync(object config) {
-            var jobConfig = config as WriterGroupJobModel ?? throw new ArgumentNullException(nameof(config));
+        public async ValueTask UpdateAsync(WriterGroupJobModel jobConfig, CancellationToken ct) {
             await _lock.WaitAsync();
             try {
                 var writerGroupConfig = jobConfig.ToWriterGroupJobConfiguration(_publisherId);
@@ -236,7 +252,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     else {
                         // Update
                         if (_subscriptions.TryGetValue(id, out var s)) {
-                            await s.UpdateAsync(writer);
+                            await s.UpdateAsync(writer, ct);
                         }
                     }
                 }
@@ -244,7 +260,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (!_subscriptions.ContainsKey(writer.Key)) {
                         // Add
                         var writerSubscription = await DataSetWriterSubscription.CreateAsync(
-                            this, writer.Value);
+                            this, writer.Value, ct);
                         _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                     }
                 }
@@ -293,7 +309,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Create subscription from a DataSetWriterModel template
             /// </summary>
-            private DataSetWriterSubscription(WriterGroupMessageTrigger outer,
+            private DataSetWriterSubscription(WriterGroupMessageSource outer,
                 DataSetWriterModel dataSetWriter) {
 
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
@@ -305,46 +321,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Create subscription
             /// </summary>
-            public static async Task<DataSetWriterSubscription> CreateAsync(
-                WriterGroupMessageTrigger outer, DataSetWriterModel dataSetWriter) {
+            public static async ValueTask<DataSetWriterSubscription> CreateAsync(
+                WriterGroupMessageSource outer, DataSetWriterModel dataSetWriter,
+                CancellationToken ct) {
 
                 var dataSetSubscription = new DataSetWriterSubscription(outer, dataSetWriter);
 
-                outer._logger.Debug("Creating new subscription {Id} in writer group {Name}...",
-                    dataSetSubscription.Id, outer._writerGroup.WriterGroupId);
+                // Open subscription which creates the underlying OPC UA subscription
+                await dataSetSubscription.OpenAsync(ct).ConfigureAwait(false);
 
-                var subscription = await outer._subscriptionManager.CreateSubscriptionAsync(
-                    dataSetSubscription._subscriptionInfo).ConfigureAwait(false);
-
-                dataSetSubscription.InitializeKeyframeTrigger(dataSetWriter);
-                dataSetSubscription.InitializeMetaDataTrigger(dataSetWriter);
-
-                subscription.OnSubscriptionDataChange
-                    += dataSetSubscription.OnSubscriptionDataChangeNotification;
-                subscription.OnSubscriptionEventChange
-                    += dataSetSubscription.OnSubscriptionEventNotification;
-                subscription.OnSubscriptionDataDiagnosticsChange
-                    += dataSetSubscription.OnSubscriptionDataDiagnosticsChanged;
-                subscription.OnSubscriptionEventDiagnosticsChange
-                    += dataSetSubscription.OnSubscriptionEventDiagnosticsChanged;
-
-                // Apply configuration and enable publishing
-                await subscription.UpdateAsync(
-                    dataSetSubscription._subscriptionInfo).ConfigureAwait(false);
-
-                dataSetSubscription.Subscription = subscription;
-                if (dataSetSubscription._metadataTimer != null) {
-                    dataSetSubscription._metadataTimer.Start();
-                }
-                outer._logger.Information("Created new subscription {Id} in writer group {Name}.",
-                    dataSetSubscription.Id, outer._writerGroup.WriterGroupId);
                 return dataSetSubscription;
             }
 
             /// <summary>
             /// Update subscription content
             /// </summary>
-            public async Task UpdateAsync(DataSetWriterModel dataSetWriter) {
+            public async ValueTask UpdateAsync(DataSetWriterModel dataSetWriter, CancellationToken ct) {
                 if (Subscription == null) {
                     _outer._logger.Warning("Subscription does not exist");
                     return;
@@ -353,13 +345,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Id, _outer._writerGroup.WriterGroupId);
 
                 _dataSetWriter = dataSetWriter.Clone();
-                _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(_outer._writerGroup.WriterGroupId);
+                _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
+                    _outer._writerGroup.WriterGroupId);
 
-                InitializeKeyframeTrigger(_dataSetWriter);
-                InitializeMetaDataTrigger(_dataSetWriter);
+                InitializeKeyframeTrigger();
+                InitializeMetaDataTrigger();
 
                 // Apply changes
-                await Subscription.UpdateAsync(_subscriptionInfo).ConfigureAwait(false);
+                await Subscription.UpdateAsync(_subscriptionInfo, ct).ConfigureAwait(false);
 
                 _outer._logger.Information("Updated subscription {Id} in writer group {Name}.",
                     Id, _outer._writerGroup.WriterGroupId);
@@ -367,49 +360,97 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             /// <inheritdoc/>
             public async ValueTask DisposeAsync() {
-                if (Subscription != null) {
+                try {
+                    if (Subscription == null) {
+                        return;
+                    }
                     if (_metadataTimer != null) {
                         _metadataTimer.Stop();
                     }
 
-                    _outer._logger.Debug("Removing subscription {Id} from writer group {Name}...",
-                        Id, _outer._writerGroup.WriterGroupId);
-
-                    await Subscription.CloseAsync().ConfigureAwait(false);
-
-                    Subscription.OnSubscriptionDataChange
-                        -= OnSubscriptionDataChangeNotification;
-                    Subscription.OnSubscriptionEventChange
-                        -= OnSubscriptionEventNotification;
-                    Subscription.OnSubscriptionDataDiagnosticsChange
-                        -= OnSubscriptionDataDiagnosticsChanged;
-                    Subscription.OnSubscriptionEventDiagnosticsChange
-                        -= OnSubscriptionEventDiagnosticsChanged;
-
-                    Subscription.Dispose();
-                    Subscription = null;
-
-                    _outer._logger.Information("Removed subscription {Id} from writer group {Name}.",
-                        Id, _outer._writerGroup.WriterGroupId);
+                    await CloseAsync().ConfigureAwait(false);
                 }
-                _metadataTimer?.Dispose();
-                _metadataTimer = null;
+                finally {
+                    _metadataTimer?.Dispose();
+                    _metadataTimer = null;
+                }
+            }
+
+            /// <summary>
+            /// Open subscription
+            /// </summary>
+            /// <returns></returns>
+            private async ValueTask OpenAsync(CancellationToken ct) {
+                _outer._logger.Debug("Creating new subscription {Id} in writer group {Name}...",
+                    Id, _outer._writerGroup.WriterGroupId);
+
+                //
+                // Creating inner OPC UA subscription object. This will create a session
+                // if none already exist and transfer the subscription into the session
+                // management realm
+                //
+                Subscription = await _outer._subscriptionManager.CreateSubscriptionAsync(
+                    _subscriptionInfo, ct).ConfigureAwait(false);
+
+                InitializeKeyframeTrigger();
+                InitializeMetaDataTrigger();
+
+                Subscription.OnSubscriptionDataChange
+                    += OnSubscriptionDataChangeNotification;
+                Subscription.OnSubscriptionEventChange
+                    += OnSubscriptionEventNotification;
+                Subscription.OnSubscriptionDataDiagnosticsChange
+                    += OnSubscriptionDataDiagnosticsChanged;
+                Subscription.OnSubscriptionEventDiagnosticsChange
+                    += OnSubscriptionEventDiagnosticsChanged;
+
+                if (_metadataTimer != null) {
+                    _metadataTimer.Start();
+                }
+                _outer._logger.Information("Created new subscription {Id} in writer group {Name}.",
+                    Id, _outer._writerGroup.WriterGroupId);
+            }
+
+            /// <summary>
+            /// Close subscription
+            /// </summary>
+            /// <returns></returns>
+            private async ValueTask CloseAsync() {
+                _outer._logger.Debug("Removing subscription {Id} from writer group {Name}...",
+                    Id, _outer._writerGroup.WriterGroupId);
+
+                await Subscription.CloseAsync().ConfigureAwait(false);
+
+                Subscription.OnSubscriptionDataChange
+                    -= OnSubscriptionDataChangeNotification;
+                Subscription.OnSubscriptionEventChange
+                    -= OnSubscriptionEventNotification;
+                Subscription.OnSubscriptionDataDiagnosticsChange
+                    -= OnSubscriptionDataDiagnosticsChanged;
+                Subscription.OnSubscriptionEventDiagnosticsChange
+                    -= OnSubscriptionEventDiagnosticsChanged;
+
+                Subscription.Dispose();
+                Subscription = null;
+
+                _outer._logger.Information("Removed subscription {Id} from writer group {Name}.",
+                    Id, _outer._writerGroup.WriterGroupId);
             }
 
             /// <summary>
             /// Initializes the key frame triggering mechanism from the cconfiguration model
             /// </summary>
-            private void InitializeKeyframeTrigger(DataSetWriterModel dataSetWriter) {
+            private void InitializeKeyframeTrigger() {
                 _frameCount = 0;
-                _keyFrameCount = dataSetWriter.KeyFrameCount ?? 0;
+                _keyFrameCount = _dataSetWriter.KeyFrameCount ?? 0;
             }
 
             /// <summary>
             /// /// Initializes the Metadata triggering mechanism from the cconfiguration model
             /// </summary>
-            private void InitializeMetaDataTrigger(DataSetWriterModel dataSetWriter) {
+            private void InitializeMetaDataTrigger() {
 
-                var metaDataSendInterval = dataSetWriter.DataSetMetaDataSendInterval
+                var metaDataSendInterval = _dataSetWriter.DataSetMetaDataSendInterval
                     .GetValueOrDefault(TimeSpan.Zero)
                     .TotalMilliseconds;
 
@@ -452,7 +493,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 else {
                     // Failed to send, try again later
-                    InitializeMetaDataTrigger(_dataSetWriter);
+                    InitializeMetaDataTrigger();
                 }
             }
 
@@ -563,7 +604,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     EndpointUrl = notification.EndpointUrl
                                 };
                                 _outer.OnMessage?.Invoke(sender, metadata);
-                                InitializeMetaDataTrigger(_dataSetWriter);
+                                InitializeMetaDataTrigger();
                             }
                         }
 
@@ -576,7 +617,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 notification.MessageType != Opc.Ua.PubSub.MessageType.KeepAlive) {
                                 // Reset keyframe trigger for events, keyframe, and conditions
                                 // which are all key frame like messages
-                                InitializeKeyframeTrigger(_dataSetWriter);
+                                InitializeKeyframeTrigger();
                             }
                         }
                     }
@@ -598,7 +639,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
 
-            private readonly WriterGroupMessageTrigger _outer;
+            private readonly WriterGroupMessageSource _outer;
             private readonly object _lock = new object();
             private Timer _metadataTimer;
             private uint _keyFrameCount;

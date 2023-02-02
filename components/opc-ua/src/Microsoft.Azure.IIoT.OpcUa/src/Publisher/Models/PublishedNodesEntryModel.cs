@@ -14,6 +14,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     [DataContract]
     public class PublishedNodesEntryModel {
 
+        /// <summary> Version number </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public int? Version { get; set; }
+
+        /// <summary> Last change </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public DateTime? LastChange { get; set; }
+
         /// <summary> Name of the data set writer. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DataSetWriterId { get; set; }
@@ -36,7 +44,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
 
         /// <summary> The Publishing interval for a dataset writer in miliseconds.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int? DataSetPublishingInterval { get; set; }
+        public int? DataSetPublishingInterval {
+            get => (int?)DataSetPublishingIntervalTimespan?.TotalMilliseconds;
+            set => DataSetPublishingIntervalTimespan = value.HasValue
+                ? TimeSpan.FromMilliseconds(value.Value) : null;
+        }
 
         /// <summary> The Publishing interval for a dataset writer in timespan format.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
@@ -81,10 +93,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> plain password </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string OpcAuthenticationPassword { get; set; }
-
-        /// <summary> User assigned tag. </summary>
-        [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public string Tag { get; set; }
 
         /// <summary> Nodes defined in the collection. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]

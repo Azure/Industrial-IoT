@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
@@ -180,8 +181,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             builder.RegisterModule<PublisherJobsConfiguration>();
 
-            // Register module and agent framework ...
-            builder.RegisterModule<AgentFramework>();
+            // Register module framework ...
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
@@ -196,23 +196,27 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // we want to reuse the Client from the ModuleHost in sub-scopes.
                 builder.RegisterType<ModuleHost>()
                     .AsImplementedInterfaces().SingleInstance();
-                // Published nodes file provider
                 builder.RegisterType<PublishedNodesProvider>()
                     .AsImplementedInterfaces().SingleInstance();
-                // Local orchestrator
-                builder.RegisterType<StandaloneJobOrchestrator>()
-                    .AsImplementedInterfaces().SingleInstance();
-                // Create jobs from published nodes file
                 builder.RegisterType<PublishedNodesJobConverter>()
                     .SingleInstance();
+                builder.RegisterType<PublisherConfigService>()
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<PublisherHostService>()
+                    .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<WriterGroupContainerFactory>()
+                    .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<PublisherMethodsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
-                // Runtime state reporter.
                 builder.RegisterType<RuntimeStateReporter>()
                     .AsImplementedInterfaces().SingleInstance();
             }
             else {
+                builder.RegisterModule<AgentFramework>();
                 builder.AddDiagnostics(config);
+
+                builder.RegisterType<IdentityTokenSettingsController>()
+                    .AsImplementedInterfaces().SingleInstance();
 
                 // Client instance per job
                 builder.RegisterType<PerDependencyClientAccessor>()
@@ -228,21 +232,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // Note that they must be singleton so they can
                 // plug as configuration into the orchestrator client.
             }
-
-            builder.RegisterType<IdentityTokenSettingsController>()
-                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
-
-            // Opc specific parts
             builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
-
             builder.RegisterType<HealthCheckManager>()
                 .AsImplementedInterfaces().SingleInstance();
-
             return builder.Build();
         }
 

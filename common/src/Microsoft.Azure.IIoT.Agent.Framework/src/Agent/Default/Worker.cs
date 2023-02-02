@@ -356,7 +356,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 var jobConfig = _outer._jobConfigurationFactory.DeserializeJobConfiguration(
                     Job.JobConfiguration, Job.JobConfigurationType);
 
-                await _currentProcessingEngine.ReconfigureTriggerAsync(jobConfig);
+                await _currentProcessingEngine.ReconfigureAsync(jobConfig, default);
                 JobContinuation = null;
                 _processor = Task.Run(() => ProcessAsync());
             }
@@ -473,7 +473,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                                 JobHash = Job.GetHashSafe(),
                                 Status = Job.LifetimeData.Status,
                                 ProcessMode = _currentJobProcessInstruction.ProcessMode.Value,
-                                State = await _currentProcessingEngine.GetCurrentJobState().ConfigureAwait(false)
                             }
                         }, GetProcessDiagnosticInfo(), ct)
                     .ConfigureAwait(false);
@@ -481,9 +480,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 // Process instructions
                 switch (result.HeartbeatInstruction) {
                     case HeartbeatInstruction.SwitchToActive:
-                        await _currentProcessingEngine
-                            .SwitchProcessMode(ProcessMode.Active, result.LastActiveHeartbeat)
-                            .ConfigureAwait(false);
                         break;
                     case HeartbeatInstruction.CancelProcessing:
                         if (result.UpdatedJob != null && JobContinuation == null) {

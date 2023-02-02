@@ -402,8 +402,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 // Disable pending alarms
                 testInput[0].OpcNodes[0].ConditionHandling = null;
                 testInput[0].OpcNodes[0].DisplayName = "SimpleEvents";
-                result = await PublisherApi.AddOrUpdateEndpointsAsync(DeviceId, ModuleId, new List<PublishNodesEndpointApiModel> {
-                    testInput[0] });
+                result = await PublisherApi.AddOrUpdateEndpointsAsync(DeviceId, ModuleId,
+                    new List<PublishNodesEndpointApiModel> {
+                        testInput[0]
+                    });
                 Assert.NotNull(result);
 
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(DeviceId, ModuleId);

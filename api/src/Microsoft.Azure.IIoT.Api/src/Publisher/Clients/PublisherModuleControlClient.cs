@@ -105,8 +105,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<List<DiagnosticInfoApiModel>> GetDiagnosticInfoAsync(string deviceId, string moduleId) {
-            var result = await CallServiceOnPublisherAsync<object, List<DiagnosticInfoApiModel>>(
+        public async Task<List<PublishDiagnosticInfoApiModel>> GetDiagnosticInfoAsync(string deviceId, string moduleId) {
+            var result = await CallServiceOnPublisherAsync<object, List<PublishDiagnosticInfoApiModel>>(
                 "GetDiagnosticInfo", deviceId, moduleId, null);
             return result;
         }

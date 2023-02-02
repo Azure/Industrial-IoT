@@ -7,8 +7,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Subscription abstraction
@@ -90,14 +90,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// the subscription needs to be recreated.
         /// </summary>
         /// <param name="configuration"></param>
-        /// <returns>enabled</returns>
-        Task UpdateAsync(SubscriptionModel configuration);
+        /// <param name="ct"></param>
+        ValueTask UpdateAsync(SubscriptionModel configuration,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Reapply current configuration
         /// </summary>
         /// <returns></returns>
-        Task ReapplyToSessionAsync(ISessionHandle session);
+        ValueTask ReapplyToSessionAsync(ISessionHandle session);
 
         /// <summary>
         /// Called to signal the underlying session is disconnected and the
@@ -112,6 +113,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Close and delete subscription
         /// </summary>
         /// <returns></returns>
-        Task CloseAsync();
+        ValueTask CloseAsync();
     }
 }

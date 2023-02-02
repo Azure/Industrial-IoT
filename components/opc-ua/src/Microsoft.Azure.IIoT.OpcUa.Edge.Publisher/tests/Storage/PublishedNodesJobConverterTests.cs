@@ -131,10 +131,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Equal("testid", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSetWriterName);
-            Assert.Equal("testid", jobs
-                .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.Connection.Id);
-
         }
 
         [Fact]
@@ -169,10 +165,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Equal("1000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSetWriterName);
-            Assert.Equal("1000", jobs
-                .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.Connection.Id);
-
         }
 
         [Fact]
@@ -494,9 +486,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Storage {
             Assert.Equal("testwriterid_2000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .First().DataSetWriterName);
-            Assert.Equal("testwriterid_2000", jobs
-                .Single().WriterGroup.DataSetWriters
-                .First().DataSet.DataSetSource.Connection.Id);
             Assert.Equal(2000, jobs
                 .Single().WriterGroup.DataSetWriters
                 .First().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);

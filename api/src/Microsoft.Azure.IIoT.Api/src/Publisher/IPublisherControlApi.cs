@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
         /// <returns></returns>
-        Task<List<DiagnosticInfoApiModel>> GetDiagnosticInfoAsync(
+        Task<List<PublishDiagnosticInfoApiModel>> GetDiagnosticInfoAsync(
             string deviceId, string moduleId);
 
         /// <summary>

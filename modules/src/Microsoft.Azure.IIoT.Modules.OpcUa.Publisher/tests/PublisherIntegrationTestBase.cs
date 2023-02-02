@@ -27,7 +27,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.Serializers;
@@ -389,7 +388,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             builder.RegisterModule<PublisherJobsConfiguration>();
 
             // Register module and agent framework ...
-            builder.RegisterModule<AgentFramework>();
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
@@ -405,27 +403,24 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
             builder.RegisterType<ModuleHost>()
                 .AsImplementedInterfaces().SingleInstance();
-            // Published nodes file provider
+
             builder.RegisterType<PublishedNodesProvider>()
                 .AsImplementedInterfaces().SingleInstance();
-            // Local orchestrator
-            builder.RegisterType<StandaloneJobOrchestrator>()
-                .AsImplementedInterfaces().SingleInstance();
-            // Create jobs from published nodes file
             builder.RegisterType<PublishedNodesJobConverter>()
                 .SingleInstance();
+            builder.RegisterType<PublisherConfigService>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublisherHostService>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<WriterGroupContainerFactory>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
-            builder.RegisterType<IdentityTokenSettingsController>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // Opc specific parts
             builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
-
             builder.RegisterType<HealthCheckManager>()
                 .AsImplementedInterfaces().SingleInstance();
 

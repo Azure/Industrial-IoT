@@ -106,13 +106,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="codec"></param>
         /// <param name="subscription"></param>
         /// <param name="logger"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        internal static async Task<ISubscription> CreateAsync(ISessionManager outer,
+        internal static async ValueTask<ISubscription> CreateAsync(ISessionManager outer,
             IClientServicesConfig config, IVariantEncoderFactory codec,
-            SubscriptionModel subscription, ILogger logger) {
-            var wrapper = new OpcUaSubscription(outer, config, codec, logger);
-            await wrapper.UpdateAsync(subscription);
-            return wrapper;
+            SubscriptionModel subscription, ILogger logger, CancellationToken ct = default) {
+
+            // Create object
+            var newSubscription = new OpcUaSubscription(outer, config, codec, logger);
+            // Initialize
+            await newSubscription.UpdateAsync(subscription, ct);
+
+            return newSubscription;
         }
 
         /// <inheritdoc/>
@@ -180,7 +185,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAsync(SubscriptionModel subscription) {
+        public async ValueTask UpdateAsync(SubscriptionModel subscription, CancellationToken ct = default) {
             if (subscription == null) {
                 throw new ArgumentNullException(nameof(subscription));
             }
@@ -208,7 +213,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 // try to get a session using the provided configuration
                 var session = await _sessions.GetOrCreateSessionAsync(
-                    _subscription.Id.Connection);
+                    _subscription.Id.Connection, default);
                 Debug.Assert(session != null);
 
                 try {
@@ -234,7 +239,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public async Task ReapplyToSessionAsync(ISessionHandle session) {
+        public async ValueTask ReapplyToSessionAsync(ISessionHandle session) {
+            // This is
             await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 await ApplyAsyncCore(session.Session).ConfigureAwait(false);
@@ -245,7 +251,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public async Task CloseAsync() {
+        public async ValueTask CloseAsync() {
             await _lock.WaitAsync().ConfigureAwait(false);
             ISessionHandle session;
             try {
@@ -281,7 +287,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public void Dispose() {
             if (!_closed) {
-                Try.Async(CloseAsync).Wait();
+                Try.Async(() => CloseAsync().AsTask()).Wait();
+                Debug.Assert(_closed);
             }
             _lock.Dispose();
         }

@@ -60,11 +60,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public string Password { get; set; }
 
-        /// <summary> User defined tag for this particular dataset </summary>
-        [DataMember(Name = "tag", Order = 9,
-            EmitDefaultValue = false)]
-        public string Tag { get; set; }
-
         /// <summary> List of the OpcNodes to be monitored </summary>
         [DataMember(Name = "opcNodes", Order = 10,
             EmitDefaultValue = false)]
@@ -94,5 +89,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "dataSetMetaDataSendInterval", Order = 15,
             EmitDefaultValue = false)]
         public TimeSpan? DataSetMetaDataSendInterval { get; set; }
+
+        /// <summary> Version number </summary>
+        [DataMember(Name = "version", Order = 16,
+            EmitDefaultValue = false)]
+        public int? Version { get; set; }
+
+        /// <summary> Last change </summary>
+        [DataMember(Name = "lastChange", Order = 17,
+            EmitDefaultValue = false)]
+        public DateTime? LastChange { get; set; }
     }
 }

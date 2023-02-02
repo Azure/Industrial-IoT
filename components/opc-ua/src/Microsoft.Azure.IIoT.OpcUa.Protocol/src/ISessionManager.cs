@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Threading.Tasks;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
+    using System.Threading;
 
     /// <summary>
     /// Session manager
@@ -15,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface ISessionManager {
 
         /// <summary>
-        /// Number of sessions
+        /// Number of currently active sessions.
         /// </summary>
         int SessionCount { get; }
 
@@ -37,8 +38,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Get a connected session
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        Task<ISessionHandle> GetOrCreateSessionAsync(ConnectionModel connection);
+        ValueTask<ISessionHandle> GetOrCreateSessionAsync(
+            ConnectionModel connection, CancellationToken ct = default);
 
         /// <summary>
         /// Get session for connection
@@ -53,13 +56,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="session"></param>
         /// <returns></returns>
         ComplexTypeSystem GetComplexTypeSystem(ISession session);
-
-        /// <summary>
-        /// Remove session if empty
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="onlyIfEmpty"></param>
-        /// <returns></returns>
-        Task DisconnectSessionAsync(ConnectionModel connection, bool onlyIfEmpty = true);
     }
 }

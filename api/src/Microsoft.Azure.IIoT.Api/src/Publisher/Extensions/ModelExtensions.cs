@@ -722,6 +722,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DataSetWriterName = model.DataSetWriterName,
                 DataSet = model.DataSet.ToApiModel(),
                 DataSetFieldContentMask = (Models.DataSetFieldContentMask?)model.DataSetFieldContentMask,
+                DisableDataSetMetaData = model.DisableDataSetMetaData,
                 DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
                 KeyFrameCount = model.KeyFrameCount,
                 MessageSettings = model.MessageSettings.ToApiModel()
@@ -740,6 +741,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DataSetWriterName = model.DataSetWriterName,
                 DataSet = model.DataSet.ToServiceModel(),
                 DataSetFieldContentMask = (OpcUa.Publisher.Models.DataSetFieldContentMask?)model.DataSetFieldContentMask,
+                DisableDataSetMetaData = model.DisableDataSetMetaData,
                 DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
                 KeyFrameCount = model.KeyFrameCount,
                 MessageSettings = model.MessageSettings.ToServiceModel()

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -30,6 +30,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     ? new Uri(model.EndpointUrl)
                     : null,
                 UseSecurity = model.UseSecurity,
+                Version = model.Version,
+                LastChange = model.LastChange,
                 OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
                 OpcAuthenticationPassword = model.Password,
                 OpcAuthenticationUsername = model.UserName,
@@ -43,7 +45,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataSetKeyFrameCount = model.DataSetKeyFrameCount,
                 DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
                 DataSetName = model.DataSetName,
-                Tag = model.Tag,
                 DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
                 // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
                 // was not provided.
@@ -124,6 +125,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 UseSecurity = endpoint.UseSecurity,
                 OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
                 UserName = endpoint.OpcAuthenticationUsername,
+                Version = endpoint.Version,
+                LastChange = endpoint.LastChange,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
                 DataSetDescription = endpoint.DataSetDescription,
                 DataSetKeyFrameCount = endpoint.DataSetKeyFrameCount,
@@ -131,7 +134,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataSetName = endpoint.DataSetName,
                 DataSetClassId = endpoint.DataSetClassId,
                 DataSetWriterId = endpoint.DataSetWriterId,
-                Tag = endpoint.Tag,
                 DataSetPublishingIntervalTimespan = endpoint.DataSetPublishingIntervalTimespan,
                 // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
                 // was not provided.
@@ -182,9 +184,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
                 DiscardNew = model.DiscardNew,
-                DeadbandType = (DeadbandType?)model.DeadbandType,
+                DeadbandType = (IIoT.OpcUa.Api.Publisher.Models.DeadbandType?)model.DeadbandType,
                 DeadbandValue = model.DeadbandValue,
-                DataChangeTrigger = (DataChangeTriggerType?)model.DataChangeTrigger,
+                DataChangeTrigger = (IIoT.OpcUa.Api.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
                 EventFilter = model.EventFilter.ToApiModel(),
                 ConditionHandling = model.ConditionHandling.ToApiModel()
             };
@@ -194,7 +196,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// Create an api model from service model ignoring the password
         /// </summary>
         public static PublishNodesEndpointApiModel ToApiModel(
-            this EndpointDiagnosticModel endpoint) {
+            this PublishNodesEndpointModel endpoint) {
             if (endpoint == null) {
                 return null;
             }
@@ -211,8 +213,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// <summary>
         /// Create an api model from service model
         /// </summary>
-        public static List<DiagnosticInfoApiModel> ToApiModel(
-            this List<JobDiagnosticInfoModel> model) {
+        public static List<PublishDiagnosticInfoApiModel> ToApiModel(
+            this List<PublishDiagnosticInfoModel> model) {
             if (model == null) {
                 return null;
             }
@@ -224,8 +226,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static DiagnosticInfoApiModel ToApiModel(this JobDiagnosticInfoModel model) {
-            return new DiagnosticInfoApiModel {
+        public static PublishDiagnosticInfoApiModel ToApiModel(this PublishDiagnosticInfoModel model) {
+            return new PublishDiagnosticInfoApiModel {
                 Endpoint = model.Endpoint.ToApiModel(),
                 SentMessagesPerSec = model.SentMessagesPerSec,
                 IngestionDuration = model.IngestionDuration,

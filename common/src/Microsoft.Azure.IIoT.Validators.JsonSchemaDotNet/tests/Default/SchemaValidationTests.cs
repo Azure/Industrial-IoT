@@ -237,7 +237,7 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
             if (!DefaultSchemaIncludesIdValuePatterns) {
                 Assert.True(results.First().IsValid);
             } else {
-                Assert.Equal(12, results.Count());
+                Assert.Equal(12, results.Count);
                 // Ensure that we failed the regex Id check on the 2nd node
                 Assert.Equal("Expected 1 matching subschema but found 0", results.ElementAt(1).Message);
                 // Ensure that we failed the regex ExpandedNodeId check on the 9th node.

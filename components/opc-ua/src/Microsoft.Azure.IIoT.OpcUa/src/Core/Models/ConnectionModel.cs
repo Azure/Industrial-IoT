@@ -11,11 +11,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
     public class ConnectionModel {
 
         /// <summary>
-        /// Connection Identifier - DataSetWriterId
-        /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
         /// Group Id of the data set associated to the connection that the stram belongs to - DataSetWriterGroup
         /// </summary>
         public string Group { get; set; }

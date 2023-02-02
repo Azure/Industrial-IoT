@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
     using Autofac;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
 
     /// <summary>
     /// Publish jobs configuration module
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent {
         protected override void Load(ContainerBuilder builder) {
             builder.RegisterType<PublisherJobSerializer>()
                 .AsImplementedInterfaces().InstancePerDependency();
-            builder.RegisterType<WriterGroupJobContainerFactory>()
+            builder.RegisterType<WriterGroupContainerFactory>()
                 .Named<IProcessingEngineContainerFactory>(kDataSetWriterJobV2)
                 .AsImplementedInterfaces().InstancePerDependency();
             base.Load(builder);

@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
@@ -85,31 +84,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public Task<ISubscription> CreateSubscriptionAsync(SubscriptionModel subscriptionModel) {
+        public ValueTask<ISubscription> CreateSubscriptionAsync(SubscriptionModel subscription,
+            CancellationToken ct) {
             return OpcUaSubscription.CreateAsync(this, _clientConfig, _codec,
-                subscriptionModel, _logger);
+                subscription, _logger, ct);
         }
 
         /// <inheritdoc/>
-        public async Task<ISessionHandle> GetOrCreateSessionAsync(ConnectionModel connection) {
+        public async ValueTask<ISessionHandle> GetOrCreateSessionAsync(ConnectionModel connection,
+            CancellationToken ct) {
             // Find session and if not exists create
             var id = new ConnectionIdentifier(connection);
-            _lock.Wait();
+            await _lock.WaitAsync(ct);
             try {
                 // try to get an existing session
                 if (!_clients.TryGetValue(id, out var client)) {
                     client = CreateClient(id);
                     _clients.AddOrUpdate(id, client);
                     _logger.Information(
-                        "New session {Id} added, current number of sessions is {count}.",
+                        "New session {Name} added, current number of sessions is {Count}.",
                         id, _clients.Count);
                 }
                 // Try and connect the session
                 try {
-                    await client.ConnectAsync();
+                    await client.ConnectAsync(false, ct);
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Failed to connect session {id}. " +
+                    _logger.Error(ex, "Failed to connect session {Name}. " +
                         "Continue with unconnected session.", id);
                 }
                 return client;
@@ -141,51 +142,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             return (session?.Handle as OpcUaClient)?.ComplexTypeSystem;
         }
 
-        /// <inheritdoc/>
-        public async Task DisconnectSessionAsync(ConnectionModel connection,
-            bool onlyIfEmpty = true) {
-            var key = new ConnectionIdentifier(connection);
-            await _lock.WaitAsync().ConfigureAwait(false);
-            try {
-                if (!_clients.TryGetValue(key, out var client)) {
-                    return;
-                }
-                if (onlyIfEmpty && !client.HasSubscriptions) {
-                    _clients.Remove(key, out _);
-                    client.Dispose();
-                    _logger.Information(
-                        "Session removed, current number of sessions is {count}.",
-                        _clients.Count);
-                }
-            }
-            finally {
-                _lock.Release();
-            }
-        }
-
         /// <summary>
         /// Dispose
         /// </summary>
         public void Dispose() {
             try {
+                _logger.Information("Stopping session manager process ...");
                 _cts.Cancel();
                 _processor.Wait();
             }
             finally {
-                _logger.Information("Session manager process stopped.");
+                _logger.Debug("Session manager process stopped.");
                 _cts.Dispose();
             }
 
-            _logger.Information("Stopping all sessions");
+            _logger.Information("Stopping all sessions...");
             _lock.Wait();
             try {
-                foreach (var client in _clients.ToList()) {
+                foreach (var client in _clients) {
                     try {
                         client.Value.Dispose();
                     }
                     catch (OperationCanceledException) { }
                     catch (Exception ex) {
-                        _logger.Error(ex, "Unexpected exception disposing session {id}",
+                        _logger.Error(ex, "Unexpected exception disposing session {Name}",
                             client.Key);
                     }
                 }
@@ -210,25 +190,60 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (!await timer.WaitForNextTickAsync(ct)) {
                     return;
                 }
+
+                var inactive = new Dictionary<ConnectionIdentifier, OpcUaClient>();
                 await _lock.WaitAsync(ct);
                 try {
-                    foreach (var client in _clients.Values) {
-                        var connect = client.ConnectAsync(ct);
-                        if (connect.IsCompleted) {
-                            continue;
+                    foreach (var client in _clients) {
+                        //
+                        // If active (lifetime and whether we have subscriptions
+                        // keep the client connected
+                        //
+                        if (client.Value.IsActive) {
+                            var connect = client.Value.ConnectAsync(true, ct);
+                            if (!connect.IsCompletedSuccessfully) {
+                                try {
+                                    await connect;
+                                }
+                                catch (Exception ex) {
+                                    _logger.Debug(ex,
+                                        "Session manager failed to re-connect session {Name}.",
+                                        client.Key);
+                                }
+                            }
                         }
-                        await Try.Async(() => connect);
+                        else {
+                            // Collect inactive clients
+                            inactive.Add(client.Key, client.Value);
+                        }
+                    }
+
+                    // Remove inactive clients from client list
+                    foreach (var key in inactive.Keys) {
+                        _clients.TryRemove(key, out _);
                     }
                 }
                 finally {
                     _lock.Release();
+                }
+
+                // Garbage collect inactives
+                if (inactive.Count > 0) {
+                    foreach (var client in inactive.Values) {
+                        client.Dispose();
+                    }
+                    _logger.Information(
+                        "Garbage collected {Sessions} sessions" +
+                        ", current number of sessions is {Count}.",
+                        inactive.Count, _clients.Count);
+                    inactive.Clear();
                 }
             }
         }
 
         // Validate certificates
         private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e) {
-            if (e.Accept == true) {
+            if (e.Accept) {
                 return;
             }
             if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {

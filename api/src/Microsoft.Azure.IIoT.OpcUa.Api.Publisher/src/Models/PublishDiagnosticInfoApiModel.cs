@@ -11,9 +11,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     /// Model for a diagnostic info response.
     /// </summary>
     [DataContract]
-    public class DiagnosticInfoApiModel {
+    public class PublishDiagnosticInfoApiModel {
 
-        /// <summary> EndpointInfo /// </summary>
+        /// <summary> EndpointInfo </summary>
         [DataMember(Name = "endpoint", Order = 0,
             EmitDefaultValue = true)]
         public PublishNodesEndpointApiModel Endpoint { get; set; }
@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = true)]
         public double SentMessagesPerSec { get; set; }
 
-        /// <summary> IngestionDuration /// </summary>
+        /// <summary> IngestionDuration </summary>
         [DataMember(Name = "ingestionDuration", Order = 2,
             EmitDefaultValue = true)]
         public TimeSpan IngestionDuration { get; set; }

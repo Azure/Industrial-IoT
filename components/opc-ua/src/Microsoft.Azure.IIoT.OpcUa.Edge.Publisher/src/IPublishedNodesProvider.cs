@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
 
     using System;
     using System.IO;

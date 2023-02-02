@@ -112,24 +112,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _logger.Information("Disposing processing engine {Name}", Name);
-            _diagnosticsOutputTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-            _batchTriggerIntervalTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-            _messageTrigger.OnCounterReset -= MessageTriggerCounterResetReceived;
-            _messageTrigger.OnMessage -= MessageTriggerMessageReceived;
-            _batchDataSetMessageBlock.Complete();
-            _batchDataSetMessageBlock.Completion.GetAwaiter().GetResult();
-            _encodingBlock.Complete();
-            _encodingBlock.Completion.GetAwaiter().GetResult();
-            _sinkBlock.Complete();
-            _sinkBlock.Completion.GetAwaiter().GetResult();
-            _diagnosticsOutputTimer?.Dispose();
-            _batchTriggerIntervalTimer?.Dispose();
-        }
-
-        /// <inheritdoc/>
-        public Task<VariantValue> GetCurrentJobState() {
-            return Task.FromResult<VariantValue>(null);
+            try {
+                _logger.Information("Disposing processing engine {Name}", Name);
+                _diagnosticsOutputTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+                _batchTriggerIntervalTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+                _messageTrigger.OnCounterReset -= MessageTriggerCounterResetReceived;
+                _messageTrigger.OnMessage -= MessageTriggerMessageReceived;
+                _batchDataSetMessageBlock.Complete();
+                _batchDataSetMessageBlock.Completion.GetAwaiter().GetResult();
+                _encodingBlock.Complete();
+                _encodingBlock.Completion.GetAwaiter().GetResult();
+                _sinkBlock.Complete();
+                _sinkBlock.Completion.GetAwaiter().GetResult();
+                _diagnosticsOutputTimer?.Dispose();
+                _batchTriggerIntervalTimer?.Dispose();
+            }
+            finally {
+                _messageTrigger.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
         }
 
         /// <inheritdoc/>
@@ -149,11 +149,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             finally {
                 IsRunning = false;
             }
-        }
-
-        /// <inheritdoc/>
-        public Task SwitchProcessMode(ProcessMode processMode, DateTime? timestamp) {
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -206,8 +201,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public Task ReconfigureTriggerAsync(object config) {
-            return _messageTrigger.ReconfigureAsync(config);
+        public ValueTask ReconfigureAsync(object config, CancellationToken ct) {
+            return _messageTrigger.ReconfigureAsync(config, ct);
         }
 
         /// <summary>

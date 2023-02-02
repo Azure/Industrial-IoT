@@ -13,12 +13,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Serilog;
     using System;
     using System.Collections.Concurrent;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// OPC UA Client with examples of basic functionality.
-    /// Keep in sync with Apollo
+    /// OPC UA Client based on official ua client reference sample.
     /// </summary>
     public class OpcUaClient : IDisposable, ISessionHandle {
 
@@ -77,6 +77,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         public ComplexTypeSystem ComplexTypeSystem { get; internal set; }
 
         /// <summary>
+        /// Check if session is active
+        /// </summary>
+        public bool IsActive => HasSubscriptions ||
+            _created + TimeSpan.FromSeconds(SessionLifeTime) <= DateTime.UtcNow;
+
+        /// <summary>
         /// Initializes a new instance.
         /// </summary>
         public OpcUaClient(ApplicationConfiguration configuration,
@@ -84,6 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (connection?.Connection?.Endpoint == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
+
             _connection = connection.Connection;
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
@@ -129,9 +136,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Connect the client. Returns true if connection was established.
         /// </summary>
+        /// <param name="reapplySubscriptionState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task<bool> ConnectAsync(CancellationToken ct = default) {
+        public async ValueTask<bool> ConnectAsync(bool reapplySubscriptionState = false,
+            CancellationToken ct = default) {
             if (!await _connecting.WaitAsync(0, ct)) {
                 // If already connecting
                 return false;
@@ -151,16 +160,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _connecting.Release();
             }
 
-            if (connected) {
+            if (connected && reapplySubscriptionState) {
+                //
                 // Apply subscription settings for existing subscriptions
+                // This will take the subscription lock, since the connect
+                // can be called under it the default should be false.
+                // Only if the manager task calls connect we should do this.
+                //
                 foreach (var subscription in _subscriptions.Values) {
                     await subscription.ReapplyToSessionAsync(this);
                 }
             }
 
-            foreach (var subscription in _subscriptions.Values) {
-                subscription.OnSubscriptionStateChanged(connected);
-            }
+            NotifySubscriptionStateChange(connected);
             return connected;
         }
 
@@ -178,6 +190,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     finally {
                         _lock.Release();
                     }
+
+                    var subscriptions = _subscriptions.Values.ToList();
+                    if (subscriptions.Count > 0) {
+                        //
+                        // Close all subscriptions. Since this might call back into
+                        // the session manager, queue this to the thread pool
+                        //
+                        ThreadPool.QueueUserWorkItem(_ => {
+                            foreach (var subscription in _subscriptions.Values) {
+                                subscription.Dispose();
+                            }
+                        });
+                    }
+                    _subscriptions.Clear();
 
                     _session.Close();
                     _session.Dispose();
@@ -201,7 +227,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Connect client (no lock)
         /// </summary>
         /// <returns></returns>
-        private async Task<bool> ConnectAsyncCore() {
+        private async ValueTask<bool> ConnectAsyncCore() {
             if (IsReconnecting) {
                 // Cannot connect while reconnecting.
                 return false;
@@ -308,9 +334,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     // Go offline
-                    foreach (var subscription in _subscriptions.Values) {
-                        subscription.OnSubscriptionStateChanged(false);
-                    }
+                    NotifySubscriptionStateChange(false);
                 }
             }
             catch (Exception ex) {
@@ -350,9 +374,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             // Go back online
-            foreach (var subscription in _subscriptions.Values) {
-                subscription.OnSubscriptionStateChanged(IsConnected);
-            }
+            NotifySubscriptionStateChange(IsConnected);
+        }
+
+        /// <summary>
+        /// Queue a notification state change
+        /// </summary>
+        /// <param name="online"></param>
+        private void NotifySubscriptionStateChange(bool online) {
+            ThreadPool.QueueUserWorkItem(_ => {
+                foreach (var subscription in _subscriptions.Values) {
+                    subscription.OnSubscriptionStateChanged(online);
+                }
+            });
         }
 
         private readonly ConcurrentDictionary<string, ISubscription> _subscriptions
@@ -365,5 +399,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private SessionReconnectHandler _reconnectHandler;
         private Session _session;
         private readonly ILogger _logger;
+        private readonly DateTime _created = DateTime.UtcNow;
     }
 }

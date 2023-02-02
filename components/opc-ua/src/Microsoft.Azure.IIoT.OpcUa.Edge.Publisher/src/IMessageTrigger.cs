@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     /// <summary>
     /// Writer group
     /// </summary>
-    public interface IMessageTrigger : IDisposable {
+    public interface IMessageTrigger : IAsyncDisposable {
 
         /// <summary>
         /// Writer group id
@@ -85,16 +86,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         event EventHandler<EventArgs> OnCounterReset;
 
         /// <summary>
-        /// Run the group triggering
-        /// </summary>
-        Task RunAsync(CancellationToken ct);
-
-        /// <summary>
-        /// Allow takeover of newly configured subscriptions
-        /// </summary>
-        Task ReconfigureAsync(object config);
-
-        /// <summary>
         /// EndpointUrl
         /// </summary>
         Uri EndpointUrl { get; }
@@ -118,5 +109,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// AuthenticationUsername
         /// </summary>
         string AuthenticationUsername { get; }
+
+        /// <summary>
+        /// Start trigger
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask StartAsync(CancellationToken ct);
+
+        /// <summary>
+        /// Update
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask UpdateAsync(WriterGroupJobModel config,
+            CancellationToken ct);
+
+        /// <summary> TODO: REMOVE </summary>
+        Task RunAsync(CancellationToken ct);
+        /// <summary> TODO: REMOVE </summary>
+        ValueTask ReconfigureAsync(object config, CancellationToken ct);
     }
 }

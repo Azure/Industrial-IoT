@@ -40,7 +40,7 @@ namespace System.Security.Cryptography.X509Certificates {
             var delimiter = "-----END CERTIFICATE-----";
             var rawCerts = pemCerts.Split(new[] { delimiter }, StringSplitOptions.None);
             return rawCerts
-                .Take(rawCerts.Count() - 1) // Drop the invalid entry
+                .Take(rawCerts.Length - 1) // Drop the invalid entry
                 .Select(c => $"{c}{delimiter}")
                 .Select(Encoding.UTF8.GetBytes)
                 .Select(c => new X509Certificate2(c));

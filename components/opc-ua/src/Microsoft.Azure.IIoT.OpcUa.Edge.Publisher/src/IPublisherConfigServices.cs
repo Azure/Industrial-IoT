@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,17 +18,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Add nodes to be published to the configuration
         /// </summary>
-        Task PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
+        Task PublishNodesAsync(PublishedNodesEntryModel request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Remove node from the actual configuration
         /// </summary>
-        Task UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
+        Task UnpublishNodesAsync(PublishedNodesEntryModel request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Resets the configuration for an endpoint
         /// </summary>
-        Task UnpublishAllNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
+        Task UnpublishAllNodesAsync(PublishedNodesEntryModel request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Update nodes of endpoints in the published nodes configuration.
@@ -41,16 +44,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// returns the endpoints currently part of the configuration
         /// </summary>
-        Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(CancellationToken ct = default);
+        Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
+            CancellationToken ct = default);
 
         /// <summary>
         /// Get the configuration nodes for an endpoint
         /// </summary>
-        Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
+        Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
+            PublishedNodesEntryModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Gets the diagnostic information for a specific endpoint
         /// </summary>
-        Task<List<JobDiagnosticInfoModel>> GetDiagnosticInfoAsync(CancellationToken ct = default);
+        Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(
+            CancellationToken ct = default);
     }
 }

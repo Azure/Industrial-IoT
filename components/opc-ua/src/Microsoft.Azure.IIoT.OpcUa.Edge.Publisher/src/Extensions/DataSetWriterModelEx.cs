@@ -35,8 +35,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 Id = ToSubscriptionId(dataSetWriter, writerGroupId),
                 MonitoredItems = monitoredItems,
                 ExtensionFields = dataSetWriter.DataSet.ExtensionFields,
-                Configuration = dataSetWriter.DataSet.DataSetSource
-                    .ToSubscriptionConfigurationModel(dataSetWriter.DataSet.DataSetMetaData)
+                Configuration = dataSetWriter.DataSet.DataSetSource.ToSubscriptionConfigurationModel(
+                    dataSetWriter.DisableDataSetMetaData ?? false
+                        ? null : dataSetWriter.DataSet.DataSetMetaData)
             };
             return model;
         }
