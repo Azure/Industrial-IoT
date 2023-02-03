@@ -5,9 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using System.Collections.Generic;
     using System.Linq;
     using System;
+    using System.Configuration;
 
     /// <summary>
     /// Published event items extensions
@@ -18,9 +20,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Convert to monitored items
         /// </summary>
         /// <param name="eventItems"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         public static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedEventItemsModel eventItems) {
+            this PublishedEventItemsModel eventItems, ISubscriptionConfig configuration = null) {
             if (eventItems?.PublishedData == null) {
                 return Enumerable.Empty<BaseMonitoredItemModel>();
             }
@@ -30,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 if (item == null) {
                     continue;
                 }
-                var monitoredItem = item.ToMonitoredItem();
+                var monitoredItem = item.ToMonitoredItem(configuration);
                 map.AddOrUpdate(monitoredItem.Id ?? Guid.NewGuid().ToString(), monitoredItem);
             }
             return map.Values;

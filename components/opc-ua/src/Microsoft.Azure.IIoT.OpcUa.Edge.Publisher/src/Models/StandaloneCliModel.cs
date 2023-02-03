@@ -41,6 +41,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public bool? DefaultDiscardNew { get; set; }
 
         /// <summary>
+        /// Default subscription keep alive count
+        /// </summary>
+        public uint? DefaultKeepAliveCount { get; set; }
+
+        /// <summary>
+        /// Default subscription lifetime counter
+        /// </summary>
+        public uint? DefaultLifeTimeCount { get; set; }
+
+        /// <summary>
         /// The default sampling interval.
         /// </summary>
         public TimeSpan? DefaultSamplingInterval { get; set; } = TimeSpan.FromSeconds(1);
@@ -98,6 +108,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// The filename of the logfile.
         /// </summary>
         public string LogFilename { get; set; }
+
+        /// <summary>
+        /// Get the messaging profile
+        /// </summary>
+        /// <returns></returns>
+        public MessagingProfile MessagingProfile
+            => MessagingProfile.Get(MessagingMode, MessageEncoding);
 
         /// <summary>
         /// The messaging mode for outgoing messages.

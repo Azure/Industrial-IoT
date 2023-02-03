@@ -51,7 +51,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if (model.GetNormalizedPublishingInterval() != that.GetNormalizedPublishingInterval()) {
+            // This value might be in the header so only compare if both are not null
+            var publishingInterval1 = that.GetNormalizedPublishingInterval();
+            var publishingInterval2 = model.GetNormalizedPublishingInterval();
+            if (publishingInterval1 != null && publishingInterval2 != null &&
+                publishingInterval1 != publishingInterval2) {
                 return false;
             }
 
@@ -110,7 +114,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             hash.Add(model.DataSetFieldId);
             hash.Add(model.DataSetClassFieldId);
             hash.Add(model.ExpandedNodeId);
-            hash.Add(model.GetNormalizedPublishingInterval());
             hash.Add(model.GetNormalizedSamplingInterval());
             hash.Add(model.GetNormalizedHeartbeatInterval());
             hash.Add(model.SkipFirst ?? false);
@@ -210,7 +213,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
 
             /// <inheritdoc/>
             public override int GetHashCode(OpcNodeModel node) {
-                return OpcNodeModelEx.GetHashCode(node);
+                return -1;
+                // return OpcNodeModelEx.GetHashCode(node);
             }
         }
     }

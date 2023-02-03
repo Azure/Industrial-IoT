@@ -26,6 +26,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 that.DataSetWriterGroup, StringComparison.InvariantCulture) != 0) {
                 return false;
             }
+            return true;
+        }
+
+        /// <summary>
+        /// Check if has same endpoint
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="that"></param>
+        /// <returns></returns>
+        public static bool HasSameEndpoint(this PublishedNodesEntryModel model,
+            PublishedNodesEntryModel that) {
+            if (model == that) {
+                return true;
+            }
+            if (model == null || that == null) {
+                return false;
+            }
             if (model.EndpointUrl != that.EndpointUrl) {
                 return false;
             }
@@ -35,20 +52,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             if (model.OpcAuthenticationMode != that.OpcAuthenticationMode) {
                 return false;
             }
-            if (string.Compare(model.OpcAuthenticationUsername,
-                that.OpcAuthenticationUsername, StringComparison.InvariantCulture) != 0) {
+            if (!string.Equals(model.OpcAuthenticationUsername ?? string.Empty,
+                that.OpcAuthenticationUsername ?? string.Empty, StringComparison.InvariantCulture)) {
                 return false;
             }
-            if (string.Compare(model.OpcAuthenticationPassword,
-                that.OpcAuthenticationPassword, StringComparison.InvariantCulture) != 0) {
+            if (!string.Equals(model.OpcAuthenticationPassword ?? string.Empty,
+                that.OpcAuthenticationPassword ?? string.Empty, StringComparison.InvariantCulture)) {
                 return false;
             }
-            if (string.Compare(model.EncryptedAuthUsername,
-                that.EncryptedAuthUsername, StringComparison.InvariantCulture) != 0) {
+            if (!string.Equals(model.EncryptedAuthUsername ?? string.Empty,
+                that.EncryptedAuthUsername ?? string.Empty, StringComparison.InvariantCulture)) {
                 return false;
             }
-            if (string.Compare(model.EncryptedAuthPassword,
-                that.EncryptedAuthPassword, StringComparison.InvariantCulture) != 0) {
+            if (!string.Equals(model.EncryptedAuthPassword ?? string.Empty,
+                that.EncryptedAuthPassword ?? string.Empty, StringComparison.InvariantCulture)) {
                 return false;
             }
             return true;
@@ -59,17 +76,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// Comarison excludes OpcNodes.
         /// </summary>
         public static bool HasSameDataSet(this PublishedNodesEntryModel model,
-            PublishedNodesEntryModel that, TimeSpan? defaultPublishingTimespan) {
+            PublishedNodesEntryModel that, bool matchPublishingInterval = true) {
+
+            if (!string.Equals(model.DataSetWriterId ?? string.Empty,
+                that.DataSetWriterId ?? string.Empty, StringComparison.InvariantCulture)) {
+                return false;
+            }
             if (!model.HasSameGroup(that)) {
                 return false;
             }
-            if (!string.Equals(model.DataSetWriterId,
-                    that.DataSetWriterId, StringComparison.InvariantCulture)) {
+            if (!model.HasSameEndpoint(that)) {
                 return false;
             }
-            if (model.GetNormalizedDataSetPublishingInterval(defaultPublishingTimespan)
-                    != that.GetNormalizedDataSetPublishingInterval(defaultPublishingTimespan)) {
-                return false;
+            if (matchPublishingInterval) {
+                var queryInterval = that.GetNormalizedDataSetPublishingInterval();
+                var modelInterval = model.GetNormalizedDataSetPublishingInterval();
+                if (queryInterval != null &&
+                    queryInterval != modelInterval) {
+                    return false;
+                }
             }
             return true;
         }

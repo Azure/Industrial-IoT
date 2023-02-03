@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System;
 
@@ -17,7 +18,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Create subscription info model from message trigger configuration.
         /// </summary>
         public static SubscriptionModel ToSubscriptionModel(
-            this DataSetWriterModel dataSetWriter, string writerGroupId = null) {
+            this DataSetWriterModel dataSetWriter, ISubscriptionConfig configuration,
+            string writerGroupId = null) {
             if (dataSetWriter == null) {
                 return null;
             }
@@ -27,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             if (dataSetWriter.DataSet.DataSetSource == null) {
                 throw new ArgumentNullException(nameof(dataSetWriter.DataSet.DataSetSource));
             }
-            var monitoredItems = dataSetWriter.DataSet.DataSetSource.ToMonitoredItems();
+            var monitoredItems = dataSetWriter.DataSet.DataSetSource.ToMonitoredItems(configuration);
             if (monitoredItems.Count == 0) {
                 throw new ArgumentException(nameof(dataSetWriter.DataSet.DataSetSource));
             }
@@ -36,8 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 MonitoredItems = monitoredItems,
                 ExtensionFields = dataSetWriter.DataSet.ExtensionFields,
                 Configuration = dataSetWriter.DataSet.DataSetSource.ToSubscriptionConfigurationModel(
-                    dataSetWriter.DisableDataSetMetaData ?? false
-                        ? null : dataSetWriter.DataSet.DataSetMetaData)
+                    dataSetWriter.DataSet.DataSetMetaData, configuration)
             };
             return model;
         }

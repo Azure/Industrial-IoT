@@ -315,7 +315,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
                 _dataSetWriter = dataSetWriter?.Clone() ??
                     throw new ArgumentNullException(nameof(dataSetWriter));
-                _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(outer._writerGroup.WriterGroupId);
+                _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
+                    _outer._subscriptionManager.Configuration, outer._writerGroup.WriterGroupId);
             }
 
             /// <summary>
@@ -346,7 +347,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 _dataSetWriter = dataSetWriter.Clone();
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
-                    _outer._writerGroup.WriterGroupId);
+                    _outer._subscriptionManager.Configuration, _outer._writerGroup.WriterGroupId);
 
                 InitializeKeyframeTrigger();
                 InitializeMetaDataTrigger();
@@ -442,7 +443,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             private void InitializeKeyframeTrigger() {
                 _frameCount = 0;
-                _keyFrameCount = _dataSetWriter.KeyFrameCount ?? 0;
+                _keyFrameCount = _outer._subscriptionManager.Configuration.DisableKeyFrames == true
+                    ? 0 : _dataSetWriter.KeyFrameCount
+                        ?? _outer._subscriptionManager.Configuration.DefaultKeyFrameCount ?? 0;
             }
 
             /// <summary>
@@ -451,10 +454,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             private void InitializeMetaDataTrigger() {
 
                 var metaDataSendInterval = _dataSetWriter.DataSetMetaDataSendInterval
-                    .GetValueOrDefault(TimeSpan.Zero)
+                    .GetValueOrDefault(_outer._subscriptionManager
+                        .Configuration.DefaultMetaDataUpdateTime ?? TimeSpan.Zero)
                     .TotalMilliseconds;
 
-                if (metaDataSendInterval > 0) {
+                if (metaDataSendInterval > 0 && _outer._subscriptionManager
+                        .Configuration.DisableDataSetMetaData != true) {
                     if (_metadataTimer == null) {
                         _metadataTimer = new Timer(metaDataSendInterval);
                         _metadataTimer.Elapsed += MetadataTimerElapsed;

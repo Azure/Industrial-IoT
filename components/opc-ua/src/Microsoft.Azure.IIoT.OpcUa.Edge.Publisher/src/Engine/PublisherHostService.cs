@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Autofac;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Exceptions;
-    using Autofac;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -150,19 +150,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _logger.Error(ex, "Failed to process change.");
                     }
                 }
+            }
 
-                // Anything not having an updated version will be deleted
-                foreach (var delete in _currentJobs.Values
-                    .Where(j => j.Version < _version).ToList()) {
-                    try {
-                        await delete.DisposeAsync();
-                    }
-                    catch (Exception ex) when (ex is not OperationCanceledException) {
-                        exceptions.Add(ex);
-                        _logger.Error(ex, "Failed to dispose job before removal.");
-                    }
-                    _currentJobs.Remove(delete.Id);
+            // Anything not having an updated version will be deleted
+            foreach (var delete in _currentJobs.Values.Where(j => j.Version < _version).ToList()) {
+                try {
+                    await delete.DisposeAsync();
                 }
+                catch (Exception ex) when (ex is not OperationCanceledException) {
+                    exceptions.Add(ex);
+                    _logger.Error(ex, "Failed to dispose job before removal.");
+                }
+                _currentJobs.Remove(delete.Id);
             }
 
             if (exceptions.Count == 0) {

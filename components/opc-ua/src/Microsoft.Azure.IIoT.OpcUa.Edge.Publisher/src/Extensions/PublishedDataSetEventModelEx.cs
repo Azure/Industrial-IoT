@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Linq;
     using System;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
 
     /// <summary>
     /// Published data set events extensions
@@ -18,11 +19,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Convert to monitored item
         /// </summary>
         /// <param name="publishedEvent"></param>
+        /// <param name="configuration"></param>
         /// <param name="displayName"></param>
         /// <returns></returns>
         public static EventMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvent,
-            string displayName = null) {
+            ISubscriptionConfig configuration, string displayName = null) {
             if (publishedEvent == null) {
                 return null;
             }
@@ -37,14 +39,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     WhereClause = publishedEvent.WhereClause?.Clone(),
                     TypeDefinitionId = publishedEvent.TypeDefinitionId,
                 },
-                DiscardNew = publishedEvent.DiscardNew,
+                DiscardNew = publishedEvent.DiscardNew
+                    ?? configuration?.DefaultDiscardNew,
 
                 //
                 // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/
                 // 0 the Server returns the default queue size for Event Notifications
                 // as revisedQueueSize for event monitored items.
                 //
-                QueueSize = publishedEvent.QueueSize ?? 0,
+                QueueSize = publishedEvent.QueueSize
+                    ?? configuration?.DefaultQueueSize ?? 0,
                 TriggerId = publishedEvent.TriggerId,
                 MonitoringMode = publishedEvent.MonitoringMode,
                 StartNodeId = publishedEvent.EventNotifier,

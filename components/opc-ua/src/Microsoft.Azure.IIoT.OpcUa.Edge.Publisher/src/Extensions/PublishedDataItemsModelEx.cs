@@ -4,8 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System.Collections.Generic;
+    using System.Configuration;
 
     /// <summary>
     /// Published data items extensions
@@ -16,15 +18,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Convert to monitored items including heartbeat handling.
         /// </summary>
         /// <param name="dataItems"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         public static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedDataItemsModel dataItems) {
+            this PublishedDataItemsModel dataItems,
+            ISubscriptionConfig configuration = null) {
             if (dataItems?.PublishedData != null) {
                 foreach (var item in dataItems.PublishedData) {
                     if (item == null) {
                         continue;
                     }
-                    yield return item.ToMonitoredItem();
+                    yield return item.ToMonitoredItem(configuration);
                 }
             }
         }

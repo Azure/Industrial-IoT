@@ -36,11 +36,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public uint? KeyFrameCount { get; set; }
 
         /// <summary>
-        /// Disable or enable data set metadata explicitly
-        /// </summary>
-        public bool? DisableDataSetMetaData { get; set; }
-
-        /// <summary>
         /// Metadata message sending interval (publisher extension)
         /// </summary>
         public TimeSpan? DataSetMetaDataSendInterval { get; set; }

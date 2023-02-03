@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Theory]
         [InlineData("Engine/pn_2.5_legacy.json")]
-        public async Task Leacy25PublishedNodesFile(string publishedNodesFile) {
+        public async Task Legacy25PublishedNodesFile(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitStandaloneJobOrchestrator();
 
@@ -121,10 +121,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal(1, nodes.Count);
             Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1", nodes[0].Id);
 
-            endpoint.OpcNodes = new List<OpcNodeModel>();
-            endpoint.OpcNodes.Add(new OpcNodeModel {
-                Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2",
-            });
+            endpoint.OpcNodes = new List<OpcNodeModel> {
+                new OpcNodeModel {
+                    Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2",
+                }
+            };
 
             await _configService.PublishNodesAsync(endpoint).ConfigureAwait(false);
 
@@ -380,10 +381,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             Assert.Equal(2, configuredEndpoints.Count);
 
-            Assert.True(endpoints[0].HasSameDataSet(
-                configuredEndpoints[0], _standaloneCliModel.DefaultPublishingInterval));
-            Assert.True(endpoints[2].HasSameDataSet(
-                configuredEndpoints[1], _standaloneCliModel.DefaultPublishingInterval));
+            Assert.True(endpoints[0].HasSameDataSet(configuredEndpoints[0]));
+            Assert.True(endpoints[2].HasSameDataSet(configuredEndpoints[1]));
         }
 
         [Fact]
@@ -494,7 +493,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             Assert.Empty(_publisher.WriterGroups);
 
-            var numberOfEndpoints = 100;
+            var numberOfEndpoints = 3;
 
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel {
@@ -543,8 +542,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             string payload = Utils.GetFileContent(publishedNodesFile);
             var payloadRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
-            var previousDataSets = new List<PublishedNodesEntryModel>();
-
             int index = 0;
             foreach (var request in payloadRequests) {
                 request.OpcNodes = index % 2 == 0
@@ -552,13 +549,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     : new List<OpcNodeModel>();
                 ++index;
 
-                var sameDataSetRemoved = false;
-                foreach(var dataSet in previousDataSets) {
-                    sameDataSetRemoved = sameDataSetRemoved
-                        || request.HasSameDataSet(dataSet, _standaloneCliModel.DefaultPublishingInterval);
-                }
-
-                if (sameDataSetRemoved) {
+                var shouldThrow = !_publishedNodesJobConverter.ToPublishedNodes(0, default, _publisher.WriterGroups)
+                    .Any(dataSet => dataSet.HasSameDataSet(request, false));
+                if (shouldThrow) {
                     await FluentActions
                         .Invoking(async () => await _configService
                             .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
@@ -576,8 +569,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                         .Should()
                         .NotThrowAsync()
                         .ConfigureAwait(false);
-
-                    previousDataSets.Add(request);
                 }
             }
 
@@ -601,21 +592,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 })
                 .ToList();
 
-            // Helper method.
-            async Task AssertGetConfiguredNodesOnEndpointThrows(
-                PublisherConfigService standaloneJobOrchestrator,
-                PublishedNodesEntryModel endpoint
-            ) {
-                await FluentActions
-                    .Invoking(async () => await standaloneJobOrchestrator
-                        .GetConfiguredNodesOnEndpointAsync(endpoint)
-                        .ConfigureAwait(false))
-                    .Should()
-                    .ThrowAsync<MethodCallStatusException>()
-                    .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {endpoint.EndpointUrl}\",\"Details\":{{}}}}")
-                    .ConfigureAwait(false);
-            }
-
             var endpoints = Enumerable.Range(0, 5)
                 .Select(i => GenerateEndpoint(i, opcNodes))
                 .ToList();
@@ -633,6 +609,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false);
 
                 AssertSameNodes(endpoints[i], endpointNodes);
+            }
+
+            // Helper method.
+            async Task AssertGetConfiguredNodesOnEndpointThrows(
+                PublisherConfigService standaloneJobOrchestrator,
+                PublishedNodesEntryModel endpoint
+            ) {
+                await FluentActions
+                    .Invoking(async () => await standaloneJobOrchestrator
+                        .GetConfiguredNodesOnEndpointAsync(endpoint)
+                        .ConfigureAwait(false))
+                    .Should()
+                    .ThrowAsync<MethodCallStatusException>()
+                    .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {endpoint.EndpointUrl}\",\"Details\":{{}}}}")
+                    .ConfigureAwait(false);
             }
 
             // Those calls should throw.

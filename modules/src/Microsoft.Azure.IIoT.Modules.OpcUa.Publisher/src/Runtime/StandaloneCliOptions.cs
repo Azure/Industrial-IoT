@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Configuration;
@@ -27,7 +28,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
     /// </summary>
     public class StandaloneCliOptions : Dictionary<string, string>, IAgentConfigProvider,
-        ISettingsController, IEngineConfiguration, IStandaloneCliModelProvider, IRuntimeStateReporterConfiguration {
+        ISettingsController, IEngineConfiguration, IStandaloneCliModelProvider,
+        IRuntimeStateReporterConfiguration, ISubscriptionConfig {
 
         /// <summary>
         /// Creates a new instance of the the standalone cli options based on existing configuration values.
@@ -410,6 +412,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             }
         }
 
+        // --------- TODO: Remove
         /// <summary>
         /// check if we're running in standalone mode - default publishednodes.json file accessible
         /// </summary>
@@ -428,42 +431,75 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public void TriggerConfigUpdate(object sender, EventArgs eventArgs) {
             OnConfigUpdated?.Invoke(sender, eventArgs);
         }
+        // -------------
 
-        /// <summary>
-        /// The batch size
-        /// </summary>
+        /// <inheritdoc/>
         public int? BatchSize => StandaloneCliModel.BatchSize;
 
-        /// <summary>
-        /// The interval to show diagnostic information in the log.
-        /// </summary>
+        /// <inheritdoc/>
         public TimeSpan? BatchTriggerInterval => StandaloneCliModel.BatchTriggerInterval;
 
-        /// <summary>
-        /// The interval to show diagnostic information in the log.
-        /// </summary>
+        /// <inheritdoc/>
         public TimeSpan? DiagnosticsInterval => StandaloneCliModel.DiagnosticsInterval;
 
-        /// <summary>
-        /// the Maximum (IoT D2C) message size
-        /// </summary>
+        /// <inheritdoc/>
         public int? MaxMessageSize => StandaloneCliModel.MaxMessageSize;
 
-        /// <summary>
-        /// The Maximum (IoT D2C) message buffer size
-        /// </summary>
+        /// <inheritdoc/>
         public int? MaxOutgressMessages => StandaloneCliModel.MaxOutgressMessages;
 
-        /// <summary>
-        /// Flag to use strict UA compliant encoding for messages
-        /// </summary>
+        /// <inheritdoc/>
         public bool UseStandardsCompliantEncoding => StandaloneCliModel.UseStandardsCompliantEncoding;
 
         /// <inheritdoc/>
         public bool EnableRoutingInfo => StandaloneCliModel.EnableRoutingInfo;
 
         /// <inheritdoc/>
-        public bool EnableRuntimeStateReporting { get => StandaloneCliModel.EnableRuntimeStateReporting; }
+        public bool EnableRuntimeStateReporting => StandaloneCliModel.EnableRuntimeStateReporting;
+
+        /// <inheritdoc/>
+        public uint? DefaultKeyFrameCount => StandaloneCliModel.DefaultKeyFrameCount;
+
+        /// <inheritdoc/>
+        public bool? DisableKeyFrames => !StandaloneCliModel.MessagingProfile.SupportsKeyFrames;
+
+        /// <inheritdoc/>
+        public TimeSpan? DefaultHeartbeatInterval => StandaloneCliModel.DefaultHeartbeatInterval;
+
+        /// <inheritdoc/>
+        public bool DefaultSkipFirst => StandaloneCliModel.DefaultSkipFirst;
+
+        /// <inheritdoc/>
+        public bool DefaultDiscardNew => StandaloneCliModel.DefaultDiscardNew ?? false;
+
+        /// <inheritdoc/>
+        public TimeSpan? DefaultSamplingInterval => StandaloneCliModel.DefaultSamplingInterval;
+
+        /// <inheritdoc/>
+        public TimeSpan? DefaultPublishingInterval => StandaloneCliModel.DefaultPublishingInterval;
+
+        /// <inheritdoc/>
+        public TimeSpan? DefaultMetaDataUpdateTime => StandaloneCliModel.DefaultMetaDataSendInterval;
+
+        /// <inheritdoc/>
+        public uint? DefaultKeepAliveCount => StandaloneCliModel.DefaultKeepAliveCount;
+
+        /// <inheritdoc/>
+        public uint? DefaultLifeTimeCount => StandaloneCliModel.DefaultLifeTimeCount;
+
+        /// <inheritdoc/>
+        public bool? DisableDataSetMetaData => StandaloneCliModel.DisableDataSetMetaData == null
+            ? !StandaloneCliModel.MessagingProfile.SupportsMetadata
+            : StandaloneCliModel.DisableDataSetMetaData.Value;
+
+        /// <inheritdoc/>
+        public bool ResolveDisplayName => StandaloneCliModel.FetchOpcNodeDisplayName;
+
+        /// <inheritdoc/>
+        public uint? DefaultQueueSize => StandaloneCliModel.DefaultQueueSize;
+
+        /// <inheritdoc/>
+        public DataChangeTriggerType? DefaultDataChangeTrigger { get; }
 
         /// <summary>
         /// The model of the CLI arguments.

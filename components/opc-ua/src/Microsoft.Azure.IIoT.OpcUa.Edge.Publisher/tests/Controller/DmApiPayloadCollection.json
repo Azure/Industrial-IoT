@@ -6,8 +6,8 @@
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,
         "OpcAuthenticationMode": "UsernamePassword",
-        "UserName": "usr",
-        "Password": "pwd",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
         "OpcNodes": [
             {
                 "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
@@ -38,8 +38,8 @@
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,
         "OpcAuthenticationMode": "UsernamePassword",
-        "UserName": "usr",
-        "Password": "pwd",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
         "OpcNodes": [
             {
                 "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
@@ -61,7 +61,7 @@
         "UseSecurity": false,
         "OpcAuthenticationMode": "UsernamePassword",
         "Username": "usr",
-        "Password": "pwd",
+        "OpcAuthenticationPassword": "pwd",
         "OpcNodes": [
             {
                 "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
@@ -82,8 +82,8 @@
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,
         "OpcAuthenticationMode": "UsernamePassword",
-        "UserName": "usr",
-        "Password": "pwd",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
         "OpcNodes": [
             {
                 "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
@@ -106,7 +106,7 @@
         "UseSecurity": false,
         "OpcAuthenticationMode": "UsernamePassword",
         "Username": "usr",
-        "Password": "pwd",
+        "OpcAuthenticationPassword": "pwd",
         "OpcNodes": [
             {
                 "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",

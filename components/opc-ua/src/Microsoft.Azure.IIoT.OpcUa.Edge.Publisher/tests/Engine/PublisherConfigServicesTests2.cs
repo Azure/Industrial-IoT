@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             publisher.WriterGroups.Count()
                 .Should()
-                .Be(2);
+                .Be(1);
         }
 
         [Theory]
@@ -145,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             publisher.WriterGroups.Count()
                 .Should()
-                .Be(2);
+                .Be(1);
         }
 
         [Theory]
@@ -201,7 +201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             publisher.WriterGroups.Count()
                 .Should()
-                .Be(4);
+                .Be(1);
         }
 
         [Theory]
@@ -312,7 +312,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false);
             }
 
-            publisher.WriterGroups.Count()
+            publisher.WriterGroups.Sum(g => g.WriterGroup.DataSetWriters.Count)
                 .Should()
                 .Be(2);
         }

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System;
     using System.Collections.Generic;
@@ -19,19 +20,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="dataSetSource"></param>
         /// <param name="dataSetMetaData"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         public static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
-            this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel dataSetMetaData) {
+            this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel dataSetMetaData,
+            ISubscriptionConfig configuration) {
             if (dataSetSource == null) {
                 throw new ArgumentNullException(nameof(dataSetSource));
             }
             return new SubscriptionConfigurationModel {
                 Priority = dataSetSource.SubscriptionSettings?.Priority,
-                LifetimeCount = dataSetSource.SubscriptionSettings?.LifeTimeCount,
-                KeepAliveCount = dataSetSource.SubscriptionSettings?.MaxKeepAliveCount,
-                PublishingInterval = dataSetSource.SubscriptionSettings?.PublishingInterval,
-                ResolveDisplayName = dataSetSource.SubscriptionSettings?.ResolveDisplayName,
-                MetaData = dataSetMetaData
+                LifetimeCount = dataSetSource.SubscriptionSettings?.LifeTimeCount
+                    ?? configuration?.DefaultLifeTimeCount,
+                KeepAliveCount = dataSetSource.SubscriptionSettings?.MaxKeepAliveCount
+                    ?? configuration?.DefaultKeepAliveCount,
+                PublishingInterval = dataSetSource.SubscriptionSettings?.PublishingInterval
+                    ?? configuration?.DefaultPublishingInterval,
+                ResolveDisplayName = dataSetSource.SubscriptionSettings?.ResolveDisplayName
+                    ?? configuration?.ResolveDisplayName,
+                MetaData = configuration?.DisableDataSetMetaData == true
+                    ? null : dataSetMetaData
             };
         }
 
@@ -39,17 +47,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Convert dataset source to monitored item
         /// </summary>
         /// <param name="dataSetSource"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         public static List<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedDataSetSourceModel dataSetSource) {
+            this PublishedDataSetSourceModel dataSetSource,
+            ISubscriptionConfig configuration) {
             var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
             if (dataSetSource.PublishedVariables?.PublishedData != null) {
                 monitoredItems = monitoredItems
-                    .Concat(dataSetSource.PublishedVariables.ToMonitoredItems());
+                    .Concat(dataSetSource.PublishedVariables.ToMonitoredItems(configuration));
             }
             if (dataSetSource.PublishedEvents?.PublishedData != null) {
                 monitoredItems = monitoredItems
-                    .Concat(dataSetSource.PublishedEvents.ToMonitoredItems());
+                    .Concat(dataSetSource.PublishedEvents.ToMonitoredItems(configuration));
             }
             return monitoredItems.ToList();
         }

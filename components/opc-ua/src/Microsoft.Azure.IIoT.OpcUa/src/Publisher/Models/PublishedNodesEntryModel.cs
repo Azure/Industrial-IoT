@@ -44,11 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
 
         /// <summary> The Publishing interval for a dataset writer in miliseconds.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int? DataSetPublishingInterval {
-            get => (int?)DataSetPublishingIntervalTimespan?.TotalMilliseconds;
-            set => DataSetPublishingIntervalTimespan = value.HasValue
-                ? TimeSpan.FromMilliseconds(value.Value) : null;
-        }
+        public int? DataSetPublishingInterval { get; set; }
 
         /// <summary> The Publishing interval for a dataset writer in timespan format.</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]

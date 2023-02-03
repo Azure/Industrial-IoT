@@ -14,6 +14,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface ISubscriptionManager {
 
         /// <summary>
+        /// Subscription configuration
+        /// </summary>
+        ISubscriptionConfig Configuration { get; }
+
+        /// <summary>
         /// Get or create new subscription
         /// </summary>
         /// <param name="subscriptionModel"></param>

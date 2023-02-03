@@ -6,8 +6,8 @@
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,
         "OpcAuthenticationMode": "UsernamePassword",
-        "UserName": "usr",
-        "Password": "pwd",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
         "OpcNodes": [
             {
                 "Id": "ns=2;s=SlowUInt1",
@@ -129,8 +129,8 @@
     {
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "OpcAuthenticationMode": "UsernamePassword",
-        "UserName": "usr",
-        "Password": "pwd",
+        "OpcAuthenticationUsername": "usr",
+        "OpcAuthenticationPassword": "pwd",
         "OpcNodes": [
             {
                 "Id": "ns=2;s=FastUInt3",

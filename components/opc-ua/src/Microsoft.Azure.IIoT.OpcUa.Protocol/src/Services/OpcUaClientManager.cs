@@ -27,17 +27,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public int SessionCount => _clients.Count;
 
+        /// <inheritdoc/>
+        public ISubscriptionConfig Configuration { get; }
+
         /// <summary>
         /// Create client manager
         /// </summary>
         /// <param name="clientConfig"></param>
+        /// <param name="subscriptionConfig"></param>
         /// <param name="identity"></param>
         /// <param name="codec"></param>
         /// <param name="logger"></param>
         public OpcUaClientManager(IClientServicesConfig clientConfig,
-            IIdentity identity, IVariantEncoderFactory codec, ILogger logger) {
+            ISubscriptionConfig subscriptionConfig, IIdentity identity,
+            IVariantEncoderFactory codec, ILogger logger) {
             _clientConfig = clientConfig ??
                 throw new ArgumentNullException(nameof(clientConfig));
+            Configuration = subscriptionConfig ??
+                throw new ArgumentNullException(nameof(subscriptionConfig));
             _codec = codec ??
                 throw new ArgumentNullException(nameof(codec));
             _logger = logger ??

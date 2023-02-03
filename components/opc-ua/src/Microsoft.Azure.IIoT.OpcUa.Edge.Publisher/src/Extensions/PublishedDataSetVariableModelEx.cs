@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
 
     /// <summary>
     /// Variable extensions
@@ -16,11 +17,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Convert published dataset variable to monitored item
         /// </summary>
         /// <param name="publishedVariable"></param>
+        /// <param name="configuration"></param>
         /// <param name="displayName"></param>
         /// <returns></returns>
         public static DataMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetVariableModel publishedVariable,
-            string displayName = null) {
+            ISubscriptionConfig configuration = null, string displayName = null) {
             if (string.IsNullOrEmpty(publishedVariable?.PublishedVariableNodeId)) {
                 return null;
             }
@@ -28,10 +30,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 Id = publishedVariable.Id,
                 DataSetClassFieldId = publishedVariable.DataSetClassFieldId,
                 DisplayName = displayName ?? publishedVariable.PublishedVariableDisplayName,
-                DataChangeFilter = ToDataChangeFilter(publishedVariable),
+                DataChangeFilter = ToDataChangeFilter(publishedVariable, configuration),
                 AggregateFilter = null,
-                SkipFirst = publishedVariable.SkipFirst ?? false,
-                DiscardNew = publishedVariable.DiscardNew,
+                SkipFirst = publishedVariable.SkipFirst
+                    ?? configuration?.DefaultSkipFirst ?? false,
+                DiscardNew = publishedVariable.DiscardNew
+                    ?? configuration?.DefaultDiscardNew,
                 StartNodeId = publishedVariable.PublishedVariableNodeId,
 
                 //
@@ -41,14 +45,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 // entry, effectively disabling queuing. This is the default behavior
                 // since beginning of publisher time.
                 //
-                QueueSize = publishedVariable.QueueSize ?? 1,
+                QueueSize = publishedVariable.QueueSize
+                    ?? configuration?.DefaultQueueSize ?? 1,
                 RelativePath = publishedVariable.BrowsePath,
                 AttributeId = publishedVariable.Attribute,
                 IndexRange = publishedVariable.IndexRange,
                 TriggerId = publishedVariable.TriggerId,
                 MonitoringMode = publishedVariable.MonitoringMode,
-                SamplingInterval = publishedVariable.SamplingInterval,
+                SamplingInterval = publishedVariable.SamplingInterval
+                    ?? configuration?.DefaultSamplingInterval,
                 HeartbeatInterval = publishedVariable.HeartbeatInterval
+                    ?? configuration?.DefaultHeartbeatInterval
             };
         }
 
@@ -56,16 +63,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Convert to data change filter
         /// </summary>
         /// <param name="publishedVariable"></param>
+        /// <param name="configuration"></param>
         /// <returns></returns>
         private static DataChangeFilterModel ToDataChangeFilter(
-            this PublishedDataSetVariableModel publishedVariable) {
+            this PublishedDataSetVariableModel publishedVariable,
+            ISubscriptionConfig configuration = null) {
             if (publishedVariable?.DataChangeTrigger == null &&
+                configuration?.DefaultDataChangeTrigger == null &&
                 publishedVariable?.DeadbandType == null &&
                 publishedVariable?.DeadbandValue == null) {
                 return null;
             }
             return new DataChangeFilterModel {
-                DataChangeTrigger = publishedVariable.DataChangeTrigger,
+                DataChangeTrigger = publishedVariable.DataChangeTrigger
+                    ?? configuration?.DefaultDataChangeTrigger,
                 DeadbandType = publishedVariable.DeadbandType,
                 DeadbandValue = publishedVariable.DeadbandValue,
             };
