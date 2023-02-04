@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             _output = output;
         }
 
+#if DEBUG
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
@@ -282,4 +283,5 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     ? jsonElement : default;
         }
     }
+#endif
 }
