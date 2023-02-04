@@ -282,6 +282,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 .GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a")
                     ? jsonElement : default;
         }
-    }
 #endif
+    }
 }
