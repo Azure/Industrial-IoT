@@ -54,11 +54,6 @@ namespace Opc.Ua.PubSub {
         public string MessageId { get; set; }
 
         /// <summary>
-        /// Dataset writerGroup
-        /// </summary>
-        public string DataSetWriterGroup { get; set; }
-
-        /// <summary>
         /// Data set writer name in case of ua-metadata message
         /// </summary>
         public ushort DataSetWriterId { get; set; }

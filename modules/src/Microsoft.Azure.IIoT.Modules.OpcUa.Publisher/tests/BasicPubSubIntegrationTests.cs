@@ -17,11 +17,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
     /// </summary>
     [Collection(ReadCollection.Name)]
-    public class BasicPubSubIntegrationTests : PublisherIntegrationTestBase {
-        private const string kEventId = "EventId";
-        private const string kMessage = "Message";
-        private const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
-        private const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
+    public class BasicPubSubIntegrationTests : PublisherIoTHubIntegrationTestBase {
+        internal const string kEventId = "EventId";
+        internal const string kMessage = "Message";
+        internal const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
+        internal const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
 
         public BasicPubSubIntegrationTests(ReferenceServerFixture fixture, ITestOutputHelper output) : base(fixture) {
@@ -269,7 +269,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.NotNull(metadata);
         }
 
-        private static JsonElement GetAlarmCondition(JsonElement jsonElement) {
+        internal static JsonElement GetAlarmCondition(JsonElement jsonElement) {
             var messages = jsonElement.GetProperty("Messages");
             if (messages.ValueKind != JsonValueKind.Array) {
                 return default;
@@ -283,7 +283,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             });
         }
 
-        private static void AssertCompliantSimpleEventsMetadata(JsonElement? metadata) {
+        internal static void AssertCompliantSimpleEventsMetadata(JsonElement? metadata) {
             Assert.NotNull(metadata);
             var eventFields = metadata.Value.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, eventFields.ValueKind);
@@ -307,7 +307,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                         v.GetProperty("DataType").GetProperty("Namespace").GetString());
                 });
 
-#if FULLMETADATA // Enable when supported in stack
             var namespaces = metadata.Value.GetProperty("MetaData").GetProperty("Namespaces");
             Assert.Equal(JsonValueKind.Array, namespaces.ValueKind);
             Assert.Equal(22, namespaces.GetArrayLength());
@@ -326,10 +325,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     Assert.Equal("Duration", v.GetProperty("Name").GetString());
                     Assert.Equal(11, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                 });
-#endif
         }
 
-        private static void AssertSimpleEventsMetadata(JsonElement? metadata) {
+        internal static void AssertSimpleEventsMetadata(JsonElement? metadata) {
             Assert.NotNull(metadata);
             var eventFields = metadata.Value.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, eventFields.ValueKind);
@@ -351,7 +349,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", v.GetProperty("DataType").GetString());
                 });
 
-#if FULLMETADATA // Enable when supported in stack
        var namespaces = metadata.Value.GetProperty("MetaData").GetProperty("Namespaces");
             Assert.Equal(JsonValueKind.Array, namespaces.ValueKind);
             Assert.Equal(22, namespaces.GetArrayLength());
@@ -370,7 +367,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     Assert.Equal("Duration", v.GetProperty("Name").GetString());
                     Assert.Equal("Double", v.GetProperty("DataType").GetString());
                 });
-#endif
         }
     }
 }

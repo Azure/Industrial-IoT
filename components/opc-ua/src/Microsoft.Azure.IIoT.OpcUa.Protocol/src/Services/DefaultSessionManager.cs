@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System;
     using System.Collections.Generic;
     using System.Collections.Concurrent;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -120,6 +121,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     case SessionState.Init:
                     case SessionState.Failed:
                     case SessionState.Disconnect:
+                    case SessionState.Closed:
                         break;
                     default:
                         throw new InvalidOperationException($"Illegal SessionState ({wrapper.State})");
@@ -234,7 +236,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 TriggerKeepAlive();
                 Try.Op(() => _cts?.Cancel());
-                await _runner.ConfigureAwait(false);
+                var delay = Task.Delay(TimeSpan.FromSeconds(30));
+                var complete = await Task.WhenAny(_runner, delay);
+                if (complete == delay) {
+                    _logger.Error("Timeout while waiting for runner to complete.");
+                    return;
+                }
                 _logger.Information("Successfully stopped all sessions");
             }
             catch (OperationCanceledException) { }
@@ -242,7 +249,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Error(ex, "Unexpected exception stopping processor thread");
             }
             finally {
-                await Task.WhenAll(processingTasks);
+                var delay = Task.Delay(TimeSpan.FromSeconds(30));
+                var complete = await Task.WhenAny(Task.WhenAll(processingTasks), delay);
+                if (complete == delay) {
+                    _logger.Error("Timeout during processing task completion wait");
+                }
             }
         }
 
@@ -252,9 +263,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task RunAsync(CancellationToken ct) {
-
+            _triggerKeepAlive = new TaskCompletionSource<bool>();
             while (!ct.IsCancellationRequested) {
-                _triggerKeepAlive = new TaskCompletionSource<bool>();
                 foreach (var sessionWrapper in _sessions.ToList()) {
                     var wrapper = sessionWrapper.Value;
                     var id = sessionWrapper.Key;
@@ -262,33 +272,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         switch (wrapper.State) {
                             case SessionState.Refresh:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct), ct);
+                                    wrapper.Processing = HandleRefreshAsync(id, wrapper, ct);
                                 }
                                 break;
                             case SessionState.Running:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct), ct);
+                                    wrapper.Processing = HandleRefreshAsync(id, wrapper, ct);
                                 }
                                 break;
                             case SessionState.Retry:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleRetryAsync(id, wrapper, ct), ct);
+                                    wrapper.Processing = HandleRetryAsync(id, wrapper, ct);
                                 }
                                 break;
                             case SessionState.Init:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleInitAsync(id, wrapper, ct), ct);
+                                    wrapper.Processing = HandleInitAsync(id, wrapper, ct);
                                 }
                                 break;
                             case SessionState.Failed:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleFailedAsync(id, wrapper, ct), ct);
+                                    wrapper.Processing = HandleFailedAsync(id, wrapper, ct);
                                 }
                                 break;
                             case SessionState.Disconnect:
-                                if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleDisconnectAsync(id, wrapper), ct);
-                                }
+                                await HandleDisconnectAsync(id, wrapper);
+                                break;
+                            case SessionState.Closed:
                                 break;
                             default:
                                 throw new InvalidOperationException($"Illegal SessionState ({wrapper.State})");
@@ -300,6 +310,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 var delay = Task.Delay(_clientConfig.KeepAliveInterval, ct);
+                _triggerKeepAlive = new TaskCompletionSource<bool>();
                 await Task.WhenAny(delay, _triggerKeepAlive.Task).ConfigureAwait(false);
                 _logger.Debug("Runner Keepalive reset due to {delay} {trigger}",
                     delay.IsCompleted ? "checkAlive" : string.Empty,
@@ -317,10 +328,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private async Task HandleRetryAsync(ConnectionIdentifier id,
             SessionWrapper wrapper, CancellationToken ct) {
             try {
-
                 if (!wrapper._subscriptions.Any()) {
                     // if the session is idle, just drop it immediately
-                    _logger.Information("Idle expired session '{id}' set to {disconnect} state from {state}",
+                    _logger.Information(" '{id}' set to {disconnect} state from {state}",
                         id, SessionState.Disconnect, wrapper.State);
                     wrapper.State = SessionState.Disconnect;
                     await HandleDisconnectAsync(id, wrapper).ConfigureAwait(false);
@@ -550,32 +560,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="wrapper"></param>
         /// <returns></returns>
         private async Task HandleDisconnectAsync(ConnectionIdentifier id, SessionWrapper wrapper) {
-            _logger.Debug("Removing session '{id}'", id);
+            _logger.Information("Removing session '{id}'", id);
             await _lock.WaitAsync().ConfigureAwait(false);
             try {
-                _sessions.Remove(id, out _);
+                if (_sessions.Remove(id, out var found)) {
+                    if (wrapper != null) {
+                        Debug.Assert(wrapper == found);
+                    }
+                    wrapper = found;
+                    wrapper.State = SessionState.Closed;
+                    var session = wrapper.Session;
+                    if (session == null) {
+                        return;
+                    }
+                    wrapper.Session = null;
+                    session.KeepAlive -= Session_KeepAlive;
+                    session.Notification -= Session_Notification;
+                    session.Handle = null;
+
+                    // Queue close
+                    if (!ThreadPool.QueueUserWorkItem(_ => CloseSession(_logger, id, session))) {
+                        _ = Task.Run(() => CloseSession(_logger, id, session));
+                    };
+                }
+                else if (wrapper == null) {
+                    _logger.Error("Session '{id}' not found.", id);
+                }
             }
             finally {
                 _lock.Release();
             }
-            try {
-                if (wrapper != null && wrapper.Session != null) {
-                    wrapper.Session.Handle = null;
-                    // Remove subscriptions
-                    if (wrapper.Session.SubscriptionCount > 0) {
-                        foreach (var subscription in wrapper.Session.Subscriptions) {
-                            Try.Op(() => subscription.DeleteItems());
+
+            static void CloseSession(ILogger logger, ConnectionIdentifier id, Session session) {
+                try {
+                    if (session != null) {
+                        // Remove subscriptions
+                        if (session.SubscriptionCount > 0) {
+                            foreach (var subscription in session.Subscriptions) {
+                                Try.Op(() => subscription.DeleteItems());
+                            }
+                            Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
                         }
-                        Try.Op(() => wrapper.Session.RemoveSubscriptions(wrapper.Session.Subscriptions));
+                        // close the session
+                        Try.Op(session.Close);
+                        Try.Op(session.Dispose);
+                        logger.Information("Closed session '{id}'.", id);
                     }
-                    // close the session
-                    Try.Op(wrapper.Session.Close);
-                    Try.Op(wrapper.Session.Dispose);
-                    wrapper.Session = null;
                 }
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Failed to remove session '{id}'", id);
+                catch (Exception ex) {
+                    logger.Error(ex, "Failed to close session '{id}'", id);
+                }
             }
         }
 
@@ -618,7 +652,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             }
                         }
                         catch (Exception ex) {
-                            _logger.Warning(ex,"Failed to add peer certificate {Thumbprint}, '{Subject}' " +
+                            _logger.Warning(ex, "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
                                 "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
                         }
                     }
@@ -741,6 +775,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private void Session_KeepAlive(ISession session, KeepAliveEventArgs e) {
             try {
                 if (session?.Handle is SessionWrapper wrapper) {
+                    if (wrapper.State == SessionState.Closed) {
+                        return;
+                    }
 
                     _logger.Debug("Keepalive received from session '{id}': server current state: {state}",
                         wrapper.Id, e.CurrentState);
@@ -932,7 +969,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Reconnecting
             /// </summary>
-            public SessionState State { get; set; }
+            public SessionState State {
+                get => _state;
+                set {
+                    if (_state != SessionState.Closed) {
+                        _state = value;
+                    }
+                }
+            }
 
             /// <summary>
             /// Error status notified
@@ -954,6 +998,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// </summary>
             public ConcurrentDictionary<string, ISubscription> _subscriptions { get; }
                 = new ConcurrentDictionary<string, ISubscription>();
+
+            private SessionState _state;
         }
 
         /// <summary>
@@ -965,7 +1011,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Running,
             Refresh,
             Retry,
-            Disconnect
+            Disconnect,
+            Closed
         }
 
         /// <summary>

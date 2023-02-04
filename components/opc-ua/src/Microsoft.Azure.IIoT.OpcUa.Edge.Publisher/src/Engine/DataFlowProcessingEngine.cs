@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -20,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
+    using Microsoft.Azure.IIoT.Messaging;
 
     /// <summary>
     /// Dataflow engine
@@ -65,42 +65,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
             _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(4096); // = 1 GB
 
-            _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], NetworkMessageModel>(
+            _encodingBlock = new TransformManyBlock<SubscriptionNotificationModel[], ITelemetryEvent>(
                 input => {
                     try {
-                        return _messageEncoder.Encode(input, _maxEncodedMessageSize, _notificationBufferSize != 1);
+                        return _messageEncoder.Encode(_messageSink.CreateMessage,
+                            input, _maxEncodedMessageSize, _notificationBufferSize != 1);
                     }
                     catch (Exception e) {
                         _logger.Error(e, "Encoding failure.");
-                        return Enumerable.Empty<NetworkMessageModel>();
+                        return Enumerable.Empty<ITelemetryEvent>();
                     }
                 },
                 new ExecutionDataflowBlockOptions());
-
             _batchDataSetMessageBlock = new BatchBlock<SubscriptionNotificationModel>(
                 _notificationBufferSize,
-                new GroupingDataflowBlockOptions ());
+                new GroupingDataflowBlockOptions());
+            _sinkBlock = new ActionBlock<ITelemetryEvent>(
+                input => _messageSink.SendAsync(input),
+                new ExecutionDataflowBlockOptions());
 
-            _batchNetworkMessageBlock = new BatchBlock<NetworkMessageModel>(
-                _networkMessageBufferSize,
-                new GroupingDataflowBlockOptions ());
-
-            _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
-                async input => {
-                    if (input != null && input.Any()) {
-                        _logger.Debug("Sink block in engine {Name} triggered with {count} messages",
-                            Name, input.Length);
-                        await _messageSink.SendAsync(input).ConfigureAwait(false);
-                    }
-                    else {
-                        _logger.Warning("Sink block in engine {Name} triggered with empty input",
-                            Name);
-                    }
-                },
-                new ExecutionDataflowBlockOptions ());
             _batchDataSetMessageBlock.LinkTo(_encodingBlock);
-            _encodingBlock.LinkTo(_batchNetworkMessageBlock);
-            _batchNetworkMessageBlock.LinkTo(_sinkBlock);
+            _encodingBlock.LinkTo(_sinkBlock);
 
             _messageTrigger.OnMessage += MessageTriggerMessageReceived;
             _messageTrigger.OnCounterReset += MessageTriggerCounterResetReceived;
@@ -193,7 +178,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagnosticInfo.EncoderAvgIoTMessageBodySize = _messageEncoder.AvgMessageSize;
             diagnosticInfo.EncoderAvgIoTChunkUsage = chunkSizeAverage;
             diagnosticInfo.EstimatedIoTChunksPerDay = estimatedMsgChunksPerDay;
-            diagnosticInfo.OutgressBatchBlockBufferSize = _batchNetworkMessageBlock.OutputCount;
             diagnosticInfo.OutgressInputBufferCount = _sinkBlock.InputCount;
             diagnosticInfo.OutgressInputBufferDropped = _sinkBlockInputDroppedCount;
             diagnosticInfo.OutgressIoTMessageCount = _messageSink.SentMessagesCount;
@@ -249,7 +233,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  # Encoder avg IoT Message body size  : {messageSizeAverage,14:n0} {messageSizeAveragePercentFormatted}");
             diagInfo.AppendLine("  # Encoder avg IoT Chunk (4 KB) usage : {chunkSizeAverage,14:0.#}");
             diagInfo.AppendLine("  # Estimated IoT Chunks (4 KB) per day: {estimatedMsgChunksPerDay,14:n0}");
-            diagInfo.AppendLine("  # Outgress Batch Block buffer size   : {batchNetworkMessageBlockOutputCount,14:0}");
             diagInfo.AppendLine("  # Outgress input buffer count        : {sinkBlockInputCount,14:n0}");
             diagInfo.AppendLine("  # Outgress input buffer dropped      : {sinkBlockInputDroppedCount,14:n0}");
 
@@ -277,7 +260,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 info.EncoderAvgIoTMessageBodySize, messageSizeAveragePercentFormatted,
                 info.EncoderAvgIoTChunkUsage,
                 info.EstimatedIoTChunksPerDay,
-                info.OutgressBatchBlockBufferSize,
                 info.OutgressInputBufferCount,
                 info.OutgressInputBufferDropped,
                 info.OutgressIoTMessageCount, sentMessagesPerSecFormatted,
@@ -380,7 +362,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         private readonly int _notificationBufferSize = 1;
-        private readonly int _networkMessageBufferSize = 1;
         private readonly Timer _batchTriggerIntervalTimer;
         private readonly TimeSpan _batchTriggerInterval;
         private readonly int _maxEncodedMessageSize;
@@ -392,14 +373,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly IIdentity _identity;
 
         private readonly BatchBlock<SubscriptionNotificationModel> _batchDataSetMessageBlock;
-        private readonly BatchBlock<NetworkMessageModel> _batchNetworkMessageBlock;
 
         private readonly Timer _diagnosticsOutputTimer;
         private readonly TimeSpan _diagnosticInterval;
         private DateTime _diagnosticStart = DateTime.MinValue;
 
-        private readonly TransformManyBlock<SubscriptionNotificationModel[], NetworkMessageModel> _encodingBlock;
-        private readonly ActionBlock<NetworkMessageModel[]> _sinkBlock;
+        private readonly TransformManyBlock<SubscriptionNotificationModel[], ITelemetryEvent> _encodingBlock;
+        private readonly ActionBlock<ITelemetryEvent> _sinkBlock;
 
         /// <summary>
         /// Define the maximum size of messages

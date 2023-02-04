@@ -48,10 +48,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public uint? KeyFrameCount { get; set; }
 
         /// <summary>
-        /// Metadata message sending interval (publisher extension)
+        /// Metadata message sending interval
         /// </summary>
-        [DataMember(Name = "dataSetMetaDataSendInterval", Order = 6,
+        [DataMember(Name = "metaDataUpdateTime", Order = 6,
             EmitDefaultValue = false)]
-        public TimeSpan? DataSetMetaDataSendInterval { get; set; }
+        public TimeSpan? MetaDataUpdateTime { get; set; }
+
+        /// <summary>
+        /// Metadata queue name
+        /// </summary>
+        [DataMember(Name = "metaDataQueueName", Order = 7,
+            EmitDefaultValue = false)]
+        public string MetaDataQueueName { get; set; }
     }
 }

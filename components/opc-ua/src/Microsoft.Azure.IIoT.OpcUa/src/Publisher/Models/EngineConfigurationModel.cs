@@ -38,11 +38,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public int? MaxOutgressMessages { get; set; }
 
         /// <summary>
-        /// Flag to determine if a telemetry routing info is required.
-        /// </summary>
-        public bool EnableRoutingInfo { get; set; }
-
-        /// <summary>
         /// Enforce strict standards compliant encoding for pub sub messages
         /// </summary>
         public bool UseStandardsCompliantEncoding { get; set; }

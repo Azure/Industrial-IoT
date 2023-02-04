@@ -4,16 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
-
     using FluentAssertions;
-    using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Moq;
-    using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
@@ -47,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            _client.Verify(c => c.SendEventAsync(It.IsAny<string>(), It.IsAny<Message>()), Times.Never());
+            _client.Verify(c => c.SendEventAsync(It.IsAny<ITelemetryEvent>()), Times.Never());
         }
 
         [Fact]
@@ -79,12 +77,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
 
         [Fact]
         public async Task ReportingTest() {
-            var receivedParameters = new List<Tuple<string, Message>>();
+            var receivedParameters = new List<ITelemetryEvent>();
 
             var _client = new Mock<IClient>();
+
+            var _message = new Mock<ITelemetryEvent>()
+                .SetupAllProperties();
+            _message
+                .Setup(m => m.Dispose());
             _client
-                .Setup(c => c.SendEventAsync(It.IsAny<string>(), It.IsAny<Message>()))
-                .Callback<string, Message>((outputName, message) => receivedParameters.Add(Tuple.Create(outputName, message)))
+                .Setup(c => c.CreateTelemetryEvent())
+                .Returns(_message.Object);
+            _client
+                .Setup(c => c.SendEventAsync(It.IsAny<ITelemetryEvent>()))
+                .Callback<ITelemetryEvent>(message => receivedParameters.Add(message))
                 .Returns(Task.CompletedTask);
 
             var _clientAccessorMock = new Mock<IClientAccessor>();
@@ -109,16 +115,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
                 .NotThrowAsync()
                 .ConfigureAwait(false);
 
-            _client.Verify(c => c.SendEventAsync(It.IsAny<string>(), It.IsAny<Message>()), Times.Once());
+            _client.Verify(c => c.SendEventAsync(It.IsAny<ITelemetryEvent>()), Times.Once());
+
+            _message.Verify(m => m.Dispose(), Times.Once());
 
             Assert.Equal(1, receivedParameters.Count);
-            Assert.Equal("runtimeinfo", receivedParameters[0].Item1);
 
-            var message = receivedParameters[0].Item2;
+            var message = receivedParameters[0];
+            Assert.Equal("runtimeinfo", message.RoutingInfo);
             Assert.Equal("application/json", message.ContentType);
             Assert.Equal("utf-8", message.ContentEncoding);
 
-            var body = Encoding.UTF8.GetString(message.GetBytes());
+            Assert.Equal(1, message.Buffers.Count);
+            var body = Encoding.UTF8.GetString(message.Buffers[0]);
             Assert.Equal("{\"MessageType\":\"restartAnnouncement\",\"MessageVersion\":1}", body);
         }
     }

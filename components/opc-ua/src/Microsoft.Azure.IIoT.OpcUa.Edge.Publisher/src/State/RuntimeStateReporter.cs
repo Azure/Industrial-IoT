@@ -59,17 +59,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State {
 
                 var bodyJson = _jsonSerializer.SerializeToString(body);
 
-                var message = new Message(Encoding.UTF8.GetBytes(bodyJson)) {
-                    ContentType = _jsonSerializer.MimeType,
-                    ContentEncoding = Encoding.UTF8.WebName,
-                };
+                using var message = _clientAccessor.Client.CreateMessage(
+                    new[] { Encoding.UTF8.GetBytes(bodyJson) },
+                    contentType: _jsonSerializer.MimeType,
+                    messageSchema: _jsonSerializer.MimeType,
+                    contentEncoding: Encoding.UTF8.WebName,
+                    routingInfo: RuntimeStateReportingPath);
 
-                message.Properties.Add(SystemProperties.MessageSchema, _jsonSerializer.MimeType);
-                message.Properties.Add(CommonProperties.ContentEncoding, Encoding.UTF8.WebName);
-
-                await _clientAccessor.Client
-                    .SendEventAsync(RuntimeStateReportingPath, message)
-                    .ConfigureAwait(false);
+                await _clientAccessor.Client.SendEventAsync(message).ConfigureAwait(false);
 
                 _logger.Information("Restart announcement sent successfully.");
             }

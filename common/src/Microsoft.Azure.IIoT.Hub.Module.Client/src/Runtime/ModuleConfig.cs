@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
         public const string kTransportKey = "Transport";
         public const string kEnableMetricsKey = "EnableMetrics";
         public const string kTelemetryTopicTemplateKey = "TelemetryTopicTemplate";
+        public const string kEnableOutputRouting = "EnableRoutingInfo";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>Hub connection string</summary>
@@ -34,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
             GetStringOrDefault(kMqttClientConnectionStringKey);
 
         /// <summary>
-        /// Gets or sets the optional telemetry topic template. 
+        /// Gets or sets the optional telemetry topic template.
         /// If no template is provided default IoT Hub topics are used.
         /// </summary>
         public string TelemetryTopicTemplate =>
@@ -46,6 +47,9 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
         /// <summary>Whether to enable metrics collection</summary>
         public bool EnableMetrics =>
             GetBoolOrDefault(kEnableMetricsKey, () => true);
+        /// <inheritdoc/>
+        public bool EnableOutputRouting =>
+            GetBoolOrDefault(kEnableOutputRouting, () => false);
         /// <summary>Transports to use</summary>
         public TransportOption Transport => (TransportOption)Enum.Parse(typeof(TransportOption),
             GetStringOrDefault(kTransportKey, () => nameof(TransportOption.MqttOverTcp)), true);

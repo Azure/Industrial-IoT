@@ -88,11 +88,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = true)]
         public double EstimatedIoTChunksPerDay { get; set; }
 
-        /// <summary> OutgressBatchBlockBufferSize </summary>
-        [DataMember(Name = "outgressBatchBlockBufferSize", Order = 15,
-            EmitDefaultValue = true)]
-        public int OutgressBatchBlockBufferSize { get; set; }
-
         /// <summary> OutgressInputBufferCount </summary>
         [DataMember(Name = "outgressInputBufferCount", Order = 16,
             EmitDefaultValue = true)]

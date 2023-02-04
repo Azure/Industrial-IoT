@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
+    using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -123,18 +124,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 { $"kfc|keyframecount=|{StandaloneCliConfigKeys.DefaultKeyFrameCount}=",
                     "The default number of delta messages to send until a key frame message is sent. If 0, no key frame messages are sent, if 1, every message will be a key frame. \nDefault: `0`.\n",
                     (int i) => this[StandaloneCliConfigKeys.DefaultKeyFrameCount] = TimeSpan.FromMilliseconds(i).ToString() },
-                { $"msi|metadatasendinterval=|{StandaloneCliConfigKeys.DefaultMetaDataSendInterval}=",
+                { $"msi|metadatasendinterval=|{StandaloneCliConfigKeys.DefaultMetaDataUpdateTime}=",
                     "Default value in milliseconds for the metadata send interval which determines in which interval metadata is sent.\nEven when disabled, metadata is still sent when the metadata version changes unless `--mm=*Samples` is set in which case this setting is ignored. Only valid for network message encodings. \nDefault: `0` which means periodic sending of metadata is disabled.\n",
-                    (int i) => this[StandaloneCliConfigKeys.DefaultMetaDataSendInterval] = TimeSpan.FromMilliseconds(i).ToString() },
+                    (int i) => this[StandaloneCliConfigKeys.DefaultMetaDataUpdateTime] = TimeSpan.FromMilliseconds(i).ToString() },
                 { $"dm|disablemetadata:|{StandaloneCliConfigKeys.DisableDataSetMetaData}:",
                     "Disables sending any metadata when metadata version changes. This setting can be used to also override the messaging profile's default support for metadata sending. \nDefault: `False` if the messaging profile selected supports sending metadata, `True` otherwise.\n",
                     (bool? b) => this[StandaloneCliConfigKeys.DisableDataSetMetaData] = b?.ToString() ?? "True" },
-
-                // TODO: Default metadata output name
-
-                { $"ri|enableroutinginfo:|{StandaloneCliConfigKeys.EnableRoutingInfo}:",
-                    "Add the routing info to telemetry messages. The name of the property is `$$RoutingInfo` and the value is the `DataSetWriterGroup` for that particular message.\nWhen the `DataSetWriterGroup` is not configured, the `$$RoutingInfo` property will not be added to the message even if this argument is set.\nDefault: `False` (disabled).\n",
-                    (bool? b) => this[StandaloneCliConfigKeys.EnableRoutingInfo] = b?.ToString() ?? "True" },
                     { $"lc|legacycompatibility=|{StandaloneCliConfigKeys.LegacyCompatibility}=",
                         "Run the publisher in legacy (2.5.x) compatibility mode.\nDefault: `False` (disabled).\n",
                         (string b) => this[StandaloneCliConfigKeys.LegacyCompatibility] = b, true },
@@ -145,11 +140,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 "",
 
                 { $"b|mqc=|mqttclientconnectionstring=|{StandaloneCliConfigKeys.MqttClientConnectionString}=",
-                    "An mqtt client connection string to use. Use this option to connect OPC Publisher to a MQTT Broker or to an EdgeHub or IoT Hub MQTT endpoint.\nTo connect to an MQTT broker use the format 'HostName=<IPorDnsName>;Port=<Port>[;DeviceId=<IoTDeviceId>]'.\nTo connect to IoT Hub or EdgeHub MQTT endpoint use a regular IoT Hub connection string.\nIgnored if `-c` option is used to set a connection string.\nDefault: `not set` (disabled).\nFor more information consult https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#using-the-mqtt-protocol-directly-as-a-device) and https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#for-azure-iot-tools) on how to retrieve the device connection string or generate a SharedAccessSignature for one.\n",
+                    "An mqtt client connection string to use. Use this option to connect OPC Publisher to a MQTT Broker or to an EdgeHub or IoT Hub MQTT endpoint.\nTo connect to an MQTT broker use the format 'HostName=<IPorDnsName>;Port=<Port>[;Username=<Username>;Password=<Password>;DeviceId=<IoTDeviceId>;Protocol=<v500 or v311>]'.\nTo connect to IoT Hub or EdgeHub MQTT endpoint use a regular IoT Hub connection string.\nIgnored if `-c` option is used to set a connection string.\nDefault: `not set` (disabled).\nFor more information consult https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#using-the-mqtt-protocol-directly-as-a-device) and https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-mqtt-support#for-azure-iot-tools) on how to retrieve the device connection string or generate a SharedAccessSignature for one.\n",
                     mqc => this[StandaloneCliConfigKeys.MqttClientConnectionString] = mqc },
                 { $"ttt|telemetrytopictemplate=|{StandaloneCliConfigKeys.TelemetryTopicTemplateKey}=",
                     "A template that shall be used to build the topic for outgoing telemetry messages. If not specified IoT Hub and EdgeHub compatible topics will be used. The placeholder '{device_id}' can be used to inject the device id and '{output_name}' to inject routing info into the topic template.\nDefault: `not set`.\n",
                     ttt => this[StandaloneCliConfigKeys.TelemetryTopicTemplateKey] = ttt },
+                { $"ri|enableroutinginfo:|{StandaloneCliConfigKeys.EnableRoutingInfo}:",
+                    "Add routing information to telemetry messages. The name of the property is `$$RoutingInfo` and the value is the `DataSetWriterGroup` for that particular message.\nWhen the `DataSetWriterGroup` is not configured, the `$$RoutingInfo` property will not be added to the message even if this argument is set.\nDefault: `False` (disabled).\n",
+                    (bool? b) => this[StandaloneCliConfigKeys.EnableRoutingInfo] = b?.ToString() ?? "True" },
+                { $"mqn|metadataqueuename:|{StandaloneCliConfigKeys.DefaultDataSetMetaDataQueueName}:",
+                    "The output that metadata should be sent to.\nThis will be a sub path of the configured telemetry topic or replacement of the output name token in the topic template, or in case of EdgeHub, the output name or appended sub path to existing configured output name.\nIn case of MQTT the message will be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled. \nDefault: `disabled` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `$metadata`.\n",
+                    (string s) => this[StandaloneCliConfigKeys.DefaultDataSetMetaDataQueueName] = !string.IsNullOrEmpty(s) ? s : "$metadata" },
                 { $"ht|ih=|iothubprotocol=|{StandaloneCliConfigKeys.HubTransport}=",
                     $"Protocol to use for communication with EdgeHub. Allowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(TransportOption)))}`\nDefault: `{nameof(TransportOption.Mqtt)}` if device or edge hub connection string is provided, ignored otherwise.\n",
                     (TransportOption p) => this[StandaloneCliConfigKeys.HubTransport] = p.ToString() },
@@ -206,9 +207,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 "---------------------------",
                 "",
 
-                { $"aa|autoaccept:|{StandaloneCliConfigKeys.AutoAcceptCerts}:",
-                    "The publisher trusts all servers it is establishing a connection to. WARNING: This setting should never be used in production environments!\n",
+                { $"aa|acceptuntrusted:|{StandaloneCliConfigKeys.AutoAcceptCerts}:",
+                    "The publisher accepts untrusted certificates presented by a server it connects to.\nThis does not include servers presenting bad certificates or certificates that fail chain validation. These errors cannot be suppressed and connection will always be rejected.\nWARNING: This setting should never be used in production environments!\n",
                     (bool? b) => this[StandaloneCliConfigKeys.AutoAcceptCerts] = b?.ToString() ?? "True" },
+                     { $"autoaccept:", "Maintained for backwards compatibility, do not use.",
+                        (string b) => this[StandaloneCliConfigKeys.AutoAcceptCerts] = b ?? "True", /* hidden = */ true },
                 { $"ot|operationtimeout=|{StandaloneCliConfigKeys.OpcOperationTimeout}=",
                     "The operation service call timeout of the publisher OPC UA client in milliseconds. \nDefault: `120000` (2 minutes).\n",
                     (uint u) => this[StandaloneCliConfigKeys.OpcOperationTimeout] = u.ToString() },
@@ -359,6 +362,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             catch (Exception e) {
                 Warning("Parse args exception: " + e.Message);
                 Exit(160);
+                return;
             }
 
             if (_logger.IsEnabled(LogEventLevel.Debug)) {
@@ -380,13 +384,27 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 }
             }
 
-            if (!MessagingProfile.IsSupported(StandaloneCliModel.MessagingMode, StandaloneCliModel.MessageEncoding)) {
-                Warning("The specified combination of --mm, and --me is not (yet) supported. Currently supported combinations are: {MessageProfiles}).",
-                    MessagingProfile.Supported.Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})").Aggregate((a, b) => $"{a}, {b}"));
-                Exit(170);
-            }
+            if (!showHelp) {
+                if (!MessagingProfile.IsSupported(StandaloneCliModel.MessagingMode, StandaloneCliModel.MessageEncoding)) {
+                    Warning("The specified combination of --mm, and --me is not (yet) supported. Currently supported combinations are: {MessageProfiles}), " +
+                            "please use -h option to get all the supported options.",
+                        MessagingProfile.Supported.Select(p => $"\n(--mm {p.MessagingMode} and --me {p.MessageEncoding})").Aggregate((a, b) => $"{a}, {b}"));
+                    Exit(170);
+                    return;
+                }
 
-            if (showHelp) {
+                // Check that the important values are provided
+                else if (!ContainsKey(StandaloneCliConfigKeys.MqttClientConnectionString) &&
+                    !ContainsKey(StandaloneCliConfigKeys.EdgeHubConnectionString) &&
+                    Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID) == null &&
+                    Environment.GetEnvironmentVariable(StandaloneCliConfigKeys.EdgeHubConnectionString) == null) {
+                    Warning("You must specify a connection string or run inside IoT Edge context, " +
+                            "please use -h option to get all the supported options.");
+                    Exit(180);
+                    return;
+                }
+            }
+            else {
                 options.WriteOptionDescriptions(Console.Out);
 #if WRITETABLE
                 Console.WriteLine();
@@ -397,8 +415,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 #endif
                 Exit(0);
             }
-            Config = ToAgentConfigModel();
 
+            Config = ToAgentConfigModel();
 
             void SetStoreType(string s, string storeTypeKey, string optionName) {
                 if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||
@@ -535,7 +553,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.DefaultDiscardNew = GetValueOrDefault(StandaloneCliConfigKeys.DiscardNewDefault, model.DefaultDiscardNew);
             model.DefaultSamplingInterval = GetValueOrDefault(StandaloneCliConfigKeys.OpcSamplingInterval, model.DefaultSamplingInterval);
             model.DefaultPublishingInterval = GetValueOrDefault(StandaloneCliConfigKeys.OpcPublishingInterval, model.DefaultPublishingInterval);
-            model.DefaultMetaDataSendInterval = GetValueOrDefault(StandaloneCliConfigKeys.DefaultMetaDataSendInterval, model.DefaultMetaDataSendInterval);
+            model.DefaultMetaDataUpdateTime = GetValueOrDefault(StandaloneCliConfigKeys.DefaultMetaDataUpdateTime, model.DefaultMetaDataUpdateTime);
+            model.DefaultDataSetMetaDataQueueName = GetValueOrDefault(StandaloneCliConfigKeys.DefaultDataSetMetaDataQueueName, model.DefaultDataSetMetaDataQueueName);
             model.DisableDataSetMetaData = GetValueOrDefault(StandaloneCliConfigKeys.DisableDataSetMetaData, model.DisableDataSetMetaData);
             model.DefaultKeyFrameCount = GetValueOrDefault(StandaloneCliConfigKeys.DefaultKeyFrameCount, model.DefaultKeyFrameCount);
             model.FetchOpcNodeDisplayName = GetValueOrDefault(StandaloneCliConfigKeys.FetchOpcNodeDisplayName, model.FetchOpcNodeDisplayName);

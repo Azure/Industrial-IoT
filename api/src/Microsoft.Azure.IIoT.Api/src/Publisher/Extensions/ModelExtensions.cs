@@ -722,7 +722,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DataSetWriterName = model.DataSetWriterName,
                 DataSet = model.DataSet.ToApiModel(),
                 DataSetFieldContentMask = (Models.DataSetFieldContentMask?)model.DataSetFieldContentMask,
-                DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
+                MetaDataUpdateTime = model.MetaDataUpdateTime,
+                MetaDataQueueName = model.MetaDataQueueName,
                 KeyFrameCount = model.KeyFrameCount,
                 MessageSettings = model.MessageSettings.ToApiModel()
             };
@@ -740,7 +741,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DataSetWriterName = model.DataSetWriterName,
                 DataSet = model.DataSet.ToServiceModel(),
                 DataSetFieldContentMask = (OpcUa.Publisher.Models.DataSetFieldContentMask?)model.DataSetFieldContentMask,
-                DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
+                MetaDataUpdateTime = model.MetaDataUpdateTime,
+                MetaDataQueueName = model.MetaDataQueueName,
                 KeyFrameCount = model.KeyFrameCount,
                 MessageSettings = model.MessageSettings.ToServiceModel()
             };
@@ -861,7 +863,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 MaxMessageSize = model.MaxMessageSize,
                 MaxOutgressMessages = model.MaxOutgressMessages,
                 UseStandardsCompliantEncoding = model.UseStandardsCompliantEncoding,
-                EnableRoutingInfo = model.EnableRoutingInfo,
             };
         }
 
@@ -880,7 +881,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxOutgressMessages = model.MaxOutgressMessages,
                 UseStandardsCompliantEncoding = model.UseStandardsCompliantEncoding,
-                EnableRoutingInfo = model.EnableRoutingInfo,
             };
         }
 

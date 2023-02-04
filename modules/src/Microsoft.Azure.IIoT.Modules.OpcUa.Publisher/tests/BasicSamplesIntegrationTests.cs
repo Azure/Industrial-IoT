@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
     /// </summary>
     [Collection(ReadCollection.Name)]
-    public class BasicSamplesIntegrationTests : PublisherIntegrationTestBase {
+    public class BasicSamplesIntegrationTests : PublisherIoTHubIntegrationTestBase {
         private const string kEventId = "EventId";
         private const string kMessage = "Message";
         private const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";

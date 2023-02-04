@@ -370,7 +370,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             private void InitializeMetaDataTrigger(DataSetWriterModel dataSetWriter) {
 
-                var metaDataSendInterval = dataSetWriter.DataSetMetaDataSendInterval
+                var metaDataSendInterval = dataSetWriter.MetaDataUpdateTime
                     .GetValueOrDefault(TimeSpan.Zero)
                     .TotalMilliseconds;
 

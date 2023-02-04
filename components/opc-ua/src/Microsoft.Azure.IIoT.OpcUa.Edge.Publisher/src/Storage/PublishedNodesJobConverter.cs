@@ -194,16 +194,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             DiagnosticsInterval = _engineConfig.DiagnosticsInterval,
                             MaxMessageSize = _engineConfig.MaxMessageSize,
                             MaxOutgressMessages = _engineConfig.MaxOutgressMessages,
-                            UseStandardsCompliantEncoding = _engineConfig.UseStandardsCompliantEncoding,
-                            EnableRoutingInfo = _engineConfig.EnableRoutingInfo,
+                            UseStandardsCompliantEncoding = _engineConfig.UseStandardsCompliantEncoding
                         },
                         WriterGroup = new WriterGroupModel {
                             MessageType = standaloneCliModel.MessageEncoding,
                             WriterGroupId = dataSetBatches.First.Source.Connection.Group,
                             DataSetWriters = dataSetBatches.Items.Select(dataSet => new DataSetWriterModel {
                                 DataSetWriterName = GetUniqueWriterName(dataSetBatches.Items, dataSet.Source),
-                                DataSetMetaDataSendInterval = IsMetaDataDisabled(standaloneCliModel) ? null :
-                                    dataSetBatches.First.Header.DataSetMetaDataSendInterval ?? standaloneCliModel.DefaultMetaDataSendInterval,
+                                MetaDataUpdateTime = IsMetaDataDisabled(standaloneCliModel) ? null :
+                                    dataSetBatches.First.Header.MetaDataUpdateTime ?? standaloneCliModel.DefaultMetaDataUpdateTime,
+                                MetaDataQueueName = IsMetaDataDisabled(standaloneCliModel) ? null :
+                                    dataSetBatches.First.Header.MetaDataQueueName ?? standaloneCliModel.DefaultDataSetMetaDataQueueName,
                                 KeyFrameCount = !GetMessagingProfile(standaloneCliModel).SupportsKeyFrames ? null :
                                     dataSetBatches.First.Header.DataSetKeyFrameCount ?? standaloneCliModel.DefaultKeyFrameCount,
                                 DataSet = new PublishedDataSetModel {

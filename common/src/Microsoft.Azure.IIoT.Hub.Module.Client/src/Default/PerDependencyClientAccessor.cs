@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// </summary>
         /// <param name="clientFactory"></param>
         public PerDependencyClientAccessor(IClientFactory clientFactory) {
-            Client = clientFactory.CreateAsync().Result;
+            Client = clientFactory.CreateAsync("Module").Result;
         }
 
         /// <inheritdoc/>

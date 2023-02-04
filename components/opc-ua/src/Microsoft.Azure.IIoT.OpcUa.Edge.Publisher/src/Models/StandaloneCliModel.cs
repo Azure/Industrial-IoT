@@ -53,7 +53,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// Default metadata send interval.
         /// </summary>
-        public TimeSpan? DefaultMetaDataSendInterval { get; set; }
+        public TimeSpan? DefaultMetaDataUpdateTime { get; set; }
+
+        /// <summary>
+        /// Data set metadata topic or output name
+        /// </summary>
+        public string DefaultDataSetMetaDataQueueName { get; set; }
 
         /// <summary>
         /// Whether to disable metadata sending

@@ -142,6 +142,6 @@ The `ConditionHandling` section consists of the following properties:
 * `UpdateInterval` - the interval, in seconds, which a message is sent if anything has been updated during this interval.
 * `SnapshotInterval` - the interval, in seconds, that triggers a message to be sent regardless of if there has been an update or not.
 
-One or both of these must be set for condition handling to be in effect. You can use the condition handling configuration regardless if you are using advanced or simple event filters. If you specify `ConditionHandling` option without an `EventFilter` property it is ignored, as condition handling has no effect for data change subscriptions.
+One or both of these must be set for condition handling to be in effect. You can use the condition handling configuration regardless if you are using advanced or simple event filters. If you specify the`ConditionHandling` option property without an `EventFilter` property it is ignored, as condition handling has no effect for data change subscriptions.
 
 Conditions are sent as `ua-condition` data set messages. This is a message type not part of the official standard but allows seperating condition snapshots from regular `ua-event` data set messages.

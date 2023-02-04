@@ -41,11 +41,6 @@ namespace Opc.Ua.PubSub {
         public Func<string> MessageId { get; set; } = () => Guid.NewGuid().ToString();
 
         /// <summary>
-        /// Dataset writerGroup
-        /// </summary>
-        public string DataSetWriterGroup { get; set; }
-
-        /// <summary>
         /// Message type
         /// </summary>
         internal string MessageType { get; set; } = MessageTypeUaData;

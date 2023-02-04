@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IIoT.Messaging;
     using System;
 
     /// <summary>
@@ -17,15 +18,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// Send an event to hub.
         /// </summary>
         /// <param name="message">The message containing the event.</param>
-        void SendEvent(Message message);
-
-        /// <summary>
-        /// Send an event to hub.
-        /// </summary>
-        /// <param name="outputName">The output target for sending the given message.</param>
-        /// <param name="message">The message containing the event.</param>
         /// <returns></returns>
-        void SendEvent(string outputName, Message message);
+        void SendEvent(ITelemetryEvent message);
 
         /// <summary>
         /// Get twin from hub
