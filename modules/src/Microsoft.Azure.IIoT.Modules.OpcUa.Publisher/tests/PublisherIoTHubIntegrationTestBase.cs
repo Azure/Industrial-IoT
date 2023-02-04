@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -47,16 +48,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using static Microsoft.Azure.IIoT.Hub.Mock.IoTHubServices;
 
     /// <summary>
     /// Base class for integration testing, it connects to the server, runs publisher and injects mocked IoTHub services.
     /// </summary>
-    public class PublisherIntegrationTestBase {
+    public class PublisherIoTHubIntegrationTestBase {
         /// <summary>
         /// Whether the module is running.
         /// </summary>
-        private BlockingCollection<EventMessage> Events { get; set; }
+        private BlockingCollection<ITelemetryEvent> Events { get; set; }
 
         /// <summary>
         /// Device Id
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// </summary>
         protected string ModuleId { get; }
 
-        public PublisherIntegrationTestBase(ReferenceServerFixture serverFixture) {
+        public PublisherIoTHubIntegrationTestBase(ReferenceServerFixture serverFixture) {
             // This is a fake but correctly formatted connection string.
             var connectionString = $"HostName=dummy.azure-devices.net;" +
                 $"DeviceId={DeviceId};" +
@@ -171,17 +171,22 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             while (messages.Count < messageCount && messageCollectionTimeout > TimeSpan.Zero
                 && Events.TryTake(out var evt, messageCollectionTimeout)) {
                 messageCollectionTimeout -= stopWatch.Elapsed;
-                var json = Encoding.UTF8.GetString(evt.Message.GetBytes());
-                var document = JsonDocument.Parse(json);
-                json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
-                var element = document.RootElement;
-                if (element.ValueKind == JsonValueKind.Array) {
-                    foreach (var item in element.EnumerateArray()) {
-                        Add(messages, item, ref metadata, predicate, messageType, _messageIds);
+                foreach (var body in evt.Buffers) {
+                    var json = Encoding.UTF8.GetString(body);
+                    var document = JsonDocument.Parse(json);
+                    json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
+                    var element = document.RootElement;
+                    if (element.ValueKind == JsonValueKind.Array) {
+                        foreach (var item in element.EnumerateArray()) {
+                            Add(messages, item, ref metadata, predicate, messageType, _messageIds);
+                        }
                     }
-                }
-                else if (element.ValueKind == JsonValueKind.Object) {
-                    Add(messages, element, ref metadata, predicate, messageType, _messageIds);
+                    else if (element.ValueKind == JsonValueKind.Object) {
+                        Add(messages, element, ref metadata, predicate, messageType, _messageIds);
+                    }
+                    if (messages.Count >= messageCount) {
+                        break;
+                    }
                 }
             }
             return messages.Take(messageCount).ToList();
@@ -398,7 +403,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             builder.RegisterType<IoTHubClientFactory>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
-            builder.Register(ctx => Create(devices))
+            builder.Register(ctx => IoTHubServices.Create(devices))
                 .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<ModuleHost>()

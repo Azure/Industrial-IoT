@@ -103,11 +103,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         public double EstimatedIoTChunksPerDay { get; set; }
 
         /// <summary>
-        /// OutgressBatchBlockBufferSize
-        /// </summary>
-        public int OutgressBatchBlockBufferSize { get; set; }
-
-        /// <summary>
         /// OutgressInputBufferCount
         /// </summary>
         public int OutgressInputBufferCount { get; set; }

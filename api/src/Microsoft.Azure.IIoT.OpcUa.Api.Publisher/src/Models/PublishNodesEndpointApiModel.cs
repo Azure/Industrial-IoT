@@ -51,14 +51,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public AuthenticationMode OpcAuthenticationMode { get; set; }
 
         /// <summary> Endpoint's username </summary>
-        [DataMember(Name = "userName", Order = 7,
+        [DataMember(Name = "opcAuthenticationUsername", Order = 7,
             EmitDefaultValue = false)]
-        public string UserName { get; set; }
+        public string OpcAuthenticationUsername { get; set; }
 
         /// <summary> endpoint password </summary>
-        [DataMember(Name = "password", Order = 8,
+        [DataMember(Name = "OpcAuthenticationPassword", Order = 8,
             EmitDefaultValue = false)]
-        public string Password { get; set; }
+        public string OpcAuthenticationPassword { get; set; }
 
         /// <summary> List of the OpcNodes to be monitored </summary>
         [DataMember(Name = "opcNodes", Order = 10,
@@ -86,17 +86,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public uint? DataSetKeyFrameCount { get; set; }
 
         /// <summary> Send metadata at the configured interval even when not changing </summary>
-        [DataMember(Name = "dataSetMetaDataSendInterval", Order = 15,
+        [DataMember(Name = "metaDataUpdateTime", Order = 15,
             EmitDefaultValue = false)]
-        public TimeSpan? DataSetMetaDataSendInterval { get; set; }
+        public TimeSpan? MetaDataUpdateTime { get; set; }
+
+        /// <summary> Metadata queue name </summary>
+        [DataMember(Name = "metaDataQueueName", Order = 16,
+            EmitDefaultValue = false)]
+        public string MetaDataQueueName { get; set; }
 
         /// <summary> Version number </summary>
-        [DataMember(Name = "version", Order = 16,
+        [DataMember(Name = "version", Order = 17,
             EmitDefaultValue = false)]
         public int? Version { get; set; }
 
         /// <summary> Last change </summary>
-        [DataMember(Name = "lastChange", Order = 17,
+        [DataMember(Name = "lastChange", Order = 18,
             EmitDefaultValue = false)]
         public DateTime? LastChange { get; set; }
     }

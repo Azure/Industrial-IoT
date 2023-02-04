@@ -44,8 +44,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         bool UseStandardsCompliantEncoding { get; }
 
         /// <summary>
-        /// Flag to determine if adding telemetry routing info is enabled.
+        /// Default metadata queue name
         /// </summary>
-        bool EnableRoutingInfo { get; }
+        string DefaultMetaDataQueueName{ get; }
     }
 }

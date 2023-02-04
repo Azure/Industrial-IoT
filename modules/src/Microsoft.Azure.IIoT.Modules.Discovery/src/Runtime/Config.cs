@@ -24,6 +24,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Runtime {
 
         /// <inheritdoc/>
         public string TelemetryTopicTemplate => _module.TelemetryTopicTemplate;
+        /// <inheritdoc/>
+        public bool EnableOutputRouting => _module.EnableOutputRouting;
 
         /// <inheritdoc/>
         public bool BypassCertVerification => _module.BypassCertVerification;

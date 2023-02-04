@@ -43,6 +43,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public bool EnableMetrics { get; }
             /// <inheritdoc/>
+            public bool EnableOutputRouting { get; }
+            /// <inheritdoc/>
             public TransportOption Transport { get; }
 
             /// <inheritdoc/>
@@ -57,6 +59,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 EdgeHubConnectionString = GetEdgeHubConnectionString(config, connectionString);
                 BypassCertVerification = config.BypassCertVerification;
                 Transport = config.Transport;
+                EnableOutputRouting = config.EnableOutputRouting;
             }
 
             /// <summary>

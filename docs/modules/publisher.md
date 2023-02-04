@@ -1,8 +1,17 @@
 [Home](../../readme.md)
 
-# Microsoft OPC Publisher - Standalone Mode
+# Microsoft OPC Publisher
 
 OPC Publisher is a module that runs on [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) and bridges the gap between industrial assets and the Microsoft Azure cloud. It connects to OPC UA server systems and publishes telemetry data to [Azure IoT Hub](https://azure.microsoft.com/services/iot-hub/) in various formats, including IEC62541 OPC UA PubSub standard format (*not supported in versions < 2.7.x*).
+
+In this document you find information to
+
+- [Get started](#getting-started)
+- [Configue OPC Publisher](#configuring-opc-publisher)
+- [Configure mutual trust between OPC Publisher and the OPC UA server](#opc-ua-certificates-management)
+- [Understand message formats supported by OPC Publisher](#opc-publisher-telemetry-formats)
+- [Tune OPC Publisher performance](#performance-and-memory-tuning-opc-publisher)
+- [Monitor and diagnose OPC Publisher](#local-metrics-dashboard-for-opc-publisher)
 
 ## Getting Started
 
@@ -71,7 +80,13 @@ A connection to an OPC UA server using its hostname without a DNS server configu
 
 ## Configuring OPC Publisher
 
-OPC Publisher has several interfaces that can be used to configure it.
+OPC Publisher has several interfaces that can be used to configure it.  
+
+- [Configuration via configuration file](#configuration-via-configuration-file)
+- [Command Line options configuration](./publisher-commandline.md)
+- [Direct method runtime configuration](./publisher-directmethods.md)
+- [Orchestrated mode based configuration using Industrial IoT Platform API](../services/publisher.md)
+- [How to migrate from previous versions of OPC Publisher](./publisher-migrationpath.md)
 
 ### Configuring Security
 
@@ -97,7 +112,7 @@ By default OPC Publisher does use no user authentication (anonymous). However, O
 
 OPC Publisher version 2.5 and below encrypts the username and password in the configuration file. Version 2.6 and above stores them in plain text.
 
-### Telemetry event Configuration via Configuration File
+### Configuration via Configuration File
 
 The simplest way to configure OPC Publisher is via a configuration file. A basic configuration file looks like this:
 
@@ -138,28 +153,45 @@ OPC UA sends the current data value when OPC Publisher connects to the OPC UA se
  "SkipFirst": true,
 ```
 
-### Configuration via Command Line Arguments
+### Persisting OPC Publisher Configuration
 
-There are several command line arguments that can be used to configure global settings for OPC Publisher. They're described [in a separate document](publisher-commandline.md).
+To ensure operation of OPC Publisher over restarts, it's required to map configuration files to the host file system. The mapping can be achieved via the "Container Create Option" in the Azure portal. The configuration files are:
 
-### Configuration via IoT Hub Direct methods
+- the file system based directory store
+- the telemetry configuration file
 
-Up to OPC Publisher 2.5.x configuration of telemetry events was possible via direct methods. Those direct methods have been removed in higher versions.
-Starting with version 2.8.2 direct methods are available again.
+In version 2.6 and above, username and password are stored in plain text in the configuration file. It must be ensured that the configuration file is protected by the file system access control of the host file system. The same must be ensured for the file system based certificate store, since it contains the private certificate and private key of OPC Publisher.
 
-These direct methods are documented in a separate [document](publisher-directmethods.md).
+## OPC UA Certificates management
 
-Migration of applications, which used direct methods from version 2.5.x to versions 2.8.2 or above, check the [migration path](publisher-migrationpath.md) documentation.
+OPC Publisher connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish *trust* between the client and the server. This is done through *mutual* authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server.
 
-### Configuration via Cloud-based, Companion REST Microservice
+To simplify setup, the OPC Publisher Edge module has a setting to automatically trust all *untrusted* server certificates ("--aa"). 
+Please note that this does not mean OPC Publisher will accept any certificate presented. If Certificates are malformed or if certificates chains cannot be validated the certificate is considered broken (and not untrusted) and will be rejected as per OPC Foundation Security guidelines. In particular if a server does not provide a full chain it should be configured to do so, or the entire chain must be pre-provisioned in the OPC Publishers `PKI` folder structure.
 
-**Please note: This feature is not available in version 2.5.x.**
+By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to [use their own certificate](#use-custom-opc-ua-application-instance-certificate-in-opc-publisher).
 
-A cloud-based, companion microservice with a REST interface is described and available [here](https://github.com/Azure/Industrial-IoT/blob/main/docs/services/publisher.md). It can be used to configure OPC Publisher via an OpenAPI-compatible interface, for example through Swagger.
+The biggest hurdle most OT admins need to overcome when deploying OPC Publisher is to configure the OPC UA server (equipment) to accept this OPC Publisher X.509 certificate (the other side of mutual trust). There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted. For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf).
 
-## OPC Publisher Telemetry Format
+To use the [OPC PLC Server Simulator](https://docs.microsoft.com/en-us/samples/azure-samples/iot-edge-opc-plc/azure-iot-sample-opc-ua-server/), be sure to include the `–-aa` switch or copy the server.der to the pki.
+The pki path can be configured using the `PkiRootPath` command line argument.
+
+### Use custom OPC UA application instance certificate in OPC Publisher
+
+By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
+One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
+
+Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the `ApplicationCertificateSubjectName` like in the example below.
+
+`ApplicationCertificateSubjectName="CN=TEST-PUBLISHER,OU=Windows2019,OU=\"Test OU\",DC=microsoft,DC=com"`
+
+`ApplicationName ="TEST-PUBLISHER"`
+
+## OPC Publisher Telemetry Formats
 
 OPC Publisher version 2.6 and above supports standardized OPC UA PubSub network messages in JSON format as specified in [part 14 of the OPC UA specification](https://opcfoundation.org/developer-tools/specifications-unified-architecture/part-14-pubsub/).
+
+An example OPC UA PubSub message looks as follows:
 
 ``` json
 {
@@ -195,7 +227,7 @@ OPC Publisher version 2.6 and above supports standardized OPC UA PubSub network 
 }
 ```
 
-OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` command line option. For backwards compatibilty this option is off by default. 
+OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` command line option. For backwards compatibilty this option is off by default.
 > It is highly recommended to always run OPC Publisher with strict adherence turned on.
 
 All versions of OPC Publisher support a non-standard, simple JSON telemetry format (typically referred to as "Samples" format and which is the default setting). Samples mode is compatible with [Azure Time Series Insights](https://azure.microsoft.com/services/time-series-insights/):
@@ -233,27 +265,10 @@ All versions of OPC Publisher support a non-standard, simple JSON telemetry form
 
 **Warning: The `Samples` format changed over time**
 
-You can find more examples [here](./telemetry-messages-format.md) and [here](./telemetry-events-format.md).
+More detailed information about the supported message formats can be found here:  
 
-### Persisting OPC Publisher Configuration
-
-To ensure operation of OPC Publisher over restarts, it's required to map configuration files to the host file system. The mapping can be achieved via the "Container Create Option" in the Azure portal. The configuration files are:
-
-- the file system based directory store
-- the telemetry configuration file
-
-In version 2.6 and above, username and password are stored in plain text in the configuration file. It must be ensured that the configuration file is protected by the file system access control of the host file system. The same must be ensured for the file system based certificate store, since it contains the private certificate and private key of OPC Publisher.
-
-### Use custom OPC UA application instance certificate in OPC Publisher
-
-By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
-One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
-
-Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the `ApplicationCertificateSubjectName` like in the example below.
-
-`ApplicationCertificateSubjectName="CN=TEST-PUBLISHER,OU=Windows2019,OU=\"Test OU\",DC=microsoft,DC=com"`
-
-`ApplicationName ="TEST-PUBLISHER"`
+- [Telemetry message formats](./telemetry-messages-format.md)
+- [Event message formats](./telemetry-events-format.md)
 
 ## Performance and Memory Tuning OPC Publisher
 

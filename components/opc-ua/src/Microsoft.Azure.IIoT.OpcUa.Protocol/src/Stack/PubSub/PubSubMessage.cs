@@ -36,9 +36,9 @@ namespace Opc.Ua.PubSub {
         public string PublisherId { get; set; }
 
         /// <summary>
-        /// Routing information stashed into the message
+        /// Dataset writerGroup
         /// </summary>
-        public string RoutingInfo { get; set; }
+        public string DataSetWriterGroup { get; set; }
 
         /// <summary>
         /// Memory stream manager

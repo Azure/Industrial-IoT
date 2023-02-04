@@ -6,11 +6,13 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Messaging;
     using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.IO;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -25,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public bool IsClosed { get; internal set; }
 
         /// <inheritdoc />
-        public int MaxMessageSize => 256 * 1024;
+        public int MaxEventBufferSize => 256 * 1024;
 
         /// <summary>
         /// Create client
@@ -70,7 +72,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task CloseAsync() {
+        public async ValueTask DisposeAsync() {
             if (IsClosed) {
                 return;
             }
@@ -81,55 +83,37 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(Message message) {
+        public ITelemetryEvent CreateTelemetryEvent() {
+            return new DeviceMessage();
+        }
+
+        /// <inheritdoc />
+        public async Task SendEventAsync(ITelemetryEvent message) {
             if (IsClosed) {
                 return;
             }
-            await _client.SendEventAsync(message);
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventAsync(string outputName, Message message) {
-			if (IsClosed) {
-            	return;
+            var messages = ((DeviceMessage)message).AsMessages();
+            try {
+                if (messages.Count == 1) {
+                    await _client.SendEventAsync(messages[0]);
+                }
+                await _client.SendEventBatchAsync(messages);
             }
-            _logger.Debug("DeviceClientAdapter does not support output routing. Falling back to regular SendEventAsync()");
-            await _client.SendEventAsync(message);
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventBatchAsync(IEnumerable<Message> messages) {
-            if (IsClosed) {
-                return;
+            finally {
+                foreach (var hubMessage in messages) {
+                    hubMessage.Dispose();
+                }
             }
-            await _client.SendEventBatchAsync(messages);
         }
 
         /// <inheritdoc />
-        public async Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
-            if (IsClosed) {
-                return;
-            }
-            _logger.Debug("DeviceClientAdapter does not support output routing. Falling back to regular SendEventBatchAsync()");
-            await _client.SendEventBatchAsync(messages);
+        public Task SetMethodHandlerAsync(MethodCallback methodHandler) {
+            return _client.SetMethodDefaultHandlerAsync(methodHandler, null);
         }
 
         /// <inheritdoc />
-        public Task SetMethodHandlerAsync(string methodName,
-            MethodCallback methodHandler, object userContext) {
-            return _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
-        }
-
-        /// <inheritdoc />
-        public Task SetMethodDefaultHandlerAsync(
-            MethodCallback methodHandler, object userContext) {
-            return _client.SetMethodDefaultHandlerAsync(methodHandler, userContext);
-        }
-
-        /// <inheritdoc />
-        public Task SetDesiredPropertyUpdateCallbackAsync(
-            DesiredPropertyUpdateCallback callback, object userContext) {
-            return _client.SetDesiredPropertyUpdateCallbackAsync(callback, userContext);
+        public Task SetDesiredPropertyUpdateCallbackAsync(DesiredPropertyUpdateCallback callback) {
+            return _client.SetDesiredPropertyUpdateCallbackAsync(callback, null);
         }
 
         /// <inheritdoc />
@@ -146,23 +130,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task UploadToBlobAsync(string blobName, Stream source) {
-            if (IsClosed) {
-                return;
-            }
-#pragma warning disable CS0618 // Type or member is obsolete
-            await _client.UploadToBlobAsync(blobName, source);
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
-
-        /// <inheritdoc />
         public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-            MethodRequest methodRequest, CancellationToken cancellationToken) {
-            throw new NotSupportedException("Device client does not support methods");
-        }
-
-        /// <inheritdoc />
-        public Task<MethodResponse> InvokeMethodAsync(string deviceId,
             MethodRequest methodRequest, CancellationToken cancellationToken) {
             throw new NotSupportedException("Device client does not support methods");
         }
@@ -224,6 +192,130 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     new ITransportSettings[] { transportSetting });
             }
             return DeviceClient.CreateFromConnectionString(cs.ToString());
+        }
+
+
+        /// <summary>
+        /// Message wrapper
+        /// </summary>
+        internal sealed class DeviceMessage : ITelemetryEvent {
+
+            /// <summary>
+            /// Build message
+            /// </summary>
+            internal IReadOnlyList<Message> AsMessages() {
+                return Buffers
+                    .Where(b => b != null)
+                    .Select(m => _template.CloneWithBody(m))
+                    .ToList();
+            }
+
+            /// <inheritdoc/>
+            public DateTime Timestamp { get; set; }
+
+            /// <inheritdoc/>
+            public string ContentType {
+                get {
+                    return _template.ContentType;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _template.ContentType = value;
+                        _template.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public string ContentEncoding {
+                get {
+                    return _template.ContentEncoding;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _template.ContentEncoding = value;
+                        _template.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public string MessageSchema {
+                get {
+                    if (_template.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value)) {
+                        return value;
+                    }
+                    return null;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _template.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public string RoutingInfo {
+                get {
+                    if (_template.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value)) {
+                        return value;
+                    }
+                    return null;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _template.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public string DeviceId {
+                get {
+                    if (_template.Properties.TryGetValue(CommonProperties.DeviceId, out var value)) {
+                        return value;
+                    }
+                    return null;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _template.Properties.AddOrUpdate(CommonProperties.DeviceId, value);
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public string ModuleId {
+                get {
+                    if (_template.Properties.TryGetValue(CommonProperties.ModuleId, out var value)) {
+                        return value;
+                    }
+                    return null;
+                }
+                set {
+                    if (!string.IsNullOrWhiteSpace(value)) {
+                        _template.Properties.AddOrUpdate(CommonProperties.ModuleId, value);
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public IReadOnlyList<byte[]> Buffers { get; set; }
+
+            /// <inheritdoc/>
+            public string OutputName { get; set; }
+            /// <inheritdoc/>
+            public bool Retain { get; set; }
+            /// <inheritdoc/>
+            public TimeSpan Ttl { get; set; }
+
+            /// <inheritdoc/>
+            public void Dispose() {
+                // TODO: Return to pool
+                _template.Dispose();
+            }
+
+            Message _template = new Message();
         }
 
         private readonly DeviceClient _client;

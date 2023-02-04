@@ -383,7 +383,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     DataSetName = model.DataSetName,
                     DataSetDescription = model.DataSetDescription,
                     DataSetKeyFrameCount = model.DataSetKeyFrameCount,
-                    DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
+                    MetaDataUpdateTime = model.MetaDataUpdateTime,
+                    MetaDataQueueName = model.MetaDataQueueName,
                     DataSetClassId = model.DataSetClassId,
                     DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
                     DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue

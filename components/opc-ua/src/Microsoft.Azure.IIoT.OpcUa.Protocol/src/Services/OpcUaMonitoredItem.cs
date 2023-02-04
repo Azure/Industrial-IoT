@@ -1022,10 +1022,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     switch (builtInType) {
                         case BuiltInType.Enumeration:
                         case BuiltInType.ExtensionObject:
-                            NodeIdDictionary<DataTypeDefinition> types = null;
-#if FULLMETADATA // Enable when supported in stack
-                            types = typeSystem?.GetDataTypeDefinitionsForDataType(dataType.NodeId);
-#endif
+                            var types = typeSystem?.GetDataTypeDefinitionsForDataType(dataType.NodeId);
                             if (types == null || types.Count == 0) {
                                 dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(dataType, builtInType));
                                 break;

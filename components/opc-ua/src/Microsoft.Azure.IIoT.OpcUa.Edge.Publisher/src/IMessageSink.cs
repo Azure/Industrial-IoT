@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -19,15 +20,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         long SentMessagesCount { get; }
 
         /// <summary>
-        /// Max message size sink can deal with
+        /// Max message size sink can handle
         /// </summary>
         int MaxMessageSize { get; }
 
         /// <summary>
-        /// Send network message
+        /// Create message
+        /// </summary>
+        /// <returns></returns>
+        ITelemetryEvent CreateMessage();
+
+        /// <summary>
+        /// Send messages and dispose them
         /// </summary>
         /// <param name="messages"></param>
         /// <returns></returns>
-        Task SendAsync(IEnumerable<NetworkMessageModel> messages);
+        Task SendAsync(ITelemetryEvent messages);
     }
 }

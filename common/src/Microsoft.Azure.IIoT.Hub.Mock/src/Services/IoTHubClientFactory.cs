@@ -6,11 +6,12 @@
 namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.Devices.Common;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -72,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             public bool IsClosed { get; internal set; }
 
             /// <inheritdoc />
-            public int MaxMessageSize => 256 * 1024;
+            public int MaxEventBufferSize => 256 * 1024;
 
             /// <summary>
             /// Connection to iot hub
@@ -88,16 +89,15 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
-            public Task CloseAsync() {
+            public ValueTask DisposeAsync() {
                 Connection.Close();
                 Connection = null;
                 IsClosed = true;
-                return Task.CompletedTask;
+                return ValueTask.CompletedTask;
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(Message message) {
-                // Add event to telemetry list
+            public Task SendEventAsync(ITelemetryEvent message) {
                 if (!IsClosed) {
                     Connection.SendEvent(message);
                 }
@@ -105,57 +105,18 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(string outputName, Message message) {
-                // Add event to telemetry list
+            public Task SetMethodHandlerAsync(MethodCallback methodHandler) {
                 if (!IsClosed) {
-                    Connection.SendEvent(outputName, message);
-                }
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc />
-            public Task SendEventBatchAsync(IEnumerable<Message> messages) {
-                if (!IsClosed) {
-                    foreach (var message in messages) {
-                        Connection.SendEvent(message);
-                    }
-                }
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc />
-            public Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
-                if (!IsClosed) {
-                    foreach (var message in messages) {
-                        Connection.SendEvent(outputName, message);
-                    }
-                }
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc />
-            public Task SetMethodHandlerAsync(string methodName,
-                MethodCallback methodHandler, object userContext) {
-                if (!IsClosed) {
-                    _methods.AddOrUpdate(methodName, (methodHandler, userContext));
-                }
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc />
-            public Task SetMethodDefaultHandlerAsync(
-                MethodCallback methodHandler, object userContext) {
-                if (!IsClosed) {
-                    _methods.AddOrUpdate("$default", (methodHandler, userContext));
+                    _methods = methodHandler;
                 }
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc />
             public Task SetDesiredPropertyUpdateCallbackAsync(
-                DesiredPropertyUpdateCallback callback, object userContext) {
+                DesiredPropertyUpdateCallback callback) {
                 if (!IsClosed) {
-                    _properties.Add((callback, userContext));
+                    _properties = callback;
                 }
                 return Task.CompletedTask;
             }
@@ -174,62 +135,25 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
-            public Task UploadToBlobAsync(string blobName, Stream source) {
-                if (!IsClosed) {
-                    Connection.SendBlob(blobName, source.ReadAsBuffer());
-                }
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc />
             public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
                 MethodRequest methodRequest, CancellationToken cancellationToken) {
-                return Task.FromResult(IsClosed ? null :
-                    Connection.Call(deviceId, moduleId, methodRequest));
-            }
-
-            /// <inheritdoc />
-            public Task<MethodResponse> InvokeMethodAsync(string deviceId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) {
-                return Task.FromResult(IsClosed ? null :
-                    Connection.Call(deviceId, null, methodRequest));
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamsDefaultHandlerAsync(StreamCallback streamHandler,
-                object userContext) {
-                throw new NotSupportedException("Test client does not support streams yet");
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamHandlerAsync(string streamName, StreamCallback
-                streamHandler, object userContext) {
-                throw new NotSupportedException("Test client does not support streams yet");
-            }
-
-            /// <inheritdoc />
-            public Task<Stream> CreateStreamAsync(string streamName, string hostName,
-                ushort port, CancellationToken cancellationToken) {
-                throw new NotSupportedException("Test client does not support streams yet");
+                return Task.FromResult(IsClosed ? null : Connection.Call(deviceId,
+                    string.IsNullOrEmpty(moduleId) ? null : moduleId, methodRequest));
             }
 
             /// <inheritdoc />
             public void SetDesiredProperties(TwinCollection desiredProperties) {
-                foreach (var (cb, ctx) in _properties) {
-                    cb(desiredProperties, ctx);
-                }
+                _properties?.Invoke(desiredProperties, null);
             }
 
             /// <inheritdoc />
             public MethodResponse Call(MethodRequest methodRequest) {
-                if (!_methods.TryGetValue(methodRequest.Name, out var item)) {
-                    if (!_methods.TryGetValue("$default", out item)) {
-                        return new MethodResponse(500);
-                    }
+                var cb = _methods;
+                if (cb == null) {
+                    return new MethodResponse(500);
                 }
                 try {
-                    var (cb, ctx) = item;
-                    return cb(methodRequest, ctx).Result;
+                    return cb(methodRequest, null).Result;
                 }
                 catch {
                     return new MethodResponse(500);
@@ -249,13 +173,115 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 IsClosed = true;
             }
 
-            private readonly Dictionary<string, (MethodCallback, object)> _methods =
-                new Dictionary<string, (MethodCallback, object)>();
-            private readonly List<(DesiredPropertyUpdateCallback, object)> _properties =
-                new List<(DesiredPropertyUpdateCallback, object)>();
-#pragma warning disable IDE0052 // Remove unread private members
+            /// <inheritdoc />
+            public ITelemetryEvent CreateTelemetryEvent() {
+                return new TelemetryMessage();
+            }
+
+            /// <summary>
+            /// Message wrapper
+            /// </summary>
+            internal sealed class TelemetryMessage : ITelemetryEvent {
+
+                /// <inheritdoc/>
+                public DateTime Timestamp { get; set; }
+
+                /// <inheritdoc/>
+                public string ContentType {
+                    get {
+                        return _msg.ContentType;
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.ContentType = value;
+                            _msg.Properties.AddOrUpdate(SystemProperties.MessageSchema, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string ContentEncoding {
+                    get {
+                        return _msg.ContentEncoding;
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.ContentEncoding = value;
+                            _msg.Properties.AddOrUpdate(CommonProperties.ContentEncoding, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string MessageSchema {
+                    get {
+                        return _msg.Properties.GetValueOrDefault(CommonProperties.EventSchemaType);
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.Properties.AddOrUpdate(CommonProperties.EventSchemaType, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string RoutingInfo {
+                    get {
+                        return _msg.Properties.GetValueOrDefault(CommonProperties.RoutingInfo);
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.Properties.AddOrUpdate(CommonProperties.RoutingInfo, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string DeviceId {
+                    get {
+                        return _msg.Properties.GetValueOrDefault(CommonProperties.DeviceId);
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.Properties.AddOrUpdate(CommonProperties.DeviceId, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public string ModuleId {
+                    get {
+                        return _msg.Properties.GetValueOrDefault(CommonProperties.ModuleId);
+                    }
+                    set {
+                        if (!string.IsNullOrWhiteSpace(value)) {
+                            _msg.Properties.AddOrUpdate(CommonProperties.ModuleId, value);
+                        }
+                    }
+                }
+
+                /// <inheritdoc/>
+                public IReadOnlyList<byte[]> Buffers { get; set; }
+
+                /// <inheritdoc/>
+                public string OutputName { get; set; }
+                /// <inheritdoc/>
+                public bool Retain { get; set; }
+                /// <inheritdoc/>
+                public TimeSpan Ttl { get; set; }
+
+                /// <inheritdoc/>
+                public void Dispose() {
+                    // TODO: Return to pool
+                    _msg.Dispose();
+                }
+
+                Message _msg = new Message();
+            }
+
+            private MethodCallback _methods;
+            private DesiredPropertyUpdateCallback _properties;
             private readonly IProcessControl _ctrl;
-#pragma warning restore IDE0052 // Remove unread private members
         }
 
         private readonly IIoTHub _hub;

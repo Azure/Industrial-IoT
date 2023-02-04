@@ -453,9 +453,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             private void InitializeMetaDataTrigger() {
 
-                var metaDataSendInterval = _dataSetWriter.DataSetMetaDataSendInterval
-                    .GetValueOrDefault(_outer._subscriptionManager
-                        .Configuration.DefaultMetaDataUpdateTime ?? TimeSpan.Zero)
+                var metaDataSendInterval = _dataSetWriter.MetaDataUpdateTime
+                    .GetValueOrDefault(TimeSpan.Zero)
                     .TotalMilliseconds;
 
                 if (metaDataSendInterval > 0 && _outer._subscriptionManager
