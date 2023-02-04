@@ -296,9 +296,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 }
                                 break;
                             case SessionState.Disconnect:
-                                if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = HandleDisconnectAsync(id, wrapper);
-                                }
+                                await HandleDisconnectAsync(id, wrapper);
                                 break;
                             case SessionState.Closed:
                                 break;
@@ -562,7 +560,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="wrapper"></param>
         /// <returns></returns>
         private async Task HandleDisconnectAsync(ConnectionIdentifier id, SessionWrapper wrapper) {
-            _logger.Debug("Removing session '{id}'", id);
+            _logger.Information("Removing session '{id}'", id);
             await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 if (_sessions.Remove(id, out var found)) {
@@ -570,34 +568,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Debug.Assert(wrapper == found);
                     }
                     wrapper = found;
+                    wrapper.State = SessionState.Closed;
+                    var session = wrapper.Session;
+                    if (session == null) {
+                        return;
+                    }
+                    wrapper.Session = null;
+                    session.KeepAlive -= Session_KeepAlive;
+                    session.Notification -= Session_Notification;
+                    session.Handle = null;
+
+                    // Queue close
+                    if (!ThreadPool.QueueUserWorkItem(_ => CloseSession(_logger, id, session))) {
+                        _ = Task.Run(() => CloseSession(_logger, id, session));
+                    };
+                }
+                else if (wrapper == null) {
+                    _logger.Error("Session '{id}' not found.", id);
                 }
             }
             finally {
                 _lock.Release();
             }
-            try {
-                if (wrapper != null && wrapper.Session != null) {
 
-                    wrapper.State = SessionState.Closed;
-                    wrapper.Session.KeepAlive -= Session_KeepAlive;
-                    wrapper.Session.Notification -= Session_Notification;
-
-                    wrapper.Session.Handle = null;
-                    // Remove subscriptions
-                    if (wrapper.Session.SubscriptionCount > 0) {
-                        foreach (var subscription in wrapper.Session.Subscriptions) {
-                            Try.Op(() => subscription.DeleteItems());
+            static void CloseSession(ILogger logger, ConnectionIdentifier id, Session session) {
+                try {
+                    if (session != null) {
+                        // Remove subscriptions
+                        if (session.SubscriptionCount > 0) {
+                            foreach (var subscription in session.Subscriptions) {
+                                Try.Op(() => subscription.DeleteItems());
+                            }
+                            Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
                         }
-                        Try.Op(() => wrapper.Session.RemoveSubscriptions(wrapper.Session.Subscriptions));
+                        // close the session
+                        Try.Op(session.Close);
+                        Try.Op(session.Dispose);
+                        logger.Information("Closed session '{id}'.", id);
                     }
-                    // close the session
-                    Try.Op(wrapper.Session.Close);
-                    Try.Op(wrapper.Session.Dispose);
-                    wrapper.Session = null;
                 }
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Failed to remove session '{id}'", id);
+                catch (Exception ex) {
+                    logger.Error(ex, "Failed to close session '{id}'", id);
+                }
             }
         }
 
