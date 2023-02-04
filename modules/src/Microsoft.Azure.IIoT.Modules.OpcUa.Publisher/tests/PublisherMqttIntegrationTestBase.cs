@@ -316,7 +316,6 @@ $"--ttt={topicRoot}",
                     using (var hostScope = ConfigureContainer(configurationRoot)) {
                         var module = hostScope.Resolve<IModuleHost>();
                         var events = hostScope.Resolve<IEventEmitter>();
-                        var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
                         var moduleConfig = hostScope.Resolve<IModuleConfig>();
                         var identity = hostScope.Resolve<IIdentity>();
                         var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
@@ -328,7 +327,6 @@ $"--ttt={topicRoot}",
                             healthCheckManager.Start();
                             // Start module
                             await module.StartAsync(IdentityType.Publisher, "IntegrationTests", "OpcPublisher", version, null);
-                            await workerSupervisor.StartAsync();
                             sessionManager = hostScope.Resolve<ISessionManager>();
 
                             _apiScope = ConfigureContainer(configurationRoot, mqttBroker);
@@ -340,7 +338,6 @@ $"--ttt={topicRoot}",
                             _running.TrySetException(ex);
                         }
                         finally {
-                            await workerSupervisor.StopAsync();
                             healthCheckManager.Stop();
                             await module.StopAsync();
 

@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Create job scope factory
         /// </summary>
         /// <param name="lifetimeScope"></param>
-        public WriterGroupContainerFactory(LifetimeScope lifetimeScope) {
+        public WriterGroupContainerFactory(ILifetimeScope lifetimeScope) {
             _lifetimeScope = lifetimeScope;
             _publisherId = GetPublisherId();
         }
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 $"{site}{identity.DeviceId}_{identity.ModuleId}";
         }
 
-        private readonly LifetimeScope _lifetimeScope;
+        private readonly ILifetimeScope _lifetimeScope;
         private readonly string _publisherId;
     }
 }

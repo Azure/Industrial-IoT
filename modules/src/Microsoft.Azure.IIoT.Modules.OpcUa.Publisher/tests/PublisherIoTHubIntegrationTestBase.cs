@@ -313,7 +313,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     using (var hostScope = ConfigureContainer(configurationRoot, devices)) {
                         var module = hostScope.Resolve<IModuleHost>();
                         var events = hostScope.Resolve<IEventEmitter>();
-                        var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
                         var moduleConfig = hostScope.Resolve<IModuleConfig>();
                         var identity = hostScope.Resolve<IIdentity>();
                         var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
@@ -326,7 +325,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                             healthCheckManager.Start();
                             // Start module
                             await module.StartAsync(IdentityType.Publisher, "IntegrationTests", "OpcPublisher", version, null);
-                            await workerSupervisor.StartAsync();
 
                             _apiScope = ConfigureContainer(configurationRoot, hostScope.Resolve<IIoTHubTwinServices>());
                             _running.TrySetResult(true);
@@ -337,7 +335,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                             _running.TrySetException(ex);
                         }
                         finally {
-                            await workerSupervisor.StopAsync();
                             healthCheckManager.Stop();
                             await module.StopAsync();
 
@@ -389,8 +386,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces();
-
-            builder.RegisterModule<PublisherJobsConfiguration>();
 
             // Register module and agent framework ...
             builder.RegisterModule<ModuleFramework>();
