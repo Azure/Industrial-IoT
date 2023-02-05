@@ -317,8 +317,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .Be(2);
         }
 
-        [Fact]
-        public async Task PublishNodesStressTest() {
+        [Theory]
+        [InlineData(2, 10)]
+        [InlineData(100, 1000)]
+        public async Task PublishNodesStressTest(int numberOfEndpoints, int numberOfNodes) {
             var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -356,9 +358,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 newtonSoftJsonSerializer
             );
 
-            var numberOfEndpoints = 100;
-            var numberOfNodes = 1000;
-
             var payload = new List<PublishedNodesEntryModel>();
             for (int endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
                 var model = new PublishedNodesEntryModel {
@@ -386,16 +385,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             void CheckEndpointsAndNodes(
                 int expectedNumberOfEndpoints,
-                int expectedNumberOfNodes
+                int expectedNumberOfNodesPerEndpoint
             ) {
                 var writerGroups = publisher.WriterGroups;
-                writerGroups.Select(
-                        jobModel => jobModel.WriterGroup.DataSetWriters
-                        .Select(writer => writer.DataSet.DataSetSource.PublishedVariables.PublishedData.Count)
-                        .Sum()
-                     ).Count(v => v == expectedNumberOfNodes)
-                     .Should()
-                     .Be(expectedNumberOfEndpoints);
+                writerGroups
+                    .SelectMany(jobModel => jobModel.WriterGroup.DataSetWriters)
+                    .Count(v => v.DataSet.DataSetSource.PublishedVariables.PublishedData.Count == expectedNumberOfNodesPerEndpoint)
+                    .Should()
+                    .Be(expectedNumberOfEndpoints);
             }
 
             // Check

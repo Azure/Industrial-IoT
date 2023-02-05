@@ -213,8 +213,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
 
             /// <inheritdoc/>
             public override int GetHashCode(OpcNodeModel node) {
-                return -1;
-                // return OpcNodeModelEx.GetHashCode(node);
+                return OpcNodeModelEx.GetHashCode(node);
             }
         }
     }

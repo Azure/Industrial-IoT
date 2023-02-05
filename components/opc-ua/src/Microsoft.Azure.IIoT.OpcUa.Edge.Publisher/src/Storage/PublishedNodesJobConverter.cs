@@ -454,7 +454,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             if (uniqueDataSetWriter == null) {
                 return null;
             }
-            var components = uniqueDataSetWriter.Split("_($", StringSplitOptions.RemoveEmptyEntries);
+            var components = uniqueDataSetWriter.Split("_($");
             if (components.Length == 1 ||
                 (components.Length == 2 && components[1].EndsWith(')'))) {
                 return components[0] == kUnknownDataSetName ? null : components[0];
@@ -483,6 +483,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     else {
                         result += $"_{Guid.NewGuid()}";
                     }
+                }
+                if (string.IsNullOrEmpty(id)) {
+                    return $"{kUnknownDataSetName}_(${result.ToSha1Hash()})";
                 }
                 return $"{id}_(${result.ToSha1Hash()})";
             }
