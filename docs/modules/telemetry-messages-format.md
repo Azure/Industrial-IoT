@@ -31,13 +31,13 @@
 | DataSetMessages | Uadp | DataSetMessageHeader<br>(0x0) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X |
 | RawDataSets | Uadp | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X |
 
-## Data value changes arriving at IoT Hub from OPC Publisher in standalone mode
+## Data value change messages
 
-Telemetry messages used by the IIoT Platform.  Please use PubSub format in all new projects.  To use the OPC UA PubSub format specify the `--mm=PubSub` command line. This needs to be done because the OPC publisher defaults to `--mm=Samples` mode which existed before the introduction of OPC UA standards compliant PubSub format.You should always use PubSub format specified in the OPC UA Standard. We might decide to not support the non standards compliant Samples mode in future versions of OPC Publisher.
+To use the OPC UA PubSub format specify a value for `--mm` on the command line. This needs to be done because the OPC publisher defaults to `--mm=Samples` mode which existed before the introduction of OPC UA standards compliant PubSub format. You should always use PubSub format specified in the OPC UA Standard. We will not support the non standards compliant Samples mode in versions greater than 2.*.
 
-Details for OPC UA Alarms and Events messages can be found [in this seperate document](./telemetry-events-format.md).
+This section covers data value change messages (Message type `ua-deltaframe` and `ua-keyframe`). Details for OPC UA Alarms and Events messages (`ua-event`) can be found [in this seperate document](./telemetry-events-format.md).
 
-The following messages are emitted for data value changes in a subscription if PubSub mode is used:
+The following messages are emitted for data value changes in a subscription if `--mm=PubSub` message mode is used with `--me=Json`:
 
 ```json
 {
@@ -100,7 +100,9 @@ The following messages are emitted for data value changes in a subscription if P
 
 The data set messages in the `ua-data` network message can be delta frames (`ua-deltaframe`, containing only changed values in the dataset), key frames (`ua-keyframe`, containing all values of the dataset), keep alives (`ua-keepalive`, containing no payload), or [events and conditions](./telemetry-events-format.md).
 
-The data set is described by the corresponding metadata message (message type `ua-metdata`), which is emitted prior to the first message and whenever the configuration is updated requiring an update of the metadata. Metadata can also be sent periodically, which can be configured using the control plane of OPC Publisher.
+IMPORTANT: Depending on the number of nodes in a subscription and the data type of properties inside a single dataset, data set messages contained in a network message can be very large.  Indeed, it can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB.  In this case messages might not be sent. You can try to use `--me=JsonGzip` to compress messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking (and overcomes any transport limitation). If neither help or are an option it is recommended to create smaller subscriptions (by adding less nodes to an endpoint) or disable dataset metadata message sending using `--dm=False`.
+
+The data set is described by a corresponding metadata message (message type `ua-metdata`), which is emitted prior to the first message and whenever the configuration is updated requiring an update of the metadata. Metadata can also be sent periodically, which can be configured using the control plane of OPC Publisher.
 
 ```json
 {
@@ -147,6 +149,8 @@ The data set is described by the corresponding metadata message (message type `u
 }
 
 ```
+
+IMPORTANT: Depending on the number of nodes in a subscription, a Metadata messages can be very large.  Indeed, it can potentially be too large and not fit into IoT Hub Messages which are limited to 256 kB.  In this case they are created but never sent. You can choose to use `--me=JsonGzip` to compress messages using Gzip compression, or use `--me=Uadp` which supports network message chuncking. If neither help or are an option it is recommended to create smaller subscriptions (by adding less nodes to an endpoint) or disable dataset metadata message sending using `--dm=False`.
 
 ### Samples mode
 

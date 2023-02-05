@@ -6,13 +6,14 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IIoT.Messaging;
+    using Prometheus;
     using Serilog;
     using System;
-    using System.Collections.Generic;
     using System.IO;
-    using System.Threading.Tasks;
+    using System.Linq;
     using System.Threading;
-    using Prometheus;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Adapts module client to interface
@@ -25,15 +26,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public bool IsClosed { get; internal set; }
 
         /// <inheritdoc />
-        public int MaxMessageSize => 256 * 1024;
+        public int MaxEventBufferSize => 256 * 1024;
 
         /// <summary>
         /// Create client
         /// </summary>
         /// <param name="client"></param>
-        internal ModuleClientAdapter(ModuleClient client) {
+        /// <param name="enableOutputRouting"></param>
+        internal ModuleClientAdapter(ModuleClient client, bool enableOutputRouting) {
             _client = client ??
                 throw new ArgumentNullException(nameof(client));
+            _enableOutputRouting = enableOutputRouting;
         }
 
         /// <summary>
@@ -43,6 +46,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="cs"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
+        /// <param name="enableOutputRouting"></param>
         /// <param name="transportSetting"></param>
         /// <param name="timeout"></param>
         /// <param name="retry"></param>
@@ -51,9 +55,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <returns></returns>
         public static async Task<IClient> CreateAsync(string product,
             IotHubConnectionStringBuilder cs, string deviceId, string moduleId,
-            ITransportSettings transportSetting,
-            TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost,
-            ILogger logger) {
+            bool enableOutputRouting, ITransportSettings transportSetting,
+            TimeSpan timeout, IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
 
             if (cs == null) {
                 logger.Information("Running in iotedge context.");
@@ -63,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             var client = await CreateAsync(cs, transportSetting);
-            var adapter = new ModuleClientAdapter(client);
+            var adapter = new ModuleClientAdapter(client, enableOutputRouting);
 
             // Configure
             client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
@@ -79,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task CloseAsync() {
+        public async ValueTask DisposeAsync() {
             if (IsClosed) {
                 return;
             }
@@ -90,53 +93,58 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public async Task SendEventAsync(Message message) {
+        public void Dispose() {
+            IsClosed = true;
+            _client?.Dispose();
+        }
+
+        /// <inheritdoc />
+        public ITelemetryEvent CreateTelemetryEvent() {
+            return new DeviceClientAdapter.DeviceMessage();
+        }
+
+        /// <inheritdoc />
+        public async Task SendEventAsync(ITelemetryEvent message) {
             if (IsClosed) {
                 return;
             }
-            await _client.SendEventAsync(message);
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventAsync(string outputName, Message message) {
-            if (IsClosed) {
-                return;
+            var msg = (DeviceClientAdapter.DeviceMessage)message;
+            var messages = msg.AsMessages();
+            try {
+                if (!_enableOutputRouting || string.IsNullOrEmpty(msg.OutputName)) {
+                    if (messages.Count == 1) {
+                        await _client.SendEventAsync(messages[0]);
+                    }
+                    else {
+                        await _client.SendEventBatchAsync(messages);
+                    }
+                }
+                else {
+                    if (messages.Count == 1) {
+                        await _client.SendEventAsync(msg.OutputName, messages[0]);
+                    }
+                    else {
+                        await _client.SendEventBatchAsync(msg.OutputName, messages);
+                    }
+                }
             }
-            await _client.SendEventAsync(outputName, message);
-        }
-
-        /// <inheritdoc />
-        public async Task SendEventBatchAsync(IEnumerable<Message> messages) {
-            if (IsClosed) {
-                return;
+            finally {
+                foreach (var hubMessage in messages) {
+                    hubMessage.Dispose();
+                }
             }
-            await _client.SendEventBatchAsync(messages);
         }
 
         /// <inheritdoc />
-        public async Task SendEventBatchAsync(string outputName, IEnumerable<Message> messages) {
-            if (IsClosed) {
-                return;
-            }
-            await _client.SendEventBatchAsync(outputName, messages);
-        }
-
-        /// <inheritdoc />
-        public Task SetMethodHandlerAsync(string methodName,
-            MethodCallback methodHandler, object userContext) {
-            return _client.SetMethodHandlerAsync(methodName, methodHandler, userContext);
-        }
-
-        /// <inheritdoc />
-        public Task SetMethodDefaultHandlerAsync(
-            MethodCallback methodHandler, object userContext) {
-            return _client.SetMethodDefaultHandlerAsync(methodHandler, userContext);
+        public Task SetMethodHandlerAsync(
+            MethodCallback methodHandler) {
+            return _client.SetMethodDefaultHandlerAsync(methodHandler, null);
         }
 
         /// <inheritdoc />
         public Task SetDesiredPropertyUpdateCallbackAsync(
-            DesiredPropertyUpdateCallback callback, object userContext) {
-            return _client.SetDesiredPropertyUpdateCallbackAsync(callback, userContext);
+            DesiredPropertyUpdateCallback callback) {
+            return _client.SetDesiredPropertyUpdateCallbackAsync(callback, null);
         }
 
         /// <inheritdoc />
@@ -153,26 +161,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc />
-        public Task UploadToBlobAsync(string blobName, Stream source) {
-            throw new NotSupportedException("Module client does not support upload");
-        }
-
-        /// <inheritdoc />
         public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
             MethodRequest methodRequest, CancellationToken cancellationToken) {
-            return _client.InvokeMethodAsync(deviceId, moduleId, methodRequest, cancellationToken);
-        }
-
-        /// <inheritdoc />
-        public Task<MethodResponse> InvokeMethodAsync(string deviceId,
-            MethodRequest methodRequest, CancellationToken cancellationToken) {
-            return _client.InvokeMethodAsync(deviceId, methodRequest, cancellationToken);
-        }
-
-        /// <inheritdoc />
-        public void Dispose() {
-            IsClosed = true;
-            _client?.Dispose();
+            if (string.IsNullOrEmpty(moduleId)) {
+                return _client.InvokeMethodAsync(deviceId, methodRequest, cancellationToken);
+            }
+            else {
+                return _client.InvokeMethodAsync(deviceId, moduleId, methodRequest, cancellationToken);
+            }
         }
 
         /// <summary>
@@ -233,6 +229,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         private readonly ModuleClient _client;
+        private readonly bool _enableOutputRouting;
         private int _reconnectCounter;
         private static readonly Gauge kReconnectionStatus = Metrics
             .CreateGauge("iiot_edge_reconnected", "reconnected count",

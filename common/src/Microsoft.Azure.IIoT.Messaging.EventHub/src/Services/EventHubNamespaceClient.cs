@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Messaging.EventHub.Services {
             }
 
             /// <inheritdoc/>
-            public Task SendEventAsync(IEnumerable<byte[]> batch, string contentType,
+            public Task SendEventAsync(IReadOnlyList<byte[]> batch, string contentType,
                 string eventSchema, string contentEncoding) {
                 var events = batch
                     .Select(b => CreateEvent(b, contentType, eventSchema, contentEncoding))

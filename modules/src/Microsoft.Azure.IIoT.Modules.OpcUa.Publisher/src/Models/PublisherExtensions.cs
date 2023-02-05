@@ -33,8 +33,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 Version = model.Version,
                 LastChange = model.LastChange,
                 OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
-                OpcAuthenticationPassword = model.Password,
-                OpcAuthenticationUsername = model.UserName,
+                OpcAuthenticationPassword = model.OpcAuthenticationPassword,
+                OpcAuthenticationUsername = model.OpcAuthenticationUsername,
                 OpcNodes = model.OpcNodes != null
                     ? model.OpcNodes.Select(n => n.ToServiceModel()).ToList()
                     : null,
@@ -43,7 +43,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataSetClassId = model.DataSetClassId,
                 DataSetDescription = model.DataSetDescription,
                 DataSetKeyFrameCount = model.DataSetKeyFrameCount,
-                DataSetMetaDataSendInterval = model.DataSetMetaDataSendInterval,
+                MetaDataUpdateTime = model.MetaDataUpdateTime,
+                MetaDataQueueName = model.MetaDataQueueName,
                 DataSetName = model.DataSetName,
                 DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
                 // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
@@ -124,13 +125,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 EndpointUrl = endpoint.EndpointUrl.OriginalString,
                 UseSecurity = endpoint.UseSecurity,
                 OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
-                UserName = endpoint.OpcAuthenticationUsername,
+                OpcAuthenticationUsername = endpoint.OpcAuthenticationUsername,
+                OpcAuthenticationPassword = null,
                 Version = endpoint.Version,
                 LastChange = endpoint.LastChange,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
                 DataSetDescription = endpoint.DataSetDescription,
                 DataSetKeyFrameCount = endpoint.DataSetKeyFrameCount,
-                DataSetMetaDataSendInterval = endpoint.DataSetMetaDataSendInterval,
+                MetaDataUpdateTime = endpoint.MetaDataUpdateTime,
+                MetaDataQueueName = endpoint.MetaDataQueueName,
                 DataSetName = endpoint.DataSetName,
                 DataSetClassId = endpoint.DataSetClassId,
                 DataSetWriterId = endpoint.DataSetWriterId,
@@ -140,6 +143,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataSetPublishingInterval = !endpoint.DataSetPublishingIntervalTimespan.HasValue
                     ? endpoint.DataSetPublishingInterval
                     : null,
+                OpcNodes = null
             };
         }
 
@@ -205,7 +209,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 EndpointUrl = endpoint.EndpointUrl.OriginalString,
                 UseSecurity = endpoint.UseSecurity,
                 OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
-                UserName = endpoint.OpcAuthenticationUsername,
+                OpcAuthenticationUsername = endpoint.OpcAuthenticationUsername,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
             };
         }
@@ -244,7 +248,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 EncoderAvgIoTMessageBodySize = model.EncoderAvgIoTMessageBodySize,
                 EncoderAvgIoTChunkUsage = model.EncoderAvgIoTChunkUsage,
                 EstimatedIoTChunksPerDay = model.EstimatedIoTChunksPerDay,
-                OutgressBatchBlockBufferSize = model.OutgressBatchBlockBufferSize,
                 OutgressInputBufferCount = model.OutgressInputBufferCount,
                 OutgressInputBufferDropped = model.OutgressInputBufferDropped,
                 OutgressIoTMessageCount = model.OutgressIoTMessageCount,

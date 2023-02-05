@@ -106,6 +106,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             public bool EnableMetrics => false;
 
+            public bool EnableOutputRouting => false;
+
             private readonly DeviceModel _device;
         }
 

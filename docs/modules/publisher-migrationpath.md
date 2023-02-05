@@ -1,14 +1,15 @@
 [Home](../../readme.md)
 
-# Application migration from OPC Publisher 2.5.x direct methods to 2.8.2 direct methods
+# Application migration from OPC Publisher 2.5.x direct methods to 2.8.2 and higher direct methods
 
-Migration of OPC Publisher(standalone mode) version 2.5.x to 2.8.2 works for backwards compatibility with 2.5.x functionality.
+This document provides more information regarding migrating from older versions of OPC Publisher (in standalone mode) to the latest version. 
 
 ## Configuration file (pn.json)
 
-In standalone mode OPC Publisher 2.8.2 and above can consume published nodes JSON files of 2.5.x version without any modifications.
-OPC Publisher 2.8.2 and above added several new fields to configure publishing but maintained backwards compatibilty with 2.5.x.
-The full schema looks like this:
+In standalone mode OPC Publisher (2.8.2 or higher) can consume published nodes JSON files version 2.5.x or higher without any modifications.
+Each OPC Publisher since has added new fields to configure publishing but maintained backwards compatibilty with older versions, such as 2.5.*x*.
+
+The full schema of published nodes JSON file that works in all versions since 2.5.* looks like this:
 
 ```json
 [
@@ -43,21 +44,16 @@ The full schema looks like this:
 ]
 ```
 
-For details of each field you can consult our [direct methods API documentation](publisher-directmethods.md)
-as the fields of published nodes JSON schema map directly to that of direct method API calls.
-The only difference is that `OpcAuthenticationUsername` and `OpcAuthenticationPassword` are refereed to as
-`UserName` and `Password` in direct method API calls.
+For details of each field you can consult the [direct methods API documentation](publisher-directmethods.md) as the fields of published nodes JSON schema map directly to that of direct method API calls.
+The only difference is that `OpcAuthenticationUsername` and `OpcAuthenticationPassword` are refereed to as `UserName` and `Password` in direct method API calls.
 
-Please note that OPC Publisher 2.8.2 can still consume legacy `NodeId`-based node definitions
-(as can be found in [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1)),
-but we strongly recommend to use `OpcNodes`-based definitions instead.
-Please consider migrating your old published nodes JSON files that use `NodeId` to the newer schema.
+Please note that OPC Publisher 2.8.2 can still consume legacy `NodeId`-based node definitions (as can be found in [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1)), but we strongly recommend to use `OpcNodes`-based definitions instead. Please consider migrating your old published nodes JSON files that use `NodeId` to the newer schema.
 
 ## Command Line Arguments
 
 To learn more about how to use comman-line arguments to configure OPC Publisher, please refer to [this](publisher-commandline.md) doc.
 
-## OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2
+## OPC Publisher 2.5.x Command Line Arguments supported in 2.8.2 or higher
 
 The following table describes the command line arguments, which were available in OPC Publisher 2.5.x and their compatibility in OPC Publisher 2.8.2 and above.
 
@@ -121,33 +117,13 @@ The following table describes the command line arguments, which were available i
 | -i, --install                           |  no                      |                 |
 | -h, --help                              |  yes                     |                 |
 | --st, --opcstacktracemask=VALUE         |  no                      |                 |
-| --sd, --shopfloordomain=VALUE           |  no                      |  same as --s, --site option               |
+| --sd, --shopfloordomain=VALUE           |  no                      |  same as --s, --site option |
 | --vc, --verboseconsole=VALUE            |  no                      |                 |
-| --as, --autotrustservercerts=VALUE      |  no                      |  same as --aa, --autoaccept               |
+| --as, --autotrustservercerts=VALUE      |  no                      |  same as --aa, --acceptuntrusted |
+|       --autoaccept=VALUE                |  yes                     |  same as --aa, --acceptuntrusted  |
 | --tt, --trustedcertstoretype=VALUE      |  no                      |  env variable TrustedPeerCertificatesType=VALUE  |
-| --rt, --rejectedcertstoretype=VALUE     |  no                      |  env variable RejectedCertificateStoreType=VALUE   |
+| --rt, --rejectedcertstoretype=VALUE     |  no                      |  env variable RejectedCertificateStoreType=VALUE |
 | --it, --issuercertstoretype=VALUE       |  no                      |  env variable TrustedIssuerCertificatesType=VALUE  |
-
-## OPC UA Certificates management
-
-The Azure Industrial IoT platform connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish trust between the client and the server. This is done through mutual authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server. To simplify setup, the OPC Publisher Edge module has a setting enabled to automatically accept all server certificates ("--aa").
-
-However, the biggest hurdle most OT admins need to overcome when deploying the Azure Industrial IoT platform is to accept the Azure Industrial IoT platform X.509 certificate in the OPC UA server the platform tries to connect to. There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted.
-For example for KepServerEx, configure the trusted Client certificate as discussed [here]( https://www.kepware.com/getattachment/ccefc1a5-9b13-41e6-99d9-2b00cc85373e/opc-ua-client-server-easy-guide.pdf).
-To use the [OPC PLC Server Simulator](https://docs.microsoft.com/en-us/samples/azure-samples/iot-edge-opc-plc/azure-iot-sample-opc-ua-server/), be sure to include the “–autoaccept” switch or copy the server.der to the pki.
-The pki path can be configured using the `PkiRootPath` command line argument.
-
-By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration. This default, self signed cert includes the Subject Microsoft.Azure.IIoT. This certificate is fine as a demonstration, but for real applications customers may want to use their own certificate.
-
-### Use custom OPC UA application instance certificate in OPC Publisher
-
-One can enable use of CA-signed app certs for OPC Publisher using env variables in both orchestrated and standalone modes.
-
-Besides the `ApplicationCertificateSubjectName`, the `ApplicationName` should be provided as well and needs to be the same value as we have in CN field of the ApplicationCertificateSubjectName like in the example below.
-
-`ApplicationCertificateSubjectName="CN=TEST-PUBLISHER,OU=Windows2019,OU=\"Test OU\",DC=microsoft,DC=com"`
-
-`ApplicationName ="TEST-PUBLISHER"`
 
 ## Direct Method compatibility
 

@@ -88,14 +88,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string DefaultKeyFrameCount = "DefaultKeyFrameCount";
 
         /// <summary>
-        /// Key for default metadata send interval
-        /// </summary>
-        public const string DefaultMetaDataSendInterval = "DefaultMetaDataSendInterval";
-
-        /// <summary>
         /// Key to disable metadata sending
         /// </summary>
         public const string DisableDataSetMetaData = "DisableDataSetMetaData";
+
+        /// <summary>
+        /// Key for default metadata send interval
+        /// </summary>
+        public const string DefaultMetaDataUpdateTime = "DefaultMetaDataUpdateTime";
+
+        /// <summary>
+        /// Key to configure metadata sub path for metadata message routing.
+        /// </summary>
+        public const string DefaultDataSetMetaDataQueueName = "DefaultDataSetMetaDataQueueName";
 
         /// <summary>
         /// Key for the default queue size fro monitored items
@@ -138,11 +143,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string MaxOutgressMessages = "MaxOutgressMessages";
 
         /// <summary>
-        /// Key for configuration flag to determine if a telemetry routing info is enabled.
-        /// </summary>
-        public const string EnableRoutingInfo = "EnableRoutingInfo";
-
-        /// <summary>
         /// Key for the maximum number of nodes per DataSet/Subscription
         /// </summary>
         public const string MaxNodesPerDataSet = "MaxNodesPerDataSet";
@@ -171,6 +171,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the transport mode to IoT Hub.
         /// </summary>
         public const string HubTransport = ModuleConfig.kTransportKey;
+
+        /// <summary>
+        /// Key for configuration flag to determine if a telemetry output routing is enabled.
+        /// </summary>
+        public const string EnableRoutingInfo = ModuleConfig.kEnableOutputRouting;
 
         /// <summary>
         /// Key for the EdgeHub connection string.

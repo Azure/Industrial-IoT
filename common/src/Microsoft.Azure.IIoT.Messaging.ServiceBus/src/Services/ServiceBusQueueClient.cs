@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
             }
 
             /// <inheritdoc/>
-            public async Task SendEventAsync(IEnumerable<byte[]> batch, string contentType,
+            public async Task SendEventAsync(IReadOnlyList<byte[]> batch, string contentType,
                 string eventSchema, string contentEncoding) {
                 var client = await _outer._factory.CreateOrGetGetQueueClientAsync(_name);
                 await client.SendAsync(batch

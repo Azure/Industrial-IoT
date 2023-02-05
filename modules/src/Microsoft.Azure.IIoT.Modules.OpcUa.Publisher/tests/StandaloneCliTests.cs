@@ -5,13 +5,19 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using Microsoft.Azure.IIoT.Abstractions;
     using FluentAssertions;
     using Xunit;
+    using System;
 
     /// <summary>
     /// Class to test Cli options
     /// </summary>
     public class StandaloneCliTests {
+
+        public StandaloneCliTests() {
+            Environment.SetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID, "deviceId");
+        }
 
         /// <summary>
         /// ValidOptionTest
@@ -47,6 +53,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         [InlineData("False", new string[] { "--autoaccept=False" })]
         [InlineData("False", new string[] { "-aa=false" })]
         [InlineData("True", new string[] { "-aa=true" })]
+        [InlineData("True", new string[] { "-acceptuntrusted" })]
+        [InlineData("True", new string[] { "--acceptuntrusted" })]
+        [InlineData("True", new string[] { "--acceptuntrusted=True" })]
+        [InlineData("False", new string[] { "--acceptuntrusted=False" })]
         [InlineData("True", new string[] { "--AutoAcceptUntrustedCertificates" })]
         [InlineData("True", new string[] { "--AutoAcceptUntrustedCertificates=True" })]
         public void ValidAutoAcceptUntrustedCertificatesOptionTest(string expected, string[] param) {

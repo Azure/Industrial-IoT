@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
+    using MQTTnet.Formatter;
     using System;
     using System.IO;
     using System.Security.Cryptography.X509Certificates;
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private const string kSharedAccessSignaturePropertyName = nameof(SharedAccessSignature);
         private const string kUsingIoTHubPropertyName = nameof(UsingIoTHub);
         private const string kStateFilePropertyName = nameof(StateFile);
-        private const string kMessageExpiryIntervalPropertyName = nameof(MessageExpiryInterval);
+        private const string kMqttProtocolVersionPropertyName = nameof(Protocol);
 
         private const int kDefaultMqttPort = 1883;
         private const int kDefaultIoTHubMqttPort = 8883;
@@ -100,9 +101,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         public bool UsingStateFile => !string.IsNullOrWhiteSpace(StateFile);
 
         /// <summary>
-        /// Gets or sets the period of time (seconds) for the broker to store the message for any subscribers that are not yet connected.
+        /// Use mqtt protocol version, defaults to 3.1.1
         /// </summary>
-        public uint? MessageExpiryInterval { get; private set; }
+        public MqttProtocolVersion Protocol { get; private set; } = MqttProtocolVersion.V311;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MqttClientConnectionStringBuilder"/> class.
@@ -167,8 +168,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 mqttClientConnectionStringBuilder.Password = properties.GetOptional<string>(kAuthPropertyName);
             }
 
-            if (properties.ContainsKey(kMessageExpiryIntervalPropertyName)) {
-                mqttClientConnectionStringBuilder.MessageExpiryInterval = properties.GetRequired<uint>(kMessageExpiryIntervalPropertyName);
+            if (properties.ContainsKey(kMqttProtocolVersionPropertyName)) {
+                mqttClientConnectionStringBuilder.Protocol =
+                    Enum.Parse<MqttProtocolVersion>(properties.GetRequired<string>(kMqttProtocolVersionPropertyName), true);
             }
 
             mqttClientConnectionStringBuilder.Validate();
@@ -192,14 +194,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 throw new ArgumentException($"{kHostNamePropertyName} must be specified in the connection string");
             }
 
-            if (string.IsNullOrWhiteSpace(DeviceId)) {
-                throw new ArgumentException($"{kDeviceIdPropertyName} must be specified in the connection string");
-            }
-
-            ValidateFormat(DeviceId, kDeviceIdPropertyName, kIdNameRegex);
-            ValidateFormatIfSpecified(ModuleId, kModuleIdPropertyName, kIdNameRegex);
-
             if (UsingIoTHub) {
+                if (string.IsNullOrWhiteSpace(DeviceId)) {
+                    throw new ArgumentException($"{kDeviceIdPropertyName} must be specified in the connection string");
+                }
+
+                ValidateFormat(DeviceId, kDeviceIdPropertyName, kIdNameRegex);
+                ValidateFormatIfSpecified(ModuleId, kModuleIdPropertyName, kIdNameRegex);
+
                 if (string.IsNullOrWhiteSpace(SharedAccessSignature)) {
                     throw new ArgumentException($"{kSharedAccessSignaturePropertyName} must be specified in the connection string");
                 }
@@ -215,6 +217,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
                 if (string.IsNullOrWhiteSpace(Password)) {
                     throw new ArgumentException($"{kAuthPropertyName} was not configured and is required for the Azure IoT Hub");
+                }
+            }
+            else {
+                if (string.IsNullOrWhiteSpace(DeviceId)) {
+                    DeviceId = string.Empty;
                 }
             }
         }
@@ -258,6 +265,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             stringBuilder.AppendKeyValuePairIfNotEmpty(kUsernamePropertyName, Username);
             stringBuilder.AppendKeyValuePairIfNotEmpty(kAuthPropertyName, Password);
             stringBuilder.AppendKeyValuePairIfNotEmpty(kUsingIoTHubPropertyName, UsingIoTHub);
+            stringBuilder.AppendKeyValuePairIfNotEmpty(kMqttProtocolVersionPropertyName, Protocol);
             if (stringBuilder.Length > 0) {
                 stringBuilder.Remove(stringBuilder.Length - 1, 1);
             }

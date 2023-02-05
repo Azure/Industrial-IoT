@@ -280,13 +280,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 datasetWriter.DataSet.DataSetSource.Connection.User.
                     IsSameAs(new CredentialModel {
                         Type = publishNodesRequests.First().OpcAuthenticationMode == AuthenticationMode.Anonymous ?
-                                    CredentialType.None :
-                                    CredentialType.UserName,
+                            CredentialType.None : CredentialType.UserName,
                         Value = newtonSoftJsonSerializer.FromObject(
-                                new {
-                                    user = publishNodesRequests.First().UserName,
-                                    password = publishNodesRequests.First().Password,
-                                })
+                            new {
+                                user = publishNodesRequests.First().OpcAuthenticationUsername,
+                                password = publishNodesRequests.First().OpcAuthenticationPassword,
+                            })
                     })
                     .Should()
                     .BeTrue();
@@ -336,8 +335,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 DataSetWriterGroup = dataSetWriterGroup,
                 DataSetWriterId = dataSetWriterId,
                 OpcAuthenticationMode = authenticationMode,
-                UserName = username,
-                Password = password,
+                OpcAuthenticationUsername = username,
+                OpcAuthenticationPassword = password,
             };
 
             var methodsController = await PublishNodeAsync(publishedNodesFile);
@@ -474,8 +473,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var endpointRequest = new PublishNodesEndpointApiModel {
                 EndpointUrl = endpointUrl,
                 OpcAuthenticationMode = authenticationMode,
-                UserName = username,
-                Password = password,
+                OpcAuthenticationUsername = username,
+                OpcAuthenticationPassword = password,
             };
 
             var methodsController = await PublishNodeAsync(publishedNodesFile);

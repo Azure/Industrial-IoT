@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public Task UpdateAsync(IEnumerable<WriterGroupJobModel> jobs) {
             var tcs = new TaskCompletionSource(
-                TaskCreationOptions.RunContinuationsAsynchronously);
+                TaskCreationOptions.RunContinuationsAsynchronously | TaskCreationOptions.AttachedToParent);
             if (_changeFeed.Writer.TryWrite((tcs, jobs.ToList()))) {
                 return tcs.Task;
             }

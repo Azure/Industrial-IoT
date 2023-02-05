@@ -15,19 +15,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Text;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Utils;
 
     /// <summary>
     /// Module host implementation
     /// </summary>
     public sealed class ModuleHost : IModuleHost, ITwinProperties, IEventEmitter,
-        IBlobUpload, IJsonMethodClient, IClientAccessor {
+        IIdentity, IClientAccessor {
 
         /// <inheritdoc/>
         public int MaxMethodPayloadCharacterCount => 120 * 1024;
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     if (Client != null) {
                         _logger.Information("Stopping Module Host...");
                         try {
-                            await Client.CloseAsync();
+                            await Client.DisposeAsync();
                         }
                         catch (OperationCanceledException) { }
                         catch (IotHubCommunicationException) { }
@@ -120,14 +120,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         ModuleId = _factory.ModuleId;
                         Gateway = _factory.Gateway;
                         // Register callback to be called when a method request is received
-                        await Client.SetMethodDefaultHandlerAsync((request, _) =>
-                            _router.InvokeMethodAsync(request), null);
+                        await Client.SetMethodHandlerAsync((request, _) =>
+                            _router.InvokeMethodAsync(request));
 
                         await InitializeTwinAsync();
 
                         // Register callback to be called when settings change ...
                         await Client.SetDesiredPropertyUpdateCallbackAsync(
-                            (settings, _) => ProcessSettingsAsync(settings), null);
+                            (settings, _) => ProcessSettingsAsync(settings));
 
                         // Report type of service, chosen site, and connection state
                         var twinSettings = new TwinCollection {
@@ -159,8 +159,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                         CultureInfo.InvariantCulture)).Set(0);
                     _logger.Error("Module Host failed to start.");
-                    Client?.Dispose();
-                    Client = null;
+                    if (Client != null) {
+                        await Try.Async(() => Client.DisposeAsync().AsTask());
+                        Client.Dispose();
+                        Client = null;
+                    }
                     _reported?.Clear();
                     DeviceId = null;
                     ModuleId = null;
@@ -196,22 +199,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task SendEventAsync(IEnumerable<byte[]> batch, string contentType,
+        public async Task SendEventAsync(IReadOnlyList<byte[]> batch, string contentType,
             string eventSchema, string contentEncoding) {
             try {
                 await _lock.WaitAsync();
                 if (Client != null) {
-                    var messages = batch
-                        .Select(ev =>
-                             CreateMessage(ev, contentEncoding, contentType, eventSchema,
-                                DeviceId, ModuleId))
-                        .ToList();
-                    try {
-                        await Client.SendEventBatchAsync(messages);
-                    }
-                    finally {
-                        messages.ForEach(m => m?.Dispose());
-                    }
+                    using var message = Client.CreateMessage(batch,
+                        contentEncoding, contentType, eventSchema, DeviceId, ModuleId);
+                    await Client.SendEventAsync(message);
                 }
             }
             finally {
@@ -225,10 +220,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             try {
                 await _lock.WaitAsync();
                 if (Client != null) {
-                    using (var msg = CreateMessage(data, contentEncoding, contentType,
-                        eventSchema, DeviceId, ModuleId)) {
-                        await Client.SendEventAsync(msg);
-                    }
+                    using var msg = Client.CreateMessage(new[] { data },
+                        contentEncoding, contentType, eventSchema, DeviceId, ModuleId);
+                    await Client.SendEventAsync(msg);
                 }
             }
             finally {
@@ -276,24 +270,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task SendFileAsync(string fileName, Stream stream, string contentType) {
-            await Client.UploadToBlobAsync(
-                $"{contentType.UrlEncode()}/{fileName.UrlEncode().TrimEnd('/')}",
-                    stream);
-        }
-
-        /// <inheritdoc/>
         public async Task<string> CallMethodAsync(string deviceId, string moduleId,
             string method, string payload, TimeSpan? timeout, CancellationToken ct) {
             var request = new MethodRequest(method, Encoding.UTF8.GetBytes(payload),
                 timeout, null);
-            MethodResponse response;
-            if (string.IsNullOrEmpty(moduleId)) {
-                response = await Client.InvokeMethodAsync(deviceId, request, ct);
-            }
-            else {
-                response = await Client.InvokeMethodAsync(deviceId, moduleId, request, ct);
-            }
+            var response = await Client.InvokeMethodAsync(deviceId, moduleId, request, ct);
             if (response.Status != 200) {
                 throw new MethodCallStatusException(
                     response.ResultAsJson, response.Status);
@@ -307,41 +288,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 StopAsync().Wait();
             }
             _lock.Dispose();
-        }
-
-        /// <summary>
-        /// Create message
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="contentEncoding"></param>
-        /// <param name="contentType"></param>
-        /// <param name="eventSchema"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
-        private static Message CreateMessage(byte[] data, string contentEncoding,
-            string contentType, string eventSchema, string deviceId, string moduleId) {
-            var msg = new Message(data) {
-
-                ContentType = contentType,
-                ContentEncoding = contentEncoding,
-                // TODO - setting CreationTime causes issues in the Azure IoT java SDK
-                // revert the comment when the issue is fixed
-                //  CreationTimeUtc = DateTime.UtcNow
-            };
-            if (!string.IsNullOrEmpty(contentEncoding)) {
-                msg.Properties.Add(CommonProperties.ContentEncoding, contentEncoding);
-            }
-            if (!string.IsNullOrEmpty(eventSchema)) {
-                msg.Properties.Add(CommonProperties.EventSchemaType, eventSchema);
-            }
-            if (!string.IsNullOrEmpty(deviceId)) {
-                msg.Properties.Add(CommonProperties.DeviceId, deviceId);
-            }
-            if (!string.IsNullOrEmpty(moduleId)) {
-                msg.Properties.Add(CommonProperties.ModuleId, moduleId);
-            }
-            return msg;
         }
 
         /// <summary>

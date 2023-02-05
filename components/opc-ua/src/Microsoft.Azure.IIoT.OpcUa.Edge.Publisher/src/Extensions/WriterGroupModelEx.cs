@@ -27,7 +27,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 WriterGroup = model.WriterGroup.Clone(),
                 MaxMessageSize = model.Engine?.MaxMessageSize,
                 MaxOutgressMessages = model.Engine?.MaxOutgressMessages,
-                EnableRoutingInfo = model.Engine?.EnableRoutingInfo ?? false,
                 UseStandardsCompliantEncoding = model.Engine?.UseStandardsCompliantEncoding ?? false,
             };
 

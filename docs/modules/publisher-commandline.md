@@ -7,7 +7,6 @@ The following OPC Publisher configuration can be applied by Command Line Interfa
 CamcelCase options can also typically be provided using enviornment variables. When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
 ```text
-
 General
 -------
 
@@ -102,7 +101,7 @@ Messaging configuration
                                messages are sent, if 1, every message will be a
                                key frame.
                                Default: `0`.
-      --msi, --metadatasendinterval, --DefaultMetaDataSendInterval=VALUE
+      --msi, --metadatasendinterval, --DefaultMetaDataUpdateTime=VALUE
                              Default value in milliseconds for the metadata
                                send interval which determines in which interval
                                metadata is sent.
@@ -115,20 +114,12 @@ Messaging configuration
                                metadata is disabled.
       --dm, --disablemetadata, --DisableDataSetMetaData[=VALUE]
                              Disables sending any metadata when metadata
-                               version changes. Only valid for network message
-                               encodings. If `--mm=*Samples` is specified this
-                               setting is ignored.
-                               Default: `False` which means sending metadata is
-                               enabled.
-      --ri, --enableroutinginfo, --EnableRoutingInfo[=VALUE]
-                             Add the routing info to telemetry messages. The
-                               name of the property is `$$RoutingInfo` and the
-                               value is the `DataSetWriterGroup` for that
-                               particular message.
-                               When the `DataSetWriterGroup` is not configured,
-                               the `$$RoutingInfo` property will not be added
-                               to the message even if this argument is set.
-                               Default: `False` (disabled).
+                               version changes. This setting can be used to
+                               also override the messaging profile's default
+                               support for metadata sending.
+                               Default: `False` if the messaging profile
+                               selected supports sending metadata, `True`
+                               otherwise.
 
 Transport settings
 ------------------
@@ -138,8 +129,9 @@ Transport settings
                                option to connect OPC Publisher to a MQTT Broker
                                or to an EdgeHub or IoT Hub MQTT endpoint.
                                To connect to an MQTT broker use the format '
-                               HostName=<IPorDnsName>;Port=<Port>[;DeviceId=<
-                               IoTDeviceId>]'.
+                               HostName=<IPorDnsName>;Port=<Port>[;Username=<
+                               Username>;Password=<Password>;DeviceId=<
+                               IoTDeviceId>;Protocol=<v500 or v311>]'.
                                To connect to IoT Hub or EdgeHub MQTT endpoint
                                use a regular IoT Hub connection string.
                                Ignored if `-c` option is used to set a
@@ -161,6 +153,32 @@ Transport settings
                                used to inject the device id and 'output_name'
                                to inject routing info into the topic template.
                                Default: `not set`.
+      --ri, --enableroutinginfo, --EnableRoutingInfo[=VALUE]
+                             Add routing information to telemetry messages. The
+                               name of the property is `$$RoutingInfo` and the
+                               value is the `DataSetWriterGroup` for that
+                               particular message.
+                               When the `DataSetWriterGroup` is not configured,
+                               the `$$RoutingInfo` property will not be added
+                               to the message even if this argument is set.
+                               Default: `False` (disabled).
+      --mqn, --metadataqueuename, --DefaultDataSetMetaDataQueueName[=VALUE]
+                             The output that metadata should be sent to.
+                               This will be a sub path of the configured
+                               telemetry topic or replacement of the output
+                               name token in the topic template, or in case of
+                               EdgeHub, the output name or appended sub path to
+                               existing configured output name.
+                               In case of MQTT the message will be sent as
+                               RETAIN message with a TTL of either metadata
+                               send interval or infinite if metadata send
+                               interval is not configured.
+                               Only valid if metadata is supported and/or
+                               explicitely enabled.
+                               Default: `disabled` which means metadata is sent
+                               to the same output as regular messages. If
+                               specified without value, the default output is `$
+                               metadata`.
       --ht, --ih, --iothubprotocol, --Transport=VALUE
                              Protocol to use for communication with EdgeHub.
                                Allowed values:
@@ -276,11 +294,15 @@ Subscription settings
 OPC UA Client configuration
 ---------------------------
 
-      --aa, --autoaccept, --AutoAcceptUntrustedCertificates[=VALUE]
-                             The publisher trusts all servers it is
-                               establishing a connection to. WARNING: This
-                               setting should never be used in production
-                               environments!
+      --aa, --acceptuntrusted, --AutoAcceptUntrustedCertificates[=VALUE]
+                             The publisher accepts untrusted certificates
+                               presented by a server it connects to.
+                               This does not include servers presenting bad
+                               certificates or certificates that fail chain
+                               validation. These errors cannot be suppressed
+                               and connection will always be rejected.
+                               WARNING: This setting should never be used in
+                               production environments!
       --ot, --operationtimeout, --OperationTimeout=VALUE
                              The operation service call timeout of the
                                publisher OPC UA client in milliseconds.

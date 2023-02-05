@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var events = hostScope.Resolve<IEventEmitter>();
-                    var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
+                    hostScope.TryResolve<IWorkerSupervisor>(out var workerSupervisor);
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var identity = hostScope.Resolve<IIdentity>();
@@ -121,7 +121,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                             "OpcPublisher", version, this).ConfigureAwait(false);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
-                        await workerSupervisor.StartAsync().ConfigureAwait(false);
+
+                        if (workerSupervisor != null)
+                            await workerSupervisor.StartAsync().ConfigureAwait(false);
 
                         // Reporting runtime state on restart.
                         // Reporting will happen only in stadalone mode.
@@ -145,7 +147,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     }
                     finally {
                         OnRunning?.Invoke(this, false);
-                        await workerSupervisor.StopAsync().ConfigureAwait(false);
+                        if (workerSupervisor != null)
+                            await workerSupervisor.StopAsync().ConfigureAwait(false);
+
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         healthCheckManager.Stop();
@@ -179,8 +183,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterInstance(this)
                 .AsImplementedInterfaces();
 
-            builder.RegisterModule<PublisherJobsConfiguration>();
-
             // Register module framework ...
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
@@ -213,6 +215,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             }
             else {
                 builder.RegisterModule<AgentFramework>();
+                builder.RegisterModule<PublisherJobsConfiguration>();
                 builder.AddDiagnostics(config);
 
                 builder.RegisterType<IdentityTokenSettingsController>()

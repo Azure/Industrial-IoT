@@ -105,7 +105,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             DataSetClassId = item.Writer.DataSet.DataSetMetaData?.DataSetClassId ?? Guid.Empty,
                             DataSetDescription = item.Writer.DataSet.DataSetMetaData?.Description,
                             DataSetKeyFrameCount = item.Writer.KeyFrameCount,
-                            DataSetMetaDataSendInterval = item.Writer.DataSetMetaDataSendInterval,
+                            MetaDataUpdateTime = item.Writer.MetaDataUpdateTime,
+                            MetaDataQueueName = item.Writer.MetaDataQueueName,
                             DataSetName = item.Writer.DataSet.DataSetMetaData?.Name,
                             DataSetWriterGroup = item.WriterGroup.WriterGroupId,
                             DataSetWriterId =
@@ -328,8 +329,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             DiagnosticsInterval = _engineConfig.DiagnosticsInterval,
                             MaxMessageSize = _engineConfig.MaxMessageSize,
                             MaxOutgressMessages = _engineConfig.MaxOutgressMessages,
-                            UseStandardsCompliantEncoding = _engineConfig.UseStandardsCompliantEncoding,
-                            EnableRoutingInfo = _engineConfig.EnableRoutingInfo,
+                            UseStandardsCompliantEncoding = _engineConfig.UseStandardsCompliantEncoding
                         },
                         WriterGroup = new WriterGroupModel {
                             MessageType = standaloneCliModel.MessageEncoding,
@@ -337,8 +337,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             DataSetWriters = dataSetBatches.Items.Select(dataSet => new DataSetWriterModel {
                                 DataSetWriterName = GetUniqueWriterNameInSet(dataSet.Header.DataSetWriterId,
                                     dataSet.Source, dataSetBatches.Items.Select(a => (a.Header.DataSetWriterId, a.Source))),
-                                DataSetMetaDataSendInterval = dataSetBatches.First.Header.DataSetMetaDataSendInterval,
-                                KeyFrameCount = dataSetBatches.First.Header.DataSetKeyFrameCount,
+                                MetaDataUpdateTime =
+                                    dataSetBatches.First.Header.MetaDataUpdateTime,
+                                MetaDataQueueName =
+                                    dataSetBatches.First.Header.MetaDataQueueName,
+                                KeyFrameCount =
+                                    dataSetBatches.First.Header.DataSetKeyFrameCount,
                                 DataSet = new PublishedDataSetModel {
                                     Name = dataSetBatches.First.Header.DataSetName,
                                     DataSetMetaData =

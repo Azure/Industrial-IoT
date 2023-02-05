@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         string MqttClientConnectionString { get; }
 
         /// <summary>
-        /// Gets or sets the optional telemetry topic template. 
+        /// Gets or sets the optional telemetry topic template.
         /// If no template is provided default IoT Hub topics are used.
         /// </summary>
         string TelemetryTopicTemplate { get; }
@@ -35,6 +35,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Enable metrics collection
         /// </summary>
         bool EnableMetrics { get; }
+
+        /// <summary>
+        /// Enable output name routing support (only through EdgeHub)
+        /// </summary>
+        bool EnableOutputRouting { get; }
 
         /// <summary>
         /// Transports to use

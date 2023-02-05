@@ -5,8 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using System;
-    using Opc.Ua;
 
     /// <summary>
     /// Data set message emitted by writer in a writer group.
@@ -14,7 +12,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     public class WriterGroupMessageContext {
 
         /// <summary>
-        /// Sequence number
+        /// Sequence number inside the writer group and based
+        /// on message type
         /// </summary>
         public uint SequenceNumber { get; set; }
 

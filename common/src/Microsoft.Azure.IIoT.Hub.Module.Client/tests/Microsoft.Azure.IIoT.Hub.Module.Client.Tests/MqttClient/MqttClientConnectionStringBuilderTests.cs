@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
     using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
+    using MQTTnet.Formatter;
     using System;
     using System.Collections.Generic;
     using Xunit;
@@ -27,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             Assert.Equal(mqttClientConnectionStringBuilder.UsingX509Cert, false);
             Assert.Null(mqttClientConnectionStringBuilder.SharedAccessSignature);
             Assert.Null(mqttClientConnectionStringBuilder.X509Cert);
-            Assert.Null(mqttClientConnectionStringBuilder.MessageExpiryInterval);
+            Assert.Equal(MqttProtocolVersion.V311, mqttClientConnectionStringBuilder.Protocol);
         }
 
         [Fact]
@@ -45,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             Assert.Equal(mqttClientConnectionStringBuilder.UsingIoTHub, true);
             Assert.Equal(mqttClientConnectionStringBuilder.UsingX509Cert, true);
             Assert.NotNull(mqttClientConnectionStringBuilder.X509Cert);
-            Assert.Null(mqttClientConnectionStringBuilder.MessageExpiryInterval);
+            Assert.Equal(MqttProtocolVersion.V311, mqttClientConnectionStringBuilder.Protocol);
         }
 
         [Fact]
@@ -64,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             Assert.Equal(mqttClientConnectionStringBuilder.UsingIoTHub, true);
             Assert.Equal(mqttClientConnectionStringBuilder.UsingX509Cert, true);
             Assert.NotNull(mqttClientConnectionStringBuilder.X509Cert);
-            Assert.Null(mqttClientConnectionStringBuilder.MessageExpiryInterval);
+            Assert.Equal(MqttProtocolVersion.V311, mqttClientConnectionStringBuilder.Protocol);
         }
 
         [Fact]
@@ -83,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             Assert.Equal(mqttClientConnectionStringBuilder.UsingX509Cert, false);
             Assert.Null(mqttClientConnectionStringBuilder.SharedAccessSignature);
             Assert.Null(mqttClientConnectionStringBuilder.X509Cert);
-            Assert.Null(mqttClientConnectionStringBuilder.MessageExpiryInterval);
+            Assert.Equal(MqttProtocolVersion.V311, mqttClientConnectionStringBuilder.Protocol);
         }
 
         [Fact]
@@ -104,13 +105,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             Assert.NotNull(mqttClientConnectionStringBuilder.X509Cert);
             Assert.True(mqttClientConnectionStringBuilder.UsingStateFile);
             Assert.Equal(mqttClientConnectionStringBuilder.StateFile, "file1");
-            Assert.Null(mqttClientConnectionStringBuilder.MessageExpiryInterval);
+            Assert.Equal(MqttProtocolVersion.V311, mqttClientConnectionStringBuilder.Protocol);
         }
 
         [Fact]
-        public void MessageExpiryIntervalTest() {
+        public void UsingMqttV500Test1() {
             // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
-            const string mqttClientConnectionString = "HostName=127.0.0.1;DeviceId=device1;ModuleId=module1;Username=username1;Password=password1;MessageExpiryInterval=1234";
+            const string mqttClientConnectionString = "HostName=127.0.0.1;DeviceId=device1;ModuleId=module1;Username=username1;Password=password1;Protocol=v500";
             var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create(mqttClientConnectionString);
 
             Assert.Equal(mqttClientConnectionStringBuilder.HostName, "127.0.0.1");
@@ -123,7 +124,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             Assert.Equal(mqttClientConnectionStringBuilder.UsingX509Cert, false);
             Assert.Null(mqttClientConnectionStringBuilder.SharedAccessSignature);
             Assert.Null(mqttClientConnectionStringBuilder.X509Cert);
-            Assert.Equal(mqttClientConnectionStringBuilder.MessageExpiryInterval, 1234u);
+            Assert.Equal(MqttProtocolVersion.V500, mqttClientConnectionStringBuilder.Protocol);
         }
 
         [Fact]

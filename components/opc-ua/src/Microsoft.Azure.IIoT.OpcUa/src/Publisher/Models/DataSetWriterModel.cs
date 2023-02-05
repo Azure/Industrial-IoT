@@ -36,9 +36,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public uint? KeyFrameCount { get; set; }
 
         /// <summary>
-        /// Metadata message sending interval (publisher extension)
+        /// Metadata message sending interval
         /// </summary>
-        public TimeSpan? DataSetMetaDataSendInterval { get; set; }
+        public TimeSpan? MetaDataUpdateTime { get; set; }
+
+        /// <summary>
+        /// Metadata queue name
+        /// </summary>
+        public string MetaDataQueueName { get; set; }
 
         /// <summary>
         /// Dataset writer id property for backwards compatibility.
