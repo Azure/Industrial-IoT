@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
@@ -17,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Linq;
 
     /// <summary>
@@ -25,13 +27,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     public class NetworkMessageEncoder : IMessageEncoder {
 
         /// <inheritdoc/>
-        public uint NotificationsDroppedCount { get; private set; }
+        public long NotificationsDroppedCount { get; private set; }
 
         /// <inheritdoc/>
-        public uint NotificationsProcessedCount { get; private set; }
+        public long NotificationsProcessedCount { get; private set; }
 
         /// <inheritdoc/>
-        public uint MessagesProcessedCount { get; private set; }
+        public long MessagesProcessedCount { get; private set; }
 
         /// <inheritdoc/>
         public double AvgNotificationsPerMessage { get; private set; }
@@ -47,7 +49,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="logger"> Logger to be used for reporting. </param>
         /// <param name="config"> injected configuration. </param>
-        public NetworkMessageEncoder(ILogger logger, IEngineConfiguration config) {
+        /// <param name="metrics"> Metrics context </param>
+        public NetworkMessageEncoder(IEngineConfiguration config,
+            IMetricsContext metrics, ILogger logger)
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _logger = logger;
             _config = config;
         }
@@ -108,9 +113,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 // We dropped a number of notifications but processed the remainder successfully
                 var tooBig = chunks.Count - validChunks;
-                NotificationsDroppedCount += (uint)tooBig;
+                NotificationsDroppedCount += tooBig;
                 if (notificationsPerMessage > tooBig) {
-                    NotificationsProcessedCount += (uint)(notificationsPerMessage - tooBig);
+                    NotificationsProcessedCount += (notificationsPerMessage - tooBig);
                 }
 
                 //
@@ -339,7 +344,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private void Drop(IEnumerable<SubscriptionNotificationModel> messages) {
             int totalNotifications = messages.Sum(m => m?.Notifications?.Count ?? 0);
-            NotificationsDroppedCount += (uint)totalNotifications;
+            NotificationsDroppedCount += totalNotifications;
             _logger.Warning("Dropped {totalNotifications} values", totalNotifications);
         }
 
@@ -348,5 +353,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly IEngineConfiguration _config;
         private readonly ILogger _logger;
         private uint _sequenceNumber;
+
+        /// <summary>
+        /// Create observable metric registrations
+        /// </summary>
+        private NetworkMessageEncoder(IMetricsContext metrics) {
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_encoded_notifications",
+                () => new Measurement<long>(MessagesProcessedCount, metrics.TagList), "Notifications",
+                "Number of successfully processed subscription notifications received from OPC client.");
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_dropped_notifications",
+                () => new Measurement<long>(NotificationsDroppedCount, metrics.TagList), "Notifications",
+                "Number of incoming subscription notifications that are too big to be processed based " +
+                "on the message size limits or other issues with the notification.");
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_processed_messages",
+                () => new Measurement<long>(MessagesProcessedCount, metrics.TagList), "Messages",
+                "Number of successfully generated messages that are to be sent using the message sender");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_notifications_per_message_average",
+                () => new Measurement<double>(AvgNotificationsPerMessage, metrics.TagList), "Notifications/Message",
+                "Average subscription notifications packed into a message");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_encoded_message_size_average",
+                () => new Measurement<double>(AvgMessageSize, metrics.TagList), "Bytes",
+                "Average size of a message through the lifetime of the");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_chunk_size_average",
+                () => new Measurement<int>((int)(AvgMessageSize / (4 * 1024)), metrics.TagList), " 4kb Chunks",
+                "IoT Hub chunk size average");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_message_split_ratio_max",
+                () => new Measurement<double>(MaxMessageSplitRatio, metrics.TagList), "Splits",
+                "The message split ration specifies into how many messages a subscription notification had to be split. " +
+                "Less is better for performance. If the number is large user should attempt to limit the number of " +
+                "notifications in a message using configuration.");
+        }
     }
 }

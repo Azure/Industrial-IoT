@@ -44,7 +44,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="config"></param>
         /// <param name="broker"></param>
         /// <param name="logger"></param>
-        public IoTSdkFactory(IModuleConfig config, IEventSourceBroker broker, ILogger logger) {
+        /// <param name="metrics"></param>
+        public IoTSdkFactory(IModuleConfig config, IEventSourceBroker broker, ILogger logger,
+            IMetricsContext metrics) {
+            _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _telemetryTopicTemplate = config.TelemetryTopicTemplate;
 
@@ -232,11 +235,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             if (string.IsNullOrEmpty(ModuleId)) {
                 if (_mqttClientCs != null) {
                     return MqttClientAdapter.CreateAsync(_mqttClientCs, DeviceId, _telemetryTopicTemplate,
-                        timeout: _timeout, logger: _logger);
+                        timeout: _timeout, logger: _logger, metrics: _metrics);
                 }
                 else if (_deviceClientCs != null) {
                     return DeviceClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId,
-                        transportSetting, timeout: _timeout, RetryPolicy, onError, _logger);
+                        transportSetting, timeout: _timeout, RetryPolicy, onError, _logger, _metrics);
                 }
                 else {
                     throw new InvalidConfigurationException(
@@ -245,7 +248,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
             return ModuleClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId, ModuleId,
                 _enableOutputRouting, transportSetting, timeout: _timeout, retry: RetryPolicy,
-                onConnectionLost: onError, logger: _logger);
+                onConnectionLost: onError, logger: _logger, metrics: _metrics);
         }
 
         /// <summary>
@@ -300,6 +303,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private readonly TransportOption _transport;
         private readonly IotHubConnectionStringBuilder _deviceClientCs;
         private readonly MqttClientConnectionStringBuilder _mqttClientCs;
+        private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
         private readonly string _telemetryTopicTemplate;
         private readonly IDisposable _logHook;

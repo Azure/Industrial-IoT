@@ -4,24 +4,24 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Exceptions;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
     using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
+    using System.Diagnostics.Metrics;
     using System.Linq;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Text;
-    using Prometheus;
-    using Microsoft.Azure.IIoT.Utils;
 
     /// <summary>
     /// Module host implementation
@@ -58,8 +58,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="factory"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="metrics"></param>
         public ModuleHost(IMethodRouter router, ISettingsRouter settings,
-            IClientFactory factory, IJsonSerializer serializer, ILogger logger) {
+            IClientFactory factory, IJsonSerializer serializer, ILogger logger,
+            IMetricsContext metrics)
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _router = router ?? throw new ArgumentNullException(nameof(router));
@@ -91,9 +94,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _logger.Error(ce, "Module Host stopping caused exception.");
                 }
                 finally {
-                    kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "", _moduleGuid, "",
-                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                        CultureInfo.InvariantCulture)).Set(0);
                     Client?.Dispose();
                     Client = null;
                     _reported?.Clear();
@@ -144,20 +144,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         twinSettings[TwinProperty.Version] = version;
                         await Client.UpdateReportedPropertiesAsync(twinSettings);
 
-                        // Done...
-                        kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
-                            _moduleGuid, version,
-                            DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                            CultureInfo.InvariantCulture)).Set(1);
                         _logger.Information("Module Host started.");
                         return;
                     }
                 }
                 catch (Exception) {
-                    kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
-                        _moduleGuid, version,
-                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                        CultureInfo.InvariantCulture)).Set(0);
                     _logger.Error("Module Host failed to start.");
                     if (Client != null) {
                         await Try.Async(() => Client.DisposeAsync().AsTask());
@@ -481,6 +472,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             return true;
         }
 
+        /// <summary>
+        /// Create observable metrics
+        /// </summary>
+        /// <param name="metrics"></param>
+        private ModuleHost(IMetricsContext metrics) {
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_module_start",
+                () => new Measurement<int>(Client != null ? 1 : 0, metrics.TagList), "Starts",
+                "Module starts.");
+        }
+
         private readonly IMethodRouter _router;
         private readonly ISettingsRouter _settings;
         private readonly IJsonSerializer _serializer;
@@ -489,11 +490,5 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, VariantValue> _reported =
             new Dictionary<string, VariantValue>();
-        private readonly string _moduleGuid = Guid.NewGuid().ToString();
-        private static readonly Gauge kModuleStart = Metrics
-            .CreateGauge("iiot_edge_module_start", "starting module",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "deviceid", "module", "runid", "version", "timestamp_utc" }
-                });
     }
 }

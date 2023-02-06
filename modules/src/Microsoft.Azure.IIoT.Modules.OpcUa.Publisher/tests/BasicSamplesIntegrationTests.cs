@@ -158,7 +158,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             var currentStep = body.GetProperty(kCurrentStep);
             body = currentStep.GetProperty("Body");
             Assert.Equal("ExtensionObject", currentStep.GetProperty("Type").GetString());
-            Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", body.GetProperty("TypeId").GetString());
+            Assert.Equal("http://opcfoundation.org/SimpleEvents#i=228", body.GetProperty("TypeId").GetString());
             Assert.Equal("Json", body.GetProperty("Encoding").GetString());
             Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
             Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);

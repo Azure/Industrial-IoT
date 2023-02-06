@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Common;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
@@ -22,7 +23,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics.Metrics;
     using System.Net;
+    using System.Net.NetworkInformation;
     using System.Runtime.InteropServices;
     using System.Security.Authentication;
     using System.Security.Cryptography.X509Certificates;
@@ -63,9 +66,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="qualityOfServiceLevel">Quality of service level to use for MQTT messages.</param>
         /// <param name="telemetryTopicTemplate">A template to build Topics.</param>
         /// <param name="logger">Logger used for operations</param>
+        /// <param name="metrics"></param>
         private MqttClientAdapter(IManagedMqttClient client, string deviceId, TimeSpan timeout,
             MqttProtocolVersion protocolVersion, MqttQualityOfServiceLevel qualityOfServiceLevel,
-            string telemetryTopicTemplate, ILogger logger) {
+            string telemetryTopicTemplate, ILogger logger, IMetricsContext metrics)
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _deviceId = deviceId ?? throw new ArgumentNullException(nameof(deviceId));
             _timeout = timeout;
@@ -111,10 +116,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="telemetryTopicTemplate">Telemetry topic template.</param>
         /// <param name="timeout">Timeout used for operations.</param>
         /// <param name="logger">Logger used for operations</param>
+        /// <param name="metrics"></param>
         /// <returns></returns>
         public static async Task<IClient> CreateAsync(IManagedMqttClient client,
             MqttClientConnectionStringBuilder cs, string deviceId, string telemetryTopicTemplate,
-            TimeSpan timeout, ILogger logger) {
+            TimeSpan timeout, ILogger logger, IMetricsContext metrics) {
             var options = new MqttClientOptionsBuilder()
                 .WithClientId(string.IsNullOrEmpty(cs.DeviceId) ? Guid.NewGuid().ToString() : cs.DeviceId)
                 .WithTcpServer(tcpOptions => {
@@ -148,7 +154,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             var adapter = new MqttClientAdapter(client, deviceId, timeout, cs.Protocol,
                 qualityOfServiceLevel: MqttQualityOfServiceLevel.AtLeastOnce,
                 telemetryTopicTemplate: cs.UsingIoTHub ? null : telemetryTopicTemplate,
-                logger: logger);
+                logger: logger, metrics: metrics);
 
             client.ConnectedAsync += adapter.OnConnected;
             client.ConnectingFailedAsync += adapter.OnConnectingFailed;
@@ -179,11 +185,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="telemetryTopicTemplate">Telemetry topic template.</param>
         /// <param name="timeout">Timeout used for operations.</param>
         /// <param name="logger">Logger used for operations</param>
+        /// <param name="metrics"></param>
         /// <returns></returns>
         public static Task<IClient> CreateAsync(MqttClientConnectionStringBuilder cs,
-            string deviceId, string telemetryTopicTemplate, TimeSpan timeout, ILogger logger) {
+            string deviceId, string telemetryTopicTemplate, TimeSpan timeout, ILogger logger,
+            IMetricsContext metrics) {
             var client = new MqttFactory().CreateManagedMqttClient();
-            return CreateAsync(client, cs, deviceId, telemetryTopicTemplate, timeout, logger);
+            return CreateAsync(client, cs, deviceId, telemetryTopicTemplate, timeout, logger,
+                metrics);
         }
 
         /// <inheritdoc />
@@ -361,7 +370,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private Task OnConnected(MqttClientConnectedEventArgs eventArgs) {
             _logger.Information("{counter}: Device {deviceId} connected or reconnected",
                 _reconnectCounter, _deviceId);
-            kReconnectionStatus.WithLabels(_deviceId).Set(_reconnectCounter);
             _reconnectCounter++;
             IsConnected = true;
             return Task.CompletedTask;
@@ -399,7 +407,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
             _logger.Information("{counter}: Device {deviceId} disconnected due to {reason}",
                  _reconnectCounter, _deviceId, eventArgs.ToString());
-            kDisconnectionStatus.WithLabels(_deviceId).Set(_reconnectCounter);
 
             // _onConnectionLost?.Invoke();
             return Task.CompletedTask;
@@ -418,7 +425,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
             _logger.Information("{counter}: Device {deviceId} disconnected due to {reason}",
                  _reconnectCounter, _deviceId, eventArgs.Reason);
-            kDisconnectionStatus.WithLabels(_deviceId).Set(_reconnectCounter);
 
             // _onConnectionLost?.Invoke();
             return Task.CompletedTask;
@@ -735,6 +741,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             private readonly Dictionary<string, string> _userProperties = new Dictionary<string, string>();
         }
 
+        /// <summary>
+        /// Create observable metrics
+        /// </summary>
+        /// <param name="metrics"></param>
+        private MqttClientAdapter(IMetricsContext metrics) {
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_mqtt_reconnect_count",
+                () => new Measurement<int>(_reconnectCounter, metrics.TagList), "times",
+                "MQTT client reconnected count.");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_mqtt_disconnected",
+                () => new Measurement<int>(IsConnected ? 0 : 1, metrics.TagList), "status",
+                "MQTT client disconnected.");
+        }
+
         private readonly IManagedMqttClient _client;
         private readonly MqttQualityOfServiceLevel _qualityOfServiceLevel;
         private readonly string _methodTopicRoot;
@@ -760,15 +779,5 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private DesiredPropertyUpdateCallback _desiredPropertyUpdateCallback;
         private MethodCallback _defaultMethodCallback;
         private int _reconnectCounter;
-        private static readonly Gauge kReconnectionStatus = Metrics
-            .CreateGauge("iiot_edge_device_reconnected", "reconnected count",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "device" }
-                });
-        private static readonly Gauge kDisconnectionStatus = Metrics
-            .CreateGauge("iiot_edge_device_disconnected", "disconnected count",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "device" }
-                });
     }
 }

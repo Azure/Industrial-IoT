@@ -7,7 +7,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Autofac;
+    using System.Diagnostics;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System;
 
     /// <summary>
     /// Container builder for data set writer jobs
@@ -28,32 +33,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public IWriterGroupScope Create(IWriterGroupConfig config) {
-            return new WriterGroupScope(_lifetimeScope, config);
+            return new WriterGroupScope(_lifetimeScope, PublisherId, config);
         }
 
         /// <summary>
         /// Scope wrapper
         /// </summary>
-        private sealed class WriterGroupScope : IWriterGroupScope {
+        private sealed class WriterGroupScope : IWriterGroupScope, IMetricsContext {
 
             /// <inheritdoc/>
             public IWriterGroup WriterGroup => _lifetimeScope.Resolve<IWriterGroup>();
+
+            /// <inheritdoc/>
+            public TagList TagList { get; }
 
             /// <summary>
             /// Create scope
             /// </summary>
             /// <param name="lifetimeScope"></param>
+            /// <param name="publisherId"></param>
             /// <param name="config"></param>
-            public WriterGroupScope(ILifetimeScope lifetimeScope, IWriterGroupConfig config) {
+            public WriterGroupScope(ILifetimeScope lifetimeScope, string publisherId,
+                IWriterGroupConfig config) {
+
+                TagList = new TagList(new[] {
+                    new KeyValuePair<string, object>("publisherId", publisherId),
+                    new KeyValuePair<string, object>("writerGroupId", config.WriterGroup?.WriterGroupId),
+                    new KeyValuePair<string, object>("timestamp_utc",
+                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+                        CultureInfo.InvariantCulture))
+                });
+
                 _lifetimeScope = lifetimeScope.BeginLifetimeScope(builder => {
                     // Register job configuration
                     builder.RegisterInstance(config)
                         .AsImplementedInterfaces();
+                    builder.RegisterInstance(this)
+                        .As<IMetricsContext>().SingleInstance();
 
                     // Register default serializers...
                     builder.RegisterModule<NewtonSoftJsonModule>();
 
-                    // Register processing engine - trigger, transform, sink
+                    // Register data flow - source, encode, sink
                     builder.RegisterType<WriterGroupDataFlow>()
                         .AsImplementedInterfaces();
                     builder.RegisterType<WriterGroupDataSource>()

@@ -4,9 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
@@ -14,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -38,9 +41,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="identity"></param>
         /// <param name="codec"></param>
         /// <param name="logger"></param>
+        /// <param name="metrics"></param>
         public OpcUaClientManager(IClientServicesConfig clientConfig,
             ISubscriptionConfig subscriptionConfig, IIdentity identity,
-            IVariantEncoderFactory codec, ILogger logger) {
+            IVariantEncoderFactory codec, ILogger logger, IMetricsContext metrics)
+            : this( metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _clientConfig = clientConfig ??
                 throw new ArgumentNullException(nameof(clientConfig));
             Configuration = subscriptionConfig ??
@@ -61,52 +66,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public int GetNumberOfConnectionRetries(ConnectionModel connection) {
-            var key = new ConnectionIdentifier(connection);
-            _lock.Wait();
-            try {
-                if (!_clients.TryGetValue(key, out var client)) {
-                    return 0;
-                }
-                return client.NumberOfConnectRetries;
-            }
-            finally {
-                _lock.Release();
-            }
-        }
-
-        /// <inheritdoc/>
-        public bool IsConnectionOk(ConnectionModel connection) {
-            var key = new ConnectionIdentifier(connection);
-            _lock.Wait();
-            try {
-                if (!_clients.TryGetValue(key, out var client)) {
-                    return false;
-                }
-                return client.Session.Connected;
-            }
-            finally {
-                _lock.Release();
-            }
-        }
-
-        /// <inheritdoc/>
         public ValueTask<ISubscription> CreateSubscriptionAsync(SubscriptionModel subscription,
             CancellationToken ct) {
+            var client = FindClient(subscription.Id.Connection);
             return OpcUaSubscription.CreateAsync(this, _clientConfig, _codec,
-                subscription, _logger, ct);
+                subscription, _logger, client ?? _metrics, ct);
         }
 
         /// <inheritdoc/>
         public async ValueTask<ISessionHandle> GetOrCreateSessionAsync(ConnectionModel connection,
-            CancellationToken ct) {
+            IMetricsContext metrics, CancellationToken ct) {
             // Find session and if not exists create
             var id = new ConnectionIdentifier(connection);
             await _lock.WaitAsync(ct);
             try {
                 // try to get an existing session
                 if (!_clients.TryGetValue(id, out var client)) {
-                    client = CreateClient(id);
+                    client = CreateClient(id, metrics ?? _metrics);
                     _clients.AddOrUpdate(id, client);
                     _logger.Information(
                         "New session {Name} added, current number of sessions is {Count}.",
@@ -129,19 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public ISessionHandle FindSession(ConnectionModel connection) {
-            // Find session and if not exists create
-            var id = new ConnectionIdentifier(connection);
-            _lock.Wait();
-            try {
-                // try to get an existing session
-                if (!_clients.TryGetValue(id, out var client)) {
-                    return null;
-                }
-                return client;
-            }
-            finally {
-                _lock.Release();
-            }
+            return FindClient(connection);
         }
 
         /// <inheritdoc/>
@@ -190,6 +154,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _lock.Release();
                 _lock.Dispose();
                 _logger.Information("Removed all sessions, current number of sessions is 0");
+            }
+        }
+
+        /// <summary>
+        /// Find the client using the connection information
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        private OpcUaClient FindClient(ConnectionModel connection) {
+            // Find session and if not exists create
+            var id = new ConnectionIdentifier(connection);
+            _lock.Wait();
+            try {
+                // try to get an existing session
+                if (!_clients.TryGetValue(id, out var client)) {
+                    return null;
+                }
+                return client;
+            }
+            finally {
+                _lock.Release();
             }
         }
 
@@ -312,12 +297,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Create new client
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="metrics"></param>
         /// <returns></returns>
-        private OpcUaClient CreateClient(ConnectionIdentifier id) {
-            return new OpcUaClient(_configuration, id, _logger) {
+        private OpcUaClient CreateClient(ConnectionIdentifier id, IMetricsContext metrics) {
+            return new OpcUaClient(_configuration, id, _logger, metrics) {
                 KeepAliveInterval = _clientConfig.KeepAliveInterval,
                 SessionLifeTime = _clientConfig.DefaultSessionTimeout
             };
+        }
+
+        /// <summary>
+        /// Create metrics
+        /// </summary>
+        /// <param name="metrics"></param>
+        private OpcUaClientManager(IMetricsContext metrics) {
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
+                () => new Measurement<int>(_clients.Count, metrics.TagList), "Clients",
+                "Monitored item count.");
+            _metrics = metrics;
         }
 
         private readonly ILogger _logger;
@@ -330,5 +327,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly Task _processor;
         private readonly ApplicationConfiguration _configuration;
         private readonly IVariantEncoderFactory _codec;
+        private readonly IMetricsContext _metrics;
     }
 }

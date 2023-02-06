@@ -6,12 +6,14 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
     using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -34,7 +36,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="logger"></param>
-        internal DeviceClientAdapter(DeviceClient client, ILogger logger) {
+        /// <param name="metrics"></param>
+        internal DeviceClientAdapter(DeviceClient client, ILogger logger,
+            IMetricsContext metrics)
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -50,13 +55,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="retry"></param>
         /// <param name="onConnectionLost"></param>
         /// <param name="logger"></param>
+        /// <param name="metrics"></param>
         /// <returns></returns>
         public static async Task<IClient> CreateAsync(string product,
             IotHubConnectionStringBuilder cs, string deviceId,
             ITransportSettings transportSetting, TimeSpan timeout,
-            IRetryPolicy retry, Action onConnectionLost, ILogger logger) {
+            IRetryPolicy retry, Action onConnectionLost, ILogger logger,
+            IMetricsContext metrics) {
             var client = Create(cs, transportSetting);
-            var adapter = new DeviceClientAdapter(client, logger);
+            var adapter = new DeviceClientAdapter(client, logger, metrics);
 
             // Configure
             client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
@@ -153,17 +160,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             Action onConnectionLost, ILogger logger, ConnectionStatus status,
             ConnectionStatusChangeReason reason) {
 
+            _status = status;
+            _reason = reason;
             if (status == ConnectionStatus.Connected) {
                 logger.Information("{counter}: Device {deviceId} reconnected " +
                     "due to {reason}.", _reconnectCounter, deviceId, reason);
-                kReconnectionStatus.WithLabels(deviceId).Set(_reconnectCounter);
                 _reconnectCounter++;
                 return;
             }
             logger.Information("{counter}: Device {deviceId} disconnected " +
                 "due to {reason} - now {status}...", _reconnectCounter, deviceId,
                     reason, status);
-            kDisconnectionStatus.WithLabels(deviceId).Set(_reconnectCounter);
             if (IsClosed) {
                 // Already closed - nothing to do
                 return;
@@ -318,19 +325,26 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             Message _template = new Message();
         }
 
+        /// <summary>
+        /// Create observable metrics
+        /// </summary>
+        /// <param name="metrics"></param>
+        private DeviceClientAdapter(IMetricsContext metrics) {
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_device_reconnected",
+                () => new Measurement<int>(_reconnectCounter, metrics.TagList), "times",
+                "Device client reconnected count.");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_device_connection_status",
+                () => new Measurement<int>((int)_status, metrics.TagList), "status",
+                "Device client disconnected.");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_device_connection_reason",
+                () => new Measurement<int>((int)_reason, metrics.TagList), "reason",
+                "Device client disconnected.");
+        }
+
+        private ConnectionStatus _status;
+        private ConnectionStatusChangeReason _reason;
         private readonly DeviceClient _client;
         private readonly ILogger _logger;
-
         private int _reconnectCounter;
-        private static readonly Gauge kReconnectionStatus = Metrics
-            .CreateGauge("iiot_edge_device_reconnected", "reconnected count",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "device" }
-                });
-        private static readonly Gauge kDisconnectionStatus = Metrics
-            .CreateGauge("iiot_edge_device_disconnected", "disconnected count",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "device" }
-                });
     }
 }

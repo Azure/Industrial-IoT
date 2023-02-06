@@ -74,12 +74,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
 
             if (Host.IsContainer) {
                 // Set timer to kill the entire process after 5 minutes.
-#pragma warning disable IDE0067 // Dispose objects before losing scope
                 var _ = new Timer(o => {
                     Log.Logger.Fatal("Killing non responsive module process!");
                     Process.GetCurrentProcess().Kill();
                 }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
-#pragma warning restore IDE0067 // Dispose objects before losing scope
             }
         }
 
@@ -105,8 +103,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                         // Start module
                         await module.StartAsync(IdentityType.Supervisor, SiteId,
                             "OpcTwin", version, this);
-                        kTwinModuleStart.WithLabels(
-                            identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await client.InitializeAsync();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
@@ -121,8 +117,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
-                        kTwinModuleStart.WithLabels(
-                            identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         await module.StopAsync();
                         server.StopWhenEnabled(moduleConfig, logger);
                         OnRunning?.Invoke(this, false);
@@ -258,10 +252,5 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
         private const int kTwinPrometheusPort = 9701;
-        private static readonly Gauge kTwinModuleStart = Metrics
-            .CreateGauge("iiot_edge_twin_module_start", "twin module started",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "deviceid", "module" }
-                });
     }
 }

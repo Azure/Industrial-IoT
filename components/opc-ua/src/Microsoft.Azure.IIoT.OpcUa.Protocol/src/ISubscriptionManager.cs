@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System.Threading;
     using System.Threading.Tasks;
@@ -25,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask<ISubscription> CreateSubscriptionAsync(
-            SubscriptionModel subscriptionModel, CancellationToken ct);
+            SubscriptionModel subscriptionModel,
+            CancellationToken ct = default);
     }
 }

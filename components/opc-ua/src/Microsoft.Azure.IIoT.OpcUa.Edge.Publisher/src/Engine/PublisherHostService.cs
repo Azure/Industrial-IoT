@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Autofac;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
@@ -14,6 +15,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Channels;
@@ -26,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// supports aggregation of diagnostics and single sink console output of
     /// the diagnostics data.
     /// </summary>
-    public sealed class PublisherHostService : IPublisher, IDisposable {
+    public sealed class PublisherHostService : IPublisher, IDisposable, IMetricsContext {
 
         /// <inheritdoc/>
         public IEnumerable<WriterGroupJobModel> WriterGroups { get; private set; }
@@ -43,6 +46,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public int Version => _version;
 
+        /// <inheritdoc/>
+        public TagList TagList { get; }
+
         /// <summary>
         /// Create Job host
         /// </summary>
@@ -57,6 +63,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 = ImmutableList<PublishedNodesEntryModel>.Empty;
             _diagnosticInfo
                 = ImmutableDictionary<string, PublishDiagnosticInfoModel>.Empty;
+            TagList = new TagList(new[] {
+                new KeyValuePair<string, object>("publisherId", factory.PublisherId),
+                new KeyValuePair<string, object>("timestamp_utc",
+                    DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+                    CultureInfo.InvariantCulture))
+            });
             _completedTask = new TaskCompletionSource();
             _cts = new CancellationTokenSource();
             _changeFeed

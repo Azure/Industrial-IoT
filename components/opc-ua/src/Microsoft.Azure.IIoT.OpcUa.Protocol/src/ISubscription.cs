@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         string Name { get; }
 
         /// <summary>
-        /// Index inside the publisher
+        /// Assigned index
         /// </summary>
         ushort Id { get; }
 
@@ -49,26 +49,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Connection
         /// </summary>
         ConnectionModel Connection { get; }
-
-        /// <summary>
-        /// Number of retries on the session
-        /// </summary>
-        int NumberOfConnectionRetries { get; }
-
-        /// <summary>
-        /// IsConnectionOk
-        /// </summary>
-        bool IsConnectionOk { get; }
-
-        /// <summary>
-        /// Number of nodes connected and receiving data
-        /// </summary>
-        int NumberOfGoodNodes { get; }
-
-        /// <summary>
-        /// Number of nodes disconnected
-        /// </summary>
-        int NumberOfBadNodes { get; }
 
         /// <summary>
         /// Create a keep alive notification

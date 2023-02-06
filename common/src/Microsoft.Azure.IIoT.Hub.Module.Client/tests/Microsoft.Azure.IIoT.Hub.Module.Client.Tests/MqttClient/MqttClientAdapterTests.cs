@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
     using Moq;
     using MQTTnet;
@@ -19,17 +20,20 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
     using System.Runtime.InteropServices;
     using System.Security.Authentication;
     using System.Text;
-    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
     [Collection("MqttClientTests")]
     public class MqttClientAdapterTests : MqttClientConnectionStringBuilderTestsBase {
         private readonly ILogger _logger;
+        private readonly IMetricsContext _metrics;
         private readonly MqttClientConnectionStringBuilder _mqttClientConnectionStringBuilder;
 
         public MqttClientAdapterTests() {
             _logger = new Mock<ILogger>().Object;
+            var m = new Mock<IMetricsContext>();
+            m.SetupGet(m => m.TagList).Returns(new System.Diagnostics.TagList());
+            _metrics = m.Object;
             // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             _mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create("HostName=hub1.azure-devices.net;DeviceId=device1;ModuleId=module1;SharedAccessSignature=SharedAccessSignature sr=hub1.azure-devices.net%2Fdevices%2Fdevice1&sig=SAHEh7J7dPzpIhotIEpRXUhC4v49vKJOHLiKlcGv1U8%3D&se=1943452860;StateFile=file1;Protocol=v500");
         }
@@ -39,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             var mock = new Mock<IManagedMqttClient>();
             mock.SetupGet(x => x.IsStarted).Returns(false);
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
-            _ = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, _logger);
+            _ = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, _logger, _metrics);
 
             mock.VerifyAdd(x => x.ConnectedAsync += It.IsAny<Func<MqttClientConnectedEventArgs, Task>>());
             mock.VerifyAdd(x => x.ConnectingFailedAsync += It.IsAny<Func<ConnectingFailedEventArgs, Task>>());
@@ -78,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
 
             mock.SetupGet(x => x.IsStarted).Returns(true);
             var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder,
-                "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), _logger);
+                "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), _logger, _metrics);
 
             var message = mqttClientAdapter.CreateTelemetryEvent();
             message.Buffers = new[] { payloadBytes };
@@ -110,7 +114,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create("HostName=localhost;DeviceId=deviceId;Username=user;Password=SAHEh7J7dPzpIh;Protocol=v500");
             var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, mqttClientConnectionStringBuilder,
-                "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), _logger);
+                "device1", "/topic/{device_id}", TimeSpan.FromMinutes(5), _logger, _metrics);
 
             var message = mqttClientAdapter.CreateTelemetryEvent();
             message.Buffers = new[] { payloadBytes, payloadBytes, payloadBytes };
@@ -142,7 +146,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification = "Test Example, no real secret")]
             var mqttClientConnectionStringBuilder = MqttClientConnectionStringBuilder.Create("HostName=localhost;DeviceId=deviceId;Username=user;Password=SAHEh7J7dPzpIh;Protocol=v500");
             var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, mqttClientConnectionStringBuilder,
-                "device1", "/topic/{output_name}/super", TimeSpan.FromMinutes(5), _logger);
+                "device1", "/topic/{output_name}/super", TimeSpan.FromMinutes(5), _logger, _metrics);
 
             var message = mqttClientAdapter.CreateTelemetryEvent();
             message.Buffers = new[] { payloadBytes, null, payloadBytes };
@@ -165,7 +169,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
         public async Task GetTwinTest() {
             var mock = new Mock<IManagedMqttClient>();
             mock.SetupGet(x => x.IsStarted).Returns(true);
-            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.FromSeconds(0), _logger);
+            var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder,
+                "device1", "/topic/{device_id}", TimeSpan.FromSeconds(0), _logger, _metrics);
             await mqttClientAdapter.GetTwinAsync();
 
             mock.Verify(x => x.EnqueueAsync(
@@ -184,7 +189,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
 
             using var mqttClientAdapter = await MqttClientAdapter.CreateAsync(mock.Object,
-                _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, _logger);
+                _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, _logger, _metrics);
             var message = mqttClientAdapter.CreateTelemetryEvent();
             message.Buffers = new[] { payloadBytes };
             message.ContentType = "application/json";
@@ -212,7 +217,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
             mock.SetupGet(x => x.InternalClient).Returns(new Mock<IMqttClient>().Object);
             mock.Setup(x => x.StartAsync(It.IsAny<ManagedMqttClientOptions>())).Returns(() => { throw new TaskCanceledException(); });
             try {
-                _ = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder, "device1", "/topic/{device_id}", TimeSpan.Zero, _logger);
+                _ = await MqttClientAdapter.CreateAsync(mock.Object, _mqttClientConnectionStringBuilder,
+                    "device1", "/topic/{device_id}", TimeSpan.Zero, _logger, _metrics);
             }
             catch (TaskCanceledException) {
             }

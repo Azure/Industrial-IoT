@@ -109,8 +109,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this).ConfigureAwait(false);
-                        kPublisherModuleStart.WithLabels(
-                            identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
 
                         // Reporting runtime state on restart.
                         // Reporting will happen only in stadalone mode.
@@ -133,8 +131,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     finally {
                         OnRunning?.Invoke(this, false);
 
-                        kPublisherModuleStart.WithLabels(
-                            identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         healthCheckManager.Stop();
                         server.StopWhenEnabled(moduleConfig, logger);
                         await module.StopAsync().ConfigureAwait(false);
@@ -204,10 +200,5 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         private int _exitCode;
         private TaskCompletionSource<bool> _reset;
         private const int kPublisherPrometheusPort = 9702;
-        private static readonly Gauge kPublisherModuleStart = Metrics
-            .CreateGauge("iiot_edge_publisher_module_start", "publisher module started",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "deviceid", "module" }
-                });
     }
 }

@@ -4,12 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Prometheus;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Serilog;
     using System;
-    using System.Globalization;
+    using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -18,17 +20,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     public class NetworkMessageSink : IMessageSink {
 
         /// <inheritdoc/>
-        public long SentMessagesCount { get; private set; }
-
-        /// <inheritdoc/>
         public int MaxMessageSize => _clientAccessor.Client.MaxEventBufferSize;
 
         /// <summary>
-        /// Create IoT hub message sink
+        /// Create network message sink
         /// </summary>
         /// <param name="clientAccessor"></param>
+        /// <param name="metrics"></param>
         /// <param name="logger"></param>
-        public NetworkMessageSink(IClientAccessor clientAccessor, ILogger logger) {
+        public NetworkMessageSink(IClientAccessor clientAccessor, IMetricsContext metrics,
+            ILogger logger) : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
+
             _clientAccessor = clientAccessor
                 ?? throw new ArgumentNullException(nameof(clientAccessor));
             _logger = logger
@@ -46,44 +48,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 return;
             }
             try {
-                if (SentMessagesCount > kMessageCounterResetThreshold) {
-                    _logger.Debug("Message counter has been reset to prevent overflow. " +
-                        "So far, {SentMessagesCount} messages has been sent to IoT Hub.",
-                        SentMessagesCount);
-                    kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
-                    SentMessagesCount = 0;
+                var sw = Stopwatch.StartNew();
+                try {
+                    await _clientAccessor.Client.SendEventAsync(message).ConfigureAwait(false);
+                    _messagesSentCount++;
                 }
-                using (kSendingDuration.NewTimer()) {
-                    try {
-                        await _clientAccessor.Client.SendEventAsync(message).ConfigureAwait(false);
-                    }
-                    catch (Exception e) {
-                        _logger.Error(e, "Error sending message(s) to IoT Hub");
-                    }
+                catch (Exception e) {
+                    kMessagesErrors.Add(1, _tagList);
+                    _logger.Error(e, "Error sending network message(s)");
                 }
-                SentMessagesCount++;
-                kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
+                kSendingDuration.Record(sw.ElapsedMilliseconds, _tagList);
             }
             finally {
                 message.Dispose();
             }
         }
 
-        private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
+        /// <summary>
+        /// Create observable metric registrations
+        /// </summary>
+        private NetworkMessageSink(IMetricsContext metrics) {
+            _tagList = metrics.TagList;
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_encoded_notifications",
+                () => new Measurement<long>(_messagesSentCount, _tagList), "Messages",
+                "Number of successfully processed subscription notifications received from OPC client.");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_sent_iot_messages_per_second",
+                () => new Measurement<double>(_messagesSentCount / UpTime, _tagList), "Messages/second",
+                "IoT messages/second sent to hub");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_estimated_message_chunks_per_day",
+                () => new Measurement<double>(_messagesSentCount, _tagList), "Messages/day",
+                "Estimated IoT Hub messages chunks charged per day");
+        }
+        static Counter<long> kMessagesErrors = Diagnostics.Meter.CreateCounter<long>(
+            "iiot_edge_publisher_failed_iot_messages", "messages", "Number of failures sending a network message.");
+        static Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
+            "iiot_edge_publisher_messages_duration", "milliseconds", "Histogram of message sending durations.");
+
+        private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
+        private readonly DateTime _startTime = DateTime.UtcNow;
         private readonly ILogger _logger;
         private readonly IClientAccessor _clientAccessor;
-        private readonly string IotHubMessageSinkGuid = Guid.NewGuid().ToString();
-        private readonly string IotHubMessageSinkStartTime = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                        CultureInfo.InvariantCulture);
-        private static readonly Gauge kMessagesSent = Metrics.CreateGauge(
-            "iiot_edge_publisher_messages", "Number of messages sent to IotHub",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "runid", "timestamp_utc" }
-                });
-        private static readonly Histogram kSendingDuration = Metrics.CreateHistogram(
-            "iiot_edge_publisher_messages_duration", "Histogram of message sending durations");
+        private readonly TagList _tagList;
+        private long _messagesSentCount;
     }
 }

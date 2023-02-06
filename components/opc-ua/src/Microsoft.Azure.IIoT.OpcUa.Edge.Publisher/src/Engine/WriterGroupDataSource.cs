@@ -4,18 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -28,173 +29,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     public class WriterGroupDataSource : IMessageSource, IDisposable {
 
         /// <inheritdoc/>
-        public string Id => _writerGroup.WriterGroupId;
-
-        /// <inheritdoc/>
-        public int NumberOfConnectionRetries => _subscriptions.Values.Sum(x => x.Subscription?.NumberOfConnectionRetries) ?? 0;
-
-        /// <inheritdoc/>
-        public bool IsConnectionOk => (_subscriptions?.Count == 0 ||
-            _subscriptions.Values.Where(x => x.Subscription?.IsConnectionOk == true).Count() < _subscriptions?.Count) ? false : true;
-
-        /// <inheritdoc/>
-        public int NumberOfGoodNodes => _subscriptions.Values.Sum(x => x.Subscription?.NumberOfGoodNodes) ?? 0;
-
-        /// <inheritdoc/>
-        public int NumberOfBadNodes => _subscriptions.Values.Sum(x => x.Subscription?.NumberOfBadNodes) ?? 0;
-
-        /// <inheritdoc/>
-        public Uri EndpointUrl => _subscriptions.Count == 0 ? null : new Uri(_subscriptions.Values.First()?.Subscription?.Connection.Endpoint.Url);
-
-        /// <inheritdoc/>
-        public string DataSetWriterGroup => _writerGroup?.WriterGroupId;
-
-        /// <inheritdoc/>
-        public bool UseSecurity =>
-            _subscriptions.Values.FirstOrDefault()?.Subscription?.Connection.Endpoint.SecurityMode != SecurityMode.None ?
-                true : false;
-
-        /// <inheritdoc/>
-        public OpcAuthenticationMode AuthenticationMode =>
-            _subscriptions.Values.FirstOrDefault()?.Subscription?.Connection?.User?.Value != null
-            ? OpcAuthenticationMode.UsernamePassword
-            : OpcAuthenticationMode.Anonymous;
-
-        /// <inheritdoc/>
-        public string AuthenticationUsername =>
-            _subscriptions.Values.FirstOrDefault()?.Subscription?.Connection?.User?.Value != null
-            ? _serializer.Deserialize<cred>(_subscriptions.Values
-                .First()
-                .Subscription
-                .Connection
-                .User
-                .Value
-                .ToJson())?
-                .user
-            : null;
-
-        /// <inheritdoc/>
-        public ulong ValueChangesCountLastMinute {
-            get => CalculateSumForRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges, _bucketWidth, _lastWriteTimeValueChange);
-            private set => IncreaseRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges, _bucketWidth, value, ref _lastWriteTimeValueChange);
-        }
-
-        /// <inheritdoc/>
-        public ulong ValueChangesCount {
-            get { return _valueChangesCount; }
-            private set {
-                var difference = value - _valueChangesCount;
-                _valueChangesCount = value;
-                ValueChangesCountLastMinute = difference;
-            }
-        }
-
-        /// <inheritdoc/>
-        public ulong DataChangesCountLastMinute {
-            get => CalculateSumForRingBuffer(_dataChangesBuffer, ref _lastPointerDataChanges, _bucketWidth, _lastWriteTimeDataChange);
-            private set => IncreaseRingBuffer(_dataChangesBuffer, ref _lastPointerDataChanges, _bucketWidth, value, ref _lastWriteTimeDataChange);
-        }
-
-        /// <inheritdoc/>
-        public ulong DataChangesCount {
-            get {
-                return _dataChangesCount;
-            }
-            private set {
-                var difference = value - _dataChangesCount;
-                _dataChangesCount = value;
-                DataChangesCountLastMinute = difference;
-            }
-        }
-
-        /// <summary>
-        /// Iterates the array and add up all values
-        /// </summary>
-        private static ulong CalculateSumForRingBuffer(ulong[] array, ref int lastPointer, int bucketWidth, DateTime lastWriteTime) {
-            // if IncreaseRingBuffer wasn't called for some time, maybe some stale values are included
-            UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
-
-            // with cleaned buffer, we can just accumulate all buckets
-            ulong sum = 0;
-            for (int index = 0; index < array.Length; index++) {
-                sum += array[index];
-            }
-            return sum;
-        }
-
-        /// <summary>
-        /// Helper function to distribute values over array based on time
-        /// </summary>
-        private static void IncreaseRingBuffer(ulong[] array, ref int lastPointer, int bucketWidth, ulong difference, ref DateTime lastWriteTime) {
-            var indexPointer = UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
-
-            array[indexPointer] += difference;
-        }
-
-        /// <summary>
-        /// Empty the ring buffer buckets if necessary
-        /// </summary>
-        private static int UpdateRingBufferBuckets(ulong[] array, ref int lastPointer, int bucketWidth, ref DateTime lastWriteTime) {
-            var now = DateTime.UtcNow;
-            var indexPointer = now.Second % bucketWidth;
-
-            // if last update was > bucketsize seconds in the past delete whole array
-            if (lastWriteTime != DateTime.MinValue) {
-                var deleteWholeArray = (now - lastWriteTime).TotalSeconds >= bucketWidth;
-                if (deleteWholeArray) {
-                    Array.Clear(array, 0, array.Length);
-                    lastPointer = indexPointer;
-                }
-            }
-
-            // reset all buckets, between last write and now
-            while (lastPointer != indexPointer) {
-                lastPointer = (lastPointer + 1) % bucketWidth;
-                array[lastPointer] = 0;
-            }
-
-            lastWriteTime = now;
-
-            return indexPointer;
-        }
-
-        /// <inheritdoc/>
-        public ulong EventNotificationCount { get; private set; }
-
-        /// <inheritdoc/>
-        public ulong EventCount { get; private set; }
-
-        /// <inheritdoc/>
         public event EventHandler<SubscriptionNotificationModel> OnMessage;
 
         /// <inheritdoc/>
         public event EventHandler<EventArgs> OnCounterReset;
 
-        /// <inheritdoc/>
-        // TODO: This should go
-        public async Task RunAsync(CancellationToken ct) {
-            try {
-                await StartAsync(ct);
-                await Task.Delay(-1, ct).ConfigureAwait(false);
-            }
-            finally {
-                await DisposeAsync();
-            }
-        }
-
-        /// <inheritdoc/>
-        // TODO: This should go
-        public ValueTask ReconfigureAsync(object config, CancellationToken ct) {
-            var jobConfig = config as WriterGroupJobModel ?? throw new ArgumentNullException(nameof(config));
-            return UpdateAsync(jobConfig, ct);
-        }
-
         /// <summary>
         /// Create trigger from writer group
         /// </summary>
         public WriterGroupDataSource(IWriterGroupConfig writerGroupConfig,
-            ISubscriptionManager subscriptionManager, ILogger logger, IJsonSerializer serializer) {
-
+            ISubscriptionManager subscriptionManager, IMetricsContext metrics, ILogger logger)
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subscriptionManager = subscriptionManager ??
                 throw new ArgumentNullException(nameof(subscriptionManager));
@@ -202,8 +47,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new ArgumentNullException(nameof(writerGroupConfig.WriterGroup));
             _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
             _publisherId = writerGroupConfig.PublisherId ?? Guid.NewGuid().ToString();
-            _serializer = serializer ??
-                throw new ArgumentNullException(nameof(serializer));
         }
 
         /// <inheritdoc/>
@@ -536,7 +379,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
                     }
 
-                    _outer.ValueChangesCount += (ulong)notificationCount;
+                    _outer.ValueChangesCount += notificationCount;
                     _outer.DataChangesCount++;
                 }
             }
@@ -555,20 +398,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <param name="notificationCount"></param>
             private void OnSubscriptionEventDiagnosticsChanged(object sender, int notificationCount) {
                 lock (_lock) {
-                    if (_outer.EventCount >= kNumberOfInvokedMessagesResetThreshold ||
-                        _outer.EventNotificationCount >= kNumberOfInvokedMessagesResetThreshold) {
+                    if (_outer._eventCount >= kNumberOfInvokedMessagesResetThreshold ||
+                        _outer._eventNotificationCount >= kNumberOfInvokedMessagesResetThreshold) {
                         // reset both
                         _outer._logger.Debug("Notifications counter in subscription {Id} has been reset to prevent" +
                             " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
                             "event value changes were invoked by message source.",
-                            Id, _outer.EventCount, _outer.EventNotificationCount);
-                        _outer.EventCount = 0;
-                        _outer.EventNotificationCount = 0;
+                            Id, _outer._eventCount, _outer._eventNotificationCount);
+                        _outer._eventCount = 0;
+                        _outer._eventNotificationCount = 0;
                         _outer.OnCounterReset?.Invoke(this, EventArgs.Empty);
                     }
 
-                    _outer.EventNotificationCount += (ulong)notificationCount;
-                    _outer.EventCount++;
+                    _outer._eventNotificationCount += notificationCount;
+                    _outer._eventCount++;
                 }
             }
 
@@ -664,25 +507,158 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             public string user { get; set; }
             public string password { get; set; }
         }
+        /// <summary>
+        /// Iterates the array and add up all values
+        /// </summary>
+        private static long CalculateSumForRingBuffer(long[] array, ref int lastPointer,
+            int bucketWidth, DateTime lastWriteTime) {
+            // if IncreaseRingBuffer wasn't called for some time, maybe some stale values are included
+            UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
+            // with cleaned buffer, we can just accumulate all buckets
+            long sum = 0;
+            for (int index = 0; index < array.Length; index++) {
+                sum += array[index];
+            }
+            return sum;
+        }
 
-        private const ulong kNumberOfInvokedMessagesResetThreshold = ulong.MaxValue - 10000;
+        /// <summary>
+        /// Runtime duration
+        /// </summary>
+        private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
+
+        /// <summary>
+        /// Helper function to distribute values over array based on time
+        /// </summary>
+        private static void IncreaseRingBuffer(long[] array, ref int lastPointer,
+            int bucketWidth, long difference, ref DateTime lastWriteTime) {
+            var indexPointer = UpdateRingBufferBuckets(array, ref lastPointer,
+                bucketWidth, ref lastWriteTime);
+            array[indexPointer] += difference;
+        }
+
+        /// <summary>
+        /// Empty the ring buffer buckets if necessary
+        /// </summary>
+        private static int UpdateRingBufferBuckets(long[] array, ref int lastPointer,
+            int bucketWidth, ref DateTime lastWriteTime) {
+            var now = DateTime.UtcNow;
+            var indexPointer = now.Second % bucketWidth;
+
+            // if last update was > bucketsize seconds in the past delete whole array
+            if (lastWriteTime != DateTime.MinValue) {
+                var deleteWholeArray = (now - lastWriteTime).TotalSeconds >= bucketWidth;
+                if (deleteWholeArray) {
+                    Array.Clear(array, 0, array.Length);
+                    lastPointer = indexPointer;
+                }
+            }
+
+            // reset all buckets, between last write and now
+            while (lastPointer != indexPointer) {
+                lastPointer = (lastPointer + 1) % bucketWidth;
+                array[lastPointer] = 0;
+            }
+
+            lastWriteTime = now;
+
+            return indexPointer;
+        }
+
+        /// <summary>
+        /// Calculate value chnages in the last minute
+        /// </summary>
+        private long ValueChangesCountLastMinute {
+            get => CalculateSumForRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges,
+                _bucketWidth, _lastWriteTimeValueChange);
+            set => IncreaseRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges,
+                _bucketWidth, value, ref _lastWriteTimeValueChange);
+        }
+
+        /// <summary>
+        /// Get/Update value changes
+        /// </summary>
+        private long ValueChangesCount {
+            get => _valueChangesCount;
+            set {
+                var difference = value - _valueChangesCount;
+                _valueChangesCount = value;
+                ValueChangesCountLastMinute = difference;
+            }
+        }
+
+        /// <summary>
+        /// Datas changes last minute
+        /// </summary>
+        private long DataChangesCountLastMinute {
+            get => CalculateSumForRingBuffer(_dataChangesBuffer,
+                ref _lastPointerDataChanges, _bucketWidth, _lastWriteTimeDataChange);
+            set => IncreaseRingBuffer(_dataChangesBuffer,
+                ref _lastPointerDataChanges, _bucketWidth, value, ref _lastWriteTimeDataChange);
+        }
+
+        /// <summary>
+        /// Date changes total
+        /// </summary>
+        private long DataChangesCount {
+            get => _dataChangesCount;
+            set {
+                var difference = value - _dataChangesCount;
+                _dataChangesCount = value;
+                DataChangesCountLastMinute = difference;
+            }
+        }
+
+        /// <summary>
+        /// Create observable metrics
+        /// </summary>
+        /// <param name="metrics"></param>
+        private WriterGroupDataSource(IMetricsContext metrics) {
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_events",
+                () => new Measurement<long>(_eventCount, metrics.TagList), "Events",
+                "Total Opc Events delivered for processing.");
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_value_changes",
+                () => new Measurement<long>(ValueChangesCount, metrics.TagList), "Values",
+                "Total Opc Value changes delivered for processing.");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second",
+                () => new Measurement<double>(ValueChangesCount / UpTime, metrics.TagList), "Values/sec",
+                "Opc Value changes/second delivered for processing.");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second_last_min",
+                () => new Measurement<long>(ValueChangesCountLastMinute, metrics.TagList), "Values",
+                "Opc Value changes/second delivered for processing in last 60s.");
+
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_event_notifications",
+                () => new Measurement<long>(_eventNotificationCount, metrics.TagList), "Notifications",
+                "Total Opc Event notifications delivered for processing.");
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_data_changes",
+                () => new Measurement<long>(DataChangesCount, metrics.TagList), "Notifications",
+                "Total Opc Data change notifications delivered for processing.");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second",
+                () => new Measurement<double>(DataChangesCount / UpTime, metrics.TagList), "Notifications/sec",
+                "Opc Data change notifications/second delivered for processing.");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_data_changes_per_second_last_min",
+                () => new Measurement<long>(DataChangesCountLastMinute, metrics.TagList), "Notifications",
+                "Opc Data change notifications/second delivered for processing in last 60s.");
+        }
+
+        private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
         private const int _bucketWidth = 60;
-
+        private readonly long[] _valueChangesBuffer = new long[_bucketWidth];
+        private readonly long[] _dataChangesBuffer = new long[_bucketWidth];
         private readonly ILogger _logger;
         private readonly Dictionary<SubscriptionIdentifier, DataSetWriterSubscription> _subscriptions;
         private readonly ISubscriptionManager _subscriptionManager;
-        private readonly ulong[] _valueChangesBuffer = new ulong[_bucketWidth];
-        private readonly ulong[] _dataChangesBuffer = new ulong[_bucketWidth];
-
         private WriterGroupModel _writerGroup;
         private SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private string _publisherId;
         private int _lastPointerValueChanges;
-        private ulong _valueChangesCount;
+        private long _valueChangesCount;
         private int _lastPointerDataChanges;
-        private ulong _dataChangesCount;
+        private long _dataChangesCount;
+        private long _eventNotificationCount;
+        private long _eventCount;
         private DateTime _lastWriteTimeValueChange = DateTime.MinValue;
         private DateTime _lastWriteTimeDataChange = DateTime.MinValue;
-        private readonly IJsonSerializer _serializer;
+        private DateTime _startTime = DateTime.UtcNow;
     }
 }

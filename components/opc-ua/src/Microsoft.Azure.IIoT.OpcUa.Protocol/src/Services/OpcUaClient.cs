@@ -4,8 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
@@ -16,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -23,10 +26,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    public class OpcUaClient : IDisposable, ISessionHandle {
+    public class OpcUaClient : IDisposable, ISessionHandle, IMetricsContext {
 
         /// <inheritdoc/>
         public ISession Session => _session;
+
+        /// <inheritdoc/>
+        public TagList TagList { get; }
 
         /// <inheritdoc/>
         public ConnectionModel Connection { get; }
@@ -84,12 +90,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Initializes a new instance.
         /// </summary>
         public OpcUaClient(ApplicationConfiguration configuration,
-            ConnectionIdentifier connection, ILogger logger, string sessionName = null) {
-            if (connection?.Connection?.Endpoint == null) {
-                throw new ArgumentNullException(nameof(connection));
-            }
+            ConnectionIdentifier connection, ILogger logger, IMetricsContext metrics,
+            string sessionName = null) : this (metrics, connection) {
 
-            _connection = connection.Connection;
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
 
@@ -431,6 +434,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     subscription.OnSubscriptionStateChanged(online);
                 }
             });
+        }
+
+        /// <summary>
+        /// Create observable metrics
+        /// </summary>
+        /// <param name="metrics"></param>
+        /// <param name="connection"></param>
+        private OpcUaClient(IMetricsContext metrics, ConnectionIdentifier connection) {
+            if (connection?.Connection?.Endpoint == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (metrics == null) {
+                throw new ArgumentNullException(nameof(metrics));
+            }
+
+            _connection = connection.Connection;
+            TagList = new TagList(metrics.TagList.ToArray().AsSpan()) {
+                { "EndpointUrl", _connection.Endpoint.Url },
+                { "SecurityMode", _connection.Endpoint.SecurityMode }
+            };
+
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
+                () => new Measurement<int>(NumberOfConnectRetries, TagList), "Connection attempts",
+                "OPC UA connect retries.");
+            Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
+                () => new Measurement<int>(IsConnected ? 1 : 0, TagList), "",
+                "OPC UA connection success flag.");
         }
 
         private readonly ConcurrentDictionary<string, ISubscription> _subscriptions

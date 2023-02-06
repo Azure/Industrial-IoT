@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
     using System.Threading;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Session manager
@@ -21,27 +22,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         int SessionCount { get; }
 
         /// <summary>
-        /// gets the number of retiries for a specific session
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        int GetNumberOfConnectionRetries(ConnectionModel connection);
-
-        /// <summary>
-        /// Returns whether the connection is up and running or not
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        bool IsConnectionOk(ConnectionModel connection);
-
-        /// <summary>
         /// Get a connected session
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="metrics"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask<ISessionHandle> GetOrCreateSessionAsync(
-            ConnectionModel connection, CancellationToken ct = default);
+            ConnectionModel connection, IMetricsContext metrics = null,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Get session for connection

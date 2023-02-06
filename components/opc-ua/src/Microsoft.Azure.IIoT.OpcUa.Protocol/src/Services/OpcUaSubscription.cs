@@ -4,19 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
-    using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -32,22 +34,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public ushort Id { get; }
-
-        /// <inheritdoc/>
-        public int NumberOfConnectionRetries =>
-            _sessions.GetNumberOfConnectionRetries(_subscription.Id.Connection);
-
-        /// <inheritdoc/>
-        public bool IsConnectionOk =>
-            _sessions.IsConnectionOk(_subscription.Id.Connection);
-
-        /// <inheritdoc/>
-        public int NumberOfGoodNodes
-            => _currentlyMonitored.Values.Count(x => StatusCode.IsGood(x.Status));
-
-        /// <inheritdoc/>
-        public int NumberOfBadNodes
-            => _currentlyMonitored.Values.Count(x => StatusCode.IsBad(x.Status));
 
         /// <inheritdoc/>
         public ConnectionModel Connection => _subscription.Id.Connection;
@@ -84,7 +70,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Subscription
         /// </summary>
         private OpcUaSubscription(ISessionManager session, IClientServicesConfig config,
-            IVariantEncoderFactory codec, ILogger logger) {
+            IVariantEncoderFactory codec, ILogger logger, IMetricsContext metrics)
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _sessions = session ??
                 throw new ArgumentNullException(nameof(session));
             _config = config ??
@@ -104,16 +91,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="outer"></param>
         /// <param name="config"></param>
         /// <param name="codec"></param>
+        /// <param name="metrics"></param>
         /// <param name="subscription"></param>
         /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async ValueTask<ISubscription> CreateAsync(ISessionManager outer,
             IClientServicesConfig config, IVariantEncoderFactory codec,
-            SubscriptionModel subscription, ILogger logger, CancellationToken ct = default) {
+            SubscriptionModel subscription, ILogger logger, IMetricsContext metrics,
+            CancellationToken ct = default) {
 
             // Create object
-            var newSubscription = new OpcUaSubscription(outer, config, codec, logger);
+            var newSubscription = new OpcUaSubscription(outer, config, codec, logger, metrics);
             // Initialize
             await newSubscription.UpdateAsync(subscription, ct);
 
@@ -213,7 +202,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 // try to get a session using the provided configuration
                 var session = await _sessions.GetOrCreateSessionAsync(
-                    _subscription.Id.Connection, default);
+                    _subscription.Id.Connection, _metrics, default);
                 Debug.Assert(session != null);
 
                 try {
@@ -632,8 +621,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 count = currentlyMonitored.Values.Count(m => m.Item.Status.Error == null);
-                kMonitoredItems.WithLabels(rawSubscription.Id.ToString()).Set(count);
-
                 _logger.Information("Now monitoring {count} nodes in subscription "
                     + "'{subscription}'/'{sessionId}'",
                     count,
@@ -1224,22 +1211,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
         }
 
+        private int NumberOfGoodNodes
+            => _currentlyMonitored.Values.Count(x => StatusCode.IsGood(x.Status));
+        private int NumberOfBadNodes
+            => _currentlyMonitored.Values.Count(x => StatusCode.IsBad(x.Status));
+
+        /// <summary>
+        /// Create observable metrics
+        /// </summary>
+        /// <param name="metrics"></param>
+        public OpcUaSubscription(IMetricsContext metrics) {
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
+                () => new Measurement<int>(NumberOfGoodNodes, metrics.TagList), "Monitored items",
+                "Monitored items successfully created..");
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
+                () => new Measurement<int>(NumberOfBadNodes, metrics.TagList), "Monitored items",
+                "Monitored items with errors.");
+            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
+                () => new Measurement<int>(_currentlyMonitored.Count, metrics.TagList), "Monitored items",
+                "Monitored item count.");
+            _metrics = metrics;
+        }
+
+        private ImmutableDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel _subscription;
         private readonly ISessionManager _sessions;
         private readonly IClientServicesConfig _config;
         private readonly IVariantEncoderFactory _codec;
         private readonly ILogger _logger;
+        private readonly IMetricsContext _metrics;
         private readonly SemaphoreSlim _lock;
-        private ImmutableDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
         private DataSetMetaDataType _currentMetaData;
         private uint _lastSequenceNumber;
         private bool _closed;
-
         private static uint _lastIndex;
-        private static readonly Gauge kMonitoredItems = Metrics.CreateGauge(
-            "iiot_edge_publisher_monitored_items", "monitored items count",
-            new GaugeConfiguration {
-                LabelNames = new[] { "subscription" }
-            });
     }
 }
