@@ -7,12 +7,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -70,11 +73,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Whether the connect operation is in progress
         /// </summary>
         internal bool HasSubscriptions => !_subscriptions.IsEmpty;
-
-        /// <summary>
-        /// Complex type system
-        /// </summary>
-        public ComplexTypeSystem ComplexTypeSystem { get; internal set; }
 
         /// <summary>
         /// Check if session is active
@@ -178,48 +176,52 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public void Dispose() {
+            Session session;
+            List<ISubscription> subscriptions;
+            _lock.Wait();
             try {
-                if (_session != null) {
-                    _logger.Information("Disconnecting session {Name}...", _sessionName);
+                _reconnectHandler?.Dispose();
+                subscriptions = _subscriptions.Values.ToList();
+                _subscriptions.Clear();
 
-                    _lock.Wait();
-                    try {
-                        _session.KeepAlive -= Session_KeepAlive;
-                        _reconnectHandler?.Dispose();
-                    }
-                    finally {
-                        _lock.Release();
-                    }
-
-                    var subscriptions = _subscriptions.Values.ToList();
-                    if (subscriptions.Count > 0) {
-                        //
-                        // Close all subscriptions. Since this might call back into
-                        // the session manager, queue this to the thread pool
-                        //
-                        ThreadPool.QueueUserWorkItem(_ => {
-                            foreach (var subscription in _subscriptions.Values) {
-                                subscription.Dispose();
-                            }
-                        });
-                    }
-                    _subscriptions.Clear();
-
-                    _session.Close();
-                    _session.Dispose();
-                    _session = null;
-
-                    // Log Session Disconnected event
-                    _logger.Debug("Session {Name} disconnected.", _sessionName);
+                session = _session;
+                _session = null;
+                if (session != null) {
+                    session.Handle = null;
+                    session.KeepAlive -= Session_KeepAlive;
                 }
             }
+            finally {
+                _lock.Release();
+                NumberOfConnectRetries = 0;
+            }
+
+            try {
+                _logger.Information("Disconnecting session {Name}...", _sessionName);
+
+                if (subscriptions.Count > 0) {
+                    //
+                    // Close all subscriptions. Since this might call back into
+                    // the session manager, queue this to the thread pool
+                    //
+                    ThreadPool.QueueUserWorkItem(_ => {
+                        foreach (var subscription in _subscriptions.Values) {
+                            Try.Op(() => subscription.Dispose());
+                        }
+                    });
+                }
+
+                session.Close();
+                session.Dispose();
+                // Log Session Disconnected event
+                _logger.Debug("Session {Name} disconnected.", _sessionName);
+            }
             catch (Exception ex) {
-                // Log Error
                 _logger.Error(ex, "Disconnect Error for session {Name}.", _sessionName);
             }
             finally {
+                // Clean up resources
                 _lock.Dispose();
-                NumberOfConnectRetries = 0;
             }
         }
 
@@ -269,29 +271,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 null).ConfigureAwait(false);
 
             // Assign the created session
-            if (session != null && session.Connected) {
-                _session = session;
-
-                // override keep alive interval
-                _session.KeepAliveInterval = KeepAliveInterval;
-
-                // set up keep alive callback.
-                _session.KeepAlive += Session_KeepAlive;
-
-                _logger.Debug("Session {Name} created, loading complex type system ... ",
-                    _sessionName);
-
-                ComplexTypeSystem = new ComplexTypeSystem(session);
-                await ComplexTypeSystem.Load().ConfigureAwait(false);
-
-                _logger.Information("Session {Name} complex type system loaded",
-                    _sessionName);
-            }
+            SetSession(session);
 
             // Session created successfully.
             _logger.Debug("New Session created with name {Name}", _sessionName);
             NumberOfConnectRetries++;
             return true;
+        }
+
+        /// <summary>
+        /// Load complex type system
+        /// </summary>
+        /// <returns></returns>
+        public async ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync() {
+            await _lock.WaitAsync();
+            try {
+                if (_complexTypeSystem == null) {
+                    if (_session != null && _session.Connected) {
+                        _complexTypeSystem = new ComplexTypeSystem(_session);
+                        await _complexTypeSystem.Load().ConfigureAwait(false);
+                        _logger.Information("Session {Name} complex type system loaded",
+                            _sessionName);
+                    }
+                }
+                return _complexTypeSystem;
+            }
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <summary>
@@ -351,30 +358,67 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return;
             }
 
+            Session newSession;
             _lock.Wait();
             try {
                 // if session recovered, Session property is not null
-                if (_reconnectHandler.Session != null) {
-                    _session = _reconnectHandler.Session as Session;
-                }
-
+                newSession = _reconnectHandler.Session as Session;
                 _reconnectHandler.Dispose();
                 _reconnectHandler = null;
-
-                if (!IsConnected) {
-                    // Failed to reconnect.
-                    return;
-                }
-
-                _logger.Information("--- SESSION {Name} RECONNECTED ---", _sessionName);
-                NumberOfConnectRetries++;
             }
             finally {
                 _lock.Release();
             }
 
+            if (newSession != null) {
+                SetSession(_reconnectHandler.Session as Session);
+            }
+            if (!IsConnected) {
+                // Failed to reconnect.
+                return;
+            }
+
+            _logger.Information("--- SESSION {Name} RECONNECTED ---", _sessionName);
+            NumberOfConnectRetries++;
+
             // Go back online
             NotifySubscriptionStateChange(IsConnected);
+        }
+
+        /// <summary>
+        /// Update session state
+        /// </summary>
+        /// <param name="session"></param>
+        private void SetSession(Session session) {
+            if (session == null || !session.Connected) {
+                _logger.Information("Session not connected.");
+                return;
+            }
+
+            if (_session == session) {
+                Debug.Assert(session.Handle == this);
+                return;
+            }
+            _lock.Wait();
+            try {
+                if (_session != null) {
+                    _complexTypeSystem = null;
+                    _session.Handle = null;
+                    _session.KeepAlive -= Session_KeepAlive;
+                    _session.Dispose();
+                }
+
+                // override keep alive interval
+                _session = session;
+                _session.KeepAliveInterval = KeepAliveInterval;
+
+                // set up keep alive callback.
+                _session.KeepAlive += Session_KeepAlive;
+                _session.Handle = this;
+            }
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <summary>
@@ -398,6 +442,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ConnectionModel _connection;
         private SessionReconnectHandler _reconnectHandler;
         private Session _session;
+        private ComplexTypeSystem _complexTypeSystem;
         private readonly ILogger _logger;
         private readonly DateTime _created = DateTime.UtcNow;
     }

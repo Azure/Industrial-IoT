@@ -55,6 +55,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        ComplexTypeSystem GetComplexTypeSystem(ISession session);
+        ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync(ISession session);
     }
 }

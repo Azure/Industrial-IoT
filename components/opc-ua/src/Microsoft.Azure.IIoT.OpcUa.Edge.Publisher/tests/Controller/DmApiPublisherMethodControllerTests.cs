@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Serializers.NewtonSoft;
     using Xunit;
     using Autofac;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
@@ -40,18 +41,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var logger = TraceLogger.Create();
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
-            var triggerMock = new Mock<IMessageTrigger>();
-            var factoryMock = new Mock<IWriterGroupContainerFactory>();
-            var lifetime = new Mock<IWriterGroup>();
-            lifetime.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            var clientConfigMock = new Mock<IClientServicesConfig>();
+            var triggerMock = new Mock<IMessageSource>();
+            var factoryMock = new Mock<IWriterGroupScopeFactory>();
+            var writerGroup = new Mock<IWriterGroup>();
+            writerGroup.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            var lifetime = new Mock<IWriterGroupScope>();
+            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
             factoryMock
-                .Setup(factory => factory.CreateWriterGroupScope(It.IsAny<IWriterGroupConfig>()))
+                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
             var publisher = new PublisherHostService(factoryMock.Object, logger);
 
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCli = new StandaloneCliModel {
@@ -71,6 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 publishedNodesProvider,
                 newtonSoftJsonSerializer
             );
+            await orchestrator.StartAsync();
 
             var methodsController = new PublisherMethodsController(orchestrator);
 
@@ -129,18 +133,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var logger = TraceLogger.Create();
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
-            var triggerMock = new Mock<IMessageTrigger>();
-            var factoryMock = new Mock<IWriterGroupContainerFactory>();
-            var lifetime = new Mock<IWriterGroup>();
-            lifetime.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            var clientConfigMock = new Mock<IClientServicesConfig>();
+            var triggerMock = new Mock<IMessageSource>();
+            var factoryMock = new Mock<IWriterGroupScopeFactory>();
+            var writerGroup = new Mock<IWriterGroup>();
+            writerGroup.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            var lifetime = new Mock<IWriterGroupScope>();
+            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
             factoryMock
-                .Setup(factory => factory.CreateWriterGroupScope(It.IsAny<IWriterGroupConfig>()))
+                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
             var publisher = new PublisherHostService(factoryMock.Object, logger);
 
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCli = new StandaloneCliModel {
@@ -160,6 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 publishedNodesProvider,
                 newtonSoftJsonSerializer
             );
+            await orchestrator.StartAsync();
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
@@ -218,18 +225,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var logger = TraceLogger.Create();
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
-            var triggerMock = new Mock<IMessageTrigger>();
-            var factoryMock = new Mock<IWriterGroupContainerFactory>();
-            var lifetime = new Mock<IWriterGroup>();
-            lifetime.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            var clientConfigMock = new Mock<IClientServicesConfig>();
+            var triggerMock = new Mock<IMessageSource>();
+            var factoryMock = new Mock<IWriterGroupScopeFactory>();
+            var writerGroup = new Mock<IWriterGroup>();
+            writerGroup.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            var lifetime = new Mock<IWriterGroupScope>();
+            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
             factoryMock
-                .Setup(factory => factory.CreateWriterGroupScope(It.IsAny<IWriterGroupConfig>()))
+                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
             var publisher = new PublisherHostService(factoryMock.Object, logger);
 
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCli = new StandaloneCliModel {
@@ -249,7 +258,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 publishedNodesProvider,
                 newtonSoftJsonSerializer
             );
-
+            await orchestrator.StartAsync();
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
@@ -506,18 +515,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var logger = TraceLogger.Create();
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
-            var triggerMock = new Mock<IMessageTrigger>();
-            var factoryMock = new Mock<IWriterGroupContainerFactory>();
-            var lifetime = new Mock<IWriterGroup>();
-            lifetime.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            var clientConfigMock = new Mock<IClientServicesConfig>();
+            var triggerMock = new Mock<IMessageSource>();
+            var factoryMock = new Mock<IWriterGroupScopeFactory>();
+            var writerGroup = new Mock<IWriterGroup>();
+            writerGroup.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            var lifetime = new Mock<IWriterGroupScope>();
+            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
             factoryMock
-                .Setup(factory => factory.CreateWriterGroupScope(It.IsAny<IWriterGroupConfig>()))
+                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
             var publisher = new PublisherHostService(factoryMock.Object, logger);
 
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCli = new StandaloneCliModel {
@@ -536,7 +547,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 publishedNodesProvider,
                 newtonSoftJsonSerializer
             );
-
+            await orchestrator.StartAsync();
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
@@ -561,18 +572,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var logger = TraceLogger.Create();
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfignMock = new Mock<IClientServicesConfig>();
-            var triggerMock = new Mock<IMessageTrigger>();
-            var factoryMock = new Mock<IWriterGroupContainerFactory>();
-            var lifetime = new Mock<IWriterGroup>();
-            lifetime.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            var clientConfigMock = new Mock<IClientServicesConfig>();
+            var triggerMock = new Mock<IMessageSource>();
+            var factoryMock = new Mock<IWriterGroupScopeFactory>();
+            var writerGroup = new Mock<IWriterGroup>();
+            writerGroup.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            var lifetime = new Mock<IWriterGroupScope>();
+            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
             factoryMock
-                .Setup(factory => factory.CreateWriterGroupScope(It.IsAny<IWriterGroupConfig>()))
+                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
             var publisher = new PublisherHostService(factoryMock.Object, logger);
 
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfignMock.Object);
+                engineConfigMock.Object, clientConfigMock.Object);
 
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             var standaloneCli = new StandaloneCliModel {
@@ -592,7 +605,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 publishedNodesProvider,
                 newtonSoftJsonSerializer
             );
-
+            await orchestrator.StartAsync();
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Autofac;
-    using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Http.HealthChecks;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
@@ -13,16 +12,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
@@ -62,11 +58,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// </summary>
         public int OpcStackTraceMask { get; set; }
 
-        /// <summary>
-        /// Shows if we're running in standalone mode or not.
-        /// </summary>
-        public bool RunInStandaloneMode { get; set; }
-
         /// <inheritdoc />
         public void Reset() {
             _reset.TrySetResult(true);
@@ -103,7 +94,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var events = hostScope.Resolve<IEventEmitter>();
-                    hostScope.TryResolve<IWorkerSupervisor>(out var workerSupervisor);
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var identity = hostScope.Resolve<IIdentity>();
@@ -122,16 +112,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
 
-                        if (workerSupervisor != null)
-                            await workerSupervisor.StartAsync().ConfigureAwait(false);
-
                         // Reporting runtime state on restart.
                         // Reporting will happen only in stadalone mode.
-                        if (RunInStandaloneMode) {
-                            var runtimeStateReporter = hostScope.Resolve<IRuntimeStateReporter>();
-                            // Needs to be called only after module.StartAsync() so that IClient is initialized.
-                            await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false);
-                        }
+                        var runtimeStateReporter = hostScope.Resolve<IRuntimeStateReporter>();
+                        // Needs to be called only after module.StartAsync() so that IClient is initialized.
+                        await runtimeStateReporter.SendRestartAnnouncement().ConfigureAwait(false);
 
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task).ConfigureAwait(false);
@@ -147,8 +132,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     }
                     finally {
                         OnRunning?.Invoke(this, false);
-                        if (workerSupervisor != null)
-                            await workerSupervisor.StopAsync().ConfigureAwait(false);
 
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
@@ -173,8 +156,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             var builder = new ContainerBuilder();
             var standaloneCliOptions = new StandaloneCliOptions(configuration);
 
-            RunInStandaloneMode = standaloneCliOptions.RunInStandaloneMode;
-
             // Register configuration interfaces
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces();
@@ -187,54 +168,26 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            if (RunInStandaloneMode) {
-                builder.AddDiagnostics(config,
-                    standaloneCliOptions.ToLoggerConfiguration());
-                builder.RegisterInstance(standaloneCliOptions)
-                    .AsImplementedInterfaces();
+            builder.AddDiagnostics(config,
+                standaloneCliOptions.ToLoggerConfiguration());
+            builder.RegisterInstance(standaloneCliOptions)
+                .AsImplementedInterfaces();
 
-                // we overwrite the ModuleHost registration from PerLifetimeScope
-                // (in builder.RegisterModule<ModuleFramework>) to Singleton as
-                // we want to reuse the Client from the ModuleHost in sub-scopes.
-                builder.RegisterType<ModuleHost>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<PublishedNodesProvider>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<PublishedNodesJobConverter>()
-                    .SingleInstance();
-                builder.RegisterType<PublisherConfigService>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<PublisherHostService>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<WriterGroupContainerFactory>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<PublisherMethodsController>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-                builder.RegisterType<RuntimeStateReporter>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
-            else {
-                builder.RegisterModule<AgentFramework>();
-                builder.RegisterModule<PublisherJobsConfiguration>();
-                builder.AddDiagnostics(config);
+            builder.RegisterType<PublishedNodesProvider>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublishedNodesJobConverter>()
+                .SingleInstance();
+            builder.RegisterType<PublisherConfigService>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublisherHostService>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<WriterGroupScopeFactory>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublisherMethodsController>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<RuntimeStateReporter>()
+                .AsImplementedInterfaces().SingleInstance();
 
-                builder.RegisterType<IdentityTokenSettingsController>()
-                    .AsImplementedInterfaces().SingleInstance();
-
-                // Client instance per job
-                builder.RegisterType<PerDependencyClientAccessor>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
-                // Cloud job orchestrator
-                builder.RegisterType<PublisherOrchestratorClient>()
-                    .AsImplementedInterfaces().SingleInstance();
-                // ... plus controllers
-                builder.RegisterType<ConfigurationSettingsController>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<PublisherSettingsController>()
-                    .AsImplementedInterfaces().SingleInstance();
-                // Note that they must be singleton so they can
-                // plug as configuration into the orchestrator client.
-            }
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
             builder.RegisterType<OpcUaClientManager>()

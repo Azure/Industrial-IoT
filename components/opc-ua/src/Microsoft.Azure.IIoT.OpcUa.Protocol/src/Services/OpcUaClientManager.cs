@@ -145,8 +145,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public ComplexTypeSystem GetComplexTypeSystem(ISession session) {
-            return (session?.Handle as OpcUaClient)?.ComplexTypeSystem;
+        public async ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync(ISession session) {
+            if (session?.Handle is OpcUaClient client) {
+                try {
+                    return await client.GetComplexTypeSystemAsync();
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Failed to get complex type system from session.");
+                }
+            }
+            return null;
         }
 
         /// <summary>

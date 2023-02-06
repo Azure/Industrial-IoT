@@ -5,11 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.Abstractions;
-    using Microsoft.Azure.IIoT.Agent.Framework;
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
@@ -28,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
     /// </summary>
-    public class StandaloneCliOptions : Dictionary<string, string>, IAgentConfigProvider,
+    public class StandaloneCliOptions : Dictionary<string, string>,
         ISettingsController, IEngineConfiguration, IStandaloneCliModelProvider,
         IRuntimeStateReporterConfiguration, ISubscriptionConfig {
 
@@ -40,8 +38,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             foreach (var item in config.GetChildren()) {
                 this[item.Key] = item.Value;
             }
-            Config = ToAgentConfigModel();
-
             _logger = ConsoleLogger.Create(LogEventLevel.Warning);
         }
 
@@ -418,8 +414,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 Exit(0);
             }
 
-            Config = ToAgentConfigModel();
-
             void SetStoreType(string s, string storeTypeKey, string optionName) {
                 if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||
                             s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase)) {
@@ -429,27 +423,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 throw new OptionException("Bad store type", optionName);
             }
         }
-
-        // --------- TODO: Remove
-        /// <summary>
-        /// check if we're running in standalone mode - default publishednodes.json file accessible
-        /// </summary>
-        public bool RunInStandaloneMode => TryGetValue(StandaloneCliConfigKeys.PublishedNodesConfigurationFilename, out _) ||
-             System.IO.File.Exists(StandaloneCliConfigKeys.DefaultPublishedNodesFilename);
-
-        /// <summary>
-        /// The AgentConfigModel instance that is based on specified standalone command line arguments.
-        /// </summary>
-        public AgentConfigModel Config { get; }
-
-        /// <inheritdoc/>
-        public event ConfigUpdatedEventHandler OnConfigUpdated;
-
-        /// <inheritdoc/>
-        public void TriggerConfigUpdate(object sender, EventArgs eventArgs) {
-            OnConfigUpdated?.Invoke(sender, eventArgs);
-        }
-        // -------------
 
         /// <inheritdoc/>
         public int? BatchSize => StandaloneCliModel.BatchSize;
@@ -614,19 +587,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.EnableRuntimeStateReporting = GetValueOrDefault(StandaloneCliConfigKeys.RuntimeStateReporting, model.EnableRuntimeStateReporting);
             model.EnableRoutingInfo = GetValueOrDefault(StandaloneCliConfigKeys.EnableRoutingInfo, model.EnableRoutingInfo);
             return model;
-        }
-
-        private static AgentConfigModel ToAgentConfigModel() {
-            return new AgentConfigModel {
-                AgentId = "StandalonePublisher",
-                Capabilities = new Dictionary<string, string>(),
-                // heartbeat is needed even though in standalone mode to be notified about config file changes
-                HeartbeatInterval = TimeSpan.FromSeconds(30),
-                JobCheckInterval = TimeSpan.FromSeconds(30),
-                //we have to set a value so that the standalone job orchestrator is called
-                JobOrchestratorUrl = "standalone",
-                MaxWorkers = 1,
-            };
         }
 
         private T GetValueOrDefault<T>(string key, T defaultValue) {

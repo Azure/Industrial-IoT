@@ -7,13 +7,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using System;
 
     /// <summary>
-    /// Writer group
+    /// Writer group scope
     /// </summary>
-    public interface IWriterGroup : IDisposable {
+    public interface IWriterGroupScope : IDisposable {
 
         /// <summary>
-        /// Resolve source
+        /// Resolve writer group
         /// </summary>
-        IMessageSource Source { get; }
+        IWriterGroup WriterGroup { get; }
     }
 }

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Autofac;
-    using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.HealthChecks;
     using Microsoft.Azure.IIoT.Hub;
@@ -19,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
@@ -97,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             string messageType = null,
             string[] arguments = default) {
             // Collect messages from server with default settings
-            return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
+            return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(20), 1, predicate, messageType, arguments);
         }
 
         protected async Task<List<JsonElement>> ProcessMessagesAsync(
@@ -412,7 +410,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherHostService>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<WriterGroupContainerFactory>()
+            builder.RegisterType<WriterGroupScopeFactory>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();

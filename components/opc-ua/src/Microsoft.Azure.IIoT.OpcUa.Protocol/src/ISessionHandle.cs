@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Opc.Ua.Client;
     using System.Threading.Tasks;
     using System;
+    using Opc.Ua.Client.ComplexTypes;
 
     /// <summary>
     /// Represents session handle

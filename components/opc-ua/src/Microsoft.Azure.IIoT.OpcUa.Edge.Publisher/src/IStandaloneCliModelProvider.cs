@@ -4,16 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
-    using System;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
 
     /// <summary>
-    /// Writer group
+    /// Interface that provides access to the StandaloneCliModel passed via command line arguments.
     /// </summary>
-    public interface IWriterGroup : IDisposable {
-
+    public interface IStandaloneCliModelProvider {
         /// <summary>
-        /// Resolve source
+        /// The instance of the StandaloneCliModel that represents the passed command line arguments.
         /// </summary>
-        IMessageSource Source { get; }
+        StandaloneCliModel StandaloneCliModel { get; }
     }
 }

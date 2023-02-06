@@ -21,13 +21,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading;
+    using System.Threading.Channels;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Provides configuration services for publisher using either published nodes
     /// configuration update or api services.
     /// </summary>
-    public class PublisherConfigService : IPublisherConfigServices, IDisposable {
+    public class PublisherConfigService : IPublisherConfigServices, IHostProcess, IDisposable {
 
         /// <summary>
         /// Create publisher configuration services
@@ -49,15 +50,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new ArgumentNullException(nameof(jsonSerializer));
 
             _host = host;
-            _lock = new SemaphoreSlim(1, 1);
-
-            Refresh(true);
-            _publishedNodesProvider.Changed += OnChanged;
-            _publishedNodesProvider.Created += OnCreated;
-            _publishedNodesProvider.Renamed += OnRenamed;
-            _publishedNodesProvider.Deleted += OnDeleted;
-            _publishedNodesProvider.EnableRaisingEvents = true;
+            _started = new TaskCompletionSource();
+            _fileChanges = Channel.CreateUnbounded<bool>();
+            _fileChangeProcessor = Task.Factory.StartNew(() => ProcessFileChangesAsync(),
+                default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+            _fileChanges.Writer.TryWrite(false); // Read from file
         }
+
 
         /// <inheritdoc/>
         public async Task PublishNodesAsync(PublishedNodesEntryModel request,
@@ -108,7 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups,
                     _standaloneCliModel);
                 await _host.UpdateAsync(jobs);
-                PersistPublishedNodes();
+                await PersistPublishedNodesAsync();
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -221,7 +220,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups,
                     _standaloneCliModel);
                 await _host.UpdateAsync(jobs);
-                PersistPublishedNodes();
+                await PersistPublishedNodesAsync();
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -280,7 +279,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 else {
                     await _host.UpdateAsync(Enumerable.Empty<WriterGroupJobModel>());
                 }
-                PersistPublishedNodes();
+                await PersistPublishedNodesAsync();
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -350,7 +349,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
                     _standaloneCliModel);
                 await _host.UpdateAsync(jobs);
-                PersistPublishedNodes();
+                await PersistPublishedNodesAsync();
             }
             finally {
                 _api.Release();
@@ -479,13 +478,64 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
         }
 
+        /// <summary>
+        /// Persist Published nodes to published nodes file.
+        /// </summary>
+        private async Task PersistPublishedNodesAsync() {
+            await _file.WaitAsync();
+            try {
+                var currentNodes = GetCurrentPublishedNodes(preferTimespan: false);
+                var updatedContent = _jsonSerializer.SerializeToString(currentNodes,
+                    SerializeOption.Indented);
+                _publishedNodesProvider.WriteContent(updatedContent, true);
+                // Update _lastKnownFileHash
+                _lastKnownFileHash = GetChecksum(updatedContent);
+            }
+            finally {
+                _file.Release();
+            }
+        }
+
+        /// <summary>
+        /// Get current published nodes from publisher
+        /// </summary>
+        /// <param name="preferTimespan"></param>
+        /// <returns></returns>
+        private IEnumerable<PublishedNodesEntryModel> GetCurrentPublishedNodes(
+            bool preferTimespan = true) {
+            return _publishedNodesJobConverter.ToPublishedNodes(_host.Version, _host.LastChange,
+                _host.WriterGroups, preferTimespan);
+        }
+
+        /// <inheritdoc/>
+        public async Task StartAsync() {
+            if (_started != null) {
+                await _started.Task;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task StopAsync() {
+            try {
+                if (_started != null) {
+                    _fileChanges.Writer.TryComplete();
+                    await _fileChangeProcessor;
+                }
+            }
+            finally {
+                _started = null;
+            }
+        }
+
         /// <inheritdoc/>
         public void Dispose() {
-            _publishedNodesProvider.EnableRaisingEvents = false;
-            _publishedNodesProvider.Changed -= OnChanged;
-            _publishedNodesProvider.Created -= OnCreated;
-            _publishedNodesProvider.Renamed -= OnRenamed;
-            _publishedNodesProvider.Deleted -= OnDeleted;
+            try {
+                StopAsync().GetAwaiter().GetResult();
+            }
+            finally {
+                _api.Dispose();
+                _file.Dispose();
+            }
         }
 
         /// <summary>
@@ -494,7 +544,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void OnChanged(object sender, FileSystemEventArgs e) {
             _logger.Debug("File {publishedNodesFile} changed. Triggering file refresh ...",
                 _standaloneCliModel.PublishedNodesFile);
-            Refresh();
+            _fileChanges.Writer.TryWrite(false);
         }
 
         /// <summary>
@@ -503,7 +553,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void OnCreated(object sender, FileSystemEventArgs e) {
             _logger.Debug("File {publishedNodesFile} created. Triggering file refresh ...",
                 _standaloneCliModel.PublishedNodesFile);
-            Refresh();
+            _fileChanges.Writer.TryWrite(false);
         }
 
         /// <summary>
@@ -512,7 +562,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void OnRenamed(object sender, FileSystemEventArgs e) {
             _logger.Debug("File {publishedNodesFile} renamed. Triggering file refresh ...",
                 _standaloneCliModel.PublishedNodesFile);
-            Refresh();
+            _fileChanges.Writer.TryWrite(false);
         }
 
         /// <summary>
@@ -521,21 +571,115 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void OnDeleted(object sender, FileSystemEventArgs e) {
             _logger.Debug("File {publishedNodesFile} deleted. Clearing configuration ...",
                 _standaloneCliModel.PublishedNodesFile);
-            Clear();
+            _fileChanges.Writer.TryWrite(true);
         }
 
         /// <summary>
-        /// Create a checksum of the content
+        /// Refresh processor
         /// </summary>
-        /// <param name="content"></param>
         /// <returns></returns>
-        private static string GetChecksum(string content) {
-            if (string.IsNullOrEmpty(content)) {
-                return null;
+        private async Task ProcessFileChangesAsync() {
+            try {
+                _publishedNodesProvider.Changed += OnChanged;
+                _publishedNodesProvider.Created += OnCreated;
+                _publishedNodesProvider.Renamed += OnRenamed;
+                _publishedNodesProvider.Deleted += OnDeleted;
+                _publishedNodesProvider.EnableRaisingEvents = true;
+
+                var retryCount = 0;
+                await foreach (var clear in _fileChanges.Reader.ReadAllAsync()) {
+                    await _file.WaitAsync();
+                    try {
+                        var lastWriteTime = _publishedNodesProvider.GetLastWriteTime();
+                        try {
+                            // Force empty content when clearing but dont touch the deleted file
+                            var content = clear ? string.Empty : _publishedNodesProvider.ReadContent();
+                            var lastValidFileHash = _lastKnownFileHash;
+                            var currentFileHash = GetChecksum(content);
+
+                            if (currentFileHash != _lastKnownFileHash) {
+                                var jobs = Enumerable.Empty<WriterGroupJobModel>();
+                                if (!clear && !string.IsNullOrEmpty(content)) {
+                                    _logger.Information("File {publishedNodesFile} has changed, " +
+                                        "last known hash {LastHash}, new hash {NewHash}, reloading...",
+                                        _standaloneCliModel.PublishedNodesFile, _lastKnownFileHash,
+                                        currentFileHash);
+
+                                    var entries = DeserializePublishedNodes(content).ToList();
+                                    TransformFromLegacyNodeId(entries);
+                                    jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries,
+                                        _standaloneCliModel);
+                                }
+                                try {
+                                    await _host.UpdateAsync(jobs);
+                                    _lastKnownFileHash = currentFileHash;
+                                    // Mark as started
+                                    _started.TrySetResult();
+                                }
+                                catch (Exception ex) when (_started.Task.IsCompletedSuccessfully) {
+                                    if (_host.TryUpdate(jobs)) {
+                                        _logger.Debug(ex, "Not initializing, update without waiting.");
+                                        _lastKnownFileHash = currentFileHash;
+                                    }
+                                }
+                                // Otherwise throw and retry
+                            }
+                            else {
+                                // avoid double events from FileSystemWatcher
+                                if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10)) {
+                                    _logger.Information("File {publishedNodesFile} has changed and " +
+                                        "content-hash is equal to last one, nothing to do...",
+                                        _standaloneCliModel.PublishedNodesFile);
+                                }
+                            }
+                            _lastRead = lastWriteTime;
+                            _logger.Information("Complete publisher configuration {Action}.",
+                                clear ? "reset" : "refresh");
+                            retryCount = 0;
+                            // Success
+                        }
+                        catch (IOException ex) {
+                            if (++retryCount <= 3) {
+                                Debug.Assert(!clear);
+                                _logger.Warning(ex,
+                                    "Error while loading job from file. Attempt #{Count}...",
+                                    retryCount);
+
+                                // Queue another one and wait a bit
+                                _fileChanges.Writer.TryWrite(false);
+                                await Task.Delay(500);
+                                continue;
+                            }
+                            _logger.Error(ex,
+                                "Error while loading job from file. Retry expired, giving up.");
+                        }
+                        catch (SerializerException sx) {
+                            Debug.Assert(!clear);
+                            _logger.Error(sx, "SerializerException while loading job from file.");
+                            retryCount = 0;
+                        }
+                        catch (Exception ex) {
+                            _logger.Error(ex,
+                                "Error during publisher {Action}. Retrying...",
+                                clear ? "Reset" : "Update");
+                            _fileChanges.Writer.TryWrite(clear);
+                            retryCount = 0;
+                        }
+                    }
+                    finally {
+                        _file.Release();
+                    }
+                }
             }
-            using (var sha = SHA256.Create()) {
-                var checksum = sha.ComputeHash(Encoding.UTF8.GetBytes(content));
-                return BitConverter.ToString(checksum).Replace("-", string.Empty);
+            finally {
+                _publishedNodesProvider.EnableRaisingEvents = false;
+
+                _publishedNodesProvider.Changed -= OnChanged;
+                _publishedNodesProvider.Created -= OnCreated;
+                _publishedNodesProvider.Renamed -= OnRenamed;
+                _publishedNodesProvider.Deleted -= OnDeleted;
+
+                _started = null;
             }
         }
 
@@ -599,138 +743,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <summary>
-        /// Clear configuration
+        /// Create a checksum of the content
         /// </summary>
-        private void Clear() {
-            lock (_lock) {
-                _lastKnownFileHash = string.Empty;
-                _host.TryUpdate(Enumerable.Empty<WriterGroupJobModel>());
-            }
-        }
-
-        /// <summary>
-        /// Refresh provider
-        /// </summary>
-        private void Refresh(bool wait = false) {
-            var retryCount = 3;
-            var lastWriteTime = _publishedNodesProvider.GetLastWriteTime();
-            lock (_lock) {
-                while (true) {
-                    try {
-                        var content = _publishedNodesProvider.ReadContent();
-                        var lastValidFileHash = _lastKnownFileHash;
-                        var currentFileHash = GetChecksum(content);
-
-                        if (currentFileHash != _lastKnownFileHash) {
-                            _logger.Information("File {publishedNodesFile} has changed, " +
-                                "last known hash {LastHash}, new hash {NewHash}, reloading...",
-                                _standaloneCliModel.PublishedNodesFile, _lastKnownFileHash,
-                                currentFileHash);
-
-                            _lastKnownFileHash = currentFileHash;
-                            if (!string.IsNullOrEmpty(content)) {
-                                List<PublishedNodesEntryModel> entries = null;
-                                try {
-                                    entries = DeserializePublishedNodes(content).ToList();
-                                    TransformFromLegacyNodeId(entries);
-                                }
-                                catch (IOException) {
-                                    throw; //pass it thru, to handle retries
-                                }
-                                catch (SerializerException ex) {
-                                    _logger.Warning(ex,
-                                        "Failed to deserialize {publishedNodesFile}, aborting reload...",
-                                        _standaloneCliModel.PublishedNodesFile);
-                                    _lastKnownFileHash = lastValidFileHash;
-                                    break;
-                                }
-                                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries,
-                                    _standaloneCliModel);
-                                if (wait) {
-                                    try {
-                                        // Block until update has completed.
-                                        _host.UpdateAsync(jobs).GetAwaiter().GetResult();
-                                    }
-                                    catch (Exception ex) {
-                                        _logger.Error(ex,
-                                            "Error during publisher initialization. Retrying.");
-                                        // Try again
-                                        continue;
-                                    }
-                                }
-                                else if (!_host.TryUpdate(jobs)) {
-                                    // Should not happen
-                                    continue; // Try again
-                                }
-                            }
-                            else {
-                                _lastKnownFileHash = string.Empty;
-                                if (!_host.TryUpdate(Enumerable.Empty<WriterGroupJobModel>())) {
-                                    continue;
-                                }
-                            }
-                        }
-                        else {
-                            // avoid double events from FileSystemWatcher
-                            if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10)) {
-                                _logger.Information("File {publishedNodesFile} has changed and h" +
-                                    "content-has is equal to last one, nothing to do...",
-                                    _standaloneCliModel.PublishedNodesFile);
-                            }
-                        }
-                        _lastRead = lastWriteTime;
-                        break;
-                    }
-                    catch (IOException ex) {
-                        retryCount--;
-                        if (retryCount > 0) {
-                            _logger.Warning(ex, "Error while loading job from file. Retrying...");
-                            Task.Delay(500).GetAwaiter().GetResult();
-                        }
-                        else {
-                            _logger.Error(ex, "Error while loading job from file. Retry expired, giving up.");
-                            break;
-                        }
-                    }
-                    catch (SerializerException sx) {
-                        _logger.Error(sx, "SerializerException while loading job from file.");
-                        break;
-                    }
-                    catch (Exception e) {
-                        _logger.Error(e,
-                            "Error while reloading {PublishedNodesFile}. Resetting the configuration.",
-                            _standaloneCliModel.PublishedNodesFile);
-                        _lastKnownFileHash = string.Empty;
-                        _host.TryUpdate(Enumerable.Empty<WriterGroupJobModel>());
-                        break;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Persist Published nodes to published nodes file.
-        /// </summary>
-        private void PersistPublishedNodes() {
-            lock (_lock) {
-                var currentNodes = GetCurrentPublishedNodes(preferTimespan: false);
-                var updatedContent = _jsonSerializer.SerializeToString(currentNodes,
-                    SerializeOption.Indented);
-                _publishedNodesProvider.WriteContent(updatedContent, true);
-                // Update _lastKnownFileHash
-                _lastKnownFileHash = GetChecksum(updatedContent);
-            }
-        }
-
-        /// <summary>
-        /// Get current published nodes from publisher
-        /// </summary>
-        /// <param name="preferTimespan"></param>
+        /// <param name="content"></param>
         /// <returns></returns>
-        private IEnumerable<PublishedNodesEntryModel> GetCurrentPublishedNodes(
-            bool preferTimespan = true) {
-            return _publishedNodesJobConverter.ToPublishedNodes(_host.Version, _host.LastChange,
-                _host.WriterGroups, preferTimespan);
+        private static string GetChecksum(string content) {
+            if (string.IsNullOrEmpty(content)) {
+                return null;
+            }
+            using (var sha = SHA256.Create()) {
+                var checksum = sha.ComputeHash(Encoding.UTF8.GetBytes(content));
+                return BitConverter.ToString(checksum).Replace("-", string.Empty);
+            }
         }
 
         private readonly static string kNullRequestMessage
@@ -746,7 +770,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly IPublisher _host;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
-        private SemaphoreSlim _api = new SemaphoreSlim(1, 1);
-        private readonly object _lock = new object();
+        private TaskCompletionSource _started;
+        private readonly Task _fileChangeProcessor;
+        private readonly Channel<bool> _fileChanges;
+        private readonly SemaphoreSlim _api = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _file = new SemaphoreSlim(1, 1);
     }
 }

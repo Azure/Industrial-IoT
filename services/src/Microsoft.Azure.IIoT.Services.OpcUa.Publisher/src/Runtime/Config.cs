@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
-    using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Deploy;
     using Microsoft.Azure.IIoT.Deploy.Runtime;
@@ -31,8 +30,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     /// </summary>
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
         ICorsConfig, IOpenApiConfig, IRoleConfig,
-        ICosmosDbConfig, IJobDatabaseConfig, IRegistryConfig, ITwinConfig,
-        IForwardedHeadersConfig, IContainerRegistryConfig, IWorkerDatabaseConfig {
+        ICosmosDbConfig, IRegistryConfig, ITwinConfig,
+        IForwardedHeadersConfig, IContainerRegistryConfig {
 
         /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
@@ -76,10 +75,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         public string DbConnectionString => _cosmos.DbConnectionString;
         /// <inheritdoc/>
         public int? ThroughputUnits => _cosmos.ThroughputUnits;
-        /// <inheritdoc/>
-        public string ContainerName => "iiot_opc";
-        /// <inheritdoc/>
-        public string DatabaseName => "iiot_opc";
 
         /// <inheritdoc/>
         public string DockerServer => _cr.DockerServer;

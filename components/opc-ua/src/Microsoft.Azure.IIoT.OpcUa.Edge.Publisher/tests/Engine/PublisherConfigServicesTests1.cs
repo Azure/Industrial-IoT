@@ -6,13 +6,12 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
-    using Agent.Framework;
-    using Agent.Framework.Models;
     using Diagnostics;
     using FluentAssertions;
     using Models;
@@ -25,15 +24,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
-    using Autofac;
 
     /// <summary>
     /// Tests the PublisherConfigService class
     /// </summary>
     public class PublisherConfigServicesTest1 : TempFileProviderBase {
 
-        private readonly AgentConfigModel _agentConfigModel;
-        private readonly Mock<IAgentConfigProvider> _agentConfigProviderMock;
         private readonly NewtonSoftJsonSerializer _newtonSoftJsonSerializer;
         private readonly NewtonSoftJsonSerializerRaw _newtonSoftJsonSerializerRaw;
         private readonly ILogger _logger;
@@ -42,17 +38,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         private readonly Mock<IStandaloneCliModelProvider> _standaloneCliModelProviderMock;
         private PublisherConfigService _configService;
         private readonly PublishedNodesProvider _publishedNodesProvider;
-        private readonly Mock<IMessageTrigger> _triggerMock;
+        private readonly Mock<IMessageSource> _triggerMock;
         private readonly IPublisher _publisher;
 
         /// <summary>
         /// Constructor that initializes common resources used by tests.
         /// </summary>
         public PublisherConfigServicesTest1() {
-            _agentConfigModel = new AgentConfigModel();
-            _agentConfigProviderMock = new Mock<IAgentConfigProvider>();
-            _agentConfigProviderMock.Setup(p => p.Config).Returns(_agentConfigModel);
-
             _newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             _newtonSoftJsonSerializerRaw = new NewtonSoftJsonSerializerRaw();
             _logger = TraceLogger.Create();
@@ -74,21 +66,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             _standaloneCliModelProviderMock.Setup(p => p.StandaloneCliModel).Returns(_standaloneCliModel);
 
             _publishedNodesProvider = new PublishedNodesProvider(_standaloneCliModelProviderMock.Object, _logger);
-            _triggerMock = new Mock<IMessageTrigger>();
-            var factoryMock = new Mock<IWriterGroupContainerFactory>();
-            var lifetime = new Mock<IWriterGroup>();
-            lifetime.SetupGet(l => l.Source).Returns(_triggerMock.Object);
+            _triggerMock = new Mock<IMessageSource>();
+            var factoryMock = new Mock<IWriterGroupScopeFactory>();
+            var writerGroup = new Mock<IWriterGroup>();
+            writerGroup.SetupGet(l => l.Source).Returns(_triggerMock.Object);
+            var lifetime = new Mock<IWriterGroupScope>();
+            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
             factoryMock
-                .Setup(factory => factory.CreateWriterGroupScope(It.IsAny<IWriterGroupConfig>()))
+                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
             _publisher = new PublisherHostService(factoryMock.Object, _logger);
         }
 
         /// <summary>
-        /// Initializes _standaloneJobOrchestrator.
         /// This method should be called only after content of _tempFile is set.
         /// </summary>
-        private void InitStandaloneJobOrchestrator() {
+        private void InitPublisherConfigService() {
             _configService = new PublisherConfigService(
                 _publishedNodesJobConverter,
                 _standaloneCliModelProviderMock.Object,
@@ -97,13 +90,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 _publishedNodesProvider,
                 _newtonSoftJsonSerializer
             );
+            _configService.StartAsync().Wait();
         }
 
         [Theory]
         [InlineData("Engine/pn_2.5_legacy.json")]
         public async Task Legacy25PublishedNodesFile(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             var endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);
             Assert.Equal(1, endpoints.Count);
@@ -141,7 +135,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             // Simulate restart.
             _configService.Dispose();
             _configService = null;
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             // We should get the same endpoint and nodes after restart.
             endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);
@@ -171,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             }
 
             Utils.CopyContent(publishedNodesFile, _tempFile);
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             // Transformation of published nodes entries should throw a serialization error since
             // Engine/pn_2.5_legacy_error.json contains both NodeId and OpcNodes.
@@ -185,13 +179,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/pn_assets_with_optional_fields.json")]
         public void Test_PnJson_With_Multiple_Jobs_Expect_DifferentJobIds(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
             Assert.Equal(2, _publisher.WriterGroups.Count());
         }
 
         [Fact]
         public async Task Test_SerializableExceptionResponse() {
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             var exceptionResponse = $"{{\"Message\":\"Response 400 null request is provided\",\"Details\":{{}}}}";
 
@@ -282,7 +276,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_PublishNodes_NullOrEmpty() {
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             // Check null request.
             await FluentActions
@@ -323,7 +317,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_UnpublishNodes_NullRequest() {
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             // Check null request.
             await FluentActions
@@ -345,7 +339,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             bool useEmptyOpcNodes,
             bool customEndpoint) {
 
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             var numberOfEndpoints = 3;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
@@ -387,7 +381,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_GetConfiguredNodesOnEndpoint_NullRequest() {
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             // Check call with null.
             await FluentActions
@@ -402,7 +396,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_AddOrUpdateEndpoints_NullRequest() {
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             // Check call with null.
             await FluentActions
@@ -417,7 +411,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries() {
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             var numberOfEndpoints = 3;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
@@ -448,7 +442,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_AddOrUpdateEndpoints_MultipleEndpointEntries_Timesapn() {
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             var numberOfEndpoints = 3;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
@@ -489,7 +483,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         ) {
             _standaloneCliModel.MaxNodesPerDataSet = 2;
 
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             Assert.Empty(_publisher.WriterGroups);
 
@@ -537,7 +531,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task Test_AddOrUpdateEndpoints_RemoveEndpoints(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             string payload = Utils.GetFileContent(publishedNodesFile);
             var payloadRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
@@ -582,7 +576,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task Test_AddOrUpdateEndpoints_AddAndRemove() {
             _standaloneCliModel.MaxNodesPerDataSet = 2;
 
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             Assert.Empty(_publisher.WriterGroups);
 
@@ -686,7 +680,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/pn_opc_nodes_empty_and_null.json")]
         public async Task Test_InitStandaloneJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             // Engine/empty_opc_nodes.json contains entries with null or empty OpcNodes.
             // Those entries should not result in any endpoint entries in standaloneJobOrchestrator.
@@ -703,7 +697,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/pn_assets_with_optional_fields.json")]
         public async Task OptionalFieldsPublishedNodesFile(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             var endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);
             Assert.Equal(2, endpoints.Count);
@@ -746,7 +740,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             // Simulate restart.
             _configService.Dispose();
             _configService = null;
-            InitStandaloneJobOrchestrator();
+            InitPublisherConfigService();
 
             // We should get the same endpoint and nodes after restart.
             endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);

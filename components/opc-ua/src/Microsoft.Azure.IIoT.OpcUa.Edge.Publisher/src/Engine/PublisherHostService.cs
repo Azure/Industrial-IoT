@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="factory"></param>
         /// <param name="logger"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public PublisherHostService(IWriterGroupContainerFactory factory, ILogger logger) {
+        public PublisherHostService(IWriterGroupScopeFactory factory, ILogger logger) {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _currentJobs = new Dictionary<string, JobContext>();
@@ -202,7 +202,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Message source
             /// </summary>
-            public IMessageTrigger Source { get; }
+            public IMessageSource Source { get; }
 
             /// <summary>
             /// Current job version
@@ -223,9 +223,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 Id = Job.GetJobId();
                 _configuration = writerGroup.ToWriterGroupJobConfiguration(
                     _outer._factory.PublisherId);
-                _scope = _outer._factory.CreateWriterGroupScope(
-                    _configuration);
-                Source = _scope.Source;
+                _scope = _outer._factory.Create(_configuration);
+                Source = _scope.WriterGroup.Source;
             }
 
             /// <summary>
@@ -288,12 +287,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
 
-            private readonly IWriterGroup _scope;
+            private readonly IWriterGroupScope _scope;
             private readonly PublisherHostService _outer;
             private readonly IWriterGroupConfig _configuration;
         }
 
-        private readonly IWriterGroupContainerFactory _factory;
+        private readonly IWriterGroupScopeFactory _factory;
         private readonly ILogger _logger;
         private readonly Task _processor;
         private readonly Dictionary<string, JobContext> _currentJobs;

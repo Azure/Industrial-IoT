@@ -675,14 +675,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Information("Metadata changed to {major}.{minor} for subscription"
                     + "'{subscription}'/'{sessionId}'",
                     major, minor, Name, Connection.CreateConnectionId());
+
+                var typeSystem = await _sessions.GetComplexTypeSystemAsync(rawSubscription.Session);
                 var dataTypes = new NodeIdDictionary<DataTypeDescription>();
                 var fields = new FieldMetaDataCollection();
                 foreach (var monitoredItem in currentlyMonitored.Values) {
-                    monitoredItem.GetMetaData(
-                        rawSubscription.Session?.MessageContext, rawSubscription.Session?.NodeCache,
-                        rawSubscription.Session?.TypeTree,
-                        _sessions.GetComplexTypeSystem(rawSubscription.Session),
-                        fields, dataTypes);
+                    monitoredItem.GetMetaData(rawSubscription.Session?.MessageContext,
+                        rawSubscription.Session?.NodeCache, rawSubscription.Session?.TypeTree,
+                        typeSystem, fields, dataTypes);
                 }
 
                 _currentMetaData = new DataSetMetaDataType {

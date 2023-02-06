@@ -4,14 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
-
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default;
     using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Auth.IoTHub;
-    using Microsoft.Azure.IIoT.Crypto.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -155,16 +151,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
             builder.RegisterType<DiscovererModuleClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DiscoveryMultiplexer>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // Identity token updater
-            builder.RegisterType<PasswordGenerator>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<TwinIdentityTokenUpdater>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // and service endpoint sync
-            builder.RegisterType<JobOrchestratorEndpointSync>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Activation sync
