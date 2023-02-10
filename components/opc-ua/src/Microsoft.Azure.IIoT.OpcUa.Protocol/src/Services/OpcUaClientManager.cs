@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Session manager
+    /// Client manager
     /// </summary>
     public class OpcUaClientManager : ISessionManager, ISubscriptionManager,
         IDisposable {
@@ -125,16 +125,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         public void Dispose() {
             try {
-                _logger.Information("Stopping session manager process ...");
+                _logger.Information("Stopping client manager process ...");
                 _cts.Cancel();
                 _processor.Wait();
             }
             finally {
-                _logger.Debug("Session manager process stopped.");
+                _logger.Debug("Client manager process stopped.");
                 _cts.Dispose();
             }
 
-            _logger.Information("Stopping all sessions...");
+            _logger.Information("Stopping all client sessions...");
             _lock.Wait();
             try {
                 foreach (var client in _clients) {
@@ -152,7 +152,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             finally {
                 _lock.Release();
                 _lock.Dispose();
-                _logger.Information("Removed all sessions, current number of sessions is 0");
+                _logger.Information(
+                    "Stopped all sessions, current number of sessions is 0");
             }
         }
 
@@ -185,11 +186,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         private async Task RunClientManagerAsync(TimeSpan period, CancellationToken ct) {
             var timer = new PeriodicTimer(period);
+            _logger.Debug("Client manager starting...");
             while (ct.IsCancellationRequested) {
                 if (!await timer.WaitForNextTickAsync(ct)) {
-                    return;
+                    break;
                 }
 
+                _logger.Debug("Running client manager connection and garbage collection cycle...");
                 var inactive = new Dictionary<ConnectionIdentifier, OpcUaClient>();
                 await _lock.WaitAsync(ct);
                 try {
@@ -206,7 +209,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 }
                                 catch (Exception ex) {
                                     _logger.Debug(ex,
-                                        "Session manager failed to re-connect session {Name}.",
+                                        "Client manager failed to re-connect session {Name}.",
                                         client.Key);
                                 }
                             }
@@ -221,6 +224,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     foreach (var key in inactive.Keys) {
                         _clients.TryRemove(key, out _);
                     }
+                }
+                catch (OperationCanceledException) {
+                    break;
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Client manager encountered unexpected error.");
                 }
                 finally {
                     _lock.Release();
@@ -238,6 +247,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     inactive.Clear();
                 }
             }
+            _logger.Debug("Client manager exiting...");
         }
 
         // Validate certificates

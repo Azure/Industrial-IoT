@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
@@ -190,7 +189,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 subscriptions = _subscriptions.Values.ToList();
                 _subscriptions.Clear();
                 session = _session;
-                CloseSession(true);
+                UnsetSession(true);
             }
             finally {
                 _lock.Release();
@@ -246,7 +245,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return true;
             }
 
-            CloseSession(); // Ensure any previous session is disposed here.
+            UnsetSession(); // Ensure any previous session is disposed here.
             _logger.Debug("Initializing session '{Name}'...", _sessionName);
 
             var endpointUrlCandidates = _connection.Endpoint.Url.YieldReturn();
@@ -427,7 +426,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             _lock.Wait();
             try {
-                CloseSession();
+                UnsetSession();
 
                 // override keep alive interval
                 _session = session;
@@ -444,18 +443,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
-        /// Close existing session
+        /// Unset and dispose existing session
         /// </summary>
-        private void CloseSession(bool noDispose = false) {
-            if (_session != null) {
-                _complexTypeSystem = null;
-                _session.Handle = null;
-                _session.KeepAlive -= Session_KeepAlive;
-                if (!noDispose) {
-                    _session.Dispose();
-                }
-                _session = null;
+        private void UnsetSession(bool noDispose = false) {
+            var session = _session;
+            _session = null;
+            _complexTypeSystem = null;
+
+            if (session == null) {
+                return;
             }
+            session.KeepAlive -= Session_KeepAlive;
+            session.Handle = null;
+            if (noDispose) {
+                return;
+            }
+            session.Dispose();
+            _logger.Debug("Session {Name} disposed.", _sessionName);
         }
 
         /// <summary>
