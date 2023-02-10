@@ -290,7 +290,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="notifications"></param>
         internal void SendConditionNotification(Subscription subscription,
             IEnumerable<MonitoredItemNotificationModel> notifications) {
-            if (!(subscription?.Session?.Connected ?? false)) {
+            var onSubscriptionEventChange = OnSubscriptionEventChange;
+            if (onSubscriptionEventChange == null || !(subscription?.Session?.Connected ?? false)) {
                 return;
             }
             var message = new SubscriptionNotificationModel {
@@ -305,7 +306,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 Timestamp = DateTime.UtcNow,
                 Notifications = notifications.ToList()
             };
-            OnSubscriptionEventChange?.Invoke(this, message);
+            onSubscriptionEventChange.Invoke(this, message);
+            var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
+            onSubscriptionEventDiagnosticsChange?.Invoke(this, 1);
         }
 
         /// <summary>
@@ -956,7 +959,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="stringTable"></param>
         private void OnSubscriptionEventNotificationList(Subscription subscription,
             EventNotificationList notification, IList<string> stringTable) {
-            if (OnSubscriptionEventChange == null) {
+            var onSubscriptionEventChange = OnSubscriptionEventChange;
+            if (onSubscriptionEventChange == null) {
                 return;
             }
 
@@ -1004,7 +1008,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         MessageType = Opc.Ua.PubSub.MessageType.KeepAlive,
                         MetaData = _currentMetaData
                     };
-                    OnSubscriptionEventChange.Invoke(this, message);
+                    onSubscriptionEventChange.Invoke(this, message);
                 }
                 else {
                     var numOfEvents = 0;
@@ -1047,7 +1051,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             wrapper.ProcessEventNotification(message, eventNotification);
 
                             if (message.Notifications.Count > 0) {
-                                OnSubscriptionEventChange.Invoke(this, message);
+                                onSubscriptionEventChange.Invoke(this, message);
                                 numOfEvents++;
                             }
                         }
@@ -1059,7 +1063,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 sequenceNumber, eventNotification.Message.PublishTime);
                         }
                     }
-                    OnSubscriptionEventDiagnosticsChange.Invoke(this, numOfEvents);
+                    var onSubscriptionEventDiagnosticsChange = OnSubscriptionEventDiagnosticsChange;
+                    onSubscriptionEventDiagnosticsChange?.Invoke(this, numOfEvents);
                 }
             }
             catch (Exception e) {
@@ -1076,7 +1081,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="stringTable"></param>
         private void OnSubscriptionDataChangeNotification(Subscription subscription,
             DataChangeNotification notification, IList<string> stringTable) {
-            if (OnSubscriptionDataChange == null) {
+            var onSubscriptionDataChange = OnSubscriptionDataChange;
+            if (onSubscriptionDataChange == null) {
                 return;
             }
             if (notification?.MonitoredItems == null || notification.MonitoredItems.Count == 0) {
@@ -1186,10 +1192,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
 
-                OnSubscriptionDataChange.Invoke(this, message);
+                onSubscriptionDataChange.Invoke(this, message);
                 Debug.Assert(message.Notifications != null);
-                if (message.Notifications.Count > 0) {
-                    OnSubscriptionDataDiagnosticsChange.Invoke(this, message.Notifications.Count);
+                var onSubscriptionDataDiagnosticsChange = OnSubscriptionDataDiagnosticsChange;
+                if (message.Notifications.Count > 0 && onSubscriptionDataDiagnosticsChange != null) {
+                    onSubscriptionDataDiagnosticsChange.Invoke(this, message.Notifications.Count);
                 }
             }
             catch (Exception e) {

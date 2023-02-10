@@ -279,6 +279,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var endpointUrl = "opc.tcp://opcplc:50000";
             var dataSetWriterGroup = "Leaf0";
             var dataSetWriterId = "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234";
+            var dataSetName = "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234";
             var authenticationMode = AuthenticationMode.UsernamePassword;
             var username = "usr";
             var password = "pwd";
@@ -287,6 +288,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 EndpointUrl = endpointUrl,
                 DataSetWriterGroup = dataSetWriterGroup,
                 DataSetWriterId = dataSetWriterId,
+                DataSetName = dataSetName,
                 OpcAuthenticationMode = authenticationMode,
                 OpcAuthenticationUsername = username,
                 OpcAuthenticationPassword = password,
@@ -387,6 +389,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var endpointUrl = "opc.tcp://opcplc:50000";
             var dataSetWriterGroup = "Leaf1";
             var dataSetWriterId = "Leaf1_10000_3085991c-b85c-4311-9bfb-a916da952235";
+            var dataSetName = "Tag_Leaf1_10000_3085991c-b85c-4311-9bfb-a916da952235";
             var dataSetPublishingInterval = 3000;
             var authenticationMode = AuthenticationMode.Anonymous;
 
@@ -394,6 +397,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 EndpointUrl = endpointUrl,
                 DataSetWriterGroup = dataSetWriterGroup,
                 DataSetWriterId = dataSetWriterId,
+                DataSetName = dataSetName,
                 DataSetPublishingInterval = dataSetPublishingInterval,
                 OpcAuthenticationMode = authenticationMode,
             };
