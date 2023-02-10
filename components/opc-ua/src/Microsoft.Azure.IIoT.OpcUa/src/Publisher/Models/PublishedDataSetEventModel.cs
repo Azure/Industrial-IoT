@@ -54,12 +54,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public MonitoringMode? MonitoringMode { get; set; }
 
         /// <summary>
-        /// Node in dataset writer that triggers reporting
-        /// (Publisher extension)
-        /// </summary>
-        public string TriggerId { get; set; }
-
-        /// <summary>
         /// Pending alarm settings
         /// </summary>
         public ConditionHandlingOptionsModel ConditionHandling { get; set; }
@@ -68,5 +62,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Simple event Type id
         /// </summary>
         public string TypeDefinitionId { get; set; }
+
+        /// <summary>
+        /// Event name
+        /// </summary>
+        public string PublishedEventName { get; set; }
     }
 }

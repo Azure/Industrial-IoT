@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -36,9 +37,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Create client
         /// </summary>
         /// <param name="product"></param>
+        /// <param name="metrics"></param>
         /// <param name="onError"></param>
         /// <returns></returns>
         Task<IClient> CreateAsync(string product,
+            IMetricsContext metrics = null,
             IProcessControl onError = null);
     }
 }

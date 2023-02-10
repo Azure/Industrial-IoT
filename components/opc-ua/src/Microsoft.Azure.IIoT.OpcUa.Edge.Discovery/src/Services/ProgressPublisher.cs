@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     using Serilog;
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Discovery progress message sender
@@ -24,12 +25,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// <param name="events"></param>
         /// <param name="processor"></param>
         /// <param name="serializer"></param>
+        /// <param name="identity"></param>
         /// <param name="logger"></param>
         public ProgressPublisher(IEventEmitter events, ITaskProcessor processor,
-            IJsonSerializer serializer, ILogger logger) : base (logger) {
+            IJsonSerializer serializer, IProcessIdentity identity, ILogger logger)
+            : base (logger) {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _processor = processor ?? throw new ArgumentNullException(nameof(processor));
+            _identity = identity ?? throw new ArgumentNullException(nameof(identity));
         }
 
         /// <summary>
@@ -38,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// <param name="progress"></param>
         protected override void Send(DiscoveryProgressModel progress) {
             progress.DiscovererId = DiscovererModelEx.CreateDiscovererId(
-                _events.DeviceId, _events.ModuleId);
+                _identity.ProcessId, _identity.Id);
             base.Send(progress);
             _processor.TrySchedule(() => SendAsync(progress));
         }
@@ -55,6 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         }
 
         private readonly IJsonSerializer _serializer;
+        private readonly IProcessIdentity _identity;
         private readonly IEventEmitter _events;
         private readonly ITaskProcessor _processor;
     }

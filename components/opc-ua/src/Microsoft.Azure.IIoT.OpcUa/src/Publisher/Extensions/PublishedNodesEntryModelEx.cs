@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     using System;
+    using System.Linq;
 
     /// <summary>
     /// PublishedNodesEntryModel extensions
@@ -22,8 +23,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             if (model == null || that == null) {
                 return false;
             }
-            if (string.Compare(model.DataSetWriterGroup,
-                that.DataSetWriterGroup, StringComparison.InvariantCulture) != 0) {
+            if (!string.Equals(model.DataSetWriterGroup,
+                that.DataSetWriterGroup, StringComparison.InvariantCulture)) {
                 return false;
             }
             return true;
@@ -76,8 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// Comarison excludes OpcNodes.
         /// </summary>
         public static bool HasSameDataSet(this PublishedNodesEntryModel model,
-            PublishedNodesEntryModel that, bool matchPublishingInterval = true) {
-
+            PublishedNodesEntryModel that) {
             if (!string.Equals(model.DataSetWriterId ?? string.Empty,
                 that.DataSetWriterId ?? string.Empty, StringComparison.InvariantCulture)) {
                 return false;
@@ -88,13 +88,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             if (!model.HasSameEndpoint(that)) {
                 return false;
             }
-            if (matchPublishingInterval) {
-                var queryInterval = that.GetNormalizedDataSetPublishingInterval();
-                var modelInterval = model.GetNormalizedDataSetPublishingInterval();
-                if (queryInterval != null &&
-                    queryInterval != modelInterval) {
-                    return false;
-                }
+            if (!string.Equals(model.DataSetName ?? string.Empty,
+                that.DataSetName ?? string.Empty, StringComparison.InvariantCulture)) {
+                return false;
+            }
+            if (model.DataSetClassId != that.DataSetClassId) {
+                return false;
+            }
+            if (model.DataSetKeyFrameCount != that.DataSetKeyFrameCount) {
+                return false;
+            }
+            if (!string.Equals(model.MetaDataQueueName ?? string.Empty,
+                that.MetaDataQueueName ?? string.Empty, StringComparison.InvariantCulture)) {
+                return false;
+            }
+            if (model.MetaDataUpdateTimeTimespan != that.MetaDataUpdateTimeTimespan) {
+                return false;
             }
             return true;
         }
@@ -106,6 +115,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             this PublishedNodesEntryModel model, TimeSpan? defaultPublishingTimespan = null) {
             return model.DataSetPublishingIntervalTimespan
                 .GetTimeSpanFromMiliseconds(model.DataSetPublishingInterval, defaultPublishingTimespan);
+        }
+
+        /// <summary>
+        /// Promote the default publishing interval of the model to all of
+        /// its nodes to support apples to apples comparison.
+        /// </summary>
+        public static PublishedNodesEntryModel PropagatePublishingIntervalToNodes(
+            this PublishedNodesEntryModel model) {
+            if ((model?.OpcNodes) != null && model.OpcNodes.Count != 0) {
+                var rootInterval = model.GetNormalizedDataSetPublishingInterval();
+                if (rootInterval == null) {
+                    return model;
+                }
+                foreach (var node in model.OpcNodes) {
+                    var nodeInterval = node.GetNormalizedPublishingInterval();
+                    if (nodeInterval == null) {
+                        // Set publishing interval from root
+                        node.OpcPublishingIntervalTimespan = rootInterval;
+                    }
+                }
+            }
+            // Remove root interval
+            model.DataSetPublishingInterval = null;
+            model.DataSetPublishingIntervalTimespan = null;
+            return model;
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using static Microsoft.Azure.IIoT.Utils.ConnectionString;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -91,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         public OpcUaClient(ApplicationConfiguration configuration,
             ConnectionIdentifier connection, ILogger logger, IMetricsContext metrics,
-            string sessionName = null) : this (metrics, connection) {
+            string sessionName = null) : this(metrics, connection) {
 
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
@@ -152,9 +153,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             catch (Exception ex) {
                 // Log Error
-                _logger.Error(ex, "Create Session Error");
+                _logger.Error(ex, "Error creating session {Name}.", _sessionName);
                 _session?.Dispose();
                 _session = null;
+                _complexTypeSystem = null;
                 connected = false;
             }
             finally {
@@ -171,6 +173,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 foreach (var subscription in _subscriptions.Values) {
                     await subscription.ReapplyToSessionAsync(this);
                 }
+                _logger.Information("Reapplied all subscriptions to session {Name}.",
+                    _sessionName);
             }
 
             NotifySubscriptionStateChange(connected);
@@ -186,13 +190,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _reconnectHandler?.Dispose();
                 subscriptions = _subscriptions.Values.ToList();
                 _subscriptions.Clear();
-
                 session = _session;
-                _session = null;
-                if (session != null) {
-                    session.Handle = null;
-                    session.KeepAlive -= Session_KeepAlive;
-                }
+                CloseSession(true);
             }
             finally {
                 _lock.Release();
@@ -200,7 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             try {
-                _logger.Information("Disconnecting session {Name}...", _sessionName);
+                _logger.Information("Closing session {Name}...", _sessionName);
 
                 if (subscriptions.Count > 0) {
                     //
@@ -217,10 +216,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 session.Close();
                 session.Dispose();
                 // Log Session Disconnected event
-                _logger.Debug("Session {Name} disconnected.", _sessionName);
+                _logger.Debug("Session {Name} closed.", _sessionName);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Disconnect Error for session {Name}.", _sessionName);
+                _logger.Error(ex, "Error during closing of session {Name}.", _sessionName);
             }
             finally {
                 // Clean up resources
@@ -235,51 +234,81 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private async ValueTask<bool> ConnectAsyncCore() {
             if (IsReconnecting) {
                 // Cannot connect while reconnecting.
+                _logger.Information("Session {Name} is reconnecting. Not connecting.",
+                    _sessionName);
                 return false;
             }
 
             if (IsConnected) {
-                // Nothing to do
+                // Nothing to do but try ensure complex type system is loaded
+                if (!_complexTypeSystem.IsCompleted) {
+                    await _complexTypeSystem;
+                }
                 return true;
             }
 
-            //
-            // Get the endpoint by connecting to server's discovery endpoint.
-            // Try to find the first endpoint with security.
-            //
-            var endpointDescription = CoreClientUtils.SelectEndpoint(_configuration,
-                _connection.Endpoint.Url,
-                _connection.Endpoint.SecurityMode != SecurityMode.None);
-            var endpointConfiguration = EndpointConfiguration.Create(_configuration);
-            var endpoint = new ConfiguredEndpoint(null, endpointDescription,
-                endpointConfiguration);
+            CloseSession(); // Ensure any previous session is disposed here.
+            _logger.Debug("Initializing session '{Name}'...", _sessionName);
 
-            if (_connection.Endpoint.SecurityMode.HasValue &&
-                _connection.Endpoint.SecurityMode != SecurityMode.None &&
-                endpointDescription.SecurityMode == MessageSecurityMode.None) {
-                _logger.Warning("Although the use of security was configured, " +
-                    "there was no security-enabled endpoint available at url " +
-                    "{endpointUrl}. An endpoint with no security will be used.",
-                    _connection.Endpoint.Url);
+            var endpointUrlCandidates = _connection.Endpoint.Url.YieldReturn();
+            if (_connection.Endpoint.AlternativeUrls != null) {
+                endpointUrlCandidates = endpointUrlCandidates.Concat(
+                    _connection.Endpoint.AlternativeUrls);
             }
+            var attempt = 0;
+            foreach (var endpointUrl in endpointUrlCandidates) {
+                try {
+                    //
+                    // Get the endpoint by connecting to server's discovery endpoint.
+                    // Try to find the first endpoint with security.
+                    //
+                    var endpointDescription = CoreClientUtils.SelectEndpoint(
+                        _configuration, endpointUrl,
+                        _connection.Endpoint.SecurityMode != SecurityMode.None);
+                    var endpointConfiguration = EndpointConfiguration.Create(
+                        _configuration);
+                    var endpoint = new ConfiguredEndpoint(null, endpointDescription,
+                        endpointConfiguration);
 
-            _logger.Information("Creating session '{Name}' for endpoint '{endpointUrl}'...",
-                _sessionName, _connection.Endpoint.Url);
-            var userIdentity = _connection.User.ToStackModel()
-                ?? new UserIdentity(new AnonymousIdentityToken());
+                    if (_connection.Endpoint.SecurityMode.HasValue &&
+                        _connection.Endpoint.SecurityMode != SecurityMode.None &&
+                        endpointDescription.SecurityMode == MessageSecurityMode.None) {
+                        _logger.Warning("Although the use of security was configured, " +
+                            "there was no security-enabled endpoint available at url " +
+                            "{endpointUrl}. An endpoint with no security will be used.",
+                            endpointUrl);
+                    }
 
-            // Create the session
-            var session = await Opc.Ua.Client.Session.Create(_configuration, endpoint,
-                false, false, _sessionName, SessionLifeTime, userIdentity,
-                null).ConfigureAwait(false);
+                    _logger.Information(
+                        "#{Attempt}: Creating session {Name} for endpoint {endpointUrl}...",
+                        ++attempt, _sessionName, endpointUrl);
+                    var userIdentity = _connection.User.ToStackModel()
+                        ?? new UserIdentity(new AnonymousIdentityToken());
 
-            // Assign the created session
-            SetSession(session);
+                    // Create the session
+                    var session = await Opc.Ua.Client.Session.Create(_configuration, endpoint,
+                        false, false, _sessionName, SessionLifeTime, userIdentity,
+                        Array.Empty<string>()).ConfigureAwait(false);
 
-            // Session created successfully.
-            _logger.Debug("New Session created with name {Name}", _sessionName);
-            NumberOfConnectRetries++;
-            return true;
+                    // Assign the created session
+                    SetSession(session);
+                    _logger.Information(
+                        "New Session {Name} created with endpoint {endpointUrl} ({Original}).",
+                        _sessionName, endpointUrl, _connection.Endpoint.Url);
+
+                    // Try and load type system - does not throw but logs error
+                    await _complexTypeSystem;
+                    NumberOfConnectRetries++;
+                    return true;
+                }
+                catch (Exception ex) {
+                    NumberOfConnectRetries++;
+                    _logger.Information(
+                        "#{Attempt}: Failed to create session {Name} to {endpointUrl}: {message}...",
+                        ++attempt, _sessionName, endpointUrl, ex.Message);
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -290,14 +319,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             await _lock.WaitAsync();
             try {
                 if (_complexTypeSystem == null) {
-                    if (_session != null && _session.Connected) {
-                        _complexTypeSystem = new ComplexTypeSystem(_session);
-                        await _complexTypeSystem.Load().ConfigureAwait(false);
-                        _logger.Information("Session {Name} complex type system loaded",
-                            _sessionName);
-                    }
+                    _complexTypeSystem = LoadComplexTypeSystemAsync();
                 }
-                return _complexTypeSystem;
+                return await _complexTypeSystem.ConfigureAwait(false);
             }
             finally {
                 _lock.Release();
@@ -374,7 +398,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             if (newSession != null) {
-                SetSession(_reconnectHandler.Session as Session);
+                SetSession(newSession);
             }
             if (!IsConnected) {
                 // Failed to reconnect.
@@ -404,16 +428,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             _lock.Wait();
             try {
-                if (_session != null) {
-                    _complexTypeSystem = null;
-                    _session.Handle = null;
-                    _session.KeepAlive -= Session_KeepAlive;
-                    _session.Dispose();
-                }
+                CloseSession();
 
                 // override keep alive interval
                 _session = session;
                 _session.KeepAliveInterval = KeepAliveInterval;
+                _complexTypeSystem = LoadComplexTypeSystemAsync();
 
                 // set up keep alive callback.
                 _session.KeepAlive += Session_KeepAlive;
@@ -422,6 +442,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             finally {
                 _lock.Release();
             }
+        }
+
+        /// <summary>
+        /// Close existing session
+        /// </summary>
+        private void CloseSession(bool noDispose = false) {
+            if (_session != null) {
+                _complexTypeSystem = null;
+                _session.Handle = null;
+                _session.KeepAlive -= Session_KeepAlive;
+                if (!noDispose) {
+                    _session.Dispose();
+                }
+                _session = null;
+            }
+        }
+
+        /// <summary>
+        /// Load complex type system
+        /// </summary>
+        /// <returns></returns>
+        private async Task<ComplexTypeSystem> LoadComplexTypeSystemAsync() {
+            try {
+                if (_session != null && _session.Connected) {
+                    var complexTypeSystem = new ComplexTypeSystem(_session);
+                    await complexTypeSystem.Load().ConfigureAwait(false);
+                    _logger.Information("Session {Name} complex type system loaded",
+                        _sessionName);
+                    return complexTypeSystem;
+                }
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to load complex type system.");
+            }
+            return null;
         }
 
         /// <summary>
@@ -455,8 +510,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 { "SecurityMode", _connection.Endpoint.SecurityMode }
             };
 
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
-                () => new Measurement<int>(NumberOfConnectRetries, TagList), "Connection attempts",
+            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
+                () => new Measurement<long>(NumberOfConnectRetries, TagList), "Connection attempts",
                 "OPC UA connect retries.");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
                 () => new Measurement<int>(IsConnected ? 1 : 0, TagList), "",
@@ -472,7 +527,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ConnectionModel _connection;
         private SessionReconnectHandler _reconnectHandler;
         private Session _session;
-        private ComplexTypeSystem _complexTypeSystem;
+        private Task<ComplexTypeSystem> _complexTypeSystem;
         private readonly ILogger _logger;
         private readonly DateTime _created = DateTime.UtcNow;
     }

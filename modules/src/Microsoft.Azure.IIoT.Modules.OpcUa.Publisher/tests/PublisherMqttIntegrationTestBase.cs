@@ -280,7 +280,7 @@ $"--ttt={topicRoot}",
                     .AddJsonFile("appsettings.json", true)
                     .AddEnvironmentVariables()
                     .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                    .AddStandalonePublisherCommandLine(arguments.ToArray())
+                    .AddInMemoryCollection(new PublisherCliOptions(arguments.ToArray()))
                     .AddCommandLine(arguments.ToArray())
                     .Build();
 
@@ -314,7 +314,6 @@ $"--ttt={topicRoot}",
                         var module = hostScope.Resolve<IModuleHost>();
                         var events = hostScope.Resolve<IEventEmitter>();
                         var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                        var identity = hostScope.Resolve<IIdentity>();
                         var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
                         ISessionManager sessionManager = null;
 
@@ -323,7 +322,7 @@ $"--ttt={topicRoot}",
                             logger.Information("Starting module OpcPublisher version {version}.", version);
                             healthCheckManager.Start();
                             // Start module
-                            await module.StartAsync(IdentityType.Publisher, "IntegrationTests", "OpcPublisher", version, null);
+                            await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
                             sessionManager = hostScope.Resolve<ISessionManager>();
 
                             _apiScope = ConfigureContainer(configurationRoot, mqttBroker);
@@ -374,9 +373,9 @@ $"--ttt={topicRoot}",
         /// Configures DI for the types required.
         /// </summary>
         private static IContainer ConfigureContainer(IConfiguration configuration) {
-            var config = new Config(configuration);
+            var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
-            var standaloneCliOptions = new StandaloneCliOptions(configuration);
+            var cliOptions = new PublisherCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -388,18 +387,22 @@ $"--ttt={topicRoot}",
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            builder.AddDiagnostics(config, standaloneCliOptions.ToLoggerConfiguration());
-            builder.RegisterInstance(standaloneCliOptions).AsImplementedInterfaces();
+            builder.AddDiagnostics(config, cliOptions.ToLoggerConfiguration());
+            builder.RegisterInstance(cliOptions).AsImplementedInterfaces();
 
+            builder.RegisterType<PublisherIdentity>()
+                .AsImplementedInterfaces();
             builder.RegisterType<PublishedNodesProvider>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublishedNodesJobConverter>()
                 .SingleInstance();
-            builder.RegisterType<PublisherConfigService>()
+            builder.RegisterType<PublisherConfigurationService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherHostService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<WriterGroupScopeFactory>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublisherDiagnosticCollector>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
@@ -407,6 +410,8 @@ $"--ttt={topicRoot}",
                 .AsImplementedInterfaces().SingleInstance();
 
             // Opc specific parts
+            builder.RegisterType<StackLogger>()
+                .AsImplementedInterfaces().SingleInstance().AutoActivate();
             builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()

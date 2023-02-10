@@ -124,14 +124,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public bool? DiscardNew { get; set; }
 
         /// <summary>
-        /// Node in dataset writer that triggers reporting
-        /// (Publisher extension)
-        /// </summary>
-        [DataMember(Name = "triggerId", Order = 15,
-            EmitDefaultValue = false)]
-        public string TriggerId { get; set; }
-
-        /// <summary>
         /// Heartbeat Interval (Publisher extension)
         /// </summary>
         [DataMember(Name = "heartbeatInterval", Order = 16,

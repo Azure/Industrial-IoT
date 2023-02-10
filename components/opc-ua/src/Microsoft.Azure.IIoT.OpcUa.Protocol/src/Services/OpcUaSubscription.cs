@@ -157,6 +157,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     EndpointUrl = subscription.Session.Endpoint.EndpointUrl,
                     MetaData = _currentMetaData,
                     SubscriptionName = Name,
+                    SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                     SubscriptionId = Id,
                     MessageType = Opc.Ua.PubSub.MessageType.KeepAlive,
                 };
@@ -289,12 +290,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="notifications"></param>
         internal void SendConditionNotification(Subscription subscription,
             IEnumerable<MonitoredItemNotificationModel> notifications) {
+            if (!(subscription?.Session?.Connected ?? false)) {
+                return;
+            }
             var message = new SubscriptionNotificationModel {
                 ServiceMessageContext = subscription?.Session?.MessageContext,
                 ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
                 EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
                 SubscriptionName = Name,
                 SubscriptionId = Id,
+                SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                 MessageType = Opc.Ua.PubSub.MessageType.Condition,
                 MetaData = _currentMetaData,
                 Timestamp = DateTime.UtcNow,
@@ -588,24 +593,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _currentlyMonitored = currentlyMonitored
                     = nowMonitored.ToImmutableDictionary(m => m.Item.ClientHandle, m => m);
 
-                var map = currentlyMonitored.Values.ToDictionary(k => k.Template.StartNodeId, v => v);
-                foreach (var item in currentlyMonitored.Values) {
-                    if (item.Template.TriggerId != null &&
-                        map.TryGetValue(item.Template.TriggerId, out var trigger)) {
-                        trigger?.AddTriggerLink(item.ServerId.GetValueOrDefault());
-                    }
-                }
-
-                // Set up any new trigger configuration if needed
-                foreach (var item in currentlyMonitored.Values) {
-                    if (item.GetTriggeringLinks(out var added, out var removed)) {
-                        var response = await rawSubscription.Session.SetTriggeringAsync(
-                            null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
-                            new UInt32Collection(added), new UInt32Collection(removed), CancellationToken.None)
-                            .ConfigureAwait(false);
-                    }
-                }
-
                 // sanity check
                 foreach (var monitoredItem in currentlyMonitored.Values) {
                     if (monitoredItem.Item.Status.Error != null &&
@@ -622,11 +609,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 count = currentlyMonitored.Values.Count(m => m.Item.Status.Error == null);
                 _logger.Information("Now monitoring {count} nodes in subscription "
-                    + "'{subscription}'/'{sessionId}'",
-                    count,
-                    Name,
-                    Connection.CreateConnectionId());
-
+                    + "'{subscription}'/'{sessionId}'", count, Name, Connection.CreateConnectionId());
                 if (currentlyMonitored.Count != rawSubscription.MonitoredItemCount) {
                     _logger.Error("Monitored items mismatch: wrappers: {wrappers} != items: {items} ",
                         currentlyMonitored.Count, rawSubscription.MonitoredItemCount);
@@ -881,10 +864,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         _subscription.Id, _subscription.Id.Connection.CreateConnectionId());
                     return null;
                 }
-                _logger.Debug("Subscription '{subscription}'/'{sessionId}' successfully created.",
-                    _subscription.Id, _subscription.Id.Connection.CreateConnectionId());
-
-                LogRevisedValues(subscription);
+                LogRevisedValues(subscription, true);
             }
             else {
                 // Apply new configuration on configuration on original subscription
@@ -939,7 +919,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 if (modifySubscription) {
                     subscription.Modify();
-                    LogRevisedValues(subscription);
+                    LogRevisedValues(subscription, false);
                 }
             }
             return subscription;
@@ -949,15 +929,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Log revised values of the subscription
         /// </summary>
         /// <param name="subscription"></param>
-        private void LogRevisedValues(Subscription subscription) {
+        /// <param name="created"></param>
+        private void LogRevisedValues(Subscription subscription, bool created) {
             var diagInfo = new StringBuilder();
-            diagInfo.Append("Subscription '{subscription}'/'{sessionId}' state actual(revised)/desired: ");
-            diagInfo.Append("PublishingEnabled {currentPublishingEnabled}/{publishingEnabled}, ");
-            diagInfo.Append("PublishingInterval {currentPublishingInterval}/{publishingInterval}, ");
-            diagInfo.Append("KeepAliveCount {currentKeepAliveCount}/{keepAliveCount}, ");
-            diagInfo.Append("LifetimeCount {currentLifetimeCount}/{lifetimeCount}");
+            diagInfo.AppendLine("Successfully {Action} subscription '{Subscription}'/'{SessionId}'.");
+            diagInfo.AppendLine("Actual (revised) state/desired state: ");
+            diagInfo.AppendLine("# PublishingEnabled {CurrentPublishingEnabled}/{PublishingEnabled}, ");
+            diagInfo.AppendLine("# PublishingInterval {CurrentPublishingInterval}/{PublishingInterval}, ");
+            diagInfo.AppendLine("# KeepAliveCount {CurrentKeepAliveCount}/{KeepAliveCount}, ");
+            diagInfo.Append("# LifetimeCount {CurrentLifetimeCount}/{LifetimeCount}");
 
-            _logger.Information(diagInfo.ToString(),
+            _logger.Information(diagInfo.ToString(), created ? "created" : "modified",
                 _subscription.Id, _subscription.Id.Connection.CreateConnectionId(),
                 subscription.CurrentPublishingEnabled, subscription.PublishingEnabled,
                 subscription.CurrentPublishingInterval, subscription.PublishingInterval,
@@ -1015,6 +997,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ServiceMessageContext = subscription?.Session?.MessageContext,
                         ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
                         EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
+                        SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                         SubscriptionName = Name,
                         Timestamp = publishTime,
                         SubscriptionId = Id,
@@ -1054,6 +1037,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
                                 SubscriptionName = Name,
                                 SubscriptionId = Id,
+                                SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                                 MessageType = Opc.Ua.PubSub.MessageType.Event,
                                 MetaData = _currentMetaData,
                                 Timestamp = eventNotification.Message.PublishTime,
@@ -1124,6 +1108,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         SubscriptionName = Name,
                         Timestamp = publishTime,
                         SubscriptionId = Id,
+                        SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                         MessageType = Opc.Ua.PubSub.MessageType.KeepAlive,
                         MetaData = _currentMetaData,
                         Notifications = new List<MonitoredItemNotificationModel>(),
@@ -1138,6 +1123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         SubscriptionId = Id,
                         MessageType = Opc.Ua.PubSub.MessageType.DeltaFrame,
                         MetaData = _currentMetaData,
+                        SequenceNumber = SequenceNumber.Increment32(ref _sequenceNumber),
                         Notifications = new List<MonitoredItemNotificationModel>(),
                     };
                     var missingSequenceNumbers = Array.Empty<uint>();
@@ -1221,14 +1207,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="metrics"></param>
         public OpcUaSubscription(IMetricsContext metrics) {
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
-                () => new Measurement<int>(NumberOfGoodNodes, metrics.TagList), "Monitored items",
+            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_good_nodes",
+                () => new Measurement<long>(NumberOfGoodNodes, metrics.TagList), "Monitored items",
                 "Monitored items successfully created..");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
-                () => new Measurement<int>(NumberOfBadNodes, metrics.TagList), "Monitored items",
+            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
+                () => new Measurement<long>(NumberOfBadNodes, metrics.TagList), "Monitored items",
                 "Monitored items with errors.");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
-                () => new Measurement<int>(_currentlyMonitored.Count, metrics.TagList), "Monitored items",
+            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
+                () => new Measurement<long>(_currentlyMonitored.Count, metrics.TagList), "Monitored items",
                 "Monitored item count.");
             _metrics = metrics;
         }
@@ -1243,6 +1229,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly SemaphoreSlim _lock;
         private DataSetMetaDataType _currentMetaData;
         private uint _lastSequenceNumber;
+        private uint _sequenceNumber;
         private bool _closed;
         private static uint _lastIndex;
     }

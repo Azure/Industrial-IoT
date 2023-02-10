@@ -14,12 +14,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "OPC_PUBLISHER";
+        public string Id => "OPC_PUBLISHER";
 
         /// <summary>
         /// Process id
         /// </summary>
-        public string Id => System.Guid.NewGuid().ToString();
+        public string ProcessId => System.Guid.NewGuid().ToString();
 
         /// <summary>
         /// Name of service
@@ -30,5 +30,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
         /// Description of service
         /// </summary>
         public string Description => "Azure Industrial IoT OPC UA Publisher Service";
+
+        /// <inheritdoc/>
+        public string SiteId { get; }
     }
 }

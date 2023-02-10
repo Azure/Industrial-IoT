@@ -271,8 +271,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     //
                                     void AddMessage(BaseDataSetMessage dataSetMessage) {
                                         currentMessage.Messages.Add(dataSetMessage);
-                                        if (writerGroup.MessageSettings?.MaxMessagesPerPublish != null &&
-                                            currentMessage.Messages.Count >= writerGroup.MessageSettings.MaxMessagesPerPublish) {
+                                        var maxMessagesToPublish = writerGroup.MessageSettings?.MaxMessagesPerPublish ??
+                                            _config.DefaultMaxMessagesPerPublish;
+                                        if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish) {
                                             result.Add((currentNotificationCount, currentMessage, default, false, default));
                                             currentMessage = CreateMessage(writerGroup, encoding, networkMessageContentMask,
                                                 dataSetClassId, publisherId);
@@ -359,7 +360,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private NetworkMessageEncoder(IMetricsContext metrics) {
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_encoded_notifications",
-                () => new Measurement<long>(MessagesProcessedCount, metrics.TagList), "Notifications",
+                () => new Measurement<long>(NotificationsProcessedCount, metrics.TagList), "Notifications",
                 "Number of successfully processed subscription notifications received from OPC client.");
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_dropped_notifications",
                 () => new Measurement<long>(NotificationsDroppedCount, metrics.TagList), "Notifications",
@@ -373,9 +374,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 "Average subscription notifications packed into a message");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_encoded_message_size_average",
                 () => new Measurement<double>(AvgMessageSize, metrics.TagList), "Bytes",
-                "Average size of a message through the lifetime of the");
+                "Average size of a message through the lifetime of the encoder.");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_chunk_size_average",
-                () => new Measurement<int>((int)(AvgMessageSize / (4 * 1024)), metrics.TagList), " 4kb Chunks",
+                () => new Measurement<double>(AvgMessageSize / (4 * 1024), metrics.TagList), "4kb Chunks",
                 "IoT Hub chunk size average");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_message_split_ratio_max",
                 () => new Measurement<double>(MaxMessageSplitRatio, metrics.TagList), "Splits",

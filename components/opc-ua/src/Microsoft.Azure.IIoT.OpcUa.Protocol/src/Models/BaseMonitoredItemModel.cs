@@ -16,8 +16,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
 
         /// <summary>
         /// Identifier for this monitored item
+        /// Prio 1: Id = DataSetFieldId - if already configured
+        /// Prio 2: Id = DisplayName - if already configured
+        /// Prio 3: NodeId as configured
         /// </summary>
-        public string Id { get; set; }
+        public string Id {
+            get =>
+                !string.IsNullOrEmpty(_id) ? _id :
+                !string.IsNullOrEmpty(DisplayName) ? DisplayName :
+                StartNodeId;
+            set => _id = value;
+        }
 
         /// <summary>
         /// Display name
@@ -65,20 +74,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public MonitoringMode? MonitoringMode { get; set; }
 
         /// <summary>
-        /// Monitored item that triggers reporting of this item
-        /// </summary>
-        public string TriggerId { get; set; }
-
-        /// <summary>
-        ///  Identifier to show for notification in payload of IoT Hub method
-        ///  Prio 1: Id = DataSetFieldId - if already configured
-        ///  Prio 2: Id = DisplayName - if already configured
-        ///  Prio 3: NodeId as configured
-        /// </summary>
-        public string DataSetFieldName => !string.IsNullOrEmpty(Id) ?
-            Id : !string.IsNullOrEmpty(DisplayName) ? DisplayName : StartNodeId;
-
-        /// <summary>
         /// Clones this object
         /// </summary>
         /// <returns></returns>
@@ -100,8 +95,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 EqualityComparer<TimeSpan?>.Default.Equals(SamplingInterval, model.SamplingInterval) &&
                 QueueSize == model.QueueSize &&
                 DiscardNew == model.DiscardNew &&
-                MonitoringMode == model.MonitoringMode &&
-                TriggerId == model.TriggerId;
+                MonitoringMode == model.MonitoringMode
+                ;
         }
 
         /// <summary>
@@ -121,8 +116,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             hash.Add(QueueSize);
             hash.Add(DiscardNew);
             hash.Add(MonitoringMode);
-            hash.Add(TriggerId);
             return hash.ToHashCode();
         }
+
+        private string _id;
     }
 }

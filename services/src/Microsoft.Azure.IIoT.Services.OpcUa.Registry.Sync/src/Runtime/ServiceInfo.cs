@@ -14,12 +14,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "SYNC_SERVICE";
+        public string Id => "SYNC_SERVICE";
 
         /// <summary>
         /// Process id
         /// </summary>
-        public string Id => System.Guid.NewGuid().ToString();
+        public string ProcessId => System.Guid.NewGuid().ToString();
 
         /// <summary>
         /// Name of service
@@ -30,5 +30,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime {
         /// Description of service
         /// </summary>
         public string Description => "Azure Industrial IoT Registry Sync Service";
+
+        /// <inheritdoc/>
+        public string SiteId { get; }
     }
 }

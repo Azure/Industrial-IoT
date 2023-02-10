@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Module {
     /// Send telemetry events and property update events as
     /// module or device identity
     /// </summary>
-    public interface IEventEmitter : IIdentity, IEventClient {
+    public interface IEventEmitter : IEventClient {
 
         /// <summary>
         /// Send property changed notification

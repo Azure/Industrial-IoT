@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
 
             // Create subscription client
             _subscriptionClient = _factory.CreateOrGetSubscriptionClientAsync(
-                ProcessEventAsync, ExceptionReceivedHandler, process?.ServiceId).Result;
+                ProcessEventAsync, ExceptionReceivedHandler, process?.Id).Result;
             Try.Async(() => _subscriptionClient.RemoveRuleAsync(
                 RuleDescription.DefaultRuleName)).Wait();
         }

@@ -13,21 +13,21 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// <summary>
         /// Process identity
         /// </summary>
-        string Id { get; }
+        string ProcessId { get; }
+
+        /// <summary>
+        /// Site id
+        /// </summary>
+        string SiteId { get; }
 
         /// <summary>
         /// Service identity
         /// </summary>
-        string ServiceId { get; }
+        string Id { get; }
 
         /// <summary>
         /// Service name
         /// </summary>
         string Name { get; }
-
-        /// <summary>
-        /// Description
-        /// </summary>
-        string Description { get; }
     }
 }

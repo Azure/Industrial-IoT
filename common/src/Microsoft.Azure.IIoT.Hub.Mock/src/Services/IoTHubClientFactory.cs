@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
@@ -54,7 +55,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         /// <inheritdoc/>
-        public Task<IClient> CreateAsync(string product, IProcessControl ctrl) {
+        public Task<IClient> CreateAsync(string product,
+            IMetricsContext metrics, IProcessControl ctrl) {
             var client = new IoTHubClient(ctrl);
             var connection = _hub.Connect(DeviceId, ModuleId, client);
             client.Connection = connection ??

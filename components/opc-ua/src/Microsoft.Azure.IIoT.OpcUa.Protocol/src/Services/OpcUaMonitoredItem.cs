@@ -76,19 +76,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Property setter that gets indication if item is online or not.
         /// </summary>
         public void OnMonitoredItemStateChanged(bool online) {
-            if (_conditionTimer != null) {
-                var enabled = _conditionTimer.Enabled;
+            var conditionTimer = _conditionTimer;
+            if (conditionTimer != null) {
+                var enabled = conditionTimer.Enabled;
                 if (online && !enabled) {
                     lock (_lock) {
                         if (_conditionHandlingState == null) {
                             return;
                         }
                     }
-                    _conditionTimer.Start();
+                    conditionTimer.Start();
                     _logger.Debug("{item}: Restarted pending condition handling after item went online.", this);
                 }
                 else if (enabled) {
-                    _conditionTimer.Stop();
+                    conditionTimer.Stop();
                     lock (_lock) {
                         _conditionHandlingState?.Active.Clear();
                     }
@@ -174,9 +175,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         public void Destroy() {
             Item.Handle = null;
-            if (_conditionTimer != null) {
-                _conditionTimer.Stop();
-                _conditionTimer.Dispose();
+            var conditionTimer = _conditionTimer;
+            _conditionTimer = null;
+            if (conditionTimer != null) {
+                conditionTimer.Stop();
+                conditionTimer.Dispose();
             }
         }
 
@@ -240,15 +243,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             else {
                 Debug.Fail($"Unexpected: Unknown type {Template.GetType()}");
-            }
-        }
-
-        /// <summary>
-        /// Add the monitored item identifier of the triggering item.
-        /// </summary>
-        internal void AddTriggerLink(uint? id) {
-            if (id != null) {
-                _newTriggers.Add(id.Value);
             }
         }
 
@@ -390,27 +384,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 Debug.Fail($"Unexpected: Unknown type {model.Template.GetType()}");
             }
             return itemChange;
-        }
-
-        /// <summary>
-        /// Get triggering configuration changes for this item
-        /// </summary>
-        internal bool GetTriggeringLinks(out IEnumerable<uint> addLinks,
-            out IEnumerable<uint> removeLinks) {
-            var remove = _triggers.Except(_newTriggers).ToList();
-            var add = _newTriggers.Except(_triggers).ToList();
-            _triggers = _newTriggers;
-            _newTriggers = new HashSet<uint>();
-            addLinks = add;
-            removeLinks = remove;
-            if (add.Count > 0 || remove.Count > 0) {
-                _logger.Debug("{item}: Adding {add} triggering links and removing {remove} triggering links",
-                    this,
-                    add.Count,
-                    remove.Count);
-                return true;
-            }
-            return false;
         }
 
         /// <summary>
@@ -634,7 +607,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (notification == null && shouldHeartbeat) {
                 var heartbeatValues = Item.LastValue.ToMonitoredItemNotifications(Item,
                     () => new MonitoredItemNotificationModel {
-                        DataSetFieldName = Template?.DataSetFieldName,
+                        DataSetFieldName = string.IsNullOrEmpty(Item.DisplayName) ? Template.Id : Item.DisplayName,
                         Id = Template.Id,
                         DisplayName = Item.DisplayName,
                         NodeId = Template.StartNodeId,
@@ -878,12 +851,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var variable = nodeCache.FetchNode(nodeId) as VariableNode;
                 if (variable != null) {
                     AddVariableField(fields, dataTypes, nodeCache, typeTree, typeSystem, variable,
-                        Template.DataSetFieldName, (Uuid)DataSetFieldId);
+                        string.IsNullOrEmpty(Item.DisplayName) ? Template.Id : Item.DisplayName, (Uuid)DataSetFieldId);
                 }
             }
             catch (Exception ex) {
                 _logger.Warning("{item}: Failed to get meta data for field {field} with node {nodeId}: {message}",
-                    this, Template.DataSetFieldName, nodeId, ex.Message);
+                    this, string.IsNullOrEmpty(Item.DisplayName) ? Template.Id : Item.DisplayName, nodeId, ex.Message);
             }
         }
 
@@ -1167,8 +1140,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
         private Timer _conditionTimer;
         private DateTime _lastSentPendingConditions = DateTime.UtcNow;
-        private HashSet<uint> _newTriggers = new HashSet<uint>();
-        private HashSet<uint> _triggers = new HashSet<uint>();
         private Publisher.Models.MonitoringMode? _modeChange;
         private readonly ILogger _logger;
         private readonly object _lock = new object();

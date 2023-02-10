@@ -14,12 +14,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "OPC_HDA";
+        public string Id => "OPC_HDA";
 
         /// <summary>
         /// Process id
         /// </summary>
-        public string Id => System.Guid.NewGuid().ToString();
+        public string ProcessId => System.Guid.NewGuid().ToString();
 
         /// <summary>
         /// Name of service
@@ -30,5 +30,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
         /// Description of service
         /// </summary>
         public string Description => "Azure Industrial IoT OPC UA Historic Access Service";
+
+        /// <inheritdoc/>
+        public string SiteId { get; }
     }
 }

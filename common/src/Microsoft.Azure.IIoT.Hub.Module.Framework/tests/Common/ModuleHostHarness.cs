@@ -49,21 +49,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     var edge = moduleContainer.Resolve<IModuleHost>();
 
                     // Act
-                    await edge.StartAsync("testType", "TestSite", "MS", "1.2.3", null);
+                    await edge.StartAsync("testType", "MS", "1.2.3", null);
                     twin = await services.GetAsync(deviceId, moduleId);
 
                     // Assert
                     Assert.NotEqual(etag, twin.Etag);
                     Assert.Equal("Connected", twin.ConnectionState);
                     Assert.Equal("testType", twin.Properties.Reported[TwinProperty.Type]);
-                    Assert.Equal("TestSite", twin.Properties.Reported[TwinProperty.SiteId]);
                     etag = twin.Etag;
 
                     await test(deviceId, moduleId, hubContainer);
 
                     twin = await services.GetAsync(deviceId, moduleId);
                     Assert.True(twin.Properties.Reported[TwinProperty.Type] == "testType");
-                    Assert.True("TestSite" == twin.Properties.Reported[TwinProperty.SiteId]);
                     etag = twin.Etag;
 
                     // Act
@@ -73,7 +71,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     // TODO : Fix cleanup!!!
 
                     // TODO :Assert.True("testType" != twin.Properties.Reported[TwinProperty.kType]);
-                    // TODO :Assert.True("TestSite" != twin.Properties.Reported[TwinProperty.kSiteId]);
                     Assert.Equal("Disconnected", twin.ConnectionState);
                 }
             }
@@ -115,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Create hub container
         /// </summary>
         /// <returns></returns>
-        private IContainer CreateHubContainer() {
+        private static IContainer CreateHubContainer() {
             var builder = new ContainerBuilder();
             builder.AddDiagnostics();
             builder.RegisterModule<IoTHubMockService>();
@@ -131,8 +128,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="device"></param>
         /// <param name="controllers"></param>
         /// <returns></returns>
-        private IContainer CreateModuleContainer(IIoTHubTwinServices hub, DeviceModel device,
-            IEnumerable<object> controllers) {
+        private static IContainer CreateModuleContainer(IIoTHubTwinServices hub,
+            DeviceModel device, IEnumerable<object> controllers) {
             var builder = new ContainerBuilder();
             builder.AddDiagnostics();
             builder.RegisterInstance(hub)

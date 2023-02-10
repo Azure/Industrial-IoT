@@ -23,9 +23,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 BatchSize = model.Engine?.BatchSize,
                 BatchTriggerInterval = model.Engine?.BatchTriggerInterval,
                 PublisherId = publisherId,
-                DiagnosticsInterval = model.Engine?.DiagnosticsInterval,
                 WriterGroup = model.WriterGroup.Clone(),
                 MaxMessageSize = model.Engine?.MaxMessageSize,
+                DefaultMaxMessagesPerPublish = model.Engine?.DefaultMaxMessagesPerPublish,
+                DefaultMetaDataQueueName = model.Engine?.DefaultMetaDataQueueName,
                 MaxOutgressMessages = model.Engine?.MaxOutgressMessages,
                 UseStandardsCompliantEncoding = model.Engine?.UseStandardsCompliantEncoding ?? false,
             };

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using System;
     using System.Runtime.Serialization;
 
@@ -17,13 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Endpoint Information
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public PublishNodesEndpointModel Endpoint { get; set; }
-
-        /// <summary>
-        /// SentMessagesPerSec
-        /// </summary>
-        [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public double SentMessagesPerSec { get; set; }
+        public PublishedNodesEntryModel Endpoint { get; set; }
 
         /// <summary>
         /// IngestionDuration
@@ -32,52 +27,70 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public TimeSpan IngestionDuration { get; set; }
 
         /// <summary>
+        /// SentMessagesPerSec
+        /// </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public double SentMessagesPerSec { get; set; }
+
+        /// <summary>
         /// IngressDataChanges
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public ulong IngressDataChanges { get; set; }
+        public long IngressDataChanges { get; set; }
 
         /// <summary>
         /// IngressValueChanges
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public ulong IngressValueChanges { get; set; }
+        public long IngressValueChanges { get; set; }
+
+        /// <summary>
+        /// Data changes received in the last minute
+        /// </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public long IngressDataChangesInLastMinute { get; set; }
+
+        /// <summary>
+        /// Value changes received in the last minute
+        /// </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public long IngressValueChangesInLastMinute { get; set; }
 
         /// <summary>
         /// IngressBatchBlockBufferSize
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int IngressBatchBlockBufferSize { get; set; }
+        public long IngressBatchBlockBufferSize { get; set; }
 
         /// <summary>
         /// EncodingBlockInputSize
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int EncodingBlockInputSize { get; set; }
+        public long EncodingBlockInputSize { get; set; }
 
         /// <summary>
         /// EncodingBlockOutputSize
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int EncodingBlockOutputSize { get; set; }
+        public long EncodingBlockOutputSize { get; set; }
 
         /// <summary>
         /// EncoderNotificationsProcessed
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public uint EncoderNotificationsProcessed { get; set; }
+        public long EncoderNotificationsProcessed { get; set; }
 
         /// <summary>
         /// EncoderNotificationsDropped
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public uint EncoderNotificationsDropped { get; set; }
+        public long EncoderNotificationsDropped { get; set; }
 
         /// <summary>
         /// EncoderIoTMessagesProcessed
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public uint EncoderIoTMessagesProcessed { get; set; }
+        public long EncoderIoTMessagesProcessed { get; set; }
 
         /// <summary>
         /// EncoderAvgNotificationsMessage
@@ -107,19 +120,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// OutgressBatchBlockBufferSize
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int OutgressBatchBlockBufferSize { get; set; }
+        public long OutgressBatchBlockBufferSize { get; set; }
 
         /// <summary>
         /// OutgressInputBufferCount
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int OutgressInputBufferCount { get; set; }
+        public long OutgressInputBufferCount { get; set; }
 
         /// <summary>
         /// OutgressInputBufferDropped
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public ulong OutgressInputBufferDropped { get; set; }
+        public long OutgressInputBufferDropped { get; set; }
 
         /// <summary>
         /// OutgressIoTMessageCount
@@ -131,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// ConnectionRetries
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int ConnectionRetries { get; set; }
+        public long ConnectionRetries { get; set; }
 
         /// <summary>
         /// OpcEndpointConnected
@@ -143,25 +156,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// MonitoredOpcNodesSucceededCount
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int MonitoredOpcNodesSucceededCount { get; set; }
+        public long MonitoredOpcNodesSucceededCount { get; set; }
 
         /// <summary>
         /// MonitoredOpcNodesFailedCount
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int MonitoredOpcNodesFailedCount { get; set; }
+        public long MonitoredOpcNodesFailedCount { get; set; }
 
         /// <summary>
         /// Number of incoming event notifications
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public ulong IngressEventNotifications { get; set; }
+        public long IngressEventNotifications { get; set; }
 
         /// <summary>
         /// Total incoming events so far.
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public ulong IngressEvents { get; set; }
+        public long IngressEvents { get; set; }
 
         /// <summary>
         /// Encoder max message split ratio

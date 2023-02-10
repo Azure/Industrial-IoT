@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Opc ua stack based service client
@@ -37,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="identity"></param>
         /// <param name="maxOpTimeout"></param>
         public ClientServices(ILogger logger, IClientServicesConfig clientConfig,
-            IIdentity identity = null, TimeSpan? maxOpTimeout = null) {
+            IProcessIdentity identity = null, TimeSpan? maxOpTimeout = null) {
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _clientConfig = clientConfig ??
@@ -55,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (_appConfig == null) {
                 _appConfig = await _clientConfig
                     .BuildApplicationConfigurationAsync(
-                        _identity,
+                        _identity.ToIdentityString(),
                         VerifyCertificate,
                         _logger)
                     .ConfigureAwait(false);
@@ -530,7 +531,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private static readonly TimeSpan kEvictionCheck = TimeSpan.FromSeconds(10);
         private const int kMaxDiscoveryAttempts = 3;
         private readonly ILogger _logger;
-        private readonly IIdentity _identity;
+        private readonly IProcessIdentity _identity;
         private readonly TimeSpan? _maxOpTimeout;
         private readonly IClientServicesConfig _clientConfig;
         private ApplicationConfiguration _appConfig;

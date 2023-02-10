@@ -22,16 +22,13 @@ namespace Autofac {
         /// <param name="log"></param>
         /// <param name="addConsole"></param>
         /// <returns></returns>
-#pragma warning disable IDE0060 // Remove unused parameter
         public static IModuleRegistrar AddDiagnostics(this ContainerBuilder builder,
             IDiagnosticsConfig config = null, LoggerConfiguration log = null, bool addConsole = true) {
-#pragma warning restore IDE0060 // Remove unused parameter
             if (builder == null) {
                 throw new ArgumentNullException(nameof(builder));
             }
-            // Register metrics logger
-            builder.RegisterType<MetricsLogger>()
-                .AsImplementedInterfaces();
+            builder.RegisterType<EmptyMetricsContext>()
+                .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
             builder.RegisterType<HealthCheckRegistrar>()
                 .AsImplementedInterfaces().SingleInstance();
             return builder.RegisterModule(

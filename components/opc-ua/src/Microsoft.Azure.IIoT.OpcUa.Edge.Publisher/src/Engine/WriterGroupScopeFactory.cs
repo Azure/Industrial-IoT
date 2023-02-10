@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
-    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Autofac;
@@ -19,30 +19,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// </summary>
     public class WriterGroupScopeFactory : IWriterGroupScopeFactory {
 
-        /// <inheritdoc/>
-        public string PublisherId => _publisherId;
-
         /// <summary>
         /// Create job scope factory
         /// </summary>
         /// <param name="lifetimeScope"></param>
         public WriterGroupScopeFactory(ILifetimeScope lifetimeScope) {
             _lifetimeScope = lifetimeScope;
-            _publisherId = GetPublisherId();
+            lifetimeScope.TryResolve(out _collector);
         }
 
         /// <inheritdoc/>
         public IWriterGroupScope Create(IWriterGroupConfig config) {
-            return new WriterGroupScope(_lifetimeScope, PublisherId, config);
+            if (config is null) {
+                throw new ArgumentNullException(nameof(config));
+            }
+            return new WriterGroupScope(this, config);
         }
 
         /// <summary>
         /// Scope wrapper
         /// </summary>
-        private sealed class WriterGroupScope : IWriterGroupScope, IMetricsContext {
+        private sealed class WriterGroupScope : IWriterGroupScope, IMetricsContext,
+            IWriterGroupDiagnostics {
 
             /// <inheritdoc/>
-            public IWriterGroup WriterGroup => _lifetimeScope.Resolve<IWriterGroup>();
+            public IWriterGroup WriterGroup => _scope.Resolve<IWriterGroup>();
 
             /// <inheritdoc/>
             public TagList TagList { get; }
@@ -50,25 +51,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Create scope
             /// </summary>
-            /// <param name="lifetimeScope"></param>
-            /// <param name="publisherId"></param>
+            /// <param name="outer"></param>
             /// <param name="config"></param>
-            public WriterGroupScope(ILifetimeScope lifetimeScope, string publisherId,
-                IWriterGroupConfig config) {
+            public WriterGroupScope(WriterGroupScopeFactory outer, IWriterGroupConfig config) {
+                _writerGroup = config.WriterGroup?.WriterGroupId ?? Constants.DefaultWriterGroupId;
+                _outer = outer;
 
                 TagList = new TagList(new[] {
-                    new KeyValuePair<string, object>("publisherId", publisherId),
-                    new KeyValuePair<string, object>("writerGroupId", config.WriterGroup?.WriterGroupId),
-                    new KeyValuePair<string, object>("timestamp_utc",
+                    new KeyValuePair<string, object>(Constants.PublisherIdTag,
+                        config.PublisherId ?? Constants.DefaultPublisherId),
+                    new KeyValuePair<string, object>(Constants.WriterGroupIdTag,
+                        _writerGroup),
+                    new KeyValuePair<string, object>(Constants.TimeStampTag,
                         DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                         CultureInfo.InvariantCulture))
                 });
 
-                _lifetimeScope = lifetimeScope.BeginLifetimeScope(builder => {
+                _scope = _outer._lifetimeScope.BeginLifetimeScope(builder => {
                     // Register job configuration
                     builder.RegisterInstance(config)
                         .AsImplementedInterfaces();
                     builder.RegisterInstance(this)
+                        .As<IWriterGroupDiagnostics>()
                         .As<IMetricsContext>().SingleInstance();
 
                     // Register default serializers...
@@ -84,28 +88,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     builder.RegisterType<NetworkMessageSink>()
                         .AsImplementedInterfaces();
                 });
+
+                ResetWriterGroupDiagnostics();
+            }
+
+            /// <inheritdoc/>
+            public void ResetWriterGroupDiagnostics() {
+                _outer._collector?.ResetWriterGroup(_writerGroup);
             }
 
             /// <inheritdoc/>
             public void Dispose() {
-                _lifetimeScope.Dispose();
+                _outer._collector?.RemoveWriterGroup(_writerGroup);
+                _scope.Dispose();
             }
 
-            private readonly ILifetimeScope _lifetimeScope;
-        }
-
-        /// <summary>
-        /// Create publisher id
-        /// </summary>
-        private string GetPublisherId() {
-            _lifetimeScope.TryResolve(out IIdentity identity);
-            var site = identity?.SiteId == null ? "" : identity.SiteId + "_";
-            return identity?.ModuleId == null ?
-                $"{site}{identity?.DeviceId ?? "Publisher"}" :
-                $"{site}{identity.DeviceId}_{identity.ModuleId}";
+            private readonly string _writerGroup;
+            private readonly WriterGroupScopeFactory _outer;
+            private readonly ILifetimeScope _scope;
         }
 
         private readonly ILifetimeScope _lifetimeScope;
-        private readonly string _publisherId;
+        private readonly IPublisherDiagnosticCollector _collector;
     }
 }

@@ -20,18 +20,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="publishedEvent"></param>
         /// <param name="configuration"></param>
-        /// <param name="displayName"></param>
         /// <returns></returns>
         public static EventMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvent,
-            ISubscriptionConfig configuration, string displayName = null) {
+            ISubscriptionConfig configuration) {
             if (publishedEvent == null) {
                 return null;
             }
 
             return new EventMonitoredItemModel {
                 Id = publishedEvent.Id,
-                DisplayName = displayName,
+                DisplayName = publishedEvent.PublishedEventName,
                 EventFilter = new EventFilterModel {
                     SelectClauses = publishedEvent.SelectClauses?
                         .Select(s => s.Clone())
@@ -49,7 +48,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 //
                 QueueSize = publishedEvent.QueueSize
                     ?? configuration?.DefaultQueueSize ?? 0,
-                TriggerId = publishedEvent.TriggerId,
                 MonitoringMode = publishedEvent.MonitoringMode,
                 StartNodeId = publishedEvent.EventNotifier,
                 RelativePath = publishedEvent.BrowsePath,

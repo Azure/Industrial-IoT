@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// <summary>
     /// Test class to override Exit method
     /// </summary>
-    public class StandaloneCliOptionsTest : StandaloneCliOptions {
+    public class PublisherCliOptionsTest : PublisherCliOptions {
 
         /// <summary>
         /// Exit code
@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// </summary>
         public List<string> Warnings = new List<string>();
 
-        public StandaloneCliOptionsTest(string[] args) : base(args) {
+        public PublisherCliOptionsTest(string[] args) : base(args) {
         }
 
         /// <summary>

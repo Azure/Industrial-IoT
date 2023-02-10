@@ -27,59 +27,91 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Xunit;
     using Autofac;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
+    using Serilog;
+    using System;
+    using DotNetty.Common.Internal;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
     /// </summary>
     public class DmApiPublisherControllerTests : TempFileProviderBase {
 
-        [Theory]
-        [InlineData("Controller/DmApiPayloadCollection.json")]
-        public async Task DmApiPublishUnpublishNodesTest(string publishedNodesFile) {
-            var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
-            var identityMock = new Mock<IIdentity>();
-            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
-            var logger = TraceLogger.Create();
+        private readonly NewtonSoftJsonSerializer _newtonSoftJsonSerializer;
+        private readonly ILogger _logger;
+        private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
+        private readonly Mock<IPublisherConfiguration> _configMock;
+        private PublisherConfigurationService _configService;
+        private readonly PublishedNodesProvider _publishedNodesProvider;
+        private readonly Mock<IMessageSource> _triggerMock;
+        private readonly IPublisherHost _publisher;
+        private readonly Mock<IPublisherDiagnosticCollector> _diagnostic;
+
+        /// <summary>
+        /// Constructor that initializes common resources used by tests.
+        /// </summary>
+        public DmApiPublisherControllerTests() {
+            _newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            _logger = TraceLogger.Create();
+
             var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<IClientServicesConfig>();
-            var triggerMock = new Mock<IMessageSource>();
+            var clientConfignMock = new Mock<IClientServicesConfig>();
+
+            _publishedNodesJobConverter = new PublishedNodesJobConverter(_logger, _newtonSoftJsonSerializer,
+                engineConfigMock.Object, clientConfignMock.Object);
+
+            // Note that each test is responsible for setting content of _tempFile;
+            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+
+            _configMock = new Mock<IPublisherConfiguration>();
+            _configMock.SetupAllProperties();
+            _configMock.SetupGet(p => p.PublishedNodesFile).Returns(_tempFile);
+            _configMock.SetupGet(p => p.PublishedNodesSchemaFile).Returns("Storage/publishednodesschema.json");
+            _configMock.SetupGet(p => p.MaxNodesPerPublishedEndpoint).Returns(1000);
+            _configMock.SetupGet(p => p.MessagingProfile).Returns(MessagingProfile.Get(
+                OpcUa.Publisher.Models.MessagingMode.PubSub, OpcUa.Publisher.Models.MessageEncoding.Json));
+
+            _publishedNodesProvider = new PublishedNodesProvider(_configMock.Object, _logger);
+            _triggerMock = new Mock<IMessageSource>();
             var factoryMock = new Mock<IWriterGroupScopeFactory>();
             var writerGroup = new Mock<IWriterGroup>();
-            writerGroup.SetupGet(l => l.Source).Returns(triggerMock.Object);
+            writerGroup.SetupGet(l => l.Source).Returns(_triggerMock.Object);
             var lifetime = new Mock<IWriterGroupScope>();
             lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
             factoryMock
                 .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
-            var publisher = new PublisherHostService(factoryMock.Object, logger);
+            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessIdentity>().Object, _logger);
+            _diagnostic = new Mock<IPublisherDiagnosticCollector>();
+            var mockDiag = new WriterGroupDiagnosticModel();
+            _diagnostic.Setup(m => m.TryGetDiagnosticsForWriterGroup(It.IsAny<string>(), out mockDiag)).Returns(true);
+        }
 
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfigMock.Object);
-
-            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
-            var standaloneCli = new StandaloneCliModel {
-                PublishedNodesFile = _tempFile,
-                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
-            };
-
-            standaloneCliModelProviderMock.Setup(p => p.StandaloneCliModel).Returns(standaloneCli);
-
-            var publishedNodesProvider = new PublishedNodesProvider(standaloneCliModelProviderMock.Object, logger);
-
-            var orchestrator = new PublisherConfigService(
-                publishedNodesJobConverter,
-                standaloneCliModelProviderMock.Object,
-                publisher,
-                logger,
-                publishedNodesProvider,
-                newtonSoftJsonSerializer
+        /// <summary>
+        /// This method should be called only after content of _tempFile is set.
+        /// </summary>
+        private void InitPublisherConfigService() {
+            _configService = new PublisherConfigurationService(
+                _publishedNodesJobConverter,
+                _configMock.Object,
+                _publisher,
+                _logger,
+                _publishedNodesProvider,
+                _newtonSoftJsonSerializer,
+                _diagnostic.Object
             );
-            await orchestrator.StartAsync();
+            _configService.StartAsync().Wait();
+        }
 
-            var methodsController = new PublisherMethodsController(orchestrator);
+        [Theory]
+        [InlineData("Controller/DmApiPayloadCollection.json")]
+        public async Task DmApiPublishUnpublishNodesTest(string publishedNodesFile) {
+            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            InitPublisherConfigService();
+
+            var methodsController = new PublisherMethodsController(_configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
+            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
@@ -109,8 +141,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false);
             }
 
-            Assert.Equal(2, publisher.WriterGroups.Count());
-            Assert.Equal(1, publisher.Version);
+            var writerGroup = Assert.Single(_publisher.WriterGroups);
+            Assert.Equal(8, _publisher.Version);
 
             foreach (var request in publishNodesRequest) {
                 await FluentActions
@@ -121,56 +153,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false);
             }
 
-            Assert.Empty(publisher.WriterGroups);
-            Assert.Equal(2, publisher.Version);
+            Assert.Empty(_publisher.WriterGroups);
+            Assert.Equal(15, _publisher.Version);
         }
 
         [Theory]
         [InlineData("Controller/DmApiPayloadCollection.json")]
         public async Task DmApiPublishUnpublishAllNodesTest(string publishedNodesFile) {
-            var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
-            var identityMock = new Mock<IIdentity>();
-            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
-            var logger = TraceLogger.Create();
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<IClientServicesConfig>();
-            var triggerMock = new Mock<IMessageSource>();
-            var factoryMock = new Mock<IWriterGroupScopeFactory>();
-            var writerGroup = new Mock<IWriterGroup>();
-            writerGroup.SetupGet(l => l.Source).Returns(triggerMock.Object);
-            var lifetime = new Mock<IWriterGroupScope>();
-            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
-            factoryMock
-                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
-                .Returns(lifetime.Object);
-            var publisher = new PublisherHostService(factoryMock.Object, logger);
-
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfigMock.Object);
-
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
-            var standaloneCli = new StandaloneCliModel {
-                PublishedNodesFile = _tempFile,
-                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
-            };
-
-            standaloneCliModelProviderMock.Setup(p => p.StandaloneCliModel).Returns(standaloneCli);
-
-            var publishedNodesProvider = new PublishedNodesProvider(standaloneCliModelProviderMock.Object, logger);
-
-            var orchestrator = new PublisherConfigService(
-                publishedNodesJobConverter,
-                standaloneCliModelProviderMock.Object,
-                publisher,
-                logger,
-                publishedNodesProvider,
-                newtonSoftJsonSerializer
-            );
-            await orchestrator.StartAsync();
-            var methodsController = new PublisherMethodsController(orchestrator);
+            InitPublisherConfigService();
+            var methodsController = new PublisherMethodsController(_configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
+            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
@@ -199,7 +194,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false);
             }
 
-            Assert.Equal(2, publisher.WriterGroups.Count());
+            var writerGroup = Assert.Single(_publisher.WriterGroups);
 
             var unpublishAllNodesRequest = publishNodesRequest.GroupBy(pn => string.Concat(pn.EndpointUrl, pn.DataSetWriterId, pn.DataSetPublishingInterval))
                 .Select(g => g.First()).ToList();
@@ -214,55 +209,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false);
             }
 
-            Assert.Empty(publisher.WriterGroups);
+            Assert.Empty(_publisher.WriterGroups);
         }
 
         [Theory]
         [InlineData("Controller/DmApiPayloadCollection.json")]
         public async Task DmApiPublishNodesToJobTest(string publishedNodesFile) {
-            var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
-            var identityMock = new Mock<IIdentity>();
-            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
-            var logger = TraceLogger.Create();
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<IClientServicesConfig>();
-            var triggerMock = new Mock<IMessageSource>();
-            var factoryMock = new Mock<IWriterGroupScopeFactory>();
-            var writerGroup = new Mock<IWriterGroup>();
-            writerGroup.SetupGet(l => l.Source).Returns(triggerMock.Object);
-            var lifetime = new Mock<IWriterGroupScope>();
-            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
-            factoryMock
-                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
-                .Returns(lifetime.Object);
-            var publisher = new PublisherHostService(factoryMock.Object, logger);
-
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfigMock.Object);
-
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
-            var standaloneCli = new StandaloneCliModel {
-                PublishedNodesFile = _tempFile,
-                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
-            };
+            InitPublisherConfigService();
 
-            standaloneCliModelProviderMock.Setup(p => p.StandaloneCliModel).Returns(standaloneCli);
-
-            var publishedNodesProvider = new PublishedNodesProvider(standaloneCliModelProviderMock.Object, logger);
-
-            var orchestrator = new PublisherConfigService(
-                publishedNodesJobConverter,
-                standaloneCliModelProviderMock.Object,
-                publisher,
-                logger,
-                publishedNodesProvider,
-                newtonSoftJsonSerializer
-            );
-            await orchestrator.StartAsync();
-            var methodsController = new PublisherMethodsController(orchestrator);
+            var methodsController = new PublisherMethodsController(_configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>
+            var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>
                 (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequests) {
@@ -275,30 +234,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .ConfigureAwait(false);
             }
 
-            var jobModel = Assert.Single(publisher.WriterGroups);
+            var jobModel = Assert.Single(_publisher.WriterGroups);
 
-            jobModel.WriterGroup.DataSetWriters.Count.Should().Be(5);
-            foreach (var datasetWriter in jobModel.WriterGroup.DataSetWriters) {
-                datasetWriter.DataSet.DataSetSource.Connection.Endpoint.Url
-                    .Should()
-                    .Be(publishNodesRequests.First().EndpointUrl);
-                datasetWriter.DataSet.DataSetSource.Connection.Endpoint.SecurityMode
-                    .Should()
-                    .Be(publishNodesRequests.First().UseSecurity ? SecurityMode.Best : SecurityMode.None);
+            jobModel.WriterGroup.DataSetWriters.Count.Should().Be(6);
 
-                datasetWriter.DataSet.DataSetSource.Connection.User.
-                    IsSameAs(new CredentialModel {
-                        Type = publishNodesRequests.First().OpcAuthenticationMode == AuthenticationMode.Anonymous ?
-                            CredentialType.None : CredentialType.UserName,
-                        Value = newtonSoftJsonSerializer.FromObject(
-                            new {
-                                user = publishNodesRequests.First().OpcAuthenticationUsername,
-                                password = publishNodesRequests.First().OpcAuthenticationPassword,
-                            })
-                    })
-                    .Should()
-                    .BeTrue();
-            }
+            Assert.All(jobModel.WriterGroup.DataSetWriters,
+                writer => Assert.Equal(publishNodesRequests.First().EndpointUrl,
+                    writer.DataSet.DataSetSource.Connection.Endpoint.Url));
+            Assert.Equal(publishNodesRequests.Select(n => n.UseSecurity ? SecurityMode.Best : SecurityMode.None).ToHashSet(),
+                jobModel.WriterGroup.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.SecurityMode.Value).ToHashSet());
         }
 
         [Theory]
@@ -348,7 +292,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 OpcAuthenticationPassword = password,
             };
 
-            var methodsController = await PublishNodeAsync(publishedNodesFile);
+            var methodsController = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf0");
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -379,9 +323,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var endpoints = Enumerable.Range(0, 5)
                 .Select(i => new PublishNodesEndpointApiModel {
                     EndpointUrl = "opc.tcp://opcplc:50000",
-                    DataSetWriterId = i > 1
+                    DataSetWriterId = i != 0
                         ? $"DataSetWriterId{i}"
-                        : (i == 1 ? "" : null),
+                        : null,
                     OpcNodes = opcNodes.GetRange(0, i + 1).ToList(),
                 })
                 .ToList();
@@ -454,7 +398,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 OpcAuthenticationMode = authenticationMode,
             };
 
-            var methodsController = await PublishNodeAsync(publishedNodesFile);
+            var methodsController = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf1");
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -509,52 +453,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         /// <summary>
         /// publish nodes from publishedNodesFile
         /// </summary>
-        private async Task<PublisherMethodsController> PublishNodeAsync(string publishedNodesFile) {
-            var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
-            var identityMock = new Mock<IIdentity>();
-            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
-            var logger = TraceLogger.Create();
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<IClientServicesConfig>();
-            var triggerMock = new Mock<IMessageSource>();
-            var factoryMock = new Mock<IWriterGroupScopeFactory>();
-            var writerGroup = new Mock<IWriterGroup>();
-            writerGroup.SetupGet(l => l.Source).Returns(triggerMock.Object);
-            var lifetime = new Mock<IWriterGroupScope>();
-            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
-            factoryMock
-                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
-                .Returns(lifetime.Object);
-            var publisher = new PublisherHostService(factoryMock.Object, logger);
-
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfigMock.Object);
-
+        private async Task<PublisherMethodsController> PublishNodeAsync(string publishedNodesFile,
+            Func<PublishNodesEndpointApiModel, bool> predicate = null) {
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
-            var standaloneCli = new StandaloneCliModel {
-                PublishedNodesFile = _tempFile,
-                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
-            };
+            InitPublisherConfigService();
 
-            standaloneCliModelProviderMock.Setup(p => p.StandaloneCliModel).Returns(standaloneCli);
-            var publishedNodesProvider = new PublishedNodesProvider(standaloneCliModelProviderMock.Object, logger);
-
-            var orchestrator = new PublisherConfigService(
-                publishedNodesJobConverter,
-                standaloneCliModelProviderMock.Object,
-                publisher,
-                logger,
-                publishedNodesProvider,
-                newtonSoftJsonSerializer
-            );
-            await orchestrator.StartAsync();
-            var methodsController = new PublisherMethodsController(orchestrator);
+            var methodsController = new PublisherMethodsController(_configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
+            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
-            foreach (var request in publishNodesRequest) {
+            foreach (var request in publishNodesRequest.Where(predicate ?? (_ => true))) {
                 await FluentActions
                     .Invoking(async () => await methodsController.PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
@@ -567,49 +477,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData("Controller/DmApiPayloadCollection.json")]
         public async Task DmApiGetConfiguredEndpointsTest(string publishedNodesFile) {
-            var standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
-            var identityMock = new Mock<IIdentity>();
-            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
-            var logger = TraceLogger.Create();
-            var engineConfigMock = new Mock<IEngineConfiguration>();
-            var clientConfigMock = new Mock<IClientServicesConfig>();
-            var triggerMock = new Mock<IMessageSource>();
-            var factoryMock = new Mock<IWriterGroupScopeFactory>();
-            var writerGroup = new Mock<IWriterGroup>();
-            writerGroup.SetupGet(l => l.Source).Returns(triggerMock.Object);
-            var lifetime = new Mock<IWriterGroupScope>();
-            lifetime.SetupGet(l => l.WriterGroup).Returns(writerGroup.Object);
-            factoryMock
-                .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
-                .Returns(lifetime.Object);
-            var publisher = new PublisherHostService(factoryMock.Object, logger);
-
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer,
-                engineConfigMock.Object, clientConfigMock.Object);
-
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
-            var standaloneCli = new StandaloneCliModel {
-                PublishedNodesFile = _tempFile,
-                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
-            };
-
-            standaloneCliModelProviderMock.Setup(p => p.StandaloneCliModel).Returns(standaloneCli);
-
-            var publishedNodesProvider = new PublishedNodesProvider(standaloneCliModelProviderMock.Object, logger);
-
-            var orchestrator = new PublisherConfigService(
-                publishedNodesJobConverter,
-                standaloneCliModelProviderMock.Object,
-                publisher,
-                logger,
-                publishedNodesProvider,
-                newtonSoftJsonSerializer
-            );
-            await orchestrator.StartAsync();
-            var methodsController = new PublisherMethodsController(orchestrator);
+            InitPublisherConfigService();
+            var methodsController = new PublisherMethodsController(_configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>
+            var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>
                 (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             // Check that GetConfiguredEndpointsAsync returns empty list
@@ -641,24 +514,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ConfigureAwait(false);
 
             endpoints.Subject.Endpoints.Count.Should().Be(5);
-            endpoints.Subject.Endpoints[0].DataSetName.Should().Be("Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
-            endpoints.Subject.Endpoints[1].DataSetName.Should().Be("Tag_Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
-            endpoints.Subject.Endpoints[2].DataSetName.Should().Be("Tag_Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952234");
-            endpoints.Subject.Endpoints[3].DataSetName.Should().Be("Tag_Leaf3_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
-            endpoints.Subject.Endpoints[4].DataSetName.Should().BeNull();
+            var tags = endpoints.Subject.Endpoints.Select(e => e.DataSetName).ToHashSet();
+            tags.Should().Contain("Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
+            tags.Should().Contain("Tag_Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
+            tags.Should().Contain("Tag_Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952234");
+            tags.Should().Contain("Tag_Leaf3_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
+            tags.Should().Contain((string)null);
 
             var endpointsHash = endpoints.Subject.Endpoints.Select(e => e.GetHashCode()).ToList();
             Assert.Equal(endpointsHash.Distinct().Count(), endpointsHash.Count);
         }
 
-        [Theory]
-        [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetDiagnosticInfoTest(string publishedNodesFile) {
-
-            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
-
-            //publish nodes
-            var methodsController = await PublishNodeAsync(publishedNodesFile);
+        [Fact]
+        public async Task DmApiGetDiagnosticInfoTest() {
+            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            InitPublisherConfigService();
+            var methodsController = new PublisherMethodsController(_configService);
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController

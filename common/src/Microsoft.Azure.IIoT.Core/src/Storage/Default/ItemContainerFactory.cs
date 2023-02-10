@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
         public ItemContainerFactory(IDatabaseServer server,
             IItemContainerConfig config = null, IProcessIdentity process = null) :
             this(server, config?.DatabaseName,
-                config?.ContainerName ?? process?.ServiceId) {
+                config?.ContainerName ?? process?.Id) {
         }
 
         /// <summary>

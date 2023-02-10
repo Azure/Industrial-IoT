@@ -14,12 +14,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "OPC_TWIN";
+        public string Id => "OPC_TWIN";
 
         /// <summary>
         /// Process id
         /// </summary>
-        public string Id => System.Guid.NewGuid().ToString();
+        public string ProcessId => System.Guid.NewGuid().ToString();
 
         /// <summary>
         /// Name of service
@@ -30,5 +30,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         /// Description of service
         /// </summary>
         public string Description => "Azure Industrial IoT OPC UA Twin Service";
+
+        /// <inheritdoc/>
+        public string SiteId { get; }
     }
 }

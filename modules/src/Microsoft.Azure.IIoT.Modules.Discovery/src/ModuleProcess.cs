@@ -33,11 +33,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
     public class ModuleProcess : IProcessControl {
 
         /// <summary>
-        /// Site of the module
-        /// </summary>
-        public string SiteId { get; set; }
-
-        /// <summary>
         /// Whether the module is running
         /// </summary>
 
@@ -52,7 +47,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
             _exitCode = 0;
             _exit = new TaskCompletionSource<bool>();
             AssemblyLoadContext.Default.Unloading += _ => _exit.TrySetResult(true);
-            SiteId = _config?.GetValue<string>("site", null);
         }
 
         /// <inheritdoc/>
@@ -87,7 +81,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                    var identity = hostScope.Resolve<IIdentity>();
                     var client = hostScope.Resolve<IClientHost>();
                     var server = new MetricServer(port: kDiscoveryPrometheusPort);
                     try {
@@ -96,8 +89,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                         logger.Information("Initiating prometheus at port {0}/metrics", kDiscoveryPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
                         // Start module
-                        await module.StartAsync(IdentityType.Discoverer, SiteId,
-                            "OpcDiscovery", version, this);
+                        await module.StartAsync(IdentityType.Discoverer, "OpcDiscovery",
+                            version, this);
                         await client.InitializeAsync();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
@@ -151,6 +144,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
 
             // Register discovery services
             builder.RegisterType<DiscoveryServices>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<DiscoveryIdentity>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ProgressPublisher>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();

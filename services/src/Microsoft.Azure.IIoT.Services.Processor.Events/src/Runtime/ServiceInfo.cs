@@ -14,12 +14,12 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "EVENTSPROCESSORHOST";
+        public string Id => "EVENTSPROCESSORHOST";
 
         /// <summary>
         /// Process id
         /// </summary>
-        public string Id => System.Guid.NewGuid().ToString();
+        public string ProcessId => System.Guid.NewGuid().ToString();
 
         /// <summary>
         /// Name of service
@@ -30,5 +30,10 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         /// Description of service
         /// </summary>
         public string Description => "Azure Industrial IoT Events Processor Host";
+
+        /// <summary>
+        /// Site
+        /// </summary>
+        public string SiteId { get; }
     }
 }

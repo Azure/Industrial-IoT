@@ -33,16 +33,6 @@ namespace Microsoft.Azure.IIoT.Messaging {
         string MessageSchema { get; set; }
 
         /// <summary>
-        /// Optional device id
-        /// </summary>
-        string DeviceId { get; set; }
-
-        /// <summary>
-        /// Optional module id
-        /// </summary>
-        string ModuleId { get; set; }
-
-        /// <summary>
         /// Custom routing info to be added to the header.
         /// </summary>
         string RoutingInfo { get; set; }

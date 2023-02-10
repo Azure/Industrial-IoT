@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Supervisor services
@@ -34,13 +35,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
         /// <param name="factory"></param>
         /// <param name="config"></param>
         /// <param name="events"></param>
+        /// <param name="identity"></param>
         /// <param name="process"></param>
         /// <param name="logger"></param>
         public SupervisorServices(IContainerFactory factory, IModuleConfig config,
-            IEventEmitter events, IProcessControl process, ILogger logger) {
+            IEventEmitter events, IProcessIdentity identity, IProcessControl process,
+            ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _events = events ?? throw new ArgumentNullException(nameof(events));
+            _identity = identity ?? throw new ArgumentNullException(nameof(identity));
             _process = process ?? throw new ArgumentNullException(nameof(process));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         }
@@ -145,9 +149,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                     });
                 return new SupervisorStatusModel {
                     Endpoints = endpoints.ToList(),
-                    DeviceId = _events.DeviceId,
-                    ModuleId = _events.ModuleId,
-                    SiteId = _events.SiteId
+                    DeviceId = _identity.ProcessId,
+                    ModuleId = _identity.Id,
+                    SiteId = _identity.SiteId
                 };
             }
             finally {
@@ -339,8 +343,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                     // Wait until the module unloads or is cancelled
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
-                        await host.StartAsync("twin", _outer._events.SiteId,
-                            "OpcTwin", version, this);
+                        await host.StartAsync("twin", "OpcTwin",
+                            version, this);
                         Status = EndpointActivationState.ActivatedAndConnected;
                         _started.TrySetResult(true);
                         _logger.Debug("Twin host (re-)started.");
@@ -461,6 +465,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
         private readonly ILogger _logger;
         private readonly IModuleConfig _config;
         private readonly IEventEmitter _events;
+        private readonly IProcessIdentity _identity;
         private readonly IProcessControl _process;
         private readonly IContainerFactory _factory;
 

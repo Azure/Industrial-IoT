@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
 
             // Assert
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
 
             // Assert
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
 
             // Assert
             Assert.NotNull(monitoredItemWrapper.Item.Filter);

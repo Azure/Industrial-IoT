@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             return nodeCache;
         }
 
-        protected OpcUaMonitoredItem GetMonitoredItemWrapper(
+        protected OpcUaMonitoredItem GetMonitoredItem(
             BaseMonitoredItemModel template,
             ServiceMessageContext messageContext = null,
             INodeCache nodeCache = null,

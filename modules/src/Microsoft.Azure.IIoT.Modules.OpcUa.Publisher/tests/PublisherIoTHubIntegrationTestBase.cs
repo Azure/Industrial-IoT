@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             string messageType = null,
             string[] arguments = default) {
             // Collect messages from server with default settings
-            return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(20), 1, predicate, messageType, arguments);
+            return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, predicate, messageType, arguments);
         }
 
         protected async Task<List<JsonElement>> ProcessMessagesAsync(
@@ -272,13 +272,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                     ).ToArray();
 
                 var configuration = new ConfigurationBuilder()
-                                        .SetBasePath(Directory.GetCurrentDirectory())
-                                        .AddJsonFile("appsettings.json", true)
-                                        .AddEnvironmentVariables()
-                                        .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                                        .AddStandalonePublisherCommandLine(arguments.ToArray())
-                                        .AddCommandLine(arguments.ToArray())
-                                        .Build();
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", true)
+                    .AddEnvironmentVariables()
+                    .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                    .AddInMemoryCollection(new PublisherCliOptions(arguments.ToArray()))
+                    .AddCommandLine(arguments.ToArray())
+                    .Build();
 
                 using (var cts = new CancellationTokenSource()) {
                     // Start publisher module
@@ -312,7 +312,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                         var module = hostScope.Resolve<IModuleHost>();
                         var events = hostScope.Resolve<IEventEmitter>();
                         var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                        var identity = hostScope.Resolve<IIdentity>();
                         var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
 
                         Events = hostScope.Resolve<IIoTHub>().Events;
@@ -322,7 +321,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                             logger.Information("Starting module OpcPublisher version {version}.", version);
                             healthCheckManager.Start();
                             // Start module
-                            await module.StartAsync(IdentityType.Publisher, "IntegrationTests", "OpcPublisher", version, null);
+                            await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
 
                             _apiScope = ConfigureContainer(configurationRoot, hostScope.Resolve<IIoTHubTwinServices>());
                             _running.TrySetResult(true);
@@ -375,9 +374,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         /// </summary>
         private static IContainer ConfigureContainer(IConfiguration configuration,
             List<(DeviceTwinModel, DeviceModel)> devices) {
-            var config = new Config(configuration);
+            var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
-            var standaloneCliOptions = new StandaloneCliOptions(configuration);
+            var cliOptions = new Runtime.PublisherCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -389,32 +388,37 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             builder.RegisterModule<ModuleFramework>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            builder.AddDiagnostics(config, standaloneCliOptions.ToLoggerConfiguration());
-            builder.RegisterInstance(standaloneCliOptions)
+            builder.AddDiagnostics(config, cliOptions.ToLoggerConfiguration());
+            builder.RegisterInstance(cliOptions)
                 .AsImplementedInterfaces();
 
             builder.RegisterType<IoTHubClientFactory>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-
             builder.Register(ctx => IoTHubServices.Create(devices))
                 .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<ModuleHost>()
                 .AsImplementedInterfaces().SingleInstance();
 
+            builder.RegisterType<PublisherIdentity>()
+                .AsImplementedInterfaces();
             builder.RegisterType<PublishedNodesProvider>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublishedNodesJobConverter>()
                 .SingleInstance();
-            builder.RegisterType<PublisherConfigService>()
+            builder.RegisterType<PublisherConfigurationService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherHostService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<WriterGroupScopeFactory>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublisherDiagnosticCollector>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
+            builder.RegisterType<StackLogger>()
+                .AsImplementedInterfaces().SingleInstance().AutoActivate();
             builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()

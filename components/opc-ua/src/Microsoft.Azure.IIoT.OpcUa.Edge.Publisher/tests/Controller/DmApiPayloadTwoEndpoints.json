@@ -41,21 +41,6 @@
         ]
     },
     {
-        "EndpointUrl": "opc.tcp://opcplc:50010",
-        "OpcAuthenticationMode": "Anonymous",
-        "UseSecurity": false,
-        "OpcNodes": [
-            {
-                "Id": "ns=2;s=FastUInt1",
-                "OpcPublishingInterval": 1000
-            },
-            {
-                "Id": "ns=2;s=FastUInt2",
-                "OpcPublishingInterval": 2000
-            }
-        ]
-    },
-    {
         "DataSetWriterGroup": "Leaf2",
         "DataSetWriterId": "Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952235",
         "DataSetName": "Tag_Leaf2_10000_3085991c-b85c-4311-9bfb-a916da952235",
@@ -113,7 +98,7 @@
     {
         "EndpointUrl": "opc.tcp://opcplc:50000",
         "UseSecurity": false,
-        "DataSetPublishingIntervalTimesapn": "00:00:02",
+        "DataSetPublishingIntervalTimespan": "00:00:02",
         "OpcNodes": [
             {
                 "Id": "ns=2;s=SlowUInt3",
@@ -138,6 +123,21 @@
             },
             {
                 "Id": "ns=2;s=FastUInt4",
+                "OpcPublishingInterval": 2000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "opc.tcp://opcplc:50010",
+        "OpcAuthenticationMode": "Anonymous",
+        "UseSecurity": false,
+        "OpcNodes": [
+            {
+                "Id": "ns=2;s=FastUInt1",
+                "OpcPublishingInterval": 1000
+            },
+            {
+                "Id": "ns=2;s=FastUInt2",
                 "OpcPublishingInterval": 2000
             }
         ]

@@ -50,7 +50,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 RelativePath = publishedVariable.BrowsePath,
                 AttributeId = publishedVariable.Attribute,
                 IndexRange = publishedVariable.IndexRange,
-                TriggerId = publishedVariable.TriggerId,
                 MonitoringMode = publishedVariable.MonitoringMode,
                 SamplingInterval = publishedVariable.SamplingInterval
                     ?? configuration?.DefaultSamplingInterval,

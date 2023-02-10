@@ -20,6 +20,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
 
+            builder.RegisterType<EmptyMetricsContext>()
+                .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
+
             // Register sdk and host
             builder.RegisterType<IoTSdkFactory>()
                 .AsImplementedInterfaces().SingleInstance();

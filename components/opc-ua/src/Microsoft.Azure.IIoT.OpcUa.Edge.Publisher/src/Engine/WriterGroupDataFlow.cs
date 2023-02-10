@@ -6,11 +6,11 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Serilog;
     using System;
+    using System.Data.Common;
     using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         public WriterGroupDataFlow(IMessageSource source, IMessageEncoder encoder,
             IMessageSink sink, IEngineConfiguration config, ILogger logger,
-            IMetricsContext metrics)
+            IMetricsContext metrics, IWriterGroupDiagnostics diagnostics = null)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
 
             _config = config;
@@ -38,6 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _messageSink = sink;
             _messageEncoder = encoder;
             _logger = logger;
+            _diagnostics = diagnostics;
 
             if (_config.BatchSize.HasValue && _config.BatchSize.Value > 1) {
                 _notificationBufferSize = _config.BatchSize.Value;
@@ -78,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _batchDataSetMessageBlock.LinkTo(_encodingBlock);
             _encodingBlock.LinkTo(_sinkBlock);
 
-            _source.OnMessage += MessageTriggerMessageReceived;
+            _source.OnMessage += OnMessageReceived;
             _source.OnCounterReset += MessageTriggerCounterResetReceived;
         }
 
@@ -87,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             try {
                 _batchTriggerIntervalTimer?.Change(Timeout.Infinite, Timeout.Infinite);
                 _source.OnCounterReset -= MessageTriggerCounterResetReceived;
-                _source.OnMessage -= MessageTriggerMessageReceived;
+                _source.OnMessage -= OnMessageReceived;
                 _batchDataSetMessageBlock.Complete();
                 await _batchDataSetMessageBlock.Completion;
                 _encodingBlock.Complete();
@@ -97,6 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _batchTriggerIntervalTimer?.Dispose();
             }
             finally {
+                _diagnostics?.Dispose();
                 await _source.DisposeAsync();
             }
         }
@@ -119,15 +121,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Message received handler
         /// </summary>
-        private void MessageTriggerMessageReceived(object sender, SubscriptionNotificationModel args) {
+        private void OnMessageReceived(object sender, SubscriptionNotificationModel args) {
             _logger.Debug("Message source received message with sequenceNumber {SequenceNumber}",
                 args.SequenceNumber);
 
-            if (_diagnosticStart == DateTime.MinValue) {
+            if (_dataFlowStartTime == DateTime.MinValue) {
                 if (_batchTriggerInterval > TimeSpan.Zero) {
                     _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
                 }
-                _diagnosticStart = DateTime.UtcNow;
+                _diagnostics?.ResetWriterGroupDiagnostics();
+                _dataFlowStartTime = DateTime.UtcNow;
+                _logger.Information("Started data flow with message from subscription {Name} on {Endpoint}.",
+                    args.SubscriptionName, args.EndpointUrl);
             }
 
             if (_sinkBlock.InputCount >= _maxOutgressMessages) {
@@ -139,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         private void MessageTriggerCounterResetReceived(object sender, EventArgs e) {
-            _diagnosticStart = DateTime.MinValue;
+            _dataFlowStartTime = DateTime.MinValue;
         }
 
         /// <summary>
@@ -147,37 +152,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="metrics"></param>
         private WriterGroupDataFlow(IMetricsContext metrics) {
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_iothub_queue_size",
-                () => new Measurement<int>(_sinkBlock.InputCount, metrics.TagList), "Messages",
-                "Telemetry messages queued for sending upstream.");
             Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
                 () => new Measurement<long>(_sinkBlockInputDroppedCount, metrics.TagList), "Messages",
                 "Telemetry messages dropped due to overflow.");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_batch_input_queue_size",
-                () => new Measurement<int>(_batchDataSetMessageBlock.OutputCount, metrics.TagList), "Notifications",
+            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_iothub_queue_size",
+                () => new Measurement<long>(_sinkBlock.InputCount, metrics.TagList), "Messages",
                 "Telemetry messages queued for sending upstream.");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_input_queue_size",
-                () => new Measurement<int>(_encodingBlock.InputCount, metrics.TagList), "Notifications",
+            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_batch_input_queue_size",
+                () => new Measurement<long>(_batchDataSetMessageBlock.OutputCount, metrics.TagList), "Notifications",
                 "Telemetry messages queued for sending upstream.");
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_encoding_output_queue_size",
-                () => new Measurement<int>(_encodingBlock.InputCount, metrics.TagList), "Messages",
+            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_encoding_input_queue_size",
+                () => new Measurement<long>(_encodingBlock.InputCount, metrics.TagList), "Notifications",
+                "Telemetry messages queued for sending upstream.");
+            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_encoding_output_queue_size",
+                () => new Measurement<long>(_encodingBlock.InputCount, metrics.TagList), "Messages",
                 "Telemetry messages queued for sending upstream.");
         }
 
         private long _sinkBlockInputDroppedCount;
-        private DateTime _diagnosticStart = DateTime.MinValue;
+        private DateTime _dataFlowStartTime = DateTime.MinValue;
         private readonly int _notificationBufferSize = 1;
+        private readonly int _maxEncodedMessageSize;
+        private readonly int _maxOutgressMessages;
         private readonly Timer _batchTriggerIntervalTimer;
         private readonly TimeSpan _batchTriggerInterval;
-        private readonly int _maxEncodedMessageSize;
         private readonly IEngineConfiguration _config;
         private readonly IMessageSink _messageSink;
         private readonly IMessageEncoder _messageEncoder;
         private readonly IMessageSource _source;
         private readonly ILogger _logger;
+        private readonly IWriterGroupDiagnostics _diagnostics;
         private readonly BatchBlock<SubscriptionNotificationModel> _batchDataSetMessageBlock;
         private readonly TransformManyBlock<SubscriptionNotificationModel[], ITelemetryEvent> _encodingBlock;
         private readonly ActionBlock<ITelemetryEvent> _sinkBlock;
-        private readonly int _maxOutgressMessages;
     }
 }

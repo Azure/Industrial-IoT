@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     /// <summary>
     /// Enables remote configuration of the publisher
     /// </summary>
-    public interface IPublisherConfigServices {
+    public interface IPublisherConfigurationServices {
 
         /// <summary>
         /// Add nodes to be published to the configuration

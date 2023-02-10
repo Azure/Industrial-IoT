@@ -69,26 +69,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async ValueTask UpdateAsync(WriterGroupJobModel jobConfig, CancellationToken ct) {
-            await _lock.WaitAsync();
+            await _lock.WaitAsync(ct);
             try {
                 var writerGroupConfig = jobConfig.ToWriterGroupJobConfiguration(_publisherId);
+                var writerGroup = writerGroupConfig.WriterGroup.Clone();
 
-                if (writerGroupConfig?.WriterGroup?.DataSetWriters == null ||
-                    writerGroupConfig.WriterGroup.DataSetWriters.Count == 0) {
+                if (writerGroup?.DataSetWriters == null ||
+                    writerGroup.DataSetWriters.Count == 0) {
                     foreach (var subscription in _subscriptions.Values) {
                         await subscription.DisposeAsync();
                     }
                     _logger.Information("Removed all subscriptions from writer group {Name}.",
-                        _writerGroup.WriterGroupId);
+                        writerGroup.WriterGroupId);
                     _subscriptions.Clear();
+                    _writerGroup = writerGroup;
                     return;
                 }
 
-                var writerGroupId = writerGroupConfig.WriterGroup.WriterGroupId;
-                var dataSetWriters = _writerGroup.DataSetWriters
-                    .ToDictionary(w => w.ToSubscriptionId(writerGroupId), w => w);
+                var dataSetWriterSubscriptionMap = writerGroup.DataSetWriters
+                    .ToDictionary(w => w.ToSubscriptionId(writerGroup.WriterGroupId), w => w);
+                // Update or removed ones that were updated or removed.
                 foreach (var id in _subscriptions.Keys.ToList()) {
-                    if (!dataSetWriters.TryGetValue(id, out var writer)) {
+                    if (!dataSetWriterSubscriptionMap.TryGetValue(id, out var writer)) {
                         if (_subscriptions.Remove(id, out var s)) {
                             await s.DisposeAsync();
                         }
@@ -100,7 +102,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
                 }
-                foreach (var writer in dataSetWriters) {
+                // Create any newly added ones
+                foreach (var writer in dataSetWriterSubscriptionMap) {
                     if (!_subscriptions.ContainsKey(writer.Key)) {
                         // Add
                         var writerSubscription = await DataSetWriterSubscription.CreateAsync(
@@ -108,14 +111,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
                     }
                 }
-                _logger.Information("Update all subscriptions inside writer group {Name}.",
-                    _writerGroup.WriterGroupId);
-
-                if (_writerGroup.WriterGroupId != writerGroupConfig.WriterGroup.WriterGroupId) {
-                    _logger.Information("Update writer group from to writer group {Name}.",
-                        _writerGroup.WriterGroupId, writerGroupConfig.WriterGroup.WriterGroupId);
+                if (_writerGroup.WriterGroupId != writerGroup.WriterGroupId) {
+                    _logger.Information("Update writer group from {Previous} to writer group {Name}.",
+                        _writerGroup.WriterGroupId, writerGroup.WriterGroupId);
                 }
-                _writerGroup = writerGroupConfig.WriterGroup.Clone();
+
+                _logger.Information("Update all subscriptions inside writer group {Name}.",
+                    writerGroup.WriterGroupId);
+                _writerGroup = writerGroup;
             }
             finally {
                 _lock.Release();
@@ -187,7 +190,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     return;
                 }
                 _outer._logger.Debug("Updating subscription {Id} in writer group {Name}...",
-                    Id, _outer._writerGroup.WriterGroupId);
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
                 _dataSetWriter = dataSetWriter.Clone();
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
@@ -200,7 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 await Subscription.UpdateAsync(_subscriptionInfo, ct).ConfigureAwait(false);
 
                 _outer._logger.Information("Updated subscription {Id} in writer group {Name}.",
-                    Id, _outer._writerGroup.WriterGroupId);
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
             /// <inheritdoc/>
@@ -227,7 +230,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <returns></returns>
             private async ValueTask OpenAsync(CancellationToken ct) {
                 _outer._logger.Debug("Creating new subscription {Id} in writer group {Name}...",
-                    Id, _outer._writerGroup.WriterGroupId);
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
                 //
                 // Creating inner OPC UA subscription object. This will create a session
@@ -253,7 +256,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _metadataTimer.Start();
                 }
                 _outer._logger.Information("Created new subscription {Id} in writer group {Name}.",
-                    Id, _outer._writerGroup.WriterGroupId);
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
             /// <summary>
@@ -262,7 +265,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <returns></returns>
             private async ValueTask CloseAsync() {
                 _outer._logger.Debug("Removing subscription {Id} from writer group {Name}...",
-                    Id, _outer._writerGroup.WriterGroupId);
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
                 await Subscription.CloseAsync().ConfigureAwait(false);
 
@@ -279,7 +282,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 Subscription = null;
 
                 _outer._logger.Information("Removed subscription {Id} from writer group {Name}.",
-                    Id, _outer._writerGroup.WriterGroupId);
+                    Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
             /// <summary>

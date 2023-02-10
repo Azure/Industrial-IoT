@@ -27,25 +27,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// Module host implementation
     /// </summary>
     public sealed class ModuleHost : IModuleHost, ITwinProperties, IEventEmitter,
-        IIdentity, IClientAccessor {
+        IClientAccessor {
 
         /// <inheritdoc/>
         public int MaxMethodPayloadCharacterCount => 120 * 1024;
 
         /// <inheritdoc/>
         public IReadOnlyDictionary<string, VariantValue> Reported => _reported;
-
-        /// <inheritdoc/>
-        public string DeviceId { get; private set; }
-
-        /// <inheritdoc/>
-        public string ModuleId { get; private set; }
-
-        /// <inheritdoc/>
-        public string SiteId { get; private set; }
-
-        /// <inheritdoc/>
-        public string Gateway { get; private set; }
 
         /// <inheritdoc/>
         public IClient Client { get; private set; }
@@ -97,28 +85,21 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     Client?.Dispose();
                     Client = null;
                     _reported?.Clear();
-                    DeviceId = null;
-                    ModuleId = null;
-                    SiteId = null;
-                    Gateway = null;
                     _lock.Release();
                 }
             }
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync(string type, string siteId, string productInfo,
-            string version, IProcessControl reset) {
+        public async Task StartAsync(string type, string productInfo, string version,
+            IProcessControl reset) {
             if (Client == null) {
                 try {
                     await _lock.WaitAsync();
                     if (Client == null) {
                         // Create client
                         _logger.Debug("Starting Module Host...");
-                        Client = await _factory.CreateAsync(productInfo + "_" + version, reset);
-                        DeviceId = _factory.DeviceId;
-                        ModuleId = _factory.ModuleId;
-                        Gateway = _factory.Gateway;
+                        Client = await _factory.CreateAsync(productInfo + "_" + version, _metrics, reset);
                         // Register callback to be called when a method request is received
                         await Client.SetMethodHandlerAsync((request, _) =>
                             _router.InvokeMethodAsync(request));
@@ -133,12 +114,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         var twinSettings = new TwinCollection {
                             [TwinProperty.Type] = type
                         };
-
-                        // Set site if provided
-                        if (string.IsNullOrEmpty(SiteId)) {
-                            SiteId = siteId;
-                            twinSettings[TwinProperty.SiteId] = SiteId;
-                        }
 
                         // Set version information
                         twinSettings[TwinProperty.Version] = version;
@@ -156,10 +131,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         Client = null;
                     }
                     _reported?.Clear();
-                    DeviceId = null;
-                    ModuleId = null;
-                    SiteId = null;
-                    Gateway = null;
                     throw;
                 }
                 finally {
@@ -196,7 +167,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 await _lock.WaitAsync();
                 if (Client != null) {
                     using var message = Client.CreateMessage(batch,
-                        contentEncoding, contentType, eventSchema, DeviceId, ModuleId);
+                        contentEncoding, contentType, eventSchema);
                     await Client.SendEventAsync(message);
                 }
             }
@@ -212,7 +183,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 await _lock.WaitAsync();
                 if (Client != null) {
                     using var msg = Client.CreateMessage(new[] { data },
-                        contentEncoding, contentType, eventSchema, DeviceId, ModuleId);
+                        contentEncoding, contentType, eventSchema);
                     await Client.SendEventAsync(msg);
                 }
             }
@@ -296,14 +267,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             if (twin == null) {
                 return;
             }
-            if (!string.IsNullOrEmpty(twin.DeviceId)) {
-                DeviceId = twin.DeviceId;
-            }
-            if (!string.IsNullOrEmpty(twin.ModuleId)) {
-                ModuleId = twin.ModuleId;
-            }
-            _logger.Information("Initialize device twin for {deviceId} - {moduleId}",
-                DeviceId, ModuleId ?? "standalone");
 
             var desired = new Dictionary<string, VariantValue>();
             var reported = new Dictionary<string, VariantValue>();
@@ -460,9 +423,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 case TwinProperty.Version:
                 case TwinProperty.Type:
                     break;
-                case TwinProperty.SiteId:
-                    SiteId = (string)value;
-                    break;
                 default:
                     return false;
             }
@@ -477,11 +437,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         /// <param name="metrics"></param>
         private ModuleHost(IMetricsContext metrics) {
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_module_start",
+            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_module_start",
                 () => new Measurement<int>(Client != null ? 1 : 0, metrics.TagList), "Starts",
                 "Module starts.");
+            _metrics = metrics;
         }
 
+        private readonly IMetricsContext _metrics;
         private readonly IMethodRouter _router;
         private readonly ISettingsRouter _settings;
         private readonly IJsonSerializer _serializer;

@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// ctor
         /// </summary>
-        public PublisherMethodsController(IPublisherConfigServices configServices) {
+        public PublisherMethodsController(IPublisherConfigurationServices configServices) {
             _configServices = configServices ?? throw new ArgumentNullException(nameof(configServices));
         }
 
@@ -131,6 +131,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
             throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Discontinued");
         }
 
-        private readonly IPublisherConfigServices _configServices;
+        private readonly IPublisherConfigurationServices _configServices;
     }
 }

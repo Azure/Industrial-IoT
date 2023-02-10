@@ -14,21 +14,22 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "TELEMETRYPROCESSORHOST";
+        public string Id => "TELEMETRYPROCESSORHOST";
 
         /// <summary>
         /// Process id
         /// </summary>
-        public string Id => System.Guid.NewGuid().ToString();
+        public string ProcessId => System.Guid.NewGuid().ToString();
 
         /// <summary>
         /// Name of service
         /// </summary>
         public string Name => "Telemetry-Processor-Host";
 
-        /// <summary>
-        /// Description of service
-        /// </summary>
+        /// <inheritdoc/>
         public string Description => "Azure Industrial IoT Telemetry Processor Host";
+
+        /// <inheritdoc/>
+        public string SiteId { get; }
     }
 }

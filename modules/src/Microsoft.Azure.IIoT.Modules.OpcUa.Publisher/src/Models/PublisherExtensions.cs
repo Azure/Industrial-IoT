@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                     : null,
                 UseSecurity = model.UseSecurity,
                 Version = model.Version,
-                LastChange = model.LastChange,
+                LastChangeTimespan = model.LastChangeTimespan,
                 OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
                 OpcAuthenticationPassword = model.OpcAuthenticationPassword,
                 OpcAuthenticationUsername = model.OpcAuthenticationUsername,
@@ -43,7 +43,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataSetClassId = model.DataSetClassId,
                 DataSetDescription = model.DataSetDescription,
                 DataSetKeyFrameCount = model.DataSetKeyFrameCount,
-                MetaDataUpdateTime = model.MetaDataUpdateTime,
+                MetaDataUpdateTimeTimespan = model.MetaDataUpdateTimeTimespan,
+                // only fill the MetaDataUpdateTime if the MetaDataUpdateTimeTimespan
+                // was not provided.
+                MetaDataUpdateTime = !model.MetaDataUpdateTimeTimespan.HasValue
+                    ? model.MetaDataUpdateTime
+                    : null,
                 MetaDataQueueName = model.MetaDataQueueName,
                 DataSetName = model.DataSetName,
                 DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
@@ -120,7 +125,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             if (endpoint == null) {
                 return null;
             }
-
             return new PublishNodesEndpointApiModel {
                 EndpointUrl = endpoint.EndpointUrl.OriginalString,
                 UseSecurity = endpoint.UseSecurity,
@@ -128,11 +132,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 OpcAuthenticationUsername = endpoint.OpcAuthenticationUsername,
                 OpcAuthenticationPassword = null,
                 Version = endpoint.Version,
-                LastChange = endpoint.LastChange,
+                LastChangeTimespan = endpoint.LastChangeTimespan,
                 DataSetWriterGroup = endpoint.DataSetWriterGroup,
                 DataSetDescription = endpoint.DataSetDescription,
                 DataSetKeyFrameCount = endpoint.DataSetKeyFrameCount,
-                MetaDataUpdateTime = endpoint.MetaDataUpdateTime,
+                // only fill the MetaDataUpdateTime if the MetaDataUpdateTimeTimespan
+                // was not provided.
+                MetaDataUpdateTime = !endpoint.MetaDataUpdateTimeTimespan.HasValue
+                    ? endpoint.MetaDataUpdateTime
+                    : null,
+                MetaDataUpdateTimeTimespan = endpoint.MetaDataUpdateTimeTimespan,
                 MetaDataQueueName = endpoint.MetaDataQueueName,
                 DataSetName = endpoint.DataSetName,
                 DataSetClassId = endpoint.DataSetClassId,
@@ -193,24 +202,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataChangeTrigger = (IIoT.OpcUa.Api.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
                 EventFilter = model.EventFilter.ToApiModel(),
                 ConditionHandling = model.ConditionHandling.ToApiModel()
-            };
-        }
-
-        /// <summary>
-        /// Create an api model from service model ignoring the password
-        /// </summary>
-        public static PublishNodesEndpointApiModel ToApiModel(
-            this PublishNodesEndpointModel endpoint) {
-            if (endpoint == null) {
-                return null;
-            }
-
-            return new PublishNodesEndpointApiModel {
-                EndpointUrl = endpoint.EndpointUrl.OriginalString,
-                UseSecurity = endpoint.UseSecurity,
-                OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
-                OpcAuthenticationUsername = endpoint.OpcAuthenticationUsername,
-                DataSetWriterGroup = endpoint.DataSetWriterGroup,
             };
         }
 

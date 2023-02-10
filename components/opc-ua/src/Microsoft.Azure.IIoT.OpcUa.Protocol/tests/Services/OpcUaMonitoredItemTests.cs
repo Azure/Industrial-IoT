@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using Xunit;
 
-    public class MonitoredItemWrapperTests : EventTestsBase {
+    public class OpcUaMonitoredItemTests : EventTestsBase {
         [Fact]
         public void SetDefaultValuesWhenPropertiesAreNullInBaseTemplate() {
             var template = new DataMonitoredItemModel {
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 SamplingInterval = null,
                 DiscardNew = null,
             };
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
 
             Assert.Equal(Attributes.Value, monitoredItemWrapper.Item.AttributeId);
             Assert.Equal(MonitoringMode.Reporting, monitoredItemWrapper.Item.MonitoringMode);
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 DiscardNew = null,
                 SkipFirst = true
             };
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
             Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
             Assert.True(monitoredItemWrapper.TrySetSkipFirst(false));
             Assert.True(monitoredItemWrapper.TrySetSkipFirst(true));
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 DiscardNew = null,
                 SkipFirst = true
             };
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
             Assert.True(monitoredItemWrapper.SkipMonitoredItemNotification());
             Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
             // This is allowed since it does not matter
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 SamplingInterval = null,
                 DiscardNew = null
             };
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
             Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
             Assert.False(monitoredItemWrapper.TrySetSkipFirst(true));
             Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 SamplingInterval = TimeSpan.FromMilliseconds(10000),
                 DiscardNew = true
             };
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
 
             Assert.Equal("DisplayName", monitoredItemWrapper.Item.DisplayName);
             Assert.Equal((uint)NodeAttribute.Value, monitoredItemWrapper.Item.AttributeId);
@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     DeadbandValue = 10.0
                 }
             };
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
 
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
             Assert.IsType<DataChangeFilter>(monitoredItemWrapper.Item.Filter);
@@ -161,7 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
             };
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
 
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
             Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     UpdateInterval = 20
                 }
             };
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
 
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
             Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
@@ -241,7 +241,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var nodeCache = GetNodeCache(namespaceTable);
             var context = new ServiceMessageContext();
             context.NamespaceUris = nodeCache.NamespaceUris;
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template, messageContext: context, nodeCache: nodeCache);
+            var monitoredItemWrapper = GetMonitoredItem(template, messageContext: context, nodeCache: nodeCache);
 
             Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.Fields.Count);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", monitoredItemWrapper.Fields[0].Name);
@@ -277,7 +277,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             };
 
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+            var monitoredItemWrapper = GetMonitoredItem(template);
 
             Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.Fields.Count);
             Assert.Equal("2:CycleId", monitoredItemWrapper.Fields[0].Name);

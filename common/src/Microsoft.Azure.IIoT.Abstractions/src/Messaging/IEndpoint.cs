@@ -4,13 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging {
-    using Microsoft.Azure.IIoT.Auth;
-    using System;
 
     /// <summary>
     /// Hub Endpoint lookup
     /// </summary>
-    public interface IEndpoint<THub> : IIdentityTokenGenerator {
+    public interface IEndpoint<THub> {
 
         /// <summary>
         /// Resource name

@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         [InlineData("testValue", new string[] { "--deviceconnectionstring", "testValue" })]
         public void ValidOptionTest(string expected, string[] param) {
 
-            var result = new StandaloneCliOptions(param);
+            var result = new PublisherCliOptions(param);
 
             result.Count
                 .Should()
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         [InlineData("True", new string[] { "--AutoAcceptUntrustedCertificates=True" })]
         public void ValidAutoAcceptUntrustedCertificatesOptionTest(string expected, string[] param) {
 
-            var result = new StandaloneCliOptions(param);
+            var result = new PublisherCliOptions(param);
 
             result.Count
                 .Should()
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         [InlineData("tc|telemetryconfigfile", new string[] { "--telemetryconfigfile", "testValue" })]
         public void LegacyOptionTest(string cliOption, string[] param) {
 
-            var result = new StandaloneCliOptionsTest(param);
+            var result = new PublisherCliOptionsTest(param);
 
             result.Count.Should().Be(0);
 
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         [InlineData("unknown=testValue")]
         public void UnsupportedOptionTest(params string[] param) {
 
-            var result = new StandaloneCliOptionsTest(param);
+            var result = new PublisherCliOptionsTest(param);
 
             result.Count.Should().Be(0);
 
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         [InlineData("--deviceconnectionstring")]
         public void MissingOptionParameterTest(params string[] param) {
 
-            var result = new StandaloneCliOptionsTest(param);
+            var result = new PublisherCliOptionsTest(param);
 
             result.ExitCode.Should().Be(160);
 
@@ -148,7 +148,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         [InlineData(new object[] { new string[] { "--help" } })]
         public void HelpOptionParameterTest(string[] param) {
 
-            var result = new StandaloneCliOptionsTest(param);
+            var result = new PublisherCliOptionsTest(param);
 
             result.ExitCode
                 .Should()

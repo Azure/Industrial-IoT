@@ -69,15 +69,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private NetworkMessageSink(IMetricsContext metrics) {
             _tagList = metrics.TagList;
-            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_encoded_notifications",
+            Diagnostics.Meter.CreateObservableCounter("iiot_edge_publisher_sent_iot_messages",
                 () => new Measurement<long>(_messagesSentCount, _tagList), "Messages",
-                "Number of successfully processed subscription notifications received from OPC client.");
+                "Number of IoT messages successfully sent to Sink (IoT Hub or Edge Hub).");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_sent_iot_messages_per_second",
                 () => new Measurement<double>(_messagesSentCount / UpTime, _tagList), "Messages/second",
-                "IoT messages/second sent to hub");
+                "IoT messages/second sent to Sink (IoT Hub or Edge Hub).");
             Diagnostics.Meter.CreateObservableGauge("iiot_edge_publisher_estimated_message_chunks_per_day",
                 () => new Measurement<double>(_messagesSentCount, _tagList), "Messages/day",
-                "Estimated IoT Hub messages chunks charged per day");
+                "Estimated 4kb message chunks used from daily quota.");
         }
         static Counter<long> kMessagesErrors = Diagnostics.Meter.CreateCounter<long>(
             "iiot_edge_publisher_failed_iot_messages", "messages", "Number of failures sending a network message.");

@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Extensions.Configuration;
+    using Opc.Ua;
     using System;
     using System.Diagnostics;
     using System.IO;
@@ -29,8 +30,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddCommandLine(args)
-                .AddStandalonePublisherCommandLine(args)
-                // making sure the standalone arguments are processed at last so they are not overriden
+                .AddInMemoryCollection(new PublisherCliOptions(args))
+                // making sure the arguments are processed last so they are not overriden
                 .Build();
 
 #if DEBUG

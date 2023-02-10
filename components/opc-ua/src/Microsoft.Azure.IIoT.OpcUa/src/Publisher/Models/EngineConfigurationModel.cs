@@ -27,19 +27,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public int? MaxMessageSize { get; set; }
 
         /// <summary>
-        /// Diagnostics setting
-        /// </summary>
-        public TimeSpan? DiagnosticsInterval { get; set; }
-
-        /// <summary>
         /// Define the maximum number of messages in outgress buffer,
-        /// Default: 4096 messages with 256KB ends up in 1 GB memory consumed.
+        /// Default: 4096 messages with 256KB ends up in 1 GB
+        /// memory consumed.
         /// </summary>
         public int? MaxOutgressMessages { get; set; }
 
         /// <summary>
-        /// Enforce strict standards compliant encoding for pub sub messages
+        /// Enforce strict standards compliant encoding
+        /// for pub sub messages
         /// </summary>
         public bool UseStandardsCompliantEncoding { get; set; }
+
+        /// <summary>
+        /// Default queue name
+        /// </summary>
+        public string DefaultMetaDataQueueName { get; set; }
+
+        /// <summary>
+        /// Default max messages per publish operation
+        /// </summary>
+        public uint? DefaultMaxMessagesPerPublish { get; set; }
     }
 }

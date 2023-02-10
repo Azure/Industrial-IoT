@@ -8,10 +8,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
 
     /// <summary>
-    /// Static class that contains the default keys for the standalone command line arguments how they
+    /// Static class that contains the default keys for the command line arguments how they
     /// will be represented in the IConfiguration-instance.
     /// </summary>
-    public static class StandaloneCliConfigKeys {
+    public static class PublisherCliConfigKeys {
+
         /// <summary>
         /// Key for default published nodes file.
         /// </summary>

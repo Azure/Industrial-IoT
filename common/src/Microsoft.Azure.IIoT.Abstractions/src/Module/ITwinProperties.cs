@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Module {
     /// <summary>
     /// Provides access to twin properties
     /// </summary>
-    public interface ITwinProperties : IIdentity {
+    public interface ITwinProperties {
 
         /// <summary>
         /// Resynchronize the twin with the cloud

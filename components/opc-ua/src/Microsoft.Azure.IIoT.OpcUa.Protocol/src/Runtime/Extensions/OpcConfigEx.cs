@@ -24,10 +24,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Build the opc ua stack application configuration
         /// </summary>
         public static async Task<ApplicationConfiguration> BuildApplicationConfigurationAsync(
-            this IClientServicesConfig opcConfig,
-            IIdentity identity,
-            CertificateValidationEventHandler handler,
-            ILogger logger) {
+            this IClientServicesConfig opcConfig, string identity,
+            CertificateValidationEventHandler handler, ILogger logger) {
             if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName)) {
                 throw new ArgumentNullException(nameof(opcConfig.ApplicationName));
             }
@@ -51,10 +49,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 await Retry.WithLinearBackoff(null, new CancellationToken(),
                     async () => {
                         //  try to resolve the hostname
-                        var hostname = !string.IsNullOrWhiteSpace(identity?.Gateway)
-                            ? identity.Gateway
-                            : !string.IsNullOrWhiteSpace(identity?.DeviceId)
-                                ? identity.DeviceId
+                        var hostname = !string.IsNullOrWhiteSpace(identity)
+                                ? identity
                                 : Utils.GetHostName();
 
                         var appBuilder = appInstance
@@ -108,7 +104,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
 
                         await ShowCertificateStoreInformationAsync(appConfig, logger)
                             .ConfigureAwait(false);
-
                     },
                     e => true, 5);
             }

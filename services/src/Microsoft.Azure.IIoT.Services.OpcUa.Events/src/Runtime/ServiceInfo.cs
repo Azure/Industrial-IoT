@@ -14,12 +14,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "EVENTS";
+        public string Id => "EVENTS";
 
         /// <summary>
         /// Process id
         /// </summary>
-        public string Id => System.Guid.NewGuid().ToString();
+        public string ProcessId => System.Guid.NewGuid().ToString();
 
         /// <summary>
         /// Name of service
@@ -30,5 +30,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
         /// Description of service
         /// </summary>
         public string Description => "Azure Industrial IoT SignalR Event Service";
+
+        /// <inheritdoc/>
+        public string SiteId { get; }
     }
 }

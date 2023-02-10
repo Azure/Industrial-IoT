@@ -31,42 +31,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary> IngressDataChanges </summary>
         [DataMember(Name = "ingressDataChanges", Order = 3,
             EmitDefaultValue = true)]
-        public ulong IngressDataChanges { get; set; }
+        public long IngressDataChanges { get; set; }
 
         /// <summary> IngressValueChanges </summary>
         [DataMember(Name = "ingressValueChanges", Order = 4,
             EmitDefaultValue = true)]
-        public ulong IngressValueChanges { get; set; }
+        public long IngressValueChanges { get; set; }
 
         /// <summary> IngressBatchBlockBufferSize </summary>
         [DataMember(Name = "ingressBatchBlockBufferSize", Order = 5,
             EmitDefaultValue = true)]
-        public int IngressBatchBlockBufferSize { get; set; }
+        public long IngressBatchBlockBufferSize { get; set; }
 
         /// <summary> EncodingBlockInputSize </summary>
         [DataMember(Name = "encodingBlockInputSize", Order = 6,
             EmitDefaultValue = true)]
-        public int EncodingBlockInputSize { get; set; }
+        public long EncodingBlockInputSize { get; set; }
 
         /// <summary> EncodingBlockOutputSize </summary>
         [DataMember(Name = "encodingBlockOutputSize", Order = 7,
             EmitDefaultValue = true)]
-        public int EncodingBlockOutputSize { get; set; }
+        public long EncodingBlockOutputSize { get; set; }
 
         /// <summary> EncoderNotificationsProcessed </summary>
         [DataMember(Name = "encoderNotificationsProcessed", Order = 8,
             EmitDefaultValue = true)]
-        public uint EncoderNotificationsProcessed { get; set; }
+        public long EncoderNotificationsProcessed { get; set; }
 
         /// <summary> EncoderNotificationsDropped </summary>
         [DataMember(Name = "encoderNotificationsDropped", Order = 9,
             EmitDefaultValue = true)]
-        public uint EncoderNotificationsDropped { get; set; }
+        public long EncoderNotificationsDropped { get; set; }
 
         /// <summary> EncoderIoTMessagesProcessed </summary>
         [DataMember(Name = "encoderIoTMessagesProcessed", Order = 10,
             EmitDefaultValue = true)]
-        public uint EncoderIoTMessagesProcessed { get; set; }
+        public long EncoderIoTMessagesProcessed { get; set; }
 
         /// <summary> EncoderAvgNotificationsMessage </summary>
         [DataMember(Name = "encoderAvgNotificationsMessage", Order = 11,
@@ -91,12 +91,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary> OutgressInputBufferCount </summary>
         [DataMember(Name = "outgressInputBufferCount", Order = 16,
             EmitDefaultValue = true)]
-        public int OutgressInputBufferCount { get; set; }
+        public long OutgressInputBufferCount { get; set; }
 
         /// <summary> OutgressInputBufferDropped </summary>
         [DataMember(Name = "outgressInputBufferDropped", Order = 17,
             EmitDefaultValue = true)]
-        public ulong OutgressInputBufferDropped { get; set; }
+        public long OutgressInputBufferDropped { get; set; }
 
         /// <summary> OutgressIoTMessageCount </summary>
         [DataMember(Name = "outgressIoTMessageCount", Order = 18,
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary> ConnectionRetries </summary>
         [DataMember(Name = "connectionRetries", Order = 19,
             EmitDefaultValue = true)]
-        public int ConnectionRetries { get; set; }
+        public long ConnectionRetries { get; set; }
 
         /// <summary> OpcEndpointConnected </summary>
         [DataMember(Name = "opcEndpointConnected", Order = 20,
@@ -116,22 +116,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary> MonitoredOpcNodesSucceededCount </summary>
         [DataMember(Name = "monitoredOpcNodesSucceededCount", Order = 21,
             EmitDefaultValue = true)]
-        public int MonitoredOpcNodesSucceededCount { get; set; }
+        public long MonitoredOpcNodesSucceededCount { get; set; }
 
         /// <summary> MonitoredOpcNodesFailedCount </summary>
         [DataMember(Name = "monitoredOpcNodesFailedCount", Order = 22,
             EmitDefaultValue = true)]
-        public int MonitoredOpcNodesFailedCount { get; set; }
+        public long MonitoredOpcNodesFailedCount { get; set; }
 
         /// <summary> Number of incoming event notifications </summary>
         [DataMember(Name = "ingressEventNotifications", Order = 23,
             EmitDefaultValue = true)]
-        public ulong IngressEventNotifications { get; set; }
+        public long IngressEventNotifications { get; set; }
 
         /// <summary> Total incoming events so far. </summary>
         [DataMember(Name = "ingressEvents", Order = 24,
             EmitDefaultValue = true)]
-        public ulong IngressEvents { get; set; }
+        public long IngressEvents { get; set; }
 
         /// <summary> Encoder max message split ratio </summary>
         [DataMember(Name = "encoderMaxMessageSplitRatio", Order = 25,

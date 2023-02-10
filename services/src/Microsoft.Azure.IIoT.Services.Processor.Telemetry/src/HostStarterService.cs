@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
 
                 // Print some useful information at bootstrap time
                 _logger.Information("{service} service started with id {id}",
-                    ServiceInfo.Name, ServiceInfo.Id);
+                    ServiceInfo.Name, ServiceInfo.ProcessId);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to start some hosts.");

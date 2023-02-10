@@ -69,14 +69,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public MonitoringMode? MonitoringMode { get; set; }
 
         /// <summary>
-        /// Node in dataset writer that triggers reporting
-        /// (Publisher extension)
-        /// </summary>
-        [DataMember(Name = "triggerId", Order = 8,
-            EmitDefaultValue = false)]
-        public string TriggerId { get; set; }
-
-        /// <summary>
         /// Condition handling settings
         /// </summary>
         [DataMember(Name = "conditionHandling", Order = 9)]
@@ -87,5 +79,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "typeDefinitionId", Order = 10)]
         public string TypeDefinitionId { get; set; }
+
+        /// <summary>
+        /// Event name
+        /// </summary>
+        [DataMember(Name = "publishedEventName", Order = 11,
+            EmitDefaultValue = false)]
+        public string PublishedEventName { get; set; }
     }
 }

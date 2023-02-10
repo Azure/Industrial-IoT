@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using static Microsoft.Azure.Amqp.Serialization.SerializableType;
 
     /// <summary>
     /// Published nodes
@@ -92,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             }
             var sw = Stopwatch.StartNew();
             try {
-                return items
+                var publishedNodesEntries = items
                     .Where(group => group?.WriterGroup?.DataSetWriters?.Count > 0)
                     .SelectMany(group => group.WriterGroup.DataSetWriters
                         .Where(writer => writer.DataSet?.DataSetSource?.PublishedVariables?.PublishedData != null
@@ -101,89 +102,79 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     .Select(item => AddConnectionModel(item.Writer.DataSet?.DataSetSource?.Connection,
                         new PublishedNodesEntryModel {
                             Version = version,
-                            LastChange = lastChanged,
+                            LastChangeTimespan = lastChanged,
                             DataSetClassId = item.Writer.DataSet.DataSetMetaData?.DataSetClassId ?? Guid.Empty,
                             DataSetDescription = item.Writer.DataSet.DataSetMetaData?.Description,
                             DataSetKeyFrameCount = item.Writer.KeyFrameCount,
-                            MetaDataUpdateTime = item.Writer.MetaDataUpdateTime,
+                            MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
                             MetaDataQueueName = item.Writer.MetaDataQueueName,
-                            DataSetName = item.Writer.DataSet.DataSetMetaData?.Name,
+                            DataSetName = item.Writer.DataSet.Name,
                             DataSetWriterGroup = item.WriterGroup.WriterGroupId,
                             DataSetWriterId =
                                 RecoverOriginalDataSetWriterId(item.Writer.DataSetWriterName),
-                            DataSetPublishingInterval = preferTimeSpan ? null : (int?)
-                                item.Writer.DataSet.DataSetSource?.SubscriptionSettings.PublishingInterval?.TotalMilliseconds,
-                            DataSetPublishingIntervalTimespan = !preferTimeSpan ? null :
-                                item.Writer.DataSet.DataSetSource?.SubscriptionSettings.PublishingInterval,
-                            OpcNodes = item.Writer.DataSet.DataSetSource?.PublishedVariables?.PublishedData != null ?
-                                item.Writer.DataSet.DataSetSource.PublishedVariables.PublishedData
-                                    .Select(variable => new OpcNodeModel {
-                                        DeadbandType = variable.DeadbandType,
-                                        DeadbandValue = variable.DeadbandValue,
-                                        DataSetClassFieldId = variable.DataSetClassFieldId,
-                                        Id = variable.PublishedVariableNodeId,
-                                        DisplayName = variable.PublishedVariableDisplayName,
+                            DataSetPublishingInterval = null,
+                            DataSetPublishingIntervalTimespan = null,
+                            OpcNodes = (item.Writer.DataSet.DataSetSource?.PublishedVariables?.PublishedData ??
+                                    Enumerable.Empty<PublishedDataSetVariableModel>())
+                                .Select(variable => new OpcNodeModel {
+                                    DeadbandType = variable.DeadbandType,
+                                    DeadbandValue = variable.DeadbandValue,
+                                    DataSetClassFieldId = variable.DataSetClassFieldId,
+                                    Id = variable.PublishedVariableNodeId,
+                                    DisplayName = variable.PublishedVariableDisplayName,
+                                    DataSetFieldId = variable.Id,
+                                    DiscardNew = variable.DiscardNew,
+                                    QueueSize = variable.QueueSize,
+                                    DataChangeTrigger = variable.DataChangeTrigger,
+                                    HeartbeatInterval = preferTimeSpan ? null : (int?)variable.HeartbeatInterval?.TotalMilliseconds,
+                                    HeartbeatIntervalTimespan = !preferTimeSpan ? null : variable.HeartbeatInterval,
+                                    OpcSamplingInterval = preferTimeSpan ? null : (int?)variable.SamplingInterval?.TotalMilliseconds,
+                                    OpcSamplingIntervalTimespan = !preferTimeSpan ? null : variable.SamplingInterval,
+                                    OpcPublishingInterval = preferTimeSpan ? null : (int?)
+                                        item.Writer.DataSet.DataSetSource?.SubscriptionSettings.PublishingInterval?.TotalMilliseconds,
+                                    OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
+                                        item.Writer.DataSet.DataSetSource?.SubscriptionSettings.PublishingInterval,
+                                    SkipFirst = variable.SkipFirst,
+                                    // MonitoringMode
+                                    //...
 
-                                        //  Identifier to show for notification in payload of IoT Hub method
-                                        //  Prio 1: DataSetFieldId (need to be read from message)
-                                        //  Prio 2: DisplayName
-                                        //  Prio 3: NodeId as configured; Id remains null in this case
-                                        DataSetFieldId =
-                                            variable.Id == variable.PublishedVariableDisplayName ?
-                                            null : variable.Id,
-                                        DiscardNew = variable.DiscardNew,
-                                        QueueSize = variable.QueueSize,
-                                        DataChangeTrigger = variable.DataChangeTrigger,
-                                        HeartbeatInterval = preferTimeSpan ? null : (int?)variable.HeartbeatInterval?.TotalMilliseconds,
-                                        HeartbeatIntervalTimespan = !preferTimeSpan ? null : variable.HeartbeatInterval,
-                                        OpcSamplingInterval = preferTimeSpan ? null : (int?)variable.SamplingInterval?.TotalMilliseconds,
-                                        OpcSamplingIntervalTimespan = !preferTimeSpan ? null : variable.SamplingInterval,
-                                        SkipFirst = variable.SkipFirst,
-                                        // MonitoringMode
-                                        //...
-
-                                        ExpandedNodeId = null,
-                                        ConditionHandling = null,
-                                        OpcPublishingInterval = null, // in header object
-                                        OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
-                                            item.Writer.DataSet.DataSetSource?.SubscriptionSettings.PublishingInterval,
-                                        EventFilter = null,
-                                    })
-                                    .ToList() :
-                                item.Writer.DataSet.DataSetSource.PublishedEvents.PublishedData
-                                    .Select(evt => new OpcNodeModel {
-                                        Id = evt.EventNotifier,
-                                        EventFilter = new EventFilterModel {
-                                            TypeDefinitionId = evt.TypeDefinitionId,
-                                            SelectClauses = evt.SelectClauses?.Select(s => s.Clone()).ToList(),
-                                            WhereClause = evt.WhereClause.Clone()
-                                        },
-                                        ConditionHandling = evt.ConditionHandling.Clone(),
-                                        //  Identifier to show for notification in payload of IoT Hub method
-                                        //  Prio 1: DataSetFieldId (need to be read from message)
-                                        //  Prio 2: DisplayName - nothing to do, because notification.Id
-                                        //  already contains DisplayName
-                                        DataSetFieldId = evt.Id,
-                                        DisplayName = evt.Id,
-                                        DiscardNew = evt.DiscardNew,
-                                        QueueSize = evt.QueueSize,
-                                        // BrowsePath =
-                                        // MonitoringMode
-                                        //...
-                                        DeadbandType = null,
-                                        DataChangeTrigger = null,
-                                        DataSetClassFieldId = Guid.Empty,
-                                        DeadbandValue = null,
-                                        ExpandedNodeId = null,
-                                        HeartbeatInterval = null,
-                                        HeartbeatIntervalTimespan = null,
-                                        OpcPublishingInterval = null,
-                                        OpcSamplingInterval = null,
-                                        OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
-                                            item.Writer.DataSet.DataSetSource?.SubscriptionSettings.PublishingInterval,
-                                        SkipFirst = null
-                                    })
-                                    .ToList(),
+                                    ExpandedNodeId = null,
+                                    ConditionHandling = null,
+                                    EventFilter = null,
+                                })
+                                .Concat((item.Writer.DataSet.DataSetSource?.PublishedEvents?.PublishedData ??
+                                    Enumerable.Empty<PublishedDataSetEventModel>())
+                                .Select(evt => new OpcNodeModel {
+                                    Id = evt.EventNotifier,
+                                    EventFilter = new EventFilterModel {
+                                        TypeDefinitionId = evt.TypeDefinitionId,
+                                        SelectClauses = evt.SelectClauses?.Select(s => s.Clone()).ToList(),
+                                        WhereClause = evt.WhereClause.Clone()
+                                    },
+                                    ConditionHandling = evt.ConditionHandling.Clone(),
+                                    DataSetFieldId = evt.Id,
+                                    DisplayName = evt.PublishedEventName,
+                                    DiscardNew = evt.DiscardNew,
+                                    QueueSize = evt.QueueSize,
+                                    // BrowsePath =
+                                    // MonitoringMode
+                                    //...
+                                    DeadbandType = null,
+                                    DataChangeTrigger = null,
+                                    DataSetClassFieldId = Guid.Empty,
+                                    DeadbandValue = null,
+                                    ExpandedNodeId = null,
+                                    HeartbeatInterval = null,
+                                    HeartbeatIntervalTimespan = null,
+                                    OpcSamplingInterval = null,
+                                    OpcSamplingIntervalTimespan = null,
+                                    OpcPublishingInterval = preferTimeSpan ? null : (int?)
+                                        item.Writer.DataSet.DataSetSource?.SubscriptionSettings.PublishingInterval?.TotalMilliseconds,
+                                    OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
+                                        item.Writer.DataSet.DataSetSource?.SubscriptionSettings.PublishingInterval,
+                                    SkipFirst = null
+                                }))
+                                .ToList(),
                             NodeId = null,
                             // ...
 
@@ -196,6 +187,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             EncryptedAuthPassword = null,
                             EncryptedAuthUsername = null,
                         }));
+
+                // Coalesce into unique nodes entry data set groups
+                // TODO: We should start with the grouping earlier
+                return publishedNodesEntries
+                    .GroupBy(item => item,
+                        new FuncCompare<PublishedNodesEntryModel>((x, y) => x.HasSameDataSet(y)))
+                    .Select(group => {
+                        var nodes = group.SelectMany(g => g.OpcNodes).ToList();
+                        group.Key.OpcNodes = nodes;
+                        return group.Key;
+                    });
             }
             catch (Exception ex) {
                 _logger.Error(ex, "failed to convert the published nodes.");
@@ -212,10 +214,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Convert published nodes configuration to Writer group jobs
         /// </summary>
         /// <param name="items"></param>
-        /// <param name="standaloneCliModel">The standalone command line arguments</param>
+        /// <param name="configuration">Publisher configuration</param>
         public IEnumerable<WriterGroupJobModel> ToWriterGroupJobs(
             IEnumerable<PublishedNodesEntryModel> items,
-            StandaloneCliModel standaloneCliModel) {
+            IPublisherConfiguration configuration) {
             if (items == null) {
                 return Enumerable.Empty<WriterGroupJobModel>();
             }
@@ -228,7 +230,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 var endpoints = items.GroupBy(
                     item => ToConnectionModel(item),
                     // Select and batch nodes into published data set sources
-                    item => GetNodeModels(item, standaloneCliModel.ScaleTestCount.GetValueOrDefault(1)),
+                    item => GetNodeModels(item, configuration.ScaleTestCount ?? 1),
                     // Comparer for connection information
                     new FuncCompare<ConnectionModel>((x, y) => x.IsSameAs(y))
                 ).ToList();
@@ -243,10 +245,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     .SelectMany(
                         n => n
                         .Distinct(opcNodeModelComparer)
-                        .Batch(standaloneCliModel.MaxNodesPerDataSet))
+                        .Batch(configuration.MaxNodesPerPublishedEndpoint))
                     .ToList()
                     .Select(
-                        opcNodes => (opcNodes.First().Header, Source: new PublishedDataSetSourceModel {
+                        opcNodes => (Header: opcNodes.First().Header, Source: new PublishedDataSetSourceModel {
                             Connection = new ConnectionModel {
                                 Endpoint = group.Key.Endpoint.Clone(),
                                 User = group.Key.User.Clone(),
@@ -255,7 +257,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             },
                             SubscriptionSettings = new PublishedDataSetSettingsModel {
                                 PublishingInterval = GetPublishingIntervalFromNodes(opcNodes.Select(o => o.Node)),
-                                ResolveDisplayName = standaloneCliModel.FetchOpcNodeDisplayName,
                                 LifeTimeCount = (uint)_clientConfig.MinSubscriptionLifetime,
                                 MaxKeepAliveCount = _clientConfig.MaxKeepAliveCount,
                                 Priority = 0, // TODO
@@ -263,14 +264,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             PublishedVariables = new PublishedDataItemsModel {
                                 PublishedData = opcNodes.Where(node => node.Node.EventFilter == null)
                                     .Select(node => new PublishedDataSetVariableModel {
-                                        //  Identifier to show for notification in payload of IoT Hub method
-                                        //  Prio 1: DataSetFieldId (need to be read from message)
-                                        //  Prio 2: DisplayName - nothing to do, because notification.Id
-                                        //                        already contains DisplayName
-                                        //  Prio 3: NodeId as configured; Id remains null in this case
-                                        Id = !string.IsNullOrEmpty(node.Node.DataSetFieldId)
-                                            ? node.Node.DataSetFieldId
-                                            : node.Node.DisplayName,
+                                        Id = node.Node.DataSetFieldId,
                                         PublishedVariableNodeId = node.Node.Id,
                                         DataSetClassFieldId = node.Node.DataSetClassFieldId,
 
@@ -292,16 +286,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             PublishedEvents = new PublishedEventItemsModel {
                                 PublishedData = opcNodes.Where(node => node.Node.EventFilter != null)
                                     .Select(node => new PublishedDataSetEventModel {
-                                        //  Identifier to show for notification in payload of IoT Hub method
-                                        //  Prio 1: DataSetFieldId (need to be read from message)
-                                        //  Prio 2: DisplayName - nothing to do, because notification.Id
-                                        //                        already contains DisplayName
-                                        Id = !string.IsNullOrEmpty(node.Node.DataSetFieldId)
-                                            ? node.Node.DataSetFieldId
-                                            : node.Node.DisplayName,
+                                        Id = node.Node.DataSetFieldId,
                                         EventNotifier = node.Node.Id,
                                         QueueSize = node.Node.QueueSize,
                                         DiscardNew = node.Node.DiscardNew,
+                                        PublishedEventName = node.Node.DisplayName,
                                         // BrowsePath =
                                         // MonitoringMode
                                         TypeDefinitionId = node.Node.EventFilter.TypeDefinitionId,
@@ -326,30 +315,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         Engine = _engineConfig == null ? null : new EngineConfigurationModel {
                             BatchSize = _engineConfig.BatchSize,
                             BatchTriggerInterval = _engineConfig.BatchTriggerInterval,
-                            DiagnosticsInterval = _engineConfig.DiagnosticsInterval,
+                            DefaultMetaDataQueueName = _engineConfig.DefaultMetaDataQueueName,
+                            DefaultMaxMessagesPerPublish = _engineConfig.DefaultMaxMessagesPerPublish,
                             MaxMessageSize = _engineConfig.MaxMessageSize,
                             MaxOutgressMessages = _engineConfig.MaxOutgressMessages,
                             UseStandardsCompliantEncoding = _engineConfig.UseStandardsCompliantEncoding
                         },
                         WriterGroup = new WriterGroupModel {
-                            MessageType = standaloneCliModel.MessageEncoding,
+                            MessageType = configuration.MessagingProfile.MessageEncoding,
                             WriterGroupId = dataSetBatches.First.Source.Connection.Group,
                             DataSetWriters = dataSetBatches.Items.Select(dataSet => new DataSetWriterModel {
                                 DataSetWriterName = GetUniqueWriterNameInSet(dataSet.Header.DataSetWriterId,
                                     dataSet.Source, dataSetBatches.Items.Select(a => (a.Header.DataSetWriterId, a.Source))),
                                 MetaDataUpdateTime =
-                                    dataSetBatches.First.Header.MetaDataUpdateTime,
+                                    dataSet.Header.MetaDataUpdateTimeTimespan,
                                 MetaDataQueueName =
-                                    dataSetBatches.First.Header.MetaDataQueueName,
+                                    dataSet.Header.MetaDataQueueName,
                                 KeyFrameCount =
-                                    dataSetBatches.First.Header.DataSetKeyFrameCount,
+                                    dataSet.Header.DataSetKeyFrameCount,
                                 DataSet = new PublishedDataSetModel {
-                                    Name = dataSetBatches.First.Header.DataSetName,
+                                    Name = dataSet.Header.DataSetName,
                                     DataSetMetaData =
                                         new DataSetMetaDataModel {
-                                            DataSetClassId = dataSetBatches.First.Header.DataSetClassId,
-                                            Description = dataSetBatches.First.Header.DataSetDescription,
-                                            Name = dataSetBatches.First.Header.DataSetName
+                                            DataSetClassId = dataSet.Header.DataSetClassId,
+                                            Description = dataSet.Header.DataSetDescription,
+                                            Name = dataSet.Header.DataSetName
                                         },
                                     // TODO: Add extension information from configuration
                                     ExtensionFields = new Dictionary<string, string>(),
@@ -365,14 +355,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         SubscriptionSettings = dataSet.Source.SubscriptionSettings.Clone(),
                                     },
                                 },
-                                DataSetFieldContentMask = standaloneCliModel.MessagingProfile.DataSetFieldContentMask,
+                                DataSetFieldContentMask = configuration.MessagingProfile.DataSetFieldContentMask,
                                 MessageSettings = new DataSetWriterMessageSettingsModel {
-                                    DataSetMessageContentMask = standaloneCliModel.MessagingProfile.DataSetMessageContentMask
+                                    DataSetMessageContentMask = configuration.MessagingProfile.DataSetMessageContentMask
                                 }
                             }).ToList(),
                             MessageSettings = new WriterGroupMessageSettingsModel {
-                                NetworkMessageContentMask = standaloneCliModel.MessagingProfile.NetworkMessageContentMask,
-                                MaxMessagesPerPublish = standaloneCliModel.MaxMessagesPerPublish
+                                NetworkMessageContentMask = configuration.MessagingProfile.NetworkMessageContentMask,
                             }
                         }
                     });
@@ -554,10 +543,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             yield return (item, new OpcNodeModel {
                                 Id = !string.IsNullOrEmpty(node.Id) ? node.Id : node.ExpandedNodeId,
                                 DisplayName = !string.IsNullOrEmpty(node.DisplayName) ?
-                                    $"{node.DisplayName}_{i}" :
-                                    !string.IsNullOrEmpty(node.Id) ?
-                                        $"{node.Id}_{i}" :
-                                        $"{node.ExpandedNodeId}_{i}",
+                                    $"{node.DisplayName}_{i}" : null,
                                 DataSetFieldId = node.DataSetFieldId,
                                 DataSetClassFieldId = node.DataSetClassFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,

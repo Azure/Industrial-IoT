@@ -14,12 +14,12 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "ENGINEERING_TOOL";
+        public string Id => "ENGINEERING_TOOL";
 
         /// <summary>
         /// Process id
         /// </summary>
-        public string Id => System.Guid.NewGuid().ToString();
+        public string ProcessId => System.Guid.NewGuid().ToString();
 
         /// <summary>
         /// Name of service
@@ -30,5 +30,8 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// Description of service
         /// </summary>
         public string Description => "Azure Industrial IoT Engineering Tool";
+
+        /// <inheritdoc/>
+        public string SiteId { get; }
     }
 }

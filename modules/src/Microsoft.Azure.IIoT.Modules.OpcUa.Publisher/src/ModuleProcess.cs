@@ -45,18 +45,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             _exitCode = 0;
             _exit = new TaskCompletionSource<bool>();
             AssemblyLoadContext.Default.Unloading += _ => _exit.TrySetResult(true);
-            SiteId = _config?.GetValue<string>("site", null);
         }
-
-        /// <summary>
-        /// Site of the module
-        /// </summary>
-        public string SiteId { get; set; }
-
-        /// <summary>
-        /// Opc stack trace mask
-        /// </summary>
-        public int OpcStackTraceMask { get; set; }
 
         /// <inheritdoc />
         public void Reset() {
@@ -96,7 +85,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var events = hostScope.Resolve<IEventEmitter>();
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                    var identity = hostScope.Resolve<IIdentity>();
                     var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
                     var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
@@ -107,8 +95,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         healthCheckManager.Start();
 
                         // Start module
-                        await module.StartAsync(IdentityType.Publisher, SiteId,
-                            "OpcPublisher", version, this).ConfigureAwait(false);
+                        await module.StartAsync(IdentityType.Publisher, "OpcPublisher",
+                            version, this).ConfigureAwait(false);
 
                         // Reporting runtime state on restart.
                         // Reporting will happen only in stadalone mode.
@@ -148,9 +136,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// <returns></returns>
         private IContainer ConfigureContainer(IConfiguration configuration) {
 
-            var config = new Config(configuration);
+            var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
-            var standaloneCliOptions = new StandaloneCliOptions(configuration);
+            var cliOptions = new Runtime.PublisherCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -165,19 +153,23 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             builder.AddDiagnostics(config,
-                standaloneCliOptions.ToLoggerConfiguration());
-            builder.RegisterInstance(standaloneCliOptions)
+                cliOptions.ToLoggerConfiguration());
+            builder.RegisterInstance(cliOptions)
                 .AsImplementedInterfaces();
 
+            builder.RegisterType<PublisherIdentity>()
+                .AsImplementedInterfaces();
             builder.RegisterType<PublishedNodesProvider>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublishedNodesJobConverter>()
                 .SingleInstance();
-            builder.RegisterType<PublisherConfigService>()
+            builder.RegisterType<PublisherConfigurationService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherHostService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<WriterGroupScopeFactory>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublisherDiagnosticCollector>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();

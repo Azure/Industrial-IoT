@@ -80,29 +80,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public Guid DataSetClassId { get; set; }
 
-        /// <summary> Insert a key frame every x messages </summary>
+        /// <summary>
+        /// Insert a key frame every x messages
+        /// </summary>
         [DataMember(Name = "dataSetKeyFrameCount", Order = 14,
             EmitDefaultValue = false)]
         public uint? DataSetKeyFrameCount { get; set; }
 
-        /// <summary> Send metadata at the configured interval even when not changing </summary>
+        /// <summary>
+        /// Send metadata at the configured interval even
+        /// when not changing
+        /// </summary>
         [DataMember(Name = "metaDataUpdateTime", Order = 15,
             EmitDefaultValue = false)]
-        public TimeSpan? MetaDataUpdateTime { get; set; }
+        public int? MetaDataUpdateTime { get; set; }
 
-        /// <summary> Metadata queue name </summary>
-        [DataMember(Name = "metaDataQueueName", Order = 16,
+        /// <summary>
+        /// Same as <see cref="MetaDataUpdateTime"/> but expressed
+        /// as duration string. Takes precedence.
+        /// </summary>
+        [DataMember(Name = "metaDataUpdateTimeTimespan", Order = 16,
+            EmitDefaultValue = false)]
+        public TimeSpan? MetaDataUpdateTimeTimespan { get; set; }
+
+        /// <summary>
+        /// Metadata queue name
+        /// </summary>
+        [DataMember(Name = "metaDataQueueName", Order = 17,
             EmitDefaultValue = false)]
         public string MetaDataQueueName { get; set; }
 
-        /// <summary> Version number </summary>
-        [DataMember(Name = "version", Order = 17,
+        /// <summary>
+        /// Version number
+        /// </summary>
+        [DataMember(Name = "version", Order = 18,
             EmitDefaultValue = false)]
         public int? Version { get; set; }
 
-        /// <summary> Last change </summary>
-        [DataMember(Name = "lastChange", Order = 18,
+        /// <summary>
+        /// Last change
+        /// </summary>
+        [DataMember(Name = "lastChangeTimespan", Order = 19,
             EmitDefaultValue = false)]
-        public DateTime? LastChange { get; set; }
+        public DateTime? LastChangeTimespan { get; set; }
     }
 }

@@ -44,10 +44,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <param name="config"></param>
         /// <param name="broker"></param>
         /// <param name="logger"></param>
-        /// <param name="metrics"></param>
-        public IoTSdkFactory(IModuleConfig config, IEventSourceBroker broker, ILogger logger,
-            IMetricsContext metrics) {
-            _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
+        public IoTSdkFactory(IModuleConfig config, IEventSourceBroker broker, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _telemetryTopicTemplate = config.TelemetryTopicTemplate;
 
@@ -169,7 +166,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <inheritdoc/>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5359:Do Not Disable Certificate Validation",
             Justification = "<Pending>")]
-        public async Task<IClient> CreateAsync(string product, IProcessControl ctrl) {
+        public async Task<IClient> CreateAsync(string product,
+            IMetricsContext metrics, IProcessControl ctrl) {
 
             if (_bypassCertValidation) {
                 _logger.Warning("Bypassing certificate validation for client.");
@@ -217,10 +215,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             if (transportSettings.Count != 0) {
                 return await Try.Options(transportSettings
                     .Select<ITransportSettings, Func<Task<IClient>>>(t =>
-                         () => CreateAdapterAsync(product, () => ctrl?.Reset(), t))
+                         () => CreateAdapterAsync(product, () => ctrl?.Reset(), metrics, t))
                     .ToArray());
             }
-            return await CreateAdapterAsync(product, () => ctrl?.Reset());
+            return await CreateAdapterAsync(product, () => ctrl?.Reset(), metrics);
         }
 
         /// <summary>
@@ -228,18 +226,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// </summary>
         /// <param name="product"></param>
         /// <param name="onError"></param>
+        /// <param name="metrics"></param>
         /// <param name="transportSetting"></param>
         /// <returns></returns>
         private Task<IClient> CreateAdapterAsync(string product, Action onError,
-            ITransportSettings transportSetting = null) {
+            IMetricsContext metrics, ITransportSettings transportSetting = null) {
             if (string.IsNullOrEmpty(ModuleId)) {
                 if (_mqttClientCs != null) {
                     return MqttClientAdapter.CreateAsync(_mqttClientCs, DeviceId, _telemetryTopicTemplate,
-                        timeout: _timeout, logger: _logger, metrics: _metrics);
+                        timeout: _timeout, logger: _logger, metrics: metrics);
                 }
                 else if (_deviceClientCs != null) {
                     return DeviceClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId,
-                        transportSetting, timeout: _timeout, RetryPolicy, onError, _logger, _metrics);
+                        transportSetting, timeout: _timeout, RetryPolicy, onError, _logger, metrics);
                 }
                 else {
                     throw new InvalidConfigurationException(
@@ -248,7 +247,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
             return ModuleClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId, ModuleId,
                 _enableOutputRouting, transportSetting, timeout: _timeout, retry: RetryPolicy,
-                onConnectionLost: onError, logger: _logger, metrics: _metrics);
+                onConnectionLost: onError, logger: _logger, metrics: metrics);
         }
 
         /// <summary>
@@ -303,7 +302,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private readonly TransportOption _transport;
         private readonly IotHubConnectionStringBuilder _deviceClientCs;
         private readonly MqttClientConnectionStringBuilder _mqttClientCs;
-        private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
         private readonly string _telemetryTopicTemplate;
         private readonly IDisposable _logHook;

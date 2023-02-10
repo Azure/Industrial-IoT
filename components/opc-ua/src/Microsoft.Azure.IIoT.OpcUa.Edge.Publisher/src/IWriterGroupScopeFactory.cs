@@ -12,11 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     public interface IWriterGroupScopeFactory {
 
         /// <summary>
-        /// Publisher identity
-        /// </summary>
-        string PublisherId { get; }
-
-        /// <summary>
         /// Create a writer group container containing everything
         /// needed to resolve the writer group processing engine.
         /// </summary>

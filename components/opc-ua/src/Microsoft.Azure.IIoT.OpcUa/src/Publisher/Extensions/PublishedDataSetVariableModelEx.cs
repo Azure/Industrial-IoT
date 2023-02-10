@@ -39,7 +39,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 HeartbeatInterval = model.HeartbeatInterval,
                 BrowsePath = model.BrowsePath,
                 MonitoringMode = model.MonitoringMode,
-                TriggerId = model.TriggerId
             };
         }
     }

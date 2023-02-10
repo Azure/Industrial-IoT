@@ -28,6 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     using System.Threading.Tasks;
     using Serilog;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Provides discovery services
@@ -48,15 +49,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// <param name="logger"></param>
         /// <param name="serializer"></param>
         /// <param name="progress"></param>
+        /// <param name="identity"></param>
         public DiscoveryServices(IEndpointDiscovery client, IEventEmitter events,
-            IJsonSerializer serializer, ILogger logger, IDiscoveryProgress progress = null) {
+            IJsonSerializer serializer, ILogger logger, IDiscoveryProgress progress = null,
+            IProcessIdentity identity = null) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _progress = progress ?? new ProgressLogger(logger);
-
+            _identity = identity;
             _runner = Task.Run(() => ProcessDiscoveryRequestsAsync(_cts.Token));
             _timer = new Timer(_ => OnScanScheduling(), null,
                 TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan);
@@ -406,7 +409,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 var endpoints = 0;
                 foreach (var ep in eps) {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
-                        _events.SiteId, _events.DeviceId, _events.ModuleId, _serializer));
+                        _identity.SiteId, _identity.ProcessId, _identity.Id, _serializer));
                     endpoints++;
                 }
                 _progress.OnFindEndpointsFinished(request.Request, 1, count, discoveryUrls.Count,
@@ -666,20 +669,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         private readonly IJsonSerializer _serializer;
         private readonly IEventEmitter _events;
         private readonly IDiscoveryProgress _progress;
+        private readonly IProcessIdentity _identity;
         private readonly IEndpointDiscovery _client;
         private readonly Task _runner;
         private readonly Timer _timer;
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly List<DiscoveryRequest> _pending =
             new List<DiscoveryRequest>();
-#pragma warning disable IDE0069 // Disposable fields should be disposed
         private readonly BlockingCollection<DiscoveryRequest> _queue =
             new BlockingCollection<DiscoveryRequest>();
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
         private DiscoveryRequest _request = new DiscoveryRequest();
+
+
         private static readonly string kDiscoveryMetricsPrefix = "iiot_edge_discovery_";
-#pragma warning restore IDE0069 // Disposable fields should be disposed
         private static readonly Counter kDiscoverAsync = Metrics
     .CreateCounter(kDiscoveryMetricsPrefix + "discover", "call to discover");
         private static readonly Counter kCancelAsync = Metrics

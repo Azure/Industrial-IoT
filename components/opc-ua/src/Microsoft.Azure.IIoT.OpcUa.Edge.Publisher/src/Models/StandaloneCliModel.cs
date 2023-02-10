@@ -14,6 +14,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     public class StandaloneCliModel {
 
         /// <summary>
+        /// Site of the publisher
+        /// </summary>
+        public string PublisherSite { get; set; }
+
+        /// <summary>
         /// The published nodes file.
         /// </summary>
         public string PublishedNodesFile { get; set; }
@@ -167,7 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// Max messages packed into an outgoing message
         /// </summary>
-        public uint? MaxMessagesPerPublish { get; set; }
+        public uint? DefaultMaxMessagesPerPublish { get; set; }
 
         /// <summary>
         /// The maximum size of the (IoT D2C) message
@@ -198,7 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured
         /// for a dataSetWriter, they will be added in a different DataSet/Subscription.
         /// </summary>
-        public int MaxNodesPerDataSet { get; set; } = 1000;
+        public int MaxNodesPerPublishedEndpoint { get; set; } = 1000;
 
         /// <summary>
         /// Run in 2.5.* compatibility mode

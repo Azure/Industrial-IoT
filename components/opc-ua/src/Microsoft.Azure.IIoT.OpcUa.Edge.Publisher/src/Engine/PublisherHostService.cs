@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Autofac;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Serilog;
     using System;
@@ -29,19 +29,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// supports aggregation of diagnostics and single sink console output of
     /// the diagnostics data.
     /// </summary>
-    public sealed class PublisherHostService : IPublisher, IDisposable, IMetricsContext {
+    public sealed class PublisherHostService : IPublisherHost, IDisposable,
+        IMetricsContext {
+
+        /// <inheritdoc/>
+        public string PublisherId { get; }
 
         /// <inheritdoc/>
         public IEnumerable<WriterGroupJobModel> WriterGroups { get; private set; }
-            = ImmutableList<WriterGroupJobModel>.Empty;
+            = Enumerable.Empty<WriterGroupJobModel>();
 
         /// <inheritdoc/>
         public DateTime LastChange { get; private set; }
             = DateTime.UtcNow;
-
-        /// <inheritdoc/>
-        public IEnumerable<PublishDiagnosticInfoModel> DiagnosticInfo
-            => _diagnosticInfo.Values;
 
         /// <inheritdoc/>
         public int Version => _version;
@@ -53,18 +53,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Create Job host
         /// </summary>
         /// <param name="factory"></param>
+        /// <param name="identity"></param>
         /// <param name="logger"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public PublisherHostService(IWriterGroupScopeFactory factory, ILogger logger) {
+        public PublisherHostService(IWriterGroupScopeFactory factory,
+            IProcessIdentity identity, ILogger logger) {
+            PublisherId = identity.ToIdentityString();
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _currentJobs = new Dictionary<string, JobContext>();
-            _publishedNodesEntries
-                = ImmutableList<PublishedNodesEntryModel>.Empty;
-            _diagnosticInfo
-                = ImmutableDictionary<string, PublishDiagnosticInfoModel>.Empty;
             TagList = new TagList(new[] {
-                new KeyValuePair<string, object>("publisherId", factory.PublisherId),
+                new KeyValuePair<string, object>("publisherId", PublisherId),
                 new KeyValuePair<string, object>("timestamp_utc",
                     DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                     CultureInfo.InvariantCulture))
@@ -85,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public Task UpdateAsync(IEnumerable<WriterGroupJobModel> jobs) {
             var tcs = new TaskCompletionSource(
-                TaskCreationOptions.RunContinuationsAsynchronously | TaskCreationOptions.AttachedToParent);
+                TaskCreationOptions.RunContinuationsAsynchronously);
             if (_changeFeed.Writer.TryWrite((tcs, jobs.ToList()))) {
                 return tcs.Task;
             }
@@ -234,7 +233,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 Job = writerGroup;
                 Id = Job.GetJobId();
                 _configuration = writerGroup.ToWriterGroupJobConfiguration(
-                    _outer._factory.PublisherId);
+                    _outer.PublisherId);
                 _scope = _outer._factory.Create(_configuration);
                 Source = _scope.WriterGroup.Source;
             }
@@ -311,8 +310,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly TaskCompletionSource _completedTask;
         private readonly CancellationTokenSource _cts;
         private readonly Channel<(TaskCompletionSource, List<WriterGroupJobModel>)> _changeFeed;
-        private ImmutableList<PublishedNodesEntryModel> _publishedNodesEntries;
-        private ImmutableDictionary<string, PublishDiagnosticInfoModel> _diagnosticInfo;
         private int _version;
     }
 }

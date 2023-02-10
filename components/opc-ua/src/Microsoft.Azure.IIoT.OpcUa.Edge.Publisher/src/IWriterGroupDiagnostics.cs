@@ -3,20 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
-    using Microsoft.Azure.IIoT.Auth.Models;
-    using System.Threading.Tasks;
+
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
+    using System;
 
     /// <summary>
-    /// Validates identity token
+    /// Writer group diagnostics control
     /// </summary>
-    public interface IIdentityTokenValidator {
+    public interface IWriterGroupDiagnostics : IDisposable {
 
         /// <summary>
-        /// Validate token and throw if not valid
+        /// Reset diagnostics for writer group
         /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        Task ValidateToken(IdentityTokenModel token);
+        void ResetWriterGroupDiagnostics();
     }
 }

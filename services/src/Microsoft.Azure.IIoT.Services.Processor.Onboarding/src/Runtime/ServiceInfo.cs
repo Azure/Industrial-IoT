@@ -14,12 +14,12 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "OPC_ONBOARDING_AGENT";
+        public string Id => "OPC_ONBOARDING_AGENT";
 
         /// <summary>
         /// Process id
         /// </summary>
-        public string Id => System.Guid.NewGuid().ToString();
+        public string ProcessId => System.Guid.NewGuid().ToString();
 
         /// <summary>
         /// Name of service
@@ -30,5 +30,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
         /// Description of service
         /// </summary>
         public string Description => "Azure Industrial IoT OPC UA Onboarding Service";
+
+        /// <inheritdoc/>
+        public string SiteId { get; }
     }
 }

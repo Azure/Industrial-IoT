@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Opc.Ua;
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Diagnostics;
 
     public interface ITestModule {
 
@@ -26,11 +27,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     /// <summary>
     /// Test identity
     /// </summary>
-    public sealed class TestIdentity : IIdentity {
-        public string Gateway => Utils.GetHostName();
-        public string DeviceId => Gateway;
-        public string ModuleId => "TestModule";
+    public sealed class TestIdentity : IProcessIdentity {
+        public string Id => Utils.GetHostName();
         public string SiteId => "TestSite";
+        public string ProcessId => null;
+        public string Name => null;
     }
 
     /// <summary>

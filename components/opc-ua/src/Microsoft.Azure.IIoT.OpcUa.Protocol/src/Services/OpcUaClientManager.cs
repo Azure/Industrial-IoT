@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -43,9 +44,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
         public OpcUaClientManager(IClientServicesConfig clientConfig,
-            ISubscriptionConfig subscriptionConfig, IIdentity identity,
+            ISubscriptionConfig subscriptionConfig, IProcessIdentity identity,
             IVariantEncoderFactory codec, ILogger logger, IMetricsContext metrics)
-            : this( metrics ?? throw new ArgumentNullException(nameof(metrics))) {
+            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _clientConfig = clientConfig ??
                 throw new ArgumentNullException(nameof(clientConfig));
             Configuration = subscriptionConfig ??
@@ -54,10 +55,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 throw new ArgumentNullException(nameof(codec));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
-            _identity = identity ??
-                throw new ArgumentNullException(nameof(identity));
             _configuration = _clientConfig.BuildApplicationConfigurationAsync(
-                _identity, OnValidate, _logger).GetAwaiter().GetResult();
+                 identity.ToIdentityString(), OnValidate, _logger).GetAwaiter().GetResult();
             _lock = new SemaphoreSlim(1, 1);
             _cts = new CancellationTokenSource();
             _processor = Task.Factory.StartNew(() => RunClientManagerAsync(
@@ -311,7 +310,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="metrics"></param>
         private OpcUaClientManager(IMetricsContext metrics) {
-            Diagnostics.Meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
+            Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_client_count",
                 () => new Measurement<int>(_clients.Count, metrics.TagList), "Clients",
                 "Monitored item count.");
             _metrics = metrics;
@@ -319,7 +318,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         private readonly ILogger _logger;
         private readonly IClientServicesConfig _clientConfig;
-        private readonly IIdentity _identity;
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients =
             new ConcurrentDictionary<ConnectionIdentifier, OpcUaClient>();
         private readonly SemaphoreSlim _lock;

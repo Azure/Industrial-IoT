@@ -24,27 +24,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
+    using System.IO;
+    using System.Text;
 
     /// <summary>
     /// Tests the PublisherConfigService class
     /// </summary>
-    public class PublisherConfigServicesTest1 : TempFileProviderBase {
+    public class PublisherConfigServicesTests : TempFileProviderBase {
 
         private readonly NewtonSoftJsonSerializer _newtonSoftJsonSerializer;
         private readonly NewtonSoftJsonSerializerRaw _newtonSoftJsonSerializerRaw;
         private readonly ILogger _logger;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
-        private readonly StandaloneCliModel _standaloneCliModel;
-        private readonly Mock<IStandaloneCliModelProvider> _standaloneCliModelProviderMock;
-        private PublisherConfigService _configService;
+        private readonly Mock<IPublisherConfiguration> _configMock;
+        private PublisherConfigurationService _configService;
         private readonly PublishedNodesProvider _publishedNodesProvider;
         private readonly Mock<IMessageSource> _triggerMock;
-        private readonly IPublisher _publisher;
+        private readonly IPublisherHost _publisher;
 
         /// <summary>
         /// Constructor that initializes common resources used by tests.
         /// </summary>
-        public PublisherConfigServicesTest1() {
+        public PublisherConfigServicesTests() {
             _newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             _newtonSoftJsonSerializerRaw = new NewtonSoftJsonSerializerRaw();
             _logger = TraceLogger.Create();
@@ -57,15 +58,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Note that each test is responsible for setting content of _tempFile;
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
-            _standaloneCliModel = new StandaloneCliModel {
-                PublishedNodesFile = _tempFile,
-                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
-            };
 
-            _standaloneCliModelProviderMock = new Mock<IStandaloneCliModelProvider>();
-            _standaloneCliModelProviderMock.Setup(p => p.StandaloneCliModel).Returns(_standaloneCliModel);
+            _configMock = new Mock<IPublisherConfiguration>();
+            _configMock.SetupAllProperties();
+            _configMock.SetupGet(p => p.PublishedNodesFile).Returns(_tempFile);
+            _configMock.SetupGet(p => p.PublishedNodesSchemaFile).Returns("Storage/publishednodesschema.json");
+            _configMock.SetupGet(p => p.MaxNodesPerPublishedEndpoint).Returns(1000);
+            _configMock.SetupGet(p => p.MessagingProfile).Returns(MessagingProfile.Get(
+                OpcUa.Publisher.Models.MessagingMode.PubSub, OpcUa.Publisher.Models.MessageEncoding.Json));
 
-            _publishedNodesProvider = new PublishedNodesProvider(_standaloneCliModelProviderMock.Object, _logger);
+            _publishedNodesProvider = new PublishedNodesProvider(_configMock.Object, _logger);
             _triggerMock = new Mock<IMessageSource>();
             var factoryMock = new Mock<IWriterGroupScopeFactory>();
             var writerGroup = new Mock<IWriterGroup>();
@@ -75,16 +77,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             factoryMock
                 .Setup(factory => factory.Create(It.IsAny<IWriterGroupConfig>()))
                 .Returns(lifetime.Object);
-            _publisher = new PublisherHostService(factoryMock.Object, _logger);
+            _publisher = new PublisherHostService(factoryMock.Object, new Mock<IProcessIdentity>().Object, _logger);
         }
 
         /// <summary>
         /// This method should be called only after content of _tempFile is set.
         /// </summary>
         private void InitPublisherConfigService() {
-            _configService = new PublisherConfigService(
+            _configService = new PublisherConfigurationService(
                 _publishedNodesJobConverter,
-                _standaloneCliModelProviderMock.Object,
+                _configMock.Object,
                 _publisher,
                 _logger,
                 _publishedNodesProvider,
@@ -161,7 +163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/pn_2.5_legacy_error.json", true)]
         public async Task Legacy25PublishedNodesFileError(string publishedNodesFile, bool useSchemaValidation) {
             if (!useSchemaValidation) {
-                _standaloneCliModel.PublishedNodesSchemaFile = null;
+                _configMock.SetupGet(m => m.PublishedNodesSchemaFile).Returns((string)null);
             }
 
             Utils.CopyContent(publishedNodesFile, _tempFile);
@@ -223,10 +225,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             exceptionResponse = $"{{\"Message\":\"Response 404 Nodes not found\"," +
                 $"\"Details\":{{\"DataSetWriterId\":\"DataSetWriterId0\"," +
                 $"\"DataSetWriterGroup\":\"DataSetWriterGroup\"," +
-                $"\"DataSetPublishingInterval\":1000," +
                 $"\"EndpointUrl\":\"opc.tcp://opcplc:50000\"," +
                 $"\"UseSecurity\":false,\"OpcAuthenticationMode\":\"anonymous\"," +
-                $"\"OpcNodes\":[{{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\"}}]}}}}";
+                $"\"OpcNodes\":[{{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\",\"OpcPublishingIntervalTimespan\":\"00:00:01\"}}]}}}}";
 
             var opcNodes1 = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel {
@@ -252,9 +253,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 Message = "Response 404 Nodes not found",
                 Details = $"{{\"DataSetWriterId\":\"DataSetWriterId0\"," +
                     $"\"DataSetWriterGroup\":\"DataSetWriterGroup\"," +
-                    $"\"DataSetPublishingInterval\":1000,\"EndpointUrl\":\"opc.tcp://opcplc:50000\"," +
+                    $"\"EndpointUrl\":\"opc.tcp://opcplc:50000\"," +
                     $"\"UseSecurity\":false,\"OpcAuthenticationMode\":\"anonymous\"," +
-                    $"\"OpcNodes\":[{{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\"}}]}}",
+                    $"\"OpcNodes\":[{{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\",\"OpcPublishingIntervalTimespan\":\"00:00:01\"}}]}}",
             };
             serializeExceptionModel = _newtonSoftJsonSerializerRaw.SerializeToString(exceptionModel);
             serializeExceptionModel.Should().BeEquivalentTo(exceptionResponse);
@@ -481,7 +482,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task Test_AddOrUpdateEndpoints_AddEndpoints(
             bool useDataSetSpecificEndpoints
         ) {
-            _standaloneCliModel.MaxNodesPerDataSet = 2;
+            _configMock.SetupGet(m => m.MaxNodesPerPublishedEndpoint).Returns(2);
 
             InitPublisherConfigService();
 
@@ -544,7 +545,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 ++index;
 
                 var shouldThrow = !_publishedNodesJobConverter.ToPublishedNodes(0, default, _publisher.WriterGroups)
-                    .Any(dataSet => dataSet.HasSameDataSet(request, false));
+                    .Select(p => p.PropagatePublishingIntervalToNodes())
+                    .Any(dataSet => dataSet.HasSameDataSet(request.PropagatePublishingIntervalToNodes()));
                 if (shouldThrow) {
                     await FluentActions
                         .Invoking(async () => await _configService
@@ -574,7 +576,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
         [Fact]
         public async Task Test_AddOrUpdateEndpoints_AddAndRemove() {
-            _standaloneCliModel.MaxNodesPerDataSet = 2;
+            _configMock.SetupGet(m => m.MaxNodesPerPublishedEndpoint).Returns(2);
 
             InitPublisherConfigService();
 
@@ -607,11 +609,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Helper method.
             async Task AssertGetConfiguredNodesOnEndpointThrows(
-                PublisherConfigService standaloneJobOrchestrator,
+                PublisherConfigurationService publisherConfigurationService,
                 PublishedNodesEntryModel endpoint
             ) {
                 await FluentActions
-                    .Invoking(async () => await standaloneJobOrchestrator
+                    .Invoking(async () => await publisherConfigurationService
                         .GetConfiguredNodesOnEndpointAsync(endpoint)
                         .ConfigureAwait(false))
                     .Should()
@@ -683,7 +685,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             InitPublisherConfigService();
 
             // Engine/empty_opc_nodes.json contains entries with null or empty OpcNodes.
-            // Those entries should not result in any endpoint entries in standaloneJobOrchestrator.
+            // Those entries should not result in any endpoint entries in publisherConfigurationService.
             var configuredEndpoints = await _configService
                 .GetConfiguredEndpointsAsync()
                 .ConfigureAwait(false);
@@ -759,6 +761,222 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2", nodes[1].Id);
         }
 
+        [Theory]
+        [InlineData("Engine/publishednodes.json")]
+        [InlineData("Engine/publishednodeswithoptionalfields.json")]
+        [InlineData("Engine/pn_assets.json")]
+        [InlineData("Engine/pn_assets_with_optional_fields.json")]
+        [InlineData("Engine/pn_events.json")]
+        [InlineData("Engine/pn_pending_alarms.json")]
+        public async Task PublishNodesOnEmptyConfiguration(string publishedNodesFile) {
+            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            InitPublisherConfigService();
+
+            string payload = Utils.GetFileContent(publishedNodesFile);
+            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
+
+            foreach (var request in publishNodesRequest) {
+                await FluentActions
+                    .Invoking(async () => await _configService.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+            }
+
+            _publisher.WriterGroups.Count()
+                .Should()
+                .Be(1);
+        }
+
+        [Theory]
+        [InlineData("Engine/publishednodes.json", "Engine/publishednodeswithoptionalfields.json")]
+        [InlineData("Engine/publishednodeswithoptionalfields.json", "Engine/publishednodes.json")]
+        [InlineData("Engine/pn_assets.json", "Engine/pn_assets_with_optional_fields.json")]
+        [InlineData("Engine/pn_assets_with_optional_fields.json", "Engine/pn_assets.json")]
+        [InlineData("Engine/pn_events.json", "Engine/pn_pending_alarms.json")]
+        public async Task PublishNodesOnExistingConfiguration(string existingConfig, string newConfig) {
+            Utils.CopyContent(existingConfig, _tempFile);
+            InitPublisherConfigService();
+
+            string payload = Utils.GetFileContent(newConfig);
+            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
+
+            foreach (var request in publishNodesRequest) {
+                await FluentActions
+                    .Invoking(async () => await _configService.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+            }
+
+            _publisher.WriterGroups.Count()
+                .Should()
+                .Be(1);
+        }
+
+        [Theory]
+        [InlineData("Engine/publishednodes.json", "Engine/pn_assets.json")]
+        [InlineData("Engine/publishednodeswithoptionalfields.json", "Engine/pn_assets_with_optional_fields.json")]
+        [InlineData("Engine/pn_assets.json", "Engine/publishednodes.json")]
+        [InlineData("Engine/pn_assets_with_optional_fields.json", "Engine/publishednodeswithoptionalfields.json")]
+        public async Task PublishNodesOnNewConfiguration(string existingConfig, string newConfig) {
+            Utils.CopyContent(existingConfig, _tempFile);
+            InitPublisherConfigService();
+
+            string payload = Utils.GetFileContent(newConfig);
+            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
+
+            foreach (var request in publishNodesRequest) {
+                await FluentActions
+                    .Invoking(async () => await _configService.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+            }
+
+            _publisher.WriterGroups.Count()
+                .Should()
+                .Be(1);
+        }
+
+        [Theory]
+        [InlineData("Engine/publishednodes.json")]
+        [InlineData("Engine/publishednodeswithoptionalfields.json")]
+        [InlineData("Engine/pn_assets.json")]
+        [InlineData("Engine/pn_assets_with_optional_fields.json")]
+        public async Task UnpublishNodesOnExistingConfiguration(string publishedNodesFile) {
+            Utils.CopyContent(publishedNodesFile, _tempFile);
+            InitPublisherConfigService();
+
+            string payload = Utils.GetFileContent(publishedNodesFile);
+            var unpublishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
+
+            foreach (var request in unpublishNodesRequest) {
+                await FluentActions
+                    .Invoking(async () => await _configService.UnpublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+            }
+
+            _publisher.WriterGroups.Count()
+                .Should()
+                .Be(0);
+        }
+
+        [Theory]
+        [InlineData("Engine/publishednodes.json", "Engine/pn_assets.json")]
+        [InlineData("Engine/publishednodeswithoptionalfields.json", "Engine/pn_assets_with_optional_fields.json")]
+        [InlineData("Engine/pn_assets.json", "Engine/publishednodes.json")]
+        [InlineData("Engine/pn_assets_with_optional_fields.json", "Engine/publishednodeswithoptionalfields.json")]
+        public async Task UnpublishNodesOnNonExistingConfiguration(string existingConfig, string newConfig) {
+            Utils.CopyContent(existingConfig, _tempFile);
+            InitPublisherConfigService();
+
+            string payload = Utils.GetFileContent(newConfig);
+            var unpublishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
+
+            foreach (var request in unpublishNodesRequest) {
+                await FluentActions
+                    .Invoking(async () => await _configService.UnpublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .ThrowAsync<MethodCallStatusException>()
+                    .WithMessage($"{{\"Message\":\"Response 404 Endpoint not found: {request.EndpointUrl}\",\"Details\":{{}}}}")
+                    .ConfigureAwait(false);
+            }
+
+            _publisher.WriterGroups.Sum(g => g.WriterGroup.DataSetWriters.Count)
+                .Should()
+                .Be(2);
+        }
+
+        [Theory]
+        [InlineData(2, 10)]
+        // [InlineData(100, 1000)]
+        public async Task PublishNodesStressTest(int numberOfEndpoints, int numberOfNodes) {
+            using (var fileStream = new FileStream(_tempFile, FileMode.Open, FileAccess.Write)) {
+                fileStream.Write(Encoding.UTF8.GetBytes("[]"));
+            }
+            InitPublisherConfigService();
+
+            var payload = new List<PublishedNodesEntryModel>();
+            for (int endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
+                var model = new PublishedNodesEntryModel {
+                    EndpointUrl = new Uri($"opc.tcp://server{endpointIndex}:49580"),
+                };
+
+                model.OpcNodes = new List<OpcNodeModel>();
+                for (var nodeIndex = 0; nodeIndex < numberOfNodes; ++nodeIndex) {
+                    model.OpcNodes.Add(new OpcNodeModel {
+                        Id = $"ns=2;s=Node-Server-{nodeIndex}",
+                    });
+                }
+
+                payload.Add(model);
+            }
+
+            // Publish all nodes.
+            foreach (var request in payload) {
+                await FluentActions
+                    .Invoking(async () => await _configService.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+            }
+
+            void CheckEndpointsAndNodes(
+                int expectedNumberOfEndpoints,
+                int expectedNumberOfNodesPerEndpoint
+            ) {
+                var writerGroups = _publisher.WriterGroups;
+                writerGroups
+                    .SelectMany(jobModel => jobModel.WriterGroup.DataSetWriters)
+                    .Count(v => v.DataSet.DataSetSource.PublishedVariables.PublishedData.Count == expectedNumberOfNodesPerEndpoint)
+                    .Should()
+                    .Be(expectedNumberOfEndpoints);
+            }
+
+            // Check
+            CheckEndpointsAndNodes(numberOfEndpoints, numberOfNodes);
+
+            // Publish one more node for each endpoint.
+            var payloadDiff = new List<PublishedNodesEntryModel>();
+            for (int endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
+                var model = new PublishedNodesEntryModel {
+                    EndpointUrl = new Uri($"opc.tcp://server{endpointIndex}:49580"),
+                    OpcNodes = new List<OpcNodeModel> {
+                        new OpcNodeModel {
+                            Id = $"ns=2;s=Node-Server-{numberOfNodes}",
+                        }
+                    }
+                };
+
+                payloadDiff.Add(model);
+            }
+
+            foreach (var request in payloadDiff) {
+                await FluentActions
+                    .Invoking(async () => await _configService.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+            }
+
+            // Check
+            CheckEndpointsAndNodes(numberOfEndpoints, numberOfNodes + 1);
+
+            // Unpublish new nodes for each endpoint.
+            foreach (var request in payloadDiff) {
+                await FluentActions
+                    .Invoking(async () => await _configService.UnpublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+            }
+
+            // Check
+            CheckEndpointsAndNodes(numberOfEndpoints, numberOfNodes);
+        }
 
         private static PublishedNodesEntryModel GenerateEndpoint(
             int dataSetIndex,
@@ -777,10 +995,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         }
 
         private static void AssertSameNodes(PublishedNodesEntryModel endpoint, List<OpcNodeModel> nodes) {
-            Assert.Equal(endpoint.OpcNodes.Count, nodes.Count);
-            for (var k = 0; k < endpoint.OpcNodes.Count; k++) {
-                Assert.True(endpoint.OpcNodes[k].IsSame(nodes[k]));
-            }
+            endpoint.PropagatePublishingIntervalToNodes();
+            Assert.True(endpoint.OpcNodes.SetEqualsSafe(nodes, (a, b) => a.IsSame(b)));
         }
     }
 }

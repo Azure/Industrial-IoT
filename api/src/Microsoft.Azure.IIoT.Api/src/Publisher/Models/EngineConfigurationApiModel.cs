@@ -28,13 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public TimeSpan? BatchTriggerInterval { get; set; }
 
         /// <summary>
-        /// Interval for diagnostic messages
-        /// </summary>
-        [DataMember(Name = "diagnosticsInterval", Order = 2,
-            EmitDefaultValue = false)]
-        public TimeSpan? DiagnosticsInterval { get; set; }
-
-        /// <summary>
         /// Buffer size
         /// </summary>
         [DataMember(Name = "maxMessageSize", Order = 3,

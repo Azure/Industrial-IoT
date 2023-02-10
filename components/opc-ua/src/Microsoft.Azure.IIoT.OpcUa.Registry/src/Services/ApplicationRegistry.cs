@@ -31,14 +31,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="bulk"></param>
         /// <param name="broker"></param>
         /// <param name="logger"></param>
-        /// <param name="metrics"></param>
         public ApplicationRegistry(IApplicationRepository database,
             IApplicationEndpointRegistry endpoints, IEndpointBulkProcessor bulk,
             IRegistryEventBroker<IApplicationRegistryListener> broker,
-            ILogger logger, IMetricsLogger metrics) {
+            ILogger logger) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
             _broker = broker ?? throw new ArgumentNullException(nameof(broker));
             _database = database ?? throw new ArgumentNullException(nameof(database));
 
@@ -415,17 +413,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
 
             var log = added != 0 || removed != 0 || updated != 0;
-#if DEBUG
-            log = true;
-#endif
-            if (log) {
-                _logger.Information("... processed discovery results from {discovererId}: " +
-                    "{added} applications added, {updated} updated, {removed} disabled, and " +
-                    "{unchanged} unchanged.", discovererId, added, updated, removed, unchanged);
-                _metrics.TrackValue("applicationsAdded", added);
-                _metrics.TrackValue("applicationsUpdated", updated);
-                _metrics.TrackValue("applicationsUnchanged", unchanged);
-            }
+            _logger.Information("... processed discovery results from {discovererId}: " +
+                "{added} applications added, {updated} updated, {removed} disabled, and " +
+                "{unchanged} unchanged.", discovererId, added, updated, removed, unchanged);
             kAppsAdded.Set(added);
             kAppsUpdated.Set(updated);
             kAppsUnchanged.Set(unchanged);
@@ -433,7 +423,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         private readonly IApplicationRepository _database;
         private readonly ILogger _logger;
-        private readonly IMetricsLogger _metrics;
         private readonly IEndpointBulkProcessor _bulk;
         private readonly IApplicationEndpointRegistry _endpoints;
         private readonly IRegistryEventBroker<IApplicationRegistryListener> _broker;

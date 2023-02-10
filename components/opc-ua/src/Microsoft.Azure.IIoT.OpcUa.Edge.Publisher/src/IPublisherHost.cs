@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     /// <summary>
     /// Publisher
     /// </summary>
-    public interface IPublisher {
+    public interface IPublisherHost {
 
         /// <summary>
         /// Current version number of the configuration
@@ -28,11 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// Current list of writer groups in publisher
         /// </summary>
         IEnumerable<WriterGroupJobModel> WriterGroups { get; }
-
-        /// <summary>
-        /// Current diagnostics
-        /// </summary>
-        IEnumerable<PublishDiagnosticInfoModel> DiagnosticInfo { get; }
 
         /// <summary>
         /// Try update configuration

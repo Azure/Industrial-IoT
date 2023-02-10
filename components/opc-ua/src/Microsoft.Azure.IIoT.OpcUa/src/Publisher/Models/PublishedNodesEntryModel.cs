@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
 
         /// <summary> Last change </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public DateTime? LastChange { get; set; }
+        public DateTime? LastChangeTimespan { get; set; }
 
         /// <summary> Name of the data set writer. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
@@ -56,7 +56,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
 
         /// <summary> Send metadata at the configured interval even when not changing </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public TimeSpan? MetaDataUpdateTime { get; set; }
+        public int? MetaDataUpdateTime { get; set; }
+
+        /// <summary> Send metadata at the configured interval even when not changing </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public TimeSpan? MetaDataUpdateTimeTimespan { get; set; }
 
         /// <summary> Queue name to send metadata to</summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]

@@ -47,5 +47,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         /// Default metadata queue name
         /// </summary>
         string DefaultMetaDataQueueName{ get; }
+
+        /// <summary>
+        /// Default Max messages per publish
+        /// </summary>
+        uint? DefaultMaxMessagesPerPublish { get; }
     }
 }

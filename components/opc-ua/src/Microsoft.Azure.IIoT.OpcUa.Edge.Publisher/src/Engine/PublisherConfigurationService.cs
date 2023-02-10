@@ -28,28 +28,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// Provides configuration services for publisher using either published nodes
     /// configuration update or api services.
     /// </summary>
-    public class PublisherConfigService : IPublisherConfigServices, IHostProcess, IDisposable {
+    public class PublisherConfigurationService : IPublisherConfigurationServices, IHostProcess, IDisposable {
 
         /// <summary>
         /// Create publisher configuration services
         /// </summary>
-        public PublisherConfigService(PublishedNodesJobConverter publishedNodesJobConverter,
-            IStandaloneCliModelProvider standaloneCliModelProvider, IPublisher host,
+        public PublisherConfigurationService(PublishedNodesJobConverter publishedNodesJobConverter,
+            IPublisherConfiguration configuration, IPublisherHost publisherHost,
             ILogger logger, IPublishedNodesProvider publishedNodesProvider,
-            IJsonSerializer jsonSerializer) {
+            IJsonSerializer jsonSerializer, IPublisherDiagnosticCollector diagnostics = null) {
 
             _publishedNodesJobConverter = publishedNodesJobConverter ??
                 throw new ArgumentNullException(nameof(publishedNodesJobConverter));
-            _standaloneCliModel = standaloneCliModelProvider.StandaloneCliModel ??
-                throw new ArgumentNullException(nameof(standaloneCliModelProvider));
+            _configuration = configuration ??
+                throw new ArgumentNullException(nameof(configuration));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _publishedNodesProvider = publishedNodesProvider ??
                 throw new ArgumentNullException(nameof(publishedNodesProvider));
             _jsonSerializer = jsonSerializer ??
                 throw new ArgumentNullException(nameof(jsonSerializer));
-
-            _host = host;
+            _publisherHost = publisherHost ??
+                throw new ArgumentNullException(nameof(publisherHost));
+            _diagnostics = diagnostics; // Optional
             _started = new TaskCompletionSource();
             _fileChanges = Channel.CreateUnbounded<bool>();
             _fileChangeProcessor = Task.Factory.StartNew(() => ProcessFileChangesAsync(),
@@ -70,6 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 sw.Stop();
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
             }
+            request.PropagatePublishingIntervalToNodes();
             await _api.WaitAsync(ct);
             try {
                 var dataSetFound = false;
@@ -95,7 +97,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         nodeToAdd.Id, entry.EndpointUrl);
                                 }
                             }
-                            // refresh the Tag if a new one is provided
                             dataSetFound = true;
                         }
                         existingGroups.Add(entry);
@@ -105,14 +106,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     existingGroups.Add(request);
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups,
-                    _standaloneCliModel);
-                await _host.UpdateAsync(jobs);
+                    _configuration);
+                await _publisherHost.UpdateAsync(jobs);
                 await PersistPublishedNodesAsync();
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
-            catch (Exception e) {
+            catch (Exception e) when (e is not MethodCallStatusException) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
@@ -141,6 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // This behavior ensures backwards compatibility with UnpublishNodes
             // direct method of OPC Publisher 2.5.x.
             //
+            request.PropagatePublishingIntervalToNodes();
             var purgeDataSet = request.OpcNodes is null || request.OpcNodes.Count == 0;
             await _api.WaitAsync(ct);
             try {
@@ -155,7 +154,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 foreach (var entry in currentNodes) {
                     // We may have several entries with the same DataSetGroup definition,
                     // so we will remove nodes only if the whole DataSet definition matches.
-                    if (entry.HasSameDataSet(request, false)) {
+                    if (entry.HasSameDataSet(request)) {
                         foreach (var node in entry.OpcNodes) {
                             if (nodesToRemoveSet.Contains(node)) {
                                 // Found a node. Remove it from hash set.
@@ -191,7 +190,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 foreach (var entry in currentNodes) {
                     // We may have several entries with the same DataSetGroup definition,
                     // so we will remove nodes only if the whole DataSet definition matches.
-                    if (entry.HasSameDataSet(request, false)) {
+                    if (entry.HasSameDataSet(request)) {
                         if (!purgeDataSet) {
                             var updatedNodes = new List<OpcNodeModel>();
 
@@ -218,14 +217,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups,
-                    _standaloneCliModel);
-                await _host.UpdateAsync(jobs);
+                    _configuration);
+                await _publisherHost.UpdateAsync(jobs);
                 await PersistPublishedNodesAsync();
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
-            catch (Exception e) {
+            catch (Exception e) when (e is not MethodCallStatusException) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
@@ -246,6 +242,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // with V2.5.x of the publisher
             //
             var purge = null == request?.EndpointUrl;
+            request.PropagatePublishingIntervalToNodes();
             var sw = Stopwatch.StartNew();
             await _api.WaitAsync(ct);
             try {
@@ -273,18 +270,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
 
                     var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(matchingGroups,
-                        _standaloneCliModel);
-                    await _host.UpdateAsync(jobs);
+                        _configuration);
+                    await _publisherHost.UpdateAsync(jobs);
                 }
                 else {
-                    await _host.UpdateAsync(Enumerable.Empty<WriterGroupJobModel>());
+                    await _publisherHost.UpdateAsync(Enumerable.Empty<WriterGroupJobModel>());
                 }
                 await PersistPublishedNodesAsync();
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
-            catch (Exception e) {
+            catch (Exception e) when (e is not MethodCallStatusException) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
@@ -312,12 +306,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             // First, let's check that there are no 2 entries for the same endpoint in the request.
-            for (int itemIndex = 1; itemIndex < request.Count; itemIndex++) {
-                for (int prevItemIndex = 0; prevItemIndex < itemIndex; prevItemIndex++) {
-                    if (request[itemIndex].HasSameDataSet(request[prevItemIndex])) {
-                        throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
-                            "Request contains two entries for the same endpoint " +
-                            $"at index {prevItemIndex} and {itemIndex}");
+            if (request.Count > 0) {
+                request[0].PropagatePublishingIntervalToNodes();
+                for (int itemIndex = 1; itemIndex < request.Count; itemIndex++) {
+                    for (int prevItemIndex = 0; prevItemIndex < itemIndex; prevItemIndex++) {
+                        request[itemIndex].PropagatePublishingIntervalToNodes();
+                        if (request[itemIndex].HasSameDataSet(request[prevItemIndex])) {
+                            throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
+                                "Request contains two entries for the same endpoint " +
+                                $"at index {prevItemIndex} and {itemIndex}");
+                        }
                     }
                 }
             }
@@ -327,7 +325,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var currentNodes = GetCurrentPublishedNodes().ToHashSet();
                 // Check that endpoints that we are asked to remove exist.
                 foreach (var removeRequest in request.Where(e => (e.OpcNodes?.Count ?? 0) == 0)) {
-                    var removed = currentNodes.RemoveWhere(entry => entry.HasSameDataSet(removeRequest, false));
+                    var removed = currentNodes.RemoveWhere(entry => entry.HasSameDataSet(removeRequest));
                     if (removed == 0) {
                         throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
                             $"Endpoint not found: {removeRequest.EndpointUrl}");
@@ -347,8 +345,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
-                    _standaloneCliModel);
-                await _host.UpdateAsync(jobs);
+                    _configuration);
+                await _publisherHost.UpdateAsync(jobs);
                 await PersistPublishedNodesAsync();
             }
             finally {
@@ -373,7 +371,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 endpoints = currentNodes.Select(model => new PublishedNodesEntryModel {
                     EndpointUrl = model.EndpointUrl,
                     Version = model.Version,
-                    LastChange = model.LastChange,
+                    LastChangeTimespan = model.LastChangeTimespan,
                     UseSecurity = model.UseSecurity,
                     OpcAuthenticationMode = model.OpcAuthenticationMode,
                     OpcAuthenticationUsername = model.OpcAuthenticationUsername,
@@ -382,7 +380,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     DataSetName = model.DataSetName,
                     DataSetDescription = model.DataSetDescription,
                     DataSetKeyFrameCount = model.DataSetKeyFrameCount,
-                    MetaDataUpdateTime = model.MetaDataUpdateTime,
+                    MetaDataUpdateTimeTimespan = model.MetaDataUpdateTimeTimespan,
                     MetaDataQueueName = model.MetaDataQueueName,
                     DataSetClassId = model.DataSetClassId,
                     DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
@@ -392,10 +390,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 })
                 .ToList();
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
-            catch (Exception e) {
+            catch (Exception e) when (e is not MethodCallStatusException) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
                     e.Message);
             }
@@ -424,6 +419,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     kNullRequestMessage);
             }
 
+            request.PropagatePublishingIntervalToNodes();
             List<OpcNodeModel> response = new List<OpcNodeModel>();
             try {
                 var endpointFound = false;
@@ -442,10 +438,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         $"Endpoint not found: {request.EndpointUrl}");
                 }
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
-            catch (Exception e) {
+            catch (Exception e) when (e is not MethodCallStatusException) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
                     e.Message);
             }
@@ -458,20 +451,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(
+        public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
             var sw = Stopwatch.StartNew();
+            await _file.WaitAsync(ct);
             try {
-                return Task.FromResult(_host.DiagnosticInfo.ToList());
+                var result = new List<PublishDiagnosticInfoModel>();
+                if (_diagnostics == null) {
+                    // Diagnostics disabled
+                    throw new MethodCallStatusException((int)HttpStatusCode.ServiceUnavailable,
+                        "Diagnostics service is disabled.");
+                }
+                var currentNodes = GetCurrentPublishedNodes();
+                foreach (var nodes in currentNodes) {
+                    if (!_diagnostics.TryGetDiagnosticsForWriterGroup(nodes.DataSetWriterGroup,
+                        out var model)) {
+                        continue;
+                    }
+                    result.Add(new PublishDiagnosticInfoModel {
+                        Endpoint = nodes,
+                        SentMessagesPerSec = model.SentMessagesPerSec,
+                        IngestionDuration = DateTime.UtcNow - model.IngestionStart,
+                        IngressDataChanges = model.IngressDataChanges,
+                        IngressValueChanges = model.IngressValueChanges,
+                        IngressBatchBlockBufferSize = model.IngressBatchBlockBufferSize,
+                        EncodingBlockInputSize = model.EncodingBlockInputSize,
+                        EncodingBlockOutputSize = model.EncodingBlockOutputSize,
+                        EncoderNotificationsProcessed = model.EncoderNotificationsProcessed,
+                        EncoderNotificationsDropped = model.EncoderNotificationsDropped,
+                        EncoderMaxMessageSplitRatio = model.EncoderMaxMessageSplitRatio,
+                        EncoderIoTMessagesProcessed = model.EncoderIoTMessagesProcessed,
+                        EncoderAvgNotificationsMessage = model.EncoderAvgNotificationsMessage,
+                        EncoderAvgIoTMessageBodySize = model.EncoderAvgIoTMessageBodySize,
+                        EncoderAvgIoTChunkUsage = model.EncoderAvgIoTChunkUsage,
+                        EstimatedIoTChunksPerDay = model.EstimatedIoTChunksPerDay,
+                        OutgressInputBufferCount = model.OutgressInputBufferCount,
+                        OutgressInputBufferDropped = model.OutgressInputBufferDropped,
+                        OutgressIoTMessageCount = model.OutgressIoTMessageCount,
+                        ConnectionRetries = model.ConnectionRetries,
+                        OpcEndpointConnected = model.OpcEndpointConnected,
+                        MonitoredOpcNodesSucceededCount = model.MonitoredOpcNodesSucceededCount,
+                        MonitoredOpcNodesFailedCount = model.MonitoredOpcNodesFailedCount,
+                        IngressEventNotifications = model.IngressEventNotifications,
+                        IngressEvents = model.IngressEvents
+                    });
+                }
+                return result;
             }
-            catch (MethodCallStatusException) {
-                throw;
-            }
-            catch (Exception e) {
+            catch (Exception e) when (e is not MethodCallStatusException) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
+                _file.Release();
                 _logger.Information("{nameof} method finished in {elapsed}",
                     nameof(GetDiagnosticInfoAsync), sw.Elapsed);
                 sw.Stop();
@@ -503,8 +535,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <returns></returns>
         private IEnumerable<PublishedNodesEntryModel> GetCurrentPublishedNodes(
             bool preferTimespan = true) {
-            return _publishedNodesJobConverter.ToPublishedNodes(_host.Version, _host.LastChange,
-                _host.WriterGroups, preferTimespan);
+            return _publishedNodesJobConverter
+                .ToPublishedNodes(_publisherHost.Version, _publisherHost.LastChange,
+                    _publisherHost.WriterGroups, preferTimespan)
+                .Select(p => p.PropagatePublishingIntervalToNodes());
         }
 
         /// <inheritdoc/>
@@ -543,7 +577,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private void OnChanged(object sender, FileSystemEventArgs e) {
             _logger.Debug("File {publishedNodesFile} changed. Triggering file refresh ...",
-                _standaloneCliModel.PublishedNodesFile);
+                _configuration.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(false);
         }
 
@@ -552,7 +586,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private void OnCreated(object sender, FileSystemEventArgs e) {
             _logger.Debug("File {publishedNodesFile} created. Triggering file refresh ...",
-                _standaloneCliModel.PublishedNodesFile);
+                _configuration.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(false);
         }
 
@@ -561,7 +595,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private void OnRenamed(object sender, FileSystemEventArgs e) {
             _logger.Debug("File {publishedNodesFile} renamed. Triggering file refresh ...",
-                _standaloneCliModel.PublishedNodesFile);
+                _configuration.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(false);
         }
 
@@ -570,7 +604,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private void OnDeleted(object sender, FileSystemEventArgs e) {
             _logger.Debug("File {publishedNodesFile} deleted. Clearing configuration ...",
-                _standaloneCliModel.PublishedNodesFile);
+                _configuration.PublishedNodesFile);
             _fileChanges.Writer.TryWrite(true);
         }
 
@@ -602,22 +636,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 if (!clear && !string.IsNullOrEmpty(content)) {
                                     _logger.Information("File {publishedNodesFile} has changed, " +
                                         "last known hash {LastHash}, new hash {NewHash}, reloading...",
-                                        _standaloneCliModel.PublishedNodesFile, _lastKnownFileHash,
+                                        _configuration.PublishedNodesFile, _lastKnownFileHash,
                                         currentFileHash);
 
                                     var entries = DeserializePublishedNodes(content).ToList();
                                     TransformFromLegacyNodeId(entries);
                                     jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries,
-                                        _standaloneCliModel);
+                                        _configuration);
                                 }
                                 try {
-                                    await _host.UpdateAsync(jobs);
+                                    await _publisherHost.UpdateAsync(jobs);
                                     _lastKnownFileHash = currentFileHash;
                                     // Mark as started
                                     _started.TrySetResult();
                                 }
                                 catch (Exception ex) when (_started.Task.IsCompletedSuccessfully) {
-                                    if (_host.TryUpdate(jobs)) {
+                                    if (_publisherHost.TryUpdate(jobs)) {
                                         _logger.Debug(ex, "Not initializing, update without waiting.");
                                         _lastKnownFileHash = currentFileHash;
                                     }
@@ -629,12 +663,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10)) {
                                     _logger.Information("File {publishedNodesFile} has changed and " +
                                         "content-hash is equal to last one, nothing to do...",
-                                        _standaloneCliModel.PublishedNodesFile);
+                                        _configuration.PublishedNodesFile);
                                 }
                             }
                             _lastRead = lastWriteTime;
-                            _logger.Information("Complete publisher configuration {Action}.",
-                                clear ? "reset" : "refresh");
+                            _logger.Information("{Action} publisher configuration completed.",
+                                clear ? "Resetting" : "Refreshing");
                             retryCount = 0;
                             // Success
                         }
@@ -657,6 +691,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             Debug.Assert(!clear);
                             _logger.Error(sx, "SerializerException while loading job from file.");
                             retryCount = 0;
+                            _started.TrySetResult();
                         }
                         catch (Exception ex) {
                             _logger.Error(ex,
@@ -664,6 +699,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 clear ? "Reset" : "Update");
                             _fileChanges.Writer.TryWrite(clear);
                             retryCount = 0;
+                            _started.TrySetResult();
                         }
                     }
                     finally {
@@ -689,10 +725,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private IEnumerable<PublishedNodesEntryModel> DeserializePublishedNodes(string content) {
             bool ioErrorEncountered = false;
-            if (File.Exists(_standaloneCliModel.PublishedNodesSchemaFile)) {
+            if (File.Exists(_configuration.PublishedNodesSchemaFile)) {
                 try {
                     using (var fileSchemaReader = new StreamReader(
-                        _standaloneCliModel.PublishedNodesSchemaFile)) {
+                        _configuration.PublishedNodesSchemaFile)) {
                         return _publishedNodesJobConverter.Read(content, fileSchemaReader);
                     }
                 }
@@ -700,7 +736,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Warning(e, "File IO exception when reading published nodes schema file " +
                         "at \"{path}\". Falling back to deserializing content of published nodes " +
                         "file without schema validation.",
-                        _standaloneCliModel.PublishedNodesSchemaFile);
+                        _configuration.PublishedNodesSchemaFile);
                     ioErrorEncountered = true;
                 }
             }
@@ -708,7 +744,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!ioErrorEncountered) {
                 _logger.Information("Validation schema file {PublishedNodesSchemaFile} does not " +
                     "exist or is disabled, ignoring validation of {publishedNodesFile} file.",
-                    _standaloneCliModel.PublishedNodesSchemaFile, _standaloneCliModel.PublishedNodesFile);
+                    _configuration.PublishedNodesSchemaFile, _configuration.PublishedNodesFile);
             }
             return _publishedNodesJobConverter.Read(content, null);
         }
@@ -763,11 +799,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             = "null or empty OpcNodes is provided in request";
 
         private readonly ILogger _logger;
-        private readonly StandaloneCliModel _standaloneCliModel;
+        private readonly IPublisherConfiguration _configuration;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private readonly IPublishedNodesProvider _publishedNodesProvider;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly IPublisher _host;
+        private readonly IPublisherDiagnosticCollector _diagnostics;
+        private readonly IPublisherHost _publisherHost;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
         private TaskCompletionSource _started;

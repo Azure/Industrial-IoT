@@ -45,7 +45,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public override BaseMonitoredItemModel Clone() {
             return new DataMonitoredItemModel {
                 Id = Id,
-                TriggerId = TriggerId,
                 StartNodeId = StartNodeId,
                 SamplingInterval = SamplingInterval,
                 QueueSize = QueueSize,

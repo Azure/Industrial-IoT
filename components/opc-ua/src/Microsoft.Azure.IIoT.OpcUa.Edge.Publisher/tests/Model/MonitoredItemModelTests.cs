@@ -43,7 +43,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
             IndexRange = "DataIndexRange",
             MonitoringMode = MonitoringMode.Sampling,
             RelativePath = new string[] { "DataRelativePath" },
-            TriggerId = "DataTriggerId"
         };
         private readonly EventMonitoredItemModel _eventModel = new EventMonitoredItemModel() {
             StartNodeId = "EventStartNodeId",
@@ -56,7 +55,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
             IndexRange = "EventIndexRange",
             MonitoringMode = MonitoringMode.Sampling,
             RelativePath = new string[] { "EventRelativePath" },
-            TriggerId = "EventTriggerId",
             EventFilter = new EventFilterModel() {
                 SelectClauses = new List<SimpleAttributeOperandModel>() {
                     new SimpleAttributeOperandModel() {
