@@ -450,7 +450,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             var components = uniqueDataSetWriter.Split("_($");
             if (components.Length == 1 ||
                 (components.Length == 2 && components[1].EndsWith(')'))) {
-                return components[0] == kUnknownDataSetName ? null : components[0];
+                return components[0] == Constants.DefaultDataSetWriterId ? null : components[0];
             }
             return uniqueDataSetWriter;
         }
@@ -478,12 +478,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     }
                 }
                 if (string.IsNullOrEmpty(id)) {
-                    return $"{kUnknownDataSetName}_(${result.ToSha1Hash()})";
+                    return $"{Constants.DefaultDataSetWriterId}_(${result.ToSha1Hash()})";
                 }
                 return $"{id}_(${result.ToSha1Hash()})";
             }
             if (string.IsNullOrEmpty(id)) {
-                return $"{kUnknownDataSetName}_(${result.ToSha1Hash()})";
+                return $"{Constants.DefaultDataSetWriterId}_(${result.ToSha1Hash()})";
             }
             return id;
         }
@@ -650,7 +650,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             }
         }
 
-        private const string kUnknownDataSetName = "<<UnknownDataSet>>";
         private readonly IEngineConfiguration _engineConfig;
         private readonly IClientServicesConfig _clientConfig;
         private readonly ISecureElement _cryptoProvider;

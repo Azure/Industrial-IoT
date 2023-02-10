@@ -247,7 +247,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public async Task<T> ExecuteServiceAsync<T>(ConnectionModel connection,
-            CredentialModel elevation, int priority, Func<Session, Task<T>> service,
+            CredentialModel elevation, int priority, Func<ISession, Task<T>> service,
             TimeSpan? timeout, CancellationToken ct, Func<Exception, bool> handler) {
             if (connection.Endpoint == null) {
                 throw new ArgumentNullException(nameof(connection));

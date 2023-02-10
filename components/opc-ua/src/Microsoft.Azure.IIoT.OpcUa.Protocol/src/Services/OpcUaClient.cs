@@ -22,7 +22,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Microsoft.Azure.IIoT.Utils.ConnectionString;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.

@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="operations"></param>
         /// <param name="traceOnly"></param>
         /// <returns></returns>
-        public static async Task<RawNodeModel> ReadAsync(Session session,
+        public static async Task<RawNodeModel> ReadAsync(ISession session,
             RequestHeader requestHeader, NodeId nodeId, bool skipValue,
             List<OperationResultModel> operations, bool traceOnly) {
             var node = new RawNodeModel(nodeId, session.NamespaceUris);
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="operations"></param>
         /// <param name="traceOnly"></param>
         /// <returns></returns>
-        public static async Task<Variant?> ReadValueAsync(Session session,
+        public static async Task<Variant?> ReadValueAsync(ISession session,
             RequestHeader requestHeader, NodeId nodeId,
             List<OperationResultModel> operations, bool traceOnly) {
             var node = new RawNodeModel(nodeId, session.NamespaceUris);
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="operations"></param>
         /// <param name="traceOnly"></param>
         /// <returns></returns>
-        public async Task ReadAsync(Session session, RequestHeader requestHeader,
+        public async Task ReadAsync(ISession session, RequestHeader requestHeader,
             bool skipValue, List<OperationResultModel> operations, bool traceOnly) {
             var readValueCollection = new ReadValueIdCollection(_attributes.Keys
                 .Where(a => !skipValue || a != Attributes.Value)
@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="skipAttributeIdInvalid"></param>
         /// <param name="traceOnly"></param>
         /// <returns></returns>
-        public async Task<DataValue> ReadValueAsync(Session session,
+        public async Task<DataValue> ReadValueAsync(ISession session,
             RequestHeader requestHeader, List<OperationResultModel> operations,
             bool skipAttributeIdInvalid, bool traceOnly) {
             var readValueCollection = new ReadValueIdCollection {
@@ -131,7 +131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="skipAttributeIdInvalid"></param>
         /// <param name="traceOnly"></param>
         /// <returns></returns>
-        internal async Task ReadAsync(Session session, RequestHeader requestHeader,
+        internal async Task ReadAsync(ISession session, RequestHeader requestHeader,
             ReadValueIdCollection readValueCollection, List<OperationResultModel> operations,
             bool skipAttributeIdInvalid, bool traceOnly) {
 
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="skipAttributeIdInvalid"></param>
         /// <param name="traceOnly"></param>
         /// <returns></returns>
-        public async Task WriteAsync(Session session, RequestHeader requestHeader,
+        public async Task WriteAsync(ISession session, RequestHeader requestHeader,
             List<OperationResultModel> operations, bool skipAttributeIdInvalid, bool traceOnly) {
             var writeValueCollection = new WriteValueCollection(_attributes
                 .Where(a => a.Value != null)

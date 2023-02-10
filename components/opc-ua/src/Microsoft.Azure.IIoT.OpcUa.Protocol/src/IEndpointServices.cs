@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="exceptionHandler"></param>
         /// <returns></returns>
         Task<T> ExecuteServiceAsync<T>(ConnectionModel connection,
-            CredentialModel elevation, int priority, Func<Session,
+            CredentialModel elevation, int priority, Func<ISession,
             Task<T>> service, TimeSpan? timeout, CancellationToken ct,
             Func<Exception, bool> exceptionHandler);
 

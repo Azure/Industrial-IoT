@@ -31,15 +31,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if (string.Compare(model.Id, that.Id, StringComparison.OrdinalIgnoreCase) != 0) {
+            if (!string.Equals(model.Id ?? string.Empty,
+                that.Id ?? string.Empty, StringComparison.OrdinalIgnoreCase)) {
                 return false;
             }
 
-            if (string.Compare(model.DisplayName, that.DisplayName, StringComparison.OrdinalIgnoreCase) != 0) {
+            if (!string.Equals(model.DisplayName ?? string.Empty,
+                that.DisplayName ?? string.Empty, StringComparison.OrdinalIgnoreCase)) {
                 return false;
             }
 
-            if (string.Compare(model.DataSetFieldId, that.DataSetFieldId, StringComparison.OrdinalIgnoreCase) != 0) {
+            if (!string.Equals(model.DataSetFieldId ?? string.Empty,
+                that.DataSetFieldId ?? string.Empty, StringComparison.OrdinalIgnoreCase)) {
                 return false;
             }
 
@@ -47,7 +50,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if (string.Compare(model.ExpandedNodeId, that.ExpandedNodeId, StringComparison.OrdinalIgnoreCase) != 0) {
+            if (!string.Equals(model.ExpandedNodeId,
+                that.ExpandedNodeId, StringComparison.OrdinalIgnoreCase)) {
                 return false;
             }
 

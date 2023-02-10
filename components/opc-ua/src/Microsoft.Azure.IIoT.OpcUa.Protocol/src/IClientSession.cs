@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="completion"></param>
         /// <returns></returns>
         bool TryScheduleServiceCall<T>(CredentialModel elevation, int priority,
-            Func<Session, Task<T>> serviceCall, Func<Exception, bool> handler,
+            Func<ISession, Task<T>> serviceCall, Func<Exception, bool> handler,
             TimeSpan? timeout, CancellationToken? ct, out Task<T> completion);
 
         /// <summary>

@@ -768,7 +768,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// <param name="diagnostics"></param>
         /// <param name="traceOnly"></param>
         /// <returns></returns>
-        private async Task<NodeModel> ReadNodeModelAsync(Session session, IVariantEncoder codec,
+        private async Task<NodeModel> ReadNodeModelAsync(ISession session, IVariantEncoder codec,
             RequestHeader header, NodeId nodeId, Opc.Ua.NodeClass? nodeClass, bool skipValue,
             bool rawMode, bool? children, List<OperationResultModel> diagnostics, bool traceOnly) {
             var id = nodeId.AsString(session.MessageContext);
@@ -838,7 +838,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// <param name="continuationPoint"></param>
         /// <param name="references"></param>
         /// <returns></returns>
-        private async Task<string> AddReferencesToBrowseResultAsync(Session session,
+        private async Task<string> AddReferencesToBrowseResultAsync(ISession session,
             IVariantEncoder codec, RequestHeader header, bool targetNodesOnly, bool readValues,
             bool rawMode, List<NodeReferenceModel> result, List<OperationResultModel> diagnostics,
             byte[] continuationPoint, List<ReferenceDescription> references) {
@@ -921,7 +921,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// <param name="targets"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        private async Task AddTargetsToBrowseResultAsync(Session session, IVariantEncoder codec,
+        private async Task AddTargetsToBrowseResultAsync(ISession session, IVariantEncoder codec,
             RequestHeader header, bool readValues, bool rawMode, List<NodePathTargetModel> result,
             List<OperationResultModel> diagnostics, BrowsePathTargetCollection targets,
             string[] path) {
@@ -957,7 +957,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         /// <param name="diagnostics"></param>
         /// <param name="operations"></param>
         /// <returns></returns>
-        private async Task<NodeId> ResolveBrowsePathToNodeAsync(Session session,
+        private async Task<NodeId> ResolveBrowsePathToNodeAsync(ISession session,
             NodeId rootId, string paramName, string[] paths, DiagnosticsModel diagnostics,
             List<OperationResultModel> operations) {
             if (paths == null || paths.Length == 0) {

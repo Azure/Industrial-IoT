@@ -10,6 +10,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     internal static class Constants {
 
         /// <summary>
+        /// Default dataset writer id
+        /// </summary>
+        public const string DefaultDataSetWriterId = "<<UnknownDataSet>>";
+
+        /// <summary>
         /// Writer group identifier tag
         /// </summary>
         public const string WriterGroupIdTag = "writerGroupId";
@@ -17,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Default writer group id
         /// </summary>
-        public const string DefaultWriterGroupId = "$default";
+        public const string DefaultWriterGroupId = "<<UnknownWriterGroup>>";
 
         /// <summary>
         /// Publisher identifier tag
@@ -27,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Default publisher id
         /// </summary>
-        public const string DefaultPublisherId = "$default";
+        public const string DefaultPublisherId = "<<UnknownPublisher>>";
 
         /// <summary>
         /// Timestamp tag (start time)

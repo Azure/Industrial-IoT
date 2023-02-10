@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public bool TryScheduleServiceCall<T>(CredentialModel elevation, int priority,
-            Func<Session, Task<T>> serviceCall, Func<Exception, bool> handler,
+            Func<ISession, Task<T>> serviceCall, Func<Exception, bool> handler,
             TimeSpan? timeout, CancellationToken? ct, out Task<T> completion) {
 
             if (!_cts.IsCancellationRequested) {
@@ -860,7 +860,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <param name="elevation"></param>
             /// <param name="timeout"></param>
             /// <param name="ct"></param>
-            public ScheduledOperation(Func<Session, Task<T>> operation,
+            public ScheduledOperation(Func<ISession, Task<T>> operation,
                 Func<Exception, bool> handler, CredentialModel elevation,
                 TimeSpan timeout, CancellationToken? ct) {
                 _operation = operation;

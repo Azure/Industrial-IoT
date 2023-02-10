@@ -30,7 +30,7 @@ namespace Opc.Ua.Client {
         /// <param name="resultMask"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static Task<BrowseResponse> BrowseAsync(this SessionClient client,
+        public static Task<BrowseResponse> BrowseAsync(this ISession client,
             RequestHeader requestHeader, ViewDescription view, NodeId nodeToBrowse,
             uint maxResultsToReturn, BrowseDirection browseDirection,
             NodeId referenceTypeId, bool includeSubtypes, uint nodeClassMask,
