@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         public void Start() {
             try {
                 _logger.Debug("Starting all hosts...");
-                Task.WhenAll(_host.Select(h => h.StartAsync())).Wait();
+                Task.WhenAll(_host.Select(async h => await h.StartAsync())).Wait();
                 _logger.Information("All hosts started.");
             }
             catch (Exception ex) {
@@ -43,7 +43,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         public void Dispose() {
             try {
                 _logger.Debug("Stopping all hosts...");
-                Task.WhenAll(_host.Select(h => h.StopAsync())).Wait();
+                Task.WhenAll(_host.OfType<IAsyncDisposable>()
+                    .Select(async h => await h.DisposeAsync())).Wait();
                 _logger.Information("All hosts stopped.");
             }
             catch (Exception ex) {

@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
         /// <summary>
         /// Client
         /// </summary>
-        public ClientServices Client => _client.Value;
+        public OpcUaClientManager Client => _client.Value;
 
         /// <summary>
         /// Start port
@@ -64,8 +64,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             }
             Logger = ConsoleOutLogger.Create(LogEventLevel.Debug);
             _config = new TestClientServicesConfig();
-            _client = new Lazy<ClientServices>(() => {
-                return new ClientServices(Logger, _config);
+            _client = new Lazy<OpcUaClientManager>(() => {
+                return new OpcUaClientManager(Logger, _config);
             }, false);
             PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
                Guid.NewGuid().ToByteArray().ToBase16String());
@@ -115,6 +115,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
         private static volatile int _nextPort = kRand.Next(53000, 58000);
         private readonly IServerHost _serverHost;
         private readonly TestClientServicesConfig _config;
-        private readonly Lazy<ClientServices> _client;
+        private readonly Lazy<OpcUaClientManager> _client;
     }
 }

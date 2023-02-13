@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
             app.UseHealthChecks("/healthz");
 
             // Start processors
-            applicationContainer.Resolve<IHostProcess>().StartAsync().Wait();
+            applicationContainer.Resolve<IHostProcess>().StartAsync().AsTask().GetAwaiter().GetResult();
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <summary>
         /// Injected processor host
         /// </summary>
-        private sealed class ProcessorHost : IHostProcess, IDisposable, IHealthCheck {
+        private sealed class ProcessorHost : IHostProcess, IAsyncDisposable, IDisposable, IHealthCheck {
 
             /// <inheritdoc/>
             public ProcessorHost(Config config) {
@@ -166,13 +166,13 @@ namespace Microsoft.Azure.IIoT.Services.All {
             }
 
             /// <inheritdoc/>
-            public Task StartAsync() {
+            public async ValueTask StartAsync() {
                 // Delay start by 10 seconds to let api boot up first
-                return Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ => Start());
+                await Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ => Start());
             }
 
             /// <inheritdoc/>
-            public async Task StopAsync() {
+            public async ValueTask DisposeAsync() {
                 _cts.Cancel();
                 try {
                     await _runner;
@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
 
             /// <inheritdoc/>
             public void Dispose() {
-                Try.Async(StopAsync).Wait();
+                Try.Async(async() => await DisposeAsync()).Wait();
                 _cts?.Dispose();
             }
 

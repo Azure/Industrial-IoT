@@ -30,12 +30,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             return Task.CompletedTask;
         }
 
-        public Task StartAsync() {
-            return Task.CompletedTask;
-        }
-
-        public Task StopAsync() {
-            return Task.CompletedTask;
+        public ValueTask StartAsync() {
+            return ValueTask.CompletedTask;
         }
 
         private readonly Dictionary<string, object> _handlers =

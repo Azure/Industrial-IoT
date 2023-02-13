@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     /// <summary>
     /// Performs continous endpoint activation synchronization
     /// </summary>
-    public sealed class ActivationSyncHost : IHostProcess, IDisposable {
+    public sealed class ActivationSyncHost : IHostProcess, IAsyncDisposable, IDisposable {
 
         /// <summary>
         /// Create activation process
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public void Dispose() {
-            StopAsync().Wait();
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
 
             _updateTimer.Dispose();
 
@@ -43,17 +43,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public Task StartAsync() {
+        public ValueTask StartAsync() {
             if (_cts == null) {
                 _cts = new CancellationTokenSource();
                 // Make it so that we run after first interval has expired.
                 _updateTimer.Change(_config.SyncInterval, Timeout.InfiniteTimeSpan);
             }
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public Task StopAsync() {
+        public ValueTask DisposeAsync() {
             if (_cts != null) {
                 _cts.Cancel();
             }
@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 _updateTimer.Change(Timeout.Infinite, Timeout.Infinite);
             }
 
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>

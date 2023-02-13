@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync() {
+        public async ValueTask StartAsync() {
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = IdentityType.Gateway,
                 Content = new ConfigurationContentModel {
@@ -52,11 +52,6 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                 TargetCondition = TargetCondition + " AND IS_DEFINED(tags.use_1_1_LTS)",
                 Priority = 0
             }, true);
-        }
-
-        /// <inheritdoc/>
-        public Task StopAsync() {
-            return Task.CompletedTask;
         }
 
         /// <summary>

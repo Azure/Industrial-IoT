@@ -28,7 +28,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// Provides configuration services for publisher using either published nodes
     /// configuration update or api services.
     /// </summary>
-    public class PublisherConfigurationService : IPublisherConfigurationServices, IHostProcess, IDisposable {
+    public class PublisherConfigurationService : IPublisherConfigurationServices,
+        IHostProcess, IAsyncDisposable, IDisposable {
 
         /// <summary>
         /// Create publisher configuration services
@@ -542,14 +543,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync() {
+        public async ValueTask StartAsync() {
             if (_started != null) {
                 await _started.Task;
             }
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync() {
+        public async ValueTask DisposeAsync() {
             try {
                 if (_started != null) {
                     _fileChanges.Writer.TryComplete();
@@ -564,7 +565,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public void Dispose() {
             try {
-                StopAsync().GetAwaiter().GetResult();
+                DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
             finally {
                 _api.Dispose();

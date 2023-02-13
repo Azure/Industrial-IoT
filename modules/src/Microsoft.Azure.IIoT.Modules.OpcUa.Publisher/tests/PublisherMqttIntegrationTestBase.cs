@@ -315,7 +315,7 @@ $"--ttt={topicRoot}",
                         var events = hostScope.Resolve<IEventEmitter>();
                         var moduleConfig = hostScope.Resolve<IModuleConfig>();
                         var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
-                        ISessionManager sessionManager = null;
+                        IEndpointServices sessionManager = null;
 
                         try {
                             var version = GetType().Assembly.GetReleaseVersion().ToString();
@@ -323,7 +323,7 @@ $"--ttt={topicRoot}",
                             healthCheckManager.Start();
                             // Start module
                             await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
-                            sessionManager = hostScope.Resolve<ISessionManager>();
+                            sessionManager = hostScope.Resolve<IEndpointServices>();
 
                             _apiScope = ConfigureContainer(configurationRoot, mqttBroker);
                             _running.TrySetResult(true);

@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
     /// <summary>
     /// Event bus host to auto inject handlers
     /// </summary>
-    public class EventBusHost : IHostProcess {
+    public class EventBusHost : IHostProcess, IAsyncDisposable {
 
         /// <summary>
         /// Auto registers handlers in client
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync() {
+        public async ValueTask StartAsync() {
             await _lock.WaitAsync();
             try {
                 if (_handlers.Any(h => h.Value != null)) {
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync() {
+        public async ValueTask DisposeAsync() {
             await _lock.WaitAsync();
             try {
                 foreach (var token in _handlers.Where(x => x.Value != null).ToList()) {
@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
 
         /// <inheritdoc/>
         public void Dispose() {
-            StopAsync().Wait();
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
             _lock.Dispose();
         }
 

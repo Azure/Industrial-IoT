@@ -16,7 +16,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     /// <summary>
     /// File notification processor
     /// </summary>
-    public sealed class IoTHubFileNotificationHost : IHostProcess, IDisposable {
+    public sealed class IoTHubFileNotificationHost : IHostProcess,
+        IAsyncDisposable, IDisposable {
 
         /// <summary>
         /// Create service client
@@ -37,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync() {
+        public async ValueTask StartAsync() {
             try {
                 if (_task != null) {
                     _logger.Debug("File notification host already running.");
@@ -55,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync() {
+        public async ValueTask DisposeAsync() {
             _cts.Cancel();
             try {
                 await _client.CloseAsync();
@@ -75,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
         /// <inheritdoc/>
         public void Dispose() {
-            StopAsync().Wait();
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
             _client.Dispose();
             _cts.Dispose();
         }

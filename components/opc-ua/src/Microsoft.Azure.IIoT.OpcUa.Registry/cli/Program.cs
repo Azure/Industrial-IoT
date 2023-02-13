@@ -315,7 +315,7 @@ Operations (Mutually exclusive):
         private static async Task TestOpcUaDiscoveryServiceAsync(string addressRanges,
             bool stress) {
             using (var logger = StackLogger.Create(ConsoleLogger.Create()))
-            using (var client = new ClientServices(logger.Logger, new TestClientServicesConfig()))
+            using (var client = new OpcUaClientManager(logger.Logger, new TestClientServicesConfig()))
             using (var scanner = new DiscoveryServices(client, new ConsoleEmitter(),
                 new NewtonSoftJsonSerializer(), logger.Logger)) {
                 var rand = new Random();

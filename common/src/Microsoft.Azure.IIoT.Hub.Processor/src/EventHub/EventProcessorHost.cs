@@ -19,7 +19,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     /// Implementation of event processor host interface to host event
     /// processors.
     /// </summary>
-    public sealed class EventProcessorHost : IDisposable, IEventProcessingHost, IHostProcess {
+    public sealed class EventProcessorHost : IEventProcessingHost,
+        IHostProcess, IAsyncDisposable, IDisposable {
 
         /// <summary>
         /// Create host wrapper
@@ -55,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync() {
+        public async ValueTask StartAsync() {
             await _lock.WaitAsync();
             try {
                 if (_host != null) {
@@ -111,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync() {
+        public async ValueTask DisposeAsync() {
             await _lock.WaitAsync();
             try {
                 if (_host != null) {
@@ -132,12 +133,12 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
 
         /// <inheritdoc/>
         public void Start() {
-            StartAsync().Wait();
+            StartAsync().AsTask().GetAwaiter().GetResult();
         }
 
         /// <inheritdoc/>
         public void Dispose() {
-            StopAsync().Wait();
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
             _lock.Dispose();
         }
 

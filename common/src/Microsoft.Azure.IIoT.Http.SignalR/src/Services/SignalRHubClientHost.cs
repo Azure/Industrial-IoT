@@ -20,7 +20,8 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
     /// <summary>
     /// SignalR hub client
     /// </summary>
-    public class SignalRHubClientHost : ICallbackRegistrar, IHostProcess {
+    public class SignalRHubClientHost : ICallbackRegistrar, IHostProcess,
+        IAsyncDisposable {
 
         /// <inheritdoc/>
         public string ConnectionId => _connection.ConnectionId;
@@ -67,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync() {
+        public async ValueTask StartAsync() {
             await _lock.WaitAsync();
             try {
                 if (_started) {
@@ -90,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync() {
+        public async ValueTask DisposeAsync() {
             await _lock.WaitAsync();
             try {
                 if (!_started) {

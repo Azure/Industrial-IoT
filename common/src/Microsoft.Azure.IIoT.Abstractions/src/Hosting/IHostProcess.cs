@@ -15,12 +15,6 @@ namespace Microsoft.Azure.IIoT {
         /// Start host
         /// </summary>
         /// <returns></returns>
-        Task StartAsync();
-
-        /// <summary>
-        /// Stop host
-        /// </summary>
-        /// <returns></returns>
-        Task StopAsync();
+        ValueTask StartAsync();
     }
 }

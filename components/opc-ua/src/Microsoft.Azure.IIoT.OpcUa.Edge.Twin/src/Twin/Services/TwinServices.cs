@@ -4,17 +4,17 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Serilog;
     using System;
-    using System.Threading.Tasks;
     using System.Threading;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Manages the endpoint identity information in the twin and reports
@@ -61,10 +61,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
 
                     // Unregister old endpoint
                     if (previous != null) {
-                        _callback?.Dispose();
-                        _callback = null;
-                        _session?.Dispose();
-                        _session = null;
+                        if (_session != null) {
+                            _session.OnConnectionStateChange -= _session_OnConnectionStateChange;
+                            await _session.DisposeAsync();
+                            _session = null;
+                        }
 
                         // Clear state
                         State = EndpointConnectivityState.Disconnected;
@@ -75,18 +76,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
                         var connection = new ConnectionModel {
                             Endpoint = endpoint
                         };
-                        _session = _client.GetSessionHandle(connection);
+                        _session = _client.GetOrCreateSessionAsync(connection).Result;
 
                         // Set initial state
                         State = _session.State;
 
-                        // update reported state
-                        _callback = _client.RegisterCallback(connection,
-                            state => {
-                                State = state;
-                                return _events?.ReportAsync("State",
-                                     _serializer.FromObject(state));
-                            });
+                        _session.OnConnectionStateChange += _session_OnConnectionStateChange;
+
                         _logger.Information("Endpoint {endpoint} ({device}, {module}) updated.",
                             endpoint?.Url, _identity.ProcessId, _identity.Id);
 
@@ -140,17 +136,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _callback?.Dispose();
-            _callback = null;
-            _session?.Dispose();
-            _session = null;
+            if (_session != null) {
+                _session.OnConnectionStateChange -= _session_OnConnectionStateChange;
+                _session.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                _session = null;
+            }
             _endpoint?.TrySetCanceled();
             _endpoint = null;
             _lock?.Dispose();
         }
 
+        /// <summary>
+        /// Report state changes
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="state"></param>
+        private void _session_OnConnectionStateChange(object sender, EndpointConnectivityState state) {
+            State = state;
+            if (_events != null) {
+                Task.Run(() => _events.ReportAsync("State", _serializer.FromObject(state)));
+            }
+        }
+
         private ISessionHandle _session;
-        private IDisposable _callback;
         private TaskCompletionSource<EndpointModel> _endpoint;
         private readonly IJsonSerializer _serializer;
         private readonly IProcessIdentity _identity;

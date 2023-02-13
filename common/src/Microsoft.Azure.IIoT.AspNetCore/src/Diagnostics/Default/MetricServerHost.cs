@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default {
     /// <summary>
     /// Start and stop metric server
     /// </summary>
-    public class MetricServerHost : IHostProcess {
+    public class MetricServerHost : IHostProcess, IAsyncDisposable {
 
         /// <summary>
         /// Auto registers metric server
@@ -26,14 +26,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default {
         }
 
         /// <inheritdoc/>
-        public Task StartAsync() {
+        public ValueTask StartAsync() {
             _metricServer.Start();
             _logger.Information("Started prometheus at {0}/metrics", _config.Port);
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync() {
+        public async ValueTask DisposeAsync() {
             await _metricServer.StopAsync();
             _logger.Information("Metric server stopped.");
         }

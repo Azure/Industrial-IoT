@@ -5,58 +5,54 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
+    using Opc.Ua.Extensions;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
-    using System.Security.Principal;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Client manager
     /// </summary>
-    public class OpcUaClientManager : ISessionManager, ISubscriptionManager,
-        IDisposable {
+    public class OpcUaClientManager : IClientHost, IEndpointServices,
+        ISubscriptionManager, IEndpointDiscovery, IDisposable,
+        ICertificateServices<EndpointModel> {
 
         /// <inheritdoc/>
         public int SessionCount => _clients.Count;
-
-        /// <inheritdoc/>
-        public ISubscriptionConfig Configuration { get; }
 
         /// <summary>
         /// Create client manager
         /// </summary>
         /// <param name="clientConfig"></param>
-        /// <param name="subscriptionConfig"></param>
         /// <param name="identity"></param>
-        /// <param name="codec"></param>
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
-        public OpcUaClientManager(IClientServicesConfig clientConfig,
-            ISubscriptionConfig subscriptionConfig, IProcessIdentity identity,
-            IVariantEncoderFactory codec, ILogger logger, IMetricsContext metrics)
-            : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
+        public OpcUaClientManager(ILogger logger, IClientServicesConfig clientConfig,
+            IProcessIdentity identity = null, IMetricsContext metrics = null)
+            : this(metrics ?? new EmptyMetricsContext()) {
             _clientConfig = clientConfig ??
                 throw new ArgumentNullException(nameof(clientConfig));
-            Configuration = subscriptionConfig ??
-                throw new ArgumentNullException(nameof(subscriptionConfig));
-            _codec = codec ??
-                throw new ArgumentNullException(nameof(codec));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _configuration = _clientConfig.BuildApplicationConfigurationAsync(
-                 identity.ToIdentityString(), OnValidate, _logger).GetAwaiter().GetResult();
+                 identity == null ? "OpcUaClient" : identity.ToIdentityString(),
+                 OnValidate, _logger);
             _lock = new SemaphoreSlim(1, 1);
             _cts = new CancellationTokenSource();
             _processor = Task.Factory.StartNew(() => RunClientManagerAsync(
@@ -65,10 +61,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
+        public async ValueTask StartAsync() {
+            await _configuration;
+        }
+
+        /// <inheritdoc/>
         public ValueTask<ISubscription> CreateSubscriptionAsync(SubscriptionModel subscription,
-            CancellationToken ct) {
+            IVariantEncoderFactory codec, CancellationToken ct) {
             var client = FindClient(subscription.Id.Connection);
-            return OpcUaSubscription.CreateAsync(this, _clientConfig, _codec,
+            return OpcUaSubscription.CreateAsync(this, _clientConfig, codec,
                 subscription, _logger, client ?? _metrics, ct);
         }
 
@@ -103,7 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public ISessionHandle FindSession(ConnectionModel connection) {
+        public ISessionHandle GetSessionHandle(ConnectionModel connection) {
             return FindClient(connection);
         }
 
@@ -120,14 +121,84 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             return null;
         }
 
-        /// <summary>
-        /// Dispose
-        /// </summary>
+        /// <inheritdoc/>
+        public async Task AddTrustedPeerAsync(byte[] certificates) {
+            var configuration = await _configuration;
+            var chain = Utils.ParseCertificateChainBlob(certificates)?
+                .Cast<X509Certificate2>()
+                .Reverse()
+                .ToList();
+            if (chain == null || chain.Count == 0) {
+                throw new ArgumentNullException(nameof(certificates));
+            }
+            var certificate = chain.First();
+            try {
+                _logger.Information("Adding Certificate {Thumbprint}, " +
+                    "{Subject} to trust list...", certificate.Thumbprint,
+                    certificate.Subject);
+                configuration.SecurityConfiguration.TrustedPeerCertificates
+                    .Add(certificate.YieldReturn());
+                chain.RemoveAt(0);
+                if (chain.Count > 0) {
+                    configuration.SecurityConfiguration.TrustedIssuerCertificates
+                        .Add(chain);
+                }
+                return;
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to add Certificate {Thumbprint}, " +
+                    "{Subject} to trust list.", certificate.Thumbprint,
+                    certificate.Subject);
+                throw;
+            }
+            finally {
+                chain?.ForEach(c => c?.Dispose());
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveTrustedPeerAsync(byte[] certificates) {
+            var configuration = await _configuration;
+            var chain = Utils.ParseCertificateChainBlob(certificates)?
+                .Cast<X509Certificate2>()
+                .Reverse()
+                .ToList();
+            if (chain == null || chain.Count == 0) {
+                throw new ArgumentNullException(nameof(certificates));
+            }
+            var certificate = chain.First();
+            try {
+                _logger.Information("Removing Certificate {Thumbprint}, " +
+                    "{Subject} from trust list...", certificate.Thumbprint,
+                    certificate.Subject);
+                configuration.SecurityConfiguration.TrustedPeerCertificates
+                    .Remove(certificate.YieldReturn());
+
+                // Remove only from trusted peers
+                return;
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to remove Certificate {Thumbprint}, " +
+                    "{Subject} from trust list.", certificate.Thumbprint,
+                    certificate.Subject);
+                throw;
+            }
+            finally {
+                chain?.ForEach(c => c?.Dispose());
+            }
+        }
+
+        /// <inheritdoc/>
         public void Dispose() {
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask DisposeAsync() {
             try {
                 _logger.Information("Stopping client manager process ...");
                 _cts.Cancel();
-                _processor.Wait();
+                await _processor;
             }
             finally {
                 _logger.Debug("Client manager process stopped.");
@@ -135,11 +206,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             _logger.Information("Stopping all client sessions...");
-            _lock.Wait();
+            await _lock.WaitAsync();
             try {
                 foreach (var client in _clients) {
                     try {
-                        client.Value.Dispose();
+                        await client.Value.DisposeAsync();
                     }
                     catch (OperationCanceledException) { }
                     catch (Exception ex) {
@@ -238,7 +309,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // Garbage collect inactives
                 if (inactive.Count > 0) {
                     foreach (var client in inactive.Values) {
-                        client.Dispose();
+                        await client.DisposeAsync();
                     }
                     _logger.Information(
                         "Garbage collected {Sessions} sessions" +
@@ -255,8 +326,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (e.Accept) {
                 return;
             }
+            var configuration = _configuration.Result;
             if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
-                if (_configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
+                if (configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
                     _logger.Warning("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
                         "due to AutoAccept(UntrustedCertificates) set!",
                         e.Certificate.Thumbprint, e.Certificate.Subject);
@@ -275,9 +347,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             e.Certificate.Thumbprint, e.Certificate.Subject);
 
                         // add the certificate to trusted store
-                        _configuration.SecurityConfiguration.AddTrustedPeer(e.Certificate.RawData);
+                        configuration.SecurityConfiguration.AddTrustedPeer(e.Certificate.RawData);
                         try {
-                            var store = _configuration.
+                            var store = configuration.
                                 SecurityConfiguration.TrustedPeerCertificates.OpenStore();
 
                             try {
@@ -309,10 +381,190 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="metrics"></param>
         /// <returns></returns>
         private OpcUaClient CreateClient(ConnectionIdentifier id, IMetricsContext metrics) {
-            return new OpcUaClient(_configuration, id, _logger, metrics) {
+            return new OpcUaClient(_configuration.Result, id, _logger, metrics) {
                 KeepAliveInterval = _clientConfig.KeepAliveInterval,
                 SessionLifeTime = _clientConfig.DefaultSessionTimeout
             };
+        }
+
+        /// <inheritdoc/>
+        public async Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
+            Uri discoveryUrl, List<string> locales, CancellationToken ct) {
+            var results = new HashSet<DiscoveredEndpointModel>();
+            var visitedUris = new HashSet<string> {
+                CreateDiscoveryUri(discoveryUrl.ToString(), 4840)
+            };
+            var queue = new Queue<Tuple<Uri, List<string>>>();
+            var localeIds = locales != null ? new StringCollection(locales) : null;
+            queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
+            ct.ThrowIfCancellationRequested();
+            while (queue.Count > 0) {
+                var nextServer = queue.Dequeue();
+                discoveryUrl = nextServer.Item1;
+                var sw = Stopwatch.StartNew();
+                _logger.Debug("Try finding endpoints at {discoveryUrl}...", discoveryUrl);
+                try {
+                    await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
+                            localeIds, nextServer.Item2, 20000, visitedUris,
+                            queue, results),
+                        _ => !ct.IsCancellationRequested, Retry.NoBackoff,
+                        kMaxDiscoveryAttempts - 1).ConfigureAwait(false);
+                }
+                catch (Exception ex) {
+                    _logger.Debug(ex, "Exception occurred duringing FindEndpoints at {discoveryUrl}.",
+                        discoveryUrl);
+                    _logger.Error("Could not find endpoints at {discoveryUrl} " +
+                        "due to {error} (after {elapsed}).",
+                        discoveryUrl, ex.Message, sw.Elapsed);
+                    return new HashSet<DiscoveredEndpointModel>();
+                }
+                ct.ThrowIfCancellationRequested();
+                _logger.Debug("Finding endpoints at {discoveryUrl} completed in {elapsed}.",
+                    discoveryUrl, sw.Elapsed);
+            }
+            return results;
+        }
+
+        /// <inheritdoc/>
+        public async Task<byte[]> GetEndpointCertificateAsync(
+            EndpointModel endpoint, CancellationToken ct) {
+            if (string.IsNullOrEmpty(endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(endpoint.Url));
+            }
+            var configuration = await _configuration;
+            var endpointConfiguration = EndpointConfiguration.Create(configuration);
+            endpointConfiguration.OperationTimeout = 20000;
+            var discoveryUrl = new Uri(endpoint.Url);
+            using (var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration)) {
+                // Get endpoint descriptions from endpoint url
+                var endpoints = await client.GetEndpointsAsync(null,
+                    client.Endpoint.EndpointUrl, null, null).ConfigureAwait(false);
+
+                // Match to provided endpoint info
+                var ep = endpoints.Endpoints?.FirstOrDefault(e => e.IsSameAs(endpoint));
+                if (ep == null) {
+                    _logger.Debug("No endpoints at {discoveryUrl}...", discoveryUrl);
+                    throw new ResourceNotFoundException("Endpoint not found");
+                }
+                _logger.Debug("Found endpoint at {discoveryUrl}...", discoveryUrl);
+                return ep.ServerCertificate;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<T> ExecuteServiceAsync<T>(ConnectionModel connection,
+            Func<ISession, Task<T>> service, CancellationToken ct) {
+            if (connection.Endpoint == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+            }
+            _cts.Token.ThrowIfCancellationRequested();
+            var client = await GetOrCreateSessionAsync(connection, null, ct)
+                as OpcUaClient;
+            if (client == null) {
+                throw new ConnectionException("Failed to execute call, " +
+                    $"no connection for {connection?.Endpoint?.Url}");
+            }
+            return await client.RunAsync(service, ct);
+        }
+
+        /// <summary>
+        /// Perform a single discovery using a discovery url
+        /// </summary>
+        /// <param name="discoveryUrl"></param>
+        /// <param name="localeIds"></param>
+        /// <param name="caps"></param>
+        /// <param name="timeout"></param>
+        /// <param name="visitedUris"></param>
+        /// <param name="queue"></param>
+        /// <param name="result"></param>
+        private async Task DiscoverAsync(Uri discoveryUrl, StringCollection localeIds,
+            IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
+            Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result) {
+
+            var configuration = await _configuration;
+            var endpointConfiguration = EndpointConfiguration.Create(configuration);
+            endpointConfiguration.OperationTimeout = timeout;
+            using (var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration)) {
+                //
+                // Get endpoints from current discovery server
+                //
+                var endpoints = await client.GetEndpointsAsync(null,
+                    client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
+                if (!(endpoints?.Endpoints?.Any() ?? false)) {
+                    _logger.Debug("No endpoints at {discoveryUrl}...", discoveryUrl);
+                    return;
+                }
+                _logger.Debug("Found endpoints at {discoveryUrl}...", discoveryUrl);
+
+                foreach (var ep in endpoints.Endpoints.Where(ep =>
+                    ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer)) {
+                    result.Add(new DiscoveredEndpointModel {
+                        Description = ep, // Reported
+                        AccessibleEndpointUrl = new UriBuilder(ep.EndpointUrl) {
+                            Host = discoveryUrl.DnsSafeHost
+                        }.ToString(),
+                        Capabilities = new HashSet<string>(caps)
+                    });
+                }
+
+                //
+                // Now Find servers on network.  This might fail for old lds
+                // as well as reference servers, then we call FindServers...
+                //
+                try {
+                    var response = await client.FindServersOnNetworkAsync(null, 0, 1000,
+                        new StringCollection()).ConfigureAwait(false);
+                    var servers = response?.Servers ?? new ServerOnNetworkCollection();
+                    foreach (var server in servers) {
+                        var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
+                        if (!visitedUris.Contains(url)) {
+                            queue.Enqueue(Tuple.Create(discoveryUrl,
+                                server.ServerCapabilities.ToList()));
+                            visitedUris.Add(url);
+                        }
+                    }
+                }
+                catch {
+                    // Old lds, just continue...
+                    _logger.Debug("{discoveryUrl} does not support ME extension...",
+                        discoveryUrl);
+                }
+
+                //
+                // Call FindServers first to push more unique discovery urls
+                // into the discovery queue
+                //
+                var found = await client.FindServersAsync(null,
+                    client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
+                if (found?.Servers != null) {
+                    var servers = found.Servers.SelectMany(s => s.DiscoveryUrls);
+                    foreach (var server in servers) {
+                        var url = CreateDiscoveryUri(server, discoveryUrl.Port);
+                        if (!visitedUris.Contains(url)) {
+                            queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
+                            visitedUris.Add(url);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Create discovery url from string
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="defaultPort"></param>
+        private static string CreateDiscoveryUri(string uri, int defaultPort) {
+            var url = new UriBuilder(uri);
+            if (url.Port == 0 || url.Port == -1) {
+                url.Port = defaultPort;
+            }
+            url.Host = url.Host.Trim('.');
+            url.Path = url.Path.Trim('/');
+            return url.Uri.ToString();
         }
 
         /// <summary>
@@ -326,6 +578,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _metrics = metrics;
         }
 
+        private const int kMaxDiscoveryAttempts = 3;
         private readonly ILogger _logger;
         private readonly IClientServicesConfig _clientConfig;
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients =
@@ -333,8 +586,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly SemaphoreSlim _lock;
         private readonly CancellationTokenSource _cts;
         private readonly Task _processor;
-        private readonly ApplicationConfiguration _configuration;
-        private readonly IVariantEncoderFactory _codec;
+        private readonly Task<ApplicationConfiguration> _configuration;
         private readonly IMetricsContext _metrics;
     }
 }

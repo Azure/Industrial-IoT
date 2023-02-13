@@ -7,14 +7,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Opc.Ua.Client;
-    using System.Threading.Tasks;
     using System;
-    using Opc.Ua.Client.ComplexTypes;
 
     /// <summary>
     /// Represents session handle
     /// </summary>
-    public interface ISessionHandle : IDisposable {
+    public interface ISessionHandle : IAsyncDisposable {
 
         /// <summary>
         /// Connection
@@ -25,6 +23,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// State
         /// </summary>
         EndpointConnectivityState State { get; }
+
+        /// <summary>
+        /// Connectivity state change events
+        /// </summary>
+        event EventHandler<EndpointConnectivityState> OnConnectionStateChange;
 
         /// <summary>
         /// Session

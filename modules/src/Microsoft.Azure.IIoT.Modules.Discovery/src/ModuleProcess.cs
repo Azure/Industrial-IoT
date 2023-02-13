@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                         // Start module
                         await module.StartAsync(IdentityType.Discoverer, "OpcDiscovery",
                             version, this);
-                        await client.InitializeAsync();
+                        await client.StartAsync();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
             builder.RegisterModule<ModuleFramework>();
 
             // Register opc ua services
-            builder.RegisterType<ClientServices>()
+            builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();

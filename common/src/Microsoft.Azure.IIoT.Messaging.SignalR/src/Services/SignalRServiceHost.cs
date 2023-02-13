@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     /// Signalr service host for serverless
     /// </summary>
     public sealed class SignalRServiceHost<THub> : SignalRServiceEndpoint<THub>,
-        ICallbackInvokerT<THub>, IGroupRegistrationT<THub>, IHostProcess,
+        ICallbackInvokerT<THub>, IGroupRegistrationT<THub>, IHostProcess, IAsyncDisposable,
         IHealthCheck, IDisposable where THub : Hub {
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync() {
+        public async ValueTask StartAsync() {
             try {
                 if (_hub != null) {
                     _logger.Debug("SignalR service host already running.");
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync() {
+        public async ValueTask DisposeAsync() {
             try {
                 _renewHubTimer.Change(
                     Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
@@ -196,7 +196,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
 
         /// <inheritdoc/>
         public void Dispose() {
-            Try.Op(() => StopAsync().Wait());
+            Try.Async(async () => await DisposeAsync());
             _renewHubTimer.Dispose();
         }
 

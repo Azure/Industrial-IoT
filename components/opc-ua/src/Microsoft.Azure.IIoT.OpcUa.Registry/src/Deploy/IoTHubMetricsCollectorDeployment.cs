@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync() {
+        public async ValueTask StartAsync() {
             if (string.IsNullOrEmpty(_config.LogWorkspaceId) || string.IsNullOrEmpty(_config.LogWorkspaceKey)
                     || string.IsNullOrEmpty(_config.IoTHubResourceId)) {
                 _logger.Warning("Azure Log Analytics Workspace configuration is not set." +
@@ -63,11 +63,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                     " AND tags.os = 'Windows'",
                 Priority = 2
             }, true);
-        }
-
-        /// <inheritdoc/>
-        public Task StopAsync() {
-            return Task.CompletedTask;
         }
 
         /// <summary>

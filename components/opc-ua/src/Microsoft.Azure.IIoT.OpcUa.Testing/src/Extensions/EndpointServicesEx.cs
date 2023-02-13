@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         public static Task<VariantValue> ReadValueAsync(this IEndpointServices client,
             EndpointModel endpoint, CredentialModel elevation, string readNode) {
             var codec = new VariantEncoderFactory();
-            return client.ExecuteServiceAsync(endpoint, elevation, session => {
+            return client.ExecuteServiceAsync(endpoint, session => {
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
                         NodeId = readNode.ToNodeId(session.MessageContext),

@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 _publishedNodesProvider,
                 _newtonSoftJsonSerializer
             );
-            _configService.StartAsync().Wait();
+            _configService.StartAsync().AsTask().GetAwaiter().GetResult();
         }
 
         [Theory]

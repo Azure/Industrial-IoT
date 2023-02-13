@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                         // Start module
                         await module.StartAsync(IdentityType.Supervisor, "OpcTwin",
                             version, this);
-                        await client.InitializeAsync();
+                        await client.StartAsync();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register opc ua services
-            builder.RegisterType<ClientServices>()
+            builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AddressSpaceServices>()
                 .AsImplementedInterfaces();

@@ -4,18 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using System;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Client host services
     /// </summary>
-    public interface IClientHost {
-
-        /// <summary>
-        /// initializes the client configuration
-        /// </summary>
-        /// <returns></returns>
-        Task InitializeAsync();
+    public interface IClientHost : IHostProcess, IAsyncDisposable {
 
         /// <summary>
         /// Add certificate to trust list

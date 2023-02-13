@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
 
         /// <inheritdoc/>
         public void Dispose() {
-            DisposeAsync().GetAwaiter().GetResult();
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -155,12 +155,12 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
             /// Dispose
             /// </summary>
             /// <returns></returns>
-            public async Task DisposeAsync() {
+            public async ValueTask DisposeAsync() {
                 if (_disposed) {
                     throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
                 }
                 _disposed = true;
-                await _client.StopAsync();
+                await _client.DisposeAsync();
             }
 
             private bool _disposed;

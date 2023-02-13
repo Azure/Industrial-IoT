@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Hub.Mock.SqlParser;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Serializers;
@@ -26,8 +25,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// <summary>
     /// Mock device registry
     /// </summary>
-    public class IoTHubServices : IIoTHubTwinServices,
-        IIoTHubTelemetryServices, IIoTHub, IEventProcessingHost, IHostProcess {
+    public class IoTHubServices : IIoTHubTwinServices, IIoTHubTelemetryServices,
+        IEventProcessingHost, IIoTHub {
 
         /// <inheritdoc/>
         public string HostName { get; } = "mock.azure-devices.net";
@@ -84,13 +83,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         /// <inheritdoc/>
-        public Task StartAsync() {
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        public Task StopAsync() {
-            return Task.CompletedTask;
+        public ValueTask StartAsync() {
+            return ValueTask.CompletedTask;
         }
 
         /// <inheritdoc/>

@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -38,13 +37,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Create trigger from writer group
         /// </summary>
         public WriterGroupDataSource(IWriterGroupConfig writerGroupConfig,
-            ISubscriptionManager subscriptionManager, IMetricsContext metrics, ILogger logger)
+            ISubscriptionManager subscriptionManager, ISubscriptionConfig subscriptionConfig,
+            IVariantEncoderFactory codec, IMetricsContext metrics, ILogger logger)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _subscriptionManager = subscriptionManager ??
-                throw new ArgumentNullException(nameof(subscriptionManager));
             _writerGroup = writerGroupConfig?.WriterGroup?.Clone() ??
                 throw new ArgumentNullException(nameof(writerGroupConfig.WriterGroup));
+            _logger = logger ??
+                throw new ArgumentNullException(nameof(logger));
+            _subscriptionManager = subscriptionManager ??
+                throw new ArgumentNullException(nameof(subscriptionManager));
+            _subscriptionConfig = subscriptionConfig ??
+                throw new ArgumentNullException(nameof(subscriptionConfig));
+            _codec = codec ??
+                throw new ArgumentNullException(nameof(codec));
+
             _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
             _publisherId = writerGroupConfig.PublisherId ?? Guid.NewGuid().ToString();
         }
@@ -163,7 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _dataSetWriter = dataSetWriter?.Clone() ??
                     throw new ArgumentNullException(nameof(dataSetWriter));
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
-                    _outer._subscriptionManager.Configuration, outer._writerGroup.WriterGroupId);
+                    _outer._subscriptionConfig, outer._writerGroup.WriterGroupId);
             }
 
             /// <summary>
@@ -194,7 +200,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 _dataSetWriter = dataSetWriter.Clone();
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
-                    _outer._subscriptionManager.Configuration, _outer._writerGroup.WriterGroupId);
+                    _outer._subscriptionConfig, _outer._writerGroup.WriterGroupId);
 
                 InitializeKeyframeTrigger();
                 InitializeMetaDataTrigger();
@@ -238,7 +244,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // management realm
                 //
                 Subscription = await _outer._subscriptionManager.CreateSubscriptionAsync(
-                    _subscriptionInfo, ct).ConfigureAwait(false);
+                    _subscriptionInfo, _outer._codec, ct).ConfigureAwait(false);
 
                 InitializeKeyframeTrigger();
                 InitializeMetaDataTrigger();
@@ -290,9 +296,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             private void InitializeKeyframeTrigger() {
                 _frameCount = 0;
-                _keyFrameCount = _outer._subscriptionManager.Configuration.DisableKeyFrames == true
+                _keyFrameCount = _outer._subscriptionConfig.DisableKeyFrames == true
                     ? 0 : _dataSetWriter.KeyFrameCount
-                        ?? _outer._subscriptionManager.Configuration.DefaultKeyFrameCount ?? 0;
+                        ?? _outer._subscriptionConfig.DefaultKeyFrameCount ?? 0;
             }
 
             /// <summary>
@@ -304,8 +310,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     .GetValueOrDefault(TimeSpan.Zero)
                     .TotalMilliseconds;
 
-                if (metaDataSendInterval > 0 && _outer._subscriptionManager
-                        .Configuration.DisableDataSetMetaData != true) {
+                if (metaDataSendInterval > 0 && _outer._subscriptionConfig.DisableDataSetMetaData != true) {
                     if (_metadataTimer == null) {
                         _metadataTimer = new Timer(metaDataSendInterval);
                         _metadataTimer.Elapsed += MetadataTimerElapsed;
@@ -651,6 +656,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ILogger _logger;
         private readonly Dictionary<SubscriptionIdentifier, DataSetWriterSubscription> _subscriptions;
         private readonly ISubscriptionManager _subscriptionManager;
+        private readonly ISubscriptionConfig _subscriptionConfig;
+        private readonly IVariantEncoderFactory _codec;
         private WriterGroupModel _writerGroup;
         private SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private string _publisherId;

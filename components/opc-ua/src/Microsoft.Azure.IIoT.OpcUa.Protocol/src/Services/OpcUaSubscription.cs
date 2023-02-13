@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private Subscription Subscription {
             get {
                 // Called under lock of session manager
-                var session = _sessions.FindSession(
+                var session = _sessions.GetSessionHandle(
                     _subscription.Id.Connection)?.Session;
                 if (session == null) {
                     return null;
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Subscription
         /// </summary>
-        private OpcUaSubscription(ISessionManager session, IClientServicesConfig config,
+        private OpcUaSubscription(IEndpointServices session, IClientServicesConfig config,
             IVariantEncoderFactory codec, ILogger logger, IMetricsContext metrics)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _sessions = session ??
@@ -96,13 +96,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal static async ValueTask<ISubscription> CreateAsync(ISessionManager outer,
+        internal static async ValueTask<ISubscription> CreateAsync(IEndpointServices outer,
             IClientServicesConfig config, IVariantEncoderFactory codec,
             SubscriptionModel subscription, ILogger logger, IMetricsContext metrics,
             CancellationToken ct = default) {
 
             // Create object
-            var newSubscription = new OpcUaSubscription(outer, config, codec, logger, metrics);
+            var newSubscription = new OpcUaSubscription(outer, config,
+                codec ?? new VariantEncoderFactory(), logger, metrics);
+
             // Initialize
             await newSubscription.UpdateAsync(subscription, ct);
 
@@ -175,7 +177,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public async ValueTask UpdateAsync(SubscriptionModel subscription, CancellationToken ct = default) {
+        public async ValueTask UpdateAsync(SubscriptionModel subscription,
+            CancellationToken ct) {
             if (subscription == null) {
                 throw new ArgumentNullException(nameof(subscription));
             }
@@ -250,7 +253,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 _closed = true;
 
-                session = _sessions.FindSession(_subscription.Id.Connection);
+                session = _sessions.GetSessionHandle(_subscription.Id.Connection);
                 if (session == null) {
                     _logger.Warning(
                         "Failed to close subscription '{Subscription}'. " +
@@ -457,8 +460,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     // Remove monitored items not in desired state
                     _logger.Verbose("Remove monitored items in subscription "
                         + "'{subscription}'/'{sessionId}'...",
-                        Name,
-                        Connection.CreateConnectionId());
+                        Name, Connection.CreateConnectionId());
                     foreach (var toRemove in toCleanupList) {
                         _logger.Verbose("Removing monitored item '{item}'...",
                             toRemove.StartNodeId);
@@ -468,9 +470,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     rawSubscription.RemoveItems(toCleanupList);
                     _logger.Information("Removed {count} monitored items in subscription "
                         + "'{subscription}'/'{sessionId}'",
-                        count,
-                        Name,
-                        Connection.CreateConnectionId());
+                        count, Name, Connection.CreateConnectionId());
                 }
                 _currentlyMonitored = ImmutableDictionary<uint, OpcUaMonitoredItem>.Empty;
 
@@ -479,10 +479,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 rawSubscription.SetPublishingMode(false);
                 if (rawSubscription.MonitoredItemCount != 0) {
                     _logger.Warning("Failed to remove {count} monitored items from subscription "
-                        + "'{subscription}'/'{sessionId}'",
-                        rawSubscription.MonitoredItemCount,
-                        Name,
-                        Connection.CreateConnectionId());
+                        + "'{subscription}'/'{sessionId}'", rawSubscription.MonitoredItemCount,
+                        Name, Connection.CreateConnectionId());
                 }
                 return noErrorFound;
             }
@@ -509,10 +507,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 metadataChanged = true;
 
                 _logger.Information("Removed {count} monitored items from subscription "
-                    + "'{subscription}'/'{sessionId}'",
-                    count,
-                    Name,
-                    Connection.CreateConnectionId());
+                    + "'{subscription}'/'{sessionId}'", count, Name, Connection.CreateConnectionId());
             }
 
             // todo re-associate detached handles!?
@@ -532,8 +527,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 count = 0;
                 // Add new monitored items not in current state
                 _logger.Verbose("Add monitored items to subscription '{subscription}'/'{sessionId}'...",
-                    Name,
-                    Connection.CreateConnectionId());
+                    Name, Connection.CreateConnectionId());
                 foreach (var toAdd in toAddList) {
                     // Create monitored item
                     try {
@@ -1228,7 +1222,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         private ImmutableDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel _subscription;
-        private readonly ISessionManager _sessions;
+        private readonly IEndpointServices _sessions;
         private readonly IClientServicesConfig _config;
         private readonly IVariantEncoderFactory _codec;
         private readonly ILogger _logger;

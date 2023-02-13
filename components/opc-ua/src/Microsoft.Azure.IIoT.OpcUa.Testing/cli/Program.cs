@@ -191,9 +191,9 @@ Operations (Mutually exclusive):
         /// </summary>
         private static async Task TestOpcUaServerClientAsync(EndpointModel endpoint) {
             using (var logger = StackLogger.Create(ConsoleLogger.Create()))
-            using (var client = new ClientServices(logger.Logger, new TestClientServicesConfig()))
+            using (var client = new OpcUaClientManager(logger.Logger, new TestClientServicesConfig()))
             using (var server = new ServerWrapper(endpoint, logger)) {
-                await client.ExecuteServiceAsync(endpoint, null, session => {
+                await client.ExecuteServiceAsync(endpoint, session => {
                     Console.WriteLine("Browse the OPC UA server namespace.");
                     var w = Stopwatch.StartNew();
                     var stack = new Stack<Tuple<string, ReferenceDescription>>();
@@ -238,7 +238,7 @@ Operations (Mutually exclusive):
                     ObjectIds.RootFolder.ToString()
                 };
 
-                using (var client = new ClientServices(logger.Logger, new TestClientServicesConfig())) {
+                using (var client = new OpcUaClientManager(logger.Logger, new TestClientServicesConfig())) {
                     var service = new AddressSpaceServices(client, new VariantEncoderFactory(), logger.Logger);
                     using (var server = new ServerWrapper(endpoint, logger)) {
                         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync() {
+        public async ValueTask StartAsync() {
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = "__default-opctwin",
                 Content = new ConfigurationContentModel {
@@ -56,11 +56,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     " AND tags.os = 'Windows'",
                 Priority = 1
             }, true);
-        }
-
-        /// <inheritdoc/>
-        public Task StopAsync() {
-            return Task.CompletedTask;
         }
 
         /// <summary>

@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
         public async Task StartAsync(CancellationToken cancellationToken) {
             try {
                 _logger.Debug("Starting all hosts...");
-                await Task.WhenAll(_hostProcesses.Select(h => h.StartAsync()));
+                await Task.WhenAll(_hostProcesses.Select(async h => await h.StartAsync()));
                 _logger.Information("All hosts started.");
 
                 // Print some useful information at bootstrap time
@@ -92,7 +92,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
         public async Task StopAsync(CancellationToken cancellationToken) {
             try {
                 _logger.Debug("Stopping all hosts...");
-                await Task.WhenAll(_hostProcesses.Select(h => h.StopAsync()));
+                await Task.WhenAll(_hostProcesses.OfType<IAsyncDisposable>()
+                    .Select(async h => await h.DisposeAsync()));
                 _logger.Information("All hosts stopped.");
             }
             catch (Exception ex) {

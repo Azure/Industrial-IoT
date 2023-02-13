@@ -4,9 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Opc.Ua.Client;
+    using Opc.Ua.Client.ComplexTypes;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -17,21 +19,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface IEndpointServices {
 
         /// <summary>
+        /// Number of currently active sessions.
+        /// </summary>
+        int SessionCount { get; }
+
+        /// <summary>
+        /// Get a connected session
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="metrics"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<ISessionHandle> GetOrCreateSessionAsync(
+            ConnectionModel connection, IMetricsContext metrics = null,
+            CancellationToken ct = default);
+
+        /// <summary>
         /// Execute the service on the provided session.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="connection"></param>
-        /// <param name="elevation"></param>
-        /// <param name="priority"></param>
         /// <param name="service"></param>
-        /// <param name="timeout"></param>
         /// <param name="ct"></param>
-        /// <param name="exceptionHandler"></param>
         /// <returns></returns>
         Task<T> ExecuteServiceAsync<T>(ConnectionModel connection,
-            CredentialModel elevation, int priority, Func<ISession,
-            Task<T>> service, TimeSpan? timeout, CancellationToken ct,
-            Func<Exception, bool> exceptionHandler);
+            Func<ISession, Task<T>> service, CancellationToken ct);
 
         /// <summary>
         /// Get or create session handle
@@ -41,11 +53,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         ISessionHandle GetSessionHandle(ConnectionModel connection);
 
         /// <summary>
-        /// Register endpoint state callback
+        /// Get complex type system from session
         /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="callback"></param>
-        IDisposable RegisterCallback(ConnectionModel endpoint,
-            Func<EndpointConnectivityState, Task> callback);
+        /// <param name="session"></param>
+        /// <returns></returns>
+        ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync(
+            ISession session);
     }
 }

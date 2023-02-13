@@ -6,9 +6,11 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Utils;
+    using Nito.AsyncEx;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
@@ -25,7 +27,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    public class OpcUaClient : IDisposable, ISessionHandle, IMetricsContext {
+    public class OpcUaClient : IAsyncDisposable, ISessionHandle, IMetricsContext {
+
+        /// <inheritdoc/>
+        public event EventHandler<EndpointConnectivityState> OnConnectionStateChange;
 
         /// <inheritdoc/>
         public ISession Session => _session;
@@ -67,12 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Is reconnecting
         /// </summary>
-        internal bool IsConnected => _session != null && _session.Connected;
-
-        /// <summary>
-        /// Whether the connect operation is in progress
-        /// </summary>
-        internal bool IsConnecting => _connecting.CurrentCount == 0;
+        internal bool IsConnected => _lastState == EndpointConnectivityState.Ready;
 
         /// <summary>
         /// Whether the connect operation is in progress
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Check if session is active
         /// </summary>
         public bool IsActive => HasSubscriptions ||
-            _created + TimeSpan.FromSeconds(SessionLifeTime) <= DateTime.UtcNow;
+            _lastActivity + TimeSpan.FromSeconds(SessionLifeTime) > DateTime.UtcNow;
 
         /// <summary>
         /// Initializes a new instance.
@@ -94,7 +94,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
-
+            _connected = new AsyncManualResetEvent();
+            _lastState = EndpointConnectivityState.Connecting;
             _sessionName = sessionName ?? connection.ToString();
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
@@ -180,16 +181,49 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
+        public async Task<T> RunAsync<T>(Func<ISession, Task<T>> service,
+            CancellationToken ct) {
+            while (true) {
+                await _connected.WaitAsync(ct);
+                if (_disposed) {
+                    throw new ConnectionException(
+                        $"Session {_sessionName} was closed.");
+                }
+                if (_session == null || !_session.Connected) {
+                    _logger.Information(
+                        "Connected signaled but not connected, retry in 5 seconds...");
+                    // Delay and try again
+                    await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                    continue;
+                }
+                try {
+                    return await service(_session);
+                }
+                catch (Exception ex) when (!_session.Connected) {
+                    _logger.Information("Session disconnected during service call " +
+                        "with message {message}, retrying.", ex.Message);
+                    continue;
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask DisposeAsync() {
+            if (_disposed) {
+                throw new ObjectDisposedException(_sessionName);
+            }
+            _disposed = true;
             Session session;
             List<ISubscription> subscriptions;
-            _lock.Wait();
+            await _lock.WaitAsync();
             try {
+                NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
                 _reconnectHandler?.Dispose();
                 subscriptions = _subscriptions.Values.ToList();
                 _subscriptions.Clear();
                 session = _session;
                 UnsetSession(true);
+                _connected.Set(); // Release any waiting tasks with exception
             }
             finally {
                 _lock.Release();
@@ -202,7 +236,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (subscriptions.Count > 0) {
                     //
                     // Close all subscriptions. Since this might call back into
-                    // the session manager, queue this to the thread pool
+                    // the session manager and we are under the lock, queue this
+                    // to the thread pool to execute after
                     //
                     ThreadPool.QueueUserWorkItem(_ => {
                         foreach (var subscription in _subscriptions.Values) {
@@ -211,8 +246,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     });
                 }
 
-                session.Close();
-                session.Dispose();
+                await session.CloseAsync();
+
                 // Log Session Disconnected event
                 _logger.Debug("Session {Name} closed.", _sessionName);
             }
@@ -220,6 +255,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Error(ex, "Error during closing of session {Name}.", _sessionName);
             }
             finally {
+                session.Dispose();
                 // Clean up resources
                 _lock.Dispose();
             }
@@ -246,6 +282,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             UnsetSession(); // Ensure any previous session is disposed here.
+            NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
             _logger.Debug("Initializing session '{Name}'...", _sessionName);
 
             var endpointUrlCandidates = _connection.Endpoint.Url.YieldReturn();
@@ -300,6 +337,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     return true;
                 }
                 catch (Exception ex) {
+                    NotifyConnectivityStateChange(ToConnectivityState(ex));
                     NumberOfConnectRetries++;
                     _logger.Information(
                         "#{Attempt}: Failed to create session {Name} to {endpointUrl}: {message}...",
@@ -354,6 +392,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _reconnectHandler = new SessionReconnectHandler(true);
                             _reconnectHandler.BeginReconnect(_session,
                                 ReconnectPeriod, Client_ReconnectComplete);
+                            NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
                         }
                         else {
                             _logger.Debug(
@@ -406,6 +445,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _logger.Information("--- SESSION {Name} RECONNECTED ---", _sessionName);
             NumberOfConnectRetries++;
 
+            NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
+
             // Go back online
             NotifySubscriptionStateChange(IsConnected);
         }
@@ -436,6 +477,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // set up keep alive callback.
                 _session.KeepAlive += Session_KeepAlive;
                 _session.Handle = this;
+                NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
             }
             finally {
                 _lock.Release();
@@ -495,6 +537,108 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
+        /// Notify about new connectivity state using any status callback registered.
+        /// </summary>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        private void NotifyConnectivityStateChange(EndpointConnectivityState state) {
+            var previous = _lastState;
+            if (previous == state) {
+                return;
+            }
+            if (previous != EndpointConnectivityState.Connecting &&
+                previous != EndpointConnectivityState.Ready &&
+                state == EndpointConnectivityState.Error) {
+                // Do not change state to generic error once we have
+                // a specific error state already set...
+                _logger.Debug(
+                    "Error, connection to {endpoint} - leaving state at {previous}.",
+                    _connection.Endpoint.Url, previous);
+                return;
+            }
+
+            _lastState = state;
+            if (_lastState == EndpointConnectivityState.Ready) {
+                _connected.Set();
+            }
+            else {
+                _connected.Reset();
+            }
+            _logger.Information(
+                "Connecting to {endpoint} changed from {previous} to {state}",
+                _connection.Endpoint.Url, previous, state);
+            try {
+                OnConnectionStateChange?.Invoke(this, state);
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Exception during state callback");
+            }
+        }
+
+        /// <summary>
+        /// Convert exception to connectivity state
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <param name="reconnecting"></param>
+        /// <returns></returns>
+        public EndpointConnectivityState ToConnectivityState(Exception ex, bool reconnecting = true) {
+            var state = EndpointConnectivityState.Error;
+            switch (ex) {
+                case ServiceResultException sre:
+                    switch (sre.StatusCode) {
+                        case StatusCodes.BadNoContinuationPoints:
+                        case StatusCodes.BadLicenseLimitsExceeded:
+                        case StatusCodes.BadTcpServerTooBusy:
+                        case StatusCodes.BadTooManySessions:
+                        case StatusCodes.BadTooManyOperations:
+                            state = EndpointConnectivityState.Busy;
+                            break;
+                        case StatusCodes.BadCertificateRevocationUnknown:
+                        case StatusCodes.BadCertificateIssuerRevocationUnknown:
+                        case StatusCodes.BadCertificateRevoked:
+                        case StatusCodes.BadCertificateIssuerRevoked:
+                        case StatusCodes.BadCertificateChainIncomplete:
+                        case StatusCodes.BadCertificateIssuerUseNotAllowed:
+                        case StatusCodes.BadCertificateUseNotAllowed:
+                        case StatusCodes.BadCertificateUriInvalid:
+                        case StatusCodes.BadCertificateTimeInvalid:
+                        case StatusCodes.BadCertificateIssuerTimeInvalid:
+                        case StatusCodes.BadCertificateInvalid:
+                        case StatusCodes.BadCertificateHostNameInvalid:
+                        case StatusCodes.BadNoValidCertificates:
+                            state = EndpointConnectivityState.CertificateInvalid;
+                            break;
+                        case StatusCodes.BadCertificateUntrusted:
+                        case StatusCodes.BadSecurityChecksFailed:
+                            state = EndpointConnectivityState.NoTrust;
+                            break;
+                        case StatusCodes.BadSecureChannelClosed:
+                            state = reconnecting ? EndpointConnectivityState.NoTrust :
+                                EndpointConnectivityState.Error;
+                            break;
+                        case StatusCodes.BadRequestTimeout:
+                        case StatusCodes.BadNotConnected:
+                            state = EndpointConnectivityState.NotReachable;
+                            break;
+                        case StatusCodes.BadUserAccessDenied:
+                        case StatusCodes.BadUserSignatureInvalid:
+                            state = EndpointConnectivityState.Unauthorized;
+                            break;
+                        default:
+                            state = EndpointConnectivityState.Error;
+                            break;
+                    }
+                    _logger.Debug("{result} => {state}", sre.Result, state);
+                    break;
+                default:
+                    state = EndpointConnectivityState.Error;
+                    _logger.Debug("{message} => {state}", ex.Message, state);
+                    break;
+            }
+            return state;
+        }
+
+        /// <summary>
         /// Create observable metrics
         /// </summary>
         /// <param name="metrics"></param>
@@ -521,17 +665,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 "OPC UA connection success flag.");
         }
 
-        private readonly ConcurrentDictionary<string, ISubscription> _subscriptions
-            = new ConcurrentDictionary<string, ISubscription>();
-        private SemaphoreSlim _connecting = new SemaphoreSlim(1, 1);
-        private SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
-        private ApplicationConfiguration _configuration;
-        private readonly string _sessionName;
-        private readonly ConnectionModel _connection;
         private SessionReconnectHandler _reconnectHandler;
         private Session _session;
         private Task<ComplexTypeSystem> _complexTypeSystem;
+        private EndpointConnectivityState _lastState;
+        private bool _disposed;
+        private readonly SemaphoreSlim _connecting = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+        private readonly ApplicationConfiguration _configuration;
+        private readonly AsyncManualResetEvent _connected;
+        private readonly string _sessionName;
+        private readonly ConnectionModel _connection;
         private readonly ILogger _logger;
-        private readonly DateTime _created = DateTime.UtcNow;
+        private readonly DateTime _lastActivity = DateTime.UtcNow;
+        private readonly ConcurrentDictionary<string, ISubscription> _subscriptions
+            = new ConcurrentDictionary<string, ISubscription>();
     }
 }

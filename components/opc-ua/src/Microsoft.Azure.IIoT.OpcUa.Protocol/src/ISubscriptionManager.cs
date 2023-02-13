@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System.Threading;
     using System.Threading.Tasks;
@@ -15,18 +14,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface ISubscriptionManager {
 
         /// <summary>
-        /// Subscription configuration
-        /// </summary>
-        ISubscriptionConfig Configuration { get; }
-
-        /// <summary>
         /// Get or create new subscription
         /// </summary>
         /// <param name="subscriptionModel"></param>
+        /// <param name="codec"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask<ISubscription> CreateSubscriptionAsync(
             SubscriptionModel subscriptionModel,
+            IVariantEncoderFactory codec = null,
             CancellationToken ct = default);
     }
 }

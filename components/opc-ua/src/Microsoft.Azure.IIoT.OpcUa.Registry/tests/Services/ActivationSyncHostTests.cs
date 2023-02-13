@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Services {
                 var syncService = mock.Create<ActivationSyncHost>();
                 await syncService.StartAsync();
                 await Task.Delay(100);
-                await syncService.StopAsync();
+                await syncService.DisposeAsync();
             }
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Services {
                 var syncService = mock.Create<ActivationSyncHost>();
                 await syncService.StartAsync();
                 await SilentTaskDelayAsync(1000, cts.Token);
-                await syncService.StopAsync();
+                await syncService.DisposeAsync();
 
                 Assert.InRange(callCounter, 5, 1000);
             }

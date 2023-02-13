@@ -29,8 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
 
         private ReadScalarValueTests<EndpointModel> GetTests() {
             return new ReadScalarValueTests<EndpointModel>(
-                () => new AddressSpaceServices(_server.Client,
-                    new VariantEncoderFactory(), _server.Logger),
+                () => new AddressSpaceServices(_server.Client, new VariantEncoderFactory(), _server.Logger),
                 new EndpointModel {
                     Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                     AlternativeUrls = _hostEntry?.AddressList
