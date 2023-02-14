@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
             var buffer = serializer.ContentEncoding?.GetBytes(str)
                 ?? Convert.FromBase64String(str);
 
-            return serializer.Deserialize(buffer, type, schemaReader);
+            return serializer.Deserialize(buffer, type);
         }
 
         /// <summary>

@@ -309,8 +309,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // First, let's check that there are no 2 entries for the same endpoint in the request.
             if (request.Count > 0) {
                 request[0].PropagatePublishingIntervalToNodes();
-                for (int itemIndex = 1; itemIndex < request.Count; itemIndex++) {
-                    for (int prevItemIndex = 0; prevItemIndex < itemIndex; prevItemIndex++) {
+                for (var itemIndex = 1; itemIndex < request.Count; itemIndex++) {
+                    for (var prevItemIndex = 0; prevItemIndex < itemIndex; prevItemIndex++) {
                         request[itemIndex].PropagatePublishingIntervalToNodes();
                         if (request[itemIndex].HasSameDataSet(request[prevItemIndex])) {
                             throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
@@ -421,7 +421,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             request.PropagatePublishingIntervalToNodes();
-            List<OpcNodeModel> response = new List<OpcNodeModel>();
+            var response = new List<OpcNodeModel>();
             try {
                 var endpointFound = false;
                 var currentNodes = GetCurrentPublishedNodes();
@@ -640,7 +640,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                         _configuration.PublishedNodesFile, _lastKnownFileHash,
                                         currentFileHash);
 
-                                    var entries = DeserializePublishedNodes(content).ToList();
+                                    var entries = _publishedNodesJobConverter.Read(content).ToList();
                                     TransformFromLegacyNodeId(entries);
                                     jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries,
                                         _configuration);
@@ -721,36 +721,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <summary>
-        /// Deserialize string representing published nodes file into PublishedNodesEntryModel entries and
-        /// run schema validation if that is enables.
-        /// </summary>
-        private IEnumerable<PublishedNodesEntryModel> DeserializePublishedNodes(string content) {
-            bool ioErrorEncountered = false;
-            if (File.Exists(_configuration.PublishedNodesSchemaFile)) {
-                try {
-                    using (var fileSchemaReader = new StreamReader(
-                        _configuration.PublishedNodesSchemaFile)) {
-                        return _publishedNodesJobConverter.Read(content, fileSchemaReader);
-                    }
-                }
-                catch (IOException e) {
-                    _logger.Warning(e, "File IO exception when reading published nodes schema file " +
-                        "at \"{path}\". Falling back to deserializing content of published nodes " +
-                        "file without schema validation.",
-                        _configuration.PublishedNodesSchemaFile);
-                    ioErrorEncountered = true;
-                }
-            }
-            // Deserialize without schema validation.
-            if (!ioErrorEncountered) {
-                _logger.Information("Validation schema file {PublishedNodesSchemaFile} does not " +
-                    "exist or is disabled, ignoring validation of {publishedNodesFile} file.",
-                    _configuration.PublishedNodesSchemaFile, _configuration.PublishedNodesFile);
-            }
-            return _publishedNodesJobConverter.Read(content, null);
-        }
-
-        /// <summary>
         /// Transforms legacy entries that use NodeId into ones using OpcNodes.
         /// The transformation will happen in-place.
         /// </summary>
@@ -794,9 +764,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
         }
 
-        private readonly static string kNullRequestMessage
+        private static readonly string kNullRequestMessage
             = "null request is provided";
-        private readonly static string kNullOrEmptyOpcNodesMessage
+        private static readonly string kNullOrEmptyOpcNodesMessage
             = "null or empty OpcNodes is provided in request";
 
         private readonly ILogger _logger;
@@ -811,7 +781,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private TaskCompletionSource _started;
         private readonly Task _fileChangeProcessor;
         private readonly Channel<bool> _fileChanges;
-        private readonly SemaphoreSlim _api = new SemaphoreSlim(1, 1);
-        private readonly SemaphoreSlim _file = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _api = new(1, 1);
+        private readonly SemaphoreSlim _file = new(1, 1);
     }
 }

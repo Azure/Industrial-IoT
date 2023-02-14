@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.v2.Publisher {
-    using Json.More;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Json.More;
     using System;
     using System.Collections.Generic;
     using System.Text.Json;

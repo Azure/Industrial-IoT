@@ -15,8 +15,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Messaging.Default;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
@@ -105,9 +103,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
             builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces();
 
-            // Add Application Insights dependency tracking.
-            builder.AddDependencyTracking(config, serviceInfo);
-
             // Add diagnostics
             builder.AddDiagnostics(config);
 
@@ -174,14 +169,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
                 .AsImplementedInterfaces();
             builder.RegisterType<OnboardingClient>()
                 .AsImplementedInterfaces();
-
-            // Register event bus for event publishing
-            builder.RegisterType<EventBusHost>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ServiceBusClientFactory>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ServiceBusEventBus>()
-                .AsImplementedInterfaces().SingleInstance();
 
             return builder;
         }

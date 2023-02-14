@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
         }
 
         /// <inheritdoc/>
-        public object Deserialize(ReadOnlyMemory<byte> buffer, Type type, TextReader schemaReader = null) {
+        public object Deserialize(ReadOnlyMemory<byte> buffer, Type type) {
             try {
                 return MsgPack.Deserialize(type, buffer, Options);
             }

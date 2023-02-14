@@ -54,15 +54,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Read monitored item job from reader
         /// </summary>
         /// <param name="publishedNodesContent"></param>
-        /// <param name="publishedNodesSchemaFile"></param>
         /// <returns></returns>
-        public IEnumerable<PublishedNodesEntryModel> Read(string publishedNodesContent,
-            TextReader publishedNodesSchemaFile) {
+        public IEnumerable<PublishedNodesEntryModel> Read(string publishedNodesContent) {
             var sw = Stopwatch.StartNew();
             _logger.Debug("Reading and validating published nodes file...");
             try {
                 var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(
-                    publishedNodesContent, publishedNodesSchemaFile);
+                    publishedNodesContent);
 
                 if (items == null) {
                     throw new SerializerException("Published nodes files, malformed.");

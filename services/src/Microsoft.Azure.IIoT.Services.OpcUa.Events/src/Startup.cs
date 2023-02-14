@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.Api.Publisher.Clients;
@@ -17,15 +16,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
-    using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Messaging.Default;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
     using Microsoft.Azure.IIoT.Serializers;
@@ -122,12 +118,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
                 .AddAzureSignalRService(Config);
 
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
-
-            // Enable Application Insights telemetry collection.
-#pragma warning disable CS0618 // Type or member is obsolete
-            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
-#pragma warning restore CS0618 // Type or member is obsolete
-            services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
         }
 
         /// <summary>
@@ -249,11 +239,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             // Register event bus for integration events
             builder.RegisterType<EventBusHost>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ServiceBusClientFactory>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ServiceBusEventBus>()
-                .AsImplementedInterfaces().SingleInstance()
-                .IfNotRegistered(typeof(IEventBus));
 
             // Register event processor host for telemetry
             builder.RegisterType<EventProcessorHost>()

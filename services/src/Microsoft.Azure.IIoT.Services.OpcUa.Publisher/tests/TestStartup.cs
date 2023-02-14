@@ -45,8 +45,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests {
         public override void ConfigureContainer(ContainerBuilder builder) {
             base.ConfigureContainer(builder);
 
-            builder.RegisterType<TestIoTHubConfig>()
-                .AsImplementedInterfaces();
             builder.RegisterType<TestModule>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TestIdentity>()
@@ -67,38 +65,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests {
         public class TestAuthConfig : IServerAuthConfig {
             public bool AllowAnonymousAccess => true;
             public IEnumerable<IOAuthServerConfig> JwtBearerProviders { get; }
-        }
-
-        public class TestIoTHubConfig : IIoTHubConfig, IIoTHubConfigurationServices {
-            public string IoTHubConnString =>
-                ConnectionString.CreateServiceConnectionString(
-                    "test.test.org", "iothubowner", Convert.ToBase64String(
-                        Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-
-            public Task ApplyConfigurationAsync(string deviceId,
-                ConfigurationContentModel configuration, CancellationToken ct = default) {
-                return Task.CompletedTask;
-            }
-
-            public Task<ConfigurationModel> CreateOrUpdateConfigurationAsync(
-                ConfigurationModel configuration, bool forceUpdate, CancellationToken ct = default) {
-                return Task.FromResult(new ConfigurationModel());
-            }
-
-            public Task DeleteConfigurationAsync(string configurationId, string etag,
-                CancellationToken ct = default) {
-                return Task.CompletedTask;
-            }
-
-            public Task<ConfigurationModel> GetConfigurationAsync(string configurationId,
-                CancellationToken ct = default) {
-                return Task.FromResult(new ConfigurationModel());
-            }
-
-            public Task<IEnumerable<ConfigurationModel>> ListConfigurationsAsync(
-                int? maxCount, CancellationToken ct = default) {
-                return Task.FromResult(Enumerable.Empty<ConfigurationModel>());
-            }
         }
     }
 

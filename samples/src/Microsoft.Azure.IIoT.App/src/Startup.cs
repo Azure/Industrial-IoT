@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Blazored.Modal;
     using Blazored.SessionStorage;
     using FluentValidation;
-    using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Components.Authorization;
     using Microsoft.AspNetCore.Hosting;
@@ -23,7 +22,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Storage;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
@@ -164,12 +162,6 @@ namespace Microsoft.Azure.IIoT.App {
                 .AddMessagePackSerializer()
                 //   .AddAzureSignalRService(Config)
                 ;
-
-            // Enable Application Insights telemetry collection.
-#pragma warning disable CS0618 // Type or member is obsolete
-            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
-#pragma warning restore CS0618 // Type or member is obsolete
-            services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
 
             services.AddServerSideBlazor();
             services.AddBlazoredSessionStorage();

@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Logging.ApplicationInsights;
     using Serilog;
     using Serilog.Events;
     using System;
@@ -59,9 +58,7 @@ namespace Microsoft.Azure.IIoT.App {
                     .UseIISIntegration()
                     .UseSetting(WebHostDefaults.DetailedErrorsKey, "true"))
                 .UseSerilog()
-                .ConfigureLogging(logging =>
-                    logging.AddFilter<ApplicationInsightsLoggerProvider>
-                        ("", LogLevel.Information));
+                    ;
         }
     }
 }

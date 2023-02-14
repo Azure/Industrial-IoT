@@ -39,9 +39,8 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// </summary>
         /// <param name="type"></param>
         /// <param name="buffer"></param>
-        /// <param name="schemaReader"></param>
         /// <returns></returns>
-        object Deserialize(ReadOnlyMemory<byte> buffer, Type type, TextReader schemaReader = null);
+        object Deserialize(ReadOnlyMemory<byte> buffer, Type type);
 
         /// <summary>
         /// Deserialize to variant value
