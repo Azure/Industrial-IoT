@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class IIoTK8SResources {
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///          # In the absense of this configmap, default value for enabled is true
         ///          enabled = true
         ///          # exclude_namespaces setting holds good only if enabled is set to true
-        ///          # kube-system l [rest of string was truncated]&quot;;.
+        ///         [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _04_oms_agent_configmap {
             get {
