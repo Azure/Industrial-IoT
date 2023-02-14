@@ -6,8 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Cli {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;

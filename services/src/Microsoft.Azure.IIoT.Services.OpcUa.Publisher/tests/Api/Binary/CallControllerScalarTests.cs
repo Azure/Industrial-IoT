@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Api.Binary {
         private CallScalarMethodTests<string> GetTests() {
             var client = _factory.CreateClient(); // Call to create server
             var module = _factory.Resolve<ITestModule>();
-            module.Endpoint = Endpoint;
+            module.Connection = Connection;
             var log = _factory.Resolve<ILogger>();
             var serializer = _factory.Resolve<IBinarySerializer>();
             return new CallScalarMethodTests<string>(() => // Create an adapter over the api
@@ -44,12 +44,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Api.Binary {
                     new TestConfig(client.BaseAddress), serializer)), "fakeid");
         }
 
-        public EndpointModel Endpoint => new() {
-            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
-            AlternativeUrls = _hostEntry?.AddressList
+        public ConnectionModel Connection => new() {
+            Endpoint = new EndpointModel {
+                Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+                AlternativeUrls = _hostEntry?.AddressList
                 .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                 .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
-            Certificate = _server.Certificate?.RawData?.ToThumbprint()
+                Certificate = _server.Certificate?.RawData?.ToThumbprint()
+            }
         };
 
         private readonly WebAppFixture _factory;

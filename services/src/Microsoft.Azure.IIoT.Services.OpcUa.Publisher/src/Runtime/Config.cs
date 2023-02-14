@@ -19,12 +19,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Azure.IIoT.Messaging.SignalR;
+    using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
-        ICorsConfig, IOpenApiConfig, IForwardedHeadersConfig, IRoleConfig {
+        ICorsConfig, IOpenApiConfig, IForwardedHeadersConfig, ISignalRServiceConfig,
+		IRoleConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -54,6 +57,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         public bool UseV2 => _openApi.UseV2;
         /// <inheritdoc/>
         public string OpenApiServerHost => _openApi.OpenApiServerHost;
+
+        /// <inheritdoc/>
+        public string SignalRConnString => _sr.SignalRConnString;
+        /// <inheritdoc/>
+        public bool SignalRServerLess => _sr.SignalRServerLess;
 
         /// <inheritdoc/>
         public string DockerServer => _cr.DockerServer;
@@ -87,6 +95,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
             _host = new WebHostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
+            _sr = new SignalRServiceConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _cr = new ContainerRegistryConfig(configuration);
         }
@@ -96,6 +105,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
         private readonly IoTHubConfig _hub;
+        private readonly SignalRServiceConfig _sr;
         private readonly ForwardedHeadersConfig _fh;
     }
 }

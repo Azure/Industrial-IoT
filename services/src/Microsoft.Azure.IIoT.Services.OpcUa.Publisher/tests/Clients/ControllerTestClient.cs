@@ -24,8 +24,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Clients {
         /// <param name="config"></param>
         public ControllerTestClient(IHttpClient httpClient, IPublisherConfig config,
             ISerializer serializer) {
-            _serviceUri = config?.OpcUaPublisherServiceUrl?.TrimEnd('/') ??
-                throw new ArgumentNullException(nameof(config));
+            _serviceUri = (config?.OpcUaPublisherServiceUrl ??
+                throw new ArgumentNullException(nameof(config))).TrimEnd('/') + "/twin";
             _httpClient = httpClient ??
                 throw new ArgumentNullException(nameof(httpClient));
             _serializer = serializer ??

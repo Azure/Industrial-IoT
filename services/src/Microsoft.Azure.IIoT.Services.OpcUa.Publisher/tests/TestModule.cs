@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests {
         /// <summary>
         /// Endpoint
         /// </summary>
-        EndpointModel Endpoint { get; set; }
+        ConnectionModel Connection { get; set; }
     }
 
     /// <summary>
@@ -43,11 +43,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests {
         /// <summary>
         /// The endpoint
         /// </summary>
-        public EndpointModel Endpoint { get; set; }
+        public ConnectionModel Connection { get; set; }
 
-        public TestModule(IBrowseServices<EndpointModel> browser,
-            IHistoricAccessServices<EndpointModel> history,
-            INodeServices<EndpointModel> nodes) {
+        public TestModule(IBrowseServices<ConnectionModel> browser,
+            IHistoricAccessServices<ConnectionModel> history,
+            INodeServices<ConnectionModel> nodes) {
             _browser = browser ?? throw new ArgumentNullException(nameof(browser));
             _history = history ?? throw new ArgumentNullException(nameof(history));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
@@ -56,77 +56,77 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests {
         /// <inheritdoc/>
         public Task<BrowseResultModel> NodeBrowseFirstAsync(string endpointId,
             BrowseRequestModel request, CancellationToken ct) {
-            return _browser.NodeBrowseFirstAsync(Endpoint, request, ct);
+            return _browser.NodeBrowseFirstAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<BrowseNextResultModel> NodeBrowseNextAsync(string endpointId,
             BrowseNextRequestModel request, CancellationToken ct) {
-            return _browser.NodeBrowseNextAsync(Endpoint, request, ct);
+            return _browser.NodeBrowseNextAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<BrowsePathResultModel> NodeBrowsePathAsync(string endpointId,
             BrowsePathRequestModel request, CancellationToken ct) {
-            return _browser.NodeBrowsePathAsync(Endpoint, request, ct);
+            return _browser.NodeBrowsePathAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<ValueReadResultModel> NodeValueReadAsync(string endpointId,
             ValueReadRequestModel request, CancellationToken ct) {
-            return _nodes.NodeValueReadAsync(Endpoint, request, ct);
+            return _nodes.NodeValueReadAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<ValueWriteResultModel> NodeValueWriteAsync(string endpointId,
             ValueWriteRequestModel request, CancellationToken ct) {
-            return _nodes.NodeValueWriteAsync(Endpoint, request, ct);
+            return _nodes.NodeValueWriteAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<MethodMetadataResultModel> NodeMethodGetMetadataAsync(
             string endpointId, MethodMetadataRequestModel request, CancellationToken ct) {
-            return _nodes.NodeMethodGetMetadataAsync(Endpoint, request, ct);
+            return _nodes.NodeMethodGetMetadataAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<MethodCallResultModel> NodeMethodCallAsync(
             string endpointId, MethodCallRequestModel request, CancellationToken ct) {
-            return _nodes.NodeMethodCallAsync(Endpoint, request, ct);
+            return _nodes.NodeMethodCallAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<ReadResultModel> NodeReadAsync(
             string endpointId, ReadRequestModel request, CancellationToken ct) {
-            return _nodes.NodeReadAsync(Endpoint, request, ct);
+            return _nodes.NodeReadAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<WriteResultModel> NodeWriteAsync(
             string endpointId, WriteRequestModel request, CancellationToken ct) {
-            return _nodes.NodeWriteAsync(Endpoint, request, ct);
+            return _nodes.NodeWriteAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryReadResultModel<VariantValue>> HistoryReadAsync(
             string endpointId, HistoryReadRequestModel<VariantValue> request, CancellationToken ct) {
-            return _history.HistoryReadAsync(Endpoint, request, ct);
+            return _history.HistoryReadAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryReadNextResultModel<VariantValue>> HistoryReadNextAsync(
             string endpointId, HistoryReadNextRequestModel request, CancellationToken ct) {
-            return _history.HistoryReadNextAsync(Endpoint, request, ct);
+            return _history.HistoryReadNextAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResultModel> HistoryUpdateAsync(string endpointId,
             HistoryUpdateRequestModel<VariantValue> request, CancellationToken ct) {
-            return _history.HistoryUpdateAsync(Endpoint, request, ct);
+            return _history.HistoryUpdateAsync(Connection, request, ct);
         }
 
-        private readonly IBrowseServices<EndpointModel> _browser;
-        private readonly IHistoricAccessServices<EndpointModel> _history;
-        private readonly INodeServices<EndpointModel> _nodes;
+        private readonly IBrowseServices<ConnectionModel> _browser;
+        private readonly IHistoricAccessServices<ConnectionModel> _history;
+        private readonly INodeServices<ConnectionModel> _nodes;
     }
 }

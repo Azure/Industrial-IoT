@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     /// <summary>
     /// Call node method services
     /// </summary>
-    [ApiVersion("2")][Route("v{version:apiVersion}/call")]
+    [ApiVersion("2")][Route("twin/v{version:apiVersion}/call")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]

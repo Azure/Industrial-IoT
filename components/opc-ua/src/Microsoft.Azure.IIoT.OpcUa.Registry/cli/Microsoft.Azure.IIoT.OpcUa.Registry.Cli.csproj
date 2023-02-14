@@ -8,9 +8,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Messaging.ServiceBus\src\Microsoft.Azure.IIoT.Messaging.ServiceBus.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Edge.Publisher\src\Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Edge.Discovery\src\Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Testing\src\Microsoft.Azure.IIoT.OpcUa.Testing.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.Serializers.MessagePack;

@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     /// <summary>
     /// Services to delete history
     /// </summary>
-    [ApiVersion("2")][Route("v{version:apiVersion}/delete")]
+    [ApiVersion("2")][Route("history/v{version:apiVersion}/delete")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]

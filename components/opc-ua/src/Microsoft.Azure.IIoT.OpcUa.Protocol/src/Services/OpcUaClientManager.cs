@@ -220,11 +220,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public void Dispose() {
-            DisposeAsync().AsTask().GetAwaiter().GetResult();
+            if (!_disposed) {
+                DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
         }
 
         /// <inheritdoc/>
         public async ValueTask DisposeAsync() {
+            if (_disposed) {
+                return;
+            }
+            _disposed = true;
             try {
                 _logger.Information("Stopping client manager process ...");
                 _cts.Cancel();
@@ -609,6 +615,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         private const int kMaxDiscoveryAttempts = 3;
+        private bool _disposed;
         private readonly ILogger _logger;
         private readonly IClientServicesConfig _clientConfig;
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients =

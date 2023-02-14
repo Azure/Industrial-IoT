@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the registry micro service.");
             }
-            _serviceUri = serviceUri.TrimEnd('/');
+            _serviceUri = serviceUri.TrimEnd('/') + "/registry";
             _serializer = serializer ?? new NewtonSoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }

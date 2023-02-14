@@ -13,14 +13,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Serializers;

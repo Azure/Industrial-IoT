@@ -20,8 +20,5 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests {
 
         /// <inheritdoc/>
         public string OpcUaPublisherServiceUrl { get; }
-
-        /// <inheritdoc/>
-        public string OpcUaTwinServiceResourceId => null;
     }
 }

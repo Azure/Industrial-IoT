@@ -28,9 +28,7 @@
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Http.HealthChecks\Microsoft.Azure.IIoT.Http.HealthChecks.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Discovery\src\Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.csproj" />
     <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Publisher\src\Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.csproj" />
-    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="publishednodes.json">

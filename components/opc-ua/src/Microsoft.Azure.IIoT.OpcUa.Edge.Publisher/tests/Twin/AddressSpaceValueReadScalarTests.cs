@@ -3,66 +3,86 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Controllers.Json {
-    using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
-    using Microsoft.Azure.IIoT.Http.Default;
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Clients;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Controllers;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
-    using Serilog;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
     using System.Threading.Tasks;
     using Xunit;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin;
 
-    [Collection(ReadJsonCollection.Name)]
-    public class ReadControllerScalarTests : IClassFixture<WebAppFixture> {
+    [Collection(ReadCollection.Name)]
+    public class AddressSpaceValueReadScalarTests {
 
-        public ReadControllerScalarTests(WebAppFixture factory, TestServerFixture server) {
-            _factory = factory;
+        public AddressSpaceValueReadScalarTests(TestServerFixture server) {
             _server = server;
             _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
-        private ReadScalarValueTests<string> GetTests() {
-            var client = _factory.CreateClient(); // Call to create server
-            var module = _factory.Resolve<ITestModule>();
-            module.Connection = Connection;
-            var log = _factory.Resolve<ILogger>();
-            var serializer = _factory.Resolve<IJsonSerializer>();
-            return new ReadScalarValueTests<string>(() => // Create an adapter over the api
-                new TwinServicesApiAdapter(
-                    new ControllerTestClient(new HttpClient(_factory, log),
-                    new TestConfig(client.BaseAddress), serializer)), "fakeid",
-                    (ep, n) => _server.Client.ReadValueAsync(Connection, n));
+        private ReadScalarValueTests<ConnectionModel> GetTests() {
+            return new ReadScalarValueTests<ConnectionModel>(
+                () => new AddressSpaceServices(_server.Client,
+                    new VariantEncoderFactory(), _server.Logger), new ConnectionModel {
+                        Endpoint = new EndpointModel {
+                            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+                            AlternativeUrls = _hostEntry?.AddressList
+                        .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                        .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
+                            Certificate = _server.Certificate?.RawData?.ToThumbprint()
+                        }
+                    }, (c, n) => _server.Client.ReadValueAsync(c, n));
         }
 
-        public ConnectionModel Connection => new() {
-            Endpoint = new EndpointModel {
-                Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
-                AlternativeUrls = _hostEntry?.AddressList
-                .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
-                .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
-                Certificate = _server.Certificate?.RawData?.ToThumbprint()
-            }
-        };
-
-        private readonly WebAppFixture _factory;
         private readonly TestServerFixture _server;
         private readonly IPHostEntry _hostEntry;
 
         [Fact]
+        public async Task NodeReadAllStaticScalarVariableNodeClassTest1Async() {
+            await GetTests().NodeReadAllStaticScalarVariableNodeClassTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadAllStaticScalarVariableAccessLevelTest1Async() {
+            await GetTests().NodeReadAllStaticScalarVariableAccessLevelTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadAllStaticScalarVariableWriteMaskTest1Async() {
+            await GetTests().NodeReadAllStaticScalarVariableWriteMaskTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadAllStaticScalarVariableWriteMaskTest2Async() {
+            await GetTests().NodeReadAllStaticScalarVariableWriteMaskTest2Async();
+        }
+
+        [Fact]
         public async Task NodeReadStaticScalarBooleanValueVariableTestAsync() {
             await GetTests().NodeReadStaticScalarBooleanValueVariableTestAsync();
+        }
+
+        [Fact]
+        public async Task NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest1Async() {
+            await GetTests().NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest2Async() {
+            await GetTests().NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest2Async();
+        }
+
+        [Fact]
+        public async Task NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest3Async() {
+            await GetTests().NodeReadStaticScalarBooleanValueVariableWithBrowsePathTest3Async();
         }
 
         [Fact]
@@ -202,6 +222,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Controllers.Json {
         }
 
         [Fact]
+        public async Task NodeReadDiagnosticsNoneTestAsync() {
+            await GetTests().NodeReadDiagnosticsNoneTestAsync();
+        }
+
+        [Fact]
         public async Task NodeReadDiagnosticsStatusTestAsync() {
             await GetTests().NodeReadDiagnosticsStatusTestAsync();
         }
@@ -215,5 +240,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Controllers.Json {
         public async Task NodeReadDiagnosticsVerboseTestAsync() {
             await GetTests().NodeReadDiagnosticsStatusTestAsync();
         }
+
     }
 }

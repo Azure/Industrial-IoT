@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     /// <summary>
     /// History insert services
     /// </summary>
-    [ApiVersion("2")][Route("v{version:apiVersion}/insert")]
+    [ApiVersion("2")][Route("history/v{version:apiVersion}/insert")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]

@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the endpoint micro service.");
             }
-            _serviceUri = serviceUri.TrimEnd('/');
+            _serviceUri = serviceUri.TrimEnd('/') + "/twin";
             _serializer = serializer ?? new NewtonSoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }

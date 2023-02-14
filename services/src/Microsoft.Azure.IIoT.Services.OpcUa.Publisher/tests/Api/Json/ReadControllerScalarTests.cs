@@ -36,22 +36,24 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Api.Json {
         private ReadScalarValueTests<string> GetTests() {
             var client = _factory.CreateClient(); // Call to create server
             var module = _factory.Resolve<ITestModule>();
-            module.Endpoint = Endpoint;
+            module.Connection = Connection;
             var log = _factory.Resolve<ILogger>();
             var serializer = _factory.Resolve<IJsonSerializer>();
             return new ReadScalarValueTests<string>(() => // Create an adapter over the api
                 new TwinServicesApiAdapter(
                     new TwinServiceClient(new HttpClient(_factory, log),
                     new TestConfig(client.BaseAddress), serializer)), "fakeid",
-                    (ep, n) => _server.Client.ReadValueAsync(new ConnectionModel { Endpoint = Endpoint }, n));
+                    (ep, n) => _server.Client.ReadValueAsync(Connection, n));
         }
 
-        public EndpointModel Endpoint => new() {
-            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
-            AlternativeUrls = _hostEntry?.AddressList
+        public ConnectionModel Connection => new() {
+            Endpoint = new EndpointModel {
+                Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+                AlternativeUrls = _hostEntry?.AddressList
                 .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                 .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
-            Certificate = _server.Certificate?.RawData?.ToThumbprint()
+                Certificate = _server.Certificate?.RawData?.ToThumbprint()
+            }
         };
 
         private readonly WebAppFixture _factory;

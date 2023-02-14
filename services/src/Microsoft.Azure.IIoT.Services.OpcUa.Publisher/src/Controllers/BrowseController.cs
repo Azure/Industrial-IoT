@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     /// <summary>
     /// Browse nodes services
     /// </summary>
-    [ApiVersion("2")][Route("v{version:apiVersion}/browse")]
+    [ApiVersion("2")][Route("twin/v{version:apiVersion}/browse")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]

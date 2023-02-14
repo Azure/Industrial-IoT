@@ -14,14 +14,12 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Service.Client\src\Microsoft.Azure.IIoT.Hub.Service.Client.csproj" />
-    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.AppInsights\src\Microsoft.Azure.IIoT.Diagnostics.AppInsights.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore\src\Microsoft.Azure.IIoT.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore.OpenApi\src\Microsoft.Azure.IIoT.AspNetCore.OpenApi.csproj" />
-    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Storage.CosmosDb\src\Microsoft.Azure.IIoT.Storage.CosmosDb.csproj" />
-    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Messaging.SignalR\src\Microsoft.Azure.IIoT.Messaging.SignalR.csproj" />
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.Debug\src\Microsoft.Azure.IIoT.Diagnostics.Debug.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Publisher\src\Microsoft.Azure.IIoT.OpcUa.Publisher.csproj" />
+    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Registry\src\Microsoft.Azure.IIoT.OpcUa.Registry.csproj" />
     <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
   </ItemGroup>
   <ItemGroup>

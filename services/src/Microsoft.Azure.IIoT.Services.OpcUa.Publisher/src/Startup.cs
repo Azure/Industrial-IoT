@@ -6,24 +6,28 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
+    using Microsoft.Azure.IIoT.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.History.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -33,12 +37,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Prometheus;
     using System;
     using ILogger = Serilog.ILogger;
-    using Microsoft.Azure.IIoT.Api.Registry.Adapter;
-    using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
-    using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.OpcUa.History.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
 
     /// <summary>
     /// Webservice startup
@@ -111,18 +109,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
                 Policies.CanWrite,
                 Policies.CanPublish);
 
-            // TODO: Remove http client factory and use
-            // services.AddHttpClient();
-
             // Add controllers as services so they'll be resolved.
             services.AddControllers().AddSerializers();
-            services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
 
-            // Enable Application Insights telemetry collection.
-#pragma warning disable CS0618 // Type or member is obsolete
-            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
-#pragma warning restore CS0618 // Type or member is obsolete
-            services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
+            services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
         }
 
         /// <summary>
@@ -208,26 +198,24 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             // Edge clients
             builder.RegisterType<TwinApiClient>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<PublisherApiClient>()
+                .AsImplementedInterfaces();
             builder.RegisterType<HistorianApiAdapter<string>>()
               .AsImplementedInterfaces();
             builder.RegisterType<HistorianApiAdapter<ConnectionModel>>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<DiscoveryApiClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<TwinModuleApiAdapter>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<PublisherModuleApiAdapter>()
+                .AsImplementedInterfaces();
+
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
 
-            // Edge deployment
-            builder.RegisterType<IoTHubConfigurationClient>()
-                .AsImplementedInterfaces();
-
-            // Registry services to lookup endpoints.
-            builder.RegisterType<RegistryServicesApiAdapter>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces();
-
-            builder.RegisterType<IoTHubConfigurationClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<IoTHubPublisherDeployment>()
+            builder.RegisterModule<RegistryServices>();
+            builder.RegisterType<ApplicationTwins>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // ... and auto start

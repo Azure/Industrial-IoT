@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     /// <summary>
     /// History raw access services
     /// </summary>
-    [ApiVersion("2")][Route("v{version:apiVersion}/history")]
+    [ApiVersion("2")][Route("history/v{version:apiVersion}/history")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
