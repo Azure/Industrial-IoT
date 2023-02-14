@@ -4,18 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Services {
-    using Microsoft.Azure.IIoT.App.Data;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.App.Common;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Serilog;
 
     /// <summary>
     /// Browser code behind
@@ -52,20 +50,17 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="discovererId"></param>
         /// <param name="direction"></param>
         /// <param name="index"></param>
-        /// <param name="credential"></param>
         /// <returns>ListNode</returns>
         public async Task<PagedResult<ListNode>> GetTreeAsync(string endpointId, string id,
-            List<string> parentId, string discovererId, BrowseDirection direction, int index,
-            CredentialModel credential = null) {
+            List<string> parentId, string discovererId, BrowseDirection direction, int index) {
 
             var pageResult = new PagedResult<ListNode>();
-            var header = Elevate(new RequestHeaderApiModel(), credential);
             var previousPage = new PagedResult<ListNode>();
             var model = new BrowseRequestApiModel {
-                            TargetNodesOnly = true,
-                            ReadVariableValues = true,
-                            MaxReferencesToReturn = _MAX_REFERENCES
-                        };
+                TargetNodesOnly = true,
+                ReadVariableValues = true,
+                MaxReferencesToReturn = _MAX_REFERENCES
+            };
 
             if (direction == BrowseDirection.Forward) {
                 model.NodeId = id;
@@ -76,8 +71,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
             else {
                 model.NodeId = parentId.ElementAt(index - 1);
             }
-            model.Header = header;
-
             try {
                 var browseData = await _twinService.NodeBrowseAsync(endpointId, model);
 
@@ -140,30 +133,21 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="endpointId"></param>
         /// <param name="parentId"></param>
         /// <param name="discovererId"></param>
-        /// <param name="credential"></param>
         /// <param name="previousPage"></param>
         /// <returns>ListNode</returns>
         public async Task<PagedResult<ListNode>> GetTreeNextAsync(string endpointId, List<string> parentId, string discovererId,
-            CredentialModel credential = null, PagedResult<ListNode> previousPage = null) {
+            PagedResult<ListNode> previousPage = null) {
 
             var pageResult = new PagedResult<ListNode>();
-            var header = Elevate(new RequestHeaderApiModel(), credential);
             var modelNext = new BrowseNextRequestApiModel {
                 ContinuationToken = previousPage.ContinuationToken,
                 TargetNodesOnly = true,
                 ReadVariableValues = true
             };
-            modelNext.Header = header;
-
             try {
                 var browseDataNext = await _twinService.NodeBrowseNextAsync(endpointId, modelNext);
 
-                if (string.IsNullOrEmpty(browseDataNext.ContinuationToken)) {
-                    pageResult.PageCount = previousPage.PageCount;
-                }
-                else {
-                    pageResult.PageCount = previousPage.PageCount + 1;
-                }
+                pageResult.PageCount = string.IsNullOrEmpty(browseDataNext.ContinuationToken) ? previousPage.PageCount : previousPage.PageCount + 1;
 
                 if (browseDataNext.References != null) {
                     foreach (var nodeReference in browseDataNext.References) {
@@ -206,23 +190,16 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="endpointId"></param>
         /// <param name="nodeId"></param>
         /// <returns>Read value</returns>
-        public async Task<string> ReadValueAsync(string endpointId, string nodeId, CredentialModel credential = null) {
+        public async Task<string> ReadValueAsync(string endpointId, string nodeId) {
 
             var model = new ValueReadRequestApiModel() {
                 NodeId = nodeId
             };
 
-            model.Header = Elevate(new RequestHeaderApiModel(), credential);
-
             try {
                 var value = await _twinService.NodeValueReadAsync(endpointId, model);
 
-                if (value.ErrorInfo == null) {
-                    return value.Value?.ToJson()?.TrimQuotes();
-                }
-                else {
-                    return value.ErrorInfo.ToString();
-                }
+                return value.ErrorInfo == null ? (value.Value?.ToJson()?.TrimQuotes()) : value.ErrorInfo.ToString();
             }
             catch (UnauthorizedAccessException) {
                 return "Unauthorized access: Bad User Access Denied.";
@@ -241,29 +218,19 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="nodeId"></param>
         /// <param name="value"></param>
         /// <returns>Status</returns>
-        public async Task<string> WriteValueAsync(string endpointId, string nodeId, string value, CredentialModel credential = null) {
+        public async Task<string> WriteValueAsync(string endpointId, string nodeId, string value) {
 
             var model = new ValueWriteRequestApiModel() {
                 NodeId = nodeId,
                 Value = value
             };
 
-            model.Header = Elevate(new RequestHeaderApiModel(), credential);
-
             try {
                 var response = await _twinService.NodeValueWriteAsync(endpointId, model);
 
-                if (response.ErrorInfo == null) {
-                    return string.Format("value successfully written to node '{0}'", nodeId);
-                }
-                else {
-                    if (response.ErrorInfo.Diagnostics != null) {
-                        return response.ErrorInfo.Diagnostics.ToString();
-                    }
-                    else {
-                        return response.ErrorInfo.ToString();
-                    }
-                }
+                return response.ErrorInfo == null
+                    ? string.Format("value successfully written to node '{0}'", nodeId)
+                    : response.ErrorInfo.Diagnostics != null ? response.ErrorInfo.Diagnostics.ToString() : response.ErrorInfo.ToString();
             }
             catch (UnauthorizedAccessException) {
                 return "Unauthorized access: Bad User Access Denied.";
@@ -281,28 +248,17 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="endpointId"></param>
         /// <param name="nodeId"></param>
         /// <returns>Status</returns>
-        public async Task<string> GetParameterAsync(string endpointId, string nodeId, CredentialModel credential = null) {
+        public async Task<string> GetParameterAsync(string endpointId, string nodeId) {
             Parameter = new MethodMetadataResponseApiModel();
             var model = new MethodMetadataRequestApiModel() {
                 MethodId = nodeId
             };
-
-            model.Header = Elevate(new RequestHeaderApiModel(), credential);
-
             try {
                 Parameter = await _twinService.NodeMethodGetMetadataAsync(endpointId, model);
 
-                if (Parameter.ErrorInfo == null) {
-                    return null;
-                }
-                else {
-                    if (Parameter.ErrorInfo.Diagnostics != null) {
-                        return Parameter.ErrorInfo.Diagnostics.ToString();
-                    }
-                    else {
-                        return Parameter.ErrorInfo.ToString();
-                    }
-                }
+                return Parameter.ErrorInfo == null
+                    ? null
+                    : Parameter.ErrorInfo.Diagnostics != null ? Parameter.ErrorInfo.Diagnostics.ToString() : Parameter.ErrorInfo.ToString();
             }
             catch (UnauthorizedAccessException) {
                 return "Unauthorized access: Bad User Access Denied.";
@@ -321,15 +277,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="nodeId"></param>
         /// <returns>Status</returns>
         public async Task<string> MethodCallAsync(MethodMetadataResponseApiModel parameters, string[] parameterValues,
-            string endpointId, string nodeId, CredentialModel credential = null) {
+            string endpointId, string nodeId) {
 
             var argumentsList = new List<MethodCallArgumentApiModel>();
             var model = new MethodCallRequestApiModel() {
                 MethodId = nodeId,
                 ObjectId = parameters.ObjectId
             };
-
-            model.Header = Elevate(new RequestHeaderApiModel(), credential);
 
             try {
                 if (parameters.InputArguments != null) {
@@ -346,17 +300,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
                 MethodCallResponse = await _twinService.NodeMethodCallAsync(endpointId, model);
 
-                if (MethodCallResponse.ErrorInfo == null) {
-                    return null;
-                }
-                else {
-                    if (MethodCallResponse.ErrorInfo.Diagnostics != null) {
-                        return MethodCallResponse.ErrorInfo.Diagnostics.ToString();
-                    }
-                    else {
-                        return MethodCallResponse.ErrorInfo.ToString();
-                    }
-                }
+                return MethodCallResponse.ErrorInfo == null
+                    ? null
+                    : MethodCallResponse.ErrorInfo.Diagnostics != null
+                        ? MethodCallResponse.ErrorInfo.Diagnostics.ToString()
+                        : MethodCallResponse.ErrorInfo.ToString();
             }
             catch (UnauthorizedAccessException) {
                 return "Unauthorized access: Bad User Access Denied.";
@@ -366,27 +314,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 return errorMessage;
             }
-        }
-
-        /// <summary>
-        /// Set Elevation property with credential
-        /// </summary>
-        /// <param name="header"></param>
-        /// <param name="credential"></param>
-        /// <returns>RequestHeaderApiModel</returns>
-        private RequestHeaderApiModel Elevate(RequestHeaderApiModel header, CredentialModel credential) {
-            if (credential != null) {
-                if (!string.IsNullOrEmpty(credential.Username) && !string.IsNullOrEmpty(credential.Password)) {
-                    header.Elevation = new CredentialApiModel {
-                        Type = CredentialType.UserName,
-                        Value = _serializer.FromObject(new {
-                            user = credential.Username,
-                            password = credential.Password
-                        })
-                    };
-                }
-            }
-            return header;
         }
 
         private readonly ITwinServiceApi _twinService;

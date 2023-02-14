@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
+    using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
@@ -22,6 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
+    using System.Reflection.Metadata.Ecma335;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
@@ -31,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     /// </summary>
     public class OpcUaClientManager : IClientHost, IEndpointServices,
         ISubscriptionManager, IEndpointDiscovery, IDisposable,
-        ICertificateServices<EndpointModel> {
+        ICertificateServices<EndpointModel>, IConnectionServices<ConnectionModel> {
 
         /// <inheritdoc/>
         public int SessionCount => _clients.Count;
@@ -97,6 +99,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         "Continue with unconnected session.", id);
                 }
                 return client;
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public Task ConnectAsync(ConnectionModel connection, CancellationToken ct) {
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public async Task DisconnectAsync(ConnectionModel connection, CancellationToken ct) {
+            await _lock.WaitAsync();
+            try {
+                var id = new ConnectionIdentifier(connection);
+                if (!_clients.TryGetValue(id, out var client)) {
+                    throw new ResourceNotFoundException(
+                        "Cannot disconnect. Connection not found.");
+                }
+                if (client.HasSubscriptions) {
+                    throw new ResourceInvalidStateException(
+                        "Cannot disconnect. Connection has subscriptions.");
+                }
+                if (!_clients.TryRemove(id, out client)) {
+                    return;
+                }
+                await client.DisposeAsync();
             }
             finally {
                 _lock.Release();

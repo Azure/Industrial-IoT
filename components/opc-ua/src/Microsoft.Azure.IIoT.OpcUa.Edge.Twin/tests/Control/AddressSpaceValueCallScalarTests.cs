@@ -3,9 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Tests;
+using Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services;
+
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Tests.Control {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
@@ -20,17 +22,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     [Collection(WriteCollection.Name)]
     public class AddressSpaceValueCallScalarTests {
 
-        private CallScalarMethodTests<EndpointModel> GetTests() {
-            return new CallScalarMethodTests<EndpointModel>(
+        private CallScalarMethodTests<ConnectionModel> GetTests() {
+            return new CallScalarMethodTests<ConnectionModel>(
                 () => new AddressSpaceServices(_server.Client,
-                    new VariantEncoderFactory(), _server.Logger),
-                new EndpointModel {
-                    Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
-                    AlternativeUrls = _hostEntry?.AddressList
+                    new VariantEncoderFactory(), _server.Logger), new ConnectionModel {
+                        Endpoint = new EndpointModel {
+                            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+                            AlternativeUrls = _hostEntry?.AddressList
                         .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                         .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
-                    Certificate = _server.Certificate?.RawData?.ToThumbprint()
-                });
+                            Certificate = _server.Certificate?.RawData?.ToThumbprint()
+                        }
+                    });
         }
 
         private readonly TestServerFixture _server;

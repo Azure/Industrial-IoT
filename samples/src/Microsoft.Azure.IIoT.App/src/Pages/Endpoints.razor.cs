@@ -4,13 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.Azure.IIoT.App.Extensions;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.App.Data;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.App.Models;
 
     public partial class Endpoints {
         [Parameter]
@@ -102,8 +101,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="endpoint">The endpoint info</param>
         /// <returns>True if the endpoint is activated, false otherwise</returns>
         private bool IsEndpointActivated(EndpointInfo endpoint) {
-            return endpoint.EndpointModel.ActivationState == EndpointActivationState.Activated ||
-                 endpoint.EndpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected;
+            return endpoint.EndpointModel.ActivationState is EndpointActivationState.Activated or
+                 EndpointActivationState.ActivatedAndConnected;
         }
 
         /// <summary>
@@ -112,15 +111,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="endpoint">The endpoint info</param>
         /// <returns>The css string</returns>
         private string GetEndpointVisibilityString(EndpointInfo endpoint) {
-            if (!IsEndpointSeen(endpoint)) {
-                return "enabled-false";
-            }
-            else if (IsEndpointActivated(endpoint)) {
-                return "enabled-true activated-true";
-            }
-            else {
-                return "enabled-true";
-            }
+            return !IsEndpointSeen(endpoint) ? "enabled-false" : IsEndpointActivated(endpoint) ? "enabled-true activated-true" : "enabled-true";
         }
 
         /// <summary>
@@ -130,24 +121,19 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="checkedValue"></param>
         /// <returns></returns>
         private async Task SetActivationAsync(EndpointInfo endpoint) {
-            string endpointId = endpoint.EndpointModel.Registration.Id;
+            var endpointId = endpoint.EndpointModel.Registration.Id;
 
             if (!IsEndpointActivated(endpoint)) {
                 try {
-                    await RegistryService.ActivateEndpointAsync(endpointId);
+                    await RegistryService.ConnectAsync(endpointId);
                 }
                 catch (Exception e) {
-                    if (e.Message.Contains("404103")) {
-                        Status = "The endpoint is not available.";
-                    }
-                    else {
-                        Status = e.Message;
-                    }
+                    Status = e.Message.Contains("404103") ? "The endpoint is not available." : e.Message;
                 }
             }
             else {
                 try {
-                    await RegistryService.DeactivateEndpointAsync(endpointId);
+                    await RegistryService.DisconnectAsync(endpointId);
                 }
                 catch (Exception e) {
                     Status = e.Message;

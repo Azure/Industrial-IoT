@@ -4,18 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Services {
-    using Microsoft.Azure.IIoT.App.Data;
     using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.App.Common;
+    using Serilog;
     using System;
     using System.Threading.Tasks;
-    using Serilog;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
 
     /// <summary>
     /// Browser code behind
@@ -41,7 +37,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="endpointId"></param>
         /// <returns>PublishedNode</returns>
-        public async Task<PagedResult<ListNode>> PublishedAsync(string endpointId, bool readValues, CredentialModel credential = null) {
+        public async Task<PagedResult<ListNode>> PublishedAsync(string endpointId, bool readValues) {
             var pageResult = new PagedResult<ListNode>();
             var model = new ValueReadRequestApiModel();
 
@@ -54,12 +50,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     if (result.Items != null) {
                         foreach (var item in result.Items) {
                             model.NodeId = item.NodeId;
-                            model.Header = Elevate(new RequestHeaderApiModel(), credential);
                             var readResponse = readValues ? await _twinService.NodeValueReadAsync(endpointId, model) : null;
                             pageResult.Results.Add(new ListNode {
                                 PublishedItem = item,
                                 Value = readResponse?.Value?.ToJson()?.TrimQuotes(),
-                                DataType = readResponse ?.DataType
+                                DataType = readResponse?.DataType
                             });
                         }
                     }
@@ -89,7 +84,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="publishingInterval"></param>
         /// <returns>ErrorStatus</returns>
         public async Task<bool> StartPublishingAsync(string endpointId, string nodeId, string displayName,
-            TimeSpan? samplingInterval, TimeSpan? publishingInterval, TimeSpan? heartBeatInterval, CredentialModel credential = null) {
+            TimeSpan? samplingInterval, TimeSpan? publishingInterval, TimeSpan? heartBeatInterval) {
 
             try {
                 var requestApiModel = new PublishStartRequestApiModel() {
@@ -100,8 +95,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         HeartbeatInterval = heartBeatInterval
                     }
                 };
-
-                requestApiModel.Header = Elevate(new RequestHeaderApiModel(), credential);
 
                 var resultApiModel = await _publisherService.NodePublishStartAsync(endpointId, requestApiModel);
                 return resultApiModel.ErrorInfo == null;
@@ -118,12 +111,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="endpointId"></param>
         /// <param name="nodeId"></param>
         /// <returns>ErrorStatus</returns>
-        public async Task<bool> StopPublishingAsync(string endpointId, string nodeId, CredentialModel credential = null) {
+        public async Task<bool> StopPublishingAsync(string endpointId, string nodeId) {
             try {
                 var requestApiModel = new PublishStopRequestApiModel() {
                     NodeId = nodeId,
                 };
-                requestApiModel.Header = Elevate(new RequestHeaderApiModel(), credential);
 
                 var resultApiModel = await _publisherService.NodePublishStopAsync(endpointId, requestApiModel);
                 return resultApiModel.ErrorInfo == null;
@@ -132,27 +124,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Error(e, "Cannot unpublish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
             }
             return false;
-        }
-
-        /// <summary>
-        /// Set Elevation property with credential
-        /// </summary>
-        /// <param name="header"></param>
-        /// <param name="credential"></param>
-        /// <returns>RequestHeaderApiModel</returns>
-        private RequestHeaderApiModel Elevate(RequestHeaderApiModel header, CredentialModel credential) {
-            if (credential != null) {
-                if (!string.IsNullOrEmpty(credential.Username) && !string.IsNullOrEmpty(credential.Password)) {
-                    header.Elevation = new CredentialApiModel {
-                        Type = CredentialType.UserName,
-                        Value = _serializer.FromObject(new {
-                            user = credential.Username,
-                            password = credential.Password
-                        })
-                    };
-                }
-            }
-            return header;
         }
 
         private readonly IJsonSerializer _serializer;

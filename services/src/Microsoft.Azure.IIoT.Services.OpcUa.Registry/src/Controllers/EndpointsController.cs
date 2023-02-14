@@ -6,8 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
@@ -63,8 +62,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// <param name="endpointId">endpoint identifier</param>
         [HttpPost("{endpointId}/activate")]
         [Authorize(Policy = Policies.CanChange)]
-        public async Task ActivateEndpointAsync(string endpointId) {
-            await _activation.ActivateEndpointAsync(endpointId);
+        public async Task ConnectAsync(string endpointId) {
+            await _activation.ConnectAsync(endpointId);
         }
 
         /// <summary>
@@ -197,8 +196,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// <param name="endpointId">endpoint identifier</param>
         [HttpPost("{endpointId}/deactivate")]
         [Authorize(Policy = Policies.CanChange)]
-        public async Task DeactivateEndpointAsync(string endpointId) {
-            await _activation.DeactivateEndpointAsync(endpointId);
+        public async Task DisconnectAsync(string endpointId) {
+            await _activation.DisconnectAsync(endpointId);
         }
 
         private readonly IEndpointRegistry _endpoints;

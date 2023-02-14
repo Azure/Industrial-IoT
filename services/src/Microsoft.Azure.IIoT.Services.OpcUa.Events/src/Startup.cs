@@ -9,6 +9,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.Api.Registry.Events;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
@@ -25,8 +27,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Services.OpcUa.Events.Auth;

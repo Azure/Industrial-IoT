@@ -19,10 +19,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
@@ -37,6 +33,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Prometheus;
     using System;
     using ILogger = Serilog.ILogger;
+    using Microsoft.Azure.IIoT.Api.Registry.Adapter;
+    using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
+    using Microsoft.Azure.IIoT.Module.Default;
+    using Microsoft.Azure.IIoT.OpcUa.History.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
 
     /// <summary>
     /// Webservice startup
@@ -195,22 +197,32 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces();
 
-            // Twin services for browsing and tag selection ...
-            builder.RegisterType<TwinServicesApiAdapter>()
+            // Iot hub services
+            builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<TwinServiceClient>()
+            builder.RegisterType<IoTHubTwinMethodClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<ChunkMethodClient>()
+                .AsImplementedInterfaces();
+
+            // Edge clients
+            builder.RegisterType<TwinApiClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<HistorianApiAdapter<string>>()
+              .AsImplementedInterfaces();
+            builder.RegisterType<HistorianApiAdapter<ConnectionModel>>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<VariantEncoderFactory>()
+                .AsImplementedInterfaces();
+
+            // Edge deployment
+            builder.RegisterType<IoTHubConfigurationClient>()
                 .AsImplementedInterfaces();
 
             // Registry services to lookup endpoints.
             builder.RegisterType<RegistryServicesApiAdapter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces();
-
-            // TODO: Remove?
-            builder.RegisterType<CosmosDbServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces();
 
             builder.RegisterType<IoTHubConfigurationClient>()

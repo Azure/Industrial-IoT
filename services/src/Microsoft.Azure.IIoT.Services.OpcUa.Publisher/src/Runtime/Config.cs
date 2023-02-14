@@ -13,11 +13,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
-    using Microsoft.Azure.IIoT.Api.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.Storage.CosmosDb;
-    using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Deploy;
     using Microsoft.Azure.IIoT.Deploy.Runtime;
@@ -29,16 +24,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
-        ICorsConfig, IOpenApiConfig, IRoleConfig,
-        ICosmosDbConfig, IRegistryConfig, ITwinConfig,
-        IForwardedHeadersConfig, IContainerRegistryConfig {
-
-        /// <inheritdoc/>
-        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
+        ICorsConfig, IOpenApiConfig, IForwardedHeadersConfig, IRoleConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
-
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
@@ -67,16 +56,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         public string OpenApiServerHost => _openApi.OpenApiServerHost;
 
         /// <inheritdoc/>
-        public string OpcUaTwinServiceUrl => _api.OpcUaTwinServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaRegistryServiceUrl => _api.OpcUaRegistryServiceUrl;
-
-        /// <inheritdoc/>
-        public string DbConnectionString => _cosmos.DbConnectionString;
-        /// <inheritdoc/>
-        public int? ThroughputUnits => _cosmos.ThroughputUnits;
-
-        /// <inheritdoc/>
         public string DockerServer => _cr.DockerServer;
         /// <inheritdoc/>
         public string DockerUser => _cr.DockerUser;
@@ -86,6 +65,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         public string ImagesNamespace => _cr.ImagesNamespace;
         /// <inheritdoc/>
         public string ImagesTag => _cr.ImagesTag;
+
+        /// <inheritdoc/>
+        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
+
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
             _fh.AspNetCoreForwardedHeadersEnabled;
@@ -104,8 +87,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
             _host = new WebHostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
-            _api = new ApiConfig(configuration);
-            _cosmos = new CosmosDbConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _cr = new ContainerRegistryConfig(configuration);
         }
@@ -114,8 +95,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         private readonly OpenApiConfig _openApi;
         private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
-        private readonly ApiConfig _api;
-        private readonly CosmosDbConfig _cosmos;
         private readonly IoTHubConfig _hub;
         private readonly ForwardedHeadersConfig _fh;
     }

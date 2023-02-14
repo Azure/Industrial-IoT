@@ -14,25 +14,19 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Components.Authorization;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.Azure.IIoT.App.Common;
-    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.Api.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Services;
-    using Microsoft.Azure.IIoT.App.Services.SecureData;
     using Microsoft.Azure.IIoT.App.Validation;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Storage;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -102,12 +96,7 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseSession();
 
             var isDevelopment = Environment.IsDevelopment();
-            if (isDevelopment) {
-                app.UseDeveloperExceptionPage();
-            }
-            else {
-                app.UseExceptionHandler("/Error");
-            }
+            _ = isDevelopment ? app.UseDeveloperExceptionPage() : app.UseExceptionHandler("/Error");
 
             app.UseHttpsRedirect();
             app.UseStaticFiles();
@@ -145,7 +134,6 @@ namespace Microsoft.Azure.IIoT.App {
 
             services.AddValidatorsFromAssemblyContaining<DiscovererInfoValidator>();
             services.AddValidatorsFromAssemblyContaining<ListNodeValidator>();
-            services.AddValidatorsFromAssemblyContaining<PublisherInfoValidator>();
 
             // Protect anything using keyvault and storage persisted keys
             services.AddAzureDataProtection(Config.Configuration);
@@ -164,7 +152,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             services.AddAuthentication(AuthProvider.AzureAD)
                 .AddOpenIdConnect(AuthProvider.AzureAD)
-             //   .AddOpenIdConnect(AuthScheme.AuthService)
+                //   .AddOpenIdConnect(AuthScheme.AuthService)
                 ;
 
             services.AddAuthorizationPolicies();
@@ -174,7 +162,7 @@ namespace Microsoft.Azure.IIoT.App {
             services.AddSignalR()
                 .AddJsonSerializer()
                 .AddMessagePackSerializer()
-             //   .AddAzureSignalRService(Config)
+                //   .AddAzureSignalRService(Config)
                 ;
 
             // Enable Application Insights telemetry collection.

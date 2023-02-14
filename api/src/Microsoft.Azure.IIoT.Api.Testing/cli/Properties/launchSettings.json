@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Microsoft.Azure.IIoT.Test.Scenarios": {
-      "commandName": "Project",
-      "commandLineArgs": "console --useMsgPack"
-    }
-  }
-}

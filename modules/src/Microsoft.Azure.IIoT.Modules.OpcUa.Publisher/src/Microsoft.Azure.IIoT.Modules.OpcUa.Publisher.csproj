@@ -5,12 +5,20 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectCapability Include="AzureIoTEdgeModule" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="pki\**" />
+    <EmbeddedResource Remove="pki\**" />
+    <None Remove="pki\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Mono.Options" Version="6.12.0.148" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
-    <PackageReference Include="Mono.Options" Version="6.12.0.148" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api\src\Microsoft.Azure.IIoT.Api.csproj" />
@@ -20,15 +28,11 @@
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Http.HealthChecks\Microsoft.Azure.IIoT.Http.HealthChecks.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Discovery\src\Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.csproj" />
     <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Publisher\src\Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.csproj" />
+    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="appSettings.Development.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="appSettings.Development.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="publishednodes.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

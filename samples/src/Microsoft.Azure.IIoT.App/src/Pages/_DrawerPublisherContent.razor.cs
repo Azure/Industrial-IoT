@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    using OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.App.Models;
+    using OpcUa.Api.Publisher.Models;
+    using System.Threading.Tasks;
 
     public partial class _DrawerPublisherContent {
         [Parameter]

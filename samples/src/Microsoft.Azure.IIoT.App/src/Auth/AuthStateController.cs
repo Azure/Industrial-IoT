@@ -1,5 +1,4 @@
-﻿
-namespace Microsoft.Azure.IIoT.App.Services {
+﻿namespace Microsoft.Azure.IIoT.App.Auth {
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -12,7 +11,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         [HttpGet("{scheme}/LogIn")]
         public IActionResult LogIn([FromRoute] string scheme) {
-            var redirectUri = base.Url.Content("~/");
+            var redirectUri = Url.Content("~/");
             var authProps = new AuthenticationProperties {
                 IsPersistent = true,
                 ExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(30),
@@ -23,8 +22,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         [HttpGet("{scheme}/LogOut")]
         public IActionResult LogOut([FromRoute] string scheme) {
-           // var redirectUri = base.Url.Page("/Account/SignedOut", null, null, base.Request.Scheme);
-            var redirectUri = base.Url.Content("~/");
+            // var redirectUri = base.Url.Page("/Account/SignedOut", null, null, base.Request.Scheme);
+            var redirectUri = Url.Content("~/");
             var authProps = new AuthenticationProperties {
                 RedirectUri = redirectUri
             };

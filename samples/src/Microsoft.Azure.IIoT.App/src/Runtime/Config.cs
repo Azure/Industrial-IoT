@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Runtime {
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Api.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>

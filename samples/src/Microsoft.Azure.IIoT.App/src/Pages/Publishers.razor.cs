@@ -4,13 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.Azure.IIoT.App.Extensions;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.App.Data;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.App.Models;
 
     public partial class Publishers {
         [Parameter]
@@ -19,13 +18,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private PagedResult<PublisherApiModel> PublisherList { get; set; } =
             new PagedResult<PublisherApiModel>();
         private PagedResult<PublisherApiModel> _pagedPublisherList =
-            new PagedResult<PublisherApiModel>();
+            new();
         private IAsyncDisposable _publisherEvent;
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
 
         public bool IsOpen { get; set; } = false;
-        public PublisherInfo Publisher { get; set; }
 
         /// <summary>
         /// Notify page change
@@ -36,7 +34,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             StateHasChanged();
             PublisherList = CommonHelper.UpdatePage(RegistryHelper.GetPublisherListAsync, page, PublisherList, ref _pagedPublisherList, CommonHelper.PageLengthSmall);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "publishers/" + page);
-            for (int i = 0; i < _pagedPublisherList.Results.Count; i++) {
+            for (var i = 0; i < _pagedPublisherList.Results.Count; i++) {
                 _pagedPublisherList.Results[i] = await RegistryService.GetPublisherAsync(_pagedPublisherList.Results[i].Id);
             }
             CommonHelper.Spinner = string.Empty;
@@ -69,7 +67,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         }
 
         private Task PublisherEvent(PublisherEventApiModel ev) {
-            PublisherList.Results.Update(ev);
             _pagedPublisherList = PublisherList.GetPaged(int.Parse(Page), CommonHelper.PageLengthSmall, PublisherList.Error);
             StateHasChanged();
             return Task.CompletedTask;
@@ -91,7 +88,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="OpenDrawer"></param>
         private void OpenDrawer(PublisherApiModel publisherModel) {
             IsOpen = true;
-            Publisher = new PublisherInfo { PublisherModel = publisherModel };
         }
 
         /// <summary>

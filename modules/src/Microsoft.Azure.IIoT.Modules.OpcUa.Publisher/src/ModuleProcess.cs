@@ -10,17 +10,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Prometheus;
@@ -40,14 +44,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// Create process
         /// </summary>
         /// <param name="config"></param>
-        public ModuleProcess(IConfigurationRoot config) {
+        /// <param name="injector"></param>
+        public ModuleProcess(IConfiguration config, IInjector injector = null) {
             _config = config;
+            _injector = injector;
             _exitCode = 0;
             _exit = new TaskCompletionSource<bool>();
             AssemblyLoadContext.Default.Unloading += _ => _exit.TrySetResult(true);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public void Reset() {
             _reset.TrySetResult(true);
         }
@@ -61,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             if (Host.IsContainer) {
                 // Set timer to kill the entire process after 5 minutes.
-                var _ = new Timer(o => {
+                new Timer(o => {
                     Log.Logger.Fatal("Killing non responsive module process!");
                     Process.GetCurrentProcess().Kill();
                 }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
@@ -83,6 +89,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var events = hostScope.Resolve<IEventEmitter>();
+                    var client = hostScope.Resolve<IClientHost>();
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
@@ -97,6 +104,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, "OpcPublisher",
                             version, this).ConfigureAwait(false);
+                        await client.StartAsync();
 
                         // Reporting runtime state on restart.
                         // Reporting will happen only in stadalone mode.
@@ -138,7 +146,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
-            var cliOptions = new Runtime.PublisherCliOptions(configuration);
+            var cliOptions = new PublisherCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -171,8 +179,25 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherDiagnosticCollector>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TwinServices>()
+                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<AddressSpaceServices>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<DiscoveryServices>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<ProgressPublisher>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<TaskProcessor>()
+                .AsImplementedInterfaces();
+
+            // Register controllers
             builder.RegisterType<PublisherMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<TwinMethodsController>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<DiscoveryMethodsController>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+
             builder.RegisterType<RuntimeStateReporter>()
                 .AsImplementedInterfaces().SingleInstance();
 
@@ -184,10 +209,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AsImplementedInterfaces();
             builder.RegisterType<HealthCheckManager>()
                 .AsImplementedInterfaces().SingleInstance();
+
+            if (_injector != null) {
+                // Inject additional services
+                builder.RegisterInstance(_injector)
+                    .AsImplementedInterfaces().SingleInstance()
+                    .ExternallyOwned();
+
+                _injector.Inject(builder);
+            }
+
             return builder.Build();
         }
 
-        private readonly IConfigurationRoot _config;
+        private readonly IConfiguration _config;
+        private readonly IInjector _injector;
         private readonly TaskCompletionSource<bool> _exit;
         private int _exitCode;
         private TaskCompletionSource<bool> _reset;

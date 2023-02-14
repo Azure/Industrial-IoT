@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Components.Pager {
-    using System;
-    using Microsoft.Azure.IIoT.App.Data;
     using Microsoft.AspNetCore.Components;
+    using Microsoft.Azure.IIoT.App.Models;
+    using System;
 
     public partial class Pager {
         [Parameter]

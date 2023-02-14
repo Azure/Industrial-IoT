@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
@@ -23,8 +24,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Deploy;
@@ -247,11 +246,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
                 .AsImplementedInterfaces().SingleInstance();
 #endif
             // Additional registry services
-            builder.RegisterType<TwinModuleActivationClient>()
+            builder.RegisterType<TwinModuleApiAdapter>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<TwinModuleCertificateClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<TwinModuleDiagnosticsClient>()
+            builder.RegisterType<PublisherModuleApiAdapter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<OnboardingClient>()
                 .AsImplementedInterfaces();

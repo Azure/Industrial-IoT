@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
 
     /// <summary>
     /// Endpoint info wrapper

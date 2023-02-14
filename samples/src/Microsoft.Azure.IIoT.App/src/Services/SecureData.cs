@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Services.SecureData {
+namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.AspNetCore.DataProtection;
     using Newtonsoft.Json;
     using System;

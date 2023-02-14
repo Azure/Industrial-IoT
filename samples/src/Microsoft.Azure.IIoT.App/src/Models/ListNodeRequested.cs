@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Models {
-    using System;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using System;
 
     public class ListNodeRequested {
 
@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// PublishingInterval
         /// </summary>
         public string RequestedPublishingInterval {
-            get => (_requestedPublishingInterval != null && _requestedPublishingInterval.Value != TimeSpan.MinValue ?
-                _requestedPublishingInterval.Value.TotalMilliseconds.ToString() : null);
+            get => _requestedPublishingInterval != null && _requestedPublishingInterval.Value != TimeSpan.MinValue ?
+                _requestedPublishingInterval.Value.TotalMilliseconds.ToString() : null;
             set => _requestedPublishingInterval = string.IsNullOrWhiteSpace(value) ?
                 TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(value));
         }
@@ -35,8 +35,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// SamplingInterval
         /// </summary>
         public string RequestedSamplingInterval {
-            get => (_requestedSamplingInterval != null && _requestedSamplingInterval.Value != TimeSpan.MinValue ?
-                _requestedSamplingInterval.Value.TotalMilliseconds.ToString() : null);
+            get => _requestedSamplingInterval != null && _requestedSamplingInterval.Value != TimeSpan.MinValue ?
+                _requestedSamplingInterval.Value.TotalMilliseconds.ToString() : null;
             set => _requestedSamplingInterval = string.IsNullOrWhiteSpace(value) ?
                 TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(value));
         }
@@ -45,8 +45,8 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// HeartbeatInterval
         /// </summary>
         public string RequestedHeartbeatInterval {
-            get => (_requestedHeartbeatInterval != null && _requestedHeartbeatInterval.Value != TimeSpan.MinValue ?
-                _requestedHeartbeatInterval.Value.TotalSeconds.ToString() : null);
+            get => _requestedHeartbeatInterval != null && _requestedHeartbeatInterval.Value != TimeSpan.MinValue ?
+                _requestedHeartbeatInterval.Value.TotalSeconds.ToString() : null;
             set => _requestedHeartbeatInterval = string.IsNullOrWhiteSpace(value) ?
                 TimeSpan.MinValue : TimeSpan.FromSeconds(Convert.ToDouble(value));
         }

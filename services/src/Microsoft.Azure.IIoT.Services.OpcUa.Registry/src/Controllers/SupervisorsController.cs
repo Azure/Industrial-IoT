@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;

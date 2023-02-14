@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using System.Runtime.Serialization;
     using System.Collections.Generic;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Result of GetConfiguredEndpoints method call

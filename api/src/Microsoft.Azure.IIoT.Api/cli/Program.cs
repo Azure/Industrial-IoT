@@ -5,24 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.Api.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using System;
@@ -31,6 +21,10 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Publisher;
+    using Microsoft.Azure.IIoT.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions;
 
     /// <summary>
     /// Api command line interface
@@ -79,8 +73,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<PublisherJobServiceClient>()
-                .AsImplementedInterfaces();
 
             // ... with client event callbacks
             builder.RegisterType<RegistryServiceEvents>()
@@ -125,7 +117,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             _registry = _scope.Resolve<IRegistryServiceApi>();
             _history = _scope.Resolve<IHistoryServiceApi>();
             _publisher = _scope.Resolve<IPublisherServiceApi>();
-            _jobs = _scope.Resolve<IPublisherJobServiceApi>();
             _serializer = _scope.Resolve<IJsonSerializer>();
         }
 
@@ -261,57 +252,16 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                     await GetEndpointCertificateAsync(options);
                                     break;
                                 case "activate":
-                                    await ActivateEndpointsAsync(options);
+                                    await ConnectsAsync(options);
                                     break;
                                 case "deactivate":
-                                    await DeactivateEndpointsAsync(options);
+                                    await DisconnectsAsync(options);
                                     break;
                                 case "-?":
                                 case "-h":
                                 case "--help":
                                 case "help":
                                     PrintEndpointsHelp();
-                                    break;
-                                default:
-                                    throw new ArgumentException($"Unknown command {command}.");
-                            }
-                            break;
-                        case "jobs":
-                            if (args.Length < 2) {
-                                throw new ArgumentException("Need a command!");
-                            }
-                            command = args[1].ToLowerInvariant();
-                            options = new CliOptions(args, 2);
-                            switch (command) {
-                                case "get":
-                                    await GetJobAsync(options);
-                                    break;
-                                case "list":
-                                    await ListJobsAsync(options);
-                                    break;
-                                case "workers":
-                                    await ListWorkersAsync(options);
-                                    break;
-                                case "select":
-                                    await SelectJobAsync(options);
-                                    break;
-                                case "query":
-                                    await QueryJobAsync(options);
-                                    break;
-                                case "restart":
-                                    await RestartJobAsync(options);
-                                    break;
-                                case "cancel":
-                                    await CancelJobAsync(options);
-                                    break;
-                                case "delete":
-                                    await DeleteJobAsync(options);
-                                    break;
-                                case "-?":
-                                case "-h":
-                                case "--help":
-                                case "help":
-                                    PrintJobsHelp();
                                     break;
                                 default:
                                     throw new ArgumentException($"Unknown command {command}.");
@@ -908,7 +858,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<TraceLogLevel>(
                         "-l", "--log-level", null),
-                    Configuration = config,
                 });
         }
 
@@ -1042,138 +991,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             }
             finally {
                 await complete.DisposeAsync();
-            }
-        }
-
-        private string _jobId;
-
-        /// <summary>
-        /// Get supervisor id
-        /// </summary>
-        private string GetJobId(CliOptions options, bool shouldThrow = true) {
-            var id = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (_jobId != null) {
-                if (id == null) {
-                    return _jobId;
-                }
-                _jobId = null;
-            }
-            if (id != null) {
-                return id;
-            }
-            if (!shouldThrow) {
-                return null;
-            }
-            throw new ArgumentException("Missing -i/--id option.");
-        }
-
-        /// <summary>
-        /// Select job
-        /// </summary>
-        private async Task SelectJobAsync(CliOptions options) {
-            if (options.IsSet("-c", "--clear")) {
-                _jobId = null;
-            }
-            else if (options.IsSet("-s", "--show")) {
-                Console.WriteLine(_jobId);
-            }
-            else {
-                var jobId = options.GetValueOrDefault<string>("-i", "--id", null);
-                if (string.IsNullOrEmpty(jobId)) {
-                    var result = await _jobs.ListAllJobsAsync();
-                    jobId = ConsoleEx.Select(result.Select(r => r.Id));
-                    if (string.IsNullOrEmpty(jobId)) {
-                        Console.WriteLine("Nothing selected - job selection cleared.");
-                    }
-                    else {
-                        Console.WriteLine($"Selected {jobId}.");
-                    }
-                }
-                _jobId = jobId;
-            }
-        }
-
-        /// <summary>
-        /// Get job
-        /// </summary>
-        private async Task GetJobAsync(CliOptions options) {
-            var result = await _jobs.GetJobAsync(GetJobId(options));
-            PrintResult(options, result);
-        }
-
-        /// <summary>
-        /// Delete job
-        /// </summary>
-        private async Task DeleteJobAsync(CliOptions options) {
-            await _jobs.DeleteJobAsync(GetJobId(options));
-        }
-
-        /// <summary>
-        /// Cancel job
-        /// </summary>
-        private async Task CancelJobAsync(CliOptions options) {
-            await _jobs.CancelJobAsync(GetJobId(options));
-        }
-
-        /// <summary>
-        /// Restart job
-        /// </summary>
-        private async Task RestartJobAsync(CliOptions options) {
-            await _jobs.RestartJobAsync(GetJobId(options));
-        }
-
-        /// <summary>
-        /// Query jobs
-        /// </summary>
-        private async Task QueryJobAsync(CliOptions options) {
-            var query = new JobInfoQueryApiModel {
-                JobConfigurationType = options.GetValueOrDefault<string>("-t", "--type", null),
-                Status = options.GetValueOrDefault<JobStatus>("-s", "--status", null),
-                Name = options.GetValueOrDefault<string>("-n", "--name", null)
-            };
-            if (options.IsSet("-A", "--all")) {
-                var result = await _jobs.QueryAllJobsAsync(query);
-                PrintResult(options, result);
-                Console.WriteLine($"{result.Count()} item(s) found...");
-            }
-            else {
-                var result = await _jobs.QueryJobsAsync(query,
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
-                PrintResult(options, result);
-            }
-        }
-
-        /// <summary>
-        /// List jobs
-        /// </summary>
-        private async Task ListJobsAsync(CliOptions options) {
-            if (options.IsSet("-A", "--all")) {
-                var result = await _jobs.ListAllJobsAsync();
-                PrintResult(options, result);
-                Console.WriteLine($"{result.Count()} item(s) found...");
-            }
-            else {
-                var result = await _jobs.ListJobsAsync(
-                    options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
-                PrintResult(options, result);
-            }
-        }
-
-        /// <summary>
-        /// List workers
-        /// </summary>
-        private async Task ListWorkersAsync(CliOptions options) {
-            if (options.IsSet("-A", "--all")) {
-                var result = await _jobs.ListAllAgentsAsync();
-                PrintResult(options, result);
-                Console.WriteLine($"{result.Count()} item(s) found...");
-            }
-            else {
-                var result = await _jobs.ListWorkersAsync(
-                    options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
-                PrintResult(options, result);
             }
         }
 
@@ -1935,7 +1752,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             var query = new EndpointRegistrationQueryApiModel {
                 Url = options.GetValueOrDefault<string>("-u", "--uri", null),
                 SecurityMode = options
-                    .GetValueOrDefault<OpcUa.Api.Core.Models.SecurityMode>("-m", "--mode", null),
+                    .GetValueOrDefault<OpcUa.Api.Publisher.Models.SecurityMode>("-m", "--mode", null),
                 SecurityPolicy = options.GetValueOrDefault<string>("-l", "--policy", null),
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
                 Activated = options.IsProvidedOrNull("-a", "--activated"),
@@ -1964,22 +1781,22 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Activate endpoints
         /// </summary>
-        private async Task ActivateEndpointsAsync(CliOptions options) {
+        private async Task ConnectsAsync(CliOptions options) {
 
             var id = GetEndpointId(options, false);
             if (id != null) {
-                await _registry.ActivateEndpointAsync(id);
+                await _registry.ConnectAsync(id);
                 return;
             }
 
             // Activate all sign and encrypt endpoints
             var result = await _registry.QueryAllEndpointsAsync(new EndpointRegistrationQueryApiModel {
-                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Core.Models.SecurityMode>("-m", "mode", null),
+                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Publisher.Models.SecurityMode>("-m", "mode", null),
                 Activated = false
             });
             foreach (var item in result) {
                 try {
-                    await _registry.ActivateEndpointAsync(item.Registration.Id);
+                    await _registry.ConnectAsync(item.Registration.Id);
                 }
                 catch (Exception ex) {
                     Console.WriteLine($"Failed to activate {item.Registration.Id}: {ex.Message}");
@@ -1990,22 +1807,22 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Deactivate endpoints
         /// </summary>
-        private async Task DeactivateEndpointsAsync(CliOptions options) {
+        private async Task DisconnectsAsync(CliOptions options) {
 
             var id = GetEndpointId(options, false);
             if (id != null) {
-                await _registry.DeactivateEndpointAsync(id);
+                await _registry.DisconnectAsync(id);
                 return;
             }
 
             // Activate all sign and encrypt endpoints
             var result = await _registry.QueryAllEndpointsAsync(new EndpointRegistrationQueryApiModel {
-                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Core.Models.SecurityMode>("-m", "mode", null),
+                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Publisher.Models.SecurityMode>("-m", "mode", null),
                 Activated = true
             });
             foreach (var item in result) {
                 try {
-                    await _registry.DeactivateEndpointAsync(item.Registration.Id);
+                    await _registry.DisconnectAsync(item.Registration.Id);
                 }
                 catch (Exception ex) {
                     Console.WriteLine($"Failed to deactivate {item.Registration.Id}: {ex.Message}");
@@ -2052,7 +1869,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             Console.WriteLine("Twin:      " + await _twin.GetServiceStatusAsync());
             Console.WriteLine("Registry:  " + await _registry.GetServiceStatusAsync());
             Console.WriteLine("Publisher: " + await _publisher.GetServiceStatusAsync());
-            Console.WriteLine("Jobs:      " + await _jobs.GetServiceStatusAsync());
             Console.WriteLine("History:   " + await _history.GetServiceStatusAsync());
         }
 
@@ -2204,7 +2020,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Build discovery config model from options
         /// </summary>
-        private DiscoveryConfigApiModel BuildDiscoveryConfig(CliOptions options) {
+        private static DiscoveryConfigApiModel BuildDiscoveryConfig(CliOptions options) {
             var config = new DiscoveryConfigApiModel();
             var empty = true;
 
@@ -2272,7 +2088,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Build publisher config model from options
         /// </summary>
-        private PublisherConfigApiModel BuildPublisherConfig(CliOptions options) {
+        private static PublisherConfigApiModel BuildPublisherConfig(CliOptions options) {
             var config = new PublisherConfigApiModel();
             var empty = true;
 
@@ -2284,12 +2100,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 else {
                     config.JobOrchestratorUrl = url;
                 }
-                empty = false;
-            }
-
-            var maxWorkers = options.GetValueOrDefault<int>("-w", "--max-workers", null);
-            if (maxWorkers != null && maxWorkers >= 0) {
-                config.MaxWorkers = maxWorkers;
                 empty = false;
             }
 
@@ -2311,7 +2121,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print help
         /// </summary>
-        private void PrintHelp() {
+        private static void PrintHelp() {
             Console.WriteLine(
                 @"
 aziiotcli - Allows to script Industrial IoT Services api.
@@ -2342,7 +2152,7 @@ Commands and Options
         /// <summary>
         /// Print help
         /// </summary>
-        private void PrintApplicationsHelp() {
+        private static void PrintApplicationsHelp() {
             Console.WriteLine(
                 @"
 Manage applications registry.
@@ -2464,7 +2274,7 @@ Commands and Options
         /// <summary>
         /// Print help
         /// </summary>
-        private void PrintEndpointsHelp() {
+        private static void PrintEndpointsHelp() {
             Console.WriteLine(
                 @"
 Manage endpoints in registry.
@@ -2538,7 +2348,7 @@ Commands and Options
         /// <summary>
         /// Print help
         /// </summary>
-        private void PrintNodesHelp() {
+        private static void PrintNodesHelp() {
             Console.WriteLine(
                 @"
 Access address space through configured server endpoint.
@@ -2626,7 +2436,7 @@ Commands and Options
         /// <summary>
         /// Print help
         /// </summary>
-        private void PrintGatewaysHelp() {
+        private static void PrintGatewaysHelp() {
             Console.WriteLine(
                 @"
 Manage and configure Edge Gateways
@@ -2675,7 +2485,7 @@ Commands and Options
         /// <summary>
         /// Print help
         /// </summary>
-        private void PrintPublishersHelp() {
+        private static void PrintPublishersHelp() {
             Console.WriteLine(
                 @"
 Manage and configure Publisher modules
@@ -2735,7 +2545,7 @@ Commands and Options
         /// <summary>
         /// Print help
         /// </summary>
-        private void PrintSupervisorsHelp() {
+        private static void PrintSupervisorsHelp() {
             Console.WriteLine(
                 @"
 Manage and configure Twin modules (endpoint supervisors)
@@ -2798,7 +2608,7 @@ Commands and Options
         /// <summary>
         /// Print help
         /// </summary>
-        private void PrintDiscoverersHelp() {
+        private static void PrintDiscoverersHelp() {
             Console.WriteLine(
                 @"
 Manage and configure discovery modules
@@ -2879,72 +2689,8 @@ Commands and Options
                 );
         }
 
-        /// <summary>
-        /// Print help
-        /// </summary>
-        private void PrintJobsHelp() {
-            Console.WriteLine(
-                @"
-Manage jobs
-
-Commands and Options
-
-     select      Select job as -i/--id argument in all calls.
-        with ...
-        -i, --id        Job id to select.
-        -c, --clear     Clear current selection
-        -s, --show      Show current selection
-
-     list        List jobs
-        with ...
-        -C, --continuation
-                        Continuation from previous result.
-        -P, --page-size Size of page
-        -A, --all       Return all jobs (unpaged)
-        -F, --format    Json format for result
-
-     query       Find jobs
-        -S, --status    Status of the job
-        -t, --type      Job type.
-        -n, --name      Name of the job.
-        -P, --page-size Size of page
-        -A, --all       Return all jobs (unpaged)
-        -F, --format    Json format for result
-
-     get         Get Job
-        with ...
-        -i, --id        Id of job to retrieve (mandatory)
-        -F, --format    Json format for result
-
-     workers     List workers
-        with ...
-        -C, --continuation
-                        Continuation from previous result.
-        -P, --page-size Size of page
-        -A, --all       Return all jobs (unpaged)
-        -F, --format    Json format for result
-
-     cancel      Cancel job
-        with ...
-        -i, --id        Id of job to cancel (mandatory)
-
-     restart     Restart job
-        with ...
-        -i, --id        Id of job to restart (mandatory)
-
-     delete      Delete job
-        with ...
-        -i, --id        Id of job to delete (mandatory)
-
-     help, -h, -? --help
-                 Prints out this help.
-"
-                );
-        }
-
         private readonly ILifetimeScope _scope;
         private readonly ITwinServiceApi _twin;
-        private readonly IPublisherJobServiceApi _jobs;
         private readonly IPublisherServiceApi _publisher;
         private readonly IRegistryServiceApi _registry;
         private readonly IHistoryServiceApi _history;

@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Threading.Tasks;
     using Opc.Ua.Extensions;
     using Opc.Ua;
+    using System.Threading;
 
     public static class EndpointServicesEx {
 
@@ -21,20 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="readNode"></param>
         /// <returns></returns>
         public static Task<VariantValue> ReadValueAsync(this IEndpointServices client,
-            EndpointModel endpoint, string readNode) {
-            return ReadValueAsync(client, endpoint, null, readNode);
-        }
-
-        /// <summary>
-        /// Read value
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="endpoint"></param>
-        /// <param name="elevation"></param>
-        /// <param name="readNode"></param>
-        /// <returns></returns>
-        public static Task<VariantValue> ReadValueAsync(this IEndpointServices client,
-            EndpointModel endpoint, CredentialModel elevation, string readNode) {
+            ConnectionModel endpoint, string readNode, CancellationToken ct = default) {
             var codec = new VariantEncoderFactory();
             return client.ExecuteServiceAsync(endpoint, session => {
                 var nodesToRead = new ReadValueIdCollection {
@@ -48,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 var result = codec.Create(session.MessageContext)
                     .Encode(values[0].WrappedValue, out var tmp);
                 return Task.FromResult(result);
-            });
+            }, ct);
         }
     }
 }

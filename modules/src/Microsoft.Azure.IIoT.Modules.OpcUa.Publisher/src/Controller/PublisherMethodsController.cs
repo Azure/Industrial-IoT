@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Filters;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using System;

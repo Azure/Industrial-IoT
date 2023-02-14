@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     public interface ICertificateServices<T> {
 
         /// <summary>
-        /// Activate endpoint
+        /// Get endpoint certificate
         /// </summary>
         /// <param name="id"></param>
         /// <param name="ct"></param>

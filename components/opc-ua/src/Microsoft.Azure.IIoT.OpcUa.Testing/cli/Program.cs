@@ -193,7 +193,7 @@ Operations (Mutually exclusive):
             using (var logger = StackLogger.Create(ConsoleLogger.Create()))
             using (var client = new OpcUaClientManager(logger.Logger, new TestClientServicesConfig()))
             using (var server = new ServerWrapper(endpoint, logger)) {
-                await client.ExecuteServiceAsync(endpoint, session => {
+                await client.ExecuteServiceAsync(new ConnectionModel { Endpoint = endpoint }, session => {
                     Console.WriteLine("Browse the OPC UA server namespace.");
                     var w = Stopwatch.StartNew();
                     var stack = new Stack<Tuple<string, ReferenceDescription>>();
@@ -220,7 +220,7 @@ Operations (Mutually exclusive):
                     }
                     Console.WriteLine($"   ....        took {w.ElapsedMilliseconds} ms...");
                     return Task.FromResult(true);
-                });
+                }, default);
             }
         }
 
@@ -253,7 +253,7 @@ Operations (Mutually exclusive):
                                     Console.WriteLine($"Browsing {request.NodeId}");
                                     Console.WriteLine($"====================");
                                 }
-                                var result = await service.NodeBrowseAsync(endpoint, request);
+                                var result = await service.NodeBrowseAsync(new ConnectionModel { Endpoint = endpoint }, request);
                                 visited.Add(request.NodeId);
                                 if (!silent) {
                                     Console.WriteLine(JsonConvert.SerializeObject(result,
@@ -281,10 +281,10 @@ Operations (Mutually exclusive):
                                     }
                                     try {
                                         nodesRead.Add(r.Target.NodeId);
-                                        var read = await service.NodeValueReadAsync(endpoint,
+                                        var read = await service.NodeValueReadAsync(new ConnectionModel { Endpoint = endpoint },
                                             new ValueReadRequestModel {
                                                 NodeId = r.Target.NodeId
-                                            });
+                                            }, default);
                                         if (!silent) {
                                             Console.WriteLine(JsonConvert.SerializeObject(result,
                                                 Formatting.Indented));

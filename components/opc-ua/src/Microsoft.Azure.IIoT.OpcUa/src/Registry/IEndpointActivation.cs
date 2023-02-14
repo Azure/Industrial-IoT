@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="context"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task ActivateEndpointAsync(string endpointId,
+        Task ConnectAsync(string endpointId,
             RegistryOperationContextModel context = null,
             CancellationToken ct = default);
 
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="context"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task DeactivateEndpointAsync(string endpointId,
+        Task DisconnectAsync(string endpointId,
             RegistryOperationContextModel context = null,
             CancellationToken ct = default);
     }

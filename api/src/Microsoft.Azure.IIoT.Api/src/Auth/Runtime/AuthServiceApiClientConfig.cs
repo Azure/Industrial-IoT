@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Runtime {
+namespace Microsoft.Azure.IIoT.Api.Auth.Runtime {
     using Microsoft.Azure.IIoT.Api.Runtime;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
@@ -30,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <summary>Applicable resource</summary>
         public string Resource => Http.Resource.Platform;
         /// <summary>Application id</summary>
-        public string ClientId =>  GetStringOrDefault(kAuth_AppIdKey,
+        public string ClientId => GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_CLIENT_APPID,
                 () => "F095B8821F4F4604B6E3AD1110EE58A4"))?.Trim();
         /// <summary>App secret</summary>

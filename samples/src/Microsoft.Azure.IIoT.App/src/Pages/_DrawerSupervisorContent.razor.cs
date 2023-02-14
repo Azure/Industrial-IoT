@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using System.Threading.Tasks;
 
     public partial class _DrawerSupervisorContent {
         [Parameter]

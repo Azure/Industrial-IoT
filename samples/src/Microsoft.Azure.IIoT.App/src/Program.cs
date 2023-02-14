@@ -4,15 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App {
+    using Autofac.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
-    using Autofac.Extensions.Hosting;
-    using System;
-    using System.IO;
-    using Serilog;
-    using Serilog.Events;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.ApplicationInsights;
+    using Serilog;
+    using Serilog.Events;
+    using System;
+    using System.IO;
 
     public class Program {
 

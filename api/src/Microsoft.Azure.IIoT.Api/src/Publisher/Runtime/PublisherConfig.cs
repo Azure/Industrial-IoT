@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Runtime {
+namespace Microsoft.Azure.IIoT.Api.Publisher.Runtime {
     using Microsoft.Azure.IIoT.Api.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
@@ -16,7 +17,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Runtime {
         /// Publisher configuration
         /// </summary>
         private const string kOpcUaPublisherServiceUrlKey = "OpcPublisherServiceUrl";
-        private const string kOpcUaPublisherServiceIdKey = "OpcPublisherServiceResourceId";
 
         /// <summary>OPC publisher service endpoint url</summary>
         public string OpcUaPublisherServiceUrl => GetStringOrDefault(

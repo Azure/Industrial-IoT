@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Filters {
             switch (exception) {
                 case AggregateException ae:
                     var root = ae.GetBaseException();
-                    if (!(root is AggregateException)) {
+                    if (root is not AggregateException) {
                         return Filter(root, out status);
                     }
                     ae = root as AggregateException;
@@ -37,44 +37,44 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Filters {
                         }
                     }
                     return result;
-                case ResourceNotFoundException re:
+                case ResourceNotFoundException:
                     status = (int)HttpStatusCode.NotFound;
                     break;
-                case ResourceInvalidStateException ri:
+                case ResourceInvalidStateException:
                     status = (int)HttpStatusCode.Forbidden;
                     break;
-                case ConflictingResourceException ce:
+                case ConflictingResourceException:
                     status = (int)HttpStatusCode.Conflict;
                     break;
-                case SecurityException se:
-                case UnauthorizedAccessException ue:
+                case SecurityException:
+                case UnauthorizedAccessException:
                     status = (int)HttpStatusCode.Unauthorized;
                     break;
                 case MethodCallStatusException mcse:
                     status = mcse.Result;
                     break;
-                case SerializerException sre:
-                case MethodCallException mce:
-                case BadRequestException br:
-                case ArgumentException are:
+                case SerializerException:
+                case MethodCallException:
+                case BadRequestException:
+                case ArgumentException:
                     status = (int)HttpStatusCode.BadRequest;
                     break;
-                case NotImplementedException ne:
-                case NotSupportedException ns:
+                case NotImplementedException:
+                case NotSupportedException:
                     status = (int)HttpStatusCode.NotImplemented;
                     break;
-                case TimeoutException te:
+                case TimeoutException:
                     status = (int)HttpStatusCode.RequestTimeout;
                     break;
-                case SocketException sex:
-                case CommunicationException ce:
+                case SocketException:
+                case CommunicationException:
                     status = (int)HttpStatusCode.BadGateway;
                     break;
-                case MessageTooLargeException mtl:
+                case MessageTooLargeException:
                     status = (int)HttpStatusCode.RequestEntityTooLarge;
                     break;
-                case TaskCanceledException tce:
-                case OperationCanceledException oce:
+                case TaskCanceledException:
+                case OperationCanceledException:
                     status = (int)HttpStatusCode.Gone;
                     break;
 
@@ -94,13 +94,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Filters {
                 // one of the above.
                 //
 
-                case ServerBusyException se:
+                case ServerBusyException:
                     status = (int)HttpStatusCode.TooManyRequests;
                     break;
-                case ExternalDependencyException ex:
+                case ExternalDependencyException:
                     status = (int)HttpStatusCode.ServiceUnavailable;
                     break;
-                case ResourceOutOfDateException re:
+                case ResourceOutOfDateException:
                     status = (int)HttpStatusCode.PreconditionFailed;
                     break;
                 default:

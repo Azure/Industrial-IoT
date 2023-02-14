@@ -9,8 +9,10 @@ namespace Microsoft.Azure.IIoT.App.Shared {
     using Microsoft.AspNetCore.Components;
 
     public partial class HelpContent {
-        [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; }
+        [CascadingParameter] private BlazoredModalInstance BlazoredModal { get; set; }
 
-        void Close() => BlazoredModal.Close(ModalResult.Ok(true));
+        private void Close() {
+            BlazoredModal.Close(ModalResult.Ok(true));
+        }
     }
 }

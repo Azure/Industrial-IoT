@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Http;
@@ -177,7 +177,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         [HttpPost("{discovererId}")]
         [Authorize(Policy = Policies.CanChange)]
         public async Task SetDiscoveryModeAsync(string discovererId,
-            [FromQuery] [Required] IIoT.OpcUa.Api.Registry.Models.DiscoveryMode mode,
+            [FromQuery] [Required] IIoT.OpcUa.Api.Publisher.Models.DiscoveryMode mode,
             [FromBody] DiscoveryConfigApiModel config) {
             var request = new DiscovererUpdateApiModel {
                 Discovery = mode,

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Components.Drawer {
-    using System;
     using Microsoft.AspNetCore.Components;
+    using System;
 
     public partial class Drawer {
         [Parameter]

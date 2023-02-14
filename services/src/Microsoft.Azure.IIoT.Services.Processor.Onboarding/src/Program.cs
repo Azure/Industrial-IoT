@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
-
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
     using Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
@@ -169,9 +168,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
                 .AsImplementedInterfaces().SingleInstance();
 #endif
             // which need additional registry services
-            builder.RegisterType<TwinModuleCertificateClient>()
+            builder.RegisterType<TwinModuleApiAdapter>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<TwinModuleActivationClient>()
+            builder.RegisterType<PublisherModuleApiAdapter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<OnboardingClient>()
                 .AsImplementedInterfaces();

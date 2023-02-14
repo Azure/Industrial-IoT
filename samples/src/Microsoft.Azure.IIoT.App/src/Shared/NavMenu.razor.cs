@@ -4,14 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Shared {
-    using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.AspNetCore.Components.Routing;
+    using Microsoft.Azure.IIoT.App.Models;
+    using System.Threading.Tasks;
 
     public partial class NavMenu {
-        bool _collapseNavMenu = true;
+        private bool _collapseNavMenu = true;
 
-        string NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
+        private string NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
         public CredentialModel Credential { get; set; } = new CredentialModel();
         private string SubMenuDisplay { get; set; } = "displayNone";
         private string SubMenuIcon { get; set; } = "oi-expand-down";
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
             NavigationManager.LocationChanged -= HandleLocationChangedAsync;
         }
 
-        void ToggleNavMenu() {
+        private void ToggleNavMenu() {
             _collapseNavMenu = !_collapseNavMenu;
         }
 

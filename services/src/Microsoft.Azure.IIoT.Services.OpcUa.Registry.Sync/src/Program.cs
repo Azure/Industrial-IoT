@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
+    using Microsoft.Azure.IIoT.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -15,8 +17,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
@@ -148,17 +148,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
             builder.RegisterModule<RegistryServices>();
             builder.RegisterType<DiscoveryRequestHandler>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<DiscovererModuleClient>()
+            builder.RegisterType<DiscoveryApiClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DiscoveryMultiplexer>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Activation sync
-            builder.RegisterType<TwinModuleActivationClient>()
+            builder.RegisterType<TwinModuleApiAdapter>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<TwinModuleCertificateClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<TwinModuleDiagnosticsClient>()
+            builder.RegisterType<PublisherModuleApiAdapter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<ActivationSyncHost>()
                 .AsImplementedInterfaces().SingleInstance();

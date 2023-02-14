@@ -28,18 +28,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
-        private HistoryReadValuesTests<EndpointModel> GetTests() {
+        private HistoryReadValuesTests<ConnectionModel> GetTests() {
             var codec = new VariantEncoderFactory();
-            return new HistoryReadValuesTests<EndpointModel>(
-                () => new HistoricAccessAdapter<EndpointModel>(new AddressSpaceServices(_server.Client,
-                    codec, _server.Logger), codec),
-                new EndpointModel {
-                    Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
-                    AlternativeUrls = _hostEntry?.AddressList
+            return new HistoryReadValuesTests<ConnectionModel>(
+                () => new HistorianApiAdapter<ConnectionModel>(new AddressSpaceServices(_server.Client,
+                    codec, _server.Logger), codec), new ConnectionModel {
+                        Endpoint = new EndpointModel {
+                            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+                            AlternativeUrls = _hostEntry?.AddressList
                         .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                         .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
-                    Certificate = _server.Certificate?.RawData?.ToThumbprint()
-                });
+                            Certificate = _server.Certificate?.RawData?.ToThumbprint()
+                        }
+                    });
         }
 
         [Fact]

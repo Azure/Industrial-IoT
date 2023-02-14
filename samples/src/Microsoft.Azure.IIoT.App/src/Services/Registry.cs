@@ -4,15 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Services {
-    using Microsoft.Azure.IIoT.App.Data;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.App.Common;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Serilog;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Serilog;
 
     public class Registry {
 
@@ -57,12 +55,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 else {
                     endpoints = await _registryService.ListEndpointsAsync(previousPage.ContinuationToken, null, _commonHelper.PageLength);
 
-                    if (string.IsNullOrEmpty(endpoints.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
+                    pageResult.PageCount = string.IsNullOrEmpty(endpoints.ContinuationToken) ? previousPage.PageCount : previousPage.PageCount + 1;
                 }
 
                 foreach (var ep in endpoints.Items) {
@@ -97,7 +90,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="previousPage"></param>
         /// <returns>DiscovererInfo</returns>
-        public async Task<PagedResult<DiscovererInfo>> GetDiscovererListAsync(PagedResult<DiscovererInfo> previousPage =  null) {
+        public async Task<PagedResult<DiscovererInfo>> GetDiscovererListAsync(PagedResult<DiscovererInfo> previousPage = null) {
             var pageResult = new PagedResult<DiscovererInfo>();
 
             try {
@@ -114,12 +107,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 else {
                     discoverers = await _registryService.ListDiscoverersAsync(previousPage.ContinuationToken, _commonHelper.PageLengthSmall);
 
-                    if (string.IsNullOrEmpty(discoverers.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
+                    pageResult.PageCount = string.IsNullOrEmpty(discoverers.ContinuationToken) ? previousPage.PageCount : previousPage.PageCount + 1;
                 }
 
                 if (discoverers != null && discoverers.Items.Any()) {
@@ -128,7 +116,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         var info = new DiscovererInfo {
                             DiscovererModel = discoverer,
                             HasApplication = false,
-                            ScanStatus = (discoverer.Discovery == DiscoveryMode.Off) || (discoverer.Discovery == null) ? false : true
+                            ScanStatus = discoverer.Discovery is not DiscoveryMode.Off and not null
                         };
                         applicationModel.DiscovererId = discoverer.Id;
                         var applications = await _registryService.QueryApplicationsAsync(applicationModel, 1);
@@ -181,16 +169,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         pageResult.PageCount = 2;
                     }
                 }
-                else
-                {
+                else {
                     applications = await _registryService.ListApplicationsAsync(previousPage.ContinuationToken, _commonHelper.PageLength);
 
-                    if (string.IsNullOrEmpty(applications.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
+                    pageResult.PageCount = string.IsNullOrEmpty(applications.ContinuationToken) ? previousPage.PageCount : previousPage.PageCount + 1;
                 }
 
                 if (applications != null) {
@@ -315,12 +297,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 else {
                     gateways = await _registryService.ListGatewaysAsync(previousPage.ContinuationToken, _commonHelper.PageLength);
 
-                    if (string.IsNullOrEmpty(gateways.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
+                    pageResult.PageCount = string.IsNullOrEmpty(gateways.ContinuationToken) ? previousPage.PageCount : previousPage.PageCount + 1;
                 }
 
                 if (gateways != null) {
@@ -370,12 +347,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 else {
                     publishers = await _registryService.ListPublishersAsync(previousPage.ContinuationToken, null, _commonHelper.PageLengthSmall);
 
-                    if (string.IsNullOrEmpty(publishers.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
+                    pageResult.PageCount = string.IsNullOrEmpty(publishers.ContinuationToken) ? previousPage.PageCount : previousPage.PageCount + 1;
                 }
 
                 if (publishers != null) {
@@ -402,30 +374,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = message;
             }
             return pageResult;
-        }
-
-        /// <summary>
-        /// Update publisher
-        /// </summary>
-        /// <param name="discoverer"></param>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public async Task<string> UpdatePublisherAsync(PublisherInfo publisher) {
-            try {
-                await _registryService.UpdatePublisherAsync(publisher.PublisherModel.Id, new PublisherUpdateApiModel {
-                    Configuration = publisher.PublisherModel.Configuration
-                });
-            }
-            catch (UnauthorizedAccessException) {
-                return "Unauthorized access: Bad User Access Denied.";
-            }
-            catch (Exception exception) {
-                _logger.Error(exception, "Failed to update publisher");
-                var errorMessageTrace = string.Concat(exception.Message,
-                    exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                return errorMessageTrace;
-            }
-            return null;
         }
 
         /// <summary>
@@ -471,12 +419,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 else {
                     supervisors = await _registryService.ListSupervisorsAsync(previousPage.ContinuationToken, null, _commonHelper.PageLengthSmall);
 
-                    if (string.IsNullOrEmpty(supervisors.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
+                    pageResult.PageCount = string.IsNullOrEmpty(supervisors.ContinuationToken) ? previousPage.PageCount : previousPage.PageCount + 1;
                 }
 
                 if (supervisors != null) {
@@ -529,7 +472,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="supervisorId"></param>
         /// <returns>bool</returns>
         public async Task<string> ResetSupervisorAsync(string supervisorId) {
-            var supervisorStatus = new SupervisorStatusApiModel();
+            new SupervisorStatusApiModel();
 
             try {
                 await _registryService.ResetSupervisorAsync(supervisorId);

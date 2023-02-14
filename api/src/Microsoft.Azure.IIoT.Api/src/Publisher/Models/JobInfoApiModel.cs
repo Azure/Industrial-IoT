@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
+namespace Microsoft.Azure.IIoT.Api.Publisher.Models {
     using Microsoft.Azure.IIoT.Serializers;
-    using System.Runtime.Serialization;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Job info model

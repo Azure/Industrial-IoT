@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Common {
+namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.App.Data;
+    using Microsoft.Azure.IIoT.App.Extensions;
+    using Microsoft.Azure.IIoT.App.Models;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -27,16 +28,13 @@ namespace Microsoft.Azure.IIoT.App.Common {
             if (list.Error != null) {
                 errorCssClass = "hidden";
             }
-            else if (list.Results.Count == 0) {
-                emptyCssClass = "displayBlock";
-            }
-            else
-            {
-                emptyCssClass = "displayNone";
+            else {
+                emptyCssClass = list.Results.Count == 0 ? "displayBlock" : "displayNone";
             }
         }
 
-        public string ExtractSecurityPolicy(string policy) {;
+        public string ExtractSecurityPolicy(string policy) {
+            ;
             return policy[(policy.LastIndexOf("#") + 1)..policy.Length];
         }
 

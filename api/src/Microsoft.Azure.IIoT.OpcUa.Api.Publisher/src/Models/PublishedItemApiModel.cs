@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using System.Runtime.Serialization;
     using System;
     using System.ComponentModel.DataAnnotations;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// A monitored and published item

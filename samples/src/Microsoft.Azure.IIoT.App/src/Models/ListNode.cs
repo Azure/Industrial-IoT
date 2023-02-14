@@ -4,9 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Models {
-    using System;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using System;
     using System.Collections.Generic;
     public class ListNode {
         public string Id { get; set; }
@@ -47,8 +46,7 @@ namespace Microsoft.Azure.IIoT.App.Models {
 
                 return true;
             }
-            catch (Exception)
-            {
+            catch (Exception) {
                 return false;
             }
         }

@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -18,9 +19,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// <param name="endpoint">Endpoint url of the server
         /// to talk to</param>
         /// <param name="request">Browse request</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<BrowseResultModel> NodeBrowseFirstAsync(T endpoint,
-            BrowseRequestModel request);
+            BrowseRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Browse remainder of references
@@ -28,17 +30,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// <param name="endpoint">Endpoint url of the server
         /// to talk to</param>
         /// <param name="request">Continuation token</param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<BrowseNextResultModel> NodeBrowseNextAsync(T endpoint,
-            BrowseNextRequestModel request);
+            BrowseNextRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Browse by path
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<BrowsePathResultModel> NodeBrowsePathAsync(T endpoint,
-            BrowsePathRequestModel request);
+            BrowsePathRequestModel request, CancellationToken ct = default);
     }
 }

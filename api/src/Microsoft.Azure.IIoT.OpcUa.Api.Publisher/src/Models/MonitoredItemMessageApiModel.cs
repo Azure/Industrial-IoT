@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Microsoft.Azure.IIoT.Serializers;
-    using System.Runtime.Serialization;
     using System;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Publisher monitored item sample model

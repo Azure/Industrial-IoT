@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -17,53 +18,60 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<ValueReadResultModel> NodeValueReadAsync(T endpoint,
-            ValueReadRequestModel request);
+            ValueReadRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Write node value
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<ValueWriteResultModel> NodeValueWriteAsync(T endpoint,
-            ValueWriteRequestModel request);
+            ValueWriteRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Get meta data for method call (input and output arguments)
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<MethodMetadataResultModel> NodeMethodGetMetadataAsync(
-            T endpoint, MethodMetadataRequestModel request);
+            T endpoint, MethodMetadataRequestModel request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Call method
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<MethodCallResultModel> NodeMethodCallAsync(T endpoint,
-            MethodCallRequestModel request);
+            MethodCallRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Read node attributes in batch
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<ReadResultModel> NodeReadAsync(T endpoint,
-            ReadRequestModel request);
+            ReadRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Write node attributes in batch
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<WriteResultModel> NodeWriteAsync(T endpoint,
-            WriteRequestModel request);
+            WriteRequestModel request, CancellationToken ct = default);
     }
 }

@@ -3,11 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
-    using System.Runtime.Serialization;
+namespace Microsoft.Azure.IIoT.Api.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System.Collections.Generic;
-    using System;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Describes event fields to be published

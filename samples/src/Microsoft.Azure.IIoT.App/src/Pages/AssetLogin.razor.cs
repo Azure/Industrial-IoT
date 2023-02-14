@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.App.Models;
+    using System.Threading.Tasks;
 
     public partial class AssetLogin {
         public CredentialModel Credential { get; set; } = new CredentialModel();
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="bool"></param>
         public async Task<bool> CheckLoginAsync() {
-            bool isLoggedIn = false;
+            var isLoggedIn = false;
             await LoadAsync();
             if (Credential != null) {
                 if (!string.IsNullOrEmpty(Credential.Username) && !string.IsNullOrEmpty(Credential.Password)) {

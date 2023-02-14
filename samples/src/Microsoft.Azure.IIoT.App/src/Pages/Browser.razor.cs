@@ -4,17 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.Azure.IIoT.App.Extensions;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.App.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.App.Services;
-    using Microsoft.Azure.IIoT.App.Data;
-    using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 
     public partial class Browser {
         [Parameter]
@@ -64,7 +61,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             foreach (var node in PagedNodeList.Results) {
                 //fetch the actual value
                 if (node.NodeClass == NodeClass.Variable) {
-                    node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id, Credential);
+                    node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id);
                 }
             }
             CommonHelper.Spinner = string.Empty;
@@ -122,7 +119,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="id"></param>
         /// <param name="parentId"></param>
         /// <param name="direction"></param>
-        private async Task BrowseTreeAsync(BrowseDirection direction, int index, bool firstPage, int page, string id = null, List<string> parentId = null) {
+        private async Task BrowseTreeAsync(BrowseDirection direction, int index,
+            bool firstPage, int page, string id = null, List<string> parentId = null) {
             CommonHelper.Spinner = "loader-big";
 
             if (firstPage) {
@@ -132,14 +130,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                                             parentId,
                                             DiscovererId,
                                             direction,
-                                            index,
-                                            Credential);
+                                            index);
             }
             else {
                 NodeList = await BrowseManager.GetTreeNextAsync(EndpointId,
                                                 ParentId,
                                                 DiscovererId,
-                                                Credential,
                                                 NodeList);
             }
 
@@ -193,7 +189,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             var publishingInterval = IsTimeIntervalSet(item?.PublishingInterval) ? item.PublishingInterval : TimeSpan.FromMilliseconds(1000);
             var samplingInterval = IsTimeIntervalSet(item?.SamplingInterval) ? item.SamplingInterval : TimeSpan.FromMilliseconds(1000);
             var heartbeatInterval = IsTimeIntervalSet(item?.HeartbeatInterval) ? item.HeartbeatInterval : null;
-            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, samplingInterval, publishingInterval, heartbeatInterval, Credential);
+            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, samplingInterval, publishingInterval, heartbeatInterval);
             if (result) {
                 node.PublishedItem = new PublishedItemApiModel() {
                     NodeId = node.Id,
@@ -201,10 +197,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                     SamplingInterval = samplingInterval,
                     HeartbeatInterval = heartbeatInterval
                 };
-                if (PublishEvent == null) {
-                    PublishEvent = Task.Run(async () => await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
+                PublishEvent ??= Task.Run(async () => await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
                         samples => InvokeAsync(() => GetPublishedNodeData(samples)))).Result;
-                }
             }
             else {
                 node.Publishing = false;
@@ -217,7 +211,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="endpointId"></param>
         /// <param name="node"></param>
         private async Task UnPublishNodeAsync(string endpointId, ListNode node) {
-            var result = await Publisher.StopPublishingAsync(endpointId, node.Id, Credential);
+            var result = await Publisher.StopPublishingAsync(endpointId, node.Id);
             if (result) {
                 node.Publishing = false;
             }
@@ -261,7 +255,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// ClickHandler
         /// </summary>
-        async Task ClickHandlerAsync(ListNode node) {
+        private async Task ClickHandlerAsync(ListNode node) {
             CloseDrawer();
             await PublishNodeAsync(EndpointId, node);
         }

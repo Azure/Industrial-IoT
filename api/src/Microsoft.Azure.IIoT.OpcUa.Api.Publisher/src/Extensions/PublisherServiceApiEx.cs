@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
+namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;

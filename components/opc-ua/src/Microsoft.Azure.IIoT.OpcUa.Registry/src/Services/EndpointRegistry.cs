@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="events"></param>
         public EndpointRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
             IRegistryEventBroker<IEndpointRegistryListener> broker,
-            IActivationServices<EndpointRegistrationModel> activator,
+            IConnectionServices<EndpointRegistrationModel> activator,
             ICertificateServices<EndpointRegistrationModel> certificates,
             ISupervisorRegistry supervisors, ILogger logger,
             IRegistryEvents<IApplicationRegistryListener> events = null) {
@@ -205,7 +205,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task ActivateEndpointAsync(string endpointId,
+        public async Task ConnectAsync(string endpointId,
             RegistryOperationContextModel context, CancellationToken ct) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentException(nameof(endpointId));
@@ -250,7 +250,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task DeactivateEndpointAsync(string endpointId,
+        public async Task DisconnectAsync(string endpointId,
             RegistryOperationContextModel context, CancellationToken ct) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentException(nameof(endpointId));
@@ -643,7 +643,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var endpoint = registration.ToServiceModel();
 
                 // Try activate endpoint - if possible...
-                await _activator.ActivateEndpointAsync(endpoint.Registration, secret, ct);
+                await _activator.ConnectAsync(endpoint.Registration, ct);
 
                 // Mark in supervisor
                 await SetSupervisorTwinSecretAsync(registration.SupervisorId,
@@ -739,7 +739,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var endpoint = registration.ToServiceModel();
             try {
                 // Call down to supervisor to activate - this can fail
-                await _activator.ActivateEndpointAsync(endpoint.Registration, secret, ct);
+                await _activator.ConnectAsync(endpoint.Registration, ct);
 
                 // Update supervisor desired properties
                 await SetSupervisorTwinSecretAsync(registration.SupervisorId,
@@ -759,7 +759,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             catch (Exception ex) {
                 // Undo activation
-                await Try.Async(() => _activator.DeactivateEndpointAsync(
+                await Try.Async(() => _activator.DisconnectAsync(
                     endpoint.Registration));
                 await Try.Async(() => ClearSupervisorTwinSecretAsync(
                     registration.DeviceId, registration.SupervisorId));
@@ -785,7 +785,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 registration.SupervisorId, ct);
 
             // Call down to supervisor to ensure deactivation is complete - do no matter what
-            await Try.Async(() => _activator.DeactivateEndpointAsync(endpoint.Registration));
+            await Try.Async(() => _activator.DisconnectAsync(endpoint.Registration));
 
             try {
                 // Mark as deactivated
@@ -928,7 +928,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return registration.ToServiceModel();
         }
 
-        private readonly IActivationServices<EndpointRegistrationModel> _activator;
+        private readonly IConnectionServices<EndpointRegistrationModel> _activator;
         private readonly ICertificateServices<EndpointRegistrationModel> _certificates;
         private readonly ISupervisorRegistry _supervisors;
         private readonly IRegistryEventBroker<IEndpointRegistryListener> _broker;

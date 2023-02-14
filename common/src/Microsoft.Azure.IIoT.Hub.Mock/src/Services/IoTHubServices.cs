@@ -229,7 +229,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     pageSize = int.MaxValue;
                 }
 
-                _ = int.TryParse(continuation, out var index);
+                int.TryParse(continuation, out var index);
                 var count = Math.Max(0, Math.Min(pageSize.Value, result.Count - index));
 
                 return Task.FromResult(new QueryResultModel {

@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Publisher\src\Microsoft.Azure.IIoT.OpcUa.Publisher.csproj" />
+    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="container.json" />

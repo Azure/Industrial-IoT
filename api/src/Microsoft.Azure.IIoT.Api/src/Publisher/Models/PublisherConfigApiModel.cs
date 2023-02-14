@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller {
-    using System.Runtime.Serialization;
+namespace Microsoft.Azure.IIoT.Api.Publisher.Models {
     using System;
     using System.Collections.Generic;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Default publisher configuration

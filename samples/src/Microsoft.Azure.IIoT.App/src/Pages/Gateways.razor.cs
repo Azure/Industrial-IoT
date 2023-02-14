@@ -4,19 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.Azure.IIoT.App.Extensions;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.App.Data;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
 
     public partial class Gateways {
         [Parameter]
         public string Page { get; set; } = "1";
 
         private PagedResult<GatewayApiModel> GatewayList { get; set; } = new PagedResult<GatewayApiModel>();
-        private PagedResult<GatewayApiModel> _pagedGatewayList = new PagedResult<GatewayApiModel>();
+        private PagedResult<GatewayApiModel> _pagedGatewayList = new();
         private IAsyncDisposable _gatewayEvent;
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             StateHasChanged();
             GatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, GatewayList, ref _pagedGatewayList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "gateways/" + page);
-            for (int i = 0; i < _pagedGatewayList.Results.Count; i++) {
+            for (var i = 0; i < _pagedGatewayList.Results.Count; i++) {
                 _pagedGatewayList.Results[i] = (await RegistryService.GetGatewayAsync(_pagedGatewayList.Results[i].Id)).Gateway;
             }
             CommonHelper.Spinner = string.Empty;

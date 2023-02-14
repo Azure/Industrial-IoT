@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Messaging;
@@ -50,7 +50,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
-                Assert.NotNull(received?.Publisher?.Configuration);
                 Assert.Null(received?.Publisher?.Connected);
                 Assert.Equal(TimeSpan.FromSeconds(5),
                     expected.Publisher.Configuration.HeartbeatInterval);
@@ -397,7 +396,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
                 var received = result.Task.Result;
                 Assert.NotNull(received?.Gateway);
                 Assert.Equal(expected.Gateway.SiteId, received.Gateway.SiteId);
-                Assert.Equal(IIoT.OpcUa.Api.Registry.Models.GatewayEventType.Deleted,
+                Assert.Equal(IIoT.OpcUa.Api.Publisher.Models.GatewayEventType.Deleted,
                     received.EventType);
             }
         }

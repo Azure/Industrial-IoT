@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.Azure.IIoT.App.Extensions;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.App.Data;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
 
     public partial class Supervisors {
 
@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private PagedResult<SupervisorApiModel> SupervisorList { get; set; } =
             new PagedResult<SupervisorApiModel>();
         private PagedResult<SupervisorApiModel> _pagedSupervisorList =
-            new PagedResult<SupervisorApiModel>();
+            new();
         private IAsyncDisposable _supervisorEvent;
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             StateHasChanged();
             SupervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, SupervisorList, ref _pagedSupervisorList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "supervisors/" + page);
-            for (int i = 0; i < _pagedSupervisorList.Results.Count; i++) {
+            for (var i = 0; i < _pagedSupervisorList.Results.Count; i++) {
                 _pagedSupervisorList.Results[i] = await RegistryService.GetSupervisorAsync(_pagedSupervisorList.Results[i].Id);
             }
             CommonHelper.Spinner = string.Empty;

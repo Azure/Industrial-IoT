@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Models;
+    using System.Threading.Tasks;
 
     public partial class _DrawerDiscoverer {
         [Parameter]
@@ -24,12 +24,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// OnInitialized
         /// </summary>
         protected override void OnInitialized() {
-            if (DiscovererData.isAdHocDiscovery) {
-                ButtonLabel = "Apply & Scan";
-            }
-            else {
-                ButtonLabel = "Apply";
-            }
+            ButtonLabel = DiscovererData.isAdHocDiscovery ? "Apply & Scan" : "Apply";
             InputData = new DiscovererInfoRequested();
         }
 

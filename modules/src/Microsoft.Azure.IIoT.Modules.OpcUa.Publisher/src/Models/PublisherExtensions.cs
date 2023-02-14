@@ -21,43 +21,39 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// </summary>
         public static PublishedNodesEntryModel ToServiceModel(
             this PublishNodesEndpointApiModel model) {
-            if (model == null) {
-                return null;
-            }
-
-            return new PublishedNodesEntryModel {
-                EndpointUrl = !string.IsNullOrEmpty(model.EndpointUrl)
+            return model == null
+                ? null
+                : new PublishedNodesEntryModel {
+                    EndpointUrl = !string.IsNullOrEmpty(model.EndpointUrl)
                     ? new Uri(model.EndpointUrl)
                     : null,
-                UseSecurity = model.UseSecurity,
-                Version = model.Version,
-                LastChangeTimespan = model.LastChangeTimespan,
-                OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
-                OpcAuthenticationPassword = model.OpcAuthenticationPassword,
-                OpcAuthenticationUsername = model.OpcAuthenticationUsername,
-                OpcNodes = model.OpcNodes != null
-                    ? model.OpcNodes.Select(n => n.ToServiceModel()).ToList()
-                    : null,
-                DataSetWriterGroup = model.DataSetWriterGroup,
-                DataSetWriterId = model.DataSetWriterId,
-                DataSetClassId = model.DataSetClassId,
-                DataSetDescription = model.DataSetDescription,
-                DataSetKeyFrameCount = model.DataSetKeyFrameCount,
-                MetaDataUpdateTimeTimespan = model.MetaDataUpdateTimeTimespan,
-                // only fill the MetaDataUpdateTime if the MetaDataUpdateTimeTimespan
-                // was not provided.
-                MetaDataUpdateTime = !model.MetaDataUpdateTimeTimespan.HasValue
+                    UseSecurity = model.UseSecurity,
+                    Version = model.Version,
+                    LastChangeTimespan = model.LastChangeTimespan,
+                    OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
+                    OpcAuthenticationPassword = model.OpcAuthenticationPassword,
+                    OpcAuthenticationUsername = model.OpcAuthenticationUsername,
+                    OpcNodes = model.OpcNodes?.Select(n => n.ToServiceModel()).ToList(),
+                    DataSetWriterGroup = model.DataSetWriterGroup,
+                    DataSetWriterId = model.DataSetWriterId,
+                    DataSetClassId = model.DataSetClassId,
+                    DataSetDescription = model.DataSetDescription,
+                    DataSetKeyFrameCount = model.DataSetKeyFrameCount,
+                    MetaDataUpdateTimeTimespan = model.MetaDataUpdateTimeTimespan,
+                    // only fill the MetaDataUpdateTime if the MetaDataUpdateTimeTimespan
+                    // was not provided.
+                    MetaDataUpdateTime = !model.MetaDataUpdateTimeTimespan.HasValue
                     ? model.MetaDataUpdateTime
                     : null,
-                MetaDataQueueName = model.MetaDataQueueName,
-                DataSetName = model.DataSetName,
-                DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
-                // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
-                // was not provided.
-                DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue
+                    MetaDataQueueName = model.MetaDataQueueName,
+                    DataSetName = model.DataSetName,
+                    DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
+                    // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
+                    // was not provided.
+                    DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue
                     ? model.DataSetPublishingInterval
                     : null,
-            };
+                };
         }
 
         /// <summary>
@@ -65,45 +61,44 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// </summary>
         public static OpcNodeModel ToServiceModel(
             this PublishedNodeApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new OpcNodeModel {
-                Id = model.Id,
-                DataSetFieldId = model.DataSetFieldId,
-                DataSetClassFieldId = model.DataSetClassFieldId,
-                DisplayName = model.DisplayName,
-                ExpandedNodeId = model.ExpandedNodeId,
+            return model == null
+                ? null
+                : new OpcNodeModel {
+                    Id = model.Id,
+                    DataSetFieldId = model.DataSetFieldId,
+                    DataSetClassFieldId = model.DataSetClassFieldId,
+                    DisplayName = model.DisplayName,
+                    ExpandedNodeId = model.ExpandedNodeId,
 
-                OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
-                // only fill the OpcPublishingInterval if the OpcPublishingIntervalTimespan
-                // was not provided.
-                OpcPublishingInterval = !model.OpcPublishingIntervalTimespan.HasValue
+                    OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
+                    // only fill the OpcPublishingInterval if the OpcPublishingIntervalTimespan
+                    // was not provided.
+                    OpcPublishingInterval = !model.OpcPublishingIntervalTimespan.HasValue
                     ? model.OpcPublishingInterval
                     : null,
 
-                OpcSamplingIntervalTimespan = model.OpcSamplingIntervalTimespan,
-                // only fill the OpcSamplingInterval if the OpcSamplingIntervalTimespan
-                // was not provided.
-                OpcSamplingInterval = !model.OpcSamplingIntervalTimespan.HasValue
+                    OpcSamplingIntervalTimespan = model.OpcSamplingIntervalTimespan,
+                    // only fill the OpcSamplingInterval if the OpcSamplingIntervalTimespan
+                    // was not provided.
+                    OpcSamplingInterval = !model.OpcSamplingIntervalTimespan.HasValue
                     ? model.OpcSamplingInterval
                     : null,
 
-                HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
-                // only fill the HeartbeatInterval if the HeartbeatIntervalTimespan
-                // was not provided.
-                HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
+                    HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
+                    // only fill the HeartbeatInterval if the HeartbeatIntervalTimespan
+                    // was not provided.
+                    HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
                     ? model.HeartbeatInterval
                     : null,
-                SkipFirst = model.SkipFirst,
-                QueueSize = model.QueueSize,
-                DiscardNew = model.DiscardNew,
-                DeadbandType = (IIoT.OpcUa.Publisher.Models.DeadbandType?)model.DeadbandType,
-                DeadbandValue = model.DeadbandValue,
-                DataChangeTrigger = (IIoT.OpcUa.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
-                EventFilter = model.EventFilter.ToServiceModel(),
-                ConditionHandling = model.ConditionHandling.ToServiceModel(),
-            };
+                    SkipFirst = model.SkipFirst,
+                    QueueSize = model.QueueSize,
+                    DiscardNew = model.DiscardNew,
+                    DeadbandType = (IIoT.OpcUa.Publisher.Models.DeadbandType?)model.DeadbandType,
+                    DeadbandValue = model.DeadbandValue,
+                    DataChangeTrigger = (IIoT.OpcUa.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
+                    EventFilter = model.EventFilter.ToServiceModel(),
+                    ConditionHandling = model.ConditionHandling.ToServiceModel(),
+                };
         }
 
         /// <summary>
@@ -111,10 +106,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// </summary>
         public static List<PublishNodesEndpointApiModel> ToApiModel(
             this List<PublishedNodesEntryModel> endpoints) {
-            if (endpoints == null) {
-                return null;
-            }
-            return endpoints.Select(e => e.ToApiModel()).ToList();
+            return endpoints?.Select(e => e.ToApiModel()).ToList();
         }
 
         /// <summary>
@@ -122,38 +114,37 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// </summary>
         public static PublishNodesEndpointApiModel ToApiModel(
             this PublishedNodesEntryModel endpoint) {
-            if (endpoint == null) {
-                return null;
-            }
-            return new PublishNodesEndpointApiModel {
-                EndpointUrl = endpoint.EndpointUrl.OriginalString,
-                UseSecurity = endpoint.UseSecurity,
-                OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
-                OpcAuthenticationUsername = endpoint.OpcAuthenticationUsername,
-                OpcAuthenticationPassword = null,
-                Version = endpoint.Version,
-                LastChangeTimespan = endpoint.LastChangeTimespan,
-                DataSetWriterGroup = endpoint.DataSetWriterGroup,
-                DataSetDescription = endpoint.DataSetDescription,
-                DataSetKeyFrameCount = endpoint.DataSetKeyFrameCount,
-                // only fill the MetaDataUpdateTime if the MetaDataUpdateTimeTimespan
-                // was not provided.
-                MetaDataUpdateTime = !endpoint.MetaDataUpdateTimeTimespan.HasValue
+            return endpoint == null
+                ? null
+                : new PublishNodesEndpointApiModel {
+                    EndpointUrl = endpoint.EndpointUrl.OriginalString,
+                    UseSecurity = endpoint.UseSecurity,
+                    OpcAuthenticationMode = (AuthenticationMode)endpoint.OpcAuthenticationMode,
+                    OpcAuthenticationUsername = endpoint.OpcAuthenticationUsername,
+                    OpcAuthenticationPassword = null,
+                    Version = endpoint.Version,
+                    LastChangeTimespan = endpoint.LastChangeTimespan,
+                    DataSetWriterGroup = endpoint.DataSetWriterGroup,
+                    DataSetDescription = endpoint.DataSetDescription,
+                    DataSetKeyFrameCount = endpoint.DataSetKeyFrameCount,
+                    // only fill the MetaDataUpdateTime if the MetaDataUpdateTimeTimespan
+                    // was not provided.
+                    MetaDataUpdateTime = !endpoint.MetaDataUpdateTimeTimespan.HasValue
                     ? endpoint.MetaDataUpdateTime
                     : null,
-                MetaDataUpdateTimeTimespan = endpoint.MetaDataUpdateTimeTimespan,
-                MetaDataQueueName = endpoint.MetaDataQueueName,
-                DataSetName = endpoint.DataSetName,
-                DataSetClassId = endpoint.DataSetClassId,
-                DataSetWriterId = endpoint.DataSetWriterId,
-                DataSetPublishingIntervalTimespan = endpoint.DataSetPublishingIntervalTimespan,
-                // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
-                // was not provided.
-                DataSetPublishingInterval = !endpoint.DataSetPublishingIntervalTimespan.HasValue
+                    MetaDataUpdateTimeTimespan = endpoint.MetaDataUpdateTimeTimespan,
+                    MetaDataQueueName = endpoint.MetaDataQueueName,
+                    DataSetName = endpoint.DataSetName,
+                    DataSetClassId = endpoint.DataSetClassId,
+                    DataSetWriterId = endpoint.DataSetWriterId,
+                    DataSetPublishingIntervalTimespan = endpoint.DataSetPublishingIntervalTimespan,
+                    // only fill the DataSetPublishingInterval if the DataSetPublishingIntervalTimespan
+                    // was not provided.
+                    DataSetPublishingInterval = !endpoint.DataSetPublishingIntervalTimespan.HasValue
                     ? endpoint.DataSetPublishingInterval
                     : null,
-                OpcNodes = null
-            };
+                    OpcNodes = null
+                };
         }
 
         /// <summary>
@@ -161,11 +152,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// </summary>
         public static List<PublishedNodeApiModel> ToApiModel(
             this List<OpcNodeModel> model) {
-            if (model == null) {
-                return null;
-            }
-
-            return model.Select(n => n.ToApiModel()).ToList();
+            return model?.Select(n => n.ToApiModel()).ToList();
         }
 
         /// <summary>
@@ -173,36 +160,35 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// </summary>
         public static PublishedNodeApiModel ToApiModel(
             this OpcNodeModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new PublishedNodeApiModel {
-                Id = model.Id,
-                ExpandedNodeId = model.ExpandedNodeId,
-                DataSetFieldId = model.DataSetFieldId,
-                DisplayName = model.DisplayName,
-                DataSetClassFieldId = model.DataSetClassFieldId,
-                OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
-                OpcPublishingInterval = !model.OpcPublishingIntervalTimespan.HasValue
+            return model == null
+                ? null
+                : new PublishedNodeApiModel {
+                    Id = model.Id,
+                    ExpandedNodeId = model.ExpandedNodeId,
+                    DataSetFieldId = model.DataSetFieldId,
+                    DisplayName = model.DisplayName,
+                    DataSetClassFieldId = model.DataSetClassFieldId,
+                    OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
+                    OpcPublishingInterval = !model.OpcPublishingIntervalTimespan.HasValue
                     ? model.OpcPublishingInterval
                     : null,
-                OpcSamplingIntervalTimespan = model.OpcSamplingIntervalTimespan,
-                OpcSamplingInterval = !model.OpcSamplingIntervalTimespan.HasValue
+                    OpcSamplingIntervalTimespan = model.OpcSamplingIntervalTimespan,
+                    OpcSamplingInterval = !model.OpcSamplingIntervalTimespan.HasValue
                     ? model.OpcSamplingInterval
                     : null,
-                HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
-                HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
+                    HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
+                    HeartbeatInterval = !model.HeartbeatIntervalTimespan.HasValue
                     ? model.HeartbeatInterval
                     : null,
-                SkipFirst = model.SkipFirst,
-                QueueSize = model.QueueSize,
-                DiscardNew = model.DiscardNew,
-                DeadbandType = (IIoT.OpcUa.Api.Publisher.Models.DeadbandType?)model.DeadbandType,
-                DeadbandValue = model.DeadbandValue,
-                DataChangeTrigger = (IIoT.OpcUa.Api.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
-                EventFilter = model.EventFilter.ToApiModel(),
-                ConditionHandling = model.ConditionHandling.ToApiModel()
-            };
+                    SkipFirst = model.SkipFirst,
+                    QueueSize = model.QueueSize,
+                    DiscardNew = model.DiscardNew,
+                    DeadbandType = (IIoT.OpcUa.Api.Publisher.Models.DeadbandType?)model.DeadbandType,
+                    DeadbandValue = model.DeadbandValue,
+                    DataChangeTrigger = (IIoT.OpcUa.Api.Publisher.Models.DataChangeTriggerType?)model.DataChangeTrigger,
+                    EventFilter = model.EventFilter.ToApiModel(),
+                    ConditionHandling = model.ConditionHandling.ToApiModel()
+                };
         }
 
         /// <summary>
@@ -210,10 +196,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         /// </summary>
         public static List<PublishDiagnosticInfoApiModel> ToApiModel(
             this List<PublishDiagnosticInfoModel> model) {
-            if (model == null) {
-                return null;
-            }
-            return model.Select(e => e.ToApiModel()).ToList();
+            return model?.Select(e => e.ToApiModel()).ToList();
         }
 
         /// <summary>

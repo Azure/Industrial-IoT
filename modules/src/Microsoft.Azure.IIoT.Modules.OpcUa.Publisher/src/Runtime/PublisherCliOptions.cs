@@ -51,9 +51,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
             _logger = ConsoleLogger.Create(LogEventLevel.Warning);
 
-            bool showHelp = false;
-            List<string> unsupportedOptions = new List<string>();
-            List<string> legacyOptions = new List<string>();
+            var showHelp = false;
+            var unsupportedOptions = new List<string>();
+            var legacyOptions = new List<string>();
 
             // command line options
             var options = new Mono.Options.OptionSet {
@@ -525,9 +525,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         public StandaloneCliModel StandaloneCliModel {
             get {
-                if (_standaloneCliModel == null) {
-                    _standaloneCliModel = ToStandaloneCliModel();
-                }
+                _standaloneCliModel ??= ToStandaloneCliModel();
 
                 return _standaloneCliModel;
             }
@@ -581,9 +579,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         private StandaloneCliModel ToStandaloneCliModel() {
-            var model = new StandaloneCliModel();
-            model.PublishedNodesFile = GetValueOrDefault(PublisherCliConfigKeys.PublishedNodesConfigurationFilename, PublisherCliConfigKeys.DefaultPublishedNodesFilename);
-            model.PublishedNodesSchemaFile = GetValueOrDefault(PublisherCliConfigKeys.PublishedNodesConfigurationSchemaFilename, PublisherCliConfigKeys.DefaultPublishedNodesSchemaFilename);
+            var model = new StandaloneCliModel {
+                PublishedNodesFile = GetValueOrDefault(PublisherCliConfigKeys.PublishedNodesConfigurationFilename, PublisherCliConfigKeys.DefaultPublishedNodesFilename),
+                PublishedNodesSchemaFile = GetValueOrDefault(PublisherCliConfigKeys.PublishedNodesConfigurationSchemaFilename, PublisherCliConfigKeys.DefaultPublishedNodesSchemaFilename)
+            };
             model.PublisherSite = GetValueOrDefault(PublisherCliConfigKeys.PublisherSite, model.PublisherSite);
             model.UseStandardsCompliantEncoding = GetValueOrDefault(PublisherCliConfigKeys.UseStandardsCompliantEncoding, model.UseStandardsCompliantEncoding);
             model.DefaultHeartbeatInterval = GetValueOrDefault(PublisherCliConfigKeys.HeartbeatIntervalDefault, model.DefaultHeartbeatInterval);

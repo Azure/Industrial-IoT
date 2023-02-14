@@ -3,17 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Events;
+namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using System;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher service events

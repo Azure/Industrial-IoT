@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
     using System.Linq;
@@ -20,16 +19,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Diagnostics;
     using FluentAssertions;
     using Models;
-    using Module;
     using Moq;
     using Publisher.Engine;
     using Serializers.NewtonSoft;
     using Xunit;
     using Autofac;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Serilog;
     using System;
-    using DotNetty.Common.Internal;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
@@ -241,8 +237,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.All(jobModel.WriterGroup.DataSetWriters,
                 writer => Assert.Equal(publishNodesRequests.First().EndpointUrl,
                     writer.DataSet.DataSetSource.Connection.Endpoint.Url));
-            Assert.Equal(publishNodesRequests.Select(n => n.UseSecurity ? SecurityMode.Best : SecurityMode.None).ToHashSet(),
-                jobModel.WriterGroup.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.SecurityMode.Value).ToHashSet());
+            Assert.Equal(publishNodesRequests
+                .Select(n => n.UseSecurity ? Core.Models.SecurityMode.Best : Core.Models.SecurityMode.None)
+                .ToHashSet(),
+                jobModel.WriterGroup.DataSetWriters
+                .Select(w => w.DataSet.DataSetSource.Connection.Endpoint.SecurityMode.Value)
+                .ToHashSet());
         }
 
         [Theory]

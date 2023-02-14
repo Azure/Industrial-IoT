@@ -3,11 +3,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -20,11 +17,7 @@ namespace Microsoft.Azure.IIoT.Api {
     public class TypeFixture {
 
         public static IEnumerable<object[]> GetDataContractTypes() {
-            return      GetAllApiModelTypes<BrowseDirection>()
-                .Concat(GetAllApiModelTypes<TwinServiceClient>())
-                .Concat(GetAllApiModelTypes<RegistryServiceClient>())
-                .Concat(GetAllApiModelTypes<PublisherServiceClient>())
-                .Concat(GetAllApiModelTypes<HistoryServiceClient>())
+            return GetAllApiModelTypes<PublisherServiceClient>()
                 .Distinct()
                 .Select(t => new object[] { t });
         }

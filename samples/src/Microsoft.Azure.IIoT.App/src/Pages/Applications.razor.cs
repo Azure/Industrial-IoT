@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.Azure.IIoT.App.Extensions;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.App.Data;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
 
     public partial class Applications {
         [Parameter]
@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private PagedResult<ApplicationInfoApiModel> ApplicationList { get; set; } =
             new PagedResult<ApplicationInfoApiModel>();
         private PagedResult<ApplicationInfoApiModel> _pagedApplicationList =
-            new PagedResult<ApplicationInfoApiModel>();
+            new();
         private IAsyncDisposable _applicationEvent;
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             StateHasChanged();
             ApplicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, ApplicationList, ref _pagedApplicationList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "applications/" + page);
-            for (int i = 0; i < _pagedApplicationList.Results.Count; i++) {
+            for (var i = 0; i < _pagedApplicationList.Results.Count; i++) {
                 _pagedApplicationList.Results[i] = (await RegistryService.GetApplicationAsync(_pagedApplicationList.Results[i].ApplicationId)).Application;
             }
             CommonHelper.Spinner = string.Empty;

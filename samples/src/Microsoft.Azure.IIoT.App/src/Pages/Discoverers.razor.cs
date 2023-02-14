@@ -4,13 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.Azure.IIoT.App.Extensions;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.App.Data;
-    using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 
     public partial class Discoverers {
         [Parameter]
@@ -22,7 +21,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public string Status { get; set; }
 
         private PagedResult<DiscovererInfo> DiscovererList { get; set; } = new PagedResult<DiscovererInfo>();
-        private PagedResult<DiscovererInfo> _pagedDiscovererList = new PagedResult<DiscovererInfo>();
+        private PagedResult<DiscovererInfo> _pagedDiscovererList = new();
         private string EventResult { get; set; }
         private string ScanResult { get; set; } = "displayNone";
         private string _tableView = "visible";
@@ -44,7 +43,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "discoverers/" + page);
             foreach (var discoverer in _pagedDiscovererList.Results) {
                 discoverer.DiscovererModel = await RegistryService.GetDiscovererAsync(discoverer.DiscovererModel.Id);
-                discoverer.ScanStatus = discoverer.DiscovererModel.Discovery != DiscoveryMode.Off && discoverer.DiscovererModel.Discovery != null;
+                discoverer.ScanStatus = discoverer.DiscovererModel.Discovery is not DiscoveryMode.Off and not null;
                 var applicationModel = new ApplicationRegistrationQueryApiModel { DiscovererId = discoverer.DiscovererModel.Id };
                 var applications = await RegistryService.QueryApplicationsAsync(applicationModel, 1);
                 if (applications != null) {
@@ -246,7 +245,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// ClickHandler
         /// </summary>
-        async Task ClickHandlerAsync(DiscovererInfo discoverer) {
+        private async Task ClickHandlerAsync(DiscovererInfo discoverer) {
             CloseDrawer();
             if (discoverer.isAdHocDiscovery) {
                 await SetAdHocScanAsync(discoverer);

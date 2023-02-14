@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Shared {
-    using System;
-
     public partial class TSILink {
         private string TsiLink { get; set; } = null;
 
@@ -23,7 +21,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
             if (!string.IsNullOrEmpty(Configuration.TsiDataAccessFQDN)) {
                 var index = Configuration.TsiDataAccessFQDN.IndexOf('.');
                 if (index > 0) {
-                    TsiLink = "https://insights.timeseries.azure.com/preview?environmentId=" + Configuration.TsiDataAccessFQDN.Substring(0, index) + "&tid=" + Configuration.TenantId;
+                    TsiLink = "https://insights.timeseries.azure.com/preview?environmentId=" + Configuration.TsiDataAccessFQDN[..index] + "&tid=" + Configuration.TenantId;
                 }
             }
         }

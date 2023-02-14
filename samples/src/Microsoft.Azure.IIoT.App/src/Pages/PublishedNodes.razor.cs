@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using System;
-    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    using Microsoft.Azure.IIoT.App.Data;
+    using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using System;
+    using System.Threading.Tasks;
 
     public partial class PublishedNodes {
         [Parameter]

@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
+namespace Microsoft.Azure.IIoT.Api.Publisher.Clients {
+    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
-    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;
 

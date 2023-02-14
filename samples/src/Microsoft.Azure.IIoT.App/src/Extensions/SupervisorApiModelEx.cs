@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Data {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+namespace Microsoft.Azure.IIoT.App.Extensions {
+    using Microsoft.Azure.IIoT.Api.Registry.Extensions;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System.Collections.Generic;
     using System.Linq;
 

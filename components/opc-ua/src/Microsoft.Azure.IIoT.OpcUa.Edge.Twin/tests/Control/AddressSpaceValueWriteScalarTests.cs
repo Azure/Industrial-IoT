@@ -27,17 +27,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
-        private WriteScalarValueTests<EndpointModel> GetTests() {
-            return new WriteScalarValueTests<EndpointModel>(
+        private WriteScalarValueTests<ConnectionModel> GetTests() {
+            return new WriteScalarValueTests<ConnectionModel>(
                 () => new AddressSpaceServices(_server.Client,
-                    new VariantEncoderFactory(), _server.Logger),
-                new EndpointModel {
-                    Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
-                    AlternativeUrls = _hostEntry?.AddressList
+                    new VariantEncoderFactory(), _server.Logger), new ConnectionModel {
+                        Endpoint = new EndpointModel {
+                            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+                            AlternativeUrls = _hostEntry?.AddressList
                         .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                         .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
-                    Certificate = _server.Certificate?.RawData?.ToThumbprint()
-                }, _server.Client.ReadValueAsync);
+                            Certificate = _server.Certificate?.RawData?.ToThumbprint()
+                        }
+                    }, (c, n) => _server.Client.ReadValueAsync(c, n));
         }
 
         private readonly TestServerFixture _server;
