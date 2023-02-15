@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Utils {
+    using Autofac;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Autofac;
-    using Serilog;
 
     /// <summary>
     /// Host auto starter

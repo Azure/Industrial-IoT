@@ -28,8 +28,8 @@
  * ======================================================================*/
 
 namespace TestData {
-    using System;
     using Opc.Ua;
+    using System;
 
     /// <summary>
     /// An interface to an object which can access historical data for a variable.

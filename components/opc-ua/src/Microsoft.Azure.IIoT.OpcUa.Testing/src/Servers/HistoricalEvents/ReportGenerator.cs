@@ -28,11 +28,11 @@
  * ======================================================================*/
 
 namespace HistoricalEvents {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.Text;
     using System.Data;
-    using Opc.Ua;
+    using System.Text;
 
     public class ReportGenerator {
         public void Initialize() {

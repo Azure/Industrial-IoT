@@ -4,14 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
-    using Serilog;
     using Opc.Ua;
     using Opc.Ua.Configuration;
+    using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Console host for servers

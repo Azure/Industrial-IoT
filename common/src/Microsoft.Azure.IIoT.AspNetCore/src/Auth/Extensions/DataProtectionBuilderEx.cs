@@ -4,21 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
+    using Microsoft.Azure.IIoT.Auth.KeyVault;
     using Microsoft.Azure.IIoT.Crypto.KeyVault;
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Storage.Datalake;
     using Microsoft.Azure.IIoT.Storage.Datalake.Runtime;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Auth.KeyVault;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
     using Microsoft.Azure.KeyVault.WebKey;
     using Microsoft.Azure.Storage;
     using Microsoft.Azure.Storage.Blob;
+    using Microsoft.AspNetCore.DataProtection;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.AspNetCore.DataProtection;
     using Serilog;
     using System;
     using System.Collections.Generic;

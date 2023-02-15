@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
+    using Opc.Ua.Encoders;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.OpcUa.Core;
-    using Opc.Ua.Encoders;
     using System;
     using System.Collections.Generic;
     using System.IO;

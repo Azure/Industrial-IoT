@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.AspNetCore.Components;
     using OpcUa.Api.Publisher.Models;
     using System.Threading.Tasks;
 

@@ -4,16 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
+    using Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime;
 
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime;
     using Microsoft.Extensions.Hosting;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Serilog;
 
     /// <summary>
     /// Generic host service which manages IHostProcess objects.

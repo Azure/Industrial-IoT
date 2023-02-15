@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Events {
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Tasks;
     using System;
+    using System.Collections.Concurrent;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Collections.Concurrent;
 
     /// <summary>
     /// Certificate Request event broker - publishes locally, and also

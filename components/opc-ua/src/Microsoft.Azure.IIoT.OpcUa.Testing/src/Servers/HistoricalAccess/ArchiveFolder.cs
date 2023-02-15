@@ -29,8 +29,8 @@
 
 namespace HistoricalAccess {
     using System.Collections.Generic;
-    using System.Text;
     using System.IO;
+    using System.Text;
 
     /// <summary>
     /// Stores the metadata for a node representing a folder on a file system.

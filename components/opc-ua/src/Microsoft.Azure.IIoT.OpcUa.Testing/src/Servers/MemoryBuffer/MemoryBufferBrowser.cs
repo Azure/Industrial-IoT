@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace MemoryBuffer {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using Opc.Ua;
 
     /// <summary>
     /// A class to browse the references for a memory buffer.

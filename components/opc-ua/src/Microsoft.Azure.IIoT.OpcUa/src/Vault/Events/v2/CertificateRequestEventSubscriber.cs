@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Events.v2 {
     using Microsoft.Azure.IIoT.OpcUa.Vault.Events.v2.Models;
     using Microsoft.Azure.IIoT.Messaging;
-    using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Certificate Request change listener

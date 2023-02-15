@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace Alarms {
+    using Opc.Ua;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
-    using Opc.Ua;
 
     /// <summary>
     /// Stores the configuration the Alarm Condition server.

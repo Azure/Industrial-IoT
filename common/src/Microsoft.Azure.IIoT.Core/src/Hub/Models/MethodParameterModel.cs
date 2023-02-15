@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
-    using System.Runtime.Serialization;
     using System;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Twin services method params

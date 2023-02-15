@@ -4,24 +4,24 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
+    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.Devices.Client;
+    using Autofac;
     using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using Autofac;
-    using System.Linq;
-    using System.Threading;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine;
 
     public class MethodRouterTests {
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();

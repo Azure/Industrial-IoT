@@ -28,10 +28,10 @@
  * ======================================================================*/
 
 namespace Boiler {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using Opc.Ua;
 
     public partial class BoilerState {
 

@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace DataAccess {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using Opc.Ua;
 
     /// <summary>
     /// This class simulates a block in the system.

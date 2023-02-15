@@ -4,15 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.Messaging;
-    using System.Threading.Tasks;
-    using Xunit;
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Xunit;
 
     [Collection(WebAppCollection.Name)]
     public class RegistryServiceEventsTests {

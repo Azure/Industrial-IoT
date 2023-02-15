@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
-    using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Client.Transport.Mqtt;
     using Serilog;
     using Serilog.Events;
     using System;

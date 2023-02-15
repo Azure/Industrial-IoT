@@ -9,10 +9,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
-    using System.Text;
-    using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Discovery message handling

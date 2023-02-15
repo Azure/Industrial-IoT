@@ -9,11 +9,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Messaging;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
-    using Microsoft.Azure.IIoT.Messaging;
 
     public sealed class NetworkMessage : ITelemetryEvent {
         public DateTime Timestamp { get; set; }

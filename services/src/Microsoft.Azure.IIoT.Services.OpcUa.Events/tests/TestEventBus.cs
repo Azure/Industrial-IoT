@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.Messaging;
-    using System.Threading.Tasks;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Simple in memory event bus

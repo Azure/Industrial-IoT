@@ -4,28 +4,28 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Serializers;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.IO;
-    using System.Threading.Tasks;
+    using Autofac;
     using Diagnostics;
     using FluentAssertions;
     using Models;
     using Moq;
     using Publisher.Engine;
     using Serializers.NewtonSoft;
-    using Xunit;
-    using Autofac;
     using Serilog;
     using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Xunit;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher

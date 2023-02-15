@@ -8,14 +8,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Auth.Storage;
     using Microsoft.Azure.IIoT.Storage;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Authentication;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Identity.Client;
     using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.IdentityModel.Tokens.Jwt;
+    using System.Linq;
     using System.Security.Claims;
     using System.Threading.Tasks;
 

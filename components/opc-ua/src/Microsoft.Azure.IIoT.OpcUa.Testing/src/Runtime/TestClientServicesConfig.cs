@@ -9,8 +9,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
-    using System.IO;
     using System.Collections.Generic;
+    using System.IO;
 
     /// <summary>
     /// Client's application configuration implementation

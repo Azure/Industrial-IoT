@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
-    using Microsoft.OpenApi.Models;
     using Microsoft.OpenApi.Any;
+    using Microsoft.OpenApi.Models;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.Linq;

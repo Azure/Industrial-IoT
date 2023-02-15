@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.v2.Twin.Api {
-    using Autofac;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
@@ -13,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.v2.Twin.Api {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.Utils;
+    using Autofac;
     using Opc.Ua;
     using System.Linq;
     using System.Net;

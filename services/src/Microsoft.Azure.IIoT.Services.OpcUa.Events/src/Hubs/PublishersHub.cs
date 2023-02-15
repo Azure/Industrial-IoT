@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.Services.OpcUa.Events.Auth;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.AspNetCore.SignalR;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.SignalR;
 
     /// <summary>
     /// Publishers hub

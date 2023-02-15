@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Tasks.Default {
-    using System.Threading.Tasks;
     using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Default task scheduler

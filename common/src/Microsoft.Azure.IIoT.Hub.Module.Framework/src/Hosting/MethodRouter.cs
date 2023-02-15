@@ -13,10 +13,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
-    using System.Net;
 
     /// <summary>
     /// Provides request routing to module controllers

@@ -6,15 +6,15 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Serializers;
-    using System.Threading.Tasks;
-    using Xunit;
     using System;
     using System.Collections.Generic;
-    using System.Text;
     using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Xunit;
 
     [Collection(WebAppCollection.Name)]
     public class PublisherServiceEventsTests {

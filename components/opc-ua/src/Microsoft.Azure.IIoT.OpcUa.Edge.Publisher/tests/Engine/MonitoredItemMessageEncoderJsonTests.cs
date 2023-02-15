@@ -4,18 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Moq;
     using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using Xunit;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using System.Diagnostics;
 
     public class MonitoredItemMessageEncoderJsonTests {
 

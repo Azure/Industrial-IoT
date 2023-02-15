@@ -28,11 +28,11 @@
  * ======================================================================*/
 
 namespace TestData {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Xml;
-    using Opc.Ua;
 
     public interface ITestDataSystemCallback {
         void OnDataChange(

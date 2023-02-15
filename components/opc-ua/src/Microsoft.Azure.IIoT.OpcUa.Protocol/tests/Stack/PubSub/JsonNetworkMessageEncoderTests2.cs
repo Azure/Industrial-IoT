@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub.Tests {
+    using Opc.Ua.Encoders;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using Opc.Ua.Encoders;
     using System;
     using System.Collections.Generic;
     using Xunit;

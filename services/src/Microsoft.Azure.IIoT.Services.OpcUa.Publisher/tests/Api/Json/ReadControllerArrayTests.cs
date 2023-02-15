@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Api.Json {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Api;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests;
     using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
@@ -12,8 +14,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Api.Json {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Api;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Serilog;

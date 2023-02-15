@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace TestData {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using Opc.Ua;
 
     /// <summary>
     /// Wraps a file which contains a list of historical values.

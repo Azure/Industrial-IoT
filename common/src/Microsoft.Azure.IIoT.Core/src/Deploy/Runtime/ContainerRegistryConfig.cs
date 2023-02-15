@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Deploy.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using System.Reflection;
     using System;
+    using System.Reflection;
 
     /// <summary>
     /// Container registry configuration

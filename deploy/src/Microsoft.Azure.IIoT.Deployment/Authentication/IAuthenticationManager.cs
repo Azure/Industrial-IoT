@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
+    using Microsoft.Identity.Client;
+
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Identity.Client;
 
     public interface IAuthenticationManager {
 

@@ -5,14 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions;
 
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Identity.Client;
 
-    using Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions;
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Authentication manager that will use client credential authentication flow.

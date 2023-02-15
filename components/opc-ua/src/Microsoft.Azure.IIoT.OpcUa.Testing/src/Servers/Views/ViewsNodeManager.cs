@@ -28,10 +28,10 @@
  * ======================================================================*/
 
 namespace Views {
-    using System.Collections.Generic;
-    using System.Reflection;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System.Collections.Generic;
+    using System.Reflection;
 
     /// <summary>
     /// A node manager for a server that exposes several variables.

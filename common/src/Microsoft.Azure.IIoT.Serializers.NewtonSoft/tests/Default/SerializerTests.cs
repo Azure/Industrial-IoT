@@ -5,14 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
     using Microsoft.Azure.IIoT.Serializers;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
-    using System.Text;
     using System.Linq;
-    using Xunit;
-    using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json;
     using System.Runtime.Serialization;
+    using System.Text;
+    using Xunit;
 
     public class SerializerTests {
 

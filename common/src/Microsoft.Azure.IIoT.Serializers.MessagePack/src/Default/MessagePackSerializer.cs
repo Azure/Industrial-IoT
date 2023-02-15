@@ -8,16 +8,16 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
     using Microsoft.Azure.IIoT.Exceptions;
     using global::MessagePack;
     using global::MessagePack.Formatters;
+    using MsgPack = global::MessagePack.MessagePackSerializer;
     using global::MessagePack.Resolvers;
     using System;
     using System.Buffers;
-    using System.Collections.Generic;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Numerics;
     using System.Text;
-    using MsgPack = global::MessagePack.MessagePackSerializer;
-    using System.IO;
 
     /// <summary>
     /// Message pack serializer

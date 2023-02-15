@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace Reference {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using Opc.Ua;
 
     /// <summary>
     /// Calculates the value of an aggregate.

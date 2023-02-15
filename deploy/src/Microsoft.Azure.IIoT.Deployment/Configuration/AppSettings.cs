@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
+    using Microsoft.Azure.IIoT.Deployment.Deployment;
 
     using System;
-    using Microsoft.Azure.IIoT.Deployment.Deployment;
 
     class AppSettings {
 

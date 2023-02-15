@@ -28,11 +28,11 @@
  * ======================================================================*/
 
 namespace HistoricalAccess {
+    using Opc.Ua;
+    using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using Opc.Ua;
-    using Opc.Ua.Server;
 
     /// <summary>
     /// Stores the metadata for a node representing an item in the archive.

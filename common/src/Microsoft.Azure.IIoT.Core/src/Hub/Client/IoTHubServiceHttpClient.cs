@@ -7,15 +7,15 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Implementation of twin and job services, talking to iot hub

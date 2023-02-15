@@ -4,14 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment {
+    using Microsoft.Azure.IIoT.Deployment.Configuration;
+    using Microsoft.Azure.IIoT.Deployment.Deployment;
+    using Microsoft.Extensions.Configuration;
 
     using Serilog;
     using System;
-    using System.Threading;
     using System.IO;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Azure.IIoT.Deployment.Configuration;
-    using Microsoft.Azure.IIoT.Deployment.Deployment;
+    using System.Threading;
 
     class Program {
 

@@ -4,14 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
-    using Opc.Ua.Models;
-    using Opc.Ua.Client;
     using Opc.Ua;
+    using Opc.Ua.Client;
+    using Opc.Ua.Models;
     using System;
-    using System.Linq;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
+    using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents a in memory node for remote reading and writing.

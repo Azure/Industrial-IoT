@@ -28,10 +28,10 @@
  * ======================================================================*/
 
 namespace Alarms {
-    using System;
-    using System.Collections.Generic;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Maps an alarm source to a UA object node.

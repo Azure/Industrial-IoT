@@ -9,9 +9,9 @@ namespace Microsoft.Azure.IIoT.Module {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Serializers;
     using System;
-    using System.Threading.Tasks;
-    using System.Threading;
     using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public class TestChunkServer : IJsonMethodClient, IMethodHandler {
 

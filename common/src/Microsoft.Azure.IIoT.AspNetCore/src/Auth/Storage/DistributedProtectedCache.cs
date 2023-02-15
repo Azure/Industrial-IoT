@@ -5,11 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Storage {
     using Microsoft.Azure.IIoT.Storage;
-    using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.AspNetCore.DataProtection;
+    using Microsoft.Extensions.Caching.Distributed;
     using System;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Distributed cache implementation

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace System.Net.Sockets {
-    using Microsoft.Azure.IIoT.Utils;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Utils;
 
     /// <summary>
     /// Socket extensions

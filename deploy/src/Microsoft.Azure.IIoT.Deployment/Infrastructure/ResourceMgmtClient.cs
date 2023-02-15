@@ -5,18 +5,18 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Serilog;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     class ResourceMgmtClient : IDisposable {
 

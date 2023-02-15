@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Autofac {
-    using Serilog;
     using Autofac.Core.Registration;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
 
     /// <summary>

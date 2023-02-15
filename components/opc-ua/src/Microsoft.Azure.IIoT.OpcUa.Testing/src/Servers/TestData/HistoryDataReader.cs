@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace TestData {
-    using System;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System;
 
     /// <summary>
     /// A class used to read values from a history data source.

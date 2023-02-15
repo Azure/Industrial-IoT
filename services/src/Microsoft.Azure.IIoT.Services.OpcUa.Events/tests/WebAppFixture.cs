@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
-    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
-    using Serilog;
+    using Microsoft.Extensions.Hosting;
     using Autofac.Extensions.Hosting;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using Xunit;

@@ -28,12 +28,12 @@
  * ======================================================================*/
 
 namespace HistoricalAccess {
-    using System;
-    using System.Text;
-    using System.IO;
-    using System.Xml;
-    using System.Data;
     using Opc.Ua;
+    using System;
+    using System.Data;
+    using System.IO;
+    using System.Text;
+    using System.Xml;
 
     /// <summary>
     /// Reads an item history from a file.

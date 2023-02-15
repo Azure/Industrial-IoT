@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Utils {
-    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Serilog;
     using System;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Retry helper class with different retry policies

@@ -5,18 +5,18 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Models;
+    using Microsoft.Azure.IIoT.Api.Events.Runtime;
+    using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Models;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Http.SignalR;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Api.Events.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.Api.Runtime;
 
     /// <summary>
     /// Startup class for tests

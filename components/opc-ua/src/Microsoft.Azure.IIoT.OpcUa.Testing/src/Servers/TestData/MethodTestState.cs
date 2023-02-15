@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace TestData {
+    using Opc.Ua;
     using System;
     using System.Xml;
-    using Opc.Ua;
 
     public partial class MethodTestState {
 

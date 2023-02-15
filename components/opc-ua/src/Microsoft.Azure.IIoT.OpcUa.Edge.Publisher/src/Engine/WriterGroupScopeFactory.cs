@@ -6,13 +6,13 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Serializers;
     using Autofac;
-    using System.Diagnostics;
-    using System.Collections.Generic;
-    using System.Globalization;
     using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Globalization;
 
     /// <summary>
     /// Container builder for data set writer jobs

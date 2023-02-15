@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Deployment {
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
 
     using System;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
 
     class AuthenticationConfiguration {
 

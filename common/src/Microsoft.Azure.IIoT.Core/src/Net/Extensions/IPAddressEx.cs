@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace System.Net {
-    using Microsoft.Azure.IIoT.Net.Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Net.Models;
 
     /// <summary>
     /// Ip address extensions

@@ -6,9 +6,9 @@
 namespace Opc.Ua.Models {
     using Opc.Ua.Extensions;
     using System;
-    using System.Linq;
-    using System.Collections.Generic;
     using System.Collections;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Represents a node in the form of its attributes

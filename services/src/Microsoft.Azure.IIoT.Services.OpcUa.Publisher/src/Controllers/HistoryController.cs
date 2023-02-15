@@ -8,9 +8,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Validation {
-    using FluentValidation;
     using Microsoft.Azure.IIoT.App.Models;
+    using FluentValidation;
 
     public class ListNodeValidator : AbstractValidator<ListNodeRequested> {
 

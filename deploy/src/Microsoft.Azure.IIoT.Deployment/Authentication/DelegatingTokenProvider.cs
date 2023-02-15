@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
+    using Microsoft.Rest;
+
     using System;
     using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
-
-    using Microsoft.Rest;
 
     class DelegatingTokenProvider : ITokenProvider {
 

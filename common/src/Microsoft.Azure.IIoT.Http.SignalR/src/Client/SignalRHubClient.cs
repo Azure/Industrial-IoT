@@ -5,15 +5,15 @@
 
 namespace Microsoft.Azure.IIoT.Http.SignalR {
     using Microsoft.Azure.IIoT.Http.SignalR.Services;
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Messaging.SignalR;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
-    using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Hub client factory for signalr

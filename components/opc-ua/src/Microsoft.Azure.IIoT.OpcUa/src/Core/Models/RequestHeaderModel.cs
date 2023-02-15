@@ -12,6 +12,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
     public class RequestHeaderModel {
 
         /// <summary>
+        /// Optional User Elevation
+        /// </summary>
+        public CredentialModel Elevation { get; set; }
+
+        /// <summary>
         /// Optional list of locales in preference order.
         /// </summary>
         public List<string> Locales { get; set; }

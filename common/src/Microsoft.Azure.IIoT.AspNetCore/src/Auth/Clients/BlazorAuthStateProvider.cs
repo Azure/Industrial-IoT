@@ -6,15 +6,15 @@
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
-    using Microsoft.AspNetCore.Components.Server;
     using Microsoft.AspNetCore.Components.Authorization;
+    using Microsoft.AspNetCore.Components.Server;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
-    using System.Threading;
     using System.Security.Claims;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Revalidate all user token providers

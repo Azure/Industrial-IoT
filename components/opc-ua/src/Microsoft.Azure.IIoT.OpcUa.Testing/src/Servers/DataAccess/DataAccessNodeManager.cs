@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace DataAccess {
-    using System.Collections.Generic;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System.Collections.Generic;
 
     /// <summary>
     /// A node manager for a server that exposes several variables.

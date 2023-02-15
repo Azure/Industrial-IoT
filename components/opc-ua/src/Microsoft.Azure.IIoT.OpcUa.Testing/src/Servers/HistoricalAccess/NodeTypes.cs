@@ -28,8 +28,8 @@
  * ======================================================================*/
 
 namespace HistoricalAccess {
-    using System.Text;
     using Opc.Ua;
+    using System.Text;
 
     /// <summary>
     /// Defines the types of nodes exposed by the HistoricalAccessServer NodeManager.

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Shared;
-    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
 
     /// <summary>

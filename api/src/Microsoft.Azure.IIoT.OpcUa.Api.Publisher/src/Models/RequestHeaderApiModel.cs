@@ -14,6 +14,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class RequestHeaderApiModel {
 
         /// <summary>
+        /// Optional User elevation
+        /// </summary>
+        [DataMember(Name = "elevation", Order = 0,
+            EmitDefaultValue = false)]
+        public CredentialApiModel Elevation { get; set; }
+
+        /// <summary>
         /// Optional list of locales in preference order.
         /// </summary>
         [DataMember(Name = "locales", Order = 1,

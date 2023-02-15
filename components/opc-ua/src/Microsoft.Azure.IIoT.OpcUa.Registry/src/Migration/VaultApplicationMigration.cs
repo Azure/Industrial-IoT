@@ -6,14 +6,14 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Extensions.Configuration;
-    using System.Runtime.Serialization;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.Serialization;
     using System.Threading.Tasks;
 
     /// <summary>

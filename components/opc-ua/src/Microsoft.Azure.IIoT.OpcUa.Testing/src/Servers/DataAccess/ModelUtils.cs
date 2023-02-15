@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace DataAccess {
-    using System.Text;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System.Text;
 
     /// <summary>
     /// A class that builds NodeIds used by the DataAccess NodeManager

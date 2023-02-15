@@ -7,10 +7,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Serializers;
-    using System.Threading.Tasks;
-    using Opc.Ua.Extensions;
     using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System.Threading;
+    using System.Threading.Tasks;
 
     public static class EndpointServicesEx {
 

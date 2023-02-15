@@ -4,10 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
     using Microsoft.Azure.IIoT.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
@@ -26,17 +24,19 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
     using Prometheus;
-    using System;
     using ILogger = Serilog.ILogger;
+    using System;
 
     /// <summary>
     /// Webservice startup

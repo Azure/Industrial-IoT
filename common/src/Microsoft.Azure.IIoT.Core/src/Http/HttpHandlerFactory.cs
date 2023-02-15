@@ -6,10 +6,10 @@
 namespace Microsoft.Azure.IIoT.Http.Default {
     using Serilog;
     using System;
-    using System.Linq;
     using System.Collections.Generic;
-    using System.Net.Http;
+    using System.Linq;
     using System.Net;
+    using System.Net.Http;
 
     /// <summary>
     /// Wraps http handles in a delegating handler

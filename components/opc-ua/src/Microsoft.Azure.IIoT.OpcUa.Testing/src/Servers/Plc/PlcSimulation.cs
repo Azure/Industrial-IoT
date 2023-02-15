@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Plc {
+    using Opc.Ua;
     using System;
     using System.Threading;
-    using Opc.Ua;
 
     public partial class PlcNodeManager {
         /// <summary>

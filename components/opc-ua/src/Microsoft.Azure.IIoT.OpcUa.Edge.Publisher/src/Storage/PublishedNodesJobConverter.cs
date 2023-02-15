@@ -4,15 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
-    using Microsoft.Azure.IIoT.Crypto;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Crypto;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
+    using static Microsoft.Azure.Amqp.Serialization.SerializableType;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -21,7 +22,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using static Microsoft.Azure.Amqp.Serialization.SerializableType;
 
     /// <summary>
     /// Published nodes

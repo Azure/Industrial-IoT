@@ -11,10 +11,10 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using Serilog;
     using System;
     using System.Collections.Concurrent;
-    using System.Threading;
-    using System.Threading.Tasks;
     using System.Net;
     using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Chunked method provide reliable any size send/receive

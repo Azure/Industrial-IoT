@@ -28,8 +28,8 @@
  * ======================================================================*/
 
 namespace Alarms {
-    using System;
     using Opc.Ua;
+    using System;
 
     /// <summary>
     /// This class stores the state of a alarm known to the system.

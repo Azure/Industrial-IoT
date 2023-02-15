@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Clients {
-    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Auth;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Enumerates all token sources and provides token from first successful source

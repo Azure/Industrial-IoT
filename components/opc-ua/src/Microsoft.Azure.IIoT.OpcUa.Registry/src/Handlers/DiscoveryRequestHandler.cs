@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
-    using Microsoft.Azure.IIoT.Tasks;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Tasks;
     using System;
     using System.Threading.Tasks;
 

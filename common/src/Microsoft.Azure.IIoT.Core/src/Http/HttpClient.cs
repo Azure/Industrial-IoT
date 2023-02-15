@@ -7,12 +7,12 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     using Serilog;
     using System;
     using System.Diagnostics;
+    using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.Threading.Tasks;
-    using System.Net;
     using System.Text;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Http client wrapping http client factory created http clients and

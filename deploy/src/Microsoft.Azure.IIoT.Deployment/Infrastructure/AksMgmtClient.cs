@@ -5,14 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     using Microsoft.Azure.Management.ContainerService.Fluent;
     using Microsoft.Azure.Management.ContainerService.Fluent.Models;
     using Microsoft.Azure.Management.Network.Fluent.Models;
@@ -22,6 +14,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
     using Microsoft.Graph;
     using Serilog;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     class AksMgmtClient : IDisposable {
 

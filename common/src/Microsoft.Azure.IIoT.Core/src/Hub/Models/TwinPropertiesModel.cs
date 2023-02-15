@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
-    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Twin properties

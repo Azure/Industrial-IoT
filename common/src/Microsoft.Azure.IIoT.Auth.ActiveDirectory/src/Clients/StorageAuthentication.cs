@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Storage.Default;
-    using System.Collections.Generic;
     using Autofac;
     using Serilog;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Storage authentication support using managed service identity,

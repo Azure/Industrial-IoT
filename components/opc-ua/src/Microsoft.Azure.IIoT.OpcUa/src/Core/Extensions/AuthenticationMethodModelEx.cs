@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Authentication method model extensions

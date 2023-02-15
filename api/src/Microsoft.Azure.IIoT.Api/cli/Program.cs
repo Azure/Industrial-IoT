@@ -4,12 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Cli {
+    using Microsoft.Azure.IIoT.Api.Publisher;
+    using Microsoft.Azure.IIoT.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
@@ -21,10 +25,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.Api.Publisher;
-    using Microsoft.Azure.IIoT.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions;
 
     /// <summary>
     /// Api command line interface

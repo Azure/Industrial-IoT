@@ -28,8 +28,8 @@
  * ======================================================================*/
 
 namespace DataAccess {
-    using System.Collections.Generic;
     using Opc.Ua;
+    using System.Collections.Generic;
 
     /// <summary>
     /// A object which maps a segment to a UA object.

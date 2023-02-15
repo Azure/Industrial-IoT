@@ -4,15 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Net.Cli {
-    using Microsoft.Azure.IIoT.Net.Scanner;
     using Microsoft.Azure.IIoT.Net.Models;
+    using Microsoft.Azure.IIoT.Net.Scanner;
     using Microsoft.Azure.IIoT.Diagnostics;
     using System;
     using System.Diagnostics;
-    using System.Threading.Tasks;
+    using System.Linq;
     using System.Net;
     using System.Threading;
-    using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Networking command line interface

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using System;
 
     /// <summary>
     /// File Storage

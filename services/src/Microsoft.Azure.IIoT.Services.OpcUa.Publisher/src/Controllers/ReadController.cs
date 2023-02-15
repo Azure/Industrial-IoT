@@ -7,13 +7,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
-    using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
-    using Microsoft.Azure.IIoT.OpcUa.History;
     using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Historic access read services

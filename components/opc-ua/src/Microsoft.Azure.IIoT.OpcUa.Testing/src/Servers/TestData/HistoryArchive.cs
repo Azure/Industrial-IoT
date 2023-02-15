@@ -28,10 +28,10 @@
  * ======================================================================*/
 
 namespace TestData {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using Opc.Ua;
 
     /// <summary>
     /// A class that provides access to archived data.

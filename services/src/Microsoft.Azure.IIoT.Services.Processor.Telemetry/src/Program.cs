@@ -4,27 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
-    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default;
     using Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.EventHub.Services;
-    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default;
+    using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
+    using Microsoft.Azure.IIoT.Hub.Processor.Services;
+    using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
-    using Microsoft.Azure.IIoT.Hub.Processor.Services;
-    using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Autofac;
+    using Autofac.Extensions.DependencyInjection;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.DependencyInjection;
-    using Autofac.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
 
     /// <summary>
     /// IoT Hub device telemetry event processor host.  Processes all

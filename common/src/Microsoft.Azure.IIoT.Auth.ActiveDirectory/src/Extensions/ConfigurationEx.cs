@@ -5,9 +5,9 @@
 
 namespace Microsoft.Extensions.Configuration {
     using Microsoft.Extensions.Primitives;
+    using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Auth.KeyVault;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
     using Serilog;
@@ -15,8 +15,8 @@ namespace Microsoft.Extensions.Configuration {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Net.Sockets;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Extension methods

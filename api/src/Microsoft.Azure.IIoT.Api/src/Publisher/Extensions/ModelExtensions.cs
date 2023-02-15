@@ -4,14 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using Microsoft.Azure.IIoT.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Linq;
@@ -1208,6 +1208,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 ? null
                 : new RequestHeaderApiModel {
                     Diagnostics = model.Diagnostics?.ToApiModel(),
+                    Elevation = model.Elevation.ToApiModel(),
                     Locales = model.Locales
                 };
         }
@@ -1222,6 +1223,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 ? null
                 : new RequestHeaderModel {
                     Diagnostics = model.Diagnostics?.ToServiceModel(),
+                    Elevation = model.Elevation.ToServiceModel(),
                     Locales = model.Locales
                 };
         }

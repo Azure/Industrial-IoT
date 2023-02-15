@@ -28,10 +28,10 @@
  * ======================================================================*/
 
 namespace Alarms {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using Opc.Ua;
 
     /// <summary>
     /// An object that provides access to the underlying system.

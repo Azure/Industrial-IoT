@@ -6,14 +6,14 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Net;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Net.Models;
+    using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
     using System.Net;
     using System.Net.Sockets;
+    using System.Threading;
 
     /// <summary>
     /// Discovery request wrapper

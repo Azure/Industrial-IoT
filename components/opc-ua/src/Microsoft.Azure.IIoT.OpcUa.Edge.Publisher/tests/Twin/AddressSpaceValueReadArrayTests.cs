@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Tests;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
@@ -17,7 +18,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     using System.Net.Sockets;
     using System.Threading.Tasks;
     using Xunit;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin;
 
     [Collection(ReadCollection.Name)]
     public class AddressSpaceValueReadArrayTests {

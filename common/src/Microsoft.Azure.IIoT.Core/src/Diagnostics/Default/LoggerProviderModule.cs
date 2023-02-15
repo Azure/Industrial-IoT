@@ -4,14 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
-    using Serilog;
-    using System;
-    using System.Linq;
     using Autofac;
     using Autofac.Core;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Core.Registration;
     using Module = Autofac.Module;
+    using Serilog;
+    using System;
+    using System.Linq;
 
     /// <summary>
     /// Logger provider module

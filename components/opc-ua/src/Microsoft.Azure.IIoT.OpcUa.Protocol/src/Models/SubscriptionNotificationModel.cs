@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
-    using System.Collections.Generic;
     using Opc.Ua;
-    using System;
     using Opc.Ua.PubSub;
+    using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Subscription notification model

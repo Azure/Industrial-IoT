@@ -4,27 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using UaApplicationType = Opc.Ua.ApplicationType;
-    using UaSecurityMode = Opc.Ua.MessageSecurityMode;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
-    using UaTokenType = Opc.Ua.UserTokenType;
-    using UaNodeClass = Opc.Ua.NodeClass;
-    using UaFilterOperator = Opc.Ua.FilterOperator;
-    using UaMonitoringMode = Opc.Ua.MonitoringMode;
-    using UaDeadbandType = Opc.Ua.DeadbandType;
     using UaDataChangeTrigger = Opc.Ua.DataChangeTrigger;
-    using UaPermissionType = Opc.Ua.PermissionType;
+    using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
+    using UaDeadbandType = Opc.Ua.DeadbandType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
+    using UaFilterOperator = Opc.Ua.FilterOperator;
     using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;
     using JsonNetworkMessageContentMask = Opc.Ua.JsonNetworkMessageContentMask;
+    using UaSecurityMode = Opc.Ua.MessageSecurityMode;
+    using UaMonitoringMode = Opc.Ua.MonitoringMode;
+    using UaNodeClass = Opc.Ua.NodeClass;
+    using UaPermissionType = Opc.Ua.PermissionType;
+    using Opc.Ua.PubSub;
     using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
     using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
-    using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
-    using System.Collections.Generic;
+    using UaTokenType = Opc.Ua.UserTokenType;
     using System;
-    using Opc.Ua.PubSub;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Stack types conversions

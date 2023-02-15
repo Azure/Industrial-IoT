@@ -7,8 +7,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
     using Autofac;
     using Serilog;
     using System;
-    using System.Linq;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
 
     /// <summary>

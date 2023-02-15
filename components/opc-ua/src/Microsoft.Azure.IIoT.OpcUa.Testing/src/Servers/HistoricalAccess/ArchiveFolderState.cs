@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace HistoricalAccess {
-    using System.Collections.Generic;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Stores the metadata for a node representing a folder on a file system.

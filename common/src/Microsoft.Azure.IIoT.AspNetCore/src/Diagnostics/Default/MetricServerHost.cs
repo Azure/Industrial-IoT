@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default {
+    using Prometheus;
     using Serilog;
     using System;
     using System.Threading.Tasks;
-    using Prometheus;
 
     /// <summary>
     /// Start and stop metric server

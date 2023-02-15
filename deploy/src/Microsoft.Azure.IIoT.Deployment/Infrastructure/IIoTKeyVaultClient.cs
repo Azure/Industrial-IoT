@@ -5,16 +5,16 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
+    using Microsoft.Azure.KeyVault;
+    using Microsoft.Azure.KeyVault.Models;
+    using Microsoft.Azure.Management.KeyVault.Fluent.Models;
+    using Serilog;
+
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-
-    using Microsoft.Azure.KeyVault;
-    using Microsoft.Azure.KeyVault.Models;
-    using Microsoft.Azure.Management.KeyVault.Fluent.Models;
-    using Serilog;
 
     class IIoTKeyVaultClient : IDisposable {
 

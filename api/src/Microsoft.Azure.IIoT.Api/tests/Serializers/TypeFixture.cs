@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;

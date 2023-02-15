@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Correlation {
+    using Microsoft.AspNetCore.Http;
+    using Serilog;
+    using Serilog.Context;
     using System;
     using System.Linq;
-    using Microsoft.AspNetCore.Http;
     using System.Threading.Tasks;
-    using Serilog.Context;
-    using Serilog;
 
     /// <summary>
     /// Correlation setup implementation

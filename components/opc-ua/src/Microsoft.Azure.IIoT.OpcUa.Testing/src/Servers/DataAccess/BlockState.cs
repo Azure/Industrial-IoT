@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace DataAccess {
-    using System.Collections.Generic;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System.Collections.Generic;
 
     /// <summary>
     /// A object which maps a block to a UA object.

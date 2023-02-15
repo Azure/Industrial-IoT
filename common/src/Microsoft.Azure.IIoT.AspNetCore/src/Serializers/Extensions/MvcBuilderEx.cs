@@ -4,15 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Extensions.DependencyInjection {
+    using Microsoft.Extensions.Options;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Azure.IIoT.AspNetCore.Serializers;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using Microsoft.Azure.IIoT.AspNetCore.Serializers;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Options;
-    using System.Collections.Generic;
-    using System;
-    using System.Linq;
     using Newtonsoft.Json;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Mvc setup extensions

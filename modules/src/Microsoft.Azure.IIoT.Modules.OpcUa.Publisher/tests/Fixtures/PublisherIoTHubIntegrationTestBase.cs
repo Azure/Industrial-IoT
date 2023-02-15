@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
-    using Autofac;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -17,8 +18,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
@@ -31,6 +30,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using Autofac;
     using Moq;
     using Opc.Ua;
     using Serilog;

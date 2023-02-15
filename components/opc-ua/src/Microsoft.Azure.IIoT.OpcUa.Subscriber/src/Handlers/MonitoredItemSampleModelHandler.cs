@@ -10,9 +10,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
-    using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher message handling

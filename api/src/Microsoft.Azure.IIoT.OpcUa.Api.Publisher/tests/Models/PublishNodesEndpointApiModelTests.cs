@@ -4,13 +4,13 @@
 
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Tests.Models {
-
-    using Xunit;
-    using System.Collections.Generic;
-    using System;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using System;
+    using System.Collections.Generic;
+
+    using Xunit;
 
     public class PublishNodesEndpointApiModelTests {
 

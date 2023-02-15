@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Default;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Autofac;
 
     /// <summary>

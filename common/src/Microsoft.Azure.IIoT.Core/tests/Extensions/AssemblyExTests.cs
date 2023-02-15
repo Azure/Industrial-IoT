@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace System {
-    using Xunit;
     using System.Linq;
+    using Xunit;
 
     public class AssemblyExTests {
 

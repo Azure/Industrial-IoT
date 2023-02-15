@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Extensions.Configuration {
-    using System.IO;
     using System;
     using System.Collections.Generic;
+    using System.IO;
 
     /// <summary>
     /// Extension methods

@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.State {
-    using FluentAssertions;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using FluentAssertions;
     using Moq;
     using System.Collections.Generic;
     using System.Text;

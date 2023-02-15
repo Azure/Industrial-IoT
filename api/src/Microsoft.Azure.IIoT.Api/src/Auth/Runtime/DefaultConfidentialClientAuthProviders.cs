@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Auth.Runtime {
-    using Autofac;
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Autofac;
 
     /// <summary>
     /// Register default authentication providers for confidential clients

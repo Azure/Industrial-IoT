@@ -5,14 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.Http.Auth {
     using Microsoft.Azure.IIoT.Auth;
-    using System.Net.Http.Headers;
-    using System.Threading.Tasks;
-    using System.Net;
+    using Serilog;
     using System;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading;
-    using Serilog;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Bearer authentication handler

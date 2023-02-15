@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Adapts invokers to a method handler.  For real world usage use

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
-    using Newtonsoft.Json.Converters;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 

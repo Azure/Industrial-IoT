@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Mock {
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
-    using Microsoft.Azure.IIoT.Messaging;
     using System;
 
     /// <summary>

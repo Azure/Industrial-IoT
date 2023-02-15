@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Shared {
+    using Microsoft.AspNetCore.Components;
     using Blazored.Modal;
     using Blazored.Modal.Services;
-    using Microsoft.AspNetCore.Components;
 
     public partial class HelpContent {
         [CascadingParameter] private BlazoredModalInstance BlazoredModal { get; set; }

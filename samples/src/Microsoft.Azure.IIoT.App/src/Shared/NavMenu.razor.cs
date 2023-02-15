@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Shared {
-    using Microsoft.AspNetCore.Components.Routing;
     using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.AspNetCore.Components.Routing;
     using System.Threading.Tasks;
 
     public partial class NavMenu {

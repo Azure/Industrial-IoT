@@ -28,8 +28,8 @@
  * ======================================================================*/
 
 namespace Boiler {
-    using System;
     using Opc.Ua;
+    using System;
 
     /// <summary>
     /// A object representing a generic controller.

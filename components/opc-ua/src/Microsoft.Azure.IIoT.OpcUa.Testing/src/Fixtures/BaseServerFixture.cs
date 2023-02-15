@@ -6,18 +6,18 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua.Server;
-    using System;
-    using System.IO;
-    using System.Collections.Generic;
     using Serilog;
     using Serilog.Events;
-    using System.Threading;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>

@@ -5,14 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Discovery progress message sender

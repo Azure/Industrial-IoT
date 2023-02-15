@@ -6,8 +6,8 @@
 namespace Newtonsoft.Json.Converters {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
-    using System.Collections.Generic;
     using Opc.Ua;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Json converter extensions

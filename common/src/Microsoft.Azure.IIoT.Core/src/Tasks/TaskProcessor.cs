@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Tasks.Default {
-    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
+    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;

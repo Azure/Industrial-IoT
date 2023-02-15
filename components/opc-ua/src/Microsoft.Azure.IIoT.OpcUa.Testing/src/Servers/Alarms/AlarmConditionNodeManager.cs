@@ -28,11 +28,11 @@
  * ======================================================================*/
 
 namespace Alarms {
+    using Opc.Ua;
+    using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using Opc.Ua;
-    using Opc.Ua.Server;
 
     /// <summary>
     /// A node manager for a simple server that exposes several Areas, Sources and Conditions.

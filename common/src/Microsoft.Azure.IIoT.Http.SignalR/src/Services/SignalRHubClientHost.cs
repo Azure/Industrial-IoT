@@ -4,18 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.AspNetCore.SignalR.Client;
     using Microsoft.Extensions.DependencyInjection;
+    using MessagePack.Resolvers;
     using Serilog;
     using System;
-    using System.Threading.Tasks;
-    using System.Threading;
     using System.Linq;
-    using MessagePack.Resolvers;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// SignalR hub client

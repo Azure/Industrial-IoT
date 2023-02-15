@@ -5,17 +5,17 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     using Microsoft.Azure.Management.OperationalInsights;
     using Microsoft.Azure.Management.OperationalInsights.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Serilog;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Log Analytics workspaces management client.

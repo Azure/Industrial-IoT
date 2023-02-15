@@ -28,8 +28,8 @@
  * ======================================================================*/
 
 namespace TestData {
-    using System;
     using Opc.Ua;
+    using System;
 
     public partial class TestDataObjectState {
 

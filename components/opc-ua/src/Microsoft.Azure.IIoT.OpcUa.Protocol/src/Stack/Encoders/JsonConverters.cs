@@ -5,12 +5,12 @@
 
 namespace Opc.Ua.Encoders {
     using Opc.Ua;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using System.Runtime.Serialization;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Adds Ua converters to default json converters

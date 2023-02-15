@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
-    using Autofac;
     using Microsoft.Azure.EventHubs.Processor;
+    using Autofac;
 
     /// <summary>
     /// Factory implementation

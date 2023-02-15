@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua {
+    using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
-    using Microsoft.Azure.IIoT.Utils;
 
     /// <summary>
     /// Certificate store extensions

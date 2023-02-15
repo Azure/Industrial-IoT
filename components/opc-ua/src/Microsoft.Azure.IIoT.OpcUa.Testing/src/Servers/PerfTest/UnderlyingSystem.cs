@@ -28,11 +28,11 @@
  * ======================================================================*/
 
 namespace PerfTest {
+    using Opc.Ua;
+    using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using Opc.Ua;
-    using Opc.Ua.Server;
 
     public class UnderlyingSystem {
         public void Initialize() {

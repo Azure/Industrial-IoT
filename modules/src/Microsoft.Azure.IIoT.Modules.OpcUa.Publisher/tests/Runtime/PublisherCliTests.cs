@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Runtime {
-    using FluentAssertions;
-    using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using Microsoft.Azure.IIoT.Abstractions;
+    using FluentAssertions;
     using System;
     using Xunit;
 

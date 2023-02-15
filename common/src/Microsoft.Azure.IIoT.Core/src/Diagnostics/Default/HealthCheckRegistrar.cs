@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
-    using Autofac.Features.Metadata;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Options;
+    using Autofac.Features.Metadata;
     using System.Collections.Generic;
 
     /// <summary>

@@ -6,12 +6,12 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Filters;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Api.Publisher.Models;
 
     /// <summary>
     /// Discovery method controller

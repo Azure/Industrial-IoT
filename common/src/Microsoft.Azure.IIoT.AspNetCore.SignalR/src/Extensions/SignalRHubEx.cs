@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Extensions.DependencyInjection {
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Routing;
     using Microsoft.AspNetCore.SignalR;
+    using Microsoft.Azure.IIoT.Messaging.SignalR;
     using System.Linq;
     using System.Reflection;
 

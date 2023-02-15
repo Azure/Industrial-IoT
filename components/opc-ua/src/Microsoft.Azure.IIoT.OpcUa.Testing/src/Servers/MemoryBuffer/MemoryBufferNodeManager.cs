@@ -28,11 +28,11 @@
  * ======================================================================*/
 
 namespace MemoryBuffer {
+    using Opc.Ua;
+    using Opc.Ua.Sample;
+    using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
-    using Opc.Ua;
-    using Opc.Ua.Server;
-    using Opc.Ua.Sample;
     using System.Reflection;
 
     /// <summary>

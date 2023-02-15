@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport.Probe {
-    using Serilog;
     using Microsoft.Azure.IIoT.Net;
     using Opc.Ua;
     using Opc.Ua.Bindings;
+    using Serilog;
     using System;
     using System.IO;
     using System.Net;

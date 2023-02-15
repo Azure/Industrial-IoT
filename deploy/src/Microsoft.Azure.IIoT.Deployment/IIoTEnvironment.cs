@@ -5,10 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Deployment {
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-
     using Microsoft.Azure.Management.ApplicationInsights.Management.Models;
     using Microsoft.Azure.Management.EventHub.Fluent.Models;
     using Microsoft.Azure.Management.IotHub.Models;
@@ -18,6 +14,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
     using Microsoft.Graph;
     using Serilog;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     class IIoTEnvironment {
         // IoT Hub

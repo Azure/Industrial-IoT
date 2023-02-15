@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Tasks;
     using System;
+    using System.Collections.Concurrent;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Collections.Concurrent;
 
     /// <summary>
     /// Endpoint event broker - publishes locally, and also

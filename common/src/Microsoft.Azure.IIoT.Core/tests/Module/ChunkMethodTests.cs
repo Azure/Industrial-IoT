@@ -6,10 +6,10 @@
 namespace Microsoft.Azure.IIoT.Module {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using AutoFixture;
     using System;
     using System.Text;
     using Xunit;
-    using AutoFixture;
 
     public partial class ChunkMethodTests {
 

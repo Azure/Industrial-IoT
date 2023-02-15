@@ -4,24 +4,24 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
-    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
-    using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.EventHub;
-    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
-    using Microsoft.Azure.IIoT.Hub.Processor;
-    using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hosting;
+    using Microsoft.Azure.IIoT.Hub.Processor;
+    using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub;
+    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.ServiceBus;
+    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.SignalR;
+    using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
 

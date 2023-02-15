@@ -28,12 +28,12 @@
  * ======================================================================*/
 
 namespace HistoricalAccess {
-    using System;
-    using System.Text;
-    using System.IO;
-    using System.Data;
-    using System.Reflection;
     using Opc.Ua;
+    using System;
+    using System.Data;
+    using System.IO;
+    using System.Reflection;
+    using System.Text;
 
     /// <summary>
     /// Stores the metadata for a node representing a folder on a file system.

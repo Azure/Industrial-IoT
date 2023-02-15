@@ -5,17 +5,17 @@
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.Diagnostics;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.EventHub;
-    using Microsoft.Azure.IIoT.Storage.CosmosDb;
-    using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
-    using Microsoft.Azure.IIoT.Storage;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub;
+    using Microsoft.Azure.IIoT.Messaging.ServiceBus;
+    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
+    using Microsoft.Azure.IIoT.Storage;
+    using Microsoft.Azure.IIoT.Storage.CosmosDb;
+    using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
 

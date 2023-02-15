@@ -4,20 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.AspNetCore.Hosting {
-    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting.Builder;
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.Hosting.Server.Features;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Features;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Autofac.Extensions.DependencyInjection;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Autofac.Extensions.DependencyInjection;
-    using System;
 
     /// <summary>
     /// Application builder extensions

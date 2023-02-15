@@ -8,15 +8,15 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
-    using Serilog;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using System.Collections;
-    using System.Diagnostics;
     using Autofac;
     using Prometheus;
+    using Serilog;
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Default event hub event processor factory.

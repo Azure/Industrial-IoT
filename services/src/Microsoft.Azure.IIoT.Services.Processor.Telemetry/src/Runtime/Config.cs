@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.Diagnostics;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
-    using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Extensions.Configuration;
     using System;

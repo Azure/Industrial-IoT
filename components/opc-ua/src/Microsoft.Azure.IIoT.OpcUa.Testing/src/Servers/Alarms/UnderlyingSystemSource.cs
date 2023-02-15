@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace Alarms {
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using Opc.Ua;
 
     /// <summary>
     /// This class simulates a source in the system.

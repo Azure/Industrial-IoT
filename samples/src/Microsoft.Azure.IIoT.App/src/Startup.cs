@@ -4,20 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App {
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
-    using Blazored.Modal;
-    using Blazored.SessionStorage;
-    using FluentValidation;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Components.Authorization;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.Azure.IIoT.Api.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Validation;
+    using Microsoft.Azure.IIoT.Api.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Storage;
@@ -26,10 +17,19 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Components.Authorization;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Blazored.Modal;
+    using Blazored.SessionStorage;
+    using FluentValidation;
     using Serilog;
     using Serilog.Events;
     using System;

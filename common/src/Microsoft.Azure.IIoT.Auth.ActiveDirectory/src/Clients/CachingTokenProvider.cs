@@ -4,15 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Clients {
-    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Storage;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Utils;
     using System;
-    using System.Text;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Caching token provider

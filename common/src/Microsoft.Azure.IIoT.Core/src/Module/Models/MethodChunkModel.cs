@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Models {
-    using System.Runtime.Serialization;
     using System;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Method invocation messaging model.

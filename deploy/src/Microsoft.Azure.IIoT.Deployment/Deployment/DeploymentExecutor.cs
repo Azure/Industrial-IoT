@@ -4,34 +4,34 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Deployment {
+    using Microsoft.Azure.Management.ContainerService.Fluent.Models;
+    using Microsoft.Azure.Management.EventHub.Fluent.Models;
+    using Microsoft.Azure.Management.IotHub.Models;
+    using Microsoft.Azure.Management.KeyVault.Fluent.Models;
+    using Microsoft.Azure.Management.Network.Fluent.Models;
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
+    using Microsoft.Azure.Management.Storage.Fluent.Models;
+    using Microsoft.Graph;
 
-    using Serilog;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using System.IO;
-    using System.Text;
+    using Authentication;
+    using Configuration;
+    using global::Azure.Storage.Blobs;
+    using Infrastructure;
 
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 
-    using Authentication;
-    using Infrastructure;
-    using Configuration;
-    using Microsoft.Azure.Management.ContainerService.Fluent.Models;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
-    using Microsoft.Azure.Management.KeyVault.Fluent.Models;
-    using Microsoft.Azure.Management.Storage.Fluent.Models;
-    using Microsoft.Azure.Management.IotHub.Models;
-    using Microsoft.Azure.Management.EventHub.Fluent.Models;
-    using Microsoft.Azure.Management.Network.Fluent.Models;
-    using Microsoft.Graph;
-    using global::Azure.Storage.Blobs;
+    using Serilog;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     class DeploymentExecutor : IDisposable {
 

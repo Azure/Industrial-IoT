@@ -5,12 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     using Microsoft.Azure.Management.KeyVault.Fluent;
     using Microsoft.Azure.Management.KeyVault.Fluent.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
@@ -18,6 +12,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
     using Microsoft.Graph;
     using Serilog;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     class KeyVaultMgmtClient : IDisposable {
 

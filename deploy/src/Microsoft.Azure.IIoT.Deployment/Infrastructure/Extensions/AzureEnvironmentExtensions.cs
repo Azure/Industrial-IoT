@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions {
 
-    using System;
-
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Identity.Client;
+
+    using System;
 
     public static class AzureEnvironmentExtensions {
 

@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Tasks.Default;
-    using Microsoft.Azure.IIoT.Serializers;
     using Autofac;
 
     /// <summary>

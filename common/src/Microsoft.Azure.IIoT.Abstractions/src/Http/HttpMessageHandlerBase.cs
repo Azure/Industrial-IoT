@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http {
-    using System.Net.Http.Headers;
-    using System.Threading.Tasks;
+    using System;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading;
-    using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Base message handler

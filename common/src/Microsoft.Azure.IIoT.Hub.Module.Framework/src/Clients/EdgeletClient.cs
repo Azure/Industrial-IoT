@@ -7,15 +7,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
     using Serilog;
     using System;
-    using System.Threading;
     using System.Linq;
-    using System.Threading.Tasks;
-    using System.Security.Cryptography.X509Certificates;
     using System.Runtime.Serialization;
+    using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Edgelet client providing discovery and in the future other services

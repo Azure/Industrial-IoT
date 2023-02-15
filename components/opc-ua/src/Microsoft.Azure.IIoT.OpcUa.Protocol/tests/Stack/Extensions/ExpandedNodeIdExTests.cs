@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Extensions {
-    using Xunit;
     using System;
+    using Xunit;
 
     public class ExpandedNodeIdExTests {
 

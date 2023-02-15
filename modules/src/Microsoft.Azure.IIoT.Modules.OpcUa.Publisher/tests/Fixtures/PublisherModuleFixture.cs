@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
-    using Autofac;
     using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
     using Microsoft.Azure.IIoT.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -24,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using Autofac;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;

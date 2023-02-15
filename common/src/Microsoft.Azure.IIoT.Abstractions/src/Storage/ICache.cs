@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage {
-    using System.Threading.Tasks;
     using System;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Cache abstraction

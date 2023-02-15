@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
-    using Swashbuckle.AspNetCore.SwaggerGen;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.Extensions.Options;
+    using Microsoft.OpenApi.Models;
+    using Swashbuckle.AspNetCore.SwaggerGen;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.OpenApi.Models;
 
     /// <summary>
     /// Gather security operations

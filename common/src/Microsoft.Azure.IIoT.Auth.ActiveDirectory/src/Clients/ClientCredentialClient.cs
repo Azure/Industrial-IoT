@@ -10,9 +10,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Linq;
 
     /// <summary>
     /// Authenticate using client credentials

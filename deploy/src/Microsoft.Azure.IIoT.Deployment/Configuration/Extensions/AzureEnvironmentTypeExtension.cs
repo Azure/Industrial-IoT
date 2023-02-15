@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration.Extension {
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
 
     using System;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
 
     public static class AzureEnvironmentTypeExtension {
         public static AzureEnvironment ToAzureEnvironment(this AzureEnvironmentType azureEnvironment) {

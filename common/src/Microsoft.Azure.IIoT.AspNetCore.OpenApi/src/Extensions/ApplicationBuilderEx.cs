@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.OpenApi.Models {
-    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
-    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.Hosting.Server.Features;
     using Microsoft.AspNetCore.Mvc.Infrastructure;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime {
-    using Microsoft.Extensions.Configuration;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Cors configuration

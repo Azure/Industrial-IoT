@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Http.Diagnostics {
     using Serilog;
-    using System.Net.Http.Headers;
-    using System.Threading.Tasks;
-    using System.Net;
     using System;
+    using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Insertable Logging handler

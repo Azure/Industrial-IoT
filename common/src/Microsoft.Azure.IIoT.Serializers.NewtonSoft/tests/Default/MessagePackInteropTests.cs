@@ -4,14 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Collections.Generic;
-    using System.Text;
     using System.Linq;
-    using Xunit;
     using System.Runtime.Serialization;
+    using System.Text;
+    using Xunit;
 
     public class MessagePackInteropTests {
 

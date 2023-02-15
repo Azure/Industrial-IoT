@@ -4,15 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
+    using Microsoft.Graph;
+    using Microsoft.Rest;
+    using Serilog;
 
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Graph;
-    using Microsoft.Rest;
-    using Serilog;
 
     class MicrosoftGraphServiceClient {
 

@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Opc.Ua;
-    using Xunit;
-    using System.Xml;
     using Opc.Ua.Extensions;
+    using System.Xml;
+    using Xunit;
 
     public class VariantEncoderMiscTests {
 

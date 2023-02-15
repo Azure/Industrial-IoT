@@ -28,13 +28,13 @@
  * ======================================================================*/
 
 namespace HistoricalAccess {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Reflection;
-    using System.Data;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Reflection;
+    using System.Threading;
 
     /// <summary>
     /// A node manager for a server that exposes several variables.

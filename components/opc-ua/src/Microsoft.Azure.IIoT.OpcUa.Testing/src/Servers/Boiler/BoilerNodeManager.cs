@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace Boiler {
-    using System.Collections.Generic;
     using Opc.Ua;
     using Opc.Ua.Sample;
+    using System.Collections.Generic;
     using System.Reflection;
 
     /// <summary>

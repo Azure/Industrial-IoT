@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua {
-    using Newtonsoft.Json;
     using Opc.Ua.Encoders;
+    using Newtonsoft.Json;
     using System;
 
     /// <summary>

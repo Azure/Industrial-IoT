@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Utils {
     using System;
-    using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Helper class to wrap operations in try catch

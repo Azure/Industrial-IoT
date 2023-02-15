@@ -4,21 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Options;
     using Microsoft.IdentityModel.Tokens;
     using System;
     using System.IdentityModel.Tokens.Jwt;
+    using System.Linq;
     using System.Security.Claims;
     using System.Threading.Tasks;
-    using System.Linq;
 
 
     /// <summary>

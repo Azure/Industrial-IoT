@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Extensions {
-    using Microsoft.Azure.IIoT.Api.Registry.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.Api.Registry.Extensions;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System.Collections.Generic;
     using System.Linq;

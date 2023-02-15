@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Crypto {
-    using System.Security.Cryptography.X509Certificates;
-    using System.Threading.Tasks;
     using System;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Cryptographic primitives

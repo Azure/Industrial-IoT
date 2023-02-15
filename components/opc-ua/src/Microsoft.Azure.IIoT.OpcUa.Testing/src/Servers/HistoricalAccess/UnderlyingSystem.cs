@@ -28,10 +28,10 @@
  * ======================================================================*/
 
 namespace HistoricalAccess {
-    using System.Text;
-    using System.IO;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System.IO;
+    using System.Text;
 
     /// <summary>
     /// Provides access to the system which stores the data.

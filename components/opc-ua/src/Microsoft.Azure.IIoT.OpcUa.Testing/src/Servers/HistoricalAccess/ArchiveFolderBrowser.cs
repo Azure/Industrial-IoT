@@ -28,8 +28,8 @@
  * ======================================================================*/
 
 namespace HistoricalAccess {
-    using System.Collections.Generic;
     using Opc.Ua;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Browses the references for an archive folder.

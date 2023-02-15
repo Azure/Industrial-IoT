@@ -28,8 +28,8 @@
  * ======================================================================*/
 
 namespace MemoryBuffer {
-    using System.Runtime.Serialization;
     using System.Collections.Generic;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Stores the configuration the test node manager

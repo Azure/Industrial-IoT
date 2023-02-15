@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Services {
-    using Autofac;
-    using Autofac.Extras.Moq;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Extensions.Configuration;
+    using Autofac;
+    using Autofac.Extras.Moq;
     using Moq;
     using System;
     using System.Net.Http;

@@ -4,8 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
+    using Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime;
     using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
     using Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -21,11 +20,12 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime;
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
     using Serilog;
     using System;
 

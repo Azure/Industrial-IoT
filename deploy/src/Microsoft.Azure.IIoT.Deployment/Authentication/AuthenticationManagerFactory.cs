@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Authentication {
+    using Microsoft.Azure.IIoT.Deployment.Deployment;
 
     using System.Runtime.InteropServices;
-    using Microsoft.Azure.IIoT.Deployment.Deployment;
 
     /// <summary>
     /// Factory class for instantiating corresponding IAuthenticationManager class.

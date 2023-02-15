@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Extensions.DependencyInjection {
-    using Microsoft.Azure.IIoT.Hosting;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Builder;
-    using System;
     using Microsoft.Extensions.Options;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.HttpsPolicy;
+    using Microsoft.Azure.IIoT.Hosting;
+    using System;
 
     /// <summary>
     /// Configure http redirection and hsts

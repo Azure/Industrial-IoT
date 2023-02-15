@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
+    using static Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils.NewtonSoftJsonSerializerRaw;
     using Newtonsoft.Json;
     using System.Runtime.Serialization;
-    using static Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils.NewtonSoftJsonSerializerRaw;
  
     /// <summary>
     /// Method call exception model.

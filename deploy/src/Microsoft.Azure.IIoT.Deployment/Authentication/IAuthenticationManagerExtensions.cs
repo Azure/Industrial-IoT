@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Authentication {
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+    using Microsoft.Identity.Client;
+    using Microsoft.Rest;
 
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-    using Microsoft.Identity.Client;
-    using Microsoft.Rest;
 
     public static class IAuthenticationManagerExtensions {
 

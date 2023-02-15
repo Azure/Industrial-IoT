@@ -4,16 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
+    using Microsoft.Azure.IIoT.Deployment.Configuration.Extension;
+    using Microsoft.Azure.IIoT.Deployment.Deployment;
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+    using Serilog;
 
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.RegularExpressions;
-    using Microsoft.Azure.IIoT.Deployment.Deployment;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-    using Serilog;
-    using Microsoft.Azure.IIoT.Deployment.Configuration.Extension;
 
     /// <summary>
     /// Configuration provider that prompts user to provide missing details.

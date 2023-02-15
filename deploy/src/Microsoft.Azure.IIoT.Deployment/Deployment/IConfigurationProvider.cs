@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Deployment {
-
-    using System;
-    using System.Collections.Generic;
     using Microsoft.Azure.IIoT.Deployment.Configuration;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+
+    using System;
+    using System.Collections.Generic;
 
     interface IConfigurationProvider {
 

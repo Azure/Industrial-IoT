@@ -5,16 +5,16 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     using Microsoft.Azure.Management.EventHub.Fluent;
     using Microsoft.Azure.Management.EventHub.Fluent.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Serilog;
+
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     class EventHubMgmtClient : IDisposable
     {

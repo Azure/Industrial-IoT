@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Utils {
-    using System.Collections.Generic;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>

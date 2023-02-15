@@ -4,14 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Extensions.DependencyInjection {
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Options;
     using Microsoft.AspNetCore.SignalR;
-    using System.Collections.Generic;
-    using System;
-    using System.Linq;
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Serializers;
     using MessagePack.Resolvers;
+    using Newtonsoft.Json;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// SignalR setup extensions

@@ -5,17 +5,17 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
     using Microsoft.Azure.IIoT.Utils;
-    using Serilog;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
-    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Sample server factory

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
-    using Newtonsoft.Json.Linq;
     using Opc.Ua.Encoders;
+    using Newtonsoft.Json.Linq;
     using System;
 
     /// <summary>

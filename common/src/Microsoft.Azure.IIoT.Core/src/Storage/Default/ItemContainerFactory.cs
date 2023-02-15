@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Storage.Default {
     using Microsoft.Azure.IIoT.Diagnostics;
-    using System.Threading.Tasks;
     using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Injectable container factory

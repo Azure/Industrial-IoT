@@ -28,9 +28,9 @@
  * ======================================================================*/
 
 namespace Alarms {
-    using System.Text;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System.Text;
 
     /// <summary>
     /// Defines constants and methods used by all classes in the information model.

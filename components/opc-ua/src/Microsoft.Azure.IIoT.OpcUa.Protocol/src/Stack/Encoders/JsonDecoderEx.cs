@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
+    using Opc.Ua.Extensions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Data;

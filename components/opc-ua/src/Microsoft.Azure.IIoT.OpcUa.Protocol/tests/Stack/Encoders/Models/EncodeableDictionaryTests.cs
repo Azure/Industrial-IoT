@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
-    using Xunit;
     using System.IO;
+    using Xunit;
 
     public class EncodeableDictionaryTests {
 

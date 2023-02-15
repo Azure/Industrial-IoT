@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using System.Collections.Generic;
-    using System.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
+    using System.Linq;
 
     /// <summary>
     /// Published event items extensions

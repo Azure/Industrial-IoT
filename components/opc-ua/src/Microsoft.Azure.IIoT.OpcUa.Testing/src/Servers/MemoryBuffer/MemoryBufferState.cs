@@ -28,12 +28,12 @@
  * ======================================================================*/
 
 namespace MemoryBuffer {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Threading;
 
     public partial class MemoryBufferState {
 
