@@ -13,12 +13,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     public interface IAuthStateProviderConfig {
 
         /// <summary>
-        /// Target <see cref="Http.Resource"/> which
-        /// determines the configuration to use.
-        /// </summary>
-        string Resource { get; }
-
-        /// <summary>
         /// Revalidation
         /// </summary>
         TimeSpan RevalidateInterval { get; }

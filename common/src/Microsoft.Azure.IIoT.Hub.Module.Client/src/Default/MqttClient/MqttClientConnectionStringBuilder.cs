@@ -178,15 +178,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         }
 
         /// <summary>
-        /// Produces the connection string based on the values of the <see cref="MqttClientConnectionStringBuilder"/> instance properties.
-        /// </summary>
-        /// <returns>A connection string of type <see cref="MqttClientConnectionString"/>.</returns>
-        public MqttClientConnectionString Build() {
-            Validate();
-            return new MqttClientConnectionString(this);
-        }
-
-        /// <summary>
         /// Validate the properties of the connection string.
         /// </summary>
         private void Validate() {

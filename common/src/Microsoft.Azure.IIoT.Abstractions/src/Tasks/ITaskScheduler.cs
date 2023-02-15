@@ -16,10 +16,5 @@ namespace Microsoft.Azure.IIoT.Tasks {
         /// Task factory
         /// </summary>
         TaskFactory Factory { get; }
-
-        /// <summary>
-        /// Create debug dump
-        /// </summary>
-        void Dump(Action<Task> logger);
     }
 }

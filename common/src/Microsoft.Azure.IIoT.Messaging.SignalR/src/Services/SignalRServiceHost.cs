@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Signalr service host for serverless
@@ -219,4 +220,5 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         private readonly TimeSpan _renewHubInterval;
         private readonly ILogger _logger;
     }
+#endif
 }

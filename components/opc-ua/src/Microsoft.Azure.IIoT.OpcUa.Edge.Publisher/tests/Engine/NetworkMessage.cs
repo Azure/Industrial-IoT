@@ -20,8 +20,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public string ContentType { get; set; }
         public string ContentEncoding { get; set; }
         public string MessageSchema { get; set; }
-        public string DeviceId { get; set; }
-        public string ModuleId { get; set; }
         public string RoutingInfo { get; set; }
         public string OutputName { get; set; }
         public bool Retain { get; set; }

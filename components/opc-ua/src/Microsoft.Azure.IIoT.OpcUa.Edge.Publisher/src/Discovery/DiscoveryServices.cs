@@ -38,9 +38,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// <inheritdoc/>
         public DiscoveryMode Mode => _request.Mode;
 
-        /// <inheritdoc/>
-        public DiscoveryConfigModel Configuration => _request.Configuration;
-
         /// <summary>
         /// Create services
         /// </summary>

@@ -32,6 +32,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Twin;
 
     /// <summary>
     /// Publisher module

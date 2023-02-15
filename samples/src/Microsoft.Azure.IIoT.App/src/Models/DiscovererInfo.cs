@@ -114,14 +114,6 @@ namespace Microsoft.Azure.IIoT.App.Models {
                 new List<string>() : DiscovererModel.DiscoveryConfig.DiscoveryUrls;
         }
 
-        /// <summary>
-        /// List of locales to filter with during discovery
-        /// </summary>
-        public List<string> EffectiveLocales {
-            get => DiscovererModel.DiscoveryConfig?.Locales == null ?
-                new List<string>() : DiscovererModel.DiscoveryConfig.Locales;
-        }
-
         public bool TryUpdateData(DiscovererInfoRequested input) {
             try {
                 DiscovererModel.RequestedConfig ??= new DiscoveryConfigApiModel();

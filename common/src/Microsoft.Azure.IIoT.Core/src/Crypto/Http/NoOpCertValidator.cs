@@ -18,11 +18,6 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
         public Func<string, bool> IsFor { get; set; }
 
         /// <inheritdoc/>
-        public void Configure(IHttpHandlerHost host) {
-            // No op
-        }
-
-        /// <inheritdoc/>
         public virtual bool Validate(HttpRequestHeaders headers,
             X509Certificate2 cert, X509Chain chain, SslPolicyErrors? errors) {
             return true;

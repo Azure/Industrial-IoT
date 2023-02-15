@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
     /// <summary>
     /// Event processor configuration - wraps a configuration root
     /// </summary>
-    public class EventProcessorConfig : BlobConfig, IEventProcessorHostConfig,
+    public class EventProcessorConfig : StorageConfig, IEventProcessorHostConfig,
         IEventProcessorConfig {
 
         /// <summary>

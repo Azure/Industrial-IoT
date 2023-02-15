@@ -15,17 +15,6 @@ namespace System {
     public static class StringEx {
 
         /// <summary>
-        /// Helper to create a unique name
-        /// </summary>
-        /// <param name="len"></param>
-        /// <param name="prefix"></param>
-        /// <returns></returns>
-        public static string CreateUnique(int len, string prefix = "") {
-            return (prefix + Guid.NewGuid().ToString("N"))
-                .Substring(0, Math.Min(len, 32 + prefix.Length));
-        }
-
-        /// <summary>
         /// Yet another case insensitve equals
         /// </summary>
         /// <param name="str"></param>
@@ -33,54 +22,6 @@ namespace System {
         /// <returns></returns>
         public static bool EqualsIgnoreCase(this string str, string to) {
             return StringComparer.OrdinalIgnoreCase.Equals(str, to);
-        }
-
-        /// <summary>
-        /// Equal to any in the list
-        /// </summary>
-        /// <param name="str"></param>
-        /// <param name="to"></param>
-        /// <param name="ignoreCase"></param>
-        /// <returns></returns>
-        public static bool AnyOf(this string str, IEnumerable<string> to,
-            bool ignoreCase = false) {
-            return to.Any(s => s.Equals(str, ignoreCase ?
-                StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <summary>
-        /// Equal to any in the list
-        /// </summary>
-        /// <param name="str"></param>
-        /// <param name="to"></param>
-        /// <returns></returns>
-        public static bool AnyOf(this string str, params string[] to) {
-            return AnyOf(str, to, false);
-        }
-
-        /// <summary>
-        /// Equal to any in the list but case ignoring
-        /// </summary>
-        /// <param name="str"></param>
-        /// <param name="to"></param>
-        /// <returns></returns>
-        public static bool AnyOfIgnoreCase(this string str, params string[] to) {
-            return AnyOf(str, to, true);
-        }
-
-        /// <summary>
-        /// Check whether this is base 64
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        public static bool IsBase64(this string str) {
-            try {
-                Convert.FromBase64String(str);
-                return true;
-            }
-            catch {
-                return false;
-            }
         }
 
         /// <summary>
@@ -151,52 +92,6 @@ namespace System {
                 return value.TrimMatchingChar('\'');
             }
             return trimmed;
-        }
-
-        /// <summary>
-        /// Convert to camel case
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static string ToCamelCase(this string value) {
-            if (value == null || value.Length <= 1) {
-                return value;
-            }
-            var words = value.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
-            var result = words[0].Substring(0, 1).ToLower() + words[0].Substring(1);
-            for (var i = 1; i < words.Length; i++) {
-                result += words[i].Substring(0, 1).ToUpper() + words[i].Substring(1);
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Extract data between the end of the first occurence of findStart
-        /// and the start of findEnd.
-        /// </summary>
-        /// <param name="value">The string to search</param>
-        /// <param name="findStart">After which to extract</param>
-        /// <param name="findEnd">until string is extracted</param>
-        /// <returns></returns>
-        public static string Extract(this string value, string findStart,
-            string findEnd) {
-            Contract.Assert(value != null);
-            var start = 0;
-            if (!string.IsNullOrEmpty(findStart)) {
-                start = value.IndexOf(findStart, 0, StringComparison.Ordinal);
-                if (start == -1) {
-                    return string.Empty;
-                }
-                start += findStart.Length;
-            }
-            if (string.IsNullOrEmpty(findEnd)) {
-                return value.Substring(start);
-            }
-            var end = value.IndexOf(findEnd, start, StringComparison.Ordinal);
-            if (end == -1) {
-                return string.Empty;
-            }
-            return value.Substring(start, end - start);
         }
 
         /// <summary>

@@ -11,12 +11,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public static class MessageSchemaTypes {
 
         /// <summary>
-        /// Message contains discover requests
-        /// </summary>
-        public const string DiscoveryRequest =
-            "application/x-discovery-request-v2-json";
-
-        /// <summary>
         /// Message contains discovery events
         /// </summary>
         public const string DiscoveryEvents =
@@ -27,11 +21,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         public const string DiscoveryMessage =
             "application/x-discovery-message-v2-json";
-
-        /// <summary>
-        /// Content is a nodeset
-        /// </summary>
-        public const string NodeSet =
-            "application/x-node-set-v1";
     }
 }

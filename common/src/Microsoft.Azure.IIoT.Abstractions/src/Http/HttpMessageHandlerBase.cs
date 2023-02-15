@@ -23,11 +23,6 @@ namespace Microsoft.Azure.IIoT.Http {
         public Func<string, bool> IsFor { get; protected set; }
 
         /// <inheritdoc/>
-        public virtual void Configure(IHttpHandlerHost configuration) {
-            // No op
-        }
-
-        /// <inheritdoc/>
         public virtual Task OnRequestAsync(string resourceId, Uri requestUri,
             HttpRequestHeaders headers, HttpContent content, CancellationToken ct) {
             return Task.CompletedTask;

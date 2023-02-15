@@ -49,13 +49,6 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
         public string TenantId { get; set; }
 
         /// <summary>
-        /// Gets user information including user Id. Some
-        /// elements in UserInfo might be null if not
-        /// returned by the service.
-        /// </summary>
-        public UserInfoModel UserInfo { get; set; }
-
-        /// <summary>
         /// Gets the entire Id Token if returned by the
         /// service or null if no Id Token is returned.
         /// </summary>

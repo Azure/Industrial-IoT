@@ -835,12 +835,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
         public abstract object ConvertTo(Type type);
 
         /// <summary>
-        /// Update the value to the new value.
-        /// </summary>
-        /// <param name="value"></param>
-        public abstract void AssignValue(object value);
-
-        /// <summary>
         /// Clone this item or entire tree
         /// </summary>
         /// <returns></returns>
@@ -2644,11 +2638,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
             public override VariantValue GetByPath(string path,
                 StringComparison compare) {
                 return Null;
-            }
-
-            /// <inheritdoc/>
-            public override void AssignValue(object value) {
-                throw new NotSupportedException("Not an object");
             }
 
             /// <inheritdoc/>

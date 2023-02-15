@@ -20,8 +20,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public PagedResult<ListNode> PagedNodeList { get; set; } = new PagedResult<ListNode>();
 
-        [Parameter]
-        public CredentialModel Credential { get; set; }
 
         public enum ActionType { Nothing, Read, Write, Call, Publish };
 

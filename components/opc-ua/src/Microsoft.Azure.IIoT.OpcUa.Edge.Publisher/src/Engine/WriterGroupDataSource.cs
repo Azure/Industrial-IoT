@@ -509,13 +509,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <summary>
-        /// Helper to deserialize credential info
-        /// </summary>
-        private class cred {
-            public string user { get; set; }
-            public string password { get; set; }
-        }
-        /// <summary>
         /// Iterates the array and add up all values
         /// </summary>
         private static long CalculateSumForRingBuffer(long[] array, ref int lastPointer,

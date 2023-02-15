@@ -48,6 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -62,6 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Diagnostics = model.Diagnostics.ToApiModel()
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -164,6 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -179,6 +182,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -192,6 +197,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Description = model.Description
                 };
         }
+
+
+
 
         /// <summary>
         /// Create api model from service model
@@ -212,6 +220,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -230,6 +240,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -246,6 +257,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -260,6 +273,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     NetworkMessageNumber = model.NetworkMessageNumber
                 };
         }
+
 
         /// <summary>
         /// Create from service model
@@ -323,6 +337,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -340,6 +355,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -355,6 +372,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     UseStandardsCompliantEncoding = model.UseStandardsCompliantEncoding,
                 };
         }
+
 
         /// <summary>
         /// Create api model from service model
@@ -393,62 +411,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
-        /// <summary>
-        /// Create twin model
-        /// </summary>
-        /// <param name="model"></param>
-        public static IdentityTokenApiModel ToApiModel(
-            this IdentityTokenModel model) {
-            return model == null
-                ? null
-                : new IdentityTokenApiModel {
-                    Identity = model.Identity,
-                    Key = model.Key,
-                    Expires = model.Expires
-                };
-        }
-
-        /// <summary>
-        /// Convert to service model
-        /// </summary>
-        /// <returns></returns>
-        public static IdentityTokenModel ToServiceModel(
-            this IdentityTokenApiModel model) {
-            return model == null
-                ? null
-                : new IdentityTokenModel {
-                    Identity = model.Identity,
-                    Key = model.Key,
-                    Expires = model.Expires
-                };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static LocalizedTextApiModel ToApiModel(
-            this LocalizedTextModel model) {
-            return model == null
-                ? null
-                : new LocalizedTextApiModel {
-                    Locale = model.Locale,
-                    Text = model.Text
-                };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static LocalizedTextModel ToServiceModel(
-            this LocalizedTextApiModel model) {
-            return model == null
-                ? null
-                : new LocalizedTextModel {
-                    Locale = model.Locale,
-                    Text = model.Text
-                };
-        }
 
         /// <summary>
         /// Create api model from service model
@@ -465,6 +427,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -480,6 +444,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -494,6 +460,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -507,6 +475,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
+
 
         /// <summary>
         /// Create api model from service model
@@ -525,6 +495,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -540,6 +512,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToDictionary(k => k.Key, v => v.Value)
                 };
         }
+
 
         /// <summary>
         /// Create api model from service model
@@ -565,6 +538,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     TypeDefinitionId = model.TypeDefinitionId,
                 };
         }
+
 
         /// <summary>
         /// Create api model
@@ -625,6 +599,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -649,6 +624,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -667,6 +645,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -684,6 +664,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -700,6 +682,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -714,6 +698,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     SubscriptionSettings = model.SubscriptionSettings.ToServiceModel()
                 };
         }
+
 
         /// <summary>
         /// Create api model from service model
@@ -745,6 +730,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -774,6 +761,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     SubstituteValue = model.SubstituteValue?.Copy()
                 };
         }
+
 
         /// <summary>
         /// Create api model from service model
@@ -810,6 +798,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -840,6 +830,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -869,6 +861,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -885,6 +879,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -899,6 +895,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     MessagingMode = (OpcUa.Publisher.Models.MessagingMode?)model.MessagingMode
                 };
         }
+
 
         /// <summary>
         /// Create api model from service model
@@ -918,6 +915,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -934,6 +933,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     SamplingOffset = model.SamplingOffset
                 };
         }
+
 
         /// <summary>
         /// Create api model from service model
@@ -968,6 +968,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -979,6 +980,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     ContinuationToken = model.ContinuationToken
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -1008,6 +1010,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -1024,6 +1027,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -1036,6 +1041,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Header = model.Header?.ToApiModel()
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -1063,6 +1069,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -1076,6 +1083,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create api model from service model
         /// </summary>
@@ -1088,6 +1097,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Header = model.Header?.ToApiModel()
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -1115,6 +1125,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -1127,6 +1138,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     ErrorInfo = model.ErrorInfo.ToServiceModel()
                 };
         }
+
+
 
         /// <summary>
         /// Create api model from service model
@@ -1144,6 +1157,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Header = model.Header?.ToApiModel()
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -1180,6 +1194,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -1197,6 +1212,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
 
         /// <summary>
         /// Create api model from service model
@@ -1259,6 +1275,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         }
 
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -1274,6 +1291,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     UseSlopedExtrapolation = model.UseSlopedExtrapolation
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -1291,6 +1309,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -1303,6 +1322,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -1314,6 +1334,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     EventIds = model.EventIds
                 };
         }
+
 
         /// <summary>
         /// Create api model
@@ -1328,6 +1349,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -1341,6 +1363,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -1352,6 +1375,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     ReqTimes = model.ReqTimes
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -1365,6 +1389,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -1377,6 +1402,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     StartTime = model.StartTime
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -1501,6 +1527,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create from api model
         /// </summary>
@@ -1518,6 +1545,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     ErrorInfo = model.ErrorInfo.ToServiceModel()
                 };
         }
+
 
         /// <summary>
         /// Create from service model
@@ -1645,6 +1673,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Convert to api model
         /// </summary>
@@ -1665,6 +1694,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Header = model.Header.ToApiModel()
                 };
         }
+
 
         /// <summary>
         /// Convert to service model
@@ -1705,6 +1735,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create to service model
         /// </summary>
@@ -1722,6 +1753,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     ErrorInfo = model.ErrorInfo.ToServiceModel()
                 };
         }
+
+
 
         /// <summary>
         /// Convert to api model
@@ -1742,6 +1775,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Header = model.Header.ToApiModel()
                 };
         }
+
 
         /// <summary>
         /// Convert to service model
@@ -1795,6 +1829,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -1809,6 +1844,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -1825,6 +1861,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -1838,6 +1875,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -1882,6 +1920,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -1896,6 +1935,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Filter = model.Filter.ToApiModel()
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -1912,6 +1952,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -1926,6 +1967,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -1939,6 +1981,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     NumValues = model.NumValues
                 };
         }
+
 
         /// <summary>
         /// Create api model
@@ -1956,6 +1999,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -1972,6 +2016,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -1985,6 +2030,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -1997,6 +2043,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     UseSimpleBounds = model.UseSimpleBounds
                 };
         }
+
 
         /// <summary>
         /// Create api model
@@ -2013,6 +2060,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -2027,6 +2075,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     ReturnBounds = model.ReturnBounds
                 };
         }
+
 
         /// <summary>
         /// Create api model
@@ -2043,6 +2092,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -2058,6 +2108,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model from api model
         /// </summary>
@@ -2071,6 +2122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
 
         /// <summary>
         /// Create service model from api model
@@ -2116,6 +2168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -2146,6 +2199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -2162,6 +2216,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
 
         /// <summary>
         /// Create service model
@@ -2180,6 +2235,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -2197,6 +2253,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -2213,6 +2270,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
+
 
         /// <summary>
         /// Create api model
@@ -2238,6 +2297,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Convert to service model
         /// </summary>
@@ -2261,6 +2321,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     DiscoveryProfileUri = model.DiscoveryProfileUri
                 };
         }
+
 
         /// <summary>
         /// Convert to api model
@@ -2286,6 +2347,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Capabilities = model.Capabilities
                 };
         }
+
 
         /// <summary>
         /// Convert to service model
@@ -2326,6 +2388,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -2339,6 +2402,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Id = model.Id
                 };
         }
+
+
 
         /// <summary>
         /// Convert to api model
@@ -2361,6 +2426,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     DiscoveryProfileUri = model.DiscoveryProfileUri
                 };
         }
+
 
         /// <summary>
         /// Convert to service model
@@ -2399,6 +2465,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -2413,6 +2480,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Sites = model.Sites?.ToList()
                 };
         }
+
 
         /// <summary>
         /// Create api model
@@ -2432,6 +2500,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -2449,6 +2518,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                    OpcUa.Core.Models.CredentialType.None
                 };
         }
+
 
         /// <summary>
         /// Create api model
@@ -2473,6 +2543,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -2495,6 +2566,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Connected = model.Connected
                 };
         }
+
 
         /// <summary>
         /// Create api model
@@ -2591,6 +2663,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Convert to Api model
         /// </summary>
@@ -2604,6 +2677,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Convert to service model
         /// </summary>
@@ -2616,6 +2690,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Id = model.Id
                 };
         }
+
 
         /// <summary>
         /// Convert to Api model
@@ -2631,6 +2706,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Discovery = (DiscoveryMode?)model.Discovery
                 };
         }
+
 
         /// <summary>
         /// Convert back to service model
@@ -2693,6 +2769,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -2707,6 +2784,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     ActivationState = (Registry.Models.EndpointActivationState?)model.ActivationState
                 };
         }
+
 
         /// <summary>
         /// Create api model
@@ -2727,6 +2805,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -2746,6 +2825,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -2763,6 +2843,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -2779,6 +2860,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
 
         /// <summary>
         /// Create api model
@@ -2803,6 +2885,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -2825,6 +2908,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     SupervisorId = model.SupervisorId
                 };
         }
+
+
 
         /// <summary>
         /// Convert to Api model
@@ -2850,6 +2935,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     IncludeNotSeenSince = model.IncludeNotSeenSince
                 };
         }
+
 
         /// <summary>
         /// Convert back to service model
@@ -2988,6 +3074,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -3007,6 +3094,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -3023,6 +3112,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     JobOrchestratorUrl = model.JobOrchestratorUrl,
                 };
         }
+
+
 
         /// <summary>
         /// Convert to service model
@@ -3041,6 +3132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -3057,6 +3149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
 
         /// <summary>
         /// Create services model
@@ -3075,6 +3168,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Convert to api model
         /// </summary>
@@ -3089,6 +3184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Connected = model.Connected
                 };
         }
+
 
         /// <summary>
         /// Convert to service model
@@ -3105,6 +3201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Convert to api model
         /// </summary>
@@ -3119,6 +3216,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     LogLevel = (TraceLogLevel?)model.LogLevel,
                 };
         }
+
 
         /// <summary>
         /// Convert to service model
@@ -3150,6 +3248,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -3164,6 +3263,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     AuthorityId = model.AuthorityId
                 };
         }
+
 
         /// <summary>
         /// Convert to service model
@@ -3200,6 +3300,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -3219,6 +3320,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -3235,6 +3337,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
 
         /// <summary>
         /// Create service model
@@ -3253,6 +3356,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Convert to api model
         /// </summary>
@@ -3268,6 +3373,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     Connected = model.Connected
                 };
         }
+
 
         /// <summary>
         /// Convert to service model
@@ -3304,6 +3410,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -3323,6 +3430,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
+
         /// <summary>
         /// Convert to api model
         /// </summary>
@@ -3337,6 +3446,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     LogLevel = (TraceLogLevel?)model.LogLevel
                 };
         }
+
 
         /// <summary>
         /// Convert to service model
@@ -3372,6 +3482,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -3391,6 +3502,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create api model
         /// </summary>
@@ -3409,6 +3521,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 };
         }
 
+
         /// <summary>
         /// Create service model
         /// </summary>
@@ -3426,6 +3539,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .ToList()
                 };
         }
+
 
         /// <summary>
         /// Create from service model

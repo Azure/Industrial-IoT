@@ -86,51 +86,6 @@ namespace Microsoft.Azure.IIoT.Hub {
         }
 
         /// <summary>
-        /// Provide custom serialization by chunking a buffer
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static Dictionary<string, string> EncodeAsDictionary(this byte[] buffer) {
-            if (buffer == null) {
-                return null;
-            }
-            var str = buffer.ToBase64String() ?? string.Empty;
-            var result = new Dictionary<string, string>();
-            for (var i = 0; ; i++) {
-                if (str.Length < 512) {
-                    result.Add($"part_{i}", str);
-                    break;
-                }
-                var part = str.Substring(0, 512);
-                result.Add($"part_{i}", part);
-                str = str.Substring(512);
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Convert chunks back to buffer
-        /// </summary>
-        /// <param name="dictionary"></param>
-        /// <returns></returns>
-        public static byte[] DecodeAsByteArray(this Dictionary<string, string> dictionary) {
-            if (dictionary == null) {
-                return null;
-            }
-            var str = new StringBuilder();
-            for (var i = 0; ; i++) {
-                if (!dictionary.TryGetValue($"part_{i}", out var chunk)) {
-                    break;
-                }
-                str.Append(chunk);
-            }
-            if (str.Length == 0) {
-                return null;
-            }
-            return str.ToString().DecodeAsBase64();
-        }
-
-        /// <summary>
         /// Convert string set to queryable dictionary
         /// </summary>
         /// <param name="set"></param>

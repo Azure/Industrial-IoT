@@ -11,11 +11,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
     using Microsoft.Azure.IIoT.Messaging.EventHub;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
-    using Microsoft.Azure.IIoT.Storage;
-    using Microsoft.Azure.IIoT.Storage.CosmosDb;
-    using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
 
@@ -23,8 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
-        IEventHubConsumerConfig, IServiceBusConfig, IIoTHubConfig,
-        IEventProcessorConfig, ICosmosDbConfig, IItemContainerConfig,
+        IEventHubConsumerConfig, IIoTHubConfig, IEventProcessorConfig,
         IMetricServerConfig {
 
         /// <inheritdoc/>
@@ -34,18 +28,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
-
-        /// <inheritdoc/>
-        public string ServiceBusConnString => _sb.ServiceBusConnString;
-
-        /// <inheritdoc/>
-        public string DbConnectionString => _cosmos.DbConnectionString;
-        /// <inheritdoc/>
-        public int? ThroughputUnits => _cosmos.ThroughputUnits;
-        /// <inheritdoc/>
-        public string ContainerName => "iiot_opc";
-        /// <inheritdoc/>
-        public string DatabaseName => "iiot_opc";
 
         /// <inheritdoc/>
         public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
@@ -84,16 +66,12 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
             base(configuration) {
 
             _hub = new IoTHubConfig(configuration);
-            _sb = new ServiceBusConfig(configuration);
             _ep = new EventProcessorConfig(configuration);
             _eh = new IoTHubEventConfig(configuration);
-            _cosmos = new CosmosDbConfig(configuration);
         }
 
         private readonly EventProcessorConfig _ep;
         private readonly IoTHubEventConfig _eh;
-        private readonly ServiceBusConfig _sb;
-        private readonly CosmosDbConfig _cosmos;
         private readonly IoTHubConfig _hub;
     }
 }

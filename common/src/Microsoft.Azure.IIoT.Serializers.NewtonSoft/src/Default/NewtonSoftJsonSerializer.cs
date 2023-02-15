@@ -301,37 +301,6 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             }
 
             /// <inheritdoc/>
-            public override void AssignValue(object value) {
-                switch (Token.Parent) {
-                    case JObject o:
-                        // Part of an object - update object
-                        var property = o.Properties().FirstOrDefault(p => p.Value == Token);
-                        if (property == null) {
-                            throw new ArgumentOutOfRangeException("No parent found");
-                        }
-                        Token = FromObject(value);
-                        property.Value = Token;
-                        break;
-                    case JArray a:
-                        // Part of an object - update object
-                        for (var i = 0; i < a.Count; i++) {
-                            if (a[i] == Token) {
-                                Token = FromObject(value);
-                                a[i] = Token;
-                                return;
-                            }
-                        }
-                        throw new ArgumentOutOfRangeException("No parent found");
-                    case JProperty p:
-                        Token = FromObject(value);
-                        p.Value = Token;
-                        break;
-                    default:
-                        throw new NotSupportedException("Not an object or array");
-                }
-            }
-
-            /// <inheritdoc/>
             protected override bool TryEqualsValue(object o, out bool equality) {
                 if (o is JToken t) {
                     equality = DeepEquals(Token, t);

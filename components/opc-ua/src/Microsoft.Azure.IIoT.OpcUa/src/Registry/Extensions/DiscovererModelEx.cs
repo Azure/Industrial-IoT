@@ -80,26 +80,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             return that.Id == model.Id;
         }
-
-        /// <summary>
-        /// Deep clone
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static DiscovererModel Clone(this DiscovererModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new DiscovererModel {
-                Connected = model.Connected,
-                Discovery = model.Discovery,
-                RequestedMode = model.RequestedMode,
-                DiscoveryConfig = model.DiscoveryConfig.Clone(),
-                RequestedConfig = model.RequestedConfig.Clone(),
-                Id = model.Id,
-                OutOfSync = model.OutOfSync,
-                SiteId = model.SiteId
-            };
-        }
     }
 }

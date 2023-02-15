@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Api.Publisher.Adapter {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Implements historian services as adapter on top of api.
@@ -146,4 +147,5 @@ namespace Microsoft.Azure.IIoT.Api.Publisher.Adapter {
 
         private readonly IHistoryServiceApi _client;
     }
+#endif
 }

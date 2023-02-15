@@ -12,15 +12,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     public static class DeviceModelEx {
 
         /// <summary>
-        /// Check whether device is connected
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static bool? IsConnected(this DeviceModel model) {
-            return model.ConnectionState?.EqualsIgnoreCase("Connected");
-        }
-
-        /// <summary>
         /// Clone twin
         /// </summary>
         /// <param name="model"></param>

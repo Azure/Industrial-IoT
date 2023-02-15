@@ -15,16 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface ISessionHandle : IAsyncDisposable {
 
         /// <summary>
-        /// Connection
-        /// </summary>
-        ConnectionModel Connection { get; }
-
-        /// <summary>
-        /// State
-        /// </summary>
-        EndpointConnectivityState State { get; }
-
-        /// <summary>
         /// Connectivity state change events
         /// </summary>
         event EventHandler<EndpointConnectivityState> OnConnectionStateChange;

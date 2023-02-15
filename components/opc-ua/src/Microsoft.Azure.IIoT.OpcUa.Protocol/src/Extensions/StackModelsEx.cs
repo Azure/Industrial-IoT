@@ -42,20 +42,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
-        /// Convert request header to diagnostics configuration model
-        /// </summary>
-        /// <param name="requestHeader"></param>
-        /// <returns></returns>
-        public static DiagnosticsModel ToServiceModel(this RequestHeader requestHeader) {
-            return new DiagnosticsModel {
-                AuditId = requestHeader.AuditEntryId,
-                Level = ((DiagnosticsMasks)requestHeader.ReturnDiagnostics)
-                    .ToServiceType(),
-                TimeStamp = requestHeader.Timestamp
-            };
-        }
-
-        /// <summary>
         /// Convert diagnostics to request header
         /// </summary>
         /// <param name="viewModel"></param>
@@ -72,43 +58,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 ViewVersion = viewModel.Version ??
                     0,
                 ViewId = viewModel.ViewId.ToNodeId(context)
-            };
-        }
-
-        /// <summary>
-        /// Convert request header to diagnostics configuration model
-        /// </summary>
-        /// <param name="view"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static BrowseViewModel ToServiceModel(this ViewDescription view,
-            IServiceMessageContext context) {
-            if (view == null) {
-                return null;
-            }
-            return new BrowseViewModel {
-                Timestamp = view.Timestamp == DateTime.MinValue ?
-                    (DateTime?)null : view.Timestamp,
-                Version = view.ViewVersion == 0 ?
-                    (uint?)null : view.ViewVersion,
-                ViewId = view.ViewId.AsString(context)
-            };
-        }
-
-        /// <summary>
-        /// Convert service model to role permission type
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static RolePermissionType ToStackModel(this RolePermissionModel model,
-            IServiceMessageContext context) {
-            if (model == null) {
-                return null;
-            }
-            return new RolePermissionType {
-                RoleId = model.RoleId.ToNodeId(context),
-                Permissions = (uint)model.Permissions.ToStackType()
             };
         }
 
@@ -142,23 +91,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 DeadbandValue = model.DeadbandValue ?? 0.0,
                 DeadbandType = (uint)model.DeadbandType.ToStackType(),
                 Trigger = model.DataChangeTrigger.ToStackType()
-            };
-        }
-
-        /// <summary>
-        /// Convert to service model
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static DataChangeFilterModel ToServiceModel(this DataChangeFilter model) {
-            if (model == null) {
-                return null;
-            }
-            return new DataChangeFilterModel {
-                DeadbandValue = (int)model.DeadbandValue == 0 ? (double?)null :
-                    model.DeadbandValue,
-                DeadbandType = ((DeadbandType)model.DeadbandType).ToServiceType(),
-                DataChangeTrigger = model.Trigger.ToServiceType()
             };
         }
 
@@ -290,27 +222,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
-        /// Convert service model to user token policy collection
-        /// </summary>
-        /// <param name="policies"></param>
-        /// <returns></returns>
-        public static UserTokenPolicyCollection ToStackModel(
-            this List<AuthenticationMethodModel> policies) {
-            if (policies == null || policies.Count == 0) {
-                return new UserTokenPolicyCollection{
-                     new UserTokenPolicy {
-                         PolicyId = "Anonymous",
-                         TokenType = UserTokenType.Anonymous
-                     }
-                };
-            }
-            return new UserTokenPolicyCollection(policies
-                .Select(p => p.ToStackModel())
-                .Where(p => p != null)
-                .Distinct());
-        }
-
-        /// <summary>
         /// Convert user token policy to service model
         /// </summary>
         /// <param name="policy"></param>
@@ -354,40 +265,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                             // TODO
                             return null;
                     }
-                    break;
-                default:
-                    return null;
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Convert service model to user token policy
-        /// </summary>
-        /// <param name="policy"></param>
-        /// <returns></returns>
-        public static UserTokenPolicy ToStackModel(this AuthenticationMethodModel policy) {
-            if (policy == null) {
-                return null;
-            }
-            var result = new UserTokenPolicy {
-                SecurityPolicyUri = policy.SecurityPolicy,
-                PolicyId = policy.Id
-            };
-            switch (policy.CredentialType) {
-                case CredentialType.None:
-                    result.TokenType = UserTokenType.Anonymous;
-                    break;
-                case CredentialType.UserName:
-                    result.TokenType = UserTokenType.UserName;
-                    break;
-                case CredentialType.X509Certificate:
-                    result.TokenType = UserTokenType.Certificate;
-                    break;
-                case CredentialType.JwtToken:
-                    result.TokenType = UserTokenType.IssuedToken;
-                    result.IssuedTokenType = "http://opcfoundation.org/UA/UserToken#JWT";
-                    result.IssuerEndpointUrl = policy.Configuration?.ToString();
                     break;
                 default:
                     return null;
@@ -463,16 +340,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
                         $"Token type {authentication.Type} is not supported");
             }
-        }
-
-        /// <summary>
-        /// Convert user identity to service model
-        /// </summary>
-        /// <param name="identity"></param>
-        /// <param name="serializer"></param>
-        /// <returns></returns>
-        public static CredentialModel ToServiceModel(this IUserIdentity identity, IJsonSerializer serializer) {
-            return ToServiceModel(identity?.GetIdentityToken(), serializer);
         }
 
         /// <summary>

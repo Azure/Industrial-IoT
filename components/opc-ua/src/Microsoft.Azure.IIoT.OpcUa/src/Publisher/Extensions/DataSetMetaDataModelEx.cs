@@ -27,7 +27,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             };
         }
 
-
         /// <summary>
         /// Compare items
         /// </summary>

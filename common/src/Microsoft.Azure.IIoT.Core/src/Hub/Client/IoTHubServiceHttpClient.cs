@@ -233,24 +233,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         }
 
         /// <inheritdoc/>
-        public Task ApplyConfigurationAsync(string deviceId,
-            ConfigurationContentModel configuration, CancellationToken ct) {
-            if (configuration == null) {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-            if (string.IsNullOrEmpty(deviceId)) {
-                throw new ArgumentNullException(nameof(deviceId));
-            }
-            return Retry.WithExponentialBackoff(_logger, ct, async () => {
-                var request = NewRequest(
-                    $"/devices/{ToResourceId(deviceId, null)}/applyConfigurationContent");
-                _serializer.SerializeToRequest(request, configuration);
-                var response = await _httpClient.PostAsync(request, ct);
-                response.Validate();
-            }, kMaxRetryCount);
-        }
-
-        /// <inheritdoc/>
         public Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId,
             CancellationToken ct) {
             if (string.IsNullOrEmpty(deviceId)) {

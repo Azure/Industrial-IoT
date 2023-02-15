@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.Api.Registry.Events;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
-    using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
@@ -139,7 +138,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             app.UseAuthorization();
             app.UseHttpsRedirect();
 
-            app.UseCorrelation();
             app.UseSwagger();
             app.UseMetricServer();
             app.UseHttpMetrics();

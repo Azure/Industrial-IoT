@@ -56,6 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnEndpointEnabledAsync(RegistryOperationContextModel context,
             EndpointInfoModel endpoint);
+#if ZOMBIE
 
         /// <summary>
         /// Updated endpoint
@@ -65,6 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnEndpointUpdatedAsync(RegistryOperationContextModel context,
             EndpointInfoModel endpoint);
+#endif
 
         /// <summary>
         /// Deleted endpoint

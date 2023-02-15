@@ -50,20 +50,6 @@ namespace System.Collections.Generic {
         }
 
         /// <summary>
-        /// Returns the contents of a dictionary as typed dictionary
-        /// </summary>
-        /// <typeparam name="K"></typeparam>
-        /// <typeparam name="V"></typeparam>
-        /// <param name="dictionary"></param>
-        /// <returns></returns>
-        public static Dictionary<K, V> ToDictionary<K, V>(
-            this IDictionary dictionary) {
-            return dictionary
-                .ToKeyValuePairs<K, V>()
-                .ToDictionary(k => k.Key, v => v.Value);
-        }
-
-        /// <summary>
         /// Safe dictionary equals
         /// </summary>
         /// <typeparam name="K"></typeparam>
@@ -92,42 +78,6 @@ namespace System.Collections.Generic {
             else {
                 dict.Add(key, value);
             }
-        }
-
-        /// <summary>
-        /// Get or add item
-        /// </summary>
-        /// <typeparam name="K"></typeparam>
-        /// <typeparam name="V"></typeparam>
-        /// <param name="dict"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        public static V GetOrAdd<K, V>(this IDictionary<K, V> dict,
-            K key, V value) {
-            if (dict.TryGetValue(key, out var result)) {
-                return result;
-            }
-            dict.Add(key, value);
-            return value;
-        }
-
-
-        /// <summary>
-        /// Get or create new item
-        /// </summary>
-        /// <typeparam name="K"></typeparam>
-        /// <typeparam name="V"></typeparam>
-        /// <param name="dict"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static V GetOrCreate<K, V>(this IDictionary<K, V> dict, K key)
-            where V : new() {
-            if (dict.TryGetValue(key, out var result)) {
-                return result;
-            }
-            result = new V();
-            dict[key] = result;
-            return result;
         }
     }
 }

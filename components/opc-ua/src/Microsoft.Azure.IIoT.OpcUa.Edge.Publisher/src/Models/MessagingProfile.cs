@@ -16,11 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     public class MessagingProfile {
 
         /// <summary>
-        /// Returns true if json encoding is used
-        /// </summary>
-        public bool IsJson => MessageEncoding.HasFlag(MessageEncoding.Json);
-
-        /// <summary>
         /// Messaging mode
         /// </summary>
         public MessagingMode MessagingMode { get; }

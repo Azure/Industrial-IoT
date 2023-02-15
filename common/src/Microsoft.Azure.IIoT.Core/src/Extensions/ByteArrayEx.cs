@@ -38,26 +38,6 @@ namespace System {
         }
 
         /// <summary>
-        /// Test base 16
-        /// </summary>
-        /// <param name="base16"></param>
-        /// <param name="upperCase"></param>
-        /// <returns></returns>
-        public static bool IsBase16(this string base16,
-            bool upperCase = true) {
-            if (string.IsNullOrWhiteSpace(base16)) {
-                return false;
-            }
-            var charLookup = upperCase ?
-                "0123456789ABCDEF" : "0123456789abcdef";
-            foreach (var c in base16) {
-                if (!charLookup.Contains(c))
-                    return false;
-            }
-            return true;
-        }
-
-        /// <summary>
         /// Convert to base 64
         /// </summary>
         /// <param name="value"></param>
@@ -88,35 +68,6 @@ namespace System {
             }
 #pragma warning restore SYSLIB0021 // Type or member is obsolete
         }
-
-        /// <summary>
-        /// Convert a byte array to string and limit to certain size.
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <param name="size"></param>
-        public static string ToString(this byte[] bytes, int size) {
-            var truncate = bytes.Length > size;
-            var length = truncate ? size : bytes.Length;
-            var ascii = IsAscii(bytes, length);
-            var content = ascii ? Encoding.ASCII.GetString(bytes, 0, length) :
-                BitConverter.ToString(bytes, 0, length);
-            length = content.IndexOf('\n');
-            if (length > 0) {
-                return content.Substring(0, length);
-            }
-            return content;
-        }
-
-        /// <summary>
-        /// Check whether bytes are all ascii
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static bool IsAscii(this byte[] bytes, int length) {
-            return bytes.Take(length).All(x => x > 32 || x <= 127);
-        }
-
 
         /// <summary>
         /// Zip string to byte array

@@ -15,17 +15,6 @@ namespace Microsoft.Azure.IIoT.Crypto {
     public interface ISecureElement {
 
         /// <summary>
-        /// Create a certificate
-        /// </summary>
-        /// <param name="commonName"></param>
-        /// <param name="expiration"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<X509Certificate2Collection> CreateServerCertificateAsync(
-            string commonName, DateTime expiration,
-            CancellationToken ct = default);
-
-        /// <summary>
         /// Decrypt
         /// </summary>
         /// <param name="initializationVector"></param>

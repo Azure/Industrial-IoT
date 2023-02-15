@@ -26,9 +26,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string SupervisorId { get; set; } = string.Empty;
 
-        [Parameter]
-        public string Page { get; set; } = "1";
-
         public PagedResult<ListNode> NodeList { get; set; } = new PagedResult<ListNode>();
         public PagedResult<ListNode> PagedNodeList { get; set; } = new PagedResult<ListNode>();
         public PagedResult<ListNode> PublishedNodes { get; set; } = new PagedResult<ListNode>();

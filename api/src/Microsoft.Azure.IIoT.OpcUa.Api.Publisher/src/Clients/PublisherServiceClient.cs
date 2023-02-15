@@ -78,6 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<PublishStartResponseApiModel>(response);
         }
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<PublishBulkResponseApiModel> NodePublishBulkAsync(string endpointId,
@@ -95,6 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<PublishBulkResponseApiModel>(response);
         }
+#endif
 
         /// <inheritdoc/>
         public async Task<PublishedItemListResponseApiModel> NodePublishListAsync(

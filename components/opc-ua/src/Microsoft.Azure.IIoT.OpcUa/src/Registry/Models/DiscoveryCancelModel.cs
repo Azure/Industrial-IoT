@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Id of discovery request
         /// </summary>
         public string Id { get; set; }
-
-        /// <summary>
-        /// Operation audit context
-        /// </summary>
-        public RegistryOperationContextModel Context { get; set; }
     }
 }

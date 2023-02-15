@@ -12,8 +12,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Deploy;
-    using Microsoft.Azure.IIoT.Deploy.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -64,17 +62,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         public bool SignalRServerLess => _sr.SignalRServerLess;
 
         /// <inheritdoc/>
-        public string DockerServer => _cr.DockerServer;
-        /// <inheritdoc/>
-        public string DockerUser => _cr.DockerUser;
-        /// <inheritdoc/>
-        public string DockerPassword => _cr.DockerPassword;
-        /// <inheritdoc/>
-        public string ImagesNamespace => _cr.ImagesNamespace;
-        /// <inheritdoc/>
-        public string ImagesTag => _cr.ImagesTag;
-
-        /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>
@@ -97,10 +84,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
             _cors = new CorsConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
-            _cr = new ContainerRegistryConfig(configuration);
         }
 
-        private readonly ContainerRegistryConfig _cr;
         private readonly OpenApiConfig _openApi;
         private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;

@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
     /// <summary>
     /// Event bus host to auto inject handlers
     /// </summary>
-    public class EventBusHost : IHostProcess, IAsyncDisposable {
+    public class EventBusHost : IHostProcess, IAsyncDisposable, IDisposable {
 
         /// <summary>
         /// Auto registers handlers in client

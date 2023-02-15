@@ -11,12 +11,11 @@ namespace Microsoft.Azure.IIoT.App.Models {
         public string Id { get; set; }
         public NodeClass NodeClass { get; set; }
         public NodeAccessLevel AccessLevel { get; set; }
-        public string Executable { get; set; }
-        public NodeEventNotifier EventNotifier { get; set; }
+
         public string NextParentId { get; set; }
         public string ParentName { get; set; }
         public bool Children { get; set; }
-        public string ImageUrl { get; set; }
+
         public string NodeName { get; set; }
         public string DiscovererId { get; set; }
         public string Value { get; set; }

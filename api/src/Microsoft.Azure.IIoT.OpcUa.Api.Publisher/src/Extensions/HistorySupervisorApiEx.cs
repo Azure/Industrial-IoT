@@ -9,11 +9,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
     using Microsoft.Azure.IIoT.Serializers;
     using System.Threading;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Extensions
     /// </summary>
     public static class HistorySupervisorApiEx {
+#if ZOMBIE
 
         /// <summary>
         /// Read node history with custom encoded extension object details
@@ -28,6 +30,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.HistoryReadRawAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read history call with custom encoded extension object details
@@ -42,6 +46,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.HistoryReadRawNextAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Update using raw extension object details
@@ -56,6 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.HistoryUpdateRawAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
 
         /// <summary>
         /// New connection
@@ -72,4 +79,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             };
         }
     }
+#endif
 }

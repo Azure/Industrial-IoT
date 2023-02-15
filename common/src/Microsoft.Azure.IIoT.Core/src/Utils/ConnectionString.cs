@@ -135,60 +135,6 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <summary>
-        /// Create service bus or event hub connection string
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="keyName"></param>
-        /// <param name="token"></param>
-        public static ConnectionString CreateWithEndpointAndToken(Uri endpoint,
-            string keyName, string token) {
-            var connectionString = new ConnectionString();
-            connectionString._items[Id.Endpoint] = endpoint.ToString();
-            connectionString._items[Id.SharedAccessKeyName] = keyName;
-            connectionString._items[Id.SharedAccessToken] = token;
-            return connectionString;
-        }
-
-        /// <summary>
-        /// Create endpoint access string
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public static ConnectionString CreateFromAccessToken(IdentityTokenModel token) {
-            var connectionString = new ConnectionString();
-            connectionString._items[Id.Expires] = token.Expires.ToBinary().ToString();
-            connectionString._items[Id.Endpoint] = token.Identity;
-            connectionString._items[Id.AccessKey] = token.Key;
-            return connectionString;
-        }
-
-        /// <summary>
-        /// Create Signalr connection string
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="key"></param>
-        public static ConnectionString CreateWithEndpointAndAccessKey(Uri endpoint,
-            string key) {
-            var connectionString = new ConnectionString();
-            connectionString._items[Id.Endpoint] = endpoint.ToString();
-            connectionString._items[Id.AccessKey] = key;
-            return connectionString;
-        }
-
-        /// <summary>
-        /// Create cosmos db connection string
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="key"></param>
-        public static ConnectionString CreateCosmosDbConnectionString(Uri endpoint,
-            string key) {
-            var connectionString = new ConnectionString();
-            connectionString._items[Id.AccountEndpoint] = endpoint.ToString();
-            connectionString._items[Id.AccountKey] = key;
-            return connectionString;
-        }
-
-        /// <summary>
         /// Create cosmos db connection string
         /// </summary>
         /// <param name="accountName"></param>
@@ -236,36 +182,6 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <summary>
-        /// Create device connection string
-        /// </summary>
-        /// <param name="hostName"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static ConnectionString CreateDeviceConnectionString(string hostName,
-            string deviceId, string key) {
-            var connectionString = new ConnectionString();
-            connectionString._items[Id.HostName] = hostName;
-            connectionString._items[Id.DeviceId] = deviceId;
-            connectionString._items[Id.SharedAccessKey] = key;
-            return connectionString;
-        }
-
-        /// <summary>
-        /// Create device connection string
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public static ConnectionString CreateDeviceConnectionString(
-            IdentityTokenModel token) {
-            var connectionString = new ConnectionString();
-            connectionString._items[Id.Expires] = token.Expires.ToBinary().ToString();
-            connectionString._items[Id.DeviceId] = token.Identity;
-            connectionString._items[Id.AccessKey] = token.Key;
-            return connectionString;
-        }
-
-        /// <summary>
         /// Create module connection string
         /// </summary>
         /// <param name="hostName"></param>
@@ -291,24 +207,11 @@ namespace Microsoft.Azure.IIoT.Utils {
             var b = new StringBuilder();
             foreach (var kv in _items.Where(kv => kv.Value != null)) {
                 b.Append(kv.Key.ToString());
-                b.Append("=");
+                b.Append('=');
                 b.Append(kv.Value);
-                b.Append(";");
+                b.Append(';');
             }
             return b.ToString().TrimEnd(';');
-        }
-
-        /// <summary>
-        /// Convert to identity token
-        /// </summary>
-        /// <returns></returns>
-        public IdentityTokenModel ToIdentityToken() {
-            return new IdentityTokenModel {
-                Expires = this[Id.Expires] == null ? DateTime.UtcNow :
-                    DateTime.FromBinary(long.Parse(this[Id.Expires])),
-                Identity = this[Id.Endpoint] ?? this[Id.ModuleId] ?? this[Id.DeviceId],
-                Key = this[Id.AccessKey]
-            };
         }
 
         /// <summary>

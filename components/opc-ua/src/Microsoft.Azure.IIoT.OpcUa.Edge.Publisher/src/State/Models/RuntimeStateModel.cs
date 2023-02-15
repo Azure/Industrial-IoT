@@ -4,20 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State.Models {
-
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Model for reporting runtime state.
     /// </summary>
+    [DataContract]
     public class RuntimeStateModel {
 
         /// <summary> Defines the message type that is sent. </summary>
-        [DataMember(Name = "messageType", Order = 0, EmitDefaultValue = true)]
+        [DataMember(Name = "MessageType", Order = 0, EmitDefaultValue = true)]
         public MessageTypeEnum MessageType { get; set; }
 
         /// <summary> Defines the message version. </summary>
-        [DataMember(Name = "messageVersion", Order = 1, EmitDefaultValue = true)]
+        [DataMember(Name = "MessageVersion", Order = 1, EmitDefaultValue = true)]
         public int MessageVersion { get; } = 1;
     }
 }

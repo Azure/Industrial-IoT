@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string Page { get; set; } = "1";
 
-        public bool IsSearching { get; set; } = false;
         public bool IsOpen { get; set; } = false;
         public DiscovererInfo DiscovererData { get; set; }
         public string Status { get; set; }

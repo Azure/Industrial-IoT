@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Shared;
     using System.Collections.Generic;
 
@@ -13,35 +12,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
     /// Device twin model extensions
     /// </summary>
     public static class DeviceTwinModelEx {
-
-        /// <summary>
-        /// Convert twin to device
-        /// </summary>
-        /// <param name="twin"></param>
-        /// <returns></returns>
-        public static Device ToDevice(this DeviceTwinModel twin) {
-            if (twin == null) {
-                return null;
-            }
-            return new Device(twin.Id) {
-                Capabilities = twin.Capabilities?.ToCapabilities(),
-                Scope = twin.DeviceScope
-            };
-        }
-
-        /// <summary>
-        /// Convert twin to module
-        /// </summary>
-        /// <param name="twin"></param>
-        /// <returns></returns>
-        public static Module ToModule(this DeviceTwinModel twin) {
-            if (twin == null) {
-                return null;
-            }
-            return new Module(twin.Id, twin.ModuleId) {
-                ManagedBy = twin.Id
-            };
-        }
 
         /// <summary>
         /// Convert twin to twin
@@ -70,19 +40,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         }
 
         /// <summary>
-        /// Convert to twin patch
-        /// </summary>
-        /// <param name="props"></param>
-        /// <returns></returns>
-        public static Twin ToTwin(this Dictionary<string, VariantValue> props) {
-            return new Twin {
-                Properties = new TwinProperties {
-                    Desired = props?.ToTwinCollection()
-                }
-            };
-        }
-
-        /// <summary>
         /// Convert to twin collection
         /// </summary>
         /// <param name="props"></param>
@@ -94,36 +51,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 collection[item.Key] = item.Value.IsListOfValues ? item.Value.Values : item.Value.Value;
             }
             return collection;
-        }
-
-        /// <summary>
-        /// Convert twin to device twin model
-        /// </summary>
-        /// <param name="twin"></param>
-        /// <param name="serializer"></param>
-        /// <returns></returns>
-        public static DeviceTwinModel DeserializeTwin(this IJsonSerializer serializer, Twin twin) {
-            if (twin == null) {
-                return null;
-            }
-            return new DeviceTwinModel {
-                Id = twin.DeviceId,
-                Etag = twin.ETag,
-                ModuleId = twin.ModuleId,
-                ConnectionState = twin.ConnectionState?.ToString(),
-                LastActivityTime = twin.LastActivityTime,
-                Status = twin.Status?.ToString(),
-                StatusReason = twin.StatusReason,
-                StatusUpdatedTime = twin.StatusUpdatedTime,
-                Tags = serializer.DeserializeTwinProperties(twin.Tags),
-                Properties = new TwinPropertiesModel {
-                    Desired =
-                        serializer.DeserializeTwinProperties(twin.Properties?.Desired),
-                    Reported =
-                        serializer.DeserializeTwinProperties(twin.Properties?.Reported)
-                },
-                Capabilities = twin.Capabilities?.ToModel()
-            };
         }
 
         /// <summary>

@@ -10,8 +10,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using System.Text;
     using System.Text.RegularExpressions;
 
-    internal delegate bool TryParse<in TInput, TOutput>(TInput input, bool ignoreCase, out TOutput output);
-
     internal static class CommonExtensionMethods {
         private const char ValuePairDelimiter = ';';
         private const char ValuePairSeparator = '=';

@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Serilog;
     using System;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Endpoint event handler
@@ -83,4 +84,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         private readonly IIoTHubTwinServices _iothub;
         private readonly ILogger _logger;
     }
+#endif
 }

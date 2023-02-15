@@ -77,23 +77,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
-        /// Convert to service model
-        /// </summary>
-        /// <param name="encoder"></param>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static ContentFilterModel Encode(this IVariantEncoder encoder, ContentFilter model) {
-            if (model == null) {
-                return null;
-            }
-            return new ContentFilterModel {
-                Elements = model.Elements?
-                    .Select(e => encoder.Encode(e))
-                    .ToList()
-            };
-        }
-
-        /// <summary>
         /// Convert to stack model
         /// </summary>
         /// <param name="encoder"></param>
@@ -111,27 +94,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         .Select(e => new ExtensionObject(
                             encoder.Decode(e, onlySimpleAttributeOperands)))),
                 FilterOperator = model.FilterOperator.ToStackType()
-            };
-        }
-
-        /// <summary>
-        /// Convert to service model
-        /// </summary>
-        /// <param name="encoder"></param>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static ContentFilterElementModel Encode(this IVariantEncoder encoder,
-            ContentFilterElement model) {
-            if (model == null) {
-                return null;
-            }
-            return new ContentFilterElementModel {
-                FilterOperands = model.FilterOperands
-                    .Select(e => e.Body)
-                    .Cast<FilterOperand>()
-                    .Select(o => encoder.Encode(o))
-                    .ToList(),
-                FilterOperator = model.FilterOperator.ToServiceType()
             };
         }
 

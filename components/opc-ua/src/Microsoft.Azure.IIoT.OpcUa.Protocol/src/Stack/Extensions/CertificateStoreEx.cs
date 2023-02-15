@@ -48,22 +48,5 @@ namespace Opc.Ua {
                 store.Delete(cert.Thumbprint);
             }
         }
-
-        /// <summary>
-        /// </summary>
-        /// Try remove from trust store
-        /// <param name="store"></param>
-        /// <param name="certificates"></param>
-        /// <returns></returns>
-        public static bool TryRemove(this ICertificateStore store,
-            IEnumerable<X509Certificate2> certificates) {
-            try {
-                Remove(store, certificates);
-                return true;
-            }
-            catch {
-                return false;
-            }
-        }
     }
 }

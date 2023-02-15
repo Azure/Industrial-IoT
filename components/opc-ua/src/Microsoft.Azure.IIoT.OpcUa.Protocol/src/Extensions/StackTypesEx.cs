@@ -145,24 +145,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static BrowseDirection? ToServiceType(this UaBrowseDirection mode) {
-            switch (mode) {
-                case UaBrowseDirection.Forward:
-                    return BrowseDirection.Forward;
-                case UaBrowseDirection.Inverse:
-                    return BrowseDirection.Backward;
-                case UaBrowseDirection.Both:
-                    return BrowseDirection.Both;
-                default:
-                    return null;
-            }
-        }
-
-        /// <summary>
-        /// Convert browse direction
-        /// </summary>
-        /// <param name="mode"></param>
-        /// <returns></returns>
         public static UaBrowseDirection ToStackType(this BrowseDirection mode) {
             switch (mode) {
                 case BrowseDirection.Forward:
@@ -174,18 +156,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 default:
                     return UaBrowseDirection.Forward;
             }
-        }
-
-        /// <summary>
-        /// Convert Permissions
-        /// </summary>
-        /// <param name="permissions"></param>
-        /// <returns></returns>
-        public static UaPermissionType ToStackType(this RolePermissions? permissions) {
-            if (permissions == null) {
-                return UaPermissionType.None;
-            }
-            return (UaPermissionType)permissions;
         }
 
         /// <summary>
@@ -235,25 +205,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
-        /// Convert token type
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static CredentialType? ToServiceType(this UaTokenType type) {
-            switch (type) {
-                case UaTokenType.Anonymous:
-                    return CredentialType.None;
-                case UaTokenType.Certificate:
-                    return CredentialType.X509Certificate;
-                case UaTokenType.UserName:
-                case UaTokenType.IssuedToken:
-                    return CredentialType.UserName;
-                default:
-                    return null;
-            }
-        }
-
-        /// <summary>
         /// Convert application type
         /// </summary>
         /// <param name="type"></param>
@@ -274,40 +225,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         }
 
         /// <summary>
-        /// Convert application type
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static UaApplicationType ToStackType(this ApplicationType type) {
-            switch (type) {
-                case ApplicationType.Client:
-                    return UaApplicationType.Client;
-                case ApplicationType.ClientAndServer:
-                    return UaApplicationType.ClientAndServer;
-                case ApplicationType.DiscoveryServer:
-                    return UaApplicationType.DiscoveryServer;
-                default:
-                    return UaApplicationType.Server;
-            }
-        }
-
-        /// <summary>
-        /// Convert to diagnostics level
-        /// </summary>
-        /// <param name="level"></param>
-        /// <returns></returns>
-        public static DiagnosticsLevel ToServiceType(this UaDiagnosticsLevel level) {
-            switch (level) {
-                case UaDiagnosticsLevel.SymbolicIdAndText | UaDiagnosticsLevel.InnerDiagnostics:
-                    return DiagnosticsLevel.Diagnostics;
-                case UaDiagnosticsLevel.All:
-                    return DiagnosticsLevel.Verbose;
-                default:
-                    return DiagnosticsLevel.None;
-            }
-        }
-
-        /// <summary>
         /// Convert to diagnostics mask
         /// </summary>
         /// <param name="level"></param>
@@ -320,24 +237,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     return UaDiagnosticsLevel.All;
                 default:
                     return UaDiagnosticsLevel.None;
-            }
-        }
-
-        /// <summary>
-        /// Convert monitoring mode
-        /// </summary>
-        /// <param name="mode"></param>
-        /// <returns></returns>
-        public static MonitoringMode? ToServiceType(this UaMonitoringMode mode) {
-            switch (mode) {
-                case UaMonitoringMode.Disabled:
-                    return MonitoringMode.Disabled;
-                case UaMonitoringMode.Sampling:
-                    return MonitoringMode.Sampling;
-                case UaMonitoringMode.Reporting:
-                    return MonitoringMode.Reporting;
-                default:
-                    return null;
             }
         }
 
@@ -386,24 +285,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public static DeadbandType? ToServiceType(this UaDeadbandType mode) {
-            switch (mode) {
-                case UaDeadbandType.None:
-                    return null;
-                case UaDeadbandType.Absolute:
-                    return DeadbandType.Absolute;
-                case UaDeadbandType.Percent:
-                    return DeadbandType.Percent;
-                default:
-                    return null;
-            }
-        }
-
-        /// <summary>
-        /// Convert deadband type
-        /// </summary>
-        /// <param name="mode"></param>
-        /// <returns></returns>
         public static UaDataChangeTrigger ToStackType(this DataChangeTriggerType? mode) {
             if (mode == null) {
                 // Default is status and value change triggering
@@ -418,24 +299,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     return UaDataChangeTrigger.StatusValueTimestamp;
                 default:
                     return UaDataChangeTrigger.StatusValue;
-            }
-        }
-
-        /// <summary>
-        /// Convert deadband type
-        /// </summary>
-        /// <param name="mode"></param>
-        /// <returns></returns>
-        public static DataChangeTriggerType? ToServiceType(this UaDataChangeTrigger mode) {
-            switch (mode) {
-                case UaDataChangeTrigger.Status:
-                    return DataChangeTriggerType.Status;
-                case UaDataChangeTrigger.StatusValue:
-                    return DataChangeTriggerType.StatusValue;
-                case UaDataChangeTrigger.StatusValueTimestamp:
-                    return DataChangeTriggerType.StatusValueTimestamp;
-                default:
-                    return null;
             }
         }
 
@@ -482,54 +345,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     return UaFilterOperator.BitwiseAnd;
                 case FilterOperatorType.BitwiseOr:
                     return UaFilterOperator.BitwiseOr;
-                default:
-                    throw new NotSupportedException($"{type} not supported");
-            }
-        }
-
-        /// <summary>
-        /// Convert to stack type
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static FilterOperatorType ToServiceType(this UaFilterOperator type) {
-            switch (type) {
-                case UaFilterOperator.Equals:
-                    return FilterOperatorType.Equals;
-                case UaFilterOperator.IsNull:
-                    return FilterOperatorType.IsNull;
-                case UaFilterOperator.GreaterThan:
-                    return FilterOperatorType.GreaterThan;
-                case UaFilterOperator.LessThan:
-                    return FilterOperatorType.LessThan;
-                case UaFilterOperator.GreaterThanOrEqual:
-                    return FilterOperatorType.GreaterThanOrEqual;
-                case UaFilterOperator.LessThanOrEqual:
-                    return FilterOperatorType.LessThanOrEqual;
-                case UaFilterOperator.Like:
-                    return FilterOperatorType.Like;
-                case UaFilterOperator.Not:
-                    return FilterOperatorType.Not;
-                case UaFilterOperator.Between:
-                    return FilterOperatorType.Between;
-                case UaFilterOperator.InList:
-                    return FilterOperatorType.InList;
-                case UaFilterOperator.And:
-                    return FilterOperatorType.And;
-                case UaFilterOperator.Or:
-                    return FilterOperatorType.Or;
-                case UaFilterOperator.Cast:
-                    return FilterOperatorType.Cast;
-                case UaFilterOperator.InView:
-                    return FilterOperatorType.InView;
-                case UaFilterOperator.OfType:
-                    return FilterOperatorType.OfType;
-                case UaFilterOperator.RelatedTo:
-                    return FilterOperatorType.RelatedTo;
-                case UaFilterOperator.BitwiseAnd:
-                    return FilterOperatorType.BitwiseAnd;
-                case UaFilterOperator.BitwiseOr:
-                    return FilterOperatorType.BitwiseOr;
                 default:
                     throw new NotSupportedException($"{type} not supported");
             }

@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     /// Publisher registry change listener
     /// </summary>
     public interface IPublisherRegistryListener {
+#if ZOMBIE
 
         /// <summary>
         /// Called when publisher is created
@@ -20,6 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnPublisherNewAsync(RegistryOperationContextModel context,
             PublisherModel publisher);
+#endif
 
         /// <summary>
         /// Called when publisher is updated
@@ -29,6 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnPublisherUpdatedAsync(RegistryOperationContextModel context,
             PublisherModel publisher);
+#if ZOMBIE
 
         /// <summary>
         /// Called when publisher is deleted
@@ -38,5 +41,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnPublisherDeletedAsync(RegistryOperationContextModel context,
             string publisherId);
+#endif
     }
 }

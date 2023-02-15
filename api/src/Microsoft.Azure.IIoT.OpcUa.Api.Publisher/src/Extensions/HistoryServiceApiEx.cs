@@ -8,11 +8,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Twin service api extensions
     /// </summary>
     public static class HistoryServiceApiEx {
+#if ZOMBIE
 
         /// <summary>
         /// Read all historic values
@@ -28,6 +30,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable());
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read entire list of modified values
@@ -43,6 +47,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable());
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read entire historic values at specific datum
@@ -58,6 +64,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable());
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read entire processed historic values
@@ -73,6 +81,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable());
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read entire event history
@@ -88,6 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             return await HistoryReadAllRemainingEventsAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable());
         }
+#endif
 
 
         /// <summary>
@@ -137,4 +148,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
         }
 
     }
+#endif
 }

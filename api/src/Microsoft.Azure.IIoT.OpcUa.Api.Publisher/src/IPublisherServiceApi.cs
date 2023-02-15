@@ -39,6 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// <returns></returns>
         Task<PublishStopResponseApiModel> NodePublishStopAsync(string endpointId,
             PublishStopRequestApiModel request, CancellationToken ct = default);
+#if ZOMBIE
 
         /// <summary>
         /// Add or remove published node from endpoint in bulk
@@ -49,6 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// <returns></returns>
         Task<PublishBulkResponseApiModel> NodePublishBulkAsync(string endpointId,
             PublishBulkRequestApiModel request, CancellationToken ct = default);
+#endif
 
         /// <summary>
         /// Get all published nodes for endpoint.

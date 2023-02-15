@@ -628,6 +628,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             public Task<byte[]> Test8Async(byte[] request) {
                 return Task.FromResult(request);
             }
+
         }
     }
 }

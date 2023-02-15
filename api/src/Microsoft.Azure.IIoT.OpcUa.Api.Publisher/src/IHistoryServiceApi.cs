@@ -18,6 +18,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// </summary>
         /// <returns></returns>
         Task<string> GetServiceStatusAsync(CancellationToken ct = default);
+#if ZOMBIE
+#if ZOMBIE
 
         /// <summary>
         /// Read raw historic values
@@ -29,6 +31,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadValuesAsync(
             string endpointId, HistoryReadRequestApiModel<ReadValuesDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read modified historic values
@@ -40,6 +44,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadModifiedValuesAsync(
             string endpointId, HistoryReadRequestApiModel<ReadModifiedValuesDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read historic values at specific datum
@@ -51,6 +57,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadValuesAtTimesAsync(
             string endpointId, HistoryReadRequestApiModel<ReadValuesAtTimesDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read processed historic values
@@ -62,6 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadProcessedValuesAsync(
             string endpointId, HistoryReadRequestApiModel<ReadProcessedValuesDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
 
         /// <summary>
         /// Read next set of historic values
@@ -73,6 +82,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryReadNextResponseApiModel<HistoricValueApiModel[]>> HistoryReadValuesNextAsync(
             string endpointId, HistoryReadNextRequestApiModel request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
+#if ZOMBIE
 
         /// <summary>
         /// Replace historic values
@@ -84,6 +96,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryUpdateResponseApiModel> HistoryReplaceValuesAsync(string endpointId,
             HistoryUpdateRequestApiModel<ReplaceValuesDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Insert historic values
@@ -95,6 +109,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryUpdateResponseApiModel> HistoryInsertValuesAsync(string endpointId,
             HistoryUpdateRequestApiModel<InsertValuesDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Delete historic values
@@ -106,6 +122,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAsync(string endpointId,
             HistoryUpdateRequestApiModel<DeleteValuesDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Delete historic values
@@ -117,6 +135,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryUpdateResponseApiModel> HistoryDeleteModifiedValuesAsync(string endpointId,
             HistoryUpdateRequestApiModel<DeleteModifiedValuesDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Delete historic values at specified datum
@@ -128,6 +148,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAtTimesAsync(string endpointId,
             HistoryUpdateRequestApiModel<DeleteValuesAtTimesDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read event history
@@ -139,6 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryReadResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsAsync(
             string endpointId, HistoryReadRequestApiModel<ReadEventsDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
 
         /// <summary>
         /// Read next set of historic events
@@ -150,6 +173,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryReadNextResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsNextAsync(
             string endpointId, HistoryReadNextRequestApiModel request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Replace historic events
@@ -161,6 +186,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryUpdateResponseApiModel> HistoryReplaceEventsAsync(string endpointId,
             HistoryUpdateRequestApiModel<ReplaceEventsDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Insert historic events
@@ -172,6 +199,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryUpdateResponseApiModel> HistoryInsertEventsAsync(string endpointId,
             HistoryUpdateRequestApiModel<InsertEventsDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Delete event history
@@ -183,5 +212,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryUpdateResponseApiModel> HistoryDeleteEventsAsync(string endpointId,
             HistoryUpdateRequestApiModel<DeleteEventsDetailsApiModel> request,
             CancellationToken ct = default);
+#endif
     }
 }

@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                     throw new ArgumentNullException(nameof(processor));
                 Queue = new BlockingCollection<Work>(
                     Math.Max(1, processor._config.MaxQueueSize));
-                _worker = processor.Scheduler.Run(WorkAsync);
+                _worker = processor.Scheduler.Factory.StartNew(WorkAsync).Unwrap();
             }
 
             /// <summary>

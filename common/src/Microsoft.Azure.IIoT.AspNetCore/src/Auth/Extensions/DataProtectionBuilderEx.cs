@@ -128,7 +128,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <summary>
         /// Data protection default configuration
         /// </summary>
-        internal sealed class DataProtectionConfig : ConfigBase, IKeyVaultConfig, IBlobConfig  {
+        internal sealed class DataProtectionConfig : ConfigBase, IKeyVaultConfig, IStorageConfig  {
 
             private const string kKeyVaultKeyDataProtectionDefault = "dataprotection";
             private const string kBlobStorageContainerDataProtectionDefault = "dataprotection";
@@ -165,11 +165,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             /// <param name="configuration"></param>
             public DataProtectionConfig(IConfiguration configuration) :
                 base(configuration) {
-                _stg = new BlobConfig(configuration);
+                _stg = new StorageConfig(configuration);
                 _kv = new KeyVaultConfig(configuration);
             }
 
-            private readonly BlobConfig _stg;
+            private readonly StorageConfig _stg;
             private readonly KeyVaultConfig _kv;
         }
     }

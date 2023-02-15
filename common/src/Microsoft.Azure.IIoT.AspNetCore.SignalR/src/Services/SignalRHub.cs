@@ -47,24 +47,6 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         }
 
         /// <inheritdoc/>
-        public async Task UnicastAsync(string target, string method, object[] arguments,
-            CancellationToken ct) {
-            if (string.IsNullOrEmpty(method)) {
-                throw new ArgumentNullException(nameof(method));
-            }
-            if (string.IsNullOrEmpty(target)) {
-                throw new ArgumentNullException(nameof(target));
-            }
-            try {
-                await _hub.Clients.User(target).SendCoreAsync(method,
-                    arguments ?? Array.Empty<object>(), ct);
-            }
-            catch (Exception ex) {
-                _logger.Debug(ex, "Failed to send unicast message");
-            }
-         }
-
-        /// <inheritdoc/>
         public async Task MulticastAsync(string group, string method, object[] arguments,
             CancellationToken ct) {
             if (string.IsNullOrEmpty(method)) {

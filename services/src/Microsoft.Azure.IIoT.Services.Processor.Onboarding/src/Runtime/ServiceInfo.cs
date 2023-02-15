@@ -26,10 +26,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
         /// </summary>
         public string Name => "Opc-Onboarding-Service";
 
-        /// <summary>
-        /// Description of service
-        /// </summary>
-        public string Description => "Azure Industrial IoT OPC UA Onboarding Service";
 
         /// <inheritdoc/>
         public string SiteId { get; }

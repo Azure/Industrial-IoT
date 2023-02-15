@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     /// Client to access discoverer services
     /// </summary>
     public interface IDiscovererClient {
+#if ZOMBIE
 
         /// <summary>
         /// Discover using discovery request.
@@ -22,6 +23,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task DiscoverAsync(string discovererId,
             DiscoveryRequestModel request, CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Cancel discovery request
@@ -32,5 +35,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task CancelAsync(string discovererId,
             DiscoveryCancelModel request, CancellationToken ct = default);
+#endif
     }
 }

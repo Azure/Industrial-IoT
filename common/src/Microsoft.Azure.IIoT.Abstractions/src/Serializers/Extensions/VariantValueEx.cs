@@ -75,20 +75,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// <typeparam name="T"></typeparam>
         /// <param name="t"></param>
         /// <param name="key"></param>
-        /// <param name="defaultValue"></param>
-        /// <param name="compare"></param>
-        /// <returns></returns>
-        public static T GetValueOrDefault<T>(this VariantValue t, string key, T defaultValue,
-            StringComparison compare = StringComparison.Ordinal) {
-            return GetValueOrDefault(t, key, () => defaultValue, compare);
-        }
-
-        /// <summary>
-        /// Helper to get values from object
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="t"></param>
-        /// <param name="key"></param>
         /// <param name="compare"></param>
         /// <returns></returns>
         public static T GetValueOrDefault<T>(this VariantValue t, string key,
@@ -112,52 +98,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
                 t.TryGetProperty(key, out var value, compare) &&
                 !(value is null)) {
                 try {
-                    return value.ConvertTo<T>();
-                }
-                catch {
-                    return defaultValue();
-                }
-            }
-            return defaultValue();
-        }
-
-        /// <summary>
-        /// Helper to get values from object
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="t"></param>
-        /// <param name="key"></param>
-        /// <param name="defaultValue"></param>
-        /// <param name="compare"></param>
-        /// <returns></returns>
-        public static T? GetValueOrDefault<T>(this VariantValue t,
-            string key, T? defaultValue,
-            StringComparison compare = StringComparison.Ordinal) where T : struct {
-            return GetValueOrDefault(t, key, () => defaultValue, compare);
-        }
-
-        /// <summary>
-        /// Helper to get values from object
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="t"></param>
-        /// <param name="key"></param>
-        /// <param name="defaultValue"></param>
-        /// <param name="compare"></param>
-        /// <returns></returns>
-        public static T? GetValueOrDefault<T>(this VariantValue t,
-            string key, Func<T?> defaultValue,
-            StringComparison compare = StringComparison.Ordinal) where T : struct {
-            if (t.IsObject &&
-                t.TryGetProperty(key, out var value, compare) &&
-                !(value is null)) {
-                try {
-                    // Handle enumerations serialized as string
-                    if (typeof(T).IsEnum &&
-                        value.IsString &&
-                        Enum.TryParse<T>((string)value, out var result)) {
-                        return result;
-                    }
                     return value.ConvertTo<T>();
                 }
                 catch {

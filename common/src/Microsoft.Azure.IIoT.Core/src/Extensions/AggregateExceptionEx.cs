@@ -4,44 +4,11 @@
 // ------------------------------------------------------------
 
 namespace System {
-    using System.Text;
 
     /// <summary>
     /// Exceptions extensions
     /// </summary>
     public static class AggregateExceptionEx {
-
-        /// <summary>
-        /// Combine messages
-        /// </summary>
-        /// <param name="ae"></param>
-        /// <returns></returns>
-        public static string GetCombinedExceptionMessage(this AggregateException ae) {
-            if (ae == null) {
-                return null;
-            }
-            var sb = new StringBuilder();
-            foreach (var e in ae.InnerExceptions) {
-                sb.AppendLine(string.Concat("E: ", e.Message));
-            }
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Combine stack trace
-        /// </summary>
-        /// <param name="ae"></param>
-        /// <returns></returns>
-        public static string GetCombinedExceptionStackTrace(this AggregateException ae) {
-            if (ae == null) {
-                return null;
-            }
-            var sb = new StringBuilder();
-            foreach (var e in ae.InnerExceptions) {
-                sb.AppendLine(string.Concat("StackTrace: ", e.StackTrace));
-            }
-            return sb.ToString();
-        }
 
         /// <summary>
         /// Returns first exception of specified type in exception

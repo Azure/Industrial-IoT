@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Discoverer progress processor
@@ -33,4 +34,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
 
         private readonly IEventBus _bus;
     }
+#endif
 }

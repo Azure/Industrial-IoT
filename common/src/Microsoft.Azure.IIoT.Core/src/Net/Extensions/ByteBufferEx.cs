@@ -91,73 +91,6 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         /// <summary>
-        /// Write uint 8
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static void WriteUInt8(this Stream stream, byte value) {
-            stream.WriteByte(value);
-        }
-
-        /// <summary>
-        /// Write uint 32
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="value"></param>
-        /// <param name="netOrder"></param>
-        /// <returns></returns>
-        public static void WriteUInt32(this Stream stream, uint value,
-            bool netOrder = false) {
-            stream.WriteByteArray(value.ToBytes(netOrder));
-        }
-
-        /// <summary>
-        /// Write uint 16
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="value"></param>
-        /// <param name="netOrder"></param>
-        /// <returns></returns>
-        public static void WriteUInt16(this Stream stream, ushort value,
-            bool netOrder = false) {
-            stream.WriteByteArray(value.ToBytes(netOrder));
-        }
-
-        /// <summary>
-        /// Write buffer
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="value"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static void WriteByteArray(this Stream stream, byte[] value,
-            int? length = null) {
-
-            var len = value?.Length ?? 0;
-            if (len > 0) {
-                stream.Write(value, 0, value.Length);
-            }
-
-            var padding = (length ?? len) - len;
-            if (padding > 0) {
-                stream.WritePadding(0, padding);
-            }
-        }
-
-        /// <summary>
-        /// Write padding
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="pad"></param>
-        /// <param name="length"></param>
-        public static void WritePadding(this Stream stream, byte pad, int length) {
-            for (var i = 0; i < length; i++) {
-                stream.WriteUInt8(pad);
-            }
-        }
-
-        /// <summary>
         /// Read uint 32
         /// </summary>
         /// <param name="data"></param>
@@ -254,16 +187,6 @@ namespace Microsoft.Azure.IIoT.Net {
                 return null;
             }
             return (encoding ?? Encoding.ASCII).GetBytes(value);
-        }
-
-
-        /// <summary>
-        /// Equality
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="other"></param>
-        public static bool EqualsAsEncodedString(this byte[] buffer, byte[] other) {
-            return buffer.ToEncodedString() == other.ToEncodedString();
         }
     }
 }

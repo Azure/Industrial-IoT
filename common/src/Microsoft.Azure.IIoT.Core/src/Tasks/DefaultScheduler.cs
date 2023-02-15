@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
 
         /// <inheritdoc/>
         public TaskFactory Factory => Task.Factory;
-
-        /// <inheritdoc/>
-        public void Dump(Action<Task> logger) {
-            // No op
-        }
     }
 }

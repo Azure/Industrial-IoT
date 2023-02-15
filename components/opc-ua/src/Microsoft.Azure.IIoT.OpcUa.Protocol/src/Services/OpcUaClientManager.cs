@@ -35,9 +35,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         ISubscriptionManager, IEndpointDiscovery, IDisposable,
         ICertificateServices<EndpointModel>, IConnectionServices<ConnectionModel> {
 
-        /// <inheritdoc/>
-        public int SessionCount => _clients.Count;
-
         /// <summary>
         /// Create client manager
         /// </summary>

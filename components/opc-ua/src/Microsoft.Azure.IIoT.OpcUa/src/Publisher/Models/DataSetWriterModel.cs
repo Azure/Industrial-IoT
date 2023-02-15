@@ -44,11 +44,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Metadata queue name
         /// </summary>
         public string MetaDataQueueName { get; set; }
-
-        /// <summary>
-        /// Dataset writer id property for backwards compatibility.
-        /// TODO: Remove when removing orchestrated mode
-        /// </summary>
-        public string DataSetWriterId { set => DataSetWriterName = value; }
     }
 }

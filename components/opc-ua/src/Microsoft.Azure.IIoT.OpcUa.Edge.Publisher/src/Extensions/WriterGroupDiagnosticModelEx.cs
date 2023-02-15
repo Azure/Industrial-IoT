@@ -38,6 +38,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 EstimatedIoTChunksPerDay = model.EstimatedIoTChunksPerDay,
                 OutgressInputBufferCount = model.OutgressInputBufferCount,
                 OutgressInputBufferDropped = model.OutgressInputBufferDropped,
+                IngressDataChangesInLastMinute = model.IngressDataChangesInLastMinute,
+                IngressValueChangesInLastMinute = model.IngressValueChangesInLastMinute,
                 OutgressIoTMessageCount = model.OutgressIoTMessageCount,
                 ConnectionRetries = model.ConnectionRetries,
                 OpcEndpointConnected = model.OpcEndpointConnected,

@@ -25,9 +25,6 @@ namespace Opc.Ua.Encoders {
         public ExpandedNodeId XmlEncodingId =>
             nameof(EncodeableDictionary) + "_Encoding_DefaultXml";
 
-        /// <inheritdoc/>
-        public ExpandedNodeId JsonEncodingId =>
-            nameof(EncodeableDictionary) + "_Encoding_DefaultJson";
 
         /// <summary>
         /// Initializes the dictionary with default values.

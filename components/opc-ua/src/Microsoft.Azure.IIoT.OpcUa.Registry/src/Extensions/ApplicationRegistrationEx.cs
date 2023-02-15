@@ -18,12 +18,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public static class ApplicationRegistrationEx {
 
         /// <summary>
-        /// Logical comparison of application registrations
-        /// </summary>
-        public static IEqualityComparer<ApplicationRegistration> Logical =>
-            new LogicalEquality();
-
-        /// <summary>
         /// Create device twin
         /// </summary>
         /// <param name="serializer"></param>
@@ -212,6 +206,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             return twin;
         }
+#if ZOMBIE
+#if ZOMBIE
 
         /// <summary>
         /// Patch registration
@@ -258,6 +254,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             registration.Validate();
         }
+#endif
 
         /// <summary>
         /// Validates all fields in an application record to be consistent with
@@ -336,6 +333,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 }
             }
         }
+#endif
 
         /// <summary>
         /// Make sure to get the registration information from the right place.
@@ -403,6 +401,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             };
             return registration;
         }
+#if ZOMBIE
 
         /// <summary>
         /// Clone
@@ -444,6 +443,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Connected = registration.Connected,
             };
         }
+#endif
 
         /// <summary>
         /// Decode tags and property into registration object
@@ -520,59 +520,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         }
 
         /// <summary>
-        /// Returns true if this registration matches the application
-        /// model provided.
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static bool Matches(this ApplicationRegistration registration,
-            ApplicationInfoModel model) {
-            if (registration == null) {
-                return model == null;
-            }
-            return model != null &&
-                registration.ApplicationId == model.ApplicationId &&
-                registration.ApplicationType == model.ApplicationType &&
-                registration.ApplicationUri == model.ApplicationUri &&
-                registration.HostAddresses.DecodeAsList().SequenceEqualsSafe(
-                    model.HostAddresses) &&
-                registration.CreateAuthorityId == model.Created?.AuthorityId &&
-                registration.UpdateAuthorityId == model.Updated?.AuthorityId &&
-                registration.CreateTime == model.Created?.Time &&
-                registration.UpdateTime == model.Updated?.Time &&
-                registration.DiscoveryProfileUri == model.DiscoveryProfileUri &&
-                registration.GatewayServerUri == model.GatewayServerUri &&
-                registration.NotSeenSince == model.NotSeenSince &&
-                registration.DiscovererId == model.DiscovererId &&
-                registration.SiteId == model.SiteId &&
-                registration.Capabilities.DecodeAsSet().SetEqualsSafe(
-                    model.Capabilities?.Select(x =>
-                        VariantValueEx.SanitizePropertyName(x).ToUpperInvariant())) &&
-                registration.DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                    model.DiscoveryUrls);
-        }
-
-        /// <summary>
-        /// Returns application name
-        /// </summary>
-        /// <param name="registration">The application record.</param>
-        public static string GetApplicationName(this ApplicationRegistration registration) {
-            if (registration == null) {
-                return null;
-            }
-            if (!string.IsNullOrEmpty(registration.ApplicationName)) {
-                return registration.ApplicationName;
-            }
-            if (registration.LocalizedNames != null &&
-                registration.LocalizedNames.Count != 0 &&
-                !string.IsNullOrEmpty(registration.LocalizedNames.First().Value)) {
-                return registration.LocalizedNames.First().Value;
-            }
-            return null;
-        }
-
-        /// <summary>
         /// Get site or gateway id from registration
         /// </summary>
         /// <param name="registration"></param>
@@ -606,33 +553,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 AuthorityId = authorityId,
                 Time = time ?? DateTime.MinValue
             };
-        }
-
-        /// <summary>
-        /// Compares for logical equality - applications are logically equivalent if they
-        /// have the same uri, type, and site location or supervisor that registered.
-        /// </summary>
-        private class LogicalEquality : IEqualityComparer<ApplicationRegistration> {
-
-            /// <inheritdoc />
-            public bool Equals(ApplicationRegistration x, ApplicationRegistration y) {
-                return
-                    x.SiteOrGatewayId == y.SiteOrGatewayId &&
-                    x.ApplicationType == y.ApplicationType &&
-                    x.ApplicationUriLC == y.ApplicationUriLC;
-            }
-
-            /// <inheritdoc />
-            public int GetHashCode(ApplicationRegistration obj) {
-                var hashCode = 1200389859;
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<ApplicationType?>.Default.GetHashCode(obj.ApplicationType);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.ApplicationUriLC);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.SiteOrGatewayId);
-                return hashCode;
-            }
         }
     }
 }

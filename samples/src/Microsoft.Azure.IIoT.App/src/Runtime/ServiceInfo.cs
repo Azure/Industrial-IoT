@@ -26,10 +26,6 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// </summary>
         public string Name => "Engineering-Tool";
 
-        /// <summary>
-        /// Description of service
-        /// </summary>
-        public string Description => "Azure Industrial IoT Engineering Tool";
 
         /// <inheritdoc/>
         public string SiteId { get; }

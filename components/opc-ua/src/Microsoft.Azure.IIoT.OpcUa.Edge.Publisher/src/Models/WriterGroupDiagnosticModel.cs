@@ -92,11 +92,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public double EstimatedIoTChunksPerDay { get; set; }
 
         /// <summary>
-        /// OutgressBatchBlockBufferSize
-        /// </summary>
-        public long OutgressBatchBlockBufferSize { get; set; }
-
-        /// <summary>
         /// OutgressInputBufferCount
         /// </summary>
         public long OutgressInputBufferCount { get; set; }

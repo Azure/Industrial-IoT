@@ -90,15 +90,9 @@ namespace Microsoft.Azure.IIoT.Messaging.EventHub.Services {
             }
 
             /// <inheritdoc/>
-            public Task CloseAsync() {
-                return _client.CloseAsync();
-            }
-
-            /// <inheritdoc/>
             public void Dispose() {
                 Try.Op(_client.Close);
             }
-
 
             /// <summary>
             /// Helper to create event from buffer and content type

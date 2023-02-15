@@ -306,15 +306,6 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             }
 
             /// <inheritdoc/>
-            public override void AssignValue(object value) {
-                if (_update != null) {
-                    _update(value);
-                    _value = value;
-                }
-                throw new NotSupportedException("Not an object or array");
-            }
-
-            /// <inheritdoc/>
             protected override bool TryEqualsVariant(VariantValue v, out bool equality) {
                 if (v is MessagePackVariantValue packed) {
                     equality = DeepEquals(_value, packed._value);

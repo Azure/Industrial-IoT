@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Discovery message handling
@@ -68,4 +69,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         private readonly ILogger _logger;
         private readonly List<IDiscoveryProgressProcessor> _handlers;
     }
+#endif
 }

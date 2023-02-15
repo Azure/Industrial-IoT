@@ -90,7 +90,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
                 Id = DeviceId,
                 ModuleId = ModuleId
             }).Result;
-            _etag = twin.Etag;
 
             // Get device registration and create module host with controller
             _device = _hub.GetRegistrationAsync(twin.Id, twin.ModuleId).Result;
@@ -138,23 +137,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
             builder.RegisterInstance(_config).AsImplementedInterfaces();
             builder.RegisterType<TestClientServicesConfig>()
                 .AsImplementedInterfaces();
-        }
-
-        /// <summary>
-        /// Twin Module supervisor test harness
-        /// </summary>
-        /// <param name="test"></param>
-        /// <returns></returns>
-        public async Task RunTestAsync(Func<string, string, IContainer, Task> test) {
-            try {
-                await test(DeviceId, ModuleId, HubContainer);
-            }
-            finally {
-                _module.Exit(1);
-                var result = await _process;
-                Assert.Equal(1, result);
-                _running = false;
-            }
         }
 
         /// <inheritdoc/>
@@ -246,12 +228,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
         }
 
         private readonly IIoTHubTwinServices _hub;
-        private readonly string _etag;
         private readonly DeviceModel _device;
         private bool _running;
         private readonly ModuleProcess _module;
         private readonly IConfiguration _config;
         private readonly Task<int> _process;
-        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

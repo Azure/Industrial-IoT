@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     /// Publisher query
     /// </summary>
     public interface IPublisherEndpointQuery {
+#if ZOMBIE
 
         /// <summary>
         /// Find publisher id and return endpoint model information
@@ -21,5 +22,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task<(string, EndpointModel)> FindPublisherEndpoint(string endpointId,
             CancellationToken ct = default);
+#endif
     }
 }

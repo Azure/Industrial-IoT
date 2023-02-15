@@ -127,10 +127,5 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         public int CompareTo(IPAddress other) {
             return CompareTo(other.AsV4());
         }
-
-        /// <inheritdoc/>
-        public int Compare(IPv4Address x, IPv4Address y) {
-            return x.CompareTo(y);
-        }
     }
 }

@@ -247,21 +247,6 @@ namespace Opc.Ua.Extensions {
         }
 
         /// <summary>
-        /// Validates node id string
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool IsValid(string value) {
-            try {
-                ToExpandedNodeId(value, new ServiceMessageContext());
-                return true;
-            }
-            catch {
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Parses a node uri and returns components.  The format of the uri is
         /// <para>namespaceuri(?srv=serverurn)#idtype_idasstring</para>.  Avoid url
         /// encoding due to the problem of storage encoding again.

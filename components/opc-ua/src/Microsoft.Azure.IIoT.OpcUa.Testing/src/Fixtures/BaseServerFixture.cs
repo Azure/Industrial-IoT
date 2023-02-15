@@ -51,11 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
         public OpcUaClientManager Client => _client.Value;
 
         /// <summary>
-        /// Start port
-        /// </summary>
-        public static int StartPort { set => _nextPort = value; }
-
-        /// <summary>
         /// Create fixture
         /// </summary>
         protected BaseServerFixture(IEnumerable<INodeManagerFactory> nodes) {

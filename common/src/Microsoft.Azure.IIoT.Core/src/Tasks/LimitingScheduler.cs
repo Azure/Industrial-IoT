@@ -30,11 +30,6 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                     kScheduler);
         }
 
-        /// <inheritdoc/>
-        public void Dump(Action<Task> logger) {
-            kScheduler?.Dump(logger);
-        }
-
         /// <summary>
         /// Scheduler implementation
         /// </summary>
@@ -168,16 +163,6 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
                     if (lockTaken) {
                         Monitor.Exit(_tasks);
                     }
-                }
-            }
-
-            /// <summary>
-            /// Dump scheduler
-            /// </summary>
-            /// <param name="logger"></param>
-            internal void Dump(Action<Task> logger) {
-                foreach (var task in GetScheduledTasks()) {
-                    logger(task);
                 }
             }
 

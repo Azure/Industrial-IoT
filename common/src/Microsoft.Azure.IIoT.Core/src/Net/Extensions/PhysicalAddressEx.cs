@@ -19,14 +19,5 @@ namespace Microsoft.Azure.IIoT.Net {
         public static PhysicalAddress Copy(this PhysicalAddress address) {
             return address == null ? null : new PhysicalAddress(address.GetAddressBytes());
         }
-
-        /// <summary>
-        /// Is empty
-        /// </summary>
-        /// <param name="address"></param>
-        /// <returns></returns>
-        public static bool IsEmpty(this PhysicalAddress address) {
-            return address == null || address.Equals(PhysicalAddress.None);
-        }
     }
 }

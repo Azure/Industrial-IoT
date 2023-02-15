@@ -60,23 +60,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task<X509Certificate2Collection> CreateServerCertificateAsync(
-            string commonName, DateTime expiration, CancellationToken ct) {
-            var request = _client.NewRequest(
-                $"{_workloaduri}/modules/{_moduleId}/genid/{_moduleGenerationId}/" +
-                $"certificate/server?api-version={_apiVersion}");
-            _serializer.SerializeToRequest(request, new { commonName, expiration });
-            return await Retry.WithExponentialBackoff(_logger, ct, async () => {
-                var response = await _client.PostAsync(request, ct);
-                response.Validate();
-                var result = _serializer.DeserializeResponse<EdgeletCertificateResponse>(response);
-                // TODO add private key
-                return new X509Certificate2Collection(
-                    X509Certificate2Ex.ParsePemCerts(result.Certificate).ToArray());
-            }, kMaxRetryCount);
-        }
-
-        /// <inheritdoc/>
         public async Task<byte[]> EncryptAsync(
             string initializationVector, byte[] plaintext, CancellationToken ct) {
             var request = _client.NewRequest(

@@ -22,11 +22,5 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// <returns></returns>
         Task SendAsync(byte[] payload, IDictionary<string, string> properties = null,
             string partitionKey = null);
-
-        /// <summary>
-        /// Close client
-        /// </summary>
-        /// <returns></returns>
-        Task CloseAsync();
     }
 }

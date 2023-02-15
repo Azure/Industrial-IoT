@@ -80,23 +80,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             return that.Id == model.Id;
         }
-
-        /// <summary>
-        /// Deep clone
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static SupervisorModel Clone(this SupervisorModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new SupervisorModel {
-                Connected = model.Connected,
-                Id = model.Id,
-                OutOfSync = model.OutOfSync,
-                LogLevel = model.LogLevel,
-                SiteId = model.SiteId
-            };
-        }
     }
 }

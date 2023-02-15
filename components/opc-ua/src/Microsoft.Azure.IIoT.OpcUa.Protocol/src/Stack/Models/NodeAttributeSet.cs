@@ -56,25 +56,6 @@ namespace Opc.Ua.Models {
                 new DataValue(new Variant(nodeId.ToNodeId(namespaces)));
         }
 
-        /// <summary>
-        /// Copy constructor
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="namespaces"></param>
-        /// <param name="attributes"></param>
-        protected NodeAttributeSet(ExpandedNodeId nodeId, NamespaceTable namespaces,
-            SortedDictionary<uint, DataValue> attributes) : this(nodeId, namespaces) {
-            foreach (var item in attributes) {
-                _attributes[item.Key] = (DataValue)item.Value.MemberwiseClone();
-            }
-        }
-
-        /// <inheritdoc/>
-        public object this[uint attribute] {
-            get => GetAttribute<object>(attribute);
-            set => SetAttribute(attribute, value);
-        }
-
         /// <inheritdoc/>
         public IEnumerator<KeyValuePair<uint, DataValue>> GetEnumerator() {
             return _attributes.GetEnumerator();
@@ -333,11 +314,6 @@ namespace Opc.Ua.Models {
             }
         }
 
-        /// <summary>
-        /// Get references
-        /// </summary>
-        public List<IReference> References { get; } = new List<IReference>();
-
         /// <inheritdoc/>
         public override bool Equals(object o) {
             if (!(o is NodeAttributeSet node)) {
@@ -406,24 +382,6 @@ namespace Opc.Ua.Models {
         /// <inheritdoc/>
         public void SetAttribute<T>(uint attribute, T value) {
             _attributes[attribute] = new DataValue(new Variant(value));
-        }
-
-        /// <inheritdoc/>
-        public DataValue GetAttribute(uint attribute) {
-            if (TryGetAttribute(attribute, out var result)) {
-                return result;
-            }
-            return null;
-        }
-
-        /// <inheritdoc/>
-        public void SetAttribute(uint attribute, DataValue value) {
-            _attributes[attribute] = value;
-        }
-
-        /// <inheritdoc/>
-        public bool TryGetAttribute(uint attribute, out DataValue value) {
-            return _attributes.TryGetValue(attribute, out value);
         }
 
         /// <inheritdoc/>

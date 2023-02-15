@@ -19,11 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface IEndpointServices {
 
         /// <summary>
-        /// Number of currently active sessions.
-        /// </summary>
-        int SessionCount { get; }
-
-        /// <summary>
         /// Get a connected session
         /// </summary>
         /// <param name="connection"></param>

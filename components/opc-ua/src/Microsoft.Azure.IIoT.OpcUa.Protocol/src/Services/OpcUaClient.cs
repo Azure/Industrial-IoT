@@ -38,12 +38,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public TagList TagList { get; }
 
-        /// <inheritdoc/>
-        public ConnectionModel Connection { get; }
-
-        /// <inheritdoc/>
-        public EndpointConnectivityState State { get; private set; }
-
         /// <summary>
         /// The session keepalive interval to be used in ms.
         /// </summary>

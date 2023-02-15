@@ -65,23 +65,5 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <returns></returns>
         Task<IHttpResponse> DeleteAsync(IHttpRequest request,
             CancellationToken ct = default);
-
-        /// <summary>
-        /// Perform head
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<IHttpResponse> HeadAsync(IHttpRequest request,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Perform options
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<IHttpResponse> OptionsAsync(IHttpRequest request,
-            CancellationToken ct = default);
     }
 }

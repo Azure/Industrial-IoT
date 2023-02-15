@@ -59,26 +59,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             };
             return transportQuotas;
         }
-
-        /// <summary>
-        /// Convert to endpoint configuration
-        /// </summary>
-        /// <param name="transportQuotaConfig"></param>
-        /// <returns></returns>
-        public static EndpointConfiguration ToEndpointConfiguration(
-            this ITransportQuotaConfig transportQuotaConfig) {
-            var endpointConfiguration = new EndpointConfiguration {
-                OperationTimeout = transportQuotaConfig.OperationTimeout,
-                UseBinaryEncoding = true,
-                MaxArrayLength = transportQuotaConfig.MaxArrayLength,
-                MaxByteStringLength = transportQuotaConfig.MaxByteStringLength,
-                MaxMessageSize = transportQuotaConfig.MaxMessageSize,
-                MaxStringLength = transportQuotaConfig.MaxStringLength,
-                MaxBufferSize = transportQuotaConfig.MaxBufferSize,
-                ChannelLifetime = transportQuotaConfig.ChannelLifetime,
-                SecurityTokenLifetime = transportQuotaConfig.SecurityTokenLifetime
-            };
-            return endpointConfiguration;
-        }
     }
 }

@@ -57,33 +57,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Try operation
         /// </summary>
         /// <param name="action"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public static Task<bool> Async(Func<CancellationToken, Task> action,
-            CancellationToken ct) {
-            return action.Invoke(ct)
-                .ContinueWith(t => t.IsCompletedSuccessfully);
-        }
-
-        /// <summary>
-        /// Try operation
-        /// </summary>
-        /// <param name="action"></param>
         /// <returns></returns>
         public static Task<T> Async<T>(Func<Task<T>> action) {
             return action.Invoke()
-                .ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : default);
-        }
-
-        /// <summary>
-        /// Try operation
-        /// </summary>
-        /// <param name="action"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public static Task<T> Async<T>(Func<CancellationToken, Task<T>> action,
-            CancellationToken ct) {
-            return action.Invoke(ct)
                 .ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : default);
         }
 
@@ -100,27 +76,6 @@ namespace Microsoft.Azure.IIoT.Utils {
             foreach (var option in options) {
                 try {
                     return await option();
-                }
-                catch (Exception ex) {
-                    exceptions.Add(ex);
-                }
-            }
-            throw new AggregateException(exceptions);
-        }
-
-        /// <summary>
-        /// Try all options until one is working
-        /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
-#pragma warning disable IDE1006 // Naming Styles
-        public static async Task Options(params Func<Task>[] options) {
-#pragma warning restore IDE1006 // Naming Styles
-            var exceptions = new List<Exception>();
-            foreach (var option in options) {
-                try {
-                    await option();
-                    return;
                 }
                 catch (Exception ex) {
                     exceptions.Add(ex);

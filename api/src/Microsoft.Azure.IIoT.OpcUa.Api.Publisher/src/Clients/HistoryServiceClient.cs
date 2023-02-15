@@ -57,6 +57,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                 return ex.Message;
             }
         }
+#if ZOMBIE
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseApiModel<VariantValue>> HistoryReadRawAsync(
@@ -77,6 +79,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryReadResponseApiModel<VariantValue>>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseApiModel<VariantValue>> HistoryReadRawNextAsync(
@@ -97,6 +101,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryReadNextResponseApiModel<VariantValue>>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(
@@ -117,6 +123,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryUpdateResponseApiModel>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadValuesAsync(
@@ -135,6 +143,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryReadResponseApiModel<HistoricValueApiModel[]>>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadModifiedValuesAsync(
@@ -153,6 +163,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryReadResponseApiModel<HistoricValueApiModel[]>>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadValuesAtTimesAsync(
@@ -171,6 +183,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryReadResponseApiModel<HistoricValueApiModel[]>>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadProcessedValuesAsync(
@@ -189,6 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryReadResponseApiModel<HistoricValueApiModel[]>>(response);
         }
+#endif
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseApiModel<HistoricValueApiModel[]>> HistoryReadValuesNextAsync(
@@ -209,6 +224,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryReadNextResponseApiModel<HistoricValueApiModel[]>>(response);
         }
+#endif
+#if ZOMBIE
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryReadResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsAsync(
@@ -227,6 +245,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryReadResponseApiModel<HistoricEventApiModel[]>>(response);
         }
+#endif
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsNextAsync(
@@ -247,6 +266,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryReadNextResponseApiModel<HistoricEventApiModel[]>>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseApiModel> HistoryReplaceValuesAsync(string endpointId,
@@ -264,6 +285,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryUpdateResponseApiModel>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseApiModel> HistoryReplaceEventsAsync(string endpointId,
@@ -281,6 +304,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryUpdateResponseApiModel>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseApiModel> HistoryInsertValuesAsync(string endpointId,
@@ -298,6 +323,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryUpdateResponseApiModel>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseApiModel> HistoryInsertEventsAsync(string endpointId,
@@ -315,6 +342,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryUpdateResponseApiModel>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAsync(string endpointId,
@@ -332,6 +361,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryUpdateResponseApiModel>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAtTimesAsync(string endpointId,
@@ -349,6 +380,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryUpdateResponseApiModel>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseApiModel> HistoryDeleteModifiedValuesAsync(string endpointId,
@@ -366,6 +399,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryUpdateResponseApiModel>(response);
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseApiModel> HistoryDeleteEventsAsync(string endpointId,
@@ -383,6 +418,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             response.Validate();
             return _serializer.DeserializeResponse<HistoryUpdateResponseApiModel>(response);
         }
+#endif
 
         private readonly IHttpClient _httpClient;
         private readonly ISerializer _serializer;

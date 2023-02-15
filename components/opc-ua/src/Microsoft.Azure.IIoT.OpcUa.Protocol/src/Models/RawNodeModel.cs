@@ -153,34 +153,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 }
             }
         }
-
-        /// <summary>
-        /// Writes any changes through the session
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="requestHeader"></param>
-        /// <param name="operations"></param>
-        /// <param name="skipAttributeIdInvalid"></param>
-        /// <param name="traceOnly"></param>
-        /// <returns></returns>
-        public async Task WriteAsync(ISession session, RequestHeader requestHeader,
-            List<OperationResultModel> operations, bool skipAttributeIdInvalid, bool traceOnly) {
-            var writeValueCollection = new WriteValueCollection(_attributes
-                .Where(a => a.Value != null)
-                .Select(a => new WriteValue {
-                    NodeId = LocalId,
-                    AttributeId = a.Key,
-                    Value = a.Value
-                }));
-
-            var writeResponse = await session.WriteAsync(requestHeader,
-                writeValueCollection, CancellationToken.None);
-            OperationResultEx.Validate("Write_" + LocalId, operations, writeResponse.Results
-                    .Select(code => skipAttributeIdInvalid &&
-                        code == StatusCodes.BadAttributeIdInvalid ? StatusCodes.Good : code),
-                writeResponse.DiagnosticInfos,
-                writeValueCollection
-                    .Select(v => AttributeMap.GetBrowseName(v.AttributeId)), traceOnly);
-        }
     }
 }

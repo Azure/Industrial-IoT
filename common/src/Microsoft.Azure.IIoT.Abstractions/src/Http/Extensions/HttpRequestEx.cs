@@ -39,20 +39,6 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <param name="mediaType"></param>
         /// <param name="encoding"></param>
         /// <returns>this</returns>
-        public static IHttpRequest SetStringContent(this IHttpRequest request, string content,
-            string mediaType = null, Encoding encoding = null) {
-            return request.SetByteArrayContent((encoding ?? kDefaultEncoding).GetBytes(content),
-                string.IsNullOrEmpty(mediaType) ? ContentMimeType.Json : mediaType, encoding);
-        }
-
-        /// <summary>
-        /// Set content
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="content"></param>
-        /// <param name="mediaType"></param>
-        /// <param name="encoding"></param>
-        /// <returns>this</returns>
         public static IHttpRequest SetByteArrayContent(this IHttpRequest request, byte[] content,
             string mediaType = null, Encoding encoding = null) {
 
@@ -65,7 +51,5 @@ namespace Microsoft.Azure.IIoT.Http {
             request.Content.Headers.ContentType = headerValue;
             return request;
         }
-
-        private static readonly Encoding kDefaultEncoding = new UTF8Encoding();
     }
 }

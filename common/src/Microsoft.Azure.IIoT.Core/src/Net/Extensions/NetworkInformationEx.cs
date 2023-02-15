@@ -44,39 +44,6 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         /// <summary>
-        /// Get network interface for index
-        /// </summary>
-        /// <param name="itfIndex"></param>
-        /// <returns></returns>
-        public static NetInterface GetNetInterfaceByIndex(int itfIndex) {
-            return NetworkInterface.GetAllNetworkInterfaces()
-                .Where(n => n.NetworkInterfaceType.IsInClass(NetworkClass.All))
-                .Where(n => n.Supports(NetworkInterfaceComponent.IPv4))
-                .FirstOrDefault(n =>
-                    n.GetIPProperties().GetIPv4Properties().Index == itfIndex)
-                .ToNetInterface();
-        }
-
-        /// <summary>
-        /// Get network interface for index
-        /// </summary>
-        /// <param name="nic"></param>
-        /// <returns></returns>
-        public static NetInterface ToNetInterface(this NetworkInterface nic) {
-
-            var props = nic.GetIPProperties();
-            var address = props.UnicastAddresses.FirstOrDefault(a =>
-                a.Address.AddressFamily == AddressFamily.InterNetwork);
-            var gateway = props.GatewayAddresses.FirstOrDefault(a =>
-                a.Address.AddressFamily == AddressFamily.InterNetwork);
-
-            var key = new NetInterface(nic.Name, nic.GetPhysicalAddress(),
-                address.Address, address.IPv4Mask, gateway?.Address,
-                props.DnsSuffix, props.DnsAddresses);
-            return key;
-        }
-
-        /// <summary>
         /// Check whether the interface type fits the class
         /// </summary>
         /// <param name="type"></param>

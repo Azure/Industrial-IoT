@@ -24,15 +24,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         }
 
         /// <summary>
-        /// Check whether twin is enabled
-        /// </summary>
-        /// <param name="twin"></param>
-        /// <returns></returns>
-        public static bool? IsEnabled(this DeviceTwinModel twin) {
-            return twin.Status?.EqualsIgnoreCase("enabled");
-        }
-
-        /// <summary>
         /// Check whether twin is disabled
         /// </summary>
         /// <param name="twin"></param>

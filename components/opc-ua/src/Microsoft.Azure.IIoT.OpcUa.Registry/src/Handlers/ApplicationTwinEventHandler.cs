@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Serilog;
     using System;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Application twin event handler
@@ -83,4 +84,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         private readonly ILogger _logger;
         private readonly IRegistryEventBroker<IApplicationRegistryListener> _broker;
     }
+#endif
 }

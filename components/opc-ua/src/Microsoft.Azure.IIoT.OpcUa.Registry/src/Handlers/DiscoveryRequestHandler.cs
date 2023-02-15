@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Microsoft.Azure.IIoT.Tasks;
     using System;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Handles discovery requests received from the <see cref="OnboardingClient"/>
@@ -41,4 +42,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         private readonly IDiscoveryServices _discovery;
         private readonly ITaskProcessor _processor;
     }
+#endif
 }

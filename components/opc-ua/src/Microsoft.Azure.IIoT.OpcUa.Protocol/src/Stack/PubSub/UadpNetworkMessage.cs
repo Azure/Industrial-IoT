@@ -373,11 +373,6 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <summary>
-        /// Get Uadp version. Should always be 1
-        /// </summary>
-        internal byte UADPVersion => (byte)(UadpFlags & UADPFlagsEncodingMask.VersionMask);
-
-        /// <summary>
         /// Create message
         /// </summary>
         public UadpNetworkMessage() {

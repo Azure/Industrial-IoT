@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Api.Publisher.Adapter {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Implements node and publish services as adapter on top of api.
@@ -58,4 +59,5 @@ namespace Microsoft.Azure.IIoT.Api.Publisher.Adapter {
 
         private readonly IPublisherServiceApi _client;
     }
+#endif
 }

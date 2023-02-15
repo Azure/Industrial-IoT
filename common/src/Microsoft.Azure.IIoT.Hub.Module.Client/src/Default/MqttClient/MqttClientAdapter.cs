@@ -692,30 +692,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
 
             /// <inheritdoc/>
-            public string DeviceId {
-                get {
-                    return _userProperties[CommonProperties.DeviceId];
-                }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
-                        _userProperties[CommonProperties.DeviceId] = value;
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
-            public string ModuleId {
-                get {
-                    return _userProperties[CommonProperties.ModuleId];
-                }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
-                        _userProperties[CommonProperties.ModuleId] = value;
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
             public string OutputName { get; set; }
             /// <inheritdoc/>
             public bool Retain { get; set; }

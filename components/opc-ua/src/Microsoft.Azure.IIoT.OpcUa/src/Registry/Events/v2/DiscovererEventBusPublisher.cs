@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         public DiscovererEventBusPublisher(IEventBus bus) {
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }
+#if ZOMBIE
 
         /// <inheritdoc/>
         public Task OnDiscovererDeletedAsync(RegistryOperationContextModel context,
@@ -29,6 +30,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
             return _bus.PublishAsync(Wrap(DiscovererEventType.Deleted, context,
                 discovererId, null));
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public Task OnDiscovererNewAsync(RegistryOperationContextModel context,
@@ -36,6 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
             return _bus.PublishAsync(Wrap(DiscovererEventType.New, context,
                 discoverer.Id, discoverer));
         }
+#endif
 
         /// <inheritdoc/>
         public Task OnDiscovererUpdatedAsync(RegistryOperationContextModel context,

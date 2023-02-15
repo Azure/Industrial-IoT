@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Supervisor registry change listener
@@ -49,4 +50,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
 
         private readonly List<ISupervisorRegistryListener> _listeners;
     }
+#endif
 }

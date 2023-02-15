@@ -18,8 +18,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Extensions.Configuration;
@@ -28,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IWebHostConfig, IServiceBusConfig,
+    public class Config : DiagnosticsConfig, IWebHostConfig,
         ICorsConfig, IOpenApiConfig, ISignalRServiceConfig,
         IEventProcessorConfig, IEventHubConsumerConfig, IForwardedHeadersConfig,
         IEventProcessorHostConfig, IRoleConfig {
@@ -59,9 +57,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         public bool UseV2 => _openApi.UseV2;
         /// <inheritdoc/>
         public string OpenApiServerHost => _openApi.OpenApiServerHost;
-
-        /// <inheritdoc/>
-        public string ServiceBusConnString => _sb.ServiceBusConnString;
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
@@ -123,7 +118,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
             _openApi = new OpenApiConfig(configuration);
             _host = new WebHostConfig(configuration);
             _cors = new CorsConfig(configuration);
-            _sb = new ServiceBusConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _ep = new EventProcessorConfig(configuration);
@@ -133,7 +127,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         private readonly OpenApiConfig _openApi;
         private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
-        private readonly ServiceBusConfig _sb;
         private readonly SignalRServiceConfig _sr;
         private readonly ForwardedHeadersConfig _fh;
         private readonly EventProcessorConfig _ep;

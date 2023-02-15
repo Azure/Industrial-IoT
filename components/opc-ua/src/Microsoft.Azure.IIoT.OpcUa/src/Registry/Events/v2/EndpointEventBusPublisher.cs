@@ -64,6 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
             return _bus.PublishAsync(Wrap(EndpointEventType.New, context,
                 endpoint.Registration.Id, endpoint));
         }
+#if ZOMBIE
 
         /// <inheritdoc/>
         public Task OnEndpointUpdatedAsync(
@@ -71,6 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
             return _bus.PublishAsync(Wrap(EndpointEventType.Updated, context,
                 endpoint.Registration.Id, endpoint));
         }
+#endif
 
         /// <summary>
         /// Create endpoint event

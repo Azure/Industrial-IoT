@@ -11,25 +11,6 @@ namespace System.Security.Claims {
     public static class ClaimsPrincipalEx {
 
         /// <summary>
-        /// Get current user name
-        /// </summary>
-        /// <returns></returns>
-        public static string GetUserName() {
-            return ClaimsPrincipal.Current.GetUserName();
-        }
-
-        /// <summary>
-        /// Get user name
-        /// </summary>
-        /// <param name="principal"></param>
-        /// <returns></returns>
-        public static string GetUserName(this ClaimsPrincipal principal) {
-            return principal.FindFirst(ClaimTypes.Upn) != null ?
-                principal.FindFirst(ClaimTypes.Upn).Value :
-                principal.FindFirst(ClaimTypes.Email).Value;
-        }
-
-        /// <summary>
         /// Gets the unique object ID associated with the <see cref="ClaimsPrincipal"/>
         /// </summary>
         /// <param name="principal"></param>
@@ -44,32 +25,6 @@ namespace System.Security.Claims {
                 throwIfNotFound);
             }
             return userIdentifier;
-        }
-
-        /// <summary>
-        /// Returns the audience id of the current <see cref="ClaimsPrincipal"/>
-        /// targeted.
-        /// As eveluating application, this is (one of) our configured clientid (s).
-        /// </summary>
-        /// <param name="principal"></param>
-        /// <param name="throwIfNotFound"></param>
-        /// <returns></returns>
-        public static string GetAudienceId(this ClaimsPrincipal principal,
-            bool throwIfNotFound = true) {
-            return principal.FindFirstValue("aud", throwIfNotFound);
-        }
-
-        /// <summary>
-        /// Returns the scope for the current claims principal
-        /// </summary>
-        /// <param name="principal"></param>
-        /// <param name="throwIfNotFound"></param>
-        /// <returns></returns>
-        public static string GetScope(this ClaimsPrincipal principal,
-            bool throwIfNotFound = false) {
-            return principal.FindFirstValue(
-                "http://schemas.microsoft.com/identity/claims/scope",
-                throwIfNotFound);
         }
 
         /// <summary>

@@ -32,22 +32,6 @@ namespace Opc.Ua {
             }
         }
 
-        /// <summary>
-        /// Try remove trust list
-        /// </summary>
-        /// <param name="trustList"></param>
-        /// <param name="certificates"></param>
-        /// <returns></returns>
-        public static bool TryRemove(this CertificateTrustList trustList,
-            IEnumerable<X509Certificate2> certificates) {
-            try {
-                Remove(trustList, certificates);
-                return true;
-            }
-            catch {
-                return false;
-            }
-        }
 
         /// <summary>
         /// Add to trust list

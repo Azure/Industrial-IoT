@@ -59,16 +59,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
             _serverFixture = serverFixture;
         }
 
-        protected Task<List<JsonMessage>> ProcessMessagesAsync(
-            string publishedNodesFile,
-            bool useMqtt5,
-            Func<JsonElement, JsonElement> predicate = null,
-            string messageType = null,
-            string[] arguments = default) {
-            // Collect messages from server with default settings
-            return ProcessMessagesAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1, useMqtt5, predicate, messageType, arguments);
-        }
-
         protected Task<(JsonMessage? Metadata, List<JsonMessage> Messages)> ProcessMessagesAndMetadataAsync(
             string publishedNodesFile,
             bool useMqtt5,
@@ -78,20 +68,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
             // Collect messages from server with default settings
             return ProcessMessagesAndMetadataAsync(publishedNodesFile, TimeSpan.FromMinutes(2), 1,
                 useMqtt5, predicate, messageType, arguments);
-        }
-
-        protected async Task<List<JsonMessage>> ProcessMessagesAsync(
-            string publishedNodesFile,
-            TimeSpan messageCollectionTimeout,
-            int messageCount,
-            bool useMqtt5,
-            Func<JsonElement, JsonElement> predicate = null,
-            string messageType = null,
-            string[] arguments = default) {
-
-            var (_, messages) = await ProcessMessagesAndMetadataAsync(publishedNodesFile,
-                messageCollectionTimeout, messageCount, useMqtt5, predicate, messageType, arguments);
-            return messages;
         }
 
         protected async Task<(JsonMessage? Metadata, List<JsonMessage> Messages)> ProcessMessagesAndMetadataAsync(
@@ -120,15 +96,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
             Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
             // Collect messages from server with default settings
             JsonMessage? metadata = null;
-            return WaitForMessagesAndMetadata(TimeSpan.FromMinutes(2), 1, ref metadata, predicate, messageType);
-        }
-
-        /// <summary>
-        /// Wait for one message
-        /// </summary>
-        protected List<JsonMessage> WaitForMessagesAndMetadata(ref JsonMessage? metadata,
-            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
-            // Collect messages from server with default settings
             return WaitForMessagesAndMetadata(TimeSpan.FromMinutes(2), 1, ref metadata, predicate, messageType);
         }
 

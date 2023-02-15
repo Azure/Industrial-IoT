@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
     /// Raw OPC Twin Historic Access service api
     /// </summary>
     public interface IHistoryServiceRawApi {
+#if ZOMBIE
 
         /// <summary>
         /// Read node history with custom encoded extension object details
@@ -24,6 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryReadResponseApiModel<VariantValue>> HistoryReadRawAsync(
             string endpointId, HistoryReadRequestApiModel<VariantValue> request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read history call with custom encoded extension object details
@@ -35,6 +38,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryReadNextResponseApiModel<VariantValue>> HistoryReadRawNextAsync(
             string endpointId, HistoryReadNextRequestApiModel request,
             CancellationToken ct = default);
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Update using raw extension object details
@@ -46,5 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(
             string endpointId, HistoryUpdateRequestApiModel<VariantValue> request,
             CancellationToken ct = default);
+#endif
     }
 }

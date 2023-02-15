@@ -23,17 +23,5 @@ namespace System.Xml {
             }
             return doc.DocumentElement;
         }
-
-        /// <summary>
-        /// Deserialize object to xml element
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public static T ToObject<T>(this XmlElement element) {
-            var serializer = new DataContractSerializer(typeof(T));
-            using (var reader = new XmlNodeReader(element)) {
-                return (T)serializer.ReadObject(reader);
-            }
-        }
     }
 }

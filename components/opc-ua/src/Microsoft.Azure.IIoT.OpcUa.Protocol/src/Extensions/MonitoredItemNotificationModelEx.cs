@@ -45,32 +45,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Convert to monitored item notifications
         /// </summary>
         /// <param name="notification"></param>
-        /// <param name="subscription"></param>
-        /// <returns></returns>
-        public static IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
-            this DataChangeNotification notification, Subscription subscription) {
-            if (notification?.MonitoredItems != null) {
-                for (var i = 0; i < notification.MonitoredItems.Count; i++) {
-                    var handle = notification?.MonitoredItems[i]?.ClientHandle;
-                    if (handle == null) {
-                        continue;
-                    }
-                    var monitoredItem = subscription.FindItemByClientHandle(handle.Value);
-                    if (monitoredItem == null) {
-                        continue;
-                    }
-                    var messages = notification.MonitoredItems[i].ToMonitoredItemNotifications(monitoredItem);
-                    foreach (var message in messages) {
-                        yield return message;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Convert to monitored item notifications
-        /// </summary>
-        /// <param name="notification"></param>
         /// <param name="monitoredItem"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>

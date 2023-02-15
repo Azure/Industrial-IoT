@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// <summary>
     /// Mock device registry
     /// </summary>
-    public class IoTHubServices : IIoTHubTwinServices, IIoTHubTelemetryServices,
+    public class IoTHubServices : IIoTHubTwinServices,
         IEventProcessingHost, IIoTHub {
 
         /// <inheritdoc/>
@@ -99,20 +99,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
             model.Connect(callback);
             return model;
-        }
-
-        /// <inheritdoc/>
-        public Task SendAsync(string deviceId, string moduleId, EventModel message) {
-            var payload = _serializer.SerializeToBytes(message.Payload).ToArray();
-            var ev = new EventMessage {
-                DeviceId = deviceId,
-                ModuleId = moduleId,
-                Timestamp = DateTime.UtcNow,
-                Buffers = new[] { payload },
-                Properties = message.Properties
-            };
-            Events.TryAdd(ev);
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -229,7 +215,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     pageSize = int.MaxValue;
                 }
 
-                int.TryParse(continuation, out var index);
+                _ = int.TryParse(continuation, out var index);
                 var count = Math.Max(0, Math.Min(pageSize.Value, result.Count - index));
 
                 return Task.FromResult(new QueryResultModel {
@@ -360,18 +346,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc/>
-            public void SendBlob(string blobName, ArraySegment<byte> blob) {
-                if (!_outer._blobs.TryAdd(new FileNotification {
-                    DeviceId = Device.Id,
-                    BlobName = blobName,
-                    Blob = blob,
-                    EnqueuedTimeUtc = DateTime.UtcNow
-                })) {
-                    throw new CommunicationException("Failed to upload blob.");
-                }
-            }
-
-            /// <inheritdoc/>
             public void SendEvent(ITelemetryEvent message) {
                 if (!_outer.Events.TryAdd(new EventMessage(message, Device))) {
                     throw new CommunicationException("Failed to send event.");
@@ -483,20 +457,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         /// <summary>
-        /// File notification
-        /// </summary>
-        public class FileNotification {
-            /// <summary/>
-            public string DeviceId { get; set; }
-            /// <summary/>
-            public ArraySegment<byte> Blob { get; set; }
-            /// <summary/>
-            public string BlobName { get; set; }
-            /// <summary/>
-            public DateTime EnqueuedTimeUtc { get; set; }
-        }
-
-        /// <summary>
         /// Event messages
         /// </summary>
         public class EventMessage : ITelemetryEvent {
@@ -549,11 +509,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// <inheritdoc/>
             public IReadOnlyList<byte[]> Buffers { get; set; }
 
-            /// <summary>
-            /// Event properties
-            /// </summary>
-            public Dictionary<string, string> Properties { get; internal set; }
-
             /// <inheritdoc/>
             public void Dispose() {
             }
@@ -561,8 +516,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
         private readonly SqlQuery _query;
         private readonly object _lock = new object();
-        private readonly BlockingCollection<FileNotification> _blobs =
-            new BlockingCollection<FileNotification>();
         private readonly List<IoTHubDeviceModel> _devices =
             new List<IoTHubDeviceModel>();
         private readonly IJsonSerializer _serializer;

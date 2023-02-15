@@ -26,14 +26,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     /// <summary>
     /// Module host implementation
     /// </summary>
-    public sealed class ModuleHost : IModuleHost, ITwinProperties, IEventEmitter,
+    public sealed class ModuleHost : IModuleHost, IEventEmitter,
         IClientAccessor {
-
-        /// <inheritdoc/>
-        public int MaxMethodPayloadCharacterCount => 120 * 1024;
-
-        /// <inheritdoc/>
-        public IReadOnlyDictionary<string, VariantValue> Reported => _reported;
 
         /// <inheritdoc/>
         public IClient Client { get; private set; }
@@ -141,26 +135,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task RefreshAsync() {
-            try {
-                await _lock.WaitAsync();
-                if (Client != null) {
-                    var twin = await Client.GetTwinAsync();
-                    _reported.Clear();
-                    foreach (KeyValuePair<string, dynamic> property in twin.Properties.Reported) {
-                        _reported.AddOrUpdate(property.Key,
-                            (VariantValue)_serializer.FromObject(property.Value));
-                    }
-                    var reported = new Dictionary<string, VariantValue>();
-                    await ReportControllerStateAsync(twin, reported);
-                }
-            }
-            finally {
-                _lock.Release();
-            }
-        }
-
-        /// <inheritdoc/>
         public async Task SendEventAsync(IReadOnlyList<byte[]> batch, string contentType,
             string eventSchema, string contentEncoding) {
             try {
@@ -185,27 +159,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     using var msg = Client.CreateMessage(new[] { data },
                         contentEncoding, contentType, eventSchema);
                     await Client.SendEventAsync(msg);
-                }
-            }
-            finally {
-                _lock.Release();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task ReportAsync(IEnumerable<KeyValuePair<string, VariantValue>> properties) {
-            try {
-                await _lock.WaitAsync();
-                if (Client != null) {
-                    var collection = new TwinCollection();
-                    foreach (var property in properties) {
-                        collection[property.Key] = property.Value?.ConvertTo<object>();
-                    }
-                    await Client.UpdateReportedPropertiesAsync(collection);
-                    foreach (var property in properties) {
-                        _reported.Remove(property.Key);
-                        _reported.Add(property.Key, property.Value);
-                    }
                 }
             }
             finally {

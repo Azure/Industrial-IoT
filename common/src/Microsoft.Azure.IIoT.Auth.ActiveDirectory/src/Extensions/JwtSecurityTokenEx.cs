@@ -27,7 +27,6 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
                 SignatureAlgorithm = token.SignatureAlgorithm,
                 TenantId = token.Payload.Claims.FirstOrDefault(
                     c => c.Type?.ToLowerInvariant() == "tid")?.Value,
-                UserInfo = token.Payload.Claims.ToUserInfo(),
                 IdToken = null // TODO
             };
         }

@@ -38,18 +38,6 @@ namespace Microsoft.Azure.IIoT.Utils {
             _disposeAsync = () => DisposeAsync(disposables);
         }
 
-        /// <summary>
-        /// Create from tasks
-        /// </summary>
-        /// <param name="tasks"></param>
-        /// <returns></returns>
-#pragma warning disable IDE1006 // Naming Styles
-        public static async Task<IAsyncDisposable> AsAsyncDisposable(
-            params Task<IAsyncDisposable>[] tasks) {
-#pragma warning restore IDE1006 // Naming Styles
-            return new AsyncDisposable(await WhenAll(tasks));
-        }
-
         /// <inheritdoc/>
         public async ValueTask DisposeAsync() {
             if (_disposable != null) {
@@ -58,18 +46,6 @@ namespace Microsoft.Azure.IIoT.Utils {
             if (_disposeAsync != null) {
                 await _disposeAsync.Invoke();
             }
-        }
-
-        /// <summary>
-        /// Safe waiting for disposables
-        /// </summary>
-        /// <param name="tasks"></param>
-        /// <returns></returns>
-#pragma warning disable IDE1006 // Naming Styles
-        public Task<IAsyncDisposable[]> WhenAll(
-            params Task<IAsyncDisposable>[] tasks) {
-#pragma warning restore IDE1006 // Naming Styles
-            return WhenAll((IEnumerable<Task<IAsyncDisposable>>)tasks);
         }
 
         /// <summary>
@@ -92,15 +68,6 @@ namespace Microsoft.Azure.IIoT.Utils {
                 }
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Safe waiting for disposables
-        /// </summary>
-        /// <param name="disposables"></param>
-        /// <returns></returns>
-        public static Task DisposeAsync(params IAsyncDisposable[] disposables) {
-            return ((IEnumerable<IAsyncDisposable>)disposables).DisposeAsync();
         }
 
         /// <summary>

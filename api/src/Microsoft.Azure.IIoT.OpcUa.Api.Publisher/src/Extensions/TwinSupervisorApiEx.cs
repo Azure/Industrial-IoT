@@ -10,11 +10,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Api extensions
     /// </summary>
     public static class TwinSupervisorApiEx {
+#if ZOMBIE
+#if ZOMBIE
 
         /// <summary>
         /// Browse node on endpoint
@@ -29,6 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.NodeBrowseAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Browse node on endpoint
@@ -48,6 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
                 }
             }, request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Browse next references on endpoint
@@ -67,6 +74,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
                 }
             }, request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Browse by path on endpoint
@@ -81,6 +90,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.NodeBrowsePathAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Call method on endpoint
@@ -95,6 +106,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.NodeMethodCallAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Get meta data for method call on endpoint
@@ -109,6 +122,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.NodeMethodGetMetadataAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read node value on endpoint
@@ -123,6 +138,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.NodeValueReadAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Write node value on endpoint
@@ -137,6 +154,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.NodeValueWriteAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Read node attributes on endpoint
@@ -151,6 +170,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.NodeReadAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Write node attributes on endpoint
@@ -165,6 +186,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
             CancellationToken ct = default) {
             return api.NodeWriteAsync(ConnectionTo(endpointUrl), request, ct);
         }
+#endif
 
         /// <summary>
         /// Browse all references if max references == null and user
@@ -208,6 +230,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
                 return result;
             }
         }
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// New endpoint
@@ -223,5 +247,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions {
                 }
             };
         }
+#endif
     }
+#endif
 }

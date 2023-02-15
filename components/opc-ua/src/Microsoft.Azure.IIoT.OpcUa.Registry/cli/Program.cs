@@ -342,18 +342,6 @@ Operations (Mutually exclusive):
         private class ConsoleEmitter : IEventEmitter {
 
             /// <inheritdoc/>
-            public string Gateway => Utils.GetHostName();
-
-            /// <inheritdoc/>
-            public string DeviceId => Gateway;
-
-            /// <inheritdoc/>
-            public string ModuleId { get; } = "";
-
-            /// <inheritdoc/>
-            public string SiteId => null;
-
-            /// <inheritdoc/>
             public Task SendEventAsync(byte[] data, string contentType,
                 string eventSchema, string contentEncoding) {
                 var json = Encoding.UTF8.GetString(data);
@@ -377,104 +365,7 @@ Operations (Mutually exclusive):
                 return Task.CompletedTask;
             }
 
-            /// <inheritdoc/>
-            public Task ReportAsync(IEnumerable<KeyValuePair<string, VariantValue>> properties) {
-                foreach (var prop in properties) {
-                    Console.WriteLine($"{prop.Key}={prop.Value}");
-                }
-                return Task.CompletedTask;
-            }
-
             private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
-        }
-
-        /// <inheritdoc/>
-        private class ConsoleListener : IApplicationRegistryListener,
-            IEndpointRegistryListener {
-
-            /// <inheritdoc/>
-            public Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
-                string applicationId, ApplicationInfoModel application) {
-                Console.WriteLine($"Deleted {applicationId}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnApplicationDisabledAsync(RegistryOperationContextModel context,
-                ApplicationInfoModel application) {
-                Console.WriteLine($"Disabled {application.ApplicationId}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnApplicationEnabledAsync(RegistryOperationContextModel context,
-                ApplicationInfoModel application) {
-                Console.WriteLine($"Enabled {application.ApplicationId}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnApplicationNewAsync(RegistryOperationContextModel context,
-                ApplicationInfoModel application) {
-                Console.WriteLine($"Created {application.ApplicationId}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-                ApplicationInfoModel application) {
-                Console.WriteLine($"Updated {application.ApplicationId}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnEndpointActivatedAsync(RegistryOperationContextModel context,
-                EndpointInfoModel endpoint) {
-                Console.WriteLine($"Activated {endpoint.Registration.Id}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnEndpointDeactivatedAsync(RegistryOperationContextModel context,
-                EndpointInfoModel endpoint) {
-                Console.WriteLine($"Deactivated {endpoint.Registration.Id}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnEndpointDeletedAsync(RegistryOperationContextModel context,
-                string endpointId, EndpointInfoModel endpoint) {
-                Console.WriteLine($"Deleted {endpointId}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnEndpointDisabledAsync(RegistryOperationContextModel context,
-                EndpointInfoModel endpoint) {
-                Console.WriteLine($"Disabled {endpoint.Registration.Id}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnEndpointEnabledAsync(RegistryOperationContextModel context,
-                EndpointInfoModel endpoint) {
-                Console.WriteLine($"Enabled {endpoint.Registration.Id}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnEndpointNewAsync(RegistryOperationContextModel context,
-                EndpointInfoModel endpoint) {
-                Console.WriteLine($"Created {endpoint.Registration.Id}");
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task OnEndpointUpdatedAsync(RegistryOperationContextModel context,
-                EndpointInfoModel endpoint) {
-                Console.WriteLine($"Updated {endpoint.Registration.Id}");
-                return Task.CompletedTask;
-            }
         }
     }
 }

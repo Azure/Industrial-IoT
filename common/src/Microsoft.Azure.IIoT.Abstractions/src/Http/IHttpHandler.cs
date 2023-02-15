@@ -15,11 +15,5 @@ namespace Microsoft.Azure.IIoT.Http {
         /// Predicate to filter handlers per resource id.
         /// </summary>
         Func<string, bool> IsFor { get; }
-
-        /// <summary>
-        /// Allows handler to configure http options
-        /// </summary>
-        /// <param name="host"></param>
-        void Configure(IHttpHandlerHost host);
     }
 }

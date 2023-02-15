@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
     /// Wraps stateless http handlers in a delegating handler instance to be
     /// used by http client and client factory
     /// </summary>
-    public class HttpHandlerDelegate : DelegatingHandler, IHttpHandlerHost {
+    public class HttpHandlerDelegate : DelegatingHandler {
 
         /// <summary>
         /// Create delegating handler
@@ -63,7 +63,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 .Cast<IHttpCertificateValidator>()
                 .ToList();
             if (validators.Any()) {
-                validators.ForEach(h => h.Configure(this));
                 root.ServerCertificateCustomValidationCallback =
                     (req, cert, chain, err) => validators.All(
                         v => v.Validate(req.Headers, cert, chain, err));
@@ -75,14 +74,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 .Cast<IHttpMessageHandler>()
                 .OrderBy(h => h.Order)
                 .ToList();
-            _handlers.ForEach(h => h.Configure(this));
-        }
-
-        /// <inheritdoc/>
-        public void SetMaxLifetime(TimeSpan max) {
-            if (max < MaxLifetime && max > TimeSpan.Zero) {
-                MaxLifetime = max;
-            }
         }
 
         /// <summary>

@@ -25,17 +25,6 @@ namespace Microsoft.Azure.IIoT.Messaging {
             CancellationToken ct = default);
 
         /// <summary>
-        /// Send unicast message
-        /// </summary>
-        /// <param name="target"></param>
-        /// <param name="method"></param>
-        /// <param name="arguments"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task UnicastAsync(string target, string method, object[] arguments,
-            CancellationToken ct = default);
-
-        /// <summary>
         /// Multicast message
         /// </summary>
         /// <param name="group"></param>

@@ -17,45 +17,6 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
     public static class MsalExtensions {
 
         /// <summary>
-        /// Get account info for the user
-        /// </summary>
-        /// <param name="application"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public static async Task<IAccount> GetUserAccountAsync(
-            this IClientApplicationBase application, ClaimsPrincipal user) {
-            var accountId = user.GetMsalAccountId();
-            if (accountId != null) {
-                var account = await application.GetAccountAsync(accountId);
-                // Special case for guest users as the Guest oid / tenant id are not surfaced.
-                if (account == null) {
-                    var loginHint = user.GetLoginHint();
-                    if (loginHint == null) {
-                        throw new ArgumentNullException(nameof(loginHint));
-                    }
-                    var accounts = await application.GetAccountsAsync();
-                    account = accounts.FirstOrDefault(a => a.Username == loginHint);
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Gets the domain-hint associated with an identity
-        /// </summary>
-        /// <param name="principal"></param>
-        /// <returns></returns>
-        public static string GetDomainHint(this ClaimsPrincipal principal) {
-            // Tenant for MSA accounts
-            const string msaTenantId = "9188040d-6c67-4c5b-b112-36a304b66dad";
-            var tenantId = principal.GetTenantId();
-            var domainHint = string.IsNullOrWhiteSpace(tenantId) ? null
-                : tenantId.Equals(msaTenantId, StringComparison.OrdinalIgnoreCase) ?
-                    "consumers" : "organizations";
-            return domainHint;
-        }
-
-        /// <summary>
         /// Gets the Account identifier for an MSAL.NET account from a
         /// <see cref="ClaimsPrincipal"/>
         /// </summary>
@@ -96,8 +57,6 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
                 TokenType = "Bearer",
                 ExpiresOn = result.ExpiresOn,
                 TenantId = result.TenantId,
-                UserInfo = jwt.Payload.Claims.ToUserInfo(
-                    new UserInfoModel { UniqueId = result.UniqueId }),
                 IdToken = result.IdToken,
                 Cached = true // Always cached in msal
             };

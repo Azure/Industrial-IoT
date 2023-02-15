@@ -26,8 +26,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         /// </summary>
         public string Name => "Telemetry-Processor-Host";
 
-        /// <inheritdoc/>
-        public string Description => "Azure Industrial IoT Telemetry Processor Host";
 
         /// <inheritdoc/>
         public string SiteId { get; }

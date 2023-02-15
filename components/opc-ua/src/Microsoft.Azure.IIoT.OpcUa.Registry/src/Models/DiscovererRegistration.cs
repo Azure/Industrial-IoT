@@ -235,10 +235,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return hashCode;
         }
 
-        internal bool IsInSync() {
-            return _isInSync;
-        }
-
         internal bool IsConnected() {
             return Connected;
         }

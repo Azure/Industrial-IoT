@@ -16,18 +16,6 @@ namespace Serilog {
         /// <param name="configuration"></param>
         /// <param name="addConsole"></param>
         /// <returns></returns>
-        public static LoggerConfiguration Trace(this LoggerConfiguration configuration,
-            bool addConsole = true) {
-            return configuration.Configure((c, m) => c
-                .WriteTo.Trace(outputTemplate: m), addConsole);
-        }
-
-        /// <summary>
-        /// Create trace logger
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="addConsole"></param>
-        /// <returns></returns>
         public static LoggerConfiguration Debug(this LoggerConfiguration configuration,
             bool addConsole = true) {
             return configuration.Configure((c, m) => c

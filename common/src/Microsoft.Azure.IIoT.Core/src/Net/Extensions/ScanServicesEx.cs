@@ -31,17 +31,6 @@ namespace Microsoft.Azure.IIoT.Net {
         }
 
         /// <summary>
-        /// Scan network
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="replies"></param>
-        /// <param name="ct"></param>
-        public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
-            CancellationToken ct) {
-            return services.ScanAsync(replies, false, null, NetworkClass.Wired, null, null, ct);
-        }
-
-        /// <summary>
         /// Create scanner
         /// </summary>
         /// <param name="services"></param>
@@ -51,45 +40,6 @@ namespace Microsoft.Azure.IIoT.Net {
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
             NetworkClass netclass, CancellationToken ct) {
             return services.ScanAsync(replies, false, null, netclass, null, null, ct);
-        }
-
-        /// <summary>
-        /// Create scanner
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="replies"></param>
-        /// <param name="local"></param>
-        /// <param name="netclass"></param>
-        /// <param name="ct"></param>
-        public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
-            bool local, NetworkClass netclass, CancellationToken ct) {
-            return services.ScanAsync(replies, local, null, netclass, null, null, ct);
-        }
-
-        /// <summary>
-        /// Create scanner
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="replies"></param>
-        /// <param name="addresses"></param>
-        /// <param name="ct"></param>
-        public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
-            IEnumerable<AddressRange> addresses, CancellationToken ct) {
-            return services.ScanAsync(replies, false, addresses ??
-throw new ArgumentNullException(nameof(addresses)),
-NetworkClass.None, null, null, ct);
-        }
-
-        /// <summary>
-        /// Create scanner with default port probe
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="source"></param>
-        /// <param name="target"></param>
-        /// <param name="ct"></param>
-        public static Task ScanAsync(this IScanServices services, IEnumerable<IPEndPoint> source,
-            Action<IPEndPoint> target, CancellationToken ct) {
-            return services.ScanAsync(source, target, null, ct);
         }
 
         /// <summary>

@@ -15,10 +15,5 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// Model
         /// </summary>
         public EndpointInfoApiModel EndpointModel { get; set; }
-
-        /// <summary>
-        /// State
-        /// </summary>
-        public bool EndpointState { get; set; }
     }
 }

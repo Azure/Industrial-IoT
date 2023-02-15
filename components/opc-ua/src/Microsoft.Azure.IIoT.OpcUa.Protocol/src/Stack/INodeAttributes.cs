@@ -12,13 +12,6 @@ namespace Opc.Ua {
     public interface INodeAttributes : IEnumerable<KeyValuePair<uint, DataValue>> {
 
         /// <summary>
-        /// Indexed access to values
-        /// </summary>
-        /// <param name="attribute"></param>
-        /// <returns></returns>
-        object this[uint attribute] { get; set; }
-
-        /// <summary>
         /// Retrieve attribute from node or return a
         /// default as per node class
         /// </summary>
@@ -26,14 +19,6 @@ namespace Opc.Ua {
         /// <param name="attribute"></param>
         /// <returns></returns>
         T GetAttribute<T>(uint attribute);
-
-        /// <summary>
-        /// Retrieve attribute from node or return a
-        /// default as per node class
-        /// </summary>
-        /// <param name="attribute"></param>
-        /// <returns></returns>
-        DataValue GetAttribute(uint attribute);
 
         /// <summary>
         /// Set attribute
@@ -44,13 +29,6 @@ namespace Opc.Ua {
         void SetAttribute<T>(uint attribute, T value);
 
         /// <summary>
-        /// Set attribute
-        /// </summary>
-        /// <param name="attribute"></param>
-        /// <param name="value"></param>
-        void SetAttribute(uint attribute, DataValue value);
-
-        /// <summary>
         /// Try get attribute or return false if attribute
         /// value does not exist.
         /// </summary>
@@ -59,14 +37,6 @@ namespace Opc.Ua {
         /// <param name="value"></param>
         /// <returns></returns>
         bool TryGetAttribute<T>(uint attribute, out T value);
-
-        /// <summary>
-        /// Try get attribute as data value.
-        /// </summary>
-        /// <param name="attribute"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        bool TryGetAttribute(uint attribute, out DataValue value);
 
         /// <summary>
         /// Returns the local node id

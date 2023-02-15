@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Serilog;
     using System;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// PUblisher event handler.
@@ -83,4 +84,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         private readonly IRegistryEventBroker<IPublisherRegistryListener> _broker;
         private readonly ILogger _logger;
     }
+#endif
 }

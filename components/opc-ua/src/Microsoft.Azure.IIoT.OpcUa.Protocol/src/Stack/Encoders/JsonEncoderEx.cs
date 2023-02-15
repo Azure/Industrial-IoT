@@ -1491,27 +1491,6 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <summary>
-        /// Write server uri
-        /// </summary>
-        /// <param name="serverIndex"></param>
-        private void WriteServerIndex(uint serverIndex) {
-            if (serverIndex > 1) {
-                var uri = Context.ServerUris.GetString(serverIndex);
-                if (!string.IsNullOrEmpty(uri)) {
-                    WriteString("ServerUri", uri);
-                    return;
-                }
-            }
-            if (_serverMappings != null &&
-                _serverMappings.Length > serverIndex) {
-                serverIndex = _serverMappings[serverIndex];
-            }
-            if (serverIndex != 0) {
-                WriteUInt32("ServerIndex", serverIndex);
-            }
-        }
-
-        /// <summary>
         /// Encode an array according to its valueRank and BuiltInType
         /// </summary>
         public void WriteArray(string fieldName, object array, int valueRank, BuiltInType builtInType) {

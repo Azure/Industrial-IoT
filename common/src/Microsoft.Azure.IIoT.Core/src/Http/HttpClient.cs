@@ -71,16 +71,6 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             return SendAsync(request, HttpMethod.Delete, ct);
         }
 
-        /// <inheritdoc/>
-        public Task<IHttpResponse> HeadAsync(IHttpRequest request, CancellationToken ct) {
-            return SendAsync(request, HttpMethod.Head, ct);
-        }
-
-        /// <inheritdoc/>
-        public Task<IHttpResponse> OptionsAsync(IHttpRequest request, CancellationToken ct) {
-            return SendAsync(request, HttpMethod.Options, ct);
-        }
-
         /// <summary>
         /// Send request
         /// </summary>

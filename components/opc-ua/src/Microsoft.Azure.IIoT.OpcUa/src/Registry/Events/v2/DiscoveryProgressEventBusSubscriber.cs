@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Discovery progress listener
@@ -32,4 +33,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
 
         private readonly List<IDiscoveryProgressProcessor> _listeners;
     }
+#endif
 }

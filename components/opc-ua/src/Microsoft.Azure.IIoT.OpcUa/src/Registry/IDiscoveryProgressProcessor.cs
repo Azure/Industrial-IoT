@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Discovery process processing
@@ -19,4 +20,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnDiscoveryProgressAsync(DiscoveryProgressModel message);
     }
+#endif
 }

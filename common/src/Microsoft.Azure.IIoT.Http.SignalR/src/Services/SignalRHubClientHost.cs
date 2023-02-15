@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
     /// SignalR hub client
     /// </summary>
     public class SignalRHubClientHost : ICallbackRegistrar, IHostProcess,
-        IAsyncDisposable {
+        IAsyncDisposable, IDisposable {
 
         /// <inheritdoc/>
         public string ConnectionId => _connection.ConnectionId;

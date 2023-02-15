@@ -48,14 +48,6 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             }
         }
 
-        /// <summary>
-        /// Clone
-        /// </summary>
-        /// <returns></returns>
-        public PortRange Copy() {
-            return new PortRange(_lower, _upper);
-        }
-
         /// <inheritdoc/>
         public override bool Equals(object obj) {
             if (!(obj is PortRange range)) {

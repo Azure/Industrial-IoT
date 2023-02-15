@@ -22,7 +22,5 @@ namespace Microsoft.Azure.IIoT.Abstractions {
         public const string IOTEDGE_MODULEGENERATIONID = "IOTEDGE_MODULEGENERATIONID";
         /// <summary> IoT Edge API version </summary>
         public const string IOTEDGE_APIVERSION = "IOTEDGE_APIVERSION";
-        /// <summary> IoT Hub hostname </summary>
-        public const string IOTEDGE_IOTHUBHOSTNAME = "IOTEDGE_IOTHUBHOSTNAME";
     }
 }

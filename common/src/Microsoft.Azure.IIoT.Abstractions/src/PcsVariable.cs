@@ -13,12 +13,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service name </summary>
         public const string PCS_SERVICE_NAME =
             "PCS_SERVICE_NAME";
-        /// <summary> Root user id </summary>
-        public const string PCS_ROOT_USERID =
-            "PCS_ROOT_USERID";
-        /// <summary> Root password </summary>
-        public const string PCS_ROOT_PASSWORD =
-            "PCS_ROOT_PASSWORD";
         /// <summary> Iot hub connection string </summary>
         public const string PCS_IOTHUB_CONNSTRING =
             "PCS_IOTHUB_CONNSTRING";
@@ -28,21 +22,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Iot hub event hub Telemetry Consumer Group </summary>
         public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY =
             "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY";
-        /// <summary> Iot hub event hub Events Consumer Group </summary>
-        public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS =
-            "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS";
         /// <summary> Iot hub event hub Onboarder Consumer Group </summary>
         public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING =
             "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING";
-        /// <summary> Cosmos db connection string </summary>
-        public const string PCS_COSMOSDB_CONNSTRING =
-            "PCS_COSMOSDB_CONNSTRING";
-        /// <summary> Dps connection string </summary>
-        public const string PCS_DPS_CONNSTRING =
-            "PCS_DPS_CONNSTRING";
-        /// <summary> Dps idscope </summary>
-        public const string PCS_DPS_IDSCOPE =
-            "PCS_DPS_IDSCOPE";
         /// <summary> storage connection string </summary>
         public const string PCS_STORAGE_CONNSTRING =
             "PCS_STORAGE_CONNSTRING";
@@ -67,10 +49,7 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service bus connection string </summary>
         public const string PCS_SERVICEBUS_CONNSTRING =
             "PCS_SERVICEBUS_CONNSTRING";
-        /// <summary> Instrumentation key </summary>
-        public const string PCS_APPINSIGHTS_INSTRUMENTATIONKEY =
-            "PCS_APPINSIGHTS_INSTRUMENTATIONKEY";
-        /// <summary> LogLevel for Application Insights </summary>
+        /// <summary> LogLevel </summary>
         public const string PCS_APPINSIGHTS_LOGLEVEL =
             "PCS_APPINSIGHTS_LOGLEVEL";
         /// <summary> Keyvault client application id </summary>
@@ -148,48 +127,15 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Auth required </summary>
         public const string PCS_AUTH_REQUIRED =
             "PCS_AUTH_REQUIRED";
-        /// <summary> Docker server </summary>
-        public const string PCS_DOCKER_SERVER =
-            "PCS_DOCKER_SERVER";
-        /// <summary> Docker user name </summary>
-        public const string PCS_DOCKER_USER =
-            "PCS_DOCKER_USER";
-        /// <summary> Docker password </summary>
-        public const string PCS_DOCKER_PASSWORD =
-            "PCS_DOCKER_PASSWORD";
-        /// <summary> Optional images namespace </summary>
-        public const string PCS_IMAGES_NAMESPACE =
-            "PCS_IMAGES_NAMESPACE";
-        /// <summary> Images tag </summary>
-        public const string PCS_IMAGES_TAG =
-            "PCS_IMAGES_TAG";
         /// <summary> Service url </summary>
         public const string PCS_SERVICE_URL =
             "PCS_SERVICE_URL";
         /// <summary> Auth service endpoint url </summary>
         public const string PCS_AUTH_SERVICE_URL =
             "PCS_AUTH_SERVICE_URL";
-        /// <summary> User servíce endpoint url </summary>
-        public const string PCS_USERS_SERVICE_URL =
-            "PCS_USERS_SERVICE_URL";
-        /// <summary> OPC twin service endpoint url </summary>
-        public const string PCS_TWIN_SERVICE_URL =
-            "PCS_TWIN_SERVICE_URL";
-        /// <summary> OPC registry service endpoint url </summary>
-        public const string PCS_TWIN_REGISTRY_URL =
-            "PCS_TWIN_REGISTRY_URL";
-        /// <summary> OPC vault service endpoint url </summary>
-        public const string PCS_VAULT_SERVICE_URL =
-            "PCS_VAULT_SERVICE_URL";
         /// <summary> OPC publisher service endpoint url </summary>
         public const string PCS_PUBLISHER_SERVICE_URL =
             "PCS_PUBLISHER_SERVICE_URL";
-        /// <summary> Publisher orchestrator service endpoint url </summary>
-        public const string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL =
-            "PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL";
-        /// <summary> OPC history service endpoint url </summary>
-        public const string PCS_HISTORY_SERVICE_URL =
-            "PCS_HISTORY_SERVICE_URL";
         /// <summary> Events service endpoint url </summary>
         public const string PCS_EVENTS_SERVICE_URL =
             "PCS_EVENTS_SERVICE_URL";
@@ -214,48 +160,18 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service URL path base </summary>
         public const string PCS_SERVICE_PATH_BASE =
             "PCS_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for OPC twin service </summary>
-        public const string PCS_TWIN_SERVICE_PATH_BASE =
-            "PCS_TWIN_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for OPC registry service </summary>
-        public const string PCS_TWIN_REGISTRY_SERVICE_PATH_BASE =
-            "PCS_TWIN_REGISTRY_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for OPC vault service </summary>
-        public const string PCS_VAULT_SERVICE_PATH_BASE =
-            "PCS_VAULT_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for OPC publisher service </summary>
         public const string PCS_PUBLISHER_SERVICE_PATH_BASE =
             "PCS_PUBLISHER_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for OPC history service </summary>
-        public const string PCS_HISTORY_SERVICE_PATH_BASE =
-            "PCS_HISTORY_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for gateway service </summary>
-        public const string PCS_GATEWAY_SERVICE_PATH_BASE =
-            "PCS_GATEWAY_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for publisher orchestrator service </summary>
-        public const string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE =
-            "PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for frontend app </summary>
         public const string PCS_FRONTEND_APP_SERVICE_PATH_BASE =
             "PCS_FRONTEND_APP_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for events service </summary>
         public const string PCS_EVENTS_SERVICE_PATH_BASE =
             "PCS_EVENTS_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for auth service </summary>
-        public const string PCS_AUTH_SERVICE_PATH_BASE =
-            "PCS_AUTH_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for user servíce </summary>
-        public const string PCS_USERS_SERVICE_PATH_BASE =
-            "PCS_USERS_SERVICE_PATH_BASE";
         /// <summary> Deployment Level </summary>
         public const string PCS_DEPLOYMENT_LEVEL =
             "PCS_DEPLOYMENT_LEVEL";
-        /// <summary> Log Analytics workspace Id </summary>
-        public const string PCS_WORKSPACE_ID =
-            "PCS_WORKSPACE_ID";
-        /// <summary> Log Analytics workspace key </summary>
-        public const string PCS_WORKSPACE_KEY =
-            "PCS_WORKSPACE_KEY";
         /// <summary> URL path base for TSI query </summary>
         public const string PCS_TSI_URL =
             "PCS_TSI_URL";
@@ -271,8 +187,5 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Log file path environment variable </summary>
         public const string PCS_LOGS_PATH =
             "PCS_LOGS_PATH";
-        /// <summary> The maximum size of the (IoT D2C) message outgress queue </summary>
-        public const string PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES =
-            "PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES";
     }
 }

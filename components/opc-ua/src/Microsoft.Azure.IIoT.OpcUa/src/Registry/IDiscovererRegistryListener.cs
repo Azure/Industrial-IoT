@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     /// Discoverer registry change listener
     /// </summary>
     public interface IDiscovererRegistryListener {
+#if ZOMBIE
 
         /// <summary>
         /// Called when discoverer is added
@@ -20,6 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnDiscovererNewAsync(RegistryOperationContextModel context,
             DiscovererModel discoverer);
+#endif
 
         /// <summary>
         /// Called when discoverer is updated
@@ -29,6 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnDiscovererUpdatedAsync(RegistryOperationContextModel context,
             DiscovererModel discoverer);
+#if ZOMBIE
 
         /// <summary>
         /// Called when discoverer is delted
@@ -38,5 +41,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnDiscovererDeletedAsync(RegistryOperationContextModel context,
             string discovererId);
+#endif
     }
 }

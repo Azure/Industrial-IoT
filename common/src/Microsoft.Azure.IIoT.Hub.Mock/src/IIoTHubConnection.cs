@@ -34,13 +34,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         void UpdateReportedProperties(TwinCollection reportedProperties);
 
         /// <summary>
-        /// Send blob
-        /// </summary>
-        /// <param name="blobName"></param>
-        /// <param name="arraySegment"></param>
-        void SendBlob(string blobName, ArraySegment<byte> arraySegment);
-
-        /// <summary>
         /// Call method
         /// </summary>
         /// <param name="deviceId"></param>

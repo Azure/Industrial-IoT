@@ -118,21 +118,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return
                 model.ActivationState == EndpointActivationState.ActivatedAndConnected;
         }
-
-        /// <summary>
-        /// Deep clone
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static EndpointInfoModel Clone(this EndpointInfoModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new EndpointInfoModel {
-                ApplicationId = model.ApplicationId,
-                OutOfSync = model.OutOfSync,
-                Registration = model.Registration.Clone()
-            };
-        }
     }
 }

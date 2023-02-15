@@ -22,13 +22,5 @@ namespace Microsoft.Azure.IIoT.Module {
         /// <param name="value">property value</param>
         /// <returns></returns>
         Task ReportAsync(string propertyId, VariantValue value);
-
-        /// <summary>
-        /// Send property changed notifications
-        /// </summary>
-        /// <param name="properties">property id</param>
-        /// <returns></returns>
-        Task ReportAsync(IEnumerable<KeyValuePair<string,
-            VariantValue>> properties);
     }
 }

@@ -31,6 +31,8 @@ namespace Microsoft.Azure.IIoT.Api.Publisher.Clients {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+#if ZOMBIE
+#if ZOMBIE
 
         /// <inhertitdoc/>
         public async Task DiscoverAsync(string discovererId,
@@ -40,6 +42,8 @@ namespace Microsoft.Azure.IIoT.Api.Publisher.Clients {
             }
             await CallServiceOnDiscovererAsync(discovererId, "Discover_V2", request, ct);
         }
+#endif
+#if ZOMBIE
 
         /// <inhertitdoc/>
         public async Task CancelAsync(string discovererId,
@@ -49,6 +53,7 @@ namespace Microsoft.Azure.IIoT.Api.Publisher.Clients {
             }
             await CallServiceOnDiscovererAsync(discovererId, "Cancel_V2", request, ct);
         }
+#endif
 
         /// <summary>
         /// helper to invoke service
@@ -73,6 +78,7 @@ namespace Microsoft.Azure.IIoT.Api.Publisher.Clients {
                 "{deviceId}/{moduleId} took {elapsed} ms.", service,
                 deviceId, moduleId, sw.ElapsedMilliseconds);
         }
+#endif
 
         private readonly IJsonSerializer _serializer;
         private readonly IMethodClient _client;

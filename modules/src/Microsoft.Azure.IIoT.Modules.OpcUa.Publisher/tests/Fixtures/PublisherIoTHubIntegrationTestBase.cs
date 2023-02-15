@@ -142,15 +142,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
         /// <summary>
         /// Wait for one message
         /// </summary>
-        protected List<JsonElement> WaitForMessagesAndMetadata(ref JsonElement? metadata,
-            Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
-            // Collect messages from server with default settings
-            return WaitForMessagesAndMetadata(TimeSpan.FromMinutes(2), 1, ref metadata, predicate, messageType);
-        }
-
-        /// <summary>
-        /// Wait for one message
-        /// </summary>
         protected List<JsonElement> WaitForMessages(TimeSpan messageCollectionTimeout, int messageCount,
             Func<JsonElement, JsonElement> predicate = null, string messageType = null) {
             // Collect messages from server with default settings

@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// Method call client
     /// </summary>
     public interface IMethodCallClient {
-
         /// <summary>
         /// Invoke a method on device or module
         /// </summary>

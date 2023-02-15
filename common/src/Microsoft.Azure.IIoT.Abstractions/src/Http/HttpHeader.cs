@@ -22,18 +22,6 @@ namespace Microsoft.Azure.IIoT.Http {
         /// </summary>
         public const string MaxItemCount = "x-ms-max-item-count";
 
-        // Auditing
-
-        /// <summary>
-        /// Tracking id of a audited session
-        /// </summary>
-        public const string TrackingId = "x-ms-tracking-id";
-
-        /// <summary>
-        /// Audit identifier to use for request
-        /// </summary>
-        public const string ActivityId = "x-ms-activity-id";
-
         // Auth and reverse proxy
 
         /// <summary>
@@ -42,18 +30,8 @@ namespace Microsoft.Azure.IIoT.Http {
         public const string ResourceId = "x-resource-id";
 
         /// <summary>
-        /// Source of the request (for internal addressing)
-        /// </summary>
-        public const string SourceId = "x-source";
-
-        /// <summary>
         /// Unix transport (internal)
         /// </summary>
         public const string UdsPath = "x-internal-uds-transport";
-
-        /// <summary>
-        /// Forwarded path information
-        /// </summary>
-        public const string Location = "x-location";
     }
 }

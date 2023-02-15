@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     /// Supervisor registry change listener
     /// </summary>
     public interface ISupervisorRegistryListener {
+#if ZOMBIE
 
         /// <summary>
         /// Called when supervisor is created
@@ -20,6 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnSupervisorNewAsync(RegistryOperationContextModel context,
             SupervisorModel supervisor);
+#endif
 
         /// <summary>
         /// Called when supervisor is updated
@@ -29,6 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnSupervisorUpdatedAsync(RegistryOperationContextModel context,
             SupervisorModel supervisor);
+#if ZOMBIE
 
         /// <summary>
         /// Called when supervisor is deleted
@@ -38,5 +41,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task OnSupervisorDeletedAsync(RegistryOperationContextModel context,
             string supervisorId);
+#endif
     }
 }

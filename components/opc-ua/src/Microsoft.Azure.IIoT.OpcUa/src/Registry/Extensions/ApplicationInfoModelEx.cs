@@ -21,12 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             new LogicalComparer();
 
         /// <summary>
-        /// Get structural equality comparer
-        /// </summary>
-        public static IEqualityComparer<ApplicationInfoModel> StructuralEquality { get; } =
-            new StructuralComparer();
-
-        /// <summary>
         /// Create unique application id
         /// </summary>
         /// <param name="model"></param>
@@ -192,27 +186,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         }
 
         /// <summary>
-        /// Convert to Update model
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static ApplicationRegistrationUpdateModel ToUpdateRequest(
-            this ApplicationInfoModel model, RegistryOperationContextModel context = null) {
-            return new ApplicationRegistrationUpdateModel {
-                ApplicationName = model.ApplicationName,
-                Capabilities = model.Capabilities,
-                DiscoveryProfileUri = model.DiscoveryProfileUri,
-                DiscoveryUrls = model.DiscoveryUrls,
-                GatewayServerUri = model.GatewayServerUri,
-                LocalizedNames = model.LocalizedNames,
-                ProductUri = model.ProductUri,
-                Locale = model.Locale,
-                Context = context
-            };
-        }
-
-        /// <summary>
         /// Patch application
         /// </summary>
         /// <param name="application"></param>
@@ -282,19 +255,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         }
 
         /// <summary>
-        /// Returns an application name from either application name field or
-        /// localized text dictionary
-        /// </summary>
-        /// <param name="model">The application model.</param>
-        public static string GetApplicationName(this ApplicationInfoModel model) {
-            if (!string.IsNullOrWhiteSpace(model.ApplicationName)) {
-                return model.ApplicationName;
-            }
-            return model.LocalizedNames?
-                .FirstOrDefault(n => !string.IsNullOrWhiteSpace(n.Value)).Value;
-        }
-
-        /// <summary>
         /// Returns the site or supervisor id
         /// </summary>
         /// <param name="model"></param>
@@ -335,50 +295,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     EqualityComparer<string>.Default.GetHashCode(obj.ApplicationUri?.ToLowerInvariant());
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(obj.GetSiteOrGatewayId());
-                return hashCode;
-            }
-        }
-
-        /// <summary>
-        /// Compares for logical equality - applications are logically equivalent if they
-        /// have the same uri, type, and site location or supervisor that registered.
-        /// </summary>
-        private class StructuralComparer : IEqualityComparer<ApplicationInfoModel> {
-
-            /// <inheritdoc />
-            public bool Equals(ApplicationInfoModel x, ApplicationInfoModel y) {
-                return
-                    x.GetSiteOrGatewayId() == y.GetSiteOrGatewayId() &&
-                    x.ApplicationType == y.ApplicationType &&
-                    x.ApplicationUri.EqualsIgnoreCase(y.ApplicationUri) &&
-                    x.DiscoveryProfileUri == y.DiscoveryProfileUri &&
-                    x.GatewayServerUri == y.GatewayServerUri &&
-                    x.ProductUri == y.ProductUri &&
-                    x.Locale == y.Locale &&
-                    x.HostAddresses.SetEqualsSafe(y.HostAddresses) &&
-                    x.ApplicationName == y.ApplicationName &&
-                    x.LocalizedNames.DictionaryEqualsSafe(y.LocalizedNames) &&
-                    x.Capabilities.SetEqualsSafe(y.Capabilities) &&
-                    x.DiscoveryUrls.SetEqualsSafe(y.DiscoveryUrls);
-            }
-
-            /// <inheritdoc />
-            public int GetHashCode(ApplicationInfoModel obj) {
-                var hashCode = 1200389859;
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<ApplicationType?>.Default.GetHashCode(obj.ApplicationType);
-                hashCode = (hashCode * -1521134295) +
-                   EqualityComparer<string>.Default.GetHashCode(obj.ApplicationUri?.ToLowerInvariant());
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.ProductUri);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.Locale);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.DiscoveryProfileUri);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.GatewayServerUri);
-                hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.ApplicationName);
                 return hashCode;
             }
         }

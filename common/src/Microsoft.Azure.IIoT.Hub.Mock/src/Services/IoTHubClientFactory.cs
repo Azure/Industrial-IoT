@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <inheritdoc/>
         public Task<IClient> CreateAsync(string product,
             IMetricsContext metrics, IProcessControl ctrl) {
-            var client = new IoTHubClient(ctrl);
+            var client = new IoTHubClient();
             var connection = _hub.Connect(DeviceId, ModuleId, client);
             client.Connection = connection ??
                 throw new CommunicationException("Failed to connect to fake hub");
@@ -85,9 +85,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// <summary>
             /// Create client
             /// </summary>
-            /// <param name="ctrl"></param>
-            internal IoTHubClient(IProcessControl ctrl) {
-                _ctrl = ctrl;
+            internal IoTHubClient() {
             }
 
             /// <inheritdoc />
@@ -170,12 +168,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             /// <inheritdoc />
-            public void RemoteDisconnect() {
-                Connection = null;
-                IsClosed = true;
-            }
-
-            /// <inheritdoc />
             public ITelemetryEvent CreateTelemetryEvent() {
                 return new TelemetryMessage();
             }
@@ -239,30 +231,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 }
 
                 /// <inheritdoc/>
-                public string DeviceId {
-                    get {
-                        return _msg.Properties.GetValueOrDefault(CommonProperties.DeviceId);
-                    }
-                    set {
-                        if (!string.IsNullOrWhiteSpace(value)) {
-                            _msg.Properties.AddOrUpdate(CommonProperties.DeviceId, value);
-                        }
-                    }
-                }
-
-                /// <inheritdoc/>
-                public string ModuleId {
-                    get {
-                        return _msg.Properties.GetValueOrDefault(CommonProperties.ModuleId);
-                    }
-                    set {
-                        if (!string.IsNullOrWhiteSpace(value)) {
-                            _msg.Properties.AddOrUpdate(CommonProperties.ModuleId, value);
-                        }
-                    }
-                }
-
-                /// <inheritdoc/>
                 public IReadOnlyList<byte[]> Buffers { get; set; }
 
                 /// <inheritdoc/>
@@ -283,7 +251,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
             private MethodCallback _methods;
             private DesiredPropertyUpdateCallback _properties;
-            private readonly IProcessControl _ctrl;
         }
 
         private readonly IIoTHub _hub;

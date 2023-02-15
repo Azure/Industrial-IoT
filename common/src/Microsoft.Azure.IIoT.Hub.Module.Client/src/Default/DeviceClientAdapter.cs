@@ -277,36 +277,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc/>
-            public string DeviceId {
-                get {
-                    if (_template.Properties.TryGetValue(CommonProperties.DeviceId, out var value)) {
-                        return value;
-                    }
-                    return null;
-                }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
-                        _template.Properties.AddOrUpdate(CommonProperties.DeviceId, value);
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
-            public string ModuleId {
-                get {
-                    if (_template.Properties.TryGetValue(CommonProperties.ModuleId, out var value)) {
-                        return value;
-                    }
-                    return null;
-                }
-                set {
-                    if (!string.IsNullOrWhiteSpace(value)) {
-                        _template.Properties.AddOrUpdate(CommonProperties.ModuleId, value);
-                    }
-                }
-            }
-
-            /// <inheritdoc/>
             public IReadOnlyList<byte[]> Buffers { get; set; }
 
             /// <inheritdoc/>

@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         public GatewayEventBusPublisher(IEventBus bus) {
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }
+#if ZOMBIE
 
         /// <inheritdoc/>
         public Task OnGatewayDeletedAsync(RegistryOperationContextModel context,
@@ -29,6 +30,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
             return _bus.PublishAsync(Wrap(GatewayEventType.Deleted, context,
                 gatewayId, null));
         }
+#endif
+#if ZOMBIE
 
         /// <inheritdoc/>
         public Task OnGatewayNewAsync(RegistryOperationContextModel context,
@@ -36,6 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
             return _bus.PublishAsync(Wrap(GatewayEventType.New, context,
                 gateway.Id, gateway));
         }
+#endif
 
         /// <inheritdoc/>
         public Task OnGatewayUpdatedAsync(RegistryOperationContextModel context,

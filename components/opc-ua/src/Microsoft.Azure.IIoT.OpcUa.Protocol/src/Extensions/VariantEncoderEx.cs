@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Variant encoder extensions
@@ -27,16 +28,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         public static VariantValue Encode(this IVariantEncoder encoder, Variant value) {
             return encoder.Encode(value, out var tmp);
-        }
-
-        /// <summary>
-        /// Parse token to variant
-        /// </summary>
-        /// <param name="encoder"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static Variant Decode(this IVariantEncoder encoder, VariantValue value) {
-            return encoder.Decode(value, BuiltInType.Null);
         }
 
         /// <summary>
@@ -74,63 +65,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     StatusCode = code
                 }
             }, config);
-        }
-
-        /// <summary>
-        /// Convert from service result to diagnostics info
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="codec"></param>
-        /// <param name="config"></param>
-        /// <param name="code"></param>
-        /// <returns></returns>
-        public static DiagnosticInfo Decode(this IVariantEncoder codec,
-            ServiceResultModel result, DiagnosticsModel config, out StatusCode code) {
-            if (result == null) {
-                code = StatusCodes.Good;
-                return null;
-            }
-            code = new StatusCode(result.StatusCode ?? StatusCodes.Good);
-            var results = codec.Decode(result, config);
-            return results?.LastOrDefault()?.DiagnosticsInfo;
-        }
-
-        /// <summary>
-        /// Convert from service result to diagnostics info
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="codec"></param>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public static List<OperationResultModel> Decode(
-            this IVariantEncoder codec, ServiceResultModel result, DiagnosticsModel config) {
-
-            if (result?.Diagnostics == null) {
-                return null;
-            }
-            var root = kDiagnosticsProperty;
-            switch (config?.Level ?? Core.Models.DiagnosticsLevel.Status) {
-                case Core.Models.DiagnosticsLevel.Diagnostics:
-                case Core.Models.DiagnosticsLevel.Verbose:
-                    using (var text = new StringReader(result.Diagnostics.ToString()))
-                    using (var reader = new Newtonsoft.Json.JsonTextReader(text))
-                    using (var decoder = new JsonDecoderEx(reader, codec.Context)) {
-                        var results = decoder.ReadEncodeableArray<OperationResultModel>(root).ToList();
-                        if (results.Count == 0) {
-                            return null;
-                        }
-                        return results;
-                    }
-                case Core.Models.DiagnosticsLevel.Status:
-                    // TODO
-                    break;
-                case Core.Models.DiagnosticsLevel.Operations:
-                    // TODO
-                    break;
-                default:
-                    break;
-            }
-            return null;
         }
 
         /// <summary>
@@ -207,7 +141,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     switch (level) {
                         case Core.Models.DiagnosticsLevel.Diagnostics:
                         case Core.Models.DiagnosticsLevel.Verbose:
-                            encoder.WriteEncodeableArray(root, results);
+                            encoder.WriteEncodeableArray(root, results.ToArray(), typeof(OperationResultModel));
                             break;
                         case Core.Models.DiagnosticsLevel.Operations:
                             var codes = results

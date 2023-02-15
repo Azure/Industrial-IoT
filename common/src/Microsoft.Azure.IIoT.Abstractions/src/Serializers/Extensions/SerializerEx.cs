@@ -32,16 +32,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// Serialize to string
         /// </summary>
         /// <param name="serializer"></param>
-        /// <param name="a"></param>
-        public static ReadOnlySpan<byte> SerializeArrayToBytes(
-            this ISerializer serializer, params object[] a) {
-            return serializer.SerializeToBytes(a);
-        }
-
-        /// <summary>
-        /// Serialize to string
-        /// </summary>
-        /// <param name="serializer"></param>
         /// <param name="o"></param>
         /// <param name="format"></param>
         public static string SerializeToString(this ISerializer serializer,
@@ -49,16 +39,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
             var span = serializer.SerializeToBytes(o, format);
             return serializer.ContentEncoding?.GetString(span)
                 ?? Convert.ToBase64String(span);
-        }
-
-        /// <summary>
-        /// Serialize to string
-        /// </summary>
-        /// <param name="serializer"></param>
-        /// <param name="a"></param>
-        public static string SerializeArrayToString(
-            this ISerializer serializer, params object[] a) {
-            return serializer.SerializeToString(a);
         }
 
         /// <summary>
@@ -93,18 +73,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
             serializer.SetAcceptHeaders(request);
             request.SetByteArrayContent(serializer.SerializeToBytes(o).ToArray(),
                  serializer.MimeType, serializer.ContentEncoding);
-        }
-
-        /// <summary>
-        /// Serialize to request
-        /// </summary>
-        /// <param name="serializer"></param>
-        /// <param name="request"></param>
-        /// <param name="a"></param>
-        /// <returns></returns>
-        public static void SerializeArrayToRequest(this ISerializer serializer,
-            IHttpRequest request, params object[] a) {
-            serializer.SerializeToRequest(request, a);
         }
 
         /// <summary>
@@ -167,22 +135,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
         public static T Deserialize<T>(this ISerializer serializer,
             TextReader reader) {
             return serializer.Deserialize<T>(reader.ReadToEnd());
-        }
-
-        /// <summary>
-        /// Deserialize from validating reader
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="serializer"></param>
-        /// <param name="reader"></param>
-        /// <param name="schemaReader"></param>
-        /// <returns></returns>
-        public static T Deserialize<T>(this ISerializer serializer,
-            TextReader reader,
-            TextReader schemaReader) {
-
-            // Desrialize and validate json content in a single read cycle.
-            return serializer.Deserialize<T>(reader.ReadToEnd(), schemaReader);
         }
 
         /// <summary>

@@ -11,11 +11,6 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     public interface IDiagnosticsConfig {
 
         /// <summary>
-        /// Instrumentation key if exists
-        /// </summary>
-        string InstrumentationKey { get; }
-
-        /// <summary>
         /// Application Insights minimum log level
         /// </summary>
         string LogLevel { get; }

@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake {
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static string GetStorageConnString(this IBlobConfig config) {
+        public static string GetStorageConnString(this IStorageConfig config) {
             var account = config.AccountName;
             var key = config.AccountKey;
             var suffix = config.EndpointSuffix;

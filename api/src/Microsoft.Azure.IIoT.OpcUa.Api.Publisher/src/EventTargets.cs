@@ -9,16 +9,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
     /// Event target constants
     /// </summary>
     public static class EventTargets {
+#if ZOMBIE
 
         /// <summary>
         /// Nodes group
         /// </summary>
         public const string Nodes = "publish";
+#endif
+#if ZOMBIE
 
         /// <summary>
         /// Endpoints group
         /// </summary>
         public const string Endpoints = "endpoints";
+#endif
 
         /// <summary>
         /// Discovery progress event targets

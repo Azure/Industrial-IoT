@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.Hub.Services;
     using Autofac;
+#if ZOMBIE
 
     /// <summary>
     /// Injected registry event handlers
@@ -58,4 +59,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             base.Load(builder);
         }
     }
+#endif
 }

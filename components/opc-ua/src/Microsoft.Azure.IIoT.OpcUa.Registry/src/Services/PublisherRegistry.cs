@@ -36,6 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
+#if ZOMBIE
 
         /// <inheritdoc/>
         public async Task<(string, EndpointModel)> FindPublisherEndpoint(
@@ -73,6 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             return (publisherId, endpoint.Registration.Endpoint);
         }
+#endif
 
         /// <inheritdoc/>
         public async Task<PublisherModel> GetPublisherAsync(string id,

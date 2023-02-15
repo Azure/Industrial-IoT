@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Serilog;
     using System;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Discoverer module twin event handler
@@ -84,4 +85,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
         private readonly IRegistryEventBroker<IDiscovererRegistryListener> _broker;
         private readonly ILogger _logger;
     }
+#endif
 }

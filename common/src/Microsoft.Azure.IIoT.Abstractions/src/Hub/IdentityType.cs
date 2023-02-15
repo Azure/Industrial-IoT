@@ -15,10 +15,6 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         public const string Gateway = "iiotedge";
 
-        /// <summary>
-        /// Gds module identity
-        /// </summary>
-        public const string Gds = "gds";
 
         /// <summary>
         /// Discoverer identity

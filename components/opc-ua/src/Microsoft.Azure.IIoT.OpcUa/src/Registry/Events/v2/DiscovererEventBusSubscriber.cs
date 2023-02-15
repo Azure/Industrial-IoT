@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+#if ZOMBIE
 
     /// <summary>
     /// Discoverer registry change listener
@@ -62,4 +63,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         private readonly List<IDiscovererRegistryListener> _listeners;
         private readonly string _token;
     }
+#endif
 }

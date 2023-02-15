@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     using System;
     using System.Collections.Generic;
     using System.Security.Claims;
+#if ZOMBIE
 
     /// <summary>
     /// SignalR endpoint for serverless mode
@@ -36,6 +37,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
                     .BuildServiceManager();
             }
         }
+#if ZOMBIE
 
         /// <inheritdoc/>
         public IdentityTokenModel GenerateIdentityToken(
@@ -66,8 +68,10 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
                 Expires = DateTime.UtcNow + lifeTime.Value
             };
         }
+#endif
 
         /// <summary> Service manager </summary>
         protected readonly ServiceManager _serviceManager;
     }
+#endif
 }

@@ -499,32 +499,6 @@ namespace Opc.Ua.Test {
             return CreateString(GetRandomLocale(), false);
         }
 
-        /// <summary>
-        /// Random string
-        /// </summary>
-        /// <param name="locale"></param>
-        /// <returns></returns>
-        public string GetRandomString(string locale) {
-            return CreateString(locale, false);
-        }
-
-        /// <summary>
-        /// Random symbol
-        /// </summary>
-        /// <returns></returns>
-        public string GetRandomSymbol() {
-            return CreateString(GetRandomLocale(), true);
-        }
-
-        /// <summary>
-        /// Random symbol
-        /// </summary>
-        /// <param name="locale"></param>
-        /// <returns></returns>
-        public string GetRandomSymbol(string locale) {
-            return CreateString(locale, false);
-        }
-
         public DateTime GetRandomDateTime() {
             var min = (int)(MinDateTimeValue.Ticks >> 32);
             var max = (int)(MaxDateTimeValue.Ticks >> 32);
@@ -542,14 +516,6 @@ namespace Opc.Ua.Test {
             var array = new byte[16];
             _random.NextBytes(array, 0, array.Length);
             return new Guid(array);
-        }
-
-        /// <summary>
-        /// Get random uuid
-        /// </summary>
-        /// <returns></returns>
-        public Uuid GetRandomUuid() {
-            return new Uuid(GetRandomGuid());
         }
 
         /// <summary>

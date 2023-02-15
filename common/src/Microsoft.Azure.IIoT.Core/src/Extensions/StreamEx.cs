@@ -6,9 +6,7 @@
 namespace System.IO {
     using System.IO.Compression;
     using System.Text;
-    using System.Threading;
     using System.Threading.Tasks;
-    using System.Xml;
 
     /// <summary>
     /// Stream extensions
@@ -40,26 +38,6 @@ namespace System.IO {
                     gs.CopyTo(output);
                 }
                 return output.ToArray();
-            }
-        }
-
-        /// <summary>
-        /// Load type from xml stream
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        public static T DeserializeFromXml<T>(this Stream stream) {
-            var reader = new StreamReader(stream);
-            try {
-                var serializer = new Xml.Serialization.XmlSerializer(typeof(T));
-                var xmlReader = new XmlTextReader(reader) {
-                    DtdProcessing = DtdProcessing.Prohibit,
-                    XmlResolver = null
-                };
-                return (T)serializer.Deserialize(xmlReader);
-            }
-            finally {
-                reader.Close();
             }
         }
 
@@ -133,140 +111,6 @@ namespace System.IO {
             }
             catch (IOException) { }
             return body;
-        }
-
-        /// <summary>
-        /// Write remaining buffer from offset
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <returns></returns>
-        public static void Write(this Stream stream, byte[] buffer, int offset) {
-            stream.Write(buffer, offset, buffer.Length - offset);
-        }
-
-        /// <summary>
-        /// Write entire buffer
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static void Write(this Stream stream, byte[] buffer) {
-            stream.Write(buffer, 0, buffer.Length);
-        }
-
-        /// <summary>
-        /// Write remaining buffer from offset
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <returns></returns>
-        public static Task WriteAsync(this Stream stream, byte[] buffer, int offset) {
-            return stream.WriteAsync(buffer, offset, buffer.Length - offset);
-        }
-
-        /// <summary>
-        /// Write entire buffer
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static Task WriteAsync(this Stream stream, byte[] buffer) {
-            return stream.WriteAsync(buffer, 0, buffer.Length);
-        }
-
-        /// <summary>
-        /// Write remaining buffer from offset
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public static Task WriteAsync(this Stream stream, byte[] buffer, int offset,
-            CancellationToken ct) {
-            return stream.WriteAsync(buffer, offset, buffer.Length - offset, ct);
-        }
-
-        /// <summary>
-        /// Write entire buffer
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public static Task WriteAsync(this Stream stream, byte[] buffer,
-            CancellationToken ct) {
-            return stream.WriteAsync(buffer, 0, buffer.Length, ct);
-        }
-
-        /// <summary>
-        /// Read remaining buffer from offset
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <returns></returns>
-        public static int Read(this Stream stream, byte[] buffer, int offset) {
-            return stream.Read(buffer, offset, buffer.Length - offset);
-        }
-
-        /// <summary>
-        /// Read entire buffer
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static int Read(this Stream stream, byte[] buffer) {
-            return stream.Read(buffer, 0, buffer.Length);
-        }
-
-        /// <summary>
-        /// Read remaining buffer from offset
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <returns></returns>
-        public static Task<int> ReadAsync(this Stream stream, byte[] buffer, int offset) {
-            return stream.ReadAsync(buffer, offset, buffer.Length - offset);
-        }
-
-        /// <summary>
-        /// Read entire buffer
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static Task<int> ReadAsync(this Stream stream, byte[] buffer) {
-            return stream.ReadAsync(buffer, 0, buffer.Length);
-        }
-
-        /// <summary>
-        /// Read remaining buffer from offset
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public static Task<int> ReadAsync(this Stream stream, byte[] buffer, int offset,
-            CancellationToken ct) {
-            return stream.ReadAsync(buffer, offset, buffer.Length - offset, ct);
-        }
-
-        /// <summary>
-        /// Read entire buffer
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="buffer"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public static Task<int> ReadAsync(this Stream stream, byte[] buffer,
-            CancellationToken ct) {
-            return stream.ReadAsync(buffer, 0, buffer.Length, ct);
         }
     }
 }

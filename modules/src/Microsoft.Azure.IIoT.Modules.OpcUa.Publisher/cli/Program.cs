@@ -261,16 +261,6 @@ Options:
         }
 
         /// <summary>
-        /// Create client
-        /// </summary>
-        private static IoTHubServiceHttpClient CreateClient(IIoTHubConfig config,
-            ILogger logger) {
-            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, new NewtonSoftJsonSerializer(), logger);
-            return registry;
-        }
-
-        /// <summary>
         /// Wraps server and disposes after use
         /// </summary>
         private class ServerWrapper : IDisposable {
