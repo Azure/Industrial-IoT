@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
     using Autofac;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Http.HealthChecks;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Mock;
@@ -313,14 +312,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
                         var module = hostScope.Resolve<IModuleHost>();
                         var events = hostScope.Resolve<IEventEmitter>();
                         var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                        var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
 
                         Events = hostScope.Resolve<IIoTHub>().Events;
 
                         try {
                             var version = GetType().Assembly.GetReleaseVersion().ToString();
                             logger.Information("Starting module OpcPublisher version {version}.", version);
-                            healthCheckManager.Start();
                             // Start module
                             await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
 
@@ -333,7 +330,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
                             _running.TrySetException(ex);
                         }
                         finally {
-                            healthCheckManager.Stop();
                             await module.StopAsync();
 
                             Events = null;
@@ -429,8 +425,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HealthCheckManager>()
-                .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
         }

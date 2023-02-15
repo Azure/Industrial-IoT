@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Autofac;
-    using Microsoft.Azure.IIoT.Http.HealthChecks;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -91,14 +90,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var client = hostScope.Resolve<IClientHost>();
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                    var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
                     var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.Information("Starting module OpcPublisher version {version}.", version);
                         logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
-                        healthCheckManager.Start();
 
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, "OpcPublisher",
@@ -126,7 +123,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     finally {
                         OnRunning?.Invoke(this, false);
 
-                        healthCheckManager.Stop();
                         server.StopWhenEnabled(moduleConfig, logger);
                         await module.StopAsync().ConfigureAwait(false);
                         logger.Information("Module stopped.");
@@ -206,8 +202,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HealthCheckManager>()
-                .AsImplementedInterfaces().SingleInstance();
 
             if (_injector != null) {
                 // Inject additional services

@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
     using Autofac;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Http.HealthChecks;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Default;
@@ -318,13 +317,11 @@ $"--ttt={topicRoot}",
                         var module = hostScope.Resolve<IModuleHost>();
                         var events = hostScope.Resolve<IEventEmitter>();
                         var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                        var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
                         IEndpointServices sessionManager = null;
 
                         try {
                             var version = GetType().Assembly.GetReleaseVersion().ToString();
                             logger.Information("Starting module OpcPublisher version {version}.", version);
-                            healthCheckManager.Start();
                             // Start module
                             await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
                             sessionManager = hostScope.Resolve<IEndpointServices>();
@@ -338,7 +335,6 @@ $"--ttt={topicRoot}",
                             _running.TrySetException(ex);
                         }
                         finally {
-                            healthCheckManager.Stop();
                             await module.StopAsync();
 
                             _apiScope?.Dispose();
@@ -422,8 +418,6 @@ $"--ttt={topicRoot}",
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HealthCheckManager>()
-                .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
         }
