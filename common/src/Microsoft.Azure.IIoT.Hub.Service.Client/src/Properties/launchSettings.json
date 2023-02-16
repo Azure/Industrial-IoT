@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Microsoft.Azure.IIoT.Hub.Service.Client": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:64015;http://localhost:64016"
+    }
+  }
+}

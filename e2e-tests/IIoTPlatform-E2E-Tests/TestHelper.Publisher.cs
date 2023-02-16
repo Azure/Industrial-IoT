@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;

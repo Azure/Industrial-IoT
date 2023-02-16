@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
     using IIoTPlatform_E2E_Tests.TestModels;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System.Linq;
 
     /// <summary>

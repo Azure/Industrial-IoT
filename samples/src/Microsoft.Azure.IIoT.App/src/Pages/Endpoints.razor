@@ -11,9 +11,9 @@
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
-@using Microsoft.Azure.IIoT.Api.Clients;
-@using Microsoft.Azure.IIoT.Api.Models;
-@using Microsoft.Azure.IIoT.Api;
+@using global::Azure.IIoT.OpcUa.Api.Clients;
+@using global::Azure.IIoT.OpcUa.Api.Models;
+@using global::Azure.IIoT.OpcUa.Api;
 
 @inject NavigationManager NavigationManager
 @inject IRegistryServiceApi RegistryService
@@ -119,7 +119,6 @@
                 </td>
                 <td class="hover-text width-medium">
                     <div>
-                        @endpoint.EndpointModel.ActivationState.ToString()
                     </div>
                 </td>
                 <td class="width-small">

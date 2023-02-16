@@ -4,15 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using Microsoft.Azure.IIoT.Api.Models;
+    using global::Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System.Threading.Tasks;
 
     public partial class _DrawerSupervisorContent {
         [Parameter]
         public string SupervisorId { get; set; }
-
-        public SupervisorStatusModel SupervisorStatus { get; set; }
 
         /// <summary>
         /// OnInitialized
@@ -25,12 +23,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// OnAfterRenderAsync
         /// </summary>
         /// <param name="firstRender"></param>
-        protected override async Task OnAfterRenderAsync(bool firstRender) {
+        protected override Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                SupervisorStatus = await RegistryHelper.GetSupervisorStatusAsync(SupervisorId);
                 CommonHelper.Spinner = "";
                 StateHasChanged();
             }
+            return Task.CompletedTask;
         }
     }
 }

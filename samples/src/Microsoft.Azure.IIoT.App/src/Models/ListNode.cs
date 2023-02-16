@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Models {
-    using Microsoft.Azure.IIoT.Api.Models;
+    using global::Azure.IIoT.OpcUa.Api.Models;
     using System;
     using System.Collections.Generic;
     public class ListNode {

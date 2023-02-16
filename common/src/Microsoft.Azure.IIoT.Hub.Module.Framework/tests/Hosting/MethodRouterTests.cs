@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.Devices.Client;
@@ -22,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Runtime.Serialization;
 
     public class MethodRouterTests {
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
@@ -541,6 +541,27 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 new TestControllerV2(),
                 new TestControllerV1And2()
             };
+        }
+
+        /// <summary>
+        /// Method call exception model.
+        /// </summary>
+        [DataContract]
+        public class MethodCallStatusExceptionModel {
+
+            /// <summary>
+            /// Exception message.
+            /// </summary>
+            [DataMember(Name = "Message", Order = 0,
+                EmitDefaultValue = true)]
+            public string Message { get; set; }
+
+            /// <summary>
+            /// Details of the exception.
+            /// </summary>
+            [DataMember(Name = "Details", Order = 1,
+                EmitDefaultValue = true)]
+            public string Details { get; set; }
         }
 
         public class TestMethodClient : IJsonMethodClient {

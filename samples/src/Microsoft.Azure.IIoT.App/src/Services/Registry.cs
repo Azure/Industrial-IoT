@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.Api;
-    using Microsoft.Azure.IIoT.Api.Models;
+    using global::Azure.IIoT.OpcUa.Api;
+    using global::Azure.IIoT.OpcUa.Api.Models;
     using Serilog;
     using System;
     using System.Linq;
@@ -42,7 +42,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var query = new EndpointRegistrationQueryModel {
                     DiscovererId = discovererId == PathAll ? null : discovererId,
                     ApplicationId = applicationId == PathAll ? null : applicationId,
-                    SupervisorId = supervisorId == PathAll ? null : supervisorId,
                     IncludeNotSeenSince = true
                 };
 
@@ -446,42 +445,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = message;
             }
             return pageResult;
-        }
-
-        /// <summary>
-        /// GetSupervisorStatusAsync
-        /// </summary>
-        /// <param name="supervisorId"></param>
-        /// <returns>SupervisorStatusModel</returns>
-        public async Task<SupervisorStatusModel> GetSupervisorStatusAsync(string supervisorId) {
-            var supervisorStatus = new SupervisorStatusModel();
-
-            try {
-                supervisorStatus = await _registryService.GetSupervisorStatusAsync(supervisorId);
-            }
-            catch (Exception exception) {
-                _logger.Error(exception, "Failed to get status");
-            }
-
-            return supervisorStatus;
-        }
-
-        /// <summary>
-        /// ResetSupervisorAsync
-        /// </summary>
-        /// <param name="supervisorId"></param>
-        /// <returns>bool</returns>
-        public async Task<string> ResetSupervisorAsync(string supervisorId) {
-            new SupervisorStatusModel();
-
-            try {
-                await _registryService.ResetSupervisorAsync(supervisorId);
-                return string.Empty;
-            }
-            catch (Exception exception) {
-                _logger.Error(exception, "Failed to reset supervisor");
-                return exception.Message;
-            }
         }
 
         private readonly IRegistryServiceApi _registryService;

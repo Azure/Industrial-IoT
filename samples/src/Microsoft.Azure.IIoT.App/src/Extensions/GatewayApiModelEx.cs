@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Extensions {
-    using Microsoft.Azure.IIoT.Api;
-    using Microsoft.Azure.IIoT.Api.Models;
+    using global::Azure.IIoT.OpcUa.Api;
+    using global::Azure.IIoT.OpcUa.Api.Models;
     using System.Collections.Generic;
     using System.Linq;
 

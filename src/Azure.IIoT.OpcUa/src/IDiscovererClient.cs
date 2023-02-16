@@ -1,0 +1,36 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Azure.IIoT.OpcUa {
+    /// <summary>
+    /// Client to access discoverer services
+    /// </summary>
+    public interface IDiscovererClient {
+#if ZOMBIE
+
+        /// <summary>
+        /// Discover using discovery request.
+        /// </summary>
+        /// <param name="discovererId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task DiscoverAsync(string discovererId,
+            DiscoveryRequestModel request, CancellationToken ct = default);
+#endif
+#if ZOMBIE
+
+        /// <summary>
+        /// Cancel discovery request
+        /// </summary>
+        /// <param name="discovererId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task CancelAsync(string discovererId,
+            DiscoveryCancelModel request, CancellationToken ct = default);
+#endif
+    }
+}

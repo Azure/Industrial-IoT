@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Microsoft.Azure.IIoT.Hub.Mock": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:64017;http://localhost:64018"
+    }
+  }
+}

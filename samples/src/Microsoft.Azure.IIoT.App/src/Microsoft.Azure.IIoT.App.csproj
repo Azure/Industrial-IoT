@@ -18,7 +18,7 @@
     <None Include="wwwroot\css\drawer.css" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api.Internal\src\Microsoft.Azure.IIoT.Api.Internal.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Azure.IIoT.OpcUa.Api.Internal\src\Azure.IIoT.OpcUa.Api.Internal.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />

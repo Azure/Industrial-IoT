@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Validation;
-    using Microsoft.Azure.IIoT.Api.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Api.Clients;
-    using Microsoft.Azure.IIoT.Api.Runtime;
+    using global::Azure.IIoT.OpcUa.Api.Auth.Runtime;
+    using global::Azure.IIoT.OpcUa.Api.Clients;
+    using global::Azure.IIoT.OpcUa.Api.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Storage;

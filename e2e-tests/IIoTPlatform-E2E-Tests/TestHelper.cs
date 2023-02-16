@@ -7,7 +7,7 @@ namespace IIoTPlatform_E2E_Tests {
     using IIoTPlatform_E2E_Tests.TestEventProcessor;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Renci.SshNet;

@@ -8,7 +8,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     using Azure.Messaging.EventHubs.Consumer;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;

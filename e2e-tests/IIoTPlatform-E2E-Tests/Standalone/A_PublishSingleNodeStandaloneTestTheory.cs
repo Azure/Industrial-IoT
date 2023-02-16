@@ -12,7 +12,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Azure.IIoT.OpcUa.Api.Publisher.Models;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
