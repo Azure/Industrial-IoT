@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Services {
     using Azure.IIoT.OpcUa.Services;
+    using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
@@ -15,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Services.Models;
 
     /// <summary>
     /// Application database using the IoT Hub device registry as repository.

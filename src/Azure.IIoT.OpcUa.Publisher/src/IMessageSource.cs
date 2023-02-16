@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher {
-    using Azure.IIoT.OpcUa.Protocol.Models;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Protocol.Models;
     using System;
     using System.Threading;
     using System.Threading.Tasks;

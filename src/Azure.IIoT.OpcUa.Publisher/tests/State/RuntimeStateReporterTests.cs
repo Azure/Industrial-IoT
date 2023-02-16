@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
     using Azure.IIoT.OpcUa.Publisher.State;
+    using FluentAssertions;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using FluentAssertions;
     using Moq;
     using System.Collections.Generic;
     using System.Text;

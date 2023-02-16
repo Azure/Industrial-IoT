@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
@@ -19,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using Azure.IIoT.OpcUa.Publisher.Storage;
 
     /// <summary>
     /// Test

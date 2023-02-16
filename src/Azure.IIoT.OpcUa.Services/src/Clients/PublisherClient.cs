@@ -4,14 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Clients {
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Module;
+    using Azure.IIoT.OpcUa.Api;
     using Azure.IIoT.OpcUa.Api.Clients;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Api;
 
     /// <summary>
     /// Adapt the api to endpoint identifiers which are looked up through the registry.

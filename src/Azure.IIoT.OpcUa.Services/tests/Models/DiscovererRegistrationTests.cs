@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Models {
+    using AutoFixture;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using AutoFixture;
     using System;
     using System.Linq;
     using Xunit;

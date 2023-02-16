@@ -6,19 +6,19 @@
 namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
     using Azure.IIoT.OpcUa.Services.WebApi;
     using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
+    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Publisher.Twin;
+    using Azure.IIoT.OpcUa.Testing.Runtime;
+    using Autofac;
+    using Autofac.Extensions.Hosting;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Serializers.MessagePack;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.Extensions.Hosting;
-    using Autofac;
-    using Autofac.Extensions.Hosting;
     using System.Collections.Generic;
     using System.Net.Http;
-    using Azure.IIoT.OpcUa.Protocol.Services;
-    using Azure.IIoT.OpcUa.Testing.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.Twin;
 
     /// <summary>
     /// Startup class for tests

@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Discovery {
+    using Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module;
-    using Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Utils;

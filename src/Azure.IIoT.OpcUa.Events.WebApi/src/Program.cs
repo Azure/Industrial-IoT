@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Events.WebApi {
+    using Autofac.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
-    using Autofac.Extensions.Hosting;
     using Serilog;
 
     /// <summary>

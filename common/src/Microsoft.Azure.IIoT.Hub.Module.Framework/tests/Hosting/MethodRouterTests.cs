@@ -17,11 +17,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Runtime.Serialization;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Runtime.Serialization;
 
     public class MethodRouterTests {
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();

@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.History.Clients {
-    using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Protocol;
     using System;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Adapts historian services to historic access services

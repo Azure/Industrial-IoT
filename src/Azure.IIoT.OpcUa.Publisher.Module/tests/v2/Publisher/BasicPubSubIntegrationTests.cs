@@ -5,14 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Publisher {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
+    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Testing.Fixtures;
     using System;
     using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using Azure.IIoT.OpcUa.Api.Models;
-    using Azure.IIoT.OpcUa.Testing.Fixtures;
 
     /// <summary>
     /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,

@@ -4,7 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
+    using Azure.IIoT.OpcUa.Api;
     using Azure.IIoT.OpcUa.Api.Clients;
+    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Api.Publisher.Adapter;
+    using Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Azure.IIoT.OpcUa.History.Clients;
+    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Testing.Runtime;
+    using Autofac;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -15,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using Autofac;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -23,13 +30,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using Azure.IIoT.OpcUa.Api;
-    using Azure.IIoT.OpcUa.Testing.Runtime;
-    using Azure.IIoT.OpcUa.Api.Publisher.Adapter;
-    using Azure.IIoT.OpcUa.History.Clients;
-    using Azure.IIoT.OpcUa.Api.Models;
-    using Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Azure.IIoT.OpcUa.Protocol.Services;
 
     /// <summary>
     /// Harness for opc publisher module

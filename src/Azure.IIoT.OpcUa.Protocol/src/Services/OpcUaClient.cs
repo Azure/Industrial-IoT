@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Protocol.Services {
     using Azure.IIoT.OpcUa.Protocol.Models;
-    using Azure.IIoT.OpcUa.Exceptions;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Nito.AsyncEx;

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Twin {
+    using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Protocol.Models;
-    using Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;

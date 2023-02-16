@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Engine {
+    using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Protocol.Models;
-    using Azure.IIoT.OpcUa.Publisher;
-    using Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Serilog;
     using System;

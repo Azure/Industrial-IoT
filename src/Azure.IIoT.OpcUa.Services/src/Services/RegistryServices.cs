@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services {
-    using Azure.IIoT.OpcUa.Services.Default;
     using Azure.IIoT.OpcUa.Services;
+    using Azure.IIoT.OpcUa.Services.Default;
     using Autofac;
 
     /// <summary>

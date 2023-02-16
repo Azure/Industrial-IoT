@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using global::Azure.IIoT.OpcUa.Api;
     using global::Azure.IIoT.OpcUa.Api.Models;
-    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Threading.Tasks;

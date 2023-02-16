@@ -6,9 +6,9 @@
 namespace Azure.IIoT.OpcUa.Events.WebApi.Controllers {
     using Azure.IIoT.OpcUa.Events.WebApi.Auth;
     using Azure.IIoT.OpcUa.Events.WebApi.Filters;
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Azure.IIoT.Messaging;
     using System.Threading.Tasks;
 
     /// <summary>

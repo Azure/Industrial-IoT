@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
-    using Azure.IIoT.OpcUa.Publisher.Engine;
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Publisher.Engine;
     using Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Moq;

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using global::Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.AspNetCore.Components;
+    using global::Azure.IIoT.OpcUa.Api.Models;
     using System.Threading.Tasks;
 
     public partial class _DrawerSupervisorContent {

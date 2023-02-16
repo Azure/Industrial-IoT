@@ -3,11 +3,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Api.Json {
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using AutoFixture;
     using AutoFixture.Kernel;
     using FluentAssertions;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Newtonsoft.Json;
     using System;
     using System.Collections;

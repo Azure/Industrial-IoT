@@ -6,8 +6,16 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Engine;
+    using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Api;
     using Azure.IIoT.OpcUa.Api.Clients;
+    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Protocol;
+    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Azure.IIoT.OpcUa.Testing.Tests;
+    using Autofac;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -24,7 +32,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using Autofac;
     using Moq;
     using Opc.Ua;
     using Serilog;
@@ -39,13 +46,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using Azure.IIoT.OpcUa.Api.Models;
-    using Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Azure.IIoT.OpcUa.Testing.Tests;
-    using Azure.IIoT.OpcUa.Protocol;
-    using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Publisher.Engine;
-    using Azure.IIoT.OpcUa.Protocol.Services;
 
     /// <summary>
     /// Base class for integration testing, it connects to the server, runs

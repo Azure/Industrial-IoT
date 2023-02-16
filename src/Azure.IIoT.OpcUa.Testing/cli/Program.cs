@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Cli {
-    using Azure.IIoT.OpcUa.Publisher.Twin;
+    using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.Protocol.Sample;
     using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Publisher.Twin;
     using Azure.IIoT.OpcUa.Testing.Runtime;
-    using Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Newtonsoft.Json;
     using Opc.Ua;

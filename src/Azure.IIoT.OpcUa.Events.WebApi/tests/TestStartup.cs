@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Events.WebApi {
-    using Autofac;
+    using Azure.IIoT.OpcUa.Events.WebApi.Runtime;
     using Azure.IIoT.OpcUa.Api.Clients;
     using Azure.IIoT.OpcUa.Api.Events.Runtime;
     using Azure.IIoT.OpcUa.Api.Runtime;
-    using Azure.IIoT.OpcUa.Events.WebApi.Runtime;
+    using Autofac;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;

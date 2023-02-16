@@ -5,20 +5,20 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
-    using Microsoft.Azure.IIoT.Utils;
+    using Azure.IIoT.OpcUa.Api.Clients;
+    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Api.Publisher.Adapter;
+    using Azure.IIoT.OpcUa.Protocol;
+    using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Azure.IIoT.OpcUa.Testing.Tests;
     using Autofac;
+    using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
     using System.Threading.Tasks;
     using Xunit;
-    using Azure.IIoT.OpcUa.Api.Models;
-    using Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Azure.IIoT.OpcUa.Testing.Tests;
-    using Azure.IIoT.OpcUa.Protocol;
-    using Azure.IIoT.OpcUa.Api.Publisher.Adapter;
-    using Azure.IIoT.OpcUa.Api.Clients;
 
     [Collection(TestServerReadCollection.Name)]
     public class ValueReadScalarTests : IClassFixture<PublisherModuleFixture> {

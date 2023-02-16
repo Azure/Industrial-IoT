@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Engine {
-    using Azure.IIoT.OpcUa.Protocol.Models;
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging;
     using Serilog;

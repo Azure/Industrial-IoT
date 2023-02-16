@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
-    using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.State;
+    using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Diagnostics;

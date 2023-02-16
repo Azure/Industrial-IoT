@@ -4,16 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Events.WebApi.Filters {
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Filters;
+    using Microsoft.Azure.IIoT.Exceptions;
     using System;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
     using System.Security;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Exceptions;
 
     /// <summary>
     /// Detect all the unhandled exceptions returned by the API controllers

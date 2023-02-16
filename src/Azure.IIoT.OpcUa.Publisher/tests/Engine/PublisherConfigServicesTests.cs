@@ -6,13 +6,15 @@
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Publisher;
-    using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Protocol;
+    using FluentAssertions;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
-    using FluentAssertions;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Models;
     using Moq;
     using Publisher.Engine;
@@ -24,8 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Tests the PublisherConfigService class

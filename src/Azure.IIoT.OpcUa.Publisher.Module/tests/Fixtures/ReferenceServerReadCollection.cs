@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
-    using Xunit;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
-    using Azure.IIoT.OpcUa.Protocol;
+    using Xunit;
 
     [CollectionDefinition(Name)]
     public class ReferenceServerReadCollection : ICollectionFixture<ReferenceServerFixture> {

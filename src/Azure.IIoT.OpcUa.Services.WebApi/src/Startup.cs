@@ -6,6 +6,13 @@
 namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
+    using Azure.IIoT.OpcUa.Services.Clients;
+    using Azure.IIoT.OpcUa.History.Clients;
+    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
@@ -16,21 +23,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
     using Prometheus;
     using ILogger = Serilog.ILogger;
     using System;
-    using Azure.IIoT.OpcUa.Services.Clients;
-    using Azure.IIoT.OpcUa.History.Clients;
-    using Azure.IIoT.OpcUa.Protocol.Services;
 
     /// <summary>
     /// Webservice startup

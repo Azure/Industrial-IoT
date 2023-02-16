@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Api.Models {
     using Azure.IIoT.OpcUa.Services.Models;
+    using AutoFixture;
+    using AutoFixture.Kernel;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using AutoFixture;
-    using AutoFixture.Kernel;
     using System;
     using System.Linq;
     using Xunit;

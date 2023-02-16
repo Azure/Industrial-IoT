@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api {
-    using Xunit;
     using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Xunit;
 
     [CollectionDefinition(Name)]
     public class TestServerWriteCollection : ICollectionFixture<TestServerFixture> {

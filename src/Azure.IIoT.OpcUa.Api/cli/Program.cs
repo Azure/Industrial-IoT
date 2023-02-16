@@ -8,13 +8,13 @@ namespace Azure.IIoT.OpcUa.Api.Cli {
     using Azure.IIoT.OpcUa.Api;
     using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.Api.Runtime;
+    using Autofac;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using Autofac;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;

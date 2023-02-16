@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Engine {
     using Azure.IIoT.OpcUa.Publisher;
+    using Autofac;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Serializers;
-    using Autofac;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;

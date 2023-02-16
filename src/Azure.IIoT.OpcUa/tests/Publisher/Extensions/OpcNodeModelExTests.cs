@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
+    using Azure.IIoT.OpcUa.Api.Models;
 
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Azure.IIoT.OpcUa.Api.Models;
     using System;
     using Xunit;
 

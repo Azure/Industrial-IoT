@@ -4,8 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Events.Handlers {
-    using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Hub;
     using Opc.Ua;
     using Opc.Ua.PubSub;
@@ -14,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Events.Handlers {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT;
 
     /// <summary>
     /// Publisher message handling

@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Events.WebApi {
     using Azure.IIoT.OpcUa.Events.WebApi.Auth;
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.SignalR;
+    using Microsoft.Azure.IIoT.Messaging.SignalR;
 
     /// <summary>
     /// Publishers hub

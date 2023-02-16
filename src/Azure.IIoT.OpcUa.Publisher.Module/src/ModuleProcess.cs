@@ -6,6 +6,14 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module {
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Discovery;
+    using Azure.IIoT.OpcUa.Publisher.Engine;
+    using Azure.IIoT.OpcUa.Publisher.State;
+    using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Publisher.Twin;
+    using Azure.IIoT.OpcUa.Protocol;
+    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Autofac;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
@@ -15,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using Autofac;
     using Prometheus;
     using Serilog;
     using System;
@@ -23,13 +30,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Protocol;
-    using Azure.IIoT.OpcUa.Publisher.Engine;
-    using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Publisher.Twin;
-    using Azure.IIoT.OpcUa.Publisher.Discovery;
-    using Azure.IIoT.OpcUa.Publisher.State;
-    using Azure.IIoT.OpcUa.Protocol.Services;
 
     /// <summary>
     /// Publisher module

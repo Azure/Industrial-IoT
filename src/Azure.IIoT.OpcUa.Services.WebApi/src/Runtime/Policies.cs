@@ -5,8 +5,8 @@
 
 
 namespace Azure.IIoT.OpcUa.Services.WebApi.Auth {
-    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using System;
 
     /// <summary>

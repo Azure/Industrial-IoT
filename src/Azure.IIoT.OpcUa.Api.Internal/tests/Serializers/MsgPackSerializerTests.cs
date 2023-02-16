@@ -3,11 +3,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Api.MsgPack {
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.MessagePack;
     using AutoFixture;
     using AutoFixture.Kernel;
     using FluentAssertions;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.MessagePack;
     using System;
     using System.Collections;
     using System.Linq;

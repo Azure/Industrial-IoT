@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Azure.IIoT.OpcUa.Api.Models;
+    using MemoryBuffer;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using MemoryBuffer;
     using System;
     using System.Threading.Tasks;
     using System.Xml;

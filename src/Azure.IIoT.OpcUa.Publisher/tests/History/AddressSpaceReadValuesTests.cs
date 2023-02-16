@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Edge.History {
-    using Azure.IIoT.OpcUa.Publisher.Twin;
-    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.History.Clients;
+    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Publisher.Twin;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
-    using Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using System.Linq;

@@ -5,11 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Protocol.Models;
     using Azure.IIoT.OpcUa.Protocol.Transport.Probe;
+    using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Abstractions;
-    using Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module;
@@ -28,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT;
 
     /// <summary>
     /// Provides discovery services

@@ -6,8 +6,8 @@
 namespace Azure.IIoT.OpcUa.Api.Publisher.Clients {
     using Azure.IIoT.OpcUa.Api;
     using Azure.IIoT.OpcUa.Api.Models;
-    using Microsoft.Azure.IIoT.Messaging;
     using Azure.IIoT.OpcUa.Events.Models;
+    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;
 

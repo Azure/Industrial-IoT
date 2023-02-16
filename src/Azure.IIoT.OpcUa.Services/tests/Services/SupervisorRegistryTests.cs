@@ -4,22 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services {
+    using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Autofac;
+    using Autofac.Extras.Moq;
+    using AutoFixture;
+    using AutoFixture.Kernel;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using Autofac;
-    using Autofac.Extras.Moq;
-    using AutoFixture;
-    using AutoFixture.Kernel;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
-    using Azure.IIoT.OpcUa.Services.Models;
 
     public class SupervisorRegistryTests {
 

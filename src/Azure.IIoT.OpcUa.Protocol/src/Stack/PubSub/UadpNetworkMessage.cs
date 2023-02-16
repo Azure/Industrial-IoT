@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
-    using Microsoft.Azure.IIoT;
     using Azure.IIoT.OpcUa;
+    using Microsoft.Azure.IIoT;
     using Microsoft.IO;
     using System;
     using System.Collections.Generic;

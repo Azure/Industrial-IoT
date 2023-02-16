@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers {
-    using Xunit;
+    using Azure.IIoT.OpcUa.Api.Clients;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Api.Publisher.Adapter;
+    using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
-    using Azure.IIoT.OpcUa.Protocol;
-    using Azure.IIoT.OpcUa.Api.Publisher.Adapter;
-    using Azure.IIoT.OpcUa.Api.Clients;
+    using Xunit;
 
     [CollectionDefinition(Name)]
     public class ReadBinaryCollection : ICollectionFixture<TestServerFixture> {

@@ -7,15 +7,15 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Azure.IIoT.OpcUa.Api.Models;
-    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
-    using Microsoft.Azure.IIoT.Http;
+    using global::Azure.IIoT.OpcUa;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.Azure.IIoT.Http;
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
-    using global::Azure.IIoT.OpcUa;
 
     /// <summary>
     /// CRUD and Query application resources
