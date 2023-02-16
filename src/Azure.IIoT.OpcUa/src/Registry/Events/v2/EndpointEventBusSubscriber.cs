@@ -40,24 +40,6 @@ namespace Azure.IIoT.OpcUa.Services.Events.v2 {
                             eventData.Context, eventData.Endpoint)
                         .ContinueWith(t => Task.CompletedTask)));
                     break;
-                case EndpointEventType.Deactivated:
-                    await Task.WhenAll(_listeners
-                        .Select(l => l.OnEndpointDeactivatedAsync(
-                            eventData.Context, eventData.Endpoint)
-                        .ContinueWith(t => Task.CompletedTask)));
-                    break;
-                case EndpointEventType.Activated:
-                    await Task.WhenAll(_listeners
-                        .Select(l => l.OnEndpointActivatedAsync(
-                            eventData.Context, eventData.Endpoint)
-                        .ContinueWith(t => Task.CompletedTask)));
-                    break;
-                case EndpointEventType.Updated:
-                    await Task.WhenAll(_listeners
-                        .Select(l => l.OnEndpointUpdatedAsync(
-                            eventData.Context, eventData.Endpoint)
-                        .ContinueWith(t => Task.CompletedTask)));
-                    break;
                 case EndpointEventType.Deleted:
                     await Task.WhenAll(_listeners
                         .Select(l => l.OnEndpointDeletedAsync(

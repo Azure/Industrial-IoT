@@ -35,11 +35,8 @@ namespace Microsoft.Azure.IIoT.App.Extensions {
                         });
                     }
                     break;
-                case EndpointEventType.Deactivated:
-                case EndpointEventType.Activated:
                 case EndpointEventType.Enabled:
                 case EndpointEventType.Disabled:
-                case EndpointEventType.Updated:
                     ev.Endpoint.Patch(endpoint.EndpointModel);
                     break;
                 case EndpointEventType.Deleted:

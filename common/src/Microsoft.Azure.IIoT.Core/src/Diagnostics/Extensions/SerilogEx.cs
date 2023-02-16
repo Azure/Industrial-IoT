@@ -16,6 +16,17 @@ namespace Serilog {
     public static class SerilogEx {
 
         /// <summary>
+        /// Create trace logger
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="addConsole"></param>
+        /// <returns></returns>
+        public static LoggerConfiguration Debug(this LoggerConfiguration configuration,
+            bool addConsole = true) {
+            return configuration.Configure((c, m) => c
+                .WriteTo.Debug(outputTemplate: m), addConsole);
+        }
+        /// <summary>
         /// Configure logging
         /// </summary>
         /// <param name="configuration"></param>

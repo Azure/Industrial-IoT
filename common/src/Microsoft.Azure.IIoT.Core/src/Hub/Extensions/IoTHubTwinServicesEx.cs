@@ -19,24 +19,6 @@ namespace Microsoft.Azure.IIoT.Hub {
     public static class IoTHubTwinServicesEx {
 
         /// <summary>
-        /// Find twin or return null
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public static async Task<DeviceTwinModel> FindAsync(this IIoTHubTwinServices service,
-            string deviceId, string moduleId = null, CancellationToken ct = default) {
-            try {
-                return await service.GetAsync(deviceId, moduleId, ct);
-            }
-            catch (ResourceNotFoundException) {
-                return null;
-            }
-        }
-
-        /// <summary>
         /// Returns module connection string
         /// </summary>
         /// <param name="service"></param>
@@ -55,24 +37,6 @@ namespace Microsoft.Azure.IIoT.Hub {
             return ConnectionString.CreateModuleConnectionString(service.HostName,
                 deviceId, moduleId, primary ?
                     model.Authentication.PrimaryKey : model.Authentication.SecondaryKey);
-        }
-
-        /// <summary>
-        /// Returns device or module primary key
-        /// </summary>
-        /// <param name="service"></param>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public static async Task<string> GetPrimaryKeyAsync(
-            this IIoTHubTwinServices service, string deviceId, string moduleId = null,
-            CancellationToken ct = default) {
-            var model = await service.GetRegistrationAsync(deviceId, moduleId, ct);
-            if (model == null) {
-                throw new ResourceNotFoundException("Could not find " + deviceId);
-            }
-            return model.Authentication.PrimaryKey;
         }
 
         /// <summary>

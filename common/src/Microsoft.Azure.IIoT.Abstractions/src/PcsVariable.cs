@@ -19,12 +19,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Iot hub event hub endpoint </summary>
         public const string PCS_IOTHUB_EVENTHUBENDPOINT =
             "PCS_IOTHUB_EVENTHUBENDPOINT";
-        /// <summary> Iot hub event hub Telemetry Consumer Group </summary>
-        public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY =
-            "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY";
-        /// <summary> Iot hub event hub Onboarder Consumer Group </summary>
-        public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING =
-            "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING";
         /// <summary> storage connection string </summary>
         public const string PCS_STORAGE_CONNSTRING =
             "PCS_STORAGE_CONNSTRING";
@@ -46,9 +40,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Event hub consumer group telemetryux </summary>
         public const string PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX =
             "PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX";
-        /// <summary> Service bus connection string </summary>
-        public const string PCS_SERVICEBUS_CONNSTRING =
-            "PCS_SERVICEBUS_CONNSTRING";
         /// <summary> LogLevel </summary>
         public const string PCS_APPINSIGHTS_LOGLEVEL =
             "PCS_APPINSIGHTS_LOGLEVEL";

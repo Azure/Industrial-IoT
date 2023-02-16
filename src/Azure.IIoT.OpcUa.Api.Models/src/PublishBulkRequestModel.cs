@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Api.Models {
     /// <summary>
     /// Publish in bulk request
     /// </summary>
+    [DataContract]
     public record class PublishBulkRequestModel {
 
         /// <summary>

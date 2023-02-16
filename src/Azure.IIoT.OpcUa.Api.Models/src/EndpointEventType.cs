@@ -31,24 +31,6 @@ namespace Azure.IIoT.OpcUa.Api.Models {
         Disabled,
 
         /// <summary>
-        /// Deactivated
-        /// </summary>
-        [EnumMember]
-        Deactivated,
-
-        /// <summary>
-        /// Activated
-        /// </summary>
-        [EnumMember]
-        Activated,
-
-        /// <summary>
-        /// Updated
-        /// </summary>
-        [EnumMember]
-        Updated,
-
-        /// <summary>
         /// Deleted
         /// </summary>
         [EnumMember]

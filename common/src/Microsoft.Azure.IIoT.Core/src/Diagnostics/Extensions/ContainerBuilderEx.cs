@@ -28,5 +28,26 @@ namespace Autofac {
             return builder.RegisterModule(
                 new LoggerProviderModule(new ConsoleLogger(configuration)));
         }
+
+        /// <summary>
+        /// Register trace logger
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="config"></param>
+        /// <param name="log"></param>
+        /// <param name="addConsole"></param>
+        /// <returns></returns>
+        public static IModuleRegistrar AddDiagnostics(this ContainerBuilder builder,
+            IDiagnosticsConfig config = null, LoggerConfiguration log = null, bool addConsole = true) {
+            if (builder == null) {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            builder.RegisterType<EmptyMetricsContext>()
+                .AsImplementedInterfaces().IfNotRegistered(typeof(IMetricsContext));
+            builder.RegisterType<HealthCheckRegistrar>()
+                .AsImplementedInterfaces().SingleInstance();
+            return builder.RegisterModule(
+                new LoggerProviderModule(new TraceLogger(log, addConsole)));
+        }
     }
 }

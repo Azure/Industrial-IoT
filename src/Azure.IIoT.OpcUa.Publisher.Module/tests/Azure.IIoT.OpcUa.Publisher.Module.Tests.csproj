@@ -26,7 +26,6 @@
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Services\src\Azure.IIoT.OpcUa.Services.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.Debug\src\Microsoft.Azure.IIoT.Diagnostics.Debug.csproj" />
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Mock\src\Microsoft.Azure.IIoT.Hub.Mock.csproj" />
   </ItemGroup>
   <ItemGroup>

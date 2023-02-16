@@ -124,8 +124,7 @@ namespace Azure.IIoT.OpcUa.Events.WebApi {
             // Add signalr and optionally configure signalr service
             services.AddSignalR()
                 .AddJsonSerializer()
-                .AddMessagePackSerializer()
-                .AddAzureSignalRService(Config);
+                .AddMessagePackSerializer();
 
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
         }

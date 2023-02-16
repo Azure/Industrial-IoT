@@ -23,20 +23,6 @@ namespace Azure.IIoT.OpcUa.Services.Events.v2 {
         }
 
         /// <inheritdoc/>
-        public Task OnEndpointActivatedAsync(
-            RegistryOperationContextModel context, EndpointInfoModel endpoint) {
-            return _bus.PublishAsync(Wrap(EndpointEventType.Activated, context,
-                endpoint.Registration.Id, endpoint));
-        }
-
-        /// <inheritdoc/>
-        public Task OnEndpointDeactivatedAsync(
-            RegistryOperationContextModel context, EndpointInfoModel endpoint) {
-            return _bus.PublishAsync(Wrap(EndpointEventType.Deactivated, context,
-                endpoint.Registration.Id, endpoint));
-        }
-
-        /// <inheritdoc/>
         public Task OnEndpointDeletedAsync(
             RegistryOperationContextModel context, string endpointId, EndpointInfoModel endpoint) {
             return _bus.PublishAsync(Wrap(EndpointEventType.Deleted, context,
@@ -63,15 +49,6 @@ namespace Azure.IIoT.OpcUa.Services.Events.v2 {
             return _bus.PublishAsync(Wrap(EndpointEventType.New, context,
                 endpoint.Registration.Id, endpoint));
         }
-#if ZOMBIE
-
-        /// <inheritdoc/>
-        public Task OnEndpointUpdatedAsync(
-            RegistryOperationContextModel context, EndpointInfoModel endpoint) {
-            return _bus.PublishAsync(Wrap(EndpointEventType.Updated, context,
-                endpoint.Registration.Id, endpoint));
-        }
-#endif
 
         /// <summary>
         /// Create endpoint event

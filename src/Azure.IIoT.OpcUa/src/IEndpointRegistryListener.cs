@@ -22,24 +22,6 @@ namespace Azure.IIoT.OpcUa {
             EndpointInfoModel endpoint);
 
         /// <summary>
-        /// Activated endpoint
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="endpoint"></param>
-        /// <returns></returns>
-        Task OnEndpointActivatedAsync(RegistryOperationContextModel context,
-            EndpointInfoModel endpoint);
-
-        /// <summary>
-        /// Endpoint was deactivated
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="endpoint"></param>
-        /// <returns></returns>
-        Task OnEndpointDeactivatedAsync(RegistryOperationContextModel context,
-            EndpointInfoModel endpoint);
-
-        /// <summary>
         /// Disabled endpoint
         /// </summary>
         /// <param name="context"></param>
@@ -56,17 +38,6 @@ namespace Azure.IIoT.OpcUa {
         /// <returns></returns>
         Task OnEndpointEnabledAsync(RegistryOperationContextModel context,
             EndpointInfoModel endpoint);
-#if ZOMBIE
-
-        /// <summary>
-        /// Updated endpoint
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="endpoint"></param>
-        /// <returns></returns>
-        Task OnEndpointUpdatedAsync(RegistryOperationContextModel context,
-            EndpointInfoModel endpoint);
-#endif
 
         /// <summary>
         /// Deleted endpoint
