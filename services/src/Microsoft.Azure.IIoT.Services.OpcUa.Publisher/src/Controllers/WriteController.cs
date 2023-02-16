@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -43,14 +43,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The write value request</param>
         /// <returns>The write value response</returns>
         [HttpPost("{endpointId}")]
-        public async Task<ValueWriteResponseApiModel> WriteValueAsync(
-            string endpointId, [FromBody] [Required] ValueWriteRequestApiModel request) {
+        public async Task<ValueWriteResponseModel> WriteValueAsync(
+            string endpointId, [FromBody] [Required] ValueWriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var writeResult = await _nodes.NodeValueWriteAsync(
-                endpointId, request.ToServiceModel());
-            return writeResult.ToApiModel();
+                endpointId, request);
+            return writeResult;
         }
 
         /// <summary>
@@ -65,14 +65,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The batch write request</param>
         /// <returns>The batch write response</returns>
         [HttpPost("{endpointId}/attributes")]
-        public async Task<WriteResponseApiModel> WriteAttributesAsync(
-            string endpointId, [FromBody] [Required] WriteRequestApiModel request) {
+        public async Task<WriteResponseModel> WriteAttributesAsync(
+            string endpointId, [FromBody] [Required] WriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var writeResult = await _nodes.NodeWriteAsync(
-                endpointId, request.ToServiceModel());
-            return writeResult.ToApiModel();
+                endpointId, request);
+            return writeResult;
         }
 
         private readonly INodeServices<string> _nodes;

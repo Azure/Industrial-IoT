@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
     using System.Threading.Tasks;
 
     public partial class AssetLogin {
-        public CredentialModel Credential { get; set; } = new CredentialModel();
+        public UsernamePassword Credential { get; set; } = new UsernamePassword();
         private bool ShowLogin { get; set; } = true;
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// LoadAsync
         /// </summary>
         public async Task LoadAsync() {
-            Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
+            Credential = await GetSecureItemAsync<UsernamePassword>(CommonHelper.CredentialKey);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 }
             }
             else {
-                Credential = new CredentialModel();
+                Credential = new UsernamePassword();
             }
 
             return isLoggedIn;

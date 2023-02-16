@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.OpcUa.History.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
     using Opc.Ua.Encoders;

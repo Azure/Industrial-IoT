@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests {
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
-    using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
     using System;
@@ -54,73 +52,73 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests {
         }
 
         /// <inheritdoc/>
-        public Task<BrowseResultModel> NodeBrowseFirstAsync(string endpointId,
+        public Task<BrowseResponseModel> NodeBrowseFirstAsync(string endpointId,
             BrowseRequestModel request, CancellationToken ct) {
             return _browser.NodeBrowseFirstAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<BrowseNextResultModel> NodeBrowseNextAsync(string endpointId,
+        public Task<BrowseNextResponseModel> NodeBrowseNextAsync(string endpointId,
             BrowseNextRequestModel request, CancellationToken ct) {
             return _browser.NodeBrowseNextAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<BrowsePathResultModel> NodeBrowsePathAsync(string endpointId,
+        public Task<BrowsePathResponseModel> NodeBrowsePathAsync(string endpointId,
             BrowsePathRequestModel request, CancellationToken ct) {
             return _browser.NodeBrowsePathAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<ValueReadResultModel> NodeValueReadAsync(string endpointId,
+        public Task<ValueReadResponseModel> NodeValueReadAsync(string endpointId,
             ValueReadRequestModel request, CancellationToken ct) {
             return _nodes.NodeValueReadAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<ValueWriteResultModel> NodeValueWriteAsync(string endpointId,
+        public Task<ValueWriteResponseModel> NodeValueWriteAsync(string endpointId,
             ValueWriteRequestModel request, CancellationToken ct) {
             return _nodes.NodeValueWriteAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<MethodMetadataResultModel> NodeMethodGetMetadataAsync(
+        public Task<MethodMetadataResponseModel> NodeMethodGetMetadataAsync(
             string endpointId, MethodMetadataRequestModel request, CancellationToken ct) {
             return _nodes.NodeMethodGetMetadataAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<MethodCallResultModel> NodeMethodCallAsync(
+        public Task<MethodCallResponseModel> NodeMethodCallAsync(
             string endpointId, MethodCallRequestModel request, CancellationToken ct) {
             return _nodes.NodeMethodCallAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<ReadResultModel> NodeReadAsync(
+        public Task<ReadResponseModel> NodeReadAsync(
             string endpointId, ReadRequestModel request, CancellationToken ct) {
             return _nodes.NodeReadAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<WriteResultModel> NodeWriteAsync(
+        public Task<WriteResponseModel> NodeWriteAsync(
             string endpointId, WriteRequestModel request, CancellationToken ct) {
             return _nodes.NodeWriteAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<HistoryReadResultModel<VariantValue>> HistoryReadAsync(
+        public Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
             string endpointId, HistoryReadRequestModel<VariantValue> request, CancellationToken ct) {
             return _history.HistoryReadAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<HistoryReadNextResultModel<VariantValue>> HistoryReadNextAsync(
+        public Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
             string endpointId, HistoryReadNextRequestModel request, CancellationToken ct) {
             return _history.HistoryReadNextAsync(Connection, request, ct);
         }
 
         /// <inheritdoc/>
-        public Task<HistoryUpdateResultModel> HistoryUpdateAsync(string endpointId,
+        public Task<HistoryUpdateResponseModel> HistoryUpdateAsync(string endpointId,
             HistoryUpdateRequestModel<VariantValue> request, CancellationToken ct) {
             return _history.HistoryUpdateAsync(Connection, request, ct);
         }

@@ -6,11 +6,10 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
@@ -47,14 +46,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The browse request</param>
         /// <returns>The browse response</returns>
         [HttpPost("{endpointId}")]
-        public async Task<BrowseResponseApiModel> BrowseAsync(string endpointId,
-            [FromBody] [Required] BrowseRequestApiModel request) {
+        public async Task<BrowseResponseModel> BrowseAsync(string endpointId,
+            [FromBody] [Required] BrowseRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var browseresult = await _browser.NodeBrowseAsync(endpointId,
-                request.ToServiceModel());
-            return browseresult.ToApiModel();
+            var browseresult = await _browser.NodeBrowseAsync(endpointId, request);
+            return browseresult;
         }
 
         /// <summary>
@@ -69,17 +67,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The request body with continuation token.</param>
         /// <returns>The browse response</returns>
         [HttpPost("{endpointId}/next")]
-        public async Task<BrowseNextResponseApiModel> BrowseNextAsync(
-            string endpointId, [FromBody] [Required] BrowseNextRequestApiModel request) {
+        public async Task<BrowseNextResponseModel> BrowseNextAsync(
+            string endpointId, [FromBody] [Required] BrowseNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             if (request.ContinuationToken == null) {
                 throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            var browseresult = await _browser.NodeBrowseNextAsync(endpointId,
-                request.ToServiceModel());
-            return browseresult.ToApiModel();
+            var browseresult = await _browser.NodeBrowseNextAsync(endpointId, request);
+            return browseresult;
         }
 
         /// <summary>
@@ -95,14 +92,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The browse path request</param>
         /// <returns>The browse path response</returns>
         [HttpPost("{endpointId}/path")]
-        public async Task<BrowsePathResponseApiModel> BrowseUsingPathAsync(string endpointId,
-            [FromBody] [Required] BrowsePathRequestApiModel request) {
+        public async Task<BrowsePathResponseModel> BrowseUsingPathAsync(string endpointId,
+            [FromBody] [Required] BrowsePathRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var browseresult = await _browser.NodeBrowsePathAsync(endpointId,
-                request.ToServiceModel());
-            return browseresult.ToApiModel();
+            var browseresult = await _browser.NodeBrowsePathAsync(endpointId, request);
+            return browseresult;
         }
 
         /// <summary>
@@ -123,7 +119,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// </param>
         /// <returns>The browse response</returns>
         [HttpGet("{endpointId}")]
-        public async Task<BrowseResponseApiModel> GetSetOfUniqueNodesAsync(
+        public async Task<BrowseResponseModel> GetSetOfUniqueNodesAsync(
             string endpointId, [FromQuery] string nodeId) {
             if (string.IsNullOrEmpty(nodeId)) {
                 nodeId = null;
@@ -134,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                 ReadVariableValues = true
             };
             var browseresult = await _browser.NodeBrowseAsync(endpointId, request);
-            return browseresult.ToApiModel();
+            return browseresult;
         }
 
         /// <summary>
@@ -154,7 +150,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// </param>
         [HttpGet("{endpointId}/next")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
-        public async Task<BrowseNextResponseApiModel> GetNextSetOfUniqueNodesAsync(
+        public async Task<BrowseNextResponseModel> GetNextSetOfUniqueNodesAsync(
             string endpointId, [FromQuery] [Required] string continuationToken) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken]
@@ -169,7 +165,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                 ReadVariableValues = true
             };
             var browseresult = await _browser.NodeBrowseNextAsync(endpointId, request);
-            return browseresult.ToApiModel();
+            return browseresult;
         }
 
         private readonly IBrowseServices<string> _browser;

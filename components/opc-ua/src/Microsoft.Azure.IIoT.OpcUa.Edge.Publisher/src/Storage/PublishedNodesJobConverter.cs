@@ -4,21 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
-    using static Microsoft.Azure.Amqp.Serialization.SerializableType;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -402,7 +399,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             return new ConnectionModel {
                 Group = model.DataSetWriterGroup,
                 Endpoint = new EndpointModel {
-                    Url = model.EndpointUrl?.OriginalString,
+                    Url = model.EndpointUrl,
                     SecurityMode = model.UseSecurity
                         ? SecurityMode.Best
                         : SecurityMode.None,
@@ -430,7 +427,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 }
             }
             if (connection?.Endpoint != null) {
-                publishedNodesEntryModel.EndpointUrl = new Uri(connection.Endpoint.Url);
+                publishedNodesEntryModel.EndpointUrl = connection.Endpoint.Url;
                 publishedNodesEntryModel.UseSecurity = connection.Endpoint.SecurityMode != SecurityMode.None;
             }
             return publishedNodesEntryModel;

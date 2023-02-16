@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Models {
-    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
 

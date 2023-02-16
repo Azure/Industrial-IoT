@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System.Threading.Tasks;
 
@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string SupervisorId { get; set; }
 
-        public SupervisorStatusApiModel SupervisorStatus { get; set; }
+        public SupervisorStatusModel SupervisorStatus { get; set; }
 
         /// <summary>
         /// OnInitialized

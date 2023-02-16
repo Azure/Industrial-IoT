@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.Logging;
     using Autofac.Extensions.Hosting;
     using Serilog;
     using Serilog.Events;

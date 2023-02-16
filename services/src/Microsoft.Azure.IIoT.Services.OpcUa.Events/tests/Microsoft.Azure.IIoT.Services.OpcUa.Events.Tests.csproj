@@ -18,7 +18,7 @@
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api\src\Microsoft.Azure.IIoT.Api.csproj" />
+    <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api.Internal\src\Microsoft.Azure.IIoT.Api.Internal.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Http.SignalR\src\Microsoft.Azure.IIoT.Http.SignalR.csproj" />
   </ItemGroup>
   <ItemGroup>

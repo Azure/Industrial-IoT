@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.App.Extensions {
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.Api.Registry.Extensions;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Models;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.App.Extensions {
         /// </summary>
         /// <param name="results"></param>
         /// <param name="ev"></param>
-        public static void Update(this IList<EndpointInfo> results, EndpointEventApiModel ev) {
+        public static void Update(this IList<EndpointInfo> results, EndpointEventModel ev) {
             var endpoint = results.FirstOrDefault(e => e.EndpointModel.Registration.Id == ev.Id);
             if (endpoint == null &&
                 ev.EventType != EndpointEventType.New) {

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -51,25 +51,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var siteId = sites.SingleOrDefault() ?? gatewayId;
             var gateway = await _gateways.GetGatewayAsync(gatewayId);
 
-            //
-            // Merge in global discovery configuration into the one sent
-            // by the discoverer.
-            //
-            if (result.DiscoveryConfig == null) {
-                // Use global discovery configuration
-                result.DiscoveryConfig = gateway.Modules?.Discoverer?.DiscoveryConfig;
-            }
-            else {
-                if (result.DiscoveryConfig.ActivationFilter == null) {
-                    // Use global activation filter
-                    result.DiscoveryConfig.ActivationFilter =
-                        gateway.Modules?.Discoverer?.DiscoveryConfig?.ActivationFilter;
-                }
-            }
-
             // Process discovery events
             await _applications.ProcessDiscoveryEventsAsync(siteId, discovererId,
-                gateway.Modules?.Supervisor?.Id, result, events);
+                gateway.Modules?.Publisher?.Id, result, events);
         }
 
         private readonly IGatewayRegistry _gateways;

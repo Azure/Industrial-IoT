@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -47,11 +47,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// available</param>
         /// <returns>Publisher registration</returns>
         [HttpGet("{publisherId}")]
-        public async Task<PublisherApiModel> GetPublisherAsync(string publisherId,
+        public async Task<PublisherModel> GetPublisherAsync(string publisherId,
             [FromQuery] bool? onlyServerState) {
             var result = await _publishers.GetPublisherAsync(publisherId,
                 onlyServerState ?? false);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -66,12 +66,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         [HttpPatch("{publisherId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdatePublisherAsync(string publisherId,
-            [FromBody] [Required] PublisherUpdateApiModel request) {
+            [FromBody] [Required] PublisherUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             await _publishers.UpdatePublisherAsync(publisherId,
-                request.ToServiceModel());
+                request);
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// </returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
-        public async Task<PublisherListApiModel> GetListOfPublisherAsync(
+        public async Task<PublisherListModel> GetListOfPublisherAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
             }
             var result = await _publishers.ListPublishersAsync(
                 continuationToken, onlyServerState ?? false, pageSize);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -127,8 +127,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Publisher</returns>
         [HttpPost("query")]
-        public async Task<PublisherListApiModel> QueryPublisherAsync(
-            [FromBody] [Required] PublisherQueryApiModel query,
+        public async Task<PublisherListModel> QueryPublisherAsync(
+            [FromBody] [Required] PublisherQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
             if (query == null) {
@@ -139,11 +139,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                     .FirstOrDefault());
             }
             var result = await _publishers.QueryPublishersAsync(
-                query.ToServiceModel(), onlyServerState ?? false, pageSize);
+                query, onlyServerState ?? false, pageSize);
 
             // TODO: Filter results based on RBAC
 
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -163,8 +163,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Publisher</returns>
         [HttpGet("query")]
-        public async Task<PublisherListApiModel> GetFilteredListOfPublisherAsync(
-            [FromQuery] [Required] PublisherQueryApiModel query,
+        public async Task<PublisherListModel> GetFilteredListOfPublisherAsync(
+            [FromQuery] [Required] PublisherQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
 
@@ -176,11 +176,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                     .FirstOrDefault());
             }
             var result = await _publishers.QueryPublishersAsync(
-                query.ToServiceModel(), onlyServerState ?? false, pageSize);
+                query, onlyServerState ?? false, pageSize);
 
             // TODO: Filter results based on RBAC
 
-            return result.ToApiModel();
+            return result;
         }
 
         private readonly IPublisherRegistry _publishers;

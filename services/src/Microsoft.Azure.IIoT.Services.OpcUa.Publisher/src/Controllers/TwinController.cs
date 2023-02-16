@@ -6,14 +6,12 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.History;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
-    using System.Linq;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -45,14 +43,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The read value request</param>
         /// <returns>The read value response</returns>
         [HttpPost("{endpointId}")]
-        public async Task<ValueReadResponseApiModel> ReadValueAsync(
-            string endpointId, [FromBody] [Required] ValueReadRequestApiModel request) {
+        public async Task<ValueReadResponseModel> ReadValueAsync(
+            string endpointId, [FromBody] [Required] ValueReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var readresult = await _nodes.NodeValueReadAsync(
-                endpointId, request.ToServiceModel());
-            return readresult.ToApiModel();
+                endpointId, request);
+            return readresult;
         }
 
         /// <summary>
@@ -67,14 +65,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The read request</param>
         /// <returns>The read response</returns>
         [HttpPost("{endpointId}/attributes")]
-        public async Task<ReadResponseApiModel> ReadAttributesAsync(
-            string endpointId, [FromBody] [Required] ReadRequestApiModel request) {
+        public async Task<ReadResponseModel> ReadAttributesAsync(
+            string endpointId, [FromBody] [Required] ReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var readresult = await _nodes.NodeReadAsync(
-                endpointId, request.ToServiceModel());
-            return readresult.ToApiModel();
+                endpointId, request);
+            return readresult;
         }
 
         /// <summary>
@@ -89,15 +87,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="nodeId">The node to read</param>
         /// <returns>The read value response</returns>
         [HttpGet("{endpointId}")]
-        public async Task<ValueReadResponseApiModel> GetValueAsync(
+        public async Task<ValueReadResponseModel> GetValueAsync(
             string endpointId, [FromQuery] [Required] string nodeId) {
             if (string.IsNullOrEmpty(nodeId)) {
                 throw new ArgumentNullException(nameof(nodeId));
             }
-            var request = new ValueReadRequestApiModel { NodeId = nodeId };
+            var request = new ValueReadRequestModel { NodeId = nodeId };
             var readresult = await _nodes.NodeValueReadAsync(
-                endpointId, request.ToServiceModel());
-            return readresult.ToApiModel();
+                endpointId, request);
+            return readresult;
         }
 
         private readonly INodeServices<string> _nodes;

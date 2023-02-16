@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
     using Autofac;
@@ -369,27 +369,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var currentNodes = GetCurrentPublishedNodes();
             var endpoints = new List<PublishedNodesEntryModel>();
             try {
-                endpoints = currentNodes.Select(model => new PublishedNodesEntryModel {
-                    EndpointUrl = model.EndpointUrl,
-                    Version = model.Version,
-                    LastChangeTimespan = model.LastChangeTimespan,
-                    UseSecurity = model.UseSecurity,
-                    OpcAuthenticationMode = model.OpcAuthenticationMode,
-                    OpcAuthenticationUsername = model.OpcAuthenticationUsername,
-                    DataSetWriterGroup = model.DataSetWriterGroup,
-                    DataSetWriterId = model.DataSetWriterId,
-                    DataSetName = model.DataSetName,
-                    DataSetDescription = model.DataSetDescription,
-                    DataSetKeyFrameCount = model.DataSetKeyFrameCount,
-                    MetaDataUpdateTimeTimespan = model.MetaDataUpdateTimeTimespan,
-                    MetaDataQueueName = model.MetaDataQueueName,
-                    DataSetClassId = model.DataSetClassId,
-                    DataSetPublishingIntervalTimespan = model.DataSetPublishingIntervalTimespan,
-                    DataSetPublishingInterval = !model.DataSetPublishingIntervalTimespan.HasValue
-                        ? model.DataSetPublishingInterval
-                        : null,
-                })
-                .ToList();
+                endpoints = currentNodes.ToList();
             }
             catch (Exception e) when (e is not MethodCallStatusException) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
@@ -405,8 +385,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
-            PublishedNodesEntryModel request,
-            CancellationToken ct = default) {
+            PublishedNodesEntryModel request, CancellationToken ct = default) {
 
             _logger.Information("{nameof} method triggered",
                 nameof(GetConfiguredNodesOnEndpointAsync));

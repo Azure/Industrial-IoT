@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Subscriber;
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Opc.Ua;
     using Opc.Ua.PubSub;

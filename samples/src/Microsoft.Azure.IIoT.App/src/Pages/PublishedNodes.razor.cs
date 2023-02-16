@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System;
     using System.Threading.Tasks;
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// GetPublishedNodeData
         /// </summary>
         /// <param name="samples"></param>
-        private Task GetPublishedNodeData(MonitoredItemMessageApiModel samples) {
+        private Task GetPublishedNodeData(MonitoredItemMessageModel samples) {
             foreach (var node in PagedNodeList.Results) {
                 if (node.PublishedItem.NodeId == samples.NodeId) {
                     node.Value = samples.Value?.ToJson()?.TrimQuotes();

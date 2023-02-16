@@ -6,11 +6,10 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
@@ -51,11 +50,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         [HttpPost]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task RegisterServerAsync(
-            [FromBody] [Required] ServerRegistrationRequestApiModel request) {
+            [FromBody] [Required] ServerRegistrationRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _onboarding.RegisterAsync(request.ToServiceModel());
+            await _onboarding.RegisterAsync(request);
         }
 
         /// <summary>
@@ -98,11 +97,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         [HttpPost("discover")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DiscoverServerAsync(
-            [FromBody] [Required] DiscoveryRequestApiModel request) {
+            [FromBody] [Required] DiscoveryRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _onboarding.DiscoverAsync(request.ToServiceModel());
+            await _onboarding.DiscoverAsync(request);
         }
 
         /// <summary>
@@ -138,15 +137,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <returns>Application registration response</returns>
         [HttpPut]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task<ApplicationRegistrationResponseApiModel> CreateApplicationAsync(
-            [FromBody] [Required] ApplicationRegistrationRequestApiModel request) {
+        public async Task<ApplicationRegistrationResponseModel> CreateApplicationAsync(
+            [FromBody] [Required] ApplicationRegistrationRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var model = request.ToServiceModel();
+            var model = request;
             // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
             var result = await _applications.RegisterApplicationAsync(model);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -155,10 +154,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="applicationId">Application id for the server</param>
         /// <returns>Application registration</returns>
         [HttpGet("{applicationId}")]
-        public async Task<ApplicationRegistrationApiModel> GetApplicationRegistrationAsync(
+        public async Task<ApplicationRegistrationModel> GetApplicationRegistrationAsync(
             string applicationId) {
             var result = await _applications.GetApplicationAsync(applicationId);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -174,11 +173,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         [HttpPatch("{applicationId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateApplicationRegistrationAsync(string applicationId,
-            [FromBody] [Required] ApplicationRegistrationUpdateApiModel request) {
+            [FromBody] [Required] ApplicationRegistrationUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var model = request.ToServiceModel();
+            var model = request;
             // TODO: applicationServiceModel.AuthorityId = User.Identity.Name;
             await _applications.UpdateApplicationAsync(applicationId, model);
         }
@@ -226,7 +225,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <returns>Sites</returns>
         [HttpGet("sites")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
-        public async Task<ApplicationSiteListApiModel> GetListOfSitesAsync(
+        public async Task<ApplicationSiteListModel> GetListOfSitesAsync(
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
 
@@ -240,7 +239,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
             }
             var result = await _applications.ListSitesAsync(
                 continuationToken, pageSize);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -262,7 +261,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// </returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
-        public async Task<ApplicationInfoListApiModel> GetListOfApplicationsAsync(
+        public async Task<ApplicationInfoListModel> GetListOfApplicationsAsync(
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
@@ -276,7 +275,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
             var result = await _applications.ListApplicationsAsync(
                 continuationToken, pageSize);
 
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -294,8 +293,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// return</param>
         /// <returns>Applications</returns>
         [HttpPost("query")]
-        public async Task<ApplicationInfoListApiModel> QueryApplicationsAsync(
-            [FromBody] [Required] ApplicationRegistrationQueryApiModel query,
+        public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
+            [FromBody] [Required] ApplicationRegistrationQueryModel query,
             [FromQuery] int? pageSize) {
 
             if (query == null) {
@@ -306,9 +305,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                     .FirstOrDefault());
             }
             var result = await _applications.QueryApplicationsAsync(
-                query.ToServiceModel(), pageSize);
+                query, pageSize);
 
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -325,8 +324,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Applications</returns>
         [HttpGet("query")]
-        public async Task<ApplicationInfoListApiModel> GetFilteredListOfApplicationsAsync(
-            [FromBody] [Required] ApplicationRegistrationQueryApiModel query,
+        public async Task<ApplicationInfoListModel> GetFilteredListOfApplicationsAsync(
+            [FromBody] [Required] ApplicationRegistrationQueryModel query,
             [FromQuery] int? pageSize) {
 
             if (query == null) {
@@ -337,9 +336,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                     .FirstOrDefault());
             }
             var result = await _applications.QueryApplicationsAsync(
-                query.ToServiceModel(), pageSize);
+                query, pageSize);
 
-            return result.ToApiModel();
+            return result;
         }
 
         private readonly IApplicationRegistry _applications;

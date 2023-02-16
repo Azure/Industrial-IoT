@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -43,15 +43,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
         [HttpPost("{endpointId}/values/pick")]
-        public async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAtTimesAsync(
+        public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestApiModel<DeleteValuesAtTimesDetailsApiModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryDeleteValuesAtTimesAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return writeResult.ToApiModel();
+            var writeResult = await _historian.HistoryDeleteValuesAtTimesAsync(endpointId, request);
+            return writeResult;
         }
 
         /// <summary>
@@ -66,15 +65,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
         [HttpPost("{endpointId}/values")]
-        public async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAsync(
+        public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestApiModel<DeleteValuesDetailsApiModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryDeleteValuesAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return writeResult.ToApiModel();
+            var writeResult = await _historian.HistoryDeleteValuesAsync(endpointId, request);
+            return writeResult;
         }
 
         /// <summary>
@@ -89,15 +87,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
         [HttpPost("{endpointId}/values/modified")]
-        public async Task<HistoryUpdateResponseApiModel> HistoryDeleteModifiedValuesAsync(
+        public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestApiModel<DeleteModifiedValuesDetailsApiModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryDeleteModifiedValuesAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return writeResult.ToApiModel();
+            var writeResult = await _historian.HistoryDeleteModifiedValuesAsync(endpointId, request);
+            return writeResult;
         }
 
         /// <summary>
@@ -112,15 +109,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history update request</param>
         /// <returns>The history delete result</returns>
         [HttpPost("{endpointId}/events")]
-        public async Task<HistoryUpdateResponseApiModel> HistoryDeleteEventsAsync(
+        public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestApiModel<DeleteEventsDetailsApiModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<DeleteEventsDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryDeleteEventsAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return writeResult.ToApiModel();
+            var writeResult = await _historian.HistoryDeleteEventsAsync(endpointId, request);
+            return writeResult;
         }
 
         private readonly IHistorianServices<string> _historian;

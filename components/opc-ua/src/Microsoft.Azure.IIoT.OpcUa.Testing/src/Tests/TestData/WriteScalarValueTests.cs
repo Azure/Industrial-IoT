@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using MemoryBuffer;
@@ -780,7 +780,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         private async Task AssertResultAsync(string node, VariantValue expected,
-            ValueWriteResultModel result) {
+            ValueWriteResponseModel result) {
             var value = await _readExpected(_endpoint, node);
             Assert.NotNull(value);
             Assert.Null(result.ErrorInfo);

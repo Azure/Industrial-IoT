@@ -6,10 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Serializers;
     using Autofac;
@@ -64,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             _configMock.SetupGet(p => p.PublishedNodesSchemaFile).Returns("Storage/publishednodesschema.json");
             _configMock.SetupGet(p => p.MaxNodesPerPublishedEndpoint).Returns(1000);
             _configMock.SetupGet(p => p.MessagingProfile).Returns(MessagingProfile.Get(
-                OpcUa.Publisher.Models.MessagingMode.PubSub, OpcUa.Publisher.Models.MessageEncoding.Json));
+                MessagingMode.PubSub, MessageEncoding.Json));
 
             _publishedNodesProvider = new PublishedNodesProvider(_configMock.Object, _logger);
             _triggerMock = new Mock<IMessageSource>();
@@ -107,13 +106,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var methodsController = new PublisherMethodsController(_configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
+            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
                 var initialNode = request.OpcNodes.First();
                 for (int i = 0; i < 10000; i++) {
-                    request.OpcNodes.Add(new PublishedNodeApiModel {
+                    request.OpcNodes.Add(new OpcNodeModel {
                         Id = initialNode.Id + i.ToString(),
                         DataSetFieldId = initialNode.DataSetFieldId,
                         DisplayName = initialNode.DisplayName,
@@ -161,13 +160,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var methodsController = new PublisherMethodsController(_configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
+            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
                 var initialNode = request.OpcNodes.First();
                 for (int i = 0; i < 10000; i++) {
-                    request.OpcNodes.Add(new PublishedNodeApiModel {
+                    request.OpcNodes.Add(new OpcNodeModel {
                         Id = initialNode.Id + i.ToString(),
                         DataSetFieldId = initialNode.DataSetFieldId,
                         DisplayName = initialNode.DisplayName,
@@ -217,7 +216,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var methodsController = new PublisherMethodsController(_configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>
+            var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
                 (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequests) {
@@ -238,7 +237,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 writer => Assert.Equal(publishNodesRequests.First().EndpointUrl,
                     writer.DataSet.DataSetSource.Connection.Endpoint.Url));
             Assert.Equal(publishNodesRequests
-                .Select(n => n.UseSecurity ? Core.Models.SecurityMode.Best : Core.Models.SecurityMode.None)
+                .Select(n => n.UseSecurity ? SecurityMode.Best : SecurityMode.None)
                 .ToHashSet(),
                 jobModel.WriterGroup.DataSetWriters
                 .Select(w => w.DataSet.DataSetSource.Connection.Endpoint.SecurityMode.Value)
@@ -250,7 +249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         public async Task DmApiGetConfiguredNodesOnEndpointAsyncTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50010";
 
-            var endpointRequest = new PublishNodesEndpointApiModel {
+            var endpointRequest = new PublishedNodesEntryModel {
                 EndpointUrl = endpointUrl,
             };
 
@@ -280,11 +279,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var dataSetWriterGroup = "Leaf0";
             var dataSetWriterId = "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234";
             var dataSetName = "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234";
-            var authenticationMode = AuthenticationMode.UsernamePassword;
+            var authenticationMode = OpcAuthenticationMode.UsernamePassword;
             var username = "usr";
             var password = "pwd";
 
-            var endpointRequest = new PublishNodesEndpointApiModel {
+            var endpointRequest = new PublishedNodesEntryModel {
                 EndpointUrl = endpointUrl,
                 DataSetWriterGroup = dataSetWriterGroup,
                 DataSetWriterId = dataSetWriterId,
@@ -317,13 +316,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             // even if they only have different DataSetWriterIds.
 
             var opcNodes = Enumerable.Range(0, 5)
-                .Select(i => new PublishedNodeApiModel {
+                .Select(i => new OpcNodeModel {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
                 })
                 .ToList();
 
             var endpoints = Enumerable.Range(0, 5)
-                .Select(i => new PublishNodesEndpointApiModel {
+                .Select(i => new PublishedNodesEntryModel {
                     EndpointUrl = "opc.tcp://opcplc:50000",
                     DataSetWriterId = i != 0
                         ? $"DataSetWriterId{i}"
@@ -361,7 +360,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var endpointUrl = "opc.tcp://opcplc:50000";
             var useSecurity = false;
 
-            var endpointRequest = new PublishNodesEndpointApiModel {
+            var endpointRequest = new PublishedNodesEntryModel {
                 EndpointUrl = endpointUrl,
                 UseSecurity = useSecurity,
             };
@@ -391,9 +390,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var dataSetWriterId = "Leaf1_10000_3085991c-b85c-4311-9bfb-a916da952235";
             var dataSetName = "Tag_Leaf1_10000_3085991c-b85c-4311-9bfb-a916da952235";
             var dataSetPublishingInterval = 3000;
-            var authenticationMode = AuthenticationMode.Anonymous;
+            var authenticationMode = OpcAuthenticationMode.Anonymous;
 
-            var endpointRequest = new PublishNodesEndpointApiModel {
+            var endpointRequest = new PublishedNodesEntryModel {
                 EndpointUrl = endpointUrl,
                 DataSetWriterGroup = dataSetWriterGroup,
                 DataSetWriterId = dataSetWriterId,
@@ -423,11 +422,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task DmApiGetConfiguredNodesOnEndpointAsyncUsernamePasswordTest(string publishedNodesFile) {
             var endpointUrl = "opc.tcp://opcplc:50000";
-            var authenticationMode = AuthenticationMode.UsernamePassword;
+            var authenticationMode = OpcAuthenticationMode.UsernamePassword;
             var username = "usr";
             var password = "pwd";
 
-            var endpointRequest = new PublishNodesEndpointApiModel {
+            var endpointRequest = new PublishedNodesEntryModel {
                 EndpointUrl = endpointUrl,
                 OpcAuthenticationMode = authenticationMode,
                 OpcAuthenticationUsername = username,
@@ -458,14 +457,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         /// publish nodes from publishedNodesFile
         /// </summary>
         private async Task<PublisherMethodsController> PublishNodeAsync(string publishedNodesFile,
-            Func<PublishNodesEndpointApiModel, bool> predicate = null) {
+            Func<PublishedNodesEntryModel, bool> predicate = null) {
             Utils.CopyContent("Engine/empty_pn.json", _tempFile);
             InitPublisherConfigService();
 
             var methodsController = new PublisherMethodsController(_configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>(
+            var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
                 await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest.Where(predicate ?? (_ => true))) {
@@ -486,7 +485,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var methodsController = new PublisherMethodsController(_configService);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishNodesEndpointApiModel>>
+            var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
                 (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             // Check that GetConfiguredEndpointsAsync returns empty list

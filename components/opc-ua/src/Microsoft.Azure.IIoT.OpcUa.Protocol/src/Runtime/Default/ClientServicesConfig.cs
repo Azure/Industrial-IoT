@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// Default client configuration

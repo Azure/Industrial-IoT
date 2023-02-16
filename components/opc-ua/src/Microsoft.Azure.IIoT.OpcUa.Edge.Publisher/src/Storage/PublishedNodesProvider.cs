@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Serilog;
     using System;
     using System.IO;

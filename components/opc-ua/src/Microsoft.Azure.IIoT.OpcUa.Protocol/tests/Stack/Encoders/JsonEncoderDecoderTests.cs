@@ -4,9 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
-    using Opc.Ua.Extensions;
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using Xunit;
 

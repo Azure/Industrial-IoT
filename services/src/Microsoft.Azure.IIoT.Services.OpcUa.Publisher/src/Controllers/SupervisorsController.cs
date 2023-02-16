@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -50,11 +50,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// available</param>
         /// <returns>Supervisor registration</returns>
         [HttpGet("{supervisorId}")]
-        public async Task<SupervisorApiModel> GetSupervisorAsync(string supervisorId,
+        public async Task<SupervisorModel> GetSupervisorAsync(string supervisorId,
             [FromQuery] bool? onlyServerState) {
             var result = await _supervisors.GetSupervisorAsync(supervisorId,
                 onlyServerState ?? false);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -66,10 +66,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="supervisorId">supervisor identifier</param>
         /// <returns>Supervisor status</returns>
         [HttpGet("{supervisorId}/status")]
-        public async Task<SupervisorStatusApiModel> GetSupervisorStatusAsync(
+        public async Task<SupervisorStatusModel> GetSupervisorStatusAsync(
             string supervisorId) {
             var result = await _diagnostics.GetSupervisorStatusAsync(supervisorId);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -85,12 +85,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         [HttpPatch("{supervisorId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateSupervisorAsync(string supervisorId,
-            [FromBody] [Required] SupervisorUpdateApiModel request) {
+            [FromBody] [Required] SupervisorUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             await _supervisors.UpdateSupervisorAsync(supervisorId,
-                request.ToServiceModel());
+                request);
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// </returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
-        public async Task<SupervisorListApiModel> GetListOfSupervisorsAsync(
+        public async Task<SupervisorListModel> GetListOfSupervisorsAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
             }
             var result = await _supervisors.ListSupervisorsAsync(
                 continuationToken, onlyServerState ?? false, pageSize);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -161,8 +161,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Supervisors</returns>
         [HttpPost("query")]
-        public async Task<SupervisorListApiModel> QuerySupervisorsAsync(
-            [FromBody] [Required] SupervisorQueryApiModel query,
+        public async Task<SupervisorListModel> QuerySupervisorsAsync(
+            [FromBody] [Required] SupervisorQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
             if (query == null) {
@@ -173,11 +173,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                     .FirstOrDefault());
             }
             var result = await _supervisors.QuerySupervisorsAsync(
-                query.ToServiceModel(), onlyServerState ?? false, pageSize);
+                query, onlyServerState ?? false, pageSize);
 
             // TODO: Filter results based on RBAC
 
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -197,8 +197,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Supervisors</returns>
         [HttpGet("query")]
-        public async Task<SupervisorListApiModel> GetFilteredListOfSupervisorsAsync(
-            [FromQuery] [Required] SupervisorQueryApiModel query,
+        public async Task<SupervisorListModel> GetFilteredListOfSupervisorsAsync(
+            [FromQuery] [Required] SupervisorQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
 
@@ -210,11 +210,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                     .FirstOrDefault());
             }
             var result = await _supervisors.QuerySupervisorsAsync(
-                query.ToServiceModel(), onlyServerState ?? false, pageSize);
+                query, onlyServerState ?? false, pageSize);
 
             // TODO: Filter results based on RBAC
 
-            return result.ToApiModel();
+            return result;
         }
 
         private readonly ISupervisorRegistry _supervisors;

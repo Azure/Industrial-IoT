@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
@@ -221,7 +221,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 AttributeId = (uint)Template.AttributeId.GetValueOrDefault((NodeAttribute)Attributes.Value),
                 IndexRange = Template.IndexRange,
                 RelativePath = Template.RelativePath?.ToRelativePath(messageContext)?.Format(typeTree),
-                MonitoringMode = Template.MonitoringMode.ToStackType().GetValueOrDefault(MonitoringMode.Reporting),
+                MonitoringMode = Template.MonitoringMode.ToStackType().GetValueOrDefault(
+                    Opc.Ua.MonitoringMode.Reporting),
                 StartNodeId = Template.StartNodeId.ToNodeId(messageContext),
                 QueueSize = Template.QueueSize,
                 SamplingInterval = (int)Template.SamplingInterval.
@@ -294,13 +295,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 Item.QueueSize = Template.QueueSize;
                 itemChange = true;
             }
-            if (Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting) !=
-                model.Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting)) {
+            if (Template.MonitoringMode.GetValueOrDefault(Api.Models.MonitoringMode.Reporting) !=
+                model.Template.MonitoringMode.GetValueOrDefault(Api.Models.MonitoringMode.Reporting)) {
                 _logger.Debug("{item}: Changing monitoring mode from {old} to {new}",
-                    this, Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting),
-                    model.Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting));
+                    this, Template.MonitoringMode.GetValueOrDefault(Api.Models.MonitoringMode.Reporting),
+                    model.Template.MonitoringMode.GetValueOrDefault(Api.Models.MonitoringMode.Reporting));
                 Template.MonitoringMode = model.Template.MonitoringMode;
-                _modeChange = Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting);
+                _modeChange = Template.MonitoringMode.GetValueOrDefault(Api.Models.MonitoringMode.Reporting);
             }
 
             if (Template.DisplayName != model.Template.DisplayName) {
@@ -389,7 +390,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Get any changes in the monitoring mode
         /// </summary>
-        internal MonitoringMode? GetMonitoringModeChange() {
+        internal Opc.Ua.MonitoringMode? GetMonitoringModeChange() {
             var change = _modeChange.ToStackType();
             _modeChange = null;
             Debug.Assert(Item != null);
@@ -1140,7 +1141,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
         private Timer _conditionTimer;
         private DateTime _lastSentPendingConditions = DateTime.UtcNow;
-        private Publisher.Models.MonitoringMode? _modeChange;
+        private Api.Models.MonitoringMode? _modeChange;
         private readonly ILogger _logger;
         private readonly object _lock = new object();
     }

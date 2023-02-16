@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+namespace Microsoft.Azure.IIoT.Api.Models {
     using AutoFixture;
     using System;
     using System.Linq;
@@ -44,8 +44,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public void TestEqualIsEqualWithServiceModelConversion() {
 
             var r1 = CreateRegistration();
-            var m = r1.ToServiceModel();
-            var r2 = m.ToGatewayRegistration();
+            var m = r1;
+            var r2 = m.ToServiceModel().ToGatewayRegistration();
 
             Assert.Equal(r1, r2);
             Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -58,8 +58,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
-            var m = r1.ToServiceModel();
-            var r2 = m.ToGatewayRegistration(true);
+            var m = r1;
+            var r2 = m.ToServiceModel().ToGatewayRegistration(true);
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());

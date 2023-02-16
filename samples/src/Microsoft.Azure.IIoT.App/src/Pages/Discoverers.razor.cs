@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System;
     using System.Threading.Tasks;
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             foreach (var discoverer in _pagedDiscovererList.Results) {
                 discoverer.DiscovererModel = await RegistryService.GetDiscovererAsync(discoverer.DiscovererModel.Id);
                 discoverer.ScanStatus = discoverer.DiscovererModel.Discovery is not DiscoveryMode.Off and not null;
-                var applicationModel = new ApplicationRegistrationQueryApiModel { DiscovererId = discoverer.DiscovererModel.Id };
+                var applicationModel = new ApplicationRegistrationQueryModel { DiscovererId = discoverer.DiscovererModel.Id };
                 var applications = await RegistryService.QueryApplicationsAsync(applicationModel, 1);
                 if (applications != null) {
                     discoverer.HasApplication = true;
@@ -170,7 +170,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// display discoverers scan events
         /// </summary>
         /// <param name="ev"></param>
-        private void ScanProgress(DiscoveryProgressApiModel ev) {
+        private void ScanProgress(DiscoveryProgressModel ev) {
             var ts = ev.TimeStamp.ToLocalTime();
             switch (ev.EventType) {
                 case DiscoveryProgressType.Pending:
@@ -258,7 +258,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// refresh UI on DiscovererEvent
         /// </summary>
         /// <param name="ev"></param>
-        private Task DiscovererEvent(DiscovererEventApiModel ev) {
+        private Task DiscovererEvent(DiscovererEventModel ev) {
             DiscovererList.Results.Update(ev);
             _pagedDiscovererList = DiscovererList.GetPaged(int.Parse(Page), CommonHelper.PageLength, DiscovererList.Error);
             StateHasChanged();

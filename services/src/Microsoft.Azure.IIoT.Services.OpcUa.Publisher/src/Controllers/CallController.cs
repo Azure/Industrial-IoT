@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -44,14 +44,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The method metadata request</param>
         /// <returns>The method metadata response</returns>
         [HttpPost("{endpointId}/metadata")]
-        public async Task<MethodMetadataResponseApiModel> GetCallMetadataAsync(
-            string endpointId, [FromBody] [Required] MethodMetadataRequestApiModel request) {
+        public async Task<MethodMetadataResponseModel> GetCallMetadataAsync(
+            string endpointId, [FromBody] [Required] MethodMetadataRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var metadataresult = await _nodes.NodeMethodGetMetadataAsync(
-                endpointId, request.ToServiceModel());
-            return metadataresult.ToApiModel();
+                endpointId, request);
+            return metadataresult;
         }
 
         /// <summary>
@@ -66,8 +66,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The method call request</param>
         /// <returns>The method call response</returns>
         [HttpPost("{endpointId}")]
-        public async Task<MethodCallResponseApiModel> CallMethodAsync(
-            string endpointId, [FromBody] [Required] MethodCallRequestApiModel request) {
+        public async Task<MethodCallResponseModel> CallMethodAsync(
+            string endpointId, [FromBody] [Required] MethodCallRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -75,8 +75,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
             // TODO: Permissions
 
             var callresult = await _nodes.NodeMethodCallAsync(
-                endpointId, request.ToServiceModel());
-            return callresult.ToApiModel();
+                endpointId, request);
+            return callresult;
         }
 
         private readonly INodeServices<string> _nodes;

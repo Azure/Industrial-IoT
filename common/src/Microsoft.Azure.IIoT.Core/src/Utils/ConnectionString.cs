@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Utils {
-    using Microsoft.Azure.IIoT.Auth.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;

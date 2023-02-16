@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
-    using System;
-
     /// <summary>
     /// Device model extensions
     /// </summary>

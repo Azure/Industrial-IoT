@@ -4,13 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
-    using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
@@ -46,7 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<BrowseResultModel> NodeBrowseFirstAsync(ConnectionModel endpoint,
+        public Task<BrowseResponseModel> NodeBrowseFirstAsync(ConnectionModel endpoint,
             BrowseRequestModel request, CancellationToken ct) {
             return _client.ExecuteServiceAsync(endpoint, async session => {
                 var rootId = request.NodeId.ToNodeId(session.MessageContext);
@@ -65,10 +63,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                         request.MaxReferencesToReturn.Value == 0;
                 }
                 var codec = _codec.Create(session.MessageContext);
-                var result = new BrowseResultModel();
+                var result = new BrowseResponseModel();
                 var diagnostics = new List<OperationResultModel>();
                 if (!excludeReferences) {
-                    var direction = (request.Direction ?? Core.Models.BrowseDirection.Forward)
+                    var direction = (request.Direction ?? Api.Models.BrowseDirection.Forward)
                         .ToStackType();
                     // Browse and read children
                     result.References = new List<NodeReferenceModel>();
@@ -100,7 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<BrowseNextResultModel> NodeBrowseNextAsync(ConnectionModel endpoint,
+        public Task<BrowseNextResponseModel> NodeBrowseNextAsync(ConnectionModel endpoint,
             BrowseNextRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -111,7 +109,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
             var continuationPoint = request.ContinuationToken.DecodeAsBase64();
             return _client.ExecuteServiceAsync(endpoint, async session => {
                 var diagnostics = new List<OperationResultModel>();
-                var result = new BrowseNextResultModel {
+                var result = new BrowseNextResponseModel {
                     References = new List<NodeReferenceModel>()
                 };
                 var response = await session.BrowseNextAsync(
@@ -133,7 +131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<BrowsePathResultModel> NodeBrowsePathAsync(
+        public Task<BrowsePathResponseModel> NodeBrowsePathAsync(
             ConnectionModel endpoint, BrowsePathRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -148,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                     rootId = ObjectIds.RootFolder;
                 }
                 var diagnostics = new List<OperationResultModel>();
-                var result = new BrowsePathResultModel {
+                var result = new BrowsePathResponseModel {
                     Targets = new List<NodePathTargetModel>()
                 };
                 var requests = new BrowsePathCollection(request.BrowsePaths.Select(p =>
@@ -175,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<MethodMetadataResultModel> NodeMethodGetMetadataAsync(
+        public Task<MethodMetadataResponseModel> NodeMethodGetMetadataAsync(
             ConnectionModel endpoint, MethodMetadataRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -208,7 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                 var continuationPoint = response.Results[0].ContinuationPoint;
                 var references = response.Results[0].References;
 
-                var result = new MethodMetadataResultModel();
+                var result = new MethodMetadataResponseModel();
                 foreach (var nodeReference in references) {
                     if (result.OutputArguments != null &&
                         result.InputArguments != null &&
@@ -264,7 +262,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<MethodCallResultModel> NodeMethodCallAsync(ConnectionModel endpoint,
+        public Task<MethodCallResponseModel> NodeMethodCallAsync(ConnectionModel endpoint,
             MethodCallRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -394,7 +392,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
 
                 var results = response.Results;
-                var result = new MethodCallResultModel();
+                var result = new MethodCallResponseModel();
                 // Create output argument list
                 if (results != null && results.Count > 0) {
                     var args = results[0].OutputArguments?.Count ?? 0;
@@ -422,7 +420,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<ValueReadResultModel> NodeValueReadAsync(ConnectionModel endpoint,
+        public Task<ValueReadResponseModel> NodeValueReadAsync(ConnectionModel endpoint,
             ValueReadRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -464,7 +462,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
 
                 var values = response.Results;
-                var result = new ValueReadResultModel();
+                var result = new ValueReadResponseModel();
                 var codec = _codec.Create(session.MessageContext);
                 if (values != null && values.Count > 0 && values[0] != null) {
                     result.ServerPicoseconds = values[0].ServerPicoseconds != 0 ?
@@ -484,7 +482,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<ValueWriteResultModel> NodeValueWriteAsync(ConnectionModel endpoint,
+        public Task<ValueWriteResponseModel> NodeValueWriteAsync(ConnectionModel endpoint,
             ValueWriteRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -528,7 +526,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                         IndexRange = request.IndexRange
                     }
                 };
-                var result = new ValueWriteResultModel();
+                var result = new ValueWriteResponseModel();
                 var response = await session.WriteAsync(
                     (request.Header?.Diagnostics).ToStackModel(), nodesToWrite, ct);
                 OperationResultEx.Validate("WriteValue_" + writeNode, diagnostics, response.Results,
@@ -540,7 +538,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<ReadResultModel> NodeReadAsync(ConnectionModel endpoint,
+        public Task<ReadResponseModel> NodeReadAsync(ConnectionModel endpoint,
             ReadRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -562,13 +560,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                     (request.Header?.Diagnostics).ToStackModel(), 0, TimestampsToReturn.Both,
                     requests, ct);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
-                return new ReadResultModel {
+                return new ReadResponseModel {
                     Results = response.Results
                         .Select((value, index) => {
                             var diagnostics = response.DiagnosticInfos == null ||
                                         response.DiagnosticInfos.Count == 0 ? null :
                                 response.DiagnosticInfos[index];
-                            return new AttributeReadResultModel {
+                            return new AttributeReadResponseModel {
                                 Value = codec.Encode(value.WrappedValue, out var wellKnown),
                                 ErrorInfo = codec.Encode(diagnostics,
                                     value.StatusCode, "NodeRead", request.Header?.Diagnostics)
@@ -579,7 +577,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<WriteResultModel> NodeWriteAsync(ConnectionModel endpoint,
+        public Task<WriteResponseModel> NodeWriteAsync(ConnectionModel endpoint,
             WriteRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -602,13 +600,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                 var response = await session.WriteAsync(
                     (request.Header?.Diagnostics).ToStackModel(), requests, ct);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos, requests);
-                return new WriteResultModel {
+                return new WriteResponseModel {
                     Results = response.Results
                         .Select((value, index) => {
                             var diagnostics = response.DiagnosticInfos == null ||
                                         response.DiagnosticInfos.Count == 0 ? null :
                                 response.DiagnosticInfos[index];
-                            return new AttributeWriteResultModel {
+                            return new AttributeWriteResponseModel {
                                 ErrorInfo = codec.Encode(diagnostics,
                                     value, "NodeWrite", request.Header?.Diagnostics)
                             };
@@ -618,7 +616,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<HistoryReadResultModel<VariantValue>> HistoryReadAsync(ConnectionModel endpoint,
+        public Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(ConnectionModel endpoint,
             HistoryReadRequestModel<VariantValue> request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -660,7 +658,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                     response.DiagnosticInfos, false);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
 
-                return new HistoryReadResultModel<VariantValue> {
+                return new HistoryReadResponseModel<VariantValue> {
                     ContinuationToken = response.Results[0].ContinuationPoint.ToBase64String(),
                     History = codec.Encode(new Variant(response.Results[0].HistoryData), out var tmp),
                     ErrorInfo = codec.Encode(diagnostics, request.Header?.Diagnostics)
@@ -669,7 +667,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<HistoryReadNextResultModel<VariantValue>> HistoryReadNextAsync(ConnectionModel endpoint,
+        public Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(ConnectionModel endpoint,
             HistoryReadNextRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -692,7 +690,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                     diagnostics, response.Results.Select(r => r.StatusCode),
                     response.DiagnosticInfos, false);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
-                return new HistoryReadNextResultModel<VariantValue> {
+                return new HistoryReadNextResponseModel<VariantValue> {
                     ContinuationToken = response.Results[0].ContinuationPoint.ToBase64String(),
                     History = codec.Encode(new Variant(response.Results[0].HistoryData),
                         out var tmp),
@@ -702,7 +700,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
         }
 
         /// <inheritdoc/>
-        public Task<HistoryUpdateResultModel> HistoryUpdateAsync(ConnectionModel endpoint,
+        public Task<HistoryUpdateResponseModel> HistoryUpdateAsync(ConnectionModel endpoint,
             HistoryUpdateRequestModel<VariantValue> request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -740,7 +738,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                     response.DiagnosticInfos, false);
                 SessionClientEx.Validate(response.Results, response.DiagnosticInfos);
 
-                return new HistoryUpdateResultModel {
+                return new HistoryUpdateResponseModel {
                     Results = response.Results[0].OperationResults.Select(s => new ServiceResultModel {
                         StatusCode = s.CodeBits,
                         ErrorMessage = StatusCode.LookupSymbolicId(s.CodeBits),
@@ -894,8 +892,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
                         ReferenceTypeId = reference.ReferenceTypeId.AsString(
                             session.MessageContext),
                         Direction = reference.IsForward ?
-                            Core.Models.BrowseDirection.Forward :
-                            Core.Models.BrowseDirection.Backward,
+                            Api.Models.BrowseDirection.Forward :
+                            Api.Models.BrowseDirection.Backward,
                         Target = model
                     });
                 }
@@ -967,7 +965,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin {
             if (NodeId.IsNull(rootId)) {
                 rootId = ObjectIds.RootFolder;
             }
-            var result = new BrowsePathResultModel {
+            var result = new BrowsePathResponseModel {
                 Targets = new List<NodePathTargetModel>()
             };
             var response = await session.TranslateBrowsePathsToNodeIdsAsync(

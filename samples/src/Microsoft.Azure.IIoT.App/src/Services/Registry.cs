@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Serilog;
     using System;
     using System.Linq;
@@ -31,15 +31,15 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="discovererId"></param>
         /// <param name="previousPage"></param>
-        /// <returns>EndpointInfoApiModel</returns>
+        /// <returns>EndpointInfoModel</returns>
         public async Task<PagedResult<EndpointInfo>> GetEndpointListAsync(
             string discovererId, string applicationId, string supervisorId, PagedResult<EndpointInfo> previousPage = null) {
 
             var pageResult = new PagedResult<EndpointInfo>();
 
             try {
-                var endpoints = new EndpointInfoListApiModel();
-                var query = new EndpointRegistrationQueryApiModel {
+                var endpoints = new EndpointInfoListModel();
+                var query = new EndpointRegistrationQueryModel {
                     DiscovererId = discovererId == PathAll ? null : discovererId,
                     ApplicationId = applicationId == PathAll ? null : applicationId,
                     SupervisorId = supervisorId == PathAll ? null : supervisorId,
@@ -94,9 +94,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
             var pageResult = new PagedResult<DiscovererInfo>();
 
             try {
-                var discovererModel = new DiscovererQueryApiModel();
-                var applicationModel = new ApplicationRegistrationQueryApiModel();
-                var discoverers = new DiscovererListApiModel();
+                var discovererModel = new DiscovererQueryModel();
+                var applicationModel = new ApplicationRegistrationQueryModel();
+                var discoverers = new DiscovererListModel();
 
                 if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     discoverers = await _registryService.QueryDiscoverersAsync(discovererModel, _commonHelper.PageLengthSmall);
@@ -153,15 +153,15 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// GetApplicationListAsync
         /// </summary>
         /// <param name="previousPage"></param>
-        /// <returns>ApplicationInfoApiModel</returns>
-        public async Task<PagedResult<ApplicationInfoApiModel>> GetApplicationListAsync(PagedResult<ApplicationInfoApiModel> previousPage = null) {
-            var pageResult = new PagedResult<ApplicationInfoApiModel>();
+        /// <returns>ApplicationInfoModel</returns>
+        public async Task<PagedResult<ApplicationInfoModel>> GetApplicationListAsync(PagedResult<ApplicationInfoModel> previousPage = null) {
+            var pageResult = new PagedResult<ApplicationInfoModel>();
 
             try {
-                var query = new ApplicationRegistrationQueryApiModel {
+                var query = new ApplicationRegistrationQueryModel {
                     IncludeNotSeenSince = true
                 };
-                var applications = new ApplicationInfoListApiModel();
+                var applications = new ApplicationInfoListModel();
 
                 if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     applications = await _registryService.QueryApplicationsAsync(query, _commonHelper.PageLength);
@@ -210,7 +210,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             try {
                 var discoveryMode = discoverer.ScanStatus ? DiscoveryMode.Fast : DiscoveryMode.Off;
                 await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, discoverer.Patch);
-                discoverer.Patch = new DiscoveryConfigApiModel();
+                discoverer.Patch = new DiscoveryConfigModel();
             }
             catch (UnauthorizedAccessException) {
                 return "Unauthorized access: Bad User Access Denied.";
@@ -232,10 +232,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <returns></returns>
         public async Task<string> UpdateDiscovererAsync(DiscovererInfo discoverer) {
             try {
-                await _registryService.UpdateDiscovererAsync(discoverer.DiscovererModel.Id, new DiscovererUpdateApiModel {
+                await _registryService.UpdateDiscovererAsync(discoverer.DiscovererModel.Id, new DiscovererUpdateModel {
                     DiscoveryConfig = discoverer.Patch
                 });
-                discoverer.Patch = new DiscoveryConfigApiModel();
+                discoverer.Patch = new DiscoveryConfigModel();
             }
             catch (UnauthorizedAccessException) {
                 return "Unauthorized access: Bad User Access Denied.";
@@ -257,12 +257,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
         public async Task<string> DiscoverServersAsync(DiscovererInfo discoverer) {
             try {
                 await _registryService.DiscoverAsync(
-                    new DiscoveryRequestApiModel {
+                    new DiscoveryRequestModel {
                         Id = discoverer.DiscoveryRequestId,
                         Discovery = DiscoveryMode.Fast,
                         Configuration = discoverer.Patch
                     });
-                discoverer.Patch = new DiscoveryConfigApiModel();
+                discoverer.Patch = new DiscoveryConfigModel();
             }
             catch (UnauthorizedAccessException) {
                 return "Unauthorized access: Bad User Access Denied.";
@@ -280,13 +280,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// GetGatewayListAsync
         /// </summary>
         /// <param name="previousPage"></param>
-        /// <returns>GatewayApiModel</returns>
-        public async Task<PagedResult<GatewayApiModel>> GetGatewayListAsync(PagedResult<GatewayApiModel> previousPage = null) {
-            var pageResult = new PagedResult<GatewayApiModel>();
+        /// <returns>GatewayModel</returns>
+        public async Task<PagedResult<GatewayModel>> GetGatewayListAsync(PagedResult<GatewayModel> previousPage = null) {
+            var pageResult = new PagedResult<GatewayModel>();
 
             try {
-                var gatewayModel = new GatewayQueryApiModel();
-                var gateways = new GatewayListApiModel();
+                var gatewayModel = new GatewayQueryModel();
+                var gateways = new GatewayListModel();
 
                 if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     gateways = await _registryService.QueryGatewaysAsync(gatewayModel, _commonHelper.PageLength);
@@ -330,13 +330,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// GetPublisherListAsync
         /// </summary>
         /// <param name="previousPage"></param>
-        /// <returns>PublisherApiModel</returns>
-        public async Task<PagedResult<PublisherApiModel>> GetPublisherListAsync(PagedResult<PublisherApiModel> previousPage = null) {
-            var pageResult = new PagedResult<PublisherApiModel>();
+        /// <returns>PublisherModel</returns>
+        public async Task<PagedResult<PublisherModel>> GetPublisherListAsync(PagedResult<PublisherModel> previousPage = null) {
+            var pageResult = new PagedResult<PublisherModel>();
 
             try {
-                var publisherModel = new PublisherQueryApiModel();
-                var publishers = new PublisherListApiModel();
+                var publisherModel = new PublisherQueryModel();
+                var publishers = new PublisherListModel();
 
                 if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     publishers = await _registryService.QueryPublishersAsync(publisherModel, null, _commonHelper.PageLengthSmall);
@@ -401,14 +401,14 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// GetSupervisorListAsync
         /// </summary>
         /// <param name="previousPage"></param>
-        /// <returns>SupervisorApiModel</returns>
-        public async Task<PagedResult<SupervisorApiModel>> GetSupervisorListAsync(PagedResult<SupervisorApiModel> previousPage = null) {
+        /// <returns>SupervisorModel</returns>
+        public async Task<PagedResult<SupervisorModel>> GetSupervisorListAsync(PagedResult<SupervisorModel> previousPage = null) {
 
-            var pageResult = new PagedResult<SupervisorApiModel>();
+            var pageResult = new PagedResult<SupervisorModel>();
 
             try {
-                var model = new SupervisorQueryApiModel();
-                var supervisors = new SupervisorListApiModel();
+                var model = new SupervisorQueryModel();
+                var supervisors = new SupervisorListModel();
 
                 if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     supervisors = await _registryService.QuerySupervisorsAsync(model, null, _commonHelper.PageLength);
@@ -452,9 +452,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// GetSupervisorStatusAsync
         /// </summary>
         /// <param name="supervisorId"></param>
-        /// <returns>SupervisorStatusApiModel</returns>
-        public async Task<SupervisorStatusApiModel> GetSupervisorStatusAsync(string supervisorId) {
-            var supervisorStatus = new SupervisorStatusApiModel();
+        /// <returns>SupervisorStatusModel</returns>
+        public async Task<SupervisorStatusModel> GetSupervisorStatusAsync(string supervisorId) {
+            var supervisorStatus = new SupervisorStatusModel();
 
             try {
                 supervisorStatus = await _registryService.GetSupervisorStatusAsync(supervisorId);
@@ -472,7 +472,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="supervisorId"></param>
         /// <returns>bool</returns>
         public async Task<string> ResetSupervisorAsync(string supervisorId) {
-            new SupervisorStatusApiModel();
+            new SupervisorStatusModel();
 
             try {
                 await _registryService.ResetSupervisorAsync(supervisorId);

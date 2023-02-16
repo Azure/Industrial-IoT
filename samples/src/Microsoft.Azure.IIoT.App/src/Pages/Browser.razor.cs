@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.App.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System;
     using System.Collections.Generic;
@@ -29,10 +29,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public PagedResult<ListNode> NodeList { get; set; } = new PagedResult<ListNode>();
         public PagedResult<ListNode> PagedNodeList { get; set; } = new PagedResult<ListNode>();
         public PagedResult<ListNode> PublishedNodes { get; set; } = new PagedResult<ListNode>();
-        public CredentialModel Credential { get; set; } = new CredentialModel();
+        public UsernamePassword Credential { get; set; } = new UsernamePassword();
         public bool IsOpen { get; set; } = false;
         public ListNode NodeData { get; set; }
-        public EndpointInfoApiModel EndpointModel { get; set; }
+        public EndpointInfoModel EndpointModel { get; set; }
         private IAsyncDisposable PublishEvent { get; set; }
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
                 EndpointModel = await registryService.GetEndpointAsync(EndpointId);
-                Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
+                Credential = await GetSecureItemAsync<UsernamePassword>(CommonHelper.CredentialKey);
                 await BrowseTreeAsync(BrowseDirection.Forward, 0, true, FirstPage, string.Empty, new List<string>());
                 CommonHelper.Spinner = string.Empty;
                 CommonHelper.CheckErrorOrEmpty(PagedNodeList, ref _tableView, ref _tableEmpty);
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             var heartbeatInterval = IsTimeIntervalSet(item?.HeartbeatInterval) ? item.HeartbeatInterval : null;
             var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, samplingInterval, publishingInterval, heartbeatInterval);
             if (result) {
-                node.PublishedItem = new PublishedItemApiModel() {
+                node.PublishedItem = new PublishedItemModel() {
                     NodeId = node.Id,
                     PublishingInterval = publishingInterval,
                     SamplingInterval = samplingInterval,
@@ -237,7 +237,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// GetPublishedNodeData
         /// </summary>
         /// <param name="samples"></param>
-        private Task GetPublishedNodeData(MonitoredItemMessageApiModel samples) {
+        private Task GetPublishedNodeData(MonitoredItemMessageModel samples) {
             foreach (var node in PagedNodeList.Results) {
                 if (node.Id == samples.NodeId) {
                     node.Value = samples.Value?.ToJson()?.TrimQuotes();

@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System;
     using System.Threading.Tasks;
@@ -15,9 +15,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string Page { get; set; } = "1";
 
-        private PagedResult<PublisherApiModel> PublisherList { get; set; } =
-            new PagedResult<PublisherApiModel>();
-        private PagedResult<PublisherApiModel> _pagedPublisherList =
+        private PagedResult<PublisherModel> PublisherList { get; set; } =
+            new PagedResult<PublisherModel>();
+        private PagedResult<PublisherModel> _pagedPublisherList =
             new();
         private IAsyncDisposable _publisherEvent;
         private string _tableView = "visible";
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             }
         }
 
-        private Task PublisherEvent(PublisherEventApiModel ev) {
+        private Task PublisherEvent(PublisherEventModel ev) {
             _pagedPublisherList = PublisherList.GetPaged(int.Parse(Page), CommonHelper.PageLengthSmall, PublisherList.Error);
             StateHasChanged();
             return Task.CompletedTask;

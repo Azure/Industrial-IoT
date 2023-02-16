@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -44,9 +44,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="GatewayId">Gateway identifier</param>
         /// <returns>Gateway registration</returns>
         [HttpGet("{GatewayId}")]
-        public async Task<GatewayInfoApiModel> GetGatewayAsync(string GatewayId) {
+        public async Task<GatewayInfoModel> GetGatewayAsync(string GatewayId) {
             var result = await _gateways.GetGatewayAsync(GatewayId);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -61,12 +61,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         [HttpPatch("{GatewayId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateGatewayAsync(string GatewayId,
-            [FromBody] [Required] GatewayUpdateApiModel request) {
+            [FromBody] [Required] GatewayUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             await _gateways.UpdateGatewayAsync(GatewayId,
-                request.ToServiceModel());
+                request);
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// </returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
-        public async Task<GatewayListApiModel> GetListOfGatewayAsync(
+        public async Task<GatewayListModel> GetListOfGatewayAsync(
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
             }
             var result = await _gateways.ListGatewaysAsync(
                 continuationToken, pageSize);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -116,8 +116,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Gateway</returns>
         [HttpPost("query")]
-        public async Task<GatewayListApiModel> QueryGatewayAsync(
-            [FromBody] [Required] GatewayQueryApiModel query,
+        public async Task<GatewayListModel> QueryGatewayAsync(
+            [FromBody] [Required] GatewayQueryModel query,
             [FromQuery] int? pageSize) {
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
@@ -127,8 +127,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                     .FirstOrDefault());
             }
             var result = await _gateways.QueryGatewaysAsync(
-                query.ToServiceModel(), pageSize);
-            return result.ToApiModel();
+                query, pageSize);
+            return result;
         }
 
         /// <summary>
@@ -145,8 +145,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Gateway</returns>
         [HttpGet("query")]
-        public async Task<GatewayListApiModel> GetFilteredListOfGatewayAsync(
-            [FromQuery] [Required] GatewayQueryApiModel query,
+        public async Task<GatewayListModel> GetFilteredListOfGatewayAsync(
+            [FromQuery] [Required] GatewayQueryModel query,
             [FromQuery] int? pageSize) {
 
             if (query == null) {
@@ -157,8 +157,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                     .FirstOrDefault());
             }
             var result = await _gateways.QueryGatewaysAsync(
-                query.ToServiceModel(), pageSize);
-            return result.ToApiModel();
+                query, pageSize);
+            return result;
         }
 
         private readonly IGatewayRegistry _gateways;

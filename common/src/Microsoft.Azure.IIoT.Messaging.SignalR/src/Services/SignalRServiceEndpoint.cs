@@ -4,13 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.Azure.IIoT.Auth.Models;
-    using Microsoft.Azure.SignalR.Management;
-    using Microsoft.AspNetCore.SignalR;
-    using System;
-    using System.Collections.Generic;
-    using System.Security.Claims;
 #if ZOMBIE
 
     /// <summary>

@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Clients;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
@@ -14,9 +17,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
@@ -200,10 +200,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
         /// </summary>
         /// <param name="publishedNodesFile"></param>
         /// <returns></returns>
-        protected PublishNodesEndpointApiModel[] GetEndpointsFromFile(string publishedNodesFile) {
+        protected PublishedNodesEntryModel[] GetEndpointsFromFile(string publishedNodesFile) {
             IJsonSerializer serializer = new NewtonSoftJsonSerializer();
             var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}", _serverFixture.Port.ToString());
-            return serializer.Deserialize<PublishNodesEndpointApiModel[]>(fileContent);
+            return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
 
         /// </summary>

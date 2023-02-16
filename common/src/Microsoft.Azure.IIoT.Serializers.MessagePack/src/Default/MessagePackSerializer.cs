@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
     using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Numerics;
     using System.Text;

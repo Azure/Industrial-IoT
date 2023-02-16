@@ -5,11 +5,7 @@
     <Description>Azure Industrial IoT OPC UA Abstractions</Description>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Publisher\Models\New\**" />
-    <EmbeddedResource Remove="Publisher\Models\New\**" />
-    <None Remove="Publisher\Models\New\**" />
-  </ItemGroup>
-  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\api\src\Microsoft.Azure.IIoT.Api.Common\src\Microsoft.Azure.IIoT.Api.Common.csproj" />
     <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
   </ItemGroup>
 </Project>

@@ -23,7 +23,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using System.Collections.Generic;
     using System.Diagnostics.Tracing;
     using System.Linq;
-    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
 

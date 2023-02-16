@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Messaging;
     using Serilog;
     using System;
-    using System.Data.Common;
     using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;

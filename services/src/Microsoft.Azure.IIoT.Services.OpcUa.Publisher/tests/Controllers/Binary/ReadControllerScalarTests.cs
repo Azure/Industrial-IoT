@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Controllers.Binary
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Controllers;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Clients;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;

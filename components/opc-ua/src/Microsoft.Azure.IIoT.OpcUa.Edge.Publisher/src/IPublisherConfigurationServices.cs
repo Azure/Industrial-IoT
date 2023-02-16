@@ -4,8 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -36,10 +35,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Update nodes of endpoints in the published nodes configuration.
         /// </summary>
-        Task AddOrUpdateEndpointsAsync(
-            List<PublishedNodesEntryModel> request,
-            CancellationToken ct = default
-        );
+        Task AddOrUpdateEndpointsAsync(List<PublishedNodesEntryModel> request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// returns the endpoints currently part of the configuration

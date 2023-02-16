@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Validation;
     using Microsoft.Azure.IIoT.Api.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Api.Clients;
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
@@ -15,7 +16,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Components.Authorization;

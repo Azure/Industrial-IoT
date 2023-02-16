@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -45,10 +45,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="endpointId">endpoint identifier</param>
         /// <returns>Endpoint registration</returns>
         [HttpGet("{endpointId}/certificate")]
-        public async Task<X509CertificateChainApiModel> GetEndpointCertificateAsync(
+        public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             string endpointId) {
             var result = await _endpoints.GetEndpointCertificateAsync(endpointId);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -77,10 +77,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// available</param>
         /// <returns>Endpoint registration</returns>
         [HttpGet("{endpointId}")]
-        public async Task<EndpointInfoApiModel> GetEndpointAsync(string endpointId,
+        public async Task<EndpointInfoModel> GetEndpointAsync(string endpointId,
             [FromQuery] bool? onlyServerState) {
             var result = await _endpoints.GetEndpointAsync(endpointId, onlyServerState ?? false);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
-        public async Task<EndpointInfoListApiModel> GetListOfEndpointsAsync(
+        public async Task<EndpointInfoListModel> GetListOfEndpointsAsync(
             [FromQuery] bool? onlyServerState,
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
 
             // TODO: Redact username/token based on policy/permission
 
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -135,8 +135,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="pageSize">Optional number of results to return</param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         [HttpPost("query")]
-        public async Task<EndpointInfoListApiModel> QueryEndpointsAsync(
-            [FromBody] [Required] EndpointRegistrationQueryApiModel query,
+        public async Task<EndpointInfoListModel> QueryEndpointsAsync(
+            [FromBody] [Required] EndpointRegistrationQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
             if (query == null) {
@@ -146,10 +146,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _endpoints.QueryEndpointsAsync(query.ToServiceModel(),
+            var result = await _endpoints.QueryEndpointsAsync(query,
                 onlyServerState ?? false, pageSize);
 
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -169,8 +169,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// return</param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         [HttpGet("query")]
-        public async Task<EndpointInfoListApiModel> GetFilteredListOfEndpointsAsync(
-            [FromQuery] [Required] EndpointRegistrationQueryApiModel query,
+        public async Task<EndpointInfoListModel> GetFilteredListOfEndpointsAsync(
+            [FromQuery] [Required] EndpointRegistrationQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
             if (query == null) {
@@ -180,10 +180,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _endpoints.QueryEndpointsAsync(query.ToServiceModel(),
+            var result = await _endpoints.QueryEndpointsAsync(query,
                 onlyServerState ?? false, pageSize);
 
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>

@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
-    using OpcUa.Api.Publisher.Models;
     using System.Threading.Tasks;
 
     public partial class _DrawerPublisherContent {
@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         protected override void OnInitialized() {
             if (NodeData.PublishedItem == null) {
-                NodeData.PublishedItem = new PublishedItemApiModel();
+                NodeData.PublishedItem = new PublishedItemModel();
             }
 
             InputData = new ListNodeRequested(NodeData.PublishedItem);

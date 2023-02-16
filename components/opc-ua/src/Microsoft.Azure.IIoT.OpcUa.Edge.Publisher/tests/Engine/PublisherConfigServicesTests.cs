@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
     using Diagnostics;
@@ -65,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             _configMock.SetupGet(p => p.PublishedNodesSchemaFile).Returns("Storage/publishednodesschema.json");
             _configMock.SetupGet(p => p.MaxNodesPerPublishedEndpoint).Returns(1000);
             _configMock.SetupGet(p => p.MessagingProfile).Returns(MessagingProfile.Get(
-                OpcUa.Publisher.Models.MessagingMode.PubSub, OpcUa.Publisher.Models.MessageEncoding.Json));
+                MessagingMode.PubSub, MessageEncoding.Json));
 
             _publishedNodesProvider = new PublishedNodesProvider(_configMock.Object, _logger);
             _triggerMock = new Mock<IMessageSource>();
@@ -105,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal(1, endpoints.Count);
 
             var endpoint = endpoints[0];
-            Assert.Equal(endpoint.EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoint.EndpointUrl, "opc.tcp://opcplc:50000");
             Assert.Equal(endpoint.UseSecurity, false);
             Assert.Equal(endpoint.OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
             Assert.Equal(endpoint.OpcAuthenticationUsername, "username");
@@ -144,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal(1, endpoints.Count);
 
             endpoint = endpoints[0];
-            Assert.Equal(endpoint.EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoint.EndpointUrl, "opc.tcp://opcplc:50000");
             Assert.Equal(endpoint.UseSecurity, false);
             Assert.Equal(endpoint.OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
             Assert.Equal(endpoint.OpcAuthenticationUsername, "username");
@@ -290,7 +291,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .ConfigureAwait(false);
 
             var request = new PublishedNodesEntryModel {
-                EndpointUrl = new Uri("opc.tcp://opcplc:50000"),
+                EndpointUrl = "opc.tcp://opcplc:50000",
             };
 
             // Check null OpcNodes in request.
@@ -705,14 +706,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal(2, endpoints.Count);
 
             Assert.Equal(endpoints[0].DataSetWriterGroup, "Leaf0");
-            Assert.Equal(endpoints[0].EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoints[0].EndpointUrl, "opc.tcp://opcplc:50000");
             Assert.Equal(endpoints[0].UseSecurity, false);
             Assert.Equal(endpoints[0].OpcAuthenticationMode, OpcAuthenticationMode.Anonymous);
             Assert.Equal(endpoints[0].DataSetWriterId, "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
             Assert.Equal(endpoints[0].DataSetName, "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
 
             Assert.Equal(endpoints[1].DataSetWriterGroup, "Leaf1");
-            Assert.Equal(endpoints[1].EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoints[1].EndpointUrl, "opc.tcp://opcplc:50000");
             Assert.Equal(endpoints[1].UseSecurity, false);
             Assert.Equal(endpoints[1].OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
             Assert.Equal(endpoints[1].DataSetWriterId, "Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
@@ -749,7 +750,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal(1, endpoints.Count);
 
             Assert.Equal(endpoints[0].DataSetWriterGroup, "Leaf0");
-            Assert.Equal(endpoints[0].EndpointUrl, new Uri("opc.tcp://opcplc:50000"));
+            Assert.Equal(endpoints[0].EndpointUrl, "opc.tcp://opcplc:50000");
             Assert.Equal(endpoints[0].UseSecurity, false);
             Assert.Equal(endpoints[0].OpcAuthenticationMode, OpcAuthenticationMode.Anonymous);
             Assert.Equal(endpoints[0].DataSetWriterId, "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
@@ -902,7 +903,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var payload = new List<PublishedNodesEntryModel>();
             for (int endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
                 var model = new PublishedNodesEntryModel {
-                    EndpointUrl = new Uri($"opc.tcp://server{endpointIndex}:49580"),
+                    EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
                 };
 
                 model.OpcNodes = new List<OpcNodeModel>();
@@ -943,7 +944,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var payloadDiff = new List<PublishedNodesEntryModel>();
             for (int endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
                 var model = new PublishedNodesEntryModel {
-                    EndpointUrl = new Uri($"opc.tcp://server{endpointIndex}:49580"),
+                    EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
                     OpcNodes = new List<OpcNodeModel> {
                         new OpcNodeModel {
                             Id = $"ns=2;s=Node-Server-{numberOfNodes}",
@@ -985,8 +986,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         ) {
             return new PublishedNodesEntryModel {
                 EndpointUrl = customEndpoint
-                    ? new Uri($"opc.tcp://opcplc:{50000 + dataSetIndex}")
-                    : new Uri("opc.tcp://opcplc:50000"),
+                    ? $"opc.tcp://opcplc:{50000 + dataSetIndex}"
+                    : "opc.tcp://opcplc:50000",
                 DataSetWriterId = $"DataSetWriterId{dataSetIndex}",
                 DataSetWriterGroup = "DataSetWriterGroup",
                 DataSetPublishingInterval = (dataSetIndex + 1) * 1000,

@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
-    using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
@@ -23,7 +22,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Linq;
-    using System.Reflection.Metadata.Ecma335;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;

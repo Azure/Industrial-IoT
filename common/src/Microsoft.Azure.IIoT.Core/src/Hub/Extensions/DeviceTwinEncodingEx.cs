@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Hub {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
 
     /// <summary>
     /// Helper utility extensions of several collections and types

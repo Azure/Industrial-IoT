@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System;
     using System.Linq;
@@ -18,10 +18,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
 
         public string Status { get; set; }
         public bool IsOpen { get; set; } = false;
-        public ApplicationInfoApiModel ApplicationData { get; set; }
-        private PagedResult<ApplicationInfoApiModel> ApplicationList { get; set; } =
-            new PagedResult<ApplicationInfoApiModel>();
-        private PagedResult<ApplicationInfoApiModel> _pagedApplicationList =
+        public ApplicationInfoModel ApplicationData { get; set; }
+        private PagedResult<ApplicationInfoModel> ApplicationList { get; set; } =
+            new PagedResult<ApplicationInfoModel>();
+        private PagedResult<ApplicationInfoModel> _pagedApplicationList =
             new();
         private IAsyncDisposable _applicationEvent;
         private string _tableView = "visible";
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Open then Drawer
         /// </summary>
         /// <param name="OpenDrawer"></param>
-        private void OpenDrawer(ApplicationInfoApiModel application) {
+        private void OpenDrawer(ApplicationInfoModel application) {
             IsOpen = true;
             ApplicationData = application;
         }
@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Action on ApplicationEvent
         /// </summary>
         /// <param name="ev"></param>
-        private Task ApplicationEvent(ApplicationEventApiModel ev) {
+        private Task ApplicationEvent(ApplicationEventModel ev) {
             ApplicationList.Results.Update(ev);
             _pagedApplicationList = ApplicationList.GetPaged(int.Parse(Page), CommonHelper.PageLength, ApplicationList.Error);
             CommonHelper.CheckErrorOrEmpty(_pagedApplicationList, ref _tableView, ref _tableEmpty);

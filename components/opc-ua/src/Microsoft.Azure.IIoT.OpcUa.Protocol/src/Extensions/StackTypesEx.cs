@@ -4,8 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
     using UaDataChangeTrigger = Opc.Ua.DataChangeTrigger;
@@ -22,7 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Opc.Ua.PubSub;
     using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
     using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
-    using UaTokenType = Opc.Ua.UserTokenType;
     using System;
     using System.Collections.Generic;
 

@@ -11,9 +11,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Utils;
     using Serilog;
     using System;
-    using System.Linq;
     using System.Runtime.Serialization;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
 

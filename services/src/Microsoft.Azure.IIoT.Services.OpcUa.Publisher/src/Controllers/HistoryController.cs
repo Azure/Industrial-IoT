@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.AspNetCore.Authorization;
@@ -44,14 +44,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history read request</param>
         /// <returns>The history read response</returns>
         [HttpPost("read/{endpointId}")]
-        public async Task<HistoryReadResponseApiModel<VariantValue>> HistoryReadRawAsync(
-            string endpointId, [FromBody] [Required] HistoryReadRequestApiModel<VariantValue> request) {
+        public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadRawAsync(
+            string endpointId, [FromBody] [Required] HistoryReadRequestModel<VariantValue> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _client.HistoryReadAsync(
-                endpointId, request.ToServiceModel(d => d));
-            return readresult.ToApiModel(d => d);
+            var readresult = await _client.HistoryReadAsync(endpointId, request);
+            return readresult;
         }
 
         /// <summary>
@@ -66,14 +65,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history read next request</param>
         /// <returns>The history read response</returns>
         [HttpPost("read/{endpointId}/next")]
-        public async Task<HistoryReadNextResponseApiModel<VariantValue>> HistoryReadRawNextAsync(
-            string endpointId, [FromBody] [Required] HistoryReadNextRequestApiModel request) {
+        public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadRawNextAsync(
+            string endpointId, [FromBody] [Required] HistoryReadNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _client.HistoryReadNextAsync(
-                endpointId, request.ToServiceModel());
-            return readresult.ToApiModel(d => d);
+            var readresult = await _client.HistoryReadNextAsync(endpointId, request);
+            return readresult;
         }
 
         /// <summary>
@@ -89,14 +87,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <returns>The history update result</returns>
         [HttpPost("update/{endpointId}")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(
-            string endpointId, [FromBody] [Required] HistoryUpdateRequestApiModel<VariantValue> request) {
+        public async Task<HistoryUpdateResponseModel> HistoryUpdateRawAsync(
+            string endpointId, [FromBody] [Required] HistoryUpdateRequestModel<VariantValue> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _client.HistoryUpdateAsync(
-                endpointId, request.ToServiceModel(d => d));
-            return writeResult.ToApiModel();
+            var writeResult = await _client.HistoryUpdateAsync(endpointId, request);
+            return writeResult;
         }
 
         private readonly IHistoricAccessServices<string> _client;

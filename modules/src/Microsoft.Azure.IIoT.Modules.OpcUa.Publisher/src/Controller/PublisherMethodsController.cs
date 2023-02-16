@@ -5,10 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using System;
     using System.Collections.Generic;
@@ -34,69 +33,70 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for PublishNodes direct method
         /// </summary>
-        public async Task<PublishedNodesResponseApiModel> PublishNodesAsync(
-            PublishNodesEndpointApiModel request) {
-            await _configServices.PublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return new PublishedNodesResponseApiModel();
+        public async Task<PublishedNodesResponseModel> PublishNodesAsync(
+            PublishedNodesEntryModel request) {
+            await _configServices.PublishNodesAsync(request).ConfigureAwait(false);
+            return new PublishedNodesResponseModel();
         }
 
         /// <summary>
         /// Handler for UnpublishNodes direct method
         /// </summary>
-        public async Task<PublishedNodesResponseApiModel> UnpublishNodesAsync(
-            PublishNodesEndpointApiModel request) {
-            await _configServices.UnpublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return new PublishedNodesResponseApiModel();
+        public async Task<PublishedNodesResponseModel> UnpublishNodesAsync(
+            PublishedNodesEntryModel request) {
+            await _configServices.UnpublishNodesAsync(request).ConfigureAwait(false);
+            return new PublishedNodesResponseModel();
         }
 
         /// <summary>
         /// Handler for UnpublishAllNodes direct method
         /// </summary>
-        public async Task<PublishedNodesResponseApiModel> UnpublishAllNodesAsync(
-            PublishNodesEndpointApiModel request) {
+        public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
+            PublishedNodesEntryModel request) {
             if (request.OpcNodes != null && request.OpcNodes.Count > 0) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "OpcNodes is set.");
             }
-            await _configServices.UnpublishAllNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return new PublishedNodesResponseApiModel();
+            await _configServices.UnpublishAllNodesAsync(request).ConfigureAwait(false);
+            return new PublishedNodesResponseModel();
         }
 
         /// <summary>
         /// Handler for AddOrUpdateEndpoints direct method
         /// </summary>
-        public async Task<PublishedNodesResponseApiModel> AddOrUpdateEndpointsAsync(
-            List<PublishNodesEndpointApiModel> request) {
-            var endpoints = request?.Select(e => e.ToServiceModel()).ToList();
+        public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
+            List<PublishedNodesEntryModel> request) {
+            var endpoints = request?.Select(e => e).ToList();
             await _configServices.AddOrUpdateEndpointsAsync(endpoints).ConfigureAwait(false);
-            return new PublishedNodesResponseApiModel();
+            return new PublishedNodesResponseModel();
         }
 
         /// <summary>
         /// Handler for GetConfiguredEndpoints direct method
         /// </summary>
-        public async Task<GetConfiguredEndpointsResponseApiModel> GetConfiguredEndpointsAsync() {
+        public async Task<GetConfiguredEndpointsResponseModel> GetConfiguredEndpointsAsync() {
             var response = await _configServices.GetConfiguredEndpointsAsync().ConfigureAwait(false);
-            return new GetConfiguredEndpointsResponseApiModel() {
-                Endpoints = response.ToApiModel(),
+            return new GetConfiguredEndpointsResponseModel {
+                Endpoints = response,
             };
         }
 
         /// <summary>
         /// Handler for GetConfiguredNodesOnEndpoint direct method
         /// </summary>
-        public async Task<GetConfiguredNodesOnEndpointResponseApiModel> GetConfiguredNodesOnEndpointAsync(PublishNodesEndpointApiModel request) {
-            var response = await _configServices.GetConfiguredNodesOnEndpointAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return new GetConfiguredNodesOnEndpointResponseApiModel() {
-                OpcNodes = response.ToApiModel(),
+        public async Task<GetConfiguredNodesOnEndpointResponseModel> GetConfiguredNodesOnEndpointAsync(
+            PublishedNodesEntryModel request) {
+            var response = await _configServices.GetConfiguredNodesOnEndpointAsync(request).ConfigureAwait(false);
+            return new GetConfiguredNodesOnEndpointResponseModel {
+                OpcNodes = response,
             };
         }
 
         /// <summary>
         /// Handler for GetDiagnosticInfo direct method
         /// </summary>
-        public async Task<List<PublishDiagnosticInfoApiModel>> GetDiagnosticInfoAsync() {
+        public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync() {
             var response = await _configServices.GetDiagnosticInfoAsync().ConfigureAwait(false);
-            return response.ToApiModel();
+            return response;
         }
 
         /// <summary>

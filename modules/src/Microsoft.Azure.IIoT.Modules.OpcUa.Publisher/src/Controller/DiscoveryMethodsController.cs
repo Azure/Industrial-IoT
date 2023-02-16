@@ -5,10 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using System;
     using System.Threading.Tasks;
@@ -34,11 +32,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<bool> DiscoverAsync(DiscoveryRequestInternalApiModel request) {
+        public async Task<bool> DiscoverAsync(DiscoveryRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _discover.DiscoverAsync(request.ToServiceModel());
+            await _discover.DiscoverAsync(request);
             return true;
         }
 
@@ -47,11 +45,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<bool> CancelAsync(DiscoveryCancelInternalApiModel request) {
+        public async Task<bool> CancelAsync(DiscoveryCancelModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            await _discover.CancelAsync(request.ToServiceModel());
+            await _discover.CancelAsync(request);
             return true;
         }
 

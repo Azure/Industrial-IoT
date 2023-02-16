@@ -5,9 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
@@ -24,8 +23,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Current path
         /// </summary>
         public List<string> Path { get; set; }
-        public MethodMetadataResponseApiModel Parameter { get; set; }
-        public MethodCallResponseApiModel MethodCallResponse { get; set; }
+        public MethodMetadataResponseModel Parameter { get; set; }
+        public MethodCallResponseModel MethodCallResponse { get; set; }
 
         /// <summary>
         /// Create browser
@@ -56,7 +55,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
             var pageResult = new PagedResult<ListNode>();
             var previousPage = new PagedResult<ListNode>();
-            var model = new BrowseRequestApiModel {
+            var model = new BrowseRequestModel {
                 TargetNodesOnly = true,
                 ReadVariableValues = true,
                 MaxReferencesToReturn = _MAX_REFERENCES
@@ -139,7 +138,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             PagedResult<ListNode> previousPage = null) {
 
             var pageResult = new PagedResult<ListNode>();
-            var modelNext = new BrowseNextRequestApiModel {
+            var modelNext = new BrowseNextRequestModel {
                 ContinuationToken = previousPage.ContinuationToken,
                 TargetNodesOnly = true,
                 ReadVariableValues = true
@@ -192,7 +191,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <returns>Read value</returns>
         public async Task<string> ReadValueAsync(string endpointId, string nodeId) {
 
-            var model = new ValueReadRequestApiModel() {
+            var model = new ValueReadRequestModel() {
                 NodeId = nodeId
             };
 
@@ -220,7 +219,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <returns>Status</returns>
         public async Task<string> WriteValueAsync(string endpointId, string nodeId, string value) {
 
-            var model = new ValueWriteRequestApiModel() {
+            var model = new ValueWriteRequestModel() {
                 NodeId = nodeId,
                 Value = value
             };
@@ -249,8 +248,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="nodeId"></param>
         /// <returns>Status</returns>
         public async Task<string> GetParameterAsync(string endpointId, string nodeId) {
-            Parameter = new MethodMetadataResponseApiModel();
-            var model = new MethodMetadataRequestApiModel() {
+            Parameter = new MethodMetadataResponseModel();
+            var model = new MethodMetadataRequestModel() {
                 MethodId = nodeId
             };
             try {
@@ -276,11 +275,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="parameterValues"></param>
         /// <param name="nodeId"></param>
         /// <returns>Status</returns>
-        public async Task<string> MethodCallAsync(MethodMetadataResponseApiModel parameters, string[] parameterValues,
+        public async Task<string> MethodCallAsync(MethodMetadataResponseModel parameters, string[] parameterValues,
             string endpointId, string nodeId) {
 
-            var argumentsList = new List<MethodCallArgumentApiModel>();
-            var model = new MethodCallRequestApiModel() {
+            var argumentsList = new List<MethodCallArgumentModel>();
+            var model = new MethodCallRequestModel() {
                 MethodId = nodeId,
                 ObjectId = parameters.ObjectId
             };
@@ -289,7 +288,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 if (parameters.InputArguments != null) {
                     var count = 0;
                     foreach (var item in parameters.InputArguments) {
-                        var argument = new MethodCallArgumentApiModel {
+                        var argument = new MethodCallArgumentModel {
                             Value = parameterValues[count] ?? string.Empty,
                             DataType = item.Type.DataType
                         };

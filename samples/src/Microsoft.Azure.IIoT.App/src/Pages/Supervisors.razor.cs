@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System;
     using System.Threading.Tasks;
@@ -19,9 +19,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public string Status { get; set; }
         public bool IsOpen { get; set; } = false;
         public string SupervisorId { get; set; }
-        private PagedResult<SupervisorApiModel> SupervisorList { get; set; } =
-            new PagedResult<SupervisorApiModel>();
-        private PagedResult<SupervisorApiModel> _pagedSupervisorList =
+        private PagedResult<SupervisorModel> SupervisorList { get; set; } =
+            new PagedResult<SupervisorModel>();
+        private PagedResult<SupervisorModel> _pagedSupervisorList =
             new();
         private IAsyncDisposable _supervisorEvent;
         private string _tableView = "visible";
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             if (firstRender) {
                 await UpdateSupervisorAsync();
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty<SupervisorApiModel>(_pagedSupervisorList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty<SupervisorModel>(_pagedSupervisorList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
 
                 _supervisorEvent = await RegistryServiceEvents.SubscribeSupervisorEventsAsync(
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// action on Supervisor Event
         /// </summary>
         /// <param name="ev"></param>
-        private Task SupervisorEvent(SupervisorEventApiModel ev) {
+        private Task SupervisorEvent(SupervisorEventModel ev) {
             SupervisorList.Results.Update(ev);
             _pagedSupervisorList = SupervisorList.GetPaged(int.Parse(Page), CommonHelper.PageLength, SupervisorList.Error);
             StateHasChanged();

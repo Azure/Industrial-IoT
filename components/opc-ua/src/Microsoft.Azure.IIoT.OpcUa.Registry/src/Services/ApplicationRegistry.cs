@@ -5,9 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Prometheus;
@@ -45,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task<ApplicationRegistrationResultModel> RegisterApplicationAsync(
+        public async Task<ApplicationRegistrationResponseModel> RegisterApplicationAsync(
             ApplicationRegistrationRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -64,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             await _broker.NotifyAllAsync(
                 l => l.OnApplicationEnabledAsync(context, application));
 
-            return new ApplicationRegistrationResultModel {
+            return new ApplicationRegistrationResponseModel {
                 Id = application.ApplicationId
             };
         }
@@ -382,7 +380,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             wasDisabled = (disabled ?? false) && (application.NotSeenSince != null);
                             wasUpdated = true;
 
-                            application.Patch(update);
+                            application.Update(update);
                             application.DiscovererId = discovererId;
                             application.SiteId = siteId;
                             application.NotSeenSince = null;

@@ -8,7 +8,6 @@ namespace Opc.Ua.Encoders {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
-    using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using Xunit;

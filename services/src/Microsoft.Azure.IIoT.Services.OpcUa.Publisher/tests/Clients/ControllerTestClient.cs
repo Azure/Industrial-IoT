@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Clients {
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading;
@@ -33,8 +33,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseResponseApiModel> NodeBrowseFirstAsync(string endpointId,
-            BrowseRequestApiModel content, CancellationToken ct) {
+        public async Task<BrowseResponseModel> NodeBrowseFirstAsync(string endpointId,
+            BrowseRequestModel content, CancellationToken ct) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
@@ -46,12 +46,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Clients {
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return _serializer.DeserializeResponse<BrowseResponseApiModel>(response);
+            return _serializer.DeserializeResponse<BrowseResponseModel>(response);
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseNextResponseApiModel> NodeBrowseNextAsync(string endpointId,
-            BrowseNextRequestApiModel content, CancellationToken ct) {
+        public async Task<BrowseNextResponseModel> NodeBrowseNextAsync(string endpointId,
+            BrowseNextRequestModel content, CancellationToken ct) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
@@ -68,12 +68,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Clients {
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return _serializer.DeserializeResponse<BrowseNextResponseApiModel>(response);
+            return _serializer.DeserializeResponse<BrowseNextResponseModel>(response);
         }
 
         /// <inheritdoc/>
-        public async Task<ValueReadResponseApiModel> NodeValueReadAsync(string endpointId,
-            ValueReadRequestApiModel content, CancellationToken ct) {
+        public async Task<ValueReadResponseModel> NodeValueReadAsync(string endpointId,
+            ValueReadRequestModel content, CancellationToken ct) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
@@ -90,37 +90,37 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Clients {
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return _serializer.DeserializeResponse<ValueReadResponseApiModel>(response);
+            return _serializer.DeserializeResponse<ValueReadResponseModel>(response);
         }
 
         /// <inheritdoc/>
-        public Task<ReadResponseApiModel> NodeReadAsync(string endpointId,
-            ReadRequestApiModel content, CancellationToken ct) {
-            return Task.FromException<ReadResponseApiModel>(new NotImplementedException());
+        public Task<ReadResponseModel> NodeReadAsync(string endpointId,
+            ReadRequestModel content, CancellationToken ct) {
+            return Task.FromException<ReadResponseModel>(new NotImplementedException());
         }
 
         /// <inheritdoc/>
-        public Task<WriteResponseApiModel> NodeWriteAsync(string endpointId,
-            WriteRequestApiModel content, CancellationToken ct) {
-            return Task.FromException<WriteResponseApiModel>(new NotImplementedException());
+        public Task<WriteResponseModel> NodeWriteAsync(string endpointId,
+            WriteRequestModel content, CancellationToken ct) {
+            return Task.FromException<WriteResponseModel>(new NotImplementedException());
         }
 
         /// <inheritdoc/>
-        public Task<ValueWriteResponseApiModel> NodeValueWriteAsync(string endpointId,
-            ValueWriteRequestApiModel content, CancellationToken ct) {
-            return Task.FromException<ValueWriteResponseApiModel>(new NotImplementedException());
+        public Task<ValueWriteResponseModel> NodeValueWriteAsync(string endpointId,
+            ValueWriteRequestModel content, CancellationToken ct) {
+            return Task.FromException<ValueWriteResponseModel>(new NotImplementedException());
         }
 
         /// <inheritdoc/>
-        public Task<MethodMetadataResponseApiModel> NodeMethodGetMetadataAsync(
-            string endpointId, MethodMetadataRequestApiModel content, CancellationToken ct) {
-            return Task.FromException<MethodMetadataResponseApiModel>(new NotImplementedException());
+        public Task<MethodMetadataResponseModel> NodeMethodGetMetadataAsync(
+            string endpointId, MethodMetadataRequestModel content, CancellationToken ct) {
+            return Task.FromException<MethodMetadataResponseModel>(new NotImplementedException());
         }
 
         /// <inheritdoc/>
-        public Task<MethodCallResponseApiModel> NodeMethodCallAsync(
-            string endpointId, MethodCallRequestApiModel content, CancellationToken ct) {
-            return Task.FromException<MethodCallResponseApiModel>(new NotImplementedException());
+        public Task<MethodCallResponseModel> NodeMethodCallAsync(
+            string endpointId, MethodCallRequestModel content, CancellationToken ct) {
+            return Task.FromException<MethodCallResponseModel>(new NotImplementedException());
         }
 
         /// <inheritdoc/>
@@ -129,9 +129,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests.Clients {
         }
 
         /// <inheritdoc/>
-        public Task<BrowsePathResponseApiModel> NodeBrowsePathAsync(string endpointId,
-            BrowsePathRequestApiModel content, CancellationToken ct) {
-            return Task.FromException<BrowsePathResponseApiModel>(new NotImplementedException());
+        public Task<BrowsePathResponseModel> NodeBrowsePathAsync(string endpointId,
+            BrowsePathRequestModel content, CancellationToken ct) {
+            return Task.FromException<BrowsePathResponseModel>(new NotImplementedException());
         }
 
         private readonly IHttpClient _httpClient;

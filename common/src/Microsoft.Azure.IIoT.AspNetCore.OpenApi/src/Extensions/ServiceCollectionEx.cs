@@ -9,12 +9,10 @@ namespace Microsoft.OpenApi.Models {
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
-    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
 

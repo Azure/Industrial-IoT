@@ -8,12 +8,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
-    using Prometheus;
     using Serilog;
     using System;
     using System.Diagnostics.Metrics;
-    using System.IO;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 

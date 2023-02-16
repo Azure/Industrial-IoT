@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using System;
 
     public class ListNodeRequested {
 
-        public ListNodeRequested(PublishedItemApiModel publishedItem) {
+        public ListNodeRequested(PublishedItemModel publishedItem) {
             _requestedPublishingInterval = publishedItem?.PublishingInterval;
             _requestedSamplingInterval = publishedItem?.SamplingInterval;
             _requestedHeartbeatInterval = publishedItem?.HeartbeatInterval;

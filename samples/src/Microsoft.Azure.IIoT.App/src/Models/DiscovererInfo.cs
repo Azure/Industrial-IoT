@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using System;
     using System.Collections.Generic;
 
@@ -13,12 +13,12 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <summary>
         /// Discoverer models.
         /// </summary>
-        public DiscovererApiModel DiscovererModel { get; set; }
+        public DiscovererModel DiscovererModel { get; set; }
 
         /// <summary>
         /// Patch
         /// </summary>
-        public DiscoveryConfigApiModel Patch { get; set; } = new DiscoveryConfigApiModel();
+        public DiscoveryConfigModel Patch { get; set; } = new DiscoveryConfigModel();
 
         /// <summary>
         /// scan status.
@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.App.Models {
 
         public bool TryUpdateData(DiscovererInfoRequested input) {
             try {
-                DiscovererModel.RequestedConfig ??= new DiscoveryConfigApiModel();
+                DiscovererModel.RequestedConfig ??= new DiscoveryConfigModel();
 
                 Patch.NetworkProbeTimeout = DiscovererModel.RequestedConfig.NetworkProbeTimeout =
                     string.IsNullOrWhiteSpace(input.RequestedNetworkProbeTimeout) ? TimeSpan.MinValue :

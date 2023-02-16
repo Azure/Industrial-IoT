@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var monitoredItemWrapper = GetMonitoredItem(template);
 
             Assert.Equal(Attributes.Value, monitoredItemWrapper.Item.AttributeId);
-            Assert.Equal(MonitoringMode.Reporting, monitoredItemWrapper.Item.MonitoringMode);
+            Assert.Equal(Opc.Ua.MonitoringMode.Reporting, monitoredItemWrapper.Item.MonitoringMode);
             Assert.Equal(1000, monitoredItemWrapper.Item.SamplingInterval);
             Assert.True(monitoredItemWrapper.Item.DiscardOldest);
             Assert.False(monitoredItemWrapper.SkipMonitoredItemNotification());
@@ -94,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 AttributeId = (NodeAttribute)Attributes.Value,
                 IndexRange = "5:20",
                 RelativePath = new[] { "RelativePath1", "RelativePath2" },
-                MonitoringMode = Publisher.Models.MonitoringMode.Sampling,
+                MonitoringMode = Api.Models.MonitoringMode.Sampling,
                 StartNodeId = "i=2258",
                 DataSetClassFieldId = Guid.NewGuid(),
                 QueueSize = 10,
@@ -108,7 +108,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal((uint)NodeAttribute.Value, monitoredItemWrapper.Item.AttributeId);
             Assert.Equal("5:20", monitoredItemWrapper.Item.IndexRange);
             Assert.Equal("RelativePath1RelativePath2", monitoredItemWrapper.Item.RelativePath);
-            Assert.Equal(MonitoringMode.Sampling, monitoredItemWrapper.Item.MonitoringMode);
+            Assert.Equal(Opc.Ua.MonitoringMode.Sampling, monitoredItemWrapper.Item.MonitoringMode);
             Assert.Equal("i=2258", monitoredItemWrapper.Item.StartNodeId);
             Assert.Equal(10u, monitoredItemWrapper.Item.QueueSize);
             Assert.Equal(10000, monitoredItemWrapper.Item.SamplingInterval);
@@ -121,8 +121,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         public void SetDataChangeFilterWhenBaseTemplateIsDataTemplate() {
             var template = new DataMonitoredItemModel {
                 DataChangeFilter = new DataChangeFilterModel {
-                    DataChangeTrigger = Publisher.Models.DataChangeTriggerType.StatusValue,
-                    DeadbandType = Publisher.Models.DeadbandType.Percent,
+                    DataChangeTrigger = Api.Models.DataChangeTriggerType.StatusValue,
+                    DeadbandType = Api.Models.DeadbandType.Percent,
                     DeadbandValue = 10.0
                 }
             };
@@ -133,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var dataChangeFilter = (DataChangeFilter)monitoredItemWrapper.Item.Filter;
             Assert.Equal(DataChangeTrigger.StatusValue, dataChangeFilter.Trigger);
-            Assert.Equal((uint)DeadbandType.Percent, dataChangeFilter.DeadbandType);
+            Assert.Equal((uint)Opc.Ua.DeadbandType.Percent, dataChangeFilter.DeadbandType);
             Assert.Equal(10.0, dataChangeFilter.DeadbandValue);
         }
 

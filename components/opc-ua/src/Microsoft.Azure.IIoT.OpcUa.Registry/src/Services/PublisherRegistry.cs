@@ -5,8 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Serializers;
@@ -131,36 +130,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             null : request.LogLevel;
                     }
 
-                    if (request.Configuration != null) {
-                        if (patched.Configuration == null) {
-                            patched.Configuration = new PublisherConfigModel();
-                        }
-                        if (request.Configuration.JobOrchestratorUrl != null) {
-                            patched.Configuration.JobOrchestratorUrl =
-                                string.IsNullOrEmpty(
-                                    request.Configuration.JobOrchestratorUrl.Trim()) ?
-                                        null : request.Configuration.JobOrchestratorUrl;
-                        }
-                        if (request.Configuration.HeartbeatInterval != null) {
-                            patched.Configuration.HeartbeatInterval =
-                                request.Configuration.HeartbeatInterval;
-                        }
-                        if (request.Configuration.JobCheckInterval != null) {
-                            patched.Configuration.JobCheckInterval =
-                                request.Configuration.JobCheckInterval.Value.Ticks == 0 ?
-                                    null : request.Configuration.JobCheckInterval;
-                        }
-                        if (request.Configuration.MaxWorkers != null) {
-                            patched.Configuration.MaxWorkers =
-                                request.Configuration.MaxWorkers <= 0 ?
-                                    null : request.Configuration.MaxWorkers;
-                        }
-                        if (request.Configuration.Capabilities != null) {
-                            patched.Configuration.Capabilities =
-                                request.Configuration.Capabilities.Count == 0 ?
-                                    null : request.Configuration.Capabilities;
-                        }
-                    }
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
                         patched.ToPublisherRegistration(), _serializer), false, ct);

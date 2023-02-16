@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Serilog {
-    using Serilog.Events;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Diagnostics;
     using System;

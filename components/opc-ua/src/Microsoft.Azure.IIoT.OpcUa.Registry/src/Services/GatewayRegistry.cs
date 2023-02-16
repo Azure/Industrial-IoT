@@ -5,8 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Serilog;
@@ -56,13 +55,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var entity = module.ToEntityRegistration(onlyServerState);
                 switch (entity) {
                     case SupervisorRegistration sr:
-                        gatewayModules.Supervisor = sr.ToServiceModel();
                         break;
                     case PublisherRegistration pr:
                         gatewayModules.Publisher = pr.ToServiceModel();
                         break;
                     case DiscovererRegistration dr:
-                        gatewayModules.Discoverer = dr.ToServiceModel();
                         break;
                     default:
                         // might add module to dictionary in the future

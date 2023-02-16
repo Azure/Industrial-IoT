@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using Microsoft.Azure.IIoT.OpcUa.History;
-    using Microsoft.Azure.IIoT.OpcUa.History.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using System;
     using System.Threading.Tasks;
     using Xunit;

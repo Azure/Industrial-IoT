@@ -7,7 +7,6 @@ namespace Opc.Ua.PubSub {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.IO;
 
     /// <summary>
     /// Discovery announcements and probes base class

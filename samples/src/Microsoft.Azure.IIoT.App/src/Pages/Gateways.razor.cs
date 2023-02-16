@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System;
     using System.Threading.Tasks;
@@ -15,8 +15,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string Page { get; set; } = "1";
 
-        private PagedResult<GatewayApiModel> GatewayList { get; set; } = new PagedResult<GatewayApiModel>();
-        private PagedResult<GatewayApiModel> _pagedGatewayList = new();
+        private PagedResult<GatewayModel> GatewayList { get; set; } = new PagedResult<GatewayModel>();
+        private PagedResult<GatewayModel> _pagedGatewayList = new();
         private IAsyncDisposable _gatewayEvent;
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             }
         }
 
-        private Task GatewayEvent(GatewayEventApiModel ev) {
+        private Task GatewayEvent(GatewayEventModel ev) {
             GatewayList.Results.Update(ev);
             _pagedGatewayList = GatewayList.GetPaged(int.Parse(Page), CommonHelper.PageLength, GatewayList.Error);
             StateHasChanged();

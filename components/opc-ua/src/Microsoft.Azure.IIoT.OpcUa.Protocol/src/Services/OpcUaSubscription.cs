@@ -5,9 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
@@ -599,7 +597,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             monitoredItem.Item.Status.Error.StatusCode,
                             Name,
                             Connection.CreateConnectionId());
-                        monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                        monitoredItem.Template.MonitoringMode = Api.Models.MonitoringMode.Disabled;
                         noErrorFound = false;
                     }
                 }
@@ -619,7 +617,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         (monitoredItem.Item.Status.Error != null &&
                         StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode))) {
 
-                        monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                        monitoredItem.Template.MonitoringMode = Api.Models.MonitoringMode.Disabled;
                         noErrorFound = false;
                         applyChanges = true;
                     }
@@ -705,7 +703,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                         Name,
                                         Connection.CreateConnectionId(),
                                         results[i].StatusCode);
-                                    changeList[i].Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                                    changeList[i].Template.MonitoringMode = Api.Models.MonitoringMode.Disabled;
                                     changeList[i].Item.MonitoringMode = Opc.Ua.MonitoringMode.Disabled;
                                 }
                             }

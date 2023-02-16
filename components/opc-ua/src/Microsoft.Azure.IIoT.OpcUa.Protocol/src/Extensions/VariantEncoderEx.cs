@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
     using Opc.Ua.Encoders;
@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Variant encoder extensions
@@ -128,8 +127,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         private static VariantValue Write(this IVariantEncoder codec,
             List<OperationResultModel> results, DiagnosticsModel config) {
-            var level = config?.Level ?? Core.Models.DiagnosticsLevel.Status;
-            if (level == Core.Models.DiagnosticsLevel.None) {
+            var level = config?.Level ?? Api.Models.DiagnosticsLevel.Status;
+            if (level == Api.Models.DiagnosticsLevel.None) {
                 return null;
             }
             using (var stream = new MemoryStream()) {
@@ -139,11 +138,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     IgnoreDefaultValues = true
                 }) {
                     switch (level) {
-                        case Core.Models.DiagnosticsLevel.Diagnostics:
-                        case Core.Models.DiagnosticsLevel.Verbose:
+                        case Api.Models.DiagnosticsLevel.Diagnostics:
+                        case Api.Models.DiagnosticsLevel.Verbose:
                             encoder.WriteEncodeableArray(root, results.ToArray(), typeof(OperationResultModel));
                             break;
-                        case Core.Models.DiagnosticsLevel.Operations:
+                        case Api.Models.DiagnosticsLevel.Operations:
                             var codes = results
                                 .GroupBy(d => d.StatusCode.CodeBits);
                             root = null;
@@ -152,7 +151,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                                     code.Select(c => c.Operation).ToArray());
                             }
                             break;
-                        case Core.Models.DiagnosticsLevel.Status:
+                        case Api.Models.DiagnosticsLevel.Status:
                             var statusCodes = results
                                 .Select(d => StatusCode.LookupSymbolicId(d.StatusCode.CodeBits))
                                 .Where(s => !string.IsNullOrEmpty(s))

@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -43,15 +43,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history insert request</param>
         /// <returns>The history insert result</returns>
         [HttpPost("{endpointId}/values")]
-        public async Task<HistoryUpdateResponseApiModel> HistoryInsertValuesAsync(
+        public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestApiModel<InsertValuesDetailsApiModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<InsertValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryInsertValuesAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return writeResult.ToApiModel();
+            var writeResult = await _historian.HistoryInsertValuesAsync(endpointId, request);
+            return writeResult;
         }
 
         /// <summary>
@@ -66,15 +65,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history insert request</param>
         /// <returns>The history insert result</returns>
         [HttpPost("{endpointId}/events")]
-        public async Task<HistoryUpdateResponseApiModel> HistoryInsertEventsAsync(
+        public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestApiModel<InsertEventsDetailsApiModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<InsertEventsDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryInsertEventsAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return writeResult.ToApiModel();
+            var writeResult = await _historian.HistoryInsertEventsAsync(endpointId, request);
+            return writeResult;
         }
 
         private readonly IHistorianServices<string> _historian;

@@ -4,10 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber;
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
@@ -34,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
 
             var endpointId = "testid";
 
-            var result = new TaskCompletionSource<MonitoredItemMessageApiModel>();
+            var result = new TaskCompletionSource<MonitoredItemMessageModel>();
             await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, ev => {
                 result.SetResult(ev);
                 return Task.CompletedTask;

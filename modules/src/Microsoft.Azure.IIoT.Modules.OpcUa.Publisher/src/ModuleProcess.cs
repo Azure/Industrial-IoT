@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.State;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
@@ -32,7 +33,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Twin;
 
     /// <summary>
     /// Publisher module

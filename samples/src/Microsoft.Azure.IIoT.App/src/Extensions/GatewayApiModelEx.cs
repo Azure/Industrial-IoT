@@ -4,23 +4,23 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Extensions {
-    using Microsoft.Azure.IIoT.Api.Registry.Extensions;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Models;
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
     /// Handle event
     /// </summary>
-    public static class GatewayApiModelEx {
+    public static class GatewayModelEx {
 
         /// <summary>
         /// Update a list of gateways from a received event
         /// </summary>
         /// <param name="results"></param>
         /// <param name="ev"></param>
-        public static void Update(this IList<GatewayApiModel> results,
-            GatewayEventApiModel ev) {
+        public static void Update(this IList<GatewayModel> results,
+            GatewayEventModel ev) {
             var gateway = results.FirstOrDefault(e => e.Id == ev.Id);
             if (gateway == null &&
                 ev.EventType != GatewayEventType.New) {

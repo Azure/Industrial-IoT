@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
 
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using System;
     using Xunit;
 

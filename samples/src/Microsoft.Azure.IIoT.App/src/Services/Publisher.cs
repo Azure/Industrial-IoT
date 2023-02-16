@@ -5,9 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
@@ -39,7 +38,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <returns>PublishedNode</returns>
         public async Task<PagedResult<ListNode>> PublishedAsync(string endpointId, bool readValues) {
             var pageResult = new PagedResult<ListNode>();
-            var model = new ValueReadRequestApiModel();
+            var model = new ValueReadRequestModel();
 
             try {
                 var continuationToken = string.Empty;
@@ -87,8 +86,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
             TimeSpan? samplingInterval, TimeSpan? publishingInterval, TimeSpan? heartBeatInterval) {
 
             try {
-                var requestApiModel = new PublishStartRequestApiModel() {
-                    Item = new PublishedItemApiModel() {
+                var requestModel = new PublishStartRequestModel() {
+                    Item = new PublishedItemModel() {
                         NodeId = nodeId,
                         SamplingInterval = samplingInterval,
                         PublishingInterval = publishingInterval,
@@ -96,8 +95,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     }
                 };
 
-                var resultApiModel = await _publisherService.NodePublishStartAsync(endpointId, requestApiModel);
-                return resultApiModel.ErrorInfo == null;
+                var resultModel = await _publisherService.NodePublishStartAsync(endpointId, requestModel);
+                return resultModel.ErrorInfo == null;
             }
             catch (Exception e) {
                 _logger.Error(e, "Cannot publish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
@@ -113,12 +112,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <returns>ErrorStatus</returns>
         public async Task<bool> StopPublishingAsync(string endpointId, string nodeId) {
             try {
-                var requestApiModel = new PublishStopRequestApiModel() {
+                var requestModel = new PublishStopRequestModel() {
                     NodeId = nodeId,
                 };
 
-                var resultApiModel = await _publisherService.NodePublishStopAsync(endpointId, requestApiModel);
-                return resultApiModel.ErrorInfo == null;
+                var resultModel = await _publisherService.NodePublishStopAsync(endpointId, requestModel);
+                return resultModel.ErrorInfo == null;
             }
             catch (Exception e) {
                 _logger.Error(e, "Cannot unpublish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);

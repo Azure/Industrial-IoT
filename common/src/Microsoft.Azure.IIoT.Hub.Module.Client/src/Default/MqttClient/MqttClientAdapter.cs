@@ -18,14 +18,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using MQTTnet.Packets;
     using MQTTnet.Protocol;
     using Newtonsoft.Json;
-    using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;
     using System.Net;
-    using System.Net.NetworkInformation;
     using System.Runtime.InteropServices;
     using System.Security.Authentication;
     using System.Security.Cryptography.X509Certificates;

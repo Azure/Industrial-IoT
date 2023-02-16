@@ -4,17 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Cli {
-    using Microsoft.Azure.IIoT.Api.Publisher;
-    using Microsoft.Azure.IIoT.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Clients;
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Extensions;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
@@ -529,7 +525,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 if (string.IsNullOrEmpty(nodeId)) {
                     var id = GetEndpointId(options, false);
                     if (!string.IsNullOrEmpty(id)) {
-                        var results = await _twin.NodeBrowseAsync(id, new BrowseRequestApiModel {
+                        var results = await _twin.NodeBrowseAsync(id, new BrowseRequestModel {
                             TargetNodesOnly = true,
                             NodeId = _nodeId
                         });
@@ -555,7 +551,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task MethodCallAsync(CliOptions options) {
             var result = await _twin.NodeMethodCallAsync(
                 GetEndpointId(options),
-                new MethodCallRequestApiModel {
+                new MethodCallRequestModel {
                     MethodId = GetNodeId(options),
                     ObjectId = options.GetValue<string>("-o", "--objectid")
 
@@ -570,7 +566,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task MethodMetadataAsync(CliOptions options) {
             var result = await _twin.NodeMethodGetMetadataAsync(
                 GetEndpointId(options),
-                new MethodMetadataRequestApiModel {
+                new MethodMetadataRequestModel {
                     MethodId = GetNodeId(options)
                 });
             PrintResult(options, result);
@@ -582,7 +578,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task WriteAsync(CliOptions options) {
             var result = await _twin.NodeValueWriteAsync(
                 GetEndpointId(options),
-                new ValueWriteRequestApiModel {
+                new ValueWriteRequestModel {
                     NodeId = GetNodeId(options),
                     DataType = options.GetValueOrDefault<string>("-t", "--datatype", null),
                     Value = _serializer.FromObject(options.GetValue<string>("-v", "--value"))
@@ -596,7 +592,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task ReadAsync(CliOptions options) {
             var result = await _twin.NodeValueReadAsync(
                 GetEndpointId(options),
-                new ValueReadRequestApiModel {
+                new ValueReadRequestModel {
                     NodeId = GetNodeId(options)
                 });
             PrintResult(options, result);
@@ -611,7 +607,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             var all = options.IsSet("-A", "--all");
             var recursive = options.IsSet("-r", "--recursive");
             var readDuringBrowse = options.IsProvidedOrNull("-v", "--readvalue");
-            var request = new BrowseRequestApiModel {
+            var request = new BrowseRequestModel {
                 TargetNodesOnly = options.IsProvidedOrNull("-t", "--targets"),
                 ReadVariableValues = readDuringBrowse,
                 MaxReferencesToReturn = options.GetValueOrDefault<uint>("-x", "--maxrefs", null),
@@ -660,7 +656,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                             try {
                                 nodesRead.Add(r.Target.NodeId);
                                 var read = await _twin.NodeValueReadAsync(id,
-                                    new ValueReadRequestApiModel {
+                                    new ValueReadRequestModel {
                                         NodeId = r.Target.NodeId
                                     });
                                 if (!silent) {
@@ -690,8 +686,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task PublishAsync(CliOptions options) {
             var result = await _publisher.NodePublishStartAsync(
                 GetEndpointId(options),
-                new PublishStartRequestApiModel {
-                    Item = new PublishedItemApiModel {
+                new PublishStartRequestModel {
+                    Item = new PublishedItemModel {
                         NodeId = GetNodeId(options),
                         SamplingInterval = TimeSpan.FromMilliseconds(1000),
                         PublishingInterval = TimeSpan.FromMilliseconds(1000)
@@ -726,7 +722,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task UnpublishAsync(CliOptions options) {
             var result = await _publisher.NodePublishStopAsync(
                 GetEndpointId(options),
-                new PublishStopRequestApiModel {
+                new PublishStopRequestModel {
                     NodeId = GetNodeId(options)
                 });
             if (result.ErrorInfo != null) {
@@ -821,7 +817,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Query publisher registrations
         /// </summary>
         private async Task QueryPublishersAsync(CliOptions options) {
-            var query = new PublisherQueryApiModel {
+            var query = new PublisherQueryModel {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
             };
@@ -852,9 +848,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Update publisher
         /// </summary>
         private async Task UpdatePublisherAsync(CliOptions options) {
-            var config = BuildPublisherConfig(options);
             await _registry.UpdatePublisherAsync(GetPublisherId(options),
-                new PublisherUpdateApiModel {
+                new PublisherUpdateModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<TraceLogLevel>(
                         "-l", "--log-level", null),
@@ -945,7 +940,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Query gateway registrations
         /// </summary>
         private async Task QueryGatewaysAsync(CliOptions options) {
-            var query = new GatewayQueryApiModel {
+            var query = new GatewayQueryModel {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
             };
@@ -974,7 +969,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// </summary>
         private async Task UpdateGatewayAsync(CliOptions options) {
             await _registry.UpdateGatewayAsync(GetGatewayId(options),
-                new GatewayUpdateApiModel {
+                new GatewayUpdateModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                 });
         }
@@ -1065,7 +1060,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Query supervisor registrations
         /// </summary>
         private async Task QuerySupervisorsAsync(CliOptions options) {
-            var query = new SupervisorQueryApiModel {
+            var query = new SupervisorQueryModel {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
                 EndpointId = options.GetValueOrDefault<string>("-e", "--endpoint", null),
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
@@ -1129,7 +1124,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task UpdateSupervisorAsync(CliOptions options) {
             var config = BuildDiscoveryConfig(options);
             await _registry.UpdateSupervisorAsync(GetSupervisorId(options),
-                new SupervisorUpdateApiModel {
+                new SupervisorUpdateModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<TraceLogLevel>(
                         "-l", "--log-level", null)
@@ -1205,7 +1200,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Query discoverer registrations
         /// </summary>
         private async Task QueryDiscoverersAsync(CliOptions options) {
-            var query = new DiscovererQueryApiModel {
+            var query = new DiscovererQueryModel {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
                 Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", null),
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
@@ -1261,7 +1256,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task UpdateDiscovererAsync(CliOptions options) {
             var config = BuildDiscoveryConfig(options);
             await _registry.UpdateDiscovererAsync(GetDiscovererId(options),
-                new DiscovererUpdateApiModel {
+                new DiscovererUpdateModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<TraceLogLevel>(
                         "-l", "--log-level", null),
@@ -1285,7 +1280,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 var mode = options.GetValueOrDefault("-d", "--discovery",
                     config == null ? DiscoveryMode.Fast : DiscoveryMode.Scan);
                 if (config == null) {
-                    config = new DiscoveryConfigApiModel();
+                    config = new DiscoveryConfigModel();
                 }
                 if (mode == DiscoveryMode.Off) {
                     throw new ArgumentException("-d/--discovery Off is not supported");
@@ -1293,7 +1288,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 await _registry.SetDiscoveryModeAsync(discovererId, mode, config);
                 Console.ReadKey();
                 await _registry.SetDiscoveryModeAsync(discovererId, DiscoveryMode.Off,
-                    new DiscoveryConfigApiModel());
+                    new DiscoveryConfigModel());
             }
             catch {
                 await discovery.DisposeAsync();
@@ -1356,7 +1351,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task RegisterApplicationAsync(CliOptions options) {
             var discoveryUrl = options.GetValueOrDefault<string>("-d", "--discoveryUrl", null);
             var result = await _registry.RegisterAsync(
-                new ApplicationRegistrationRequestApiModel {
+                new ApplicationRegistrationRequestModel {
                     ApplicationUri = options.GetValue<string>("-u", "--url"),
                     ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                     GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
@@ -1409,10 +1404,10 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task RegisterServerAsync(CliOptions options, string id) {
             var activate = options.IsSet("-a", "--activate");
             await _registry.RegisterAsync(
-                new ServerRegistrationRequestApiModel {
+                new ServerRegistrationRequestModel {
                     Id = id,
                     DiscoveryUrl = options.GetValue<string>("-u", "--url"),
-                    ActivationFilter = !activate ? null : new EndpointActivationFilterApiModel {
+                    ActivationFilter = !activate ? null : new EndpointActivationFilterModel {
                         SecurityMode = SecurityMode.None
                     }
                 });
@@ -1457,7 +1452,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// </summary>
         private async Task DiscoverServersAsync(CliOptions options, string id) {
             await _registry.DiscoverAsync(
-                new DiscoveryRequestApiModel {
+                new DiscoveryRequestModel {
                     Id = id,
                     Discovery = options.GetValueOrDefault("-d", "--discovery", DiscoveryMode.Fast),
                     Configuration = BuildDiscoveryConfig(options)
@@ -1469,7 +1464,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// </summary>
         private async Task CancelDiscoveryAsync(CliOptions options) {
             await _registry.CancelAsync(
-                new DiscoveryCancelApiModel {
+                new DiscoveryCancelModel {
                     Id = options.GetValue<string>("-i", "--id")
                 });
         }
@@ -1479,7 +1474,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// </summary>
         private async Task UpdateApplicationAsync(CliOptions options) {
             await _registry.UpdateApplicationAsync(GetApplicationId(options),
-                new ApplicationRegistrationUpdateApiModel {
+                new ApplicationRegistrationUpdateModel {
                     ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                     GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
                     ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
@@ -1513,7 +1508,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 return;
             }
 
-            var query = new ApplicationRegistrationQueryApiModel {
+            var query = new ApplicationRegistrationQueryModel {
                 ApplicationUri = options.GetValueOrDefault<string>("-u", "--uri", null),
                 ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
                 ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
@@ -1581,7 +1576,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Query applications
         /// </summary>
         private async Task QueryApplicationsAsync(CliOptions options) {
-            var query = new ApplicationRegistrationQueryApiModel {
+            var query = new ApplicationRegistrationQueryModel {
                 ApplicationUri = options.GetValueOrDefault<string>("-u", "--uri", null),
                 ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
                 GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
@@ -1749,10 +1744,10 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Query endpoints
         /// </summary>
         private async Task QueryEndpointsAsync(CliOptions options) {
-            var query = new EndpointRegistrationQueryApiModel {
+            var query = new EndpointRegistrationQueryModel {
                 Url = options.GetValueOrDefault<string>("-u", "--uri", null),
                 SecurityMode = options
-                    .GetValueOrDefault<OpcUa.Api.Publisher.Models.SecurityMode>("-m", "--mode", null),
+                    .GetValueOrDefault<SecurityMode>("-m", "--mode", null),
                 SecurityPolicy = options.GetValueOrDefault<string>("-l", "--policy", null),
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
                 Activated = options.IsProvidedOrNull("-a", "--activated"),
@@ -1790,8 +1785,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             }
 
             // Activate all sign and encrypt endpoints
-            var result = await _registry.QueryAllEndpointsAsync(new EndpointRegistrationQueryApiModel {
-                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Publisher.Models.SecurityMode>("-m", "mode", null),
+            var result = await _registry.QueryAllEndpointsAsync(new EndpointRegistrationQueryModel {
+                SecurityMode = options.GetValueOrDefault<SecurityMode>("-m", "mode", null),
                 Activated = false
             });
             foreach (var item in result) {
@@ -1816,8 +1811,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             }
 
             // Activate all sign and encrypt endpoints
-            var result = await _registry.QueryAllEndpointsAsync(new EndpointRegistrationQueryApiModel {
-                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Publisher.Models.SecurityMode>("-m", "mode", null),
+            var result = await _registry.QueryAllEndpointsAsync(new EndpointRegistrationQueryModel {
+                SecurityMode = options.GetValueOrDefault<SecurityMode>("-m", "mode", null),
                 Activated = true
             });
             foreach (var item in result) {
@@ -1885,7 +1880,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print progress
         /// </summary>
-        private static Task PrintProgress(DiscoveryProgressApiModel ev) {
+        private static Task PrintProgress(DiscoveryProgressModel ev) {
             switch (ev.EventType) {
                 case DiscoveryProgressType.Pending:
                     Console.WriteLine($"{ev.DiscovererId}: {ev.Total} waiting...");
@@ -1964,7 +1959,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print event
         /// </summary>
-        private Task PrintEvent(EndpointEventApiModel ev) {
+        private Task PrintEvent(EndpointEventModel ev) {
             Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
@@ -1972,7 +1967,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print event
         /// </summary>
-        private Task PrintEvent(ApplicationEventApiModel ev) {
+        private Task PrintEvent(ApplicationEventModel ev) {
             Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
@@ -1980,7 +1975,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print event
         /// </summary>
-        private Task PrintEvent(SupervisorEventApiModel ev) {
+        private Task PrintEvent(SupervisorEventModel ev) {
             Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
@@ -1988,7 +1983,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print event
         /// </summary>
-        private Task PrintEvent(GatewayEventApiModel ev) {
+        private Task PrintEvent(GatewayEventModel ev) {
             Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
@@ -1996,7 +1991,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print event
         /// </summary>
-        private Task PrintEvent(DiscovererEventApiModel ev) {
+        private Task PrintEvent(DiscovererEventModel ev) {
             Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
@@ -2004,7 +1999,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print event
         /// </summary>
-        private Task PrintEvent(PublisherEventApiModel ev) {
+        private Task PrintEvent(PublisherEventModel ev) {
             Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
@@ -2012,7 +2007,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print sample
         /// </summary>
-        private Task PrintSample(MonitoredItemMessageApiModel samples) {
+        private Task PrintSample(MonitoredItemMessageModel samples) {
             Console.WriteLine(_serializer.SerializeToString(samples));
             return Task.CompletedTask;
         }
@@ -2020,12 +2015,12 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Build discovery config model from options
         /// </summary>
-        private static DiscoveryConfigApiModel BuildDiscoveryConfig(CliOptions options) {
-            var config = new DiscoveryConfigApiModel();
+        private static DiscoveryConfigModel BuildDiscoveryConfig(CliOptions options) {
+            var config = new DiscoveryConfigModel();
             var empty = true;
 
             if (options.IsSet("-a", "--activate")) {
-                config.ActivationFilter = new EndpointActivationFilterApiModel {
+                config.ActivationFilter = new EndpointActivationFilterModel {
                     SecurityMode = SecurityMode.None
                 };
                 empty = false;
@@ -2082,39 +2077,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 config.IdleTimeBetweenScans = TimeSpan.FromSeconds(idleTime.Value);
                 empty = false;
             }
-            return empty ? null : config;
-        }
-
-        /// <summary>
-        /// Build publisher config model from options
-        /// </summary>
-        private static PublisherConfigApiModel BuildPublisherConfig(CliOptions options) {
-            var config = new PublisherConfigApiModel();
-            var empty = true;
-
-            var url = options.GetValueOrDefault<string>("-o", "--orchestrator", null);
-            if (url != null) {
-                if (url == "true") {
-                    config.JobOrchestratorUrl = "";
-                }
-                else {
-                    config.JobOrchestratorUrl = url;
-                }
-                empty = false;
-            }
-
-            var checkIntervalSec = options.GetValueOrDefault<int>("-c", "--check-interval", null);
-            if (checkIntervalSec != null && checkIntervalSec != 0) {
-                config.JobCheckInterval = TimeSpan.FromSeconds(checkIntervalSec.Value);
-                empty = false;
-            }
-
-            var heartbeatInterval = options.GetValueOrDefault<int>("-h", "--heartbeat", null);
-            if (heartbeatInterval != null && heartbeatInterval != 0) {
-                config.HeartbeatInterval = TimeSpan.FromSeconds(heartbeatInterval.Value);
-                empty = false;
-            }
-
             return empty ? null : config;
         }
 

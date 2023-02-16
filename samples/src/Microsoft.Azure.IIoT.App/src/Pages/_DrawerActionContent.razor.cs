@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System.Linq;
     using System.Threading.Tasks;
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private string Value { get; set; } = string.Empty;
         private string[] Values { get; set; }
         private ActionType TypeOfAction { get; set; } = ActionType.Nothing;
-        private MethodMetadataResponseApiModel _parameters { get; set; }
+        private MethodMetadataResponseModel _parameters { get; set; }
         private string ResponseClass { get; set; } = "list-group-item text-left margin body-action-content hidden";
 
         private async Task SelectActionAsync(string nodeId, ChangeEventArgs action) {

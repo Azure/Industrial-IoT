@@ -9,7 +9,6 @@ namespace Opc.Ua.PubSub {
     using Microsoft.Azure.IIoT.OpcUa.Core;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.IO.Compression;
     using System.Text;
 

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.v2.Publisher {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Json.More;
     using System;
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.v2.Publisher {
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
-                result = await PublisherApi.UnpublishAllNodesAsync(new PublishNodesEndpointApiModel());
+                result = await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
                 Assert.NotNull(result);
 
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
@@ -165,12 +165,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.v2.Publisher {
                 var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Equal(3, nodes.OpcNodes.Count);
 
-                await PublisherApi.UnpublishAllNodesAsync(new PublishNodesEndpointApiModel());
+                await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
-                await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishNodesEndpointApiModel> {
-                    new PublishNodesEndpointApiModel {
+                await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> {
+                    new PublishedNodesEntryModel {
                         OpcNodes = nodes.OpcNodes,
                         EndpointUrl = e.EndpointUrl,
                         UseSecurity = e.UseSecurity
@@ -233,7 +233,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.v2.Publisher {
                 // Disable pending alarms
                 testInput[0].OpcNodes[0].ConditionHandling = null;
                 testInput[0].OpcNodes[0].DisplayName = "SimpleEvents";
-                result = await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishNodesEndpointApiModel> {
+                result = await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> {
                     testInput[0] });
                 Assert.NotNull(result);
 

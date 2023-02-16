@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
-    using System.Linq;
-
     /// <summary>
     /// Writer group Model extensions
     /// </summary>

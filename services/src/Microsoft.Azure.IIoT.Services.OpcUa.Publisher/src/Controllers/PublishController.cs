@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -46,14 +46,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The publish request</param>
         /// <returns>The publish response</returns>
         [HttpPost("{endpointId}/start")]
-        public async Task<PublishStartResponseApiModel> StartPublishingValuesAsync(
-            string endpointId, [FromBody] [Required] PublishStartRequestApiModel request) {
+        public async Task<PublishStartResponseModel> StartPublishingValuesAsync(
+            string endpointId, [FromBody] [Required] PublishStartRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _publisher.NodePublishStartAsync(
-                endpointId, request.ToServiceModel());
-            return result.ToApiModel();
+                endpointId, request);
+            return result;
         }
 
         /// <summary>
@@ -67,14 +67,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The bulk publish request</param>
         /// <returns>The bulk publish response</returns>
         [HttpPost("{endpointId}/bulk")]
-        public async Task<PublishBulkResponseApiModel> BulkPublishValuesAsync(
-            string endpointId, [FromBody] [Required] PublishBulkRequestApiModel request) {
+        public async Task<PublishBulkResponseModel> BulkPublishValuesAsync(
+            string endpointId, [FromBody] [Required] PublishBulkRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _publisher.NodePublishBulkAsync(
-                endpointId, request.ToServiceModel());
-            return result.ToApiModel();
+                endpointId, request);
+            return result;
         }
 
         /// <summary>
@@ -89,14 +89,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The unpublish request</param>
         /// <returns>The unpublish response</returns>
         [HttpPost("{endpointId}/stop")]
-        public async Task<PublishStopResponseApiModel> StopPublishingValuesAsync(
-            string endpointId, [FromBody] [Required] PublishStopRequestApiModel request) {
+        public async Task<PublishStopResponseModel> StopPublishingValuesAsync(
+            string endpointId, [FromBody] [Required] PublishStopRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _publisher.NodePublishStopAsync(
-                endpointId, request.ToServiceModel());
-            return result.ToApiModel();
+                endpointId, request);
+            return result;
         }
 
         /// <summary>
@@ -111,14 +111,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The list request</param>
         /// <returns>The list of published nodes</returns>
         [HttpPost("{endpointId}")]
-        public async Task<PublishedItemListResponseApiModel> GetFirstListOfPublishedNodesAsync(
-            string endpointId, [FromBody] [Required] PublishedItemListRequestApiModel request) {
+        public async Task<PublishedItemListResponseModel> GetFirstListOfPublishedNodesAsync(
+            string endpointId, [FromBody] [Required] PublishedItemListRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _publisher.NodePublishListAsync(
-                endpointId, request.ToServiceModel());
-            return result.ToApiModel();
+                endpointId, request);
+            return result;
         }
 
         /// <summary>
@@ -134,16 +134,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <returns>The list of published nodes</returns>
         [HttpGet("{endpointId}")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
-        public async Task<PublishedItemListResponseApiModel> GetNextListOfPublishedNodesAsync(
+        public async Task<PublishedItemListResponseModel> GetNextListOfPublishedNodesAsync(
             string endpointId, [FromQuery] [Required] string continuationToken) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
             }
             var result = await _publisher.NodePublishListAsync(endpointId,
-                new PublishedItemListRequestApiModel {
+                new PublishedItemListRequestModel {
                     ContinuationToken = continuationToken
-                }.ToServiceModel());
-            return result.ToApiModel();
+                });
+            return result;
         }
 
         private readonly IPublishServices<string> _publisher;

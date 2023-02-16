@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Services;
-    using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;

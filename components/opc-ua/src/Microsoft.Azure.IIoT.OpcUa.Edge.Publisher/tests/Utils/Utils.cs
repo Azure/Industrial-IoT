@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
-    using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Text;
 

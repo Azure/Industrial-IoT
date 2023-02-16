@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
+namespace Microsoft.Azure.IIoT.Api.Models {
     using Microsoft.Azure.IIoT.Serializers;
     using System;
 
@@ -17,12 +17,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <param name="convert"></param>
-        public static HistoryReadResultModel<T> ToSpecificModel<T>(
-            this HistoryReadResultModel<VariantValue> model, Func<VariantValue, T> convert) {
+        public static HistoryReadResponseModel<T> ToSpecificModel<T>(
+            this HistoryReadResponseModel<VariantValue> model, Func<VariantValue, T> convert) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
-            return new HistoryReadResultModel<T> {
+            return new HistoryReadResponseModel<T> {
                 History = convert(model.History),
                 ContinuationToken = model.ContinuationToken,
                 ErrorInfo = model.ErrorInfo
@@ -34,12 +34,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <param name="convert"></param>
-        public static HistoryReadNextResultModel<T> ToSpecificModel<T>(
-            this HistoryReadNextResultModel<VariantValue> model, Func<VariantValue, T> convert) {
+        public static HistoryReadNextResponseModel<T> ToSpecificModel<T>(
+            this HistoryReadNextResponseModel<VariantValue> model, Func<VariantValue, T> convert) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
-            return new HistoryReadNextResultModel<T> {
+            return new HistoryReadNextResponseModel<T> {
                 History = convert(model.History),
                 ContinuationToken = model.ContinuationToken,
                 ErrorInfo = model.ErrorInfo

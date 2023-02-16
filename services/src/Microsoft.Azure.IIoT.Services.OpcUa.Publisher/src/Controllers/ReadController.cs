@@ -6,13 +6,12 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
-    using System.Linq;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -44,15 +43,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history read request</param>
         /// <returns>The historic events</returns>
         [HttpPost("{endpointId}/events")]
-        public async Task<HistoryReadResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsAsync(
+        public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadRequestApiModel<ReadEventsDetailsApiModel> request) {
+            [FromBody] [Required] HistoryReadRequestModel<ReadEventsDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadEventsAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
+            var readresult = await _historian.HistoryReadEventsAsync(endpointId, request);
+            return readresult;
         }
 
         /// <summary>
@@ -67,15 +65,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history read next request</param>
         /// <returns>The historic events</returns>
         [HttpPost("{endpointId}/events/next")]
-        public async Task<HistoryReadNextResponseApiModel<HistoricEventApiModel[]>> HistoryReadEventsNextAsync(
+        public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadNextRequestApiModel request) {
+            [FromBody] [Required] HistoryReadNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadEventsNextAsync(
-                endpointId, request.ToServiceModel());
-            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
+            var readresult = await _historian.HistoryReadEventsNextAsync(endpointId, request);
+            return readresult;
         }
 
         /// <summary>
@@ -90,15 +87,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
         [HttpPost("{endpointId}/values")]
-        public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadValuesAsync(
+        public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadRequestApiModel<ReadValuesDetailsApiModel> request) {
+            [FromBody] [Required] HistoryReadRequestModel<ReadValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadValuesAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
+            var readresult = await _historian.HistoryReadValuesAsync(endpointId, request);
+            return readresult;
         }
 
         /// <summary>
@@ -113,15 +109,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
         [HttpPost("{endpointId}/values/pick")]
-        public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadValuesAtTimesAsync(
+        public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadRequestApiModel<ReadValuesAtTimesDetailsApiModel> request) {
+            [FromBody] [Required] HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadValuesAtTimesAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
+            var readresult = await _historian.HistoryReadValuesAtTimesAsync(endpointId, request);
+            return readresult;
         }
 
         /// <summary>
@@ -136,15 +131,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
         [HttpPost("{endpointId}/values/processed")]
-        public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadProcessedValuesAsync(
+        public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadRequestApiModel<ReadProcessedValuesDetailsApiModel> request) {
+            [FromBody] [Required] HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadProcessedValuesAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
+            var readresult = await _historian.HistoryReadProcessedValuesAsync(endpointId, request);
+            return readresult;
         }
 
         /// <summary>
@@ -159,15 +153,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history read request</param>
         /// <returns>The historic values</returns>
         [HttpPost("{endpointId}/values/modified")]
-        public async Task<HistoryReadResponseApiModel<HistoricValueApiModel[]>> HistoryReadModifiedValuesAsync(
+        public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadRequestApiModel<ReadModifiedValuesDetailsApiModel> request) {
+            [FromBody] [Required] HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadModifiedValuesAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
+            var readresult = await _historian.HistoryReadModifiedValuesAsync(endpointId, request);
+            return readresult;
         }
 
         /// <summary>
@@ -182,15 +175,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history read next request</param>
         /// <returns>The historic values</returns>
         [HttpPost("{endpointId}/values/next")]
-        public async Task<HistoryReadNextResponseApiModel<HistoricValueApiModel[]>> HistoryReadValueNextAsync(
+        public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValueNextAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadNextRequestApiModel request) {
+            [FromBody] [Required] HistoryReadNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _historian.HistoryReadValuesNextAsync(
-                endpointId, request.ToServiceModel());
-            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
+            var readresult = await _historian.HistoryReadValuesNextAsync(endpointId, request);
+            return readresult;
         }
 
         private readonly IHistorianServices<string> _historian;

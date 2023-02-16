@@ -6,11 +6,10 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
@@ -45,9 +44,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="discovererId">Discoverer identifier</param>
         /// <returns>Discoverer registration</returns>
         [HttpGet("{discovererId}")]
-        public async Task<DiscovererApiModel> GetDiscovererAsync(string discovererId) {
+        public async Task<DiscovererModel> GetDiscovererAsync(string discovererId) {
             var result = await _discoverers.GetDiscovererAsync(discovererId);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -62,12 +61,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         [HttpPatch("{discovererId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateDiscovererAsync(string discovererId,
-            [FromBody] [Required] DiscovererUpdateApiModel request) {
+            [FromBody] [Required] DiscovererUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             await _discoverers.UpdateDiscovererAsync(discovererId,
-                request.ToServiceModel());
+                request);
         }
 
         /// <summary>
@@ -87,7 +86,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// </returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
-        public async Task<DiscovererListApiModel> GetListOfDiscoverersAsync(
+        public async Task<DiscovererListModel> GetListOfDiscoverersAsync(
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
@@ -100,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
             }
             var result = await _discoverers.ListDiscoverersAsync(
                 continuationToken, pageSize);
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -117,8 +116,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Discoverers</returns>
         [HttpPost("query")]
-        public async Task<DiscovererListApiModel> QueryDiscoverersAsync(
-            [FromBody] [Required] DiscovererQueryApiModel query,
+        public async Task<DiscovererListModel> QueryDiscoverersAsync(
+            [FromBody] [Required] DiscovererQueryModel query,
             [FromQuery] int? pageSize) {
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
@@ -128,9 +127,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                     .FirstOrDefault());
             }
             var result = await _discoverers.QueryDiscoverersAsync(
-                query.ToServiceModel(), pageSize);
+                query, pageSize);
 
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -147,8 +146,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Discoverers</returns>
         [HttpGet("query")]
-        public async Task<DiscovererListApiModel> GetFilteredListOfDiscoverersAsync(
-            [FromQuery] [Required] DiscovererQueryApiModel query,
+        public async Task<DiscovererListModel> GetFilteredListOfDiscoverersAsync(
+            [FromQuery] [Required] DiscovererQueryModel query,
             [FromQuery] int? pageSize) {
 
             if (query == null) {
@@ -159,9 +158,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                     .FirstOrDefault());
             }
             var result = await _discoverers.QueryDiscoverersAsync(
-                query.ToServiceModel(), pageSize);
+                query, pageSize);
 
-            return result.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -177,14 +176,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         [HttpPost("{discovererId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task SetDiscoveryModeAsync(string discovererId,
-            [FromQuery] [Required] IIoT.OpcUa.Api.Publisher.Models.DiscoveryMode mode,
-            [FromBody] DiscoveryConfigApiModel config) {
-            var request = new DiscovererUpdateApiModel {
+            [FromQuery] [Required] Api.Models.DiscoveryMode mode,
+            [FromBody] DiscoveryConfigModel config) {
+            var request = new DiscovererUpdateModel {
                 Discovery = mode,
                 DiscoveryConfig = config
             };
             await _discoverers.UpdateDiscovererAsync(discovererId,
-                request.ToServiceModel());
+                request);
         }
 
         private readonly IDiscovererRegistry _discoverers;

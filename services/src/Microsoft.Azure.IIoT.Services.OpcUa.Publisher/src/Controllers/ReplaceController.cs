@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -43,15 +43,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history replace request</param>
         /// <returns>The history replace result</returns>
         [HttpPost("{endpointId}/values")]
-        public async Task<HistoryUpdateResponseApiModel> HistoryReplaceValuesAsync(
+        public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestApiModel<ReplaceValuesDetailsApiModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryReplaceValuesAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return writeResult.ToApiModel();
+            var writeResult = await _historian.HistoryReplaceValuesAsync(endpointId, request);
+            return writeResult;
         }
 
         /// <summary>
@@ -66,15 +65,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <param name="request">The history replace request</param>
         /// <returns>The history replace result</returns>
         [HttpPost("{endpointId}/events")]
-        public async Task<HistoryUpdateResponseApiModel> HistoryReplaceEventsAsync(
+        public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestApiModel<ReplaceEventsDetailsApiModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryReplaceEventsAsync(
-                endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return writeResult.ToApiModel();
+            var writeResult = await _historian.HistoryReplaceEventsAsync(endpointId, request);
+            return writeResult;
         }
 
         private readonly IHistorianServices<string> _historian;

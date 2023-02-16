@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
 
     public partial class _DrawerAssetContent {
         [Parameter]
-        public ApplicationInfoApiModel ApplicationData { get; set; }
+        public ApplicationInfoModel ApplicationData { get; set; }
     }
 }

@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
@@ -21,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     public sealed class DiscoveryEventHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string MessageSchema => Models.MessageSchemaTypes.DiscoveryEvents;
+        public string MessageSchema => MessageSchemaTypes.DiscoveryEvents;
 
         /// <summary>
         /// Create handler

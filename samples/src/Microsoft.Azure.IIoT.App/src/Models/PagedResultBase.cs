@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Models {
-    using System;
-
     public abstract class PagedResultBase {
         public int CurrentPage { get; set; }
         public int PageCount { get; set; }

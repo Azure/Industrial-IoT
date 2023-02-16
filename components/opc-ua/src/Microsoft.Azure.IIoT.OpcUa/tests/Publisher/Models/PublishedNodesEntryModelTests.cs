@@ -4,11 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
-
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using System;
     using System.Collections.Generic;
     using Xunit;
 
@@ -62,7 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
 
             var model = new PublishedNodesEntryModel {
-                EndpointUrl = new Uri("opc.tcp://localhost:50000"),
+                EndpointUrl = "opc.tcp://localhost:50000",
                 OpcNodes = new List<OpcNodeModel> {
                     new OpcNodeModel {
                         Id = "i=2258"
@@ -74,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             Assert.Contains("\"UseSecurity\":false", modeJson);
 
             model = new PublishedNodesEntryModel {
-                EndpointUrl = new Uri("opc.tcp://localhost:50000"),
+                EndpointUrl = "opc.tcp://localhost:50000",
                 UseSecurity = false,
                 OpcNodes = new List<OpcNodeModel> {
                     new OpcNodeModel {
@@ -87,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             Assert.Contains("\"UseSecurity\":false", modeJson);
 
             model = new PublishedNodesEntryModel {
-                EndpointUrl = new Uri("opc.tcp://localhost:50000"),
+                EndpointUrl = "opc.tcp://localhost:50000",
                 UseSecurity = true,
                 OpcNodes = new List<OpcNodeModel> {
                     new OpcNodeModel {
@@ -148,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
 
             var model = new PublishedNodesEntryModel {
-                EndpointUrl = new Uri("opc.tcp://localhost:50000"),
+                EndpointUrl = "opc.tcp://localhost:50000",
                 OpcNodes = new List<OpcNodeModel> {
                     new OpcNodeModel {
                         Id = "i=2258"
@@ -160,7 +158,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             Assert.Contains("\"OpcAuthenticationMode\":\"anonymous\"", modeJson);
 
             model = new PublishedNodesEntryModel {
-                EndpointUrl = new Uri("opc.tcp://localhost:50000"),
+                EndpointUrl = "opc.tcp://localhost:50000",
                 OpcAuthenticationMode = OpcAuthenticationMode.Anonymous,
                 OpcNodes = new List<OpcNodeModel> {
                     new OpcNodeModel {
@@ -173,7 +171,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
             Assert.Contains("\"OpcAuthenticationMode\":\"anonymous\"", modeJson);
 
             model = new PublishedNodesEntryModel {
-                EndpointUrl = new Uri("opc.tcp://localhost:50000"),
+                EndpointUrl = "opc.tcp://localhost:50000",
                 OpcAuthenticationMode = OpcAuthenticationMode.UsernamePassword,
                 OpcNodes = new List<OpcNodeModel> {
                     new OpcNodeModel {

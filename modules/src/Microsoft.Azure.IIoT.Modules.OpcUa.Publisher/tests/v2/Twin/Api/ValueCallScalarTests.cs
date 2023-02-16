@@ -5,8 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.v2.Twin.Api {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
@@ -29,11 +28,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.v2.Twin.Api {
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
-        private CallScalarMethodTests<ConnectionApiModel> GetTests() {
-            return new CallScalarMethodTests<ConnectionApiModel>(
-                () => _module.HubContainer.Resolve<INodeServices<ConnectionApiModel>>(),
-                new ConnectionApiModel {
-                    Endpoint = new EndpointApiModel {
+        private CallScalarMethodTests<ConnectionModel> GetTests() {
+            return new CallScalarMethodTests<ConnectionModel>(
+                () => _module.HubContainer.Resolve<INodeServices<ConnectionModel>>(),
+                new ConnectionModel {
+                    Endpoint = new EndpointModel {
                         Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                         AlternativeUrls = _hostEntry?.AddressList
                         .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)

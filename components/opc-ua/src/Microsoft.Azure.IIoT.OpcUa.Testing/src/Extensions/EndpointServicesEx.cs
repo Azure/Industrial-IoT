@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -18,13 +18,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Read value
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="endpoint"></param>
+        /// <param name="connection"></param>
         /// <param name="readNode"></param>
         /// <returns></returns>
         public static Task<VariantValue> ReadValueAsync(this IEndpointServices client,
-            ConnectionModel endpoint, string readNode, CancellationToken ct = default) {
+            ConnectionModel connection, string readNode, CancellationToken ct = default) {
             var codec = new VariantEncoderFactory();
-            return client.ExecuteServiceAsync(endpoint, session => {
+            return client.ExecuteServiceAsync(connection, session => {
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
                         NodeId = readNode.ToNodeId(session.MessageContext),

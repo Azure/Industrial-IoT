@@ -4,6 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Clients;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Api.Publisher.Adapter;
     using Microsoft.Azure.IIoT.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -13,14 +16,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.History.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -209,7 +208,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests.Fixtures {
                 .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleApiAdapter>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HistorianApiAdapter<ConnectionApiModel>>()
+            builder.RegisterType<HistorianApiAdapter<ConnectionModel>>()
                 .AsImplementedInterfaces();
 
             // Supervisor clients

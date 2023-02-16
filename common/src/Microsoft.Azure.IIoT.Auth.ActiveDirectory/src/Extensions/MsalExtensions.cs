@@ -5,11 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Models {
     using Microsoft.Identity.Client;
-    using System;
     using System.IdentityModel.Tokens.Jwt;
-    using System.Linq;
     using System.Security.Claims;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Msal extensions

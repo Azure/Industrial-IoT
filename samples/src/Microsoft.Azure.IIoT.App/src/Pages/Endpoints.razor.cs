@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.AspNetCore.Components;
     using System;
     using System.Threading.Tasks;
@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             }
         }
 
-        private Task EndpointEvent(EndpointEventApiModel ev) {
+        private Task EndpointEvent(EndpointEventModel ev) {
             EndpointList.Results.Update(ev);
             PagedendpointList = EndpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, EndpointList.Error);
             StateHasChanged();

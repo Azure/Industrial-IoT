@@ -7,27 +7,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Tests {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.Serializers.MessagePack;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.Extensions.Hosting;
     using Autofac;
     using Autofac.Extensions.Hosting;
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net.Http;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Startup class for tests

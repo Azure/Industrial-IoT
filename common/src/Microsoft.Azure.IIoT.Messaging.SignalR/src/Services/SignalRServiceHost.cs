@@ -4,16 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.SignalR.Common;
-    using Microsoft.Azure.SignalR.Management;
-    using Microsoft.AspNetCore.SignalR;
-    using Microsoft.Extensions.Diagnostics.HealthChecks;
-    using Serilog;
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
 #if ZOMBIE
 
     /// <summary>

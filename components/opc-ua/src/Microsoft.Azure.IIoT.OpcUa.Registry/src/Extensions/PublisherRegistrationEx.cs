@@ -3,13 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+namespace Microsoft.Azure.IIoT.Api.Models {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
 
     /// <summary>
@@ -242,12 +241,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DeviceId = deviceId,
                 ModuleId = moduleId,
                 LogLevel = model.LogLevel,
-                JobOrchestratorUrl = model.Configuration?.JobOrchestratorUrl,
-                JobCheckInterval = model.Configuration?.JobCheckInterval,
-                MaxWorkers = model.Configuration?.MaxWorkers,
-                HeartbeatInterval = model.Configuration?.HeartbeatInterval,
-                Capabilities = model.Configuration?.Capabilities?
-                    .ToDictionary(k => k.Key, v => v.Value),
                 Connected = model.Connected ?? false,
                 Version = null,
                 SiteId = model.SiteId,
@@ -267,48 +260,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Id = PublisherModelEx.CreatePublisherId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
                 LogLevel = registration.LogLevel,
-                Configuration = registration.ToConfigModel(),
                 Version = registration.Version,
                 Connected = registration.IsConnected() ? true : (bool?)null,
                 OutOfSync = registration.IsConnected() && !registration._isInSync ? true : (bool?)null
-            };
-        }
-
-
-        /// <summary>
-        /// Returns if no discovery config specified
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <returns></returns>
-        private static bool IsNullConfig(this PublisherRegistration registration) {
-            if (string.IsNullOrEmpty(registration.JobOrchestratorUrl) &&
-                (registration.MaxWorkers == null || registration.MaxWorkers == 1) &&
-                (registration.JobCheckInterval == null ||
-                    registration.JobCheckInterval == Timeout.InfiniteTimeSpan) &&
-                (registration.Capabilities == null ||
-                    registration.Capabilities.Count == 0) &&
-                (registration.HeartbeatInterval == null ||
-                    registration.HeartbeatInterval == Timeout.InfiniteTimeSpan)) {
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Returns config model
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <returns></returns>
-        private static PublisherConfigModel ToConfigModel(this PublisherRegistration registration) {
-            return registration.IsNullConfig() ? null : new PublisherConfigModel {
-                JobOrchestratorUrl = registration.JobOrchestratorUrl,
-                MaxWorkers = registration.MaxWorkers == 1 ? null : registration.MaxWorkers,
-                JobCheckInterval = registration.JobCheckInterval == Timeout.InfiniteTimeSpan ?
-                    null : registration.JobCheckInterval,
-                HeartbeatInterval = registration.HeartbeatInterval == Timeout.InfiniteTimeSpan ?
-                    null : registration.HeartbeatInterval,
-                Capabilities = registration.Capabilities?
-                    .ToDictionary(k => k.Key, v => v.Value)
             };
         }
 

@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         private bool _collapseNavMenu = true;
 
         private string NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
-        public CredentialModel Credential { get; set; } = new CredentialModel();
+        public UsernamePassword Credential { get; set; } = new UsernamePassword();
         private string SubMenuDisplay { get; set; } = "displayNone";
         private string SubMenuIcon { get; set; } = "oi-expand-down";
 
@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
+                Credential = await GetSecureItemAsync<UsernamePassword>(CommonHelper.CredentialKey);
                 StateHasChanged();
             }
         }
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         }
 
         private async void HandleLocationChangedAsync(object sender, LocationChangedEventArgs e) {
-            Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
+            Credential = await GetSecureItemAsync<UsernamePassword>(CommonHelper.CredentialKey);
             StateHasChanged();
         }
 

@@ -4,23 +4,23 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Extensions {
-    using Microsoft.Azure.IIoT.Api.Registry.Extensions;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api;
+    using Microsoft.Azure.IIoT.Api.Models;
     using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
     /// Handle event
     /// </summary>
-    public static class ApplicationInfoApiModelEx {
+    public static class ApplicationInfoModelEx {
 
         /// <summary>
         /// Update a list of applications from a received event
         /// </summary>
         /// <param name="results"></param>
         /// <param name="ev"></param>
-        public static void Update(this IList<ApplicationInfoApiModel> results,
-            ApplicationEventApiModel ev) {
+        public static void Update(this IList<ApplicationInfoModel> results,
+            ApplicationEventModel ev) {
             var application = results.FirstOrDefault(e => e.ApplicationId == ev.Id);
             if (application == null &&
                 ev.EventType != ApplicationEventType.New) {

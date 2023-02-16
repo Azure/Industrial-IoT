@@ -4,15 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
-    using System;
-    using System.Threading.Tasks;
 #if ZOMBIE
 
     /// <summary>
@@ -64,16 +55,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                         break;
                     case DeviceTwinEventType.Create:
                         await _broker.NotifyAllAsync(l => l.OnApplicationNewAsync(ctx,
-                            ev.Twin.ToApplicationRegistration().ToServiceModel()));
+                            ev.Twin.ToApplicationRegistration()));
                         break;
                     case DeviceTwinEventType.Update:
                         await _broker.NotifyAllAsync(l => l.OnApplicationUpdatedAsync(ctx,
-                            ev.Twin.ToApplicationRegistration().ToServiceModel()));
+                            ev.Twin.ToApplicationRegistration()));
                         break;
                     case DeviceTwinEventType.Delete:
                         await _broker.NotifyAllAsync(l => l.OnApplicationDeletedAsync(ctx,
                             ev.Twin.Id,
-                            ev.Twin.ToApplicationRegistration().ToServiceModel()));
+                            ev.Twin.ToApplicationRegistration()));
                         break;
                 }
                 ev.Handled = true;

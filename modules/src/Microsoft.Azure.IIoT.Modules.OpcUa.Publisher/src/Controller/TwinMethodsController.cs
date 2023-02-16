@@ -5,11 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Api.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
@@ -57,8 +54,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<BrowseResponseApiModel> BrowseAsync(
-            ConnectionApiModel connection, BrowseRequestInternalApiModel request) {
+        public async Task<BrowseResponseModel> BrowseAsync(
+            ConnectionModel connection, BrowseRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -66,8 +63,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
                 throw new ArgumentNullException(nameof(connection));
             }
             var result = await _browse.NodeBrowseFirstAsync(
-                connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+                connection, request);
+            return result;
         }
 
         /// <summary>
@@ -76,8 +73,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<BrowseNextResponseApiModel> BrowseNextAsync(
-            ConnectionApiModel connection, BrowseNextRequestInternalApiModel request) {
+        public async Task<BrowseNextResponseModel> BrowseNextAsync(
+            ConnectionModel connection, BrowseNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -85,8 +82,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
                 throw new ArgumentNullException(nameof(connection));
             }
             var result = await _browse.NodeBrowseNextAsync(
-                connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+                connection, request);
+            return result;
         }
 
         /// <summary>
@@ -95,8 +92,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<BrowsePathResponseApiModel> BrowsePathAsync(
-            ConnectionApiModel connection, BrowsePathRequestInternalApiModel request) {
+        public async Task<BrowsePathResponseModel> BrowsePathAsync(
+            ConnectionModel connection, BrowsePathRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -104,8 +101,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
                 throw new ArgumentNullException(nameof(connection));
             }
             var result = await _browse.NodeBrowsePathAsync(
-                connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+                connection, request);
+            return result;
         }
 
         /// <summary>
@@ -114,8 +111,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ValueReadResponseApiModel> ValueReadAsync(
-            ConnectionApiModel connection, ValueReadRequestApiModel request) {
+        public async Task<ValueReadResponseModel> ValueReadAsync(
+            ConnectionModel connection, ValueReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -123,8 +120,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
                 throw new ArgumentNullException(nameof(connection));
             }
             var result = await _nodes.NodeValueReadAsync(
-                connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+                connection, request);
+            return result;
         }
 
         /// <summary>
@@ -133,8 +130,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ValueWriteResponseApiModel> ValueWriteAsync(
-            ConnectionApiModel connection, ValueWriteRequestApiModel request) {
+        public async Task<ValueWriteResponseModel> ValueWriteAsync(
+            ConnectionModel connection, ValueWriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -142,8 +139,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
                 throw new ArgumentNullException(nameof(connection));
             }
             var result = await _nodes.NodeValueWriteAsync(
-                connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+                connection, request);
+            return result;
         }
 
         /// <summary>
@@ -152,8 +149,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<MethodMetadataResponseApiModel> MethodMetadataAsync(
-            ConnectionApiModel connection, MethodMetadataRequestApiModel request) {
+        public async Task<MethodMetadataResponseModel> MethodMetadataAsync(
+            ConnectionModel connection, MethodMetadataRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -161,8 +158,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
                 throw new ArgumentNullException(nameof(connection));
             }
             var result = await _nodes.NodeMethodGetMetadataAsync(
-                connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+                connection, request);
+            return result;
         }
 
         /// <summary>
@@ -171,8 +168,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<MethodCallResponseApiModel> MethodCallAsync(
-            ConnectionApiModel connection, MethodCallRequestApiModel request) {
+        public async Task<MethodCallResponseModel> MethodCallAsync(
+            ConnectionModel connection, MethodCallRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -180,8 +177,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
                 throw new ArgumentNullException(nameof(connection));
             }
             var result = await _nodes.NodeMethodCallAsync(
-                connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+                connection, request);
+            return result;
         }
 
         /// <summary>
@@ -190,14 +187,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ReadResponseApiModel> NodeReadAsync(
-            ConnectionApiModel connection, ReadRequestApiModel request) {
+        public async Task<ReadResponseModel> NodeReadAsync(
+            ConnectionModel connection, ReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _nodes.NodeReadAsync(
-                connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+                connection, request);
+            return result;
         }
 
         /// <summary>
@@ -206,14 +203,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<WriteResponseApiModel> NodeWriteAsync(
-            ConnectionApiModel connection, WriteRequestApiModel request) {
+        public async Task<WriteResponseModel> NodeWriteAsync(
+            ConnectionModel connection, WriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _nodes.NodeWriteAsync(
-                connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+                connection, request);
+            return result;
         }
 
         /// <summary>
@@ -222,14 +219,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<HistoryReadResponseApiModel<VariantValue>> HistoryReadAsync(
-            ConnectionApiModel connection, HistoryReadRequestApiModel<VariantValue> request) {
+        public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
+            ConnectionModel connection, HistoryReadRequestModel<VariantValue> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _historian.HistoryReadAsync(
-               connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+               connection, request);
+            return result;
         }
 
         /// <summary>
@@ -238,14 +235,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<HistoryReadNextResponseApiModel<VariantValue>> HistoryReadNextAsync(
-            ConnectionApiModel connection, HistoryReadNextRequestApiModel request) {
+        public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
+            ConnectionModel connection, HistoryReadNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _historian.HistoryReadNextAsync(
-               connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+               connection, request);
+            return result;
         }
 
         /// <summary>
@@ -254,14 +251,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<HistoryUpdateResponseApiModel> HistoryUpdateAsync(
-            ConnectionApiModel connection, HistoryUpdateRequestApiModel<VariantValue> request) {
+        public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
+            ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _historian.HistoryUpdateAsync(
-               connection.ToServiceModel(), request.ToServiceModel());
-            return result.ToApiModel();
+               connection, request);
+            return result;
         }
 
         /// <summary>
@@ -270,12 +267,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <param name="endpoint"></param>
         /// <returns></returns>
         public async Task<byte[]> GetEndpointCertificateAsync(
-            EndpointApiModel endpoint) {
+            EndpointModel endpoint) {
             if (endpoint == null) {
                 throw new ArgumentNullException(nameof(endpoint));
             }
             var result = await _discovery.GetEndpointCertificateAsync(
-                endpoint.ToServiceModel());
+                endpoint);
             return result;
         }
 
@@ -284,11 +281,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public async Task<bool> ConnectAsync(ConnectionApiModel connection) {
+        public async Task<bool> ConnectAsync(ConnectionModel connection) {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            await _clients.ConnectAsync(connection.ToServiceModel());
+            await _clients.ConnectAsync(connection);
             return true;
         }
 
@@ -297,11 +294,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public async Task<bool> DisconnectAsync(ConnectionApiModel connection) {
+        public async Task<bool> DisconnectAsync(ConnectionModel connection) {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            await _clients.DisconnectAsync(connection.ToServiceModel());
+            await _clients.DisconnectAsync(connection);
             return true;
         }
 
