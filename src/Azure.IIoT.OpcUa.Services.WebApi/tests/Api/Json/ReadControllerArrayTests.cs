@@ -24,9 +24,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json {
     using Xunit;
 
     [Collection(ReadJsonCollection.Name)]
-    public class ReadControllerArrayTests : IClassFixture<WebAppFixture> {
+    public class ReadControllerArrayTests : IClassFixture<WebApiTestFixture> {
 
-        public ReadControllerArrayTests(WebAppFixture factory, TestServerFixture server) {
+        public ReadControllerArrayTests(WebApiTestFixture factory, TestServerFixture server) {
             _factory = factory;
             _server = server;
             _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
@@ -35,28 +35,26 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Json {
 
         private ReadArrayValueTests<string> GetTests() {
             var client = _factory.CreateClient(); // Call to create server
-            var module = _factory.Resolve<ITestModule>();
-            module.Connection = Connection;
+            var registry = _factory.Resolve<IEndpointManager>();
+            var endpointId = registry.RegisterEndpointAsync(Endpoint).Result;
             var log = _factory.Resolve<ILogger>();
             var serializer = _factory.Resolve<IJsonSerializer>();
             return new ReadArrayValueTests<string>(() => // Create an adapter over the api
                 new TwinServicesApiAdapter(
                     new TwinServiceClient(new HttpClient(_factory, log),
-                    new TestConfig(client.BaseAddress), serializer)), "fakeid",
-                    (ep, n) => _server.Client.ReadValueAsync(Connection, n));
+                    new TestConfig(client.BaseAddress), serializer)), endpointId,
+                    (ep, n) => _server.Client.ReadValueAsync(new ConnectionModel { Endpoint = Endpoint }, n));
         }
 
-        public ConnectionModel Connection => new() {
-            Endpoint = new EndpointModel {
-                Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+        public EndpointModel Endpoint => new() {
+            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                 AlternativeUrls = _hostEntry?.AddressList
                 .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                 .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
                 Certificate = _server.Certificate?.RawData?.ToThumbprint()
-            }
         };
 
-        private readonly WebAppFixture _factory;
+        private readonly WebApiTestFixture _factory;
         private readonly TestServerFixture _server;
         private readonly IPHostEntry _hostEntry;
 

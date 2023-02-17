@@ -23,9 +23,9 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public HistoryServiceClient(IHttpClient httpClient, IPublisherConfig config,
+        public HistoryServiceClient(IHttpClient httpClient, IServiceApiConfig config,
             ISerializer serializer) :
-            this(httpClient, config?.OpcUaPublisherServiceUrl, serializer) {
+            this(httpClient, config?.ServiceUrl, serializer) {
         }
 
         /// <summary>

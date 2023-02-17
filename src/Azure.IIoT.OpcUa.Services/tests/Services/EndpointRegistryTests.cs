@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services {
+namespace Azure.IIoT.OpcUa.Services.Registry {
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Api.Models;
     using Autofac;
@@ -20,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Services {
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using Azure.IIoT.OpcUa.Services.Services;
 
     public class EndpointRegistryTests {
 
@@ -33,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
-                IEndpointRegistry service = mock.Create<EndpointRegistry>();
+                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var t = service.GetEndpointAsync("test", false);
@@ -59,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
-                IEndpointRegistry service = mock.Create<EndpointRegistry>();
+                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var result = service.GetEndpointAsync(id, false).Result;
@@ -79,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
-                IEndpointRegistry service = mock.Create<EndpointRegistry>();
+                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.ListEndpointsAsync(null, false, null).Result;
@@ -99,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
-                IEndpointRegistry service = mock.Create<EndpointRegistry>();
+                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryEndpointsAsync(null, false, null).Result;
@@ -120,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
-                IEndpointRegistry service = mock.Create<EndpointRegistry>();
+                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel {
@@ -142,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
-                IEndpointRegistry service = mock.Create<EndpointRegistry>();
+                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel {
@@ -165,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
-                IEndpointRegistry service = mock.Create<EndpointRegistry>();
+                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel {
@@ -187,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
-                IEndpointRegistry service = mock.Create<EndpointRegistry>();
+                IEndpointRegistry service = mock.Create<ApplicationRegistry>();
 
                 // Run
                 var records = service.QueryEndpointsAsync(new EndpointRegistrationQueryModel {

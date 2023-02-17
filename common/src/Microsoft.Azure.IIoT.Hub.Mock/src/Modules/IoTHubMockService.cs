@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Serializers;
     using Autofac;
@@ -26,8 +25,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Adapters
-            builder.RegisterType<IoTHubDeviceEventHandler>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<IoTHubTwinMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()

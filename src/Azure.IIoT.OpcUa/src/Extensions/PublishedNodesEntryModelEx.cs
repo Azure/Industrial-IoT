@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
     using Azure.IIoT.OpcUa.Api.Models;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// PublishedNodesEntryModel extensions
@@ -28,6 +29,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Compare entry to connection endpoint
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static PublishedNodesEntryModel ToPublishedNodesEntry(this ConnectionModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PublishedNodesEntryModel {
+                EndpointUrl = model.Endpoint.Url,
+                UseSecurity = (model.Endpoint.SecurityMode != SecurityMode.None),
+                OpcAuthenticationMode = (model.User?.Type ?? CredentialType.None)
+                    == CredentialType.None ?
+                        OpcAuthenticationMode.Anonymous : OpcAuthenticationMode.UsernamePassword,
+                OpcAuthenticationPassword = model.User.GetPassword(),
+                OpcAuthenticationUsername = model.User.GetUserName(),
+                OpcNodes = new List<OpcNodeModel>()
+            };
         }
 
         /// <summary>

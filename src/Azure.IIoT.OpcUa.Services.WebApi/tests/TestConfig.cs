@@ -8,17 +8,17 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
     using System;
 
     /// <inheritdoc/>
-    public class TestConfig : IPublisherConfig {
+    public class TestConfig : IServiceApiConfig {
 
         /// <summary>
         /// Create test configuration
         /// </summary>
         /// <param name="baseAddress"></param>
         public TestConfig(Uri baseAddress) {
-            OpcUaPublisherServiceUrl = baseAddress.ToString().TrimEnd('/');
+            ServiceUrl = baseAddress.ToString().TrimEnd('/');
         }
 
         /// <inheritdoc/>
-        public string OpcUaPublisherServiceUrl { get; }
+        public string ServiceUrl { get; }
     }
 }

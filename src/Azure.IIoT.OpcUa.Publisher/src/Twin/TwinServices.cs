@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Twin {
     /// Manages the endpoint identity information in the twin and reports
     /// the endpoint's status back to the hub.
     /// </summary>
-    public class TwinServices : ITwinServices, IDisposable {
+    public class TwinServices : IDisposable {
 
         /// <inheritdoc/>
         public EndpointConnectivityState State { get; private set; }

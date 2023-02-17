@@ -6,6 +6,7 @@
 namespace IIoTPlatform_E2E_Tests.Deploy {
     using System;
     using System.Collections.Generic;
+    using Azure.IIoT.OpcUa.Api.Models;
     using Newtonsoft.Json;
     using TestExtensions;
 

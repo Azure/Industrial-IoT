@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     /// <summary>
     /// Base class for integration testing, it connects to the server, runs publisher and injects mocked IoTHub services.
     /// </summary>
-    public class PublisherMqttIntegrationTestBase : IPublisherModuleConfig {
+    public class PublisherMqttIntegrationTestBase : IModuleApiConfig {
 
         public PublisherMqttIntegrationTestBase(ReferenceServerFixture serverFixture) {
             _exit = new TaskCompletionSource<bool>();
@@ -184,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <summary>
         /// Get publisher api
         /// </summary>
-        protected IPublisherModuleApi PublisherApi => _apiScope?.Resolve<IPublisherModuleApi>();
+        protected IPublisherApi PublisherApi => _apiScope?.Resolve<IPublisherApi>();
 
         /// <summary>
         /// Stop publisher
@@ -333,7 +333,7 @@ $"--ttt={topicRoot}",
             builder.RegisterType<PublisherApiClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(this)
-                .As<IPublisherModuleConfig>();
+                .As<IModuleApiConfig>();
             return builder.Build();
         }
 

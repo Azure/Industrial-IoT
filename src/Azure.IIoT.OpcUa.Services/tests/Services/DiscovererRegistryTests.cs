@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services {
+namespace Azure.IIoT.OpcUa.Services.Registry {
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Api.Models;
     using Autofac;
@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Services {
         }
 
         [Fact]
-        public void QueryDiscoverersByDiscoveryMode() {
+        public void QueryDiscoverersByDiscoveryModeReturnsNothingBecauseUnsupported() {
             CreateDiscovererFixtures(out var site, out var discoverers, out var modules);
 
             using (var mock = AutoMock.GetLoose(builder => {
@@ -123,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Services {
                 }, null).Result;
 
                 // Assert
-                Assert.True(records.Items.Count == discoverers.Count(x => x.Discovery == DiscoveryMode.Network));
+                Assert.Empty(records.Items);
             }
         }
 
@@ -191,21 +191,20 @@ namespace Azure.IIoT.OpcUa.Services {
                 .Build<DiscovererModel>()
                 .With(x => x.SiteId, sitex)
                 .Without(x => x.Id)
-                .Do(x => x.Id = DiscovererModelEx.CreateDiscovererId(
+                .Do(x => x.Id = PublisherModelEx.CreatePublisherId(
                     fix.Create<string>(), fix.Create<string>()))
                 .CreateMany(10)
                 .ToList();
 
             modules = discoverers
                 .Select(a => {
-                    var r = a.ToDiscovererRegistration();
-                    r._desired = r;
+                    var r = a.ToPublisherRegistration();
                     return r;
                 })
                 .Select(a => a.ToDeviceTwin(_serializer))
                 .Select(t => {
                     t.Properties.Reported = new Dictionary<string, VariantValue> {
-                        [TwinProperty.Type] = IdentityType.Discoverer
+                        [TwinProperty.Type] = IdentityType.Publisher
                     };
                     return t;
                 })

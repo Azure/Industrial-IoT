@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        public TwinModuleApiAdapter(ITwinModuleApi client) {
+        public TwinModuleApiAdapter(ITwinApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -105,6 +105,6 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
             return result;
         }
 
-        private readonly ITwinModuleApi _client;
+        private readonly ITwinApi _client;
     }
 }

@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
     /// Implements node and publish services through command control against
     /// the OPC Publihser module receiving service requests via device method calls.
     /// </summary>
-    public sealed class PublisherApiClient : IPublisherModuleApi {
+    public sealed class PublisherApiClient : IPublisherApi {
 
         /// <summary>
         /// Create module client
@@ -43,20 +43,10 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="config"></param>
         /// <param name="serializer"></param>
         public PublisherApiClient(IMethodClient methodClient,
-            IPublisherModuleConfig config = null, IJsonSerializer serializer = null) :
+            IModuleApiConfig config = null, IJsonSerializer serializer = null) :
             this(methodClient, config?.DeviceId, config?.ModuleId, serializer) {
         }
 
-        /// <inheritdoc/>
-        public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
-            EndpointModel endpoint, CancellationToken ct) {
-            if (endpoint == null) {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "GetEndpointCertificate_V2", _serializer.SerializeToString(endpoint), null, ct);
-            return _serializer.Deserialize<X509CertificateChainModel>(response);
-        }
         /// <inheritdoc/>
         public async Task<PublishStartResponseModel> NodePublishStartAsync(ConnectionModel connection,
             PublishStartRequestModel request, CancellationToken ct = default) {
@@ -70,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "PublishStart_V2", _serializer.SerializeToString(new {
+                "PublishStart", _serializer.SerializeToString(new {
                     connection,
                     request
                 }), null, ct);
@@ -90,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "PublishStop_V2", _serializer.SerializeToString(new {
+                "PublishStop", _serializer.SerializeToString(new {
                     connection,
                     request
                 }), null, ct);
@@ -110,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "PublishBulk_V2", _serializer.SerializeToString(new {
+                "PublishBulk", _serializer.SerializeToString(new {
                     connection,
                     request
                 }), null, ct);
@@ -130,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "PublishList_V2", _serializer.SerializeToString(new {
+                "PublishList", _serializer.SerializeToString(new {
                     connection,
                     request
                 }), null, ct);
@@ -206,6 +196,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
                 "GetDiagnosticInfo", null, null, ct);
             return _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(response);
         }
+
 
         private readonly IJsonSerializer _serializer;
         private readonly IMethodClient _methodClient;

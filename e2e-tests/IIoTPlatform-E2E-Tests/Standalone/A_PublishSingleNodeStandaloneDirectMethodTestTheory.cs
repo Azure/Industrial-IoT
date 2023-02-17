@@ -5,10 +5,7 @@
 
 namespace IIoTPlatform_E2E_Tests.Standalone {
     using IIoTPlatform_E2E_Tests.Deploy;
-    using IIoTPlatform_E2E_Tests.TestModels;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using System.Net;
     using System.Collections.Generic;
@@ -17,7 +14,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using TestExtensions;
     using Xunit;
     using Xunit.Abstractions;
-    using System.Linq;
+    using Azure.IIoT.OpcUa.Api.Models;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -91,7 +88,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
+            var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(responseGetConfiguredEndpoints.JsonPayload);
             Assert.Equal(0, configuredEndpointsResponse.Endpoints.Count);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
@@ -99,8 +96,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).ConfigureAwait(false);
 
             var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token).ConfigureAwait(false);
-            var expectedModel = model.ToApiModel();
-            expectedModel.OpcNodes = new List<PublishedNodeApiModel>();
+            var expectedModel = model;
+            expectedModel.OpcNodes = new List<OpcNodeModel>();
 
             var initialOpcPublishingInterval = model.OpcNodes[0].OpcPublishingInterval;
 
@@ -108,13 +105,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
                 model.OpcNodes[0].Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt{i + 1}";
                 if (incremental) {
-                    model.OpcNodes[0].OpcPublishingInterval = (uint)(initialOpcPublishingInterval + i * 1000);
+                    model.OpcNodes[0].OpcPublishingInterval = (int)(initialOpcPublishingInterval + i * 1000);
                     model.OpcNodes[0].OpcSamplingInterval = model.OpcNodes[0].OpcPublishingInterval / 2;
                 }
 
-                var request = model.ToApiModel();
+                var request = model;
 
-                expectedModel.OpcNodes.Add(new PublishedNodeApiModel {
+                expectedModel.OpcNodes.Add(new OpcNodeModel {
                     Id = request.OpcNodes[0].Id,
                     DataSetFieldId = request.OpcNodes[0].DataSetFieldId,
                     DisplayName = request.OpcNodes[0].DisplayName,
@@ -145,7 +142,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                     EndpointUrl = request.EndpointUrl,
                     UseSecurity = request.UseSecurity
                 };
-                var requestGetConfiguredNodesOnEndpoint = nodesOnEndpoint.ToApiModel();
+                var requestGetConfiguredNodesOnEndpoint = nodesOnEndpoint;
 
                 // Call GetConfiguredEndpoints direct method
                 responseGetConfiguredEndpoints = await CallMethodAsync(
@@ -156,7 +153,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
 
                 Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-                configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(responseGetConfiguredEndpoints.JsonPayload);
+                configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(responseGetConfiguredEndpoints.JsonPayload);
                 Assert.Equal(1, configuredEndpointsResponse.Endpoints.Count);
                 TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[0], request);
 
@@ -170,7 +167,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 ).ConfigureAwait(false);
 
                 Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint.Status);
-                var jsonResponse = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseApiModel>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
+                var jsonResponse = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseModel>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
                 Assert.Equal(jsonResponse.OpcNodes.Count, i + 1);
                 Assert.Equal(jsonResponse.OpcNodes[i].Id, $"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt{i + 1}");
             }
@@ -184,7 +181,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            var diagInfo = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfo.JsonPayload);
+            var diagInfo = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
             Assert.Equal(diagInfo.Count, 1);
 
             TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(expectedModel, diagInfo[0]);
@@ -206,7 +203,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var responseUnpublish = await CallMethodAsync(
                 new MethodParameterModel {
                     Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
-                    JsonPayload = _serializer.SerializeToString(model.ToApiModel())
+                    JsonPayload = _serializer.SerializeToString(model)
                 },
                 cts.Token
             ).ConfigureAwait(false);
@@ -225,7 +222,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfoFinal.Status);
-            var diagInfoList = _serializer.Deserialize<List<DiagnosticInfoApiModel>>(responseGetDiagnosticInfoFinal.JsonPayload);
+            var diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfoFinal.JsonPayload);
             Assert.Equal(diagInfoList.Count, 0);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero

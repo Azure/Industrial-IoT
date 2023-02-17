@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Api.Registry.Adapter {
     /// Registry services adapter to run dependent services outside of cloud.
     /// </summary>
     public sealed class RegistryServicesApiAdapter : IEndpointRegistry, ISupervisorRegistry,
-        IApplicationRegistry, IPublisherRegistry, IDiscoveryServices {
+        IApplicationRegistry, IPublisherRegistry, IDiscoveryServices, IEndpointManager {
 
         /// <summary>
         /// Create registry services
@@ -25,8 +25,15 @@ namespace Azure.IIoT.OpcUa.Api.Registry.Adapter {
         }
 
         /// <inheritdoc/>
-        public async Task<EndpointInfoModel> GetEndpointAsync(string id,
-            bool onlyServerState, CancellationToken ct) {
+        public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
+            CancellationToken ct) {
+            var result = await _client.RegisterEndpointAsync(query, ct);
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public async Task<EndpointInfoModel> GetEndpointAsync(string id, bool onlyServerState,
+            CancellationToken ct) {
             var result = await _client.GetEndpointAsync(id, onlyServerState, ct);
             return result;
         }
@@ -183,6 +190,12 @@ namespace Azure.IIoT.OpcUa.Api.Registry.Adapter {
         /// <inheritdoc/>
         public Task CancelAsync(DiscoveryCancelModel request, CancellationToken ct) {
             return _client.CancelAsync(request, ct);
+        }
+
+        /// <inheritdoc/>
+        public Task RegisterAsync(ServerRegistrationRequestModel request,
+            CancellationToken ct = default) {
+            return _client.RegisterAsync(request, ct);
         }
 
         private readonly IRegistryServiceApi _client;

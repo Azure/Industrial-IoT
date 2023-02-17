@@ -7,8 +7,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
     using Azure.IIoT.OpcUa.Services.Clients;
-    using Azure.IIoT.OpcUa.History.Clients;
+    using Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Services;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Builder;
@@ -17,9 +18,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
+    using Microsoft.Azure.IIoT.Hub.Processor.Services;
+    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
@@ -31,6 +37,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Prometheus;
     using ILogger = Serilog.ILogger;
     using System;
+    using Azure.IIoT.OpcUa.Services.Registry;
+    using Azure.IIoT.OpcUa.Services.Events;
 
     /// <summary>
     /// Webservice startup
@@ -106,6 +114,11 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
             // Add controllers as services so they'll be resolved.
             services.AddControllers().AddSerializers();
 
+            // Add signalr and optionally configure signalr service
+            services.AddSignalR()
+                .AddJsonSerializer()
+                .AddMessagePackSerializer();
+
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -133,6 +146,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
             app.UseMetricServer();
             app.UseHttpMetrics();
             app.UseEndpoints(endpoints => {
+                endpoints.MapHubs();
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");
             });
@@ -162,7 +176,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
 
             // Add diagnostics
             builder.AddDiagnostics(Config);
-
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
 #if DEBUG
@@ -180,19 +193,66 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces();
 
+            // Register IoT Hub services for registry and edge clients.
             builder.RegisterModule<RegistryServices>();
-            builder.RegisterType<PublisherClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistorianApiAdapter<string>>()
-                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<IoTHubTwinMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<PublisherClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<HistorianApiAdapter<string>>()
+                .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
+
+            // Register event processor host to process IoT hub telemetry
+            builder.RegisterType<EventProcessorHost>()
+                .AsImplementedInterfaces().SingleInstance()
+                .IfNotRegistered(typeof(IEventProcessingHost));
+            builder.RegisterType<EventProcessorFactory>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<EventHubDeviceEventHandler>()
+                .AsImplementedInterfaces();
+
+            // Register handlers for registry events and device telemetry ...
+            builder.RegisterModule<EventHandlers>();
+            builder.RegisterType<DiscoveryProcessor>()
+                .AsImplementedInterfaces();
+
+            // We use Signalr hubs for registry and telemetry subscriptions
+            builder.RegisterType<SignalRHub<ApplicationsHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ApplicationEventPublisher<ApplicationsHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SignalRHub<EndpointsHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<EndpointEventPublisher<EndpointsHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SignalRHub<GatewaysHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<GatewayEventPublisher<GatewaysHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SignalRHub<SupervisorsHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SupervisorEventPublisher<SupervisorsHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SignalRHub<DiscoverersHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<DiscovererEventPublisher<DiscoverersHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SignalRHub<PublishersHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublisherEventPublisher<PublishersHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // Also publish discovery progress and telemetry messages to Hubs
+            builder.RegisterType<TelemetryEventPublisher<PublishersHub>>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<DiscoveryProgressPublisher<DiscoverersHub>>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // ... and auto start
             builder.RegisterType<HostAutoStart>()

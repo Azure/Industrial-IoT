@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
+    using Azure.IIoT.OpcUa.Api.Models;
     using IIoTPlatform_E2E_Tests.TestModels;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;

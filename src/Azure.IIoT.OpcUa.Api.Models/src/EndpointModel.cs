@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Api.Models {
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
-    /// <summary>
+        /// <summary>
     /// Endpoint model
     /// </summary>
     [DataContract]

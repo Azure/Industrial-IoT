@@ -14,37 +14,6 @@ namespace Azure.IIoT.OpcUa.Api.Models {
     public static class SupervisorModelEx {
 
         /// <summary>
-        /// Convert a device id and module to supervisor id
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
-        public static string CreateSupervisorId(string deviceId, string moduleId) {
-            return string.IsNullOrEmpty(moduleId) ? deviceId : $"{deviceId}_module_{moduleId}";
-        }
-
-        /// <summary>
-        /// Returns device id and optional module from supervisor id.
-        /// </summary>
-        /// <param name="supervisorId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
-        public static string ParseDeviceId(string supervisorId, out string moduleId) {
-            if (string.IsNullOrEmpty(supervisorId)) {
-                moduleId = null;
-                return null;
-            }
-            var components = supervisorId.Split(new string[] { "_module_" },
-                StringSplitOptions.RemoveEmptyEntries);
-            if (components.Length == 2) {
-                moduleId = components[1];
-                return components[0];
-            }
-            moduleId = null;
-            return supervisorId;
-        }
-
-        /// <summary>
         /// Equality comparison
         /// </summary>
         /// <param name="model"></param>

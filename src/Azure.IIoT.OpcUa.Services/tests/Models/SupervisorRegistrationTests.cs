@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
             var r1 = CreateRegistration();
             var m = r1;
-            var r2 = m.ToServiceModel().ToSupervisorRegistration();
+            var r2 = m.ToSupervisorModel().ToPublisherRegistration();
 
             Assert.Equal(r1, r2);
             Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
             var r1 = CreateRegistration();
             var m = r1;
-            var r2 = m.ToServiceModel().ToSupervisorRegistration(true);
+            var r2 = m.ToSupervisorModel().ToPublisherRegistration(true);
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
@@ -86,9 +86,9 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
-            var r2 = r1.ToServiceModel().ToSupervisorRegistration(true);
+            var r2 = r1.ToSupervisorModel().ToPublisherRegistration(true);
             var m1 = r1.Patch(r2, _serializer);
-            var r3 = r2.ToServiceModel().ToSupervisorRegistration(false);
+            var r3 = r2.ToSupervisorModel().ToPublisherRegistration(false);
             var m2 = r2.Patch(r3, _serializer);
 
             Assert.True((bool)m1.Tags[nameof(EntityRegistration.IsDisabled)]);
@@ -101,11 +101,11 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// Create registration
         /// </summary>
         /// <returns></returns>
-        private static SupervisorRegistration CreateRegistration() {
+        private static PublisherRegistration CreateRegistration() {
             var fix = new Fixture();
             var cert = fix.CreateMany<byte>(1000).ToArray();
-            var r = fix.Build<SupervisorRegistration>()
-                .FromFactory(() => new SupervisorRegistration(
+            var r = fix.Build<PublisherRegistration>()
+                .FromFactory(() => new PublisherRegistration(
                     fix.Create<string>(), fix.Create<string>()))
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)

@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
     /// <summary>
     /// Implementation of twin api.
     /// </summary>
-    public sealed class TwinApiClient : ITwinModuleApi {
+    public sealed class TwinApiClient : ITwinApi {
 
         /// <summary>
         /// Create module client
@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="methodClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public TwinApiClient(IMethodClient methodClient, IPublisherModuleConfig config = null,
+        public TwinApiClient(IMethodClient methodClient, IModuleApiConfig config = null,
             IJsonSerializer serializer = null) :
             this(methodClient, config?.DeviceId, config?.ModuleId, serializer) {
         }

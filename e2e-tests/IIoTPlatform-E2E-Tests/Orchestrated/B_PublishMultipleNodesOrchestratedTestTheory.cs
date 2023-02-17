@@ -144,7 +144,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             // We will filter out bad fast and slow nodes as they drop messages by design.
             _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes
                 .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
-                .Skip(250).ToArray();
+                .Skip(250).ToList();
 
             var body = new {
                 NodesToAdd = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(node => new {
@@ -244,7 +244,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             // We will filter out bad fast and slow nodes as they drop messages by design.
             _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes
                 .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
-                .Skip(250).ToArray();
+                .Skip(250).ToList();
 
             var body = new {
                 NodesToRemove = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(node => node.Id ).ToArray()

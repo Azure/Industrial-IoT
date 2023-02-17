@@ -504,8 +504,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             Assert.Equal(400, response.Status);
             var deserializedResponse = _serializer.Deserialize<MethodCallStatusExceptionModel>(
                 response.ResultAsJson);
-            var ex = _serializer.Deserialize<ArgumentNullException>(
-                deserializedResponse.Details);
+            var ex = deserializedResponse.Details.ConvertTo<ArgumentNullException>();
             Assert.Equal("request", ex.ParamName);
         }
 
@@ -561,7 +560,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             [DataMember(Name = "Details", Order = 1,
                 EmitDefaultValue = true)]
-            public string Details { get; set; }
+            public VariantValue Details { get; set; }
         }
 
         public class TestMethodClient : IJsonMethodClient {

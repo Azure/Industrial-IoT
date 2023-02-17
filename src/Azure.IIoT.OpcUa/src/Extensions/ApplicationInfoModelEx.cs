@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Api.Models {
             }
             var siteOrGatewayId = model.SiteId;
             if (siteOrGatewayId == null && model.DiscovererId != null) {
-                siteOrGatewayId = DiscovererModelEx.ParseDeviceId(model.DiscovererId, out _);
+                siteOrGatewayId = PublisherModelEx.ParseDeviceId(model.DiscovererId, out _);
             }
             return CreateApplicationId(siteOrGatewayId, model.ApplicationUri,
                 model.ApplicationType);

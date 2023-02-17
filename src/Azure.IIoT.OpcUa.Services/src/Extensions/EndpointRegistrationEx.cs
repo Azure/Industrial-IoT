@@ -350,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             if (siteOrGatewayId == null) {
                 var id = registration?.DiscovererId;
                 if (id != null) {
-                    siteOrGatewayId = DiscovererModelEx.ParseDeviceId(id, out _);
+                    siteOrGatewayId = PublisherModelEx.ParseDeviceId(id, out _);
                 }
             }
             return siteOrGatewayId;

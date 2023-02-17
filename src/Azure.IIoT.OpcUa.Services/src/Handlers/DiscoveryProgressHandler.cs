@@ -4,15 +4,23 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Handlers {
-#if ZOMBIE
+    using Azure.IIoT.OpcUa.Api.Models;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Serilog;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
-    /// Discovery message handling
+    /// Discovery progress handling
     /// </summary>
     public sealed class DiscoveryProgressHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string MessageSchema => Models.MessageSchemaTypes.DiscoveryMessage;
+        public string MessageSchema => MessageSchemaTypes.DiscoveryMessage;
 
         /// <summary>
         /// Create handler
@@ -60,5 +68,4 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         private readonly ILogger _logger;
         private readonly List<IDiscoveryProgressProcessor> _handlers;
     }
-#endif
 }

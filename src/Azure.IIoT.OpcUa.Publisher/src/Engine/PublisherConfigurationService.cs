@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Engine {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Api.Models;
     using Autofac;
@@ -61,6 +60,187 @@ namespace Azure.IIoT.OpcUa.Publisher.Engine {
             _fileChanges.Writer.TryWrite(false); // Read from file
         }
 
+
+        /// <inheritdoc/>
+        public async Task<PublishStartResponseModel> NodePublishStartAsync(ConnectionModel id,
+            PublishStartRequestModel request, CancellationToken ct = default) {
+            _logger.Information("{nameof} method triggered ... ", nameof(NodePublishStartAsync));
+            var sw = Stopwatch.StartNew();
+            if (request?.Item is null) {
+                var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
+                _logger.Information("{nameof} method finished in {elapsed}",
+                    nameof(NodePublishStartAsync), sw.Elapsed);
+                sw.Stop();
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+            }
+            await _api.WaitAsync(ct);
+            try {
+                var entry = id.ToPublishedNodesEntry();
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                AddItem(currentNodes, entry, request.Item);
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
+                    _configuration);
+                await _publisherHost.UpdateAsync(jobs);
+                await PersistPublishedNodesAsync();
+                return new PublishStartResponseModel();
+            }
+            catch (Exception e) when (e is not MethodCallStatusException) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
+            }
+            finally {
+                _api.Release();
+                _logger.Information("{nameof} method finished in {elapsed}",
+                    nameof(NodePublishStartAsync), sw.Elapsed);
+                sw.Stop();
+            }
+        }
+
+        private static void AddItem(List<PublishedNodesEntryModel> currentNodes,
+            PublishedNodesEntryModel entry, PublishedItemModel item) {
+            var found = currentNodes.FirstOrDefault(n => n.HasSameDataSet(entry));
+            if (found == null) {
+                currentNodes.Add(entry);
+                found = entry;
+            }
+            var node = found.OpcNodes.FirstOrDefault(n => n.Id == item.NodeId);
+            if (node == null) {
+                found.OpcNodes.Add(new OpcNodeModel {
+                    DisplayName = item.DisplayName,
+                    Id = item.NodeId,
+                    OpcSamplingIntervalTimespan = item.SamplingInterval,
+                    HeartbeatIntervalTimespan = item.HeartbeatInterval,
+                    OpcPublishingIntervalTimespan = item.PublishingInterval
+                });
+            }
+            else {
+                node.DisplayName = item.DisplayName;
+                node.OpcSamplingIntervalTimespan = item.SamplingInterval;
+                node.HeartbeatIntervalTimespan = item.HeartbeatInterval;
+                node.OpcPublishingIntervalTimespan = item.PublishingInterval;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<PublishStopResponseModel> NodePublishStopAsync(ConnectionModel id,
+            PublishStopRequestModel request, CancellationToken ct = default) {
+            _logger.Information("{nameof} method triggered ... ", nameof(NodePublishStopAsync));
+            var sw = Stopwatch.StartNew();
+            if (request?.NodeId is null) {
+                var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
+                _logger.Information("{nameof} method finished in {elapsed}",
+                    nameof(NodePublishStopAsync), sw.Elapsed);
+                sw.Stop();
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+            }
+            await _api.WaitAsync(ct);
+            try {
+                var currentNodes = GetCurrentPublishedNodes();
+                var entry = id.ToPublishedNodesEntry();
+                foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry))) {
+                    nodeset.OpcNodes.RemoveAll(n => n.Id == request.NodeId);
+                }
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
+                    _configuration);
+                await _publisherHost.UpdateAsync(jobs);
+                await PersistPublishedNodesAsync();
+                return new PublishStopResponseModel();
+            }
+            catch (Exception e) when (e is not MethodCallStatusException) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
+            }
+            finally {
+                _api.Release();
+                _logger.Information("{nameof} method finished in {elapsed}",
+                    nameof(NodePublishStopAsync), sw.Elapsed);
+                sw.Stop();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<PublishBulkResponseModel> NodePublishBulkAsync(ConnectionModel id,
+            PublishBulkRequestModel request, CancellationToken ct = default) {
+            _logger.Information("{nameof} method triggered ... ", nameof(NodePublishBulkAsync));
+            var sw = Stopwatch.StartNew();
+            if (request?.NodesToAdd is null && request?.NodesToRemove is null) {
+                var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
+                _logger.Information("{nameof} method finished in {elapsed}",
+                    nameof(NodePublishBulkAsync), sw.Elapsed);
+                sw.Stop();
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+            }
+            await _api.WaitAsync(ct);
+            try {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var entry = id.ToPublishedNodesEntry();
+                // Remove all nodes
+                if (request.NodesToRemove != null) {
+                    foreach (var nodeset in currentNodes.Where(n => n.HasSameDataSet(entry))) {
+                        nodeset.OpcNodes.RemoveAll(n => request.NodesToRemove.Contains(n.Id));
+                    }
+                }
+                if (request.NodesToAdd != null) {
+                    foreach (var item in request.NodesToAdd) {
+                        AddItem(currentNodes, entry, item);
+                    }
+                }
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(currentNodes,
+                    _configuration);
+                await _publisherHost.UpdateAsync(jobs);
+                await PersistPublishedNodesAsync();
+                return new PublishBulkResponseModel();
+            }
+            catch (Exception e) when (e is not MethodCallStatusException) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
+            }
+            finally {
+                _api.Release();
+                _logger.Information("{nameof} method finished in {elapsed}",
+                    nameof(NodePublishBulkAsync), sw.Elapsed);
+                sw.Stop();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<PublishedItemListResponseModel> NodePublishListAsync(ConnectionModel id,
+            PublishedItemListRequestModel request, CancellationToken ct = default) {
+            _logger.Information("{nameof} method triggered ... ", nameof(NodePublishListAsync));
+            var sw = Stopwatch.StartNew();
+            if (request is null) {
+                var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
+                _logger.Information("{nameof} method finished in {elapsed}",
+                    nameof(NodePublishListAsync), sw.Elapsed);
+                sw.Stop();
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+            }
+            await _api.WaitAsync(ct);
+            try {
+                var entry = id.ToPublishedNodesEntry();
+                var existingGroups = new List<PublishedNodesEntryModel>();
+                return new PublishedItemListResponseModel {
+                    Items = GetCurrentPublishedNodes()
+                        .Where(n => n.HasSameDataSet(entry))
+                        .SelectMany(n => n.OpcNodes)
+                        .Where(n => n.EventFilter == null) // Exclude event filtering
+                        .Select(n => new PublishedItemModel {
+                            NodeId = n.Id,
+                            DisplayName = n.DisplayName,
+                            HeartbeatInterval = n.HeartbeatIntervalTimespan,
+                            PublishingInterval = n.OpcPublishingIntervalTimespan,
+                            SamplingInterval = n.OpcSamplingIntervalTimespan,
+                        })
+                        .ToList()
+                };
+            }
+            catch (Exception e) when (e is not MethodCallStatusException) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
+            }
+            finally {
+                _api.Release();
+                _logger.Information("{nameof} method finished in {elapsed}",
+                    nameof(NodePublishListAsync), sw.Elapsed);
+                sw.Stop();
+            }
+        }
 
         /// <inheritdoc/>
         public async Task PublishNodesAsync(PublishedNodesEntryModel request,
@@ -744,6 +924,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Engine {
                 return BitConverter.ToString(checksum).Replace("-", string.Empty);
             }
         }
+
 
         private static readonly string kNullRequestMessage
             = "null request is provided";

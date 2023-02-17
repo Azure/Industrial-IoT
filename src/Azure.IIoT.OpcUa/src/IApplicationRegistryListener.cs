@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="application"></param>
         /// <returns></returns>
-        Task OnApplicationDisabledAsync(RegistryOperationContextModel context,
+        Task HandleApplicationDisabledAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application);
 
         /// <summary>

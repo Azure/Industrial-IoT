@@ -7,7 +7,6 @@ namespace IIoTPlatform_E2E_Tests {
     using IIoTPlatform_E2E_Tests.TestEventProcessor;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Renci.SshNet;
@@ -29,6 +28,7 @@ namespace IIoTPlatform_E2E_Tests {
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using Azure.IIoT.OpcUa.Api.Models;
 
     internal static partial class TestHelper {
 
@@ -630,8 +630,8 @@ namespace IIoTPlatform_E2E_Tests {
                 model = new PublishedNodesEntryModel {
                     EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
                     UseSecurity = false,
-                    OpcNodes = new OpcUaNodesModel[] {
-                        new OpcUaNodesModel {
+                    OpcNodes = new List<OpcNodeModel> {
+                        new OpcNodeModel {
                             Id = "ns=2;s=SlowUInt1",
                             OpcPublishingInterval = 10000,
                         }
@@ -651,10 +651,10 @@ namespace IIoTPlatform_E2E_Tests {
                     opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
                     opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
                     opcNode.QueueSize = 4;
-                    opcNode.DataChangeTrigger = dataChangeTrigger == null ? null : dataChangeTrigger.ToString();
+                    opcNode.DataChangeTrigger = dataChangeTrigger;
                     return opcNode;
                 })
-                .ToArray();
+                .ToList();
 
             return model;
         }
@@ -693,7 +693,7 @@ namespace IIoTPlatform_E2E_Tests {
                         opcNode.QueueSize = 4;
                         return opcNode;
                     })
-                    .ToArray();
+                    .ToList();
 
                 context.ConsumedOpcUaNodes.AddOrUpdate(testPlc.EndpointUrl, nodesToPublish);
             }
@@ -704,9 +704,9 @@ namespace IIoTPlatform_E2E_Tests {
                     UseSecurity = false
                 };
 
-                var nodes = new List<OpcUaNodesModel>();
+                var nodes = new List<OpcNodeModel>();
                 for (int i = 0; i < numberOfNodes; i++) {
-                    nodes.Add(new OpcUaNodesModel {
+                    nodes.Add(new OpcNodeModel {
                         Id = $"ns=2;s=SlowUInt{i + 1}",
                         OpcPublishingInterval = 10000 / 2,
                         OpcSamplingInterval = 10000 / 4,
@@ -714,7 +714,7 @@ namespace IIoTPlatform_E2E_Tests {
                     });
                 }
 
-                nodesToPublish.OpcNodes = nodes.ToArray();
+                nodesToPublish.OpcNodes = nodes.ToList();
                 context.ConsumedOpcUaNodes.Add(opcPlcIp, nodesToPublish);
             }
 

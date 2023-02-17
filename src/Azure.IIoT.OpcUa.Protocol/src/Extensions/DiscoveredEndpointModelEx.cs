@@ -28,14 +28,14 @@ namespace Azure.IIoT.OpcUa.Protocol.Models {
             IJsonSerializer serializer) {
             var type = result.Description.Server.ApplicationType.ToServiceType() ??
                 ApplicationType.Server;
-            var discovererId = DiscovererModelEx.CreateDiscovererId(gatewayId, moduleId);
+            var discovererId = PublisherModelEx.CreatePublisherId(gatewayId, moduleId);
             return new ApplicationRegistrationModel {
                 Application = new ApplicationInfoModel {
                     SiteId = siteId,
                     DiscovererId = discovererId,
                     ApplicationType = type,
                     ApplicationId = ApplicationInfoModelEx.CreateApplicationId(siteId ?? gatewayId,
-                        result.Description.Server.ApplicationUri, type), // TODO: Assign at onboarder and leave null
+                        result.Description.Server.ApplicationUri, type),
                     ProductUri = result.Description.Server.ProductUri,
                     ApplicationUri = result.Description.Server.ApplicationUri,
                     DiscoveryUrls = new HashSet<string>(result.Description.Server.DiscoveryUrls),

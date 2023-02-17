@@ -13,11 +13,11 @@ namespace Azure.IIoT.OpcUa.Api.Runtime {
     /// <summary>
     /// Complete api configuration
     /// </summary>
-    public class ApiConfig : DiagnosticsConfig, IPublisherConfig,
+    public class ApiConfig : DiagnosticsConfig, IServiceApiConfig,
         IEventsConfig, ISignalRClientConfig {
 
         /// <inheritdoc/>
-        public string OpcUaPublisherServiceUrl => _publisher.OpcUaPublisherServiceUrl;
+        public string ServiceUrl => _publisher.ServiceUrl;
 
         /// <inheritdoc/>
         public string OpcUaEventsServiceUrl => _events.OpcUaEventsServiceUrl;

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services {
+namespace Azure.IIoT.OpcUa.Services.Registry {
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Api.Models;
     using Autofac;
@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Services {
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using Azure.IIoT.OpcUa.Services.Services;
 
     public class DiscoveryProcessorTests {
 
@@ -33,16 +34,16 @@ namespace Azure.IIoT.OpcUa.Services {
             }.ToGatewayRegistration().ToDeviceTwin(),
                     new DeviceModel { Id = gateway });
             var module = fix.Create<string>();
-            var discoverer = DiscovererModelEx.CreateDiscovererId(gateway, module);
+            var discoverer = PublisherModelEx.CreatePublisherId(gateway, module);
             var Discoverer = (new DiscovererModel {
                 Id = discoverer
-            }.ToDiscovererRegistration().ToDeviceTwin(_serializer),
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
             module = fix.Create<string>();
-            var supervisor = SupervisorModelEx.CreateSupervisorId(gateway, module);
+            var supervisor = PublisherModelEx.CreatePublisherId(gateway, module);
             var Supervisor = (new SupervisorModel {
                 Id = supervisor
-            }.ToSupervisorRegistration().ToDeviceTwin(_serializer),
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
             module = fix.Create<string>();
             var publisher = PublisherModelEx.CreatePublisherId(gateway, module);
@@ -59,13 +60,11 @@ namespace Azure.IIoT.OpcUa.Services {
             using (var mock = AutoMock.GetLoose(builder => {
                 // Setup
                 builder.RegisterInstance(registry).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
                 builder.RegisterType<DiscovererRegistry>().As<IDiscovererRegistry>();
                 builder.RegisterType<SupervisorRegistry>().As<ISupervisorRegistry>();
                 builder.RegisterType<PublisherRegistry>().As<IPublisherRegistry>();
                 builder.RegisterType<GatewayRegistry>().As<IGatewayRegistry>();
                 builder.RegisterType<ApplicationRegistry>().As<IApplicationBulkProcessor>();
-                builder.RegisterType<EndpointRegistry>().As<IEndpointBulkProcessor>();
             })) {
                 var service = mock.Create<DiscoveryProcessor>();
 
@@ -87,13 +86,11 @@ namespace Azure.IIoT.OpcUa.Services {
             using (var mock = AutoMock.GetLoose(builder => {
                 // Setup
                 builder.RegisterInstance(registry).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
                 builder.RegisterType<DiscovererRegistry>().As<IDiscovererRegistry>();
                 builder.RegisterType<SupervisorRegistry>().As<ISupervisorRegistry>();
                 builder.RegisterType<PublisherRegistry>().As<IPublisherRegistry>();
                 builder.RegisterType<GatewayRegistry>().As<IGatewayRegistry>();
                 builder.RegisterType<ApplicationRegistry>().As<IApplicationBulkProcessor>();
-                builder.RegisterType<EndpointRegistry>().As<IEndpointBulkProcessor>();
             })) {
                 var service = mock.Create<DiscoveryProcessor>();
 
@@ -159,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Services {
         [Fact]
         public void ProcessDiscoveryWithDifferentDiscoverersSameSiteApplications() {
             var fix = new Fixture();
-            var discoverer2 = DiscovererModelEx.CreateDiscovererId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = PublisherModelEx.CreatePublisherId(fix.Create<string>(), fix.Create<string>());
 
             // Readjust existing to be reported from different Discoverer...
             CreateFixtures(out var site, out var discoverer, out var supervisor,
@@ -185,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Services {
         [Fact]
         public void ProcessOneDiscoveryWithDifferentDiscoverersFromExisting() {
             var fix = new Fixture();
-            var discoverer2 = DiscovererModelEx.CreateDiscovererId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = PublisherModelEx.CreatePublisherId(fix.Create<string>(), fix.Create<string>());
 
             // Readjust existing to be reported from different Discoverer...
             CreateFixtures(out var site, out var discoverer, out var supervisor,
@@ -213,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Services {
         [Fact]
         public void ProcessDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled() {
             var fix = new Fixture();
-            var discoverer2 = DiscovererModelEx.CreateDiscovererId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = PublisherModelEx.CreatePublisherId(fix.Create<string>(), fix.Create<string>());
 
             // Readjust existing to be reported from different Discoverer...
             CreateFixtures(out var site, out var discoverer, out var supervisor,
@@ -245,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Services {
         [Fact]
         public void ProcessOneDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled() {
             var fix = new Fixture();
-            var discoverer2 = DiscovererModelEx.CreateDiscovererId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = PublisherModelEx.CreatePublisherId(fix.Create<string>(), fix.Create<string>());
 
             // Readjust existing to be reported from different Discoverer...
             CreateFixtures(out var site, out var discoverer, out var supervisor,
@@ -279,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Services {
         [Fact]
         public void ProcessDiscoveryWithNoResultsWithDifferentDiscoverersFromExisting() {
             var fix = new Fixture();
-            var discoverer2 = DiscovererModelEx.CreateDiscovererId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = PublisherModelEx.CreatePublisherId(fix.Create<string>(), fix.Create<string>());
 
             // Readjust existing to be reported from different Discoverer...
             CreateFixtures(out var site, out var discoverer, out var supervisor,
@@ -372,12 +369,10 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(registry).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
                 builder.RegisterType<DiscovererRegistry>().As<IDiscovererRegistry>();
                 builder.RegisterType<SupervisorRegistry>().As<ISupervisorRegistry>();
                 builder.RegisterType<PublisherRegistry>().As<IPublisherRegistry>();
                 builder.RegisterType<GatewayRegistry>().As<IGatewayRegistry>();
-                builder.RegisterType<EndpointRegistry>().As<IEndpointBulkProcessor>();
                 builder.RegisterType<ApplicationRegistry>().As<IApplicationBulkProcessor>();
             });
             processor = mock.Create<DiscoveryProcessor>();
@@ -443,18 +438,18 @@ namespace Azure.IIoT.OpcUa.Services {
             }.ToGatewayRegistration().ToDeviceTwin(),
                     new DeviceModel { Id = gateway });
             var module = fix.Create<string>();
-            var discovererx = discoverer = DiscovererModelEx.CreateDiscovererId(gateway, module);
+            var discovererx = discoverer = PublisherModelEx.CreatePublisherId(gateway, module);
             var Discoverer = (new DiscovererModel {
                 SiteId = site,
                 Id = discovererx
-            }.ToDiscovererRegistration().ToDeviceTwin(_serializer),
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
             module = fix.Create<string>();
-            var supervisorx = supervisor = SupervisorModelEx.CreateSupervisorId(gateway, module);
+            var supervisorx = supervisor = PublisherModelEx.CreatePublisherId(gateway, module);
             var Supervisor = (new SupervisorModel {
                 SiteId = site,
                 Id = supervisorx
-            }.ToSupervisorRegistration().ToDeviceTwin(_serializer),
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
             module = fix.Create<string>();
             var publisherx = publisher = PublisherModelEx.CreatePublisherId(gateway, module);

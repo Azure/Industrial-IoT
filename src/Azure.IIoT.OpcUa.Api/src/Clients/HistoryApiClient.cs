@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
     /// <summary>
     /// Implementation of supervisor module history api.
     /// </summary>
-    public sealed class HistoryApiClient : IHistoryModuleApi {
+    public sealed class HistoryApiClient : IHistoryRawApi {
 
         /// <summary>
         /// Create module client
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="methodClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public HistoryApiClient(IMethodClient methodClient, IPublisherModuleConfig config = null,
+        public HistoryApiClient(IMethodClient methodClient, IModuleApiConfig config = null,
             ISerializer serializer = null) :
             this(methodClient, config?.DeviceId, config?.ModuleId, serializer) {
         }

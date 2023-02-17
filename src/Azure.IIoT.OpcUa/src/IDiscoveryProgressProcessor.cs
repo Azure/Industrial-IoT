@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa {
-#if ZOMBIE
+    using Azure.IIoT.OpcUa.Api.Models;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Discovery process processing
@@ -18,5 +19,4 @@ namespace Azure.IIoT.OpcUa {
         /// <returns></returns>
         Task OnDiscoveryProgressAsync(DiscoveryProgressModel message);
     }
-#endif
 }

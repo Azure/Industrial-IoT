@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa {
     using Azure.IIoT.OpcUa.Api.Models;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -18,12 +19,19 @@ namespace Azure.IIoT.OpcUa {
         /// </summary>
         /// <param name="siteId"></param>
         /// <param name="discovererId"></param>
-        /// <param name="supervisorId"></param>
         /// <param name="result"></param>
         /// <param name="events"></param>
         /// <returns></returns>
         Task ProcessDiscoveryEventsAsync(string siteId, string discovererId,
-            string supervisorId, DiscoveryResultModel result,
-            IEnumerable<DiscoveryEventModel> events);
+            DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events);
+
+        /// <summary>
+        /// Add application registration
+        /// </summary>
+        /// <param name="application"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<ApplicationRegistrationModel> AddDiscoveredApplicationAsync(
+            ApplicationRegistrationModel application, CancellationToken ct = default);
     }
 }

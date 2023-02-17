@@ -22,8 +22,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// Create controller with service
         /// </summary>
         /// <param name="discover"></param>
-        public DiscoveryMethodsController(IDiscoveryServices discover) {
+        /// <param name="servers"></param>
+        public DiscoveryMethodsController(IDiscoveryServices discover,
+            IServerDiscovery servers) {
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
+            _servers = servers ?? throw new ArgumentNullException(nameof(servers));
+        }
+
+        /// <summary>
+        /// Find server with endpoint
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <returns></returns>
+        public async Task<ApplicationRegistrationModel> FindServerAsync(
+            ServerEndpointQueryModel endpoint) {
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+            return await _servers.FindServerAsync(endpoint);
+        }
+
+        /// <summary>
+        /// Start server registration
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<bool> RegisterAsync(ServerRegistrationRequestModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            await _discover.RegisterAsync(request);
+            return true;
         }
 
         /// <summary>
@@ -53,5 +82,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         }
 
         private readonly IDiscoveryServices _discover;
+        private readonly IServerDiscovery _servers;
     }
 }

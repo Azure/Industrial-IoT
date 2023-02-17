@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         public void TestEqualIsEqualWithServiceModelConversion() {
 
             var r1 = CreateRegistration();
-            var m = r1.ToServiceModel();
+            var m = r1.ToPublisherModel();
             var r2 = m.ToPublisherRegistration();
 
             Assert.Equal(r1, r2);
@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
-            var m = r1.ToServiceModel();
+            var m = r1.ToPublisherModel();
             var r2 = m.ToPublisherRegistration(true);
 
             Assert.NotEqual(r1, r2);
@@ -86,9 +86,9 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             var fix = new Fixture();
 
             var r1 = CreateRegistration();
-            var r2 = r1.ToServiceModel().ToPublisherRegistration(true);
+            var r2 = r1.ToPublisherModel().ToPublisherRegistration(true);
             var m1 = r1.Patch(r2, _serializer);
-            var r3 = r2.ToServiceModel().ToPublisherRegistration(false);
+            var r3 = r2.ToPublisherModel().ToPublisherRegistration(false);
             var m2 = r2.Patch(r3, _serializer);
 
             Assert.True((bool)m1.Tags[nameof(EntityRegistration.IsDisabled)]);

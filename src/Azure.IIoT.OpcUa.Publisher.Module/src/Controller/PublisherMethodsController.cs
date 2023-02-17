@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
     /// <summary>
     /// Publisher direct  method controller
     /// </summary>
+    [Version("_V2")]
     [Version("_V1")]
     [Version("")]
     [ExceptionsFilter]
@@ -27,6 +28,56 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// </summary>
         public PublisherMethodsController(IPublisherConfigurationServices configServices) {
             _configServices = configServices ?? throw new ArgumentNullException(nameof(configServices));
+        }
+
+        /// <summary>
+        /// Start publishing values from a node
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<PublishStartResponseModel> PublishStartAsync(
+            ConnectionModel connection, PublishStartRequestModel request) {
+            return await _configServices.NodePublishStartAsync(connection,
+                request).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Stop publishing values from a node
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<PublishStopResponseModel> PublishStopAsync(
+            ConnectionModel connection, PublishStopRequestModel request) {
+            return await _configServices.NodePublishStopAsync(connection,
+                request).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Configure node values to publish and unpublish in bulk
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<PublishBulkResponseModel> PublishBulkAsync(
+            ConnectionModel connection, PublishBulkRequestModel request) {
+            return await _configServices.NodePublishBulkAsync(connection,
+                request).ConfigureAwait(false);
+        }
+
+
+        /// <summary>
+        /// Get all published nodes for a server endpoint.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<PublishedItemListResponseModel> PublishListAsync(
+            ConnectionModel connection,
+            PublishedItemListRequestModel request) {
+            return await _configServices.NodePublishListAsync(connection,
+                request).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -52,9 +103,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// </summary>
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
             PublishedNodesEntryModel request) {
-            if (request.OpcNodes != null && request.OpcNodes.Count > 0) {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "OpcNodes is set.");
-            }
             await _configServices.UnpublishAllNodesAsync(request).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }
@@ -84,7 +132,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// </summary>
         public async Task<GetConfiguredNodesOnEndpointResponseModel> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request) {
-            var response = await _configServices.GetConfiguredNodesOnEndpointAsync(request).ConfigureAwait(false);
+            var response = await _configServices.GetConfiguredNodesOnEndpointAsync(
+                request).ConfigureAwait(false);
             return new GetConfiguredNodesOnEndpointResponseModel {
                 OpcNodes = response,
             };

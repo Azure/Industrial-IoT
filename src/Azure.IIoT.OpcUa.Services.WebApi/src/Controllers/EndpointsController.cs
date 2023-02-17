@@ -31,12 +31,34 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <param name="endpoints"></param>
         /// <param name="activation"></param>
         /// <param name="certificates"></param>
+        /// <param name="manager"></param>
         public EndpointsController(IEndpointRegistry endpoints,
-            IConnectionServices<string> activation,
+            IEndpointManager manager, IConnectionServices<string> activation,
             ICertificateServices<string> certificates) {
+            _manager = manager;
             _activation = activation;
             _certificates = certificates;
             _endpoints = endpoints;
+        }
+
+        /// <summary>
+        /// Register endpoint
+        /// </summary>
+        /// <remarks>
+        /// Adds an endpoint. This will onboard the endpoint and the associated
+        /// application but no other endpoints. This call is synchronous and will
+        /// return successful if endpoint is found. Otherwise the call will fail
+        /// with error not found.
+        /// </remarks>
+        /// <param name="query">Query for the endpoint to register. This must
+        /// have at least the discovery url. If more information is specified it
+        /// is used to validate that the application has such endpoint and if
+        /// not the call will fail.</param>
+        /// <returns>Endpoint identifier</returns>
+        [HttpPut]
+        public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query) {
+            var result = await _manager.RegisterEndpointAsync(query);
+            return result;
         }
 
         /// <summary>
@@ -201,6 +223,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             await _activation.DisconnectAsync(endpointId);
         }
 
+        private readonly IEndpointManager _manager;
         private readonly IEndpointRegistry _endpoints;
         private readonly IConnectionServices<string> _activation;
         private readonly ICertificateServices<string> _certificates;

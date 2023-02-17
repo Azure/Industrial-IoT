@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa {
     /// Gateway registry change listener
     /// </summary>
     public interface IGatewayRegistryListener {
-#if ZOMBIE
 
         /// <summary>
         /// Called when gateway is created
@@ -21,7 +20,6 @@ namespace Azure.IIoT.OpcUa {
         /// <returns></returns>
         Task OnGatewayNewAsync(RegistryOperationContextModel context,
             GatewayModel gateway);
-#endif
 
         /// <summary>
         /// Called when gateway is updated
@@ -31,7 +29,6 @@ namespace Azure.IIoT.OpcUa {
         /// <returns></returns>
         Task OnGatewayUpdatedAsync(RegistryOperationContextModel context,
             GatewayModel gateway);
-#if ZOMBIE
 
         /// <summary>
         /// Called when gateway is deleted
@@ -41,6 +38,5 @@ namespace Azure.IIoT.OpcUa {
         /// <returns></returns>
         Task OnGatewayDeletedAsync(RegistryOperationContextModel context,
             string gatewayId);
-#endif
     }
 }

@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa {
     using Azure.IIoT.OpcUa.Api.Models;
-    using Azure.IIoT.OpcUa.Events.Models;
+    using Azure.IIoT.OpcUa.Services.Models;
     using System.Threading.Tasks;
 
     /// <summary>

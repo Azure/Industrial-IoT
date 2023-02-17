@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// CRUD and Query application resources
@@ -32,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <param name="applications"></param>
         /// <param name="onboarding"></param>
         public ApplicationsController(IApplicationRegistry applications,
-            IOnboardingServices onboarding) {
+            IDiscoveryServices onboarding) {
             _applications = applications;
             _onboarding = onboarding;
         }
@@ -56,6 +57,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             }
             await _onboarding.RegisterAsync(request);
         }
+
 
         /// <summary>
         /// Disable an enabled application.
@@ -342,6 +344,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         }
 
         private readonly IApplicationRegistry _applications;
-        private readonly IOnboardingServices _onboarding;
+        private readonly IDiscoveryServices _onboarding;
     }
 }

@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.Api.Publisher.Adapter;
     using Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Azure.IIoT.OpcUa.History.Clients;
+    using Azure.IIoT.OpcUa.Services.Clients;
     using Azure.IIoT.OpcUa.Protocol.Services;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Autofac;
@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     /// Harness for opc publisher module
     /// </summary>
     public class PublisherModuleFixture : IInjector,
-        IPublisherModuleConfig, IDisposable {
+        IModuleApiConfig, IDisposable {
 
         /// <summary>
         /// Device id
@@ -203,6 +203,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
                 .AsImplementedInterfaces();
             builder.RegisterType<HistoryApiClient>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<DiscoveryApiClient>()
+                .AsImplementedInterfaces();
 
             builder.RegisterType<HistoryRawSupervisorAdapter>()
                 .AsImplementedInterfaces();
@@ -210,13 +212,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
                 .AsImplementedInterfaces();
             builder.RegisterType<HistorianApiAdapter<ConnectionModel>>()
                 .AsImplementedInterfaces();
-
-            // Supervisor clients
             builder.RegisterType<PublisherModuleApiAdapter>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<TwinModuleApiAdapter>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryApiClient>()
+            builder.RegisterType<DiscoveryModuleApiAdapter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();

@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Runtime {
     /// <summary>
     /// Configuration - wraps a configuration root
     /// </summary>
-    public class PublisherConfig : ApiConfigBase, IPublisherConfig {
+    public class PublisherConfig : ApiConfigBase, IServiceApiConfig {
 
         /// <summary>
         /// Publisher configuration
@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Runtime {
         private const string kOpcUaPublisherServiceUrlKey = "OpcPublisherServiceUrl";
 
         /// <summary>OPC publisher service endpoint url</summary>
-        public string OpcUaPublisherServiceUrl => GetStringOrDefault(
+        public string ServiceUrl => GetStringOrDefault(
             kOpcUaPublisherServiceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_PUBLISHER_SERVICE_URL,
                 () => GetDefaultUrl("9045", "publisher")));

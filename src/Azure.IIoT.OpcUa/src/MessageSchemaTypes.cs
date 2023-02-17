@@ -17,12 +17,6 @@ namespace Azure.IIoT.OpcUa {
             "application/x-monitored-item-json-v1";
 
         /// <summary>
-        /// Moniored Item Message Model using json encoding
-        /// </summary>
-        public const string MonitoredItemMessageModelJson =
-            "application/x-monitored-itemsample-model-json-v1";
-
-        /// <summary>
         /// Json network message
         /// </summary>
         public const string NetworkMessageJson =
@@ -33,6 +27,13 @@ namespace Azure.IIoT.OpcUa {
         /// </summary>
         public const string NetworkMessageUadp =
             "application/x-network-message-uadp-v1";
+
+
+        /// <summary>
+        /// Moniored Item Message Model using json encoding
+        /// </summary>
+        public const string MonitoredItemMessageModelJson =
+            "application/x-monitored-itemsample-model-json-v1";
 
         /// <summary>
         /// Network Message Model using json encoding
@@ -51,5 +52,17 @@ namespace Azure.IIoT.OpcUa {
         /// </summary>
         public const string DiscoveryMessage =
             "application/x-discovery-message-v2-json";
+
+        /// <summary>
+        /// Content is a twin change event
+        /// </summary>
+        public const string TwinChangeNotification =
+            "twinChangeNotification";
+
+        /// <summary>
+        /// Content is a lifecycle event
+        /// </summary>
+        public const string DeviceLifecycleNotification =
+            "deviceLifecycleNotification";
     }
 }

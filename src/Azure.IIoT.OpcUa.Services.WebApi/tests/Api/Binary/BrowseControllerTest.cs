@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
     using Azure.IIoT.OpcUa.Api.Clients;
     using Azure.IIoT.OpcUa.Api.Models;
     using Azure.IIoT.OpcUa.Api.Publisher.Adapter;
-    using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -24,9 +23,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
     using Xunit;
 
     [Collection(ReadBinaryCollection.Name)]
-    public class BrowseControllerTest : IClassFixture<WebAppFixture> {
+    public class BrowseControllerTest : IClassFixture<WebApiTestFixture> {
 
-        public BrowseControllerTest(WebAppFixture factory, TestServerFixture server) {
+        public BrowseControllerTest(WebApiTestFixture factory, TestServerFixture server) {
             _factory = factory;
             _server = server;
             _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
@@ -35,27 +34,25 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
 
         private BrowseServicesTests<string> GetTests() {
             var client = _factory.CreateClient(); // Call to create server
-            var module = _factory.Resolve<ITestModule>();
-            module.Connection = Connection;
+            var registry = _factory.Resolve<IEndpointManager>();
+            var endpointId = registry.RegisterEndpointAsync(Endpoint).Result;
             var log = _factory.Resolve<ILogger>();
             var serializer = _factory.Resolve<IBinarySerializer>();
             return new BrowseServicesTests<string>(() => // Create an adapter over the api
                 new TwinServicesApiAdapter(
                     new TwinServiceClient(new HttpClient(_factory, log),
-                    new TestConfig(client.BaseAddress), serializer)), "fakeid");
+                    new TestConfig(client.BaseAddress), serializer)), endpointId);
         }
 
-        public ConnectionModel Connection => new() {
-            Endpoint = new EndpointModel {
-                Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
-                AlternativeUrls = _hostEntry?.AddressList
+        public EndpointModel Endpoint => new() {
+            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+            AlternativeUrls = _hostEntry?.AddressList
                     .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                     .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
-                Certificate = _server.Certificate?.RawData?.ToThumbprint()
-            }
+            Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 
-        private readonly WebAppFixture _factory;
+        private readonly WebApiTestFixture _factory;
         private readonly TestServerFixture _server;
         private readonly IPHostEntry _hostEntry;
 

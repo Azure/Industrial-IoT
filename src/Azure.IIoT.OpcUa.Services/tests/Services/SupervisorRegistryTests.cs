@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services {
+namespace Azure.IIoT.OpcUa.Services.Registry {
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Api.Models;
     using Autofac;
@@ -169,17 +169,17 @@ namespace Azure.IIoT.OpcUa.Services {
                 .Build<SupervisorModel>()
                 .With(x => x.SiteId, sitex)
                 .Without(x => x.Id)
-                .Do(x => x.Id = SupervisorModelEx.CreateSupervisorId(
+                .Do(x => x.Id = PublisherModelEx.CreatePublisherId(
                     fix.Create<string>(), fix.Create<string>()))
                 .CreateMany(10)
                 .ToList();
 
             modules = supervisors
-                .Select(a => a.ToSupervisorRegistration())
+                .Select(a => a.ToPublisherRegistration())
                 .Select(a => a.ToDeviceTwin(_serializer))
                 .Select(t => {
                     t.Properties.Reported = new Dictionary<string, VariantValue> {
-                        [TwinProperty.Type] = IdentityType.Supervisor
+                        [TwinProperty.Type] = IdentityType.Publisher
                     };
                     return t;
                 })

@@ -8,7 +8,6 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     using Azure.Messaging.EventHubs.Consumer;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
@@ -22,6 +21,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
     using FluentAssertions;
     using System.Linq;
     using System.Collections.Generic;
+    using Azure.IIoT.OpcUa.Api.Models;
 
     /// <summary>
     /// Base class for standalone tests using dynamic ACI
@@ -131,7 +131,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
 
         protected async Task PublishNodesAsync(string json, CancellationToken ct) {
             await UnpublishAllNodesAsync(ct);
-            var entries = _serializer.Deserialize<PublishNodesEndpointApiModel[]>(json);
+            var entries = _serializer.Deserialize<PublishedNodesEntryModel[]>(json);
             foreach (var entry in entries) {
 
                 // Call PublishNodes direct method
@@ -154,7 +154,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, result1.Status);
-            var response = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(result1.JsonPayload);
+            var response = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
             Assert.Equal(entries.Length, response.Endpoints.Count);
         }
 
@@ -164,7 +164,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
                     Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
 
                     // TODO: Remove this line to test fix for null request crash
-                    JsonPayload = _serializer.SerializeToString(new PublishNodesEndpointApiModel())
+                    JsonPayload = _serializer.SerializeToString(new PublishedNodesEntryModel())
                 },
                 ct
             ).ConfigureAwait(false);
@@ -178,7 +178,7 @@ namespace OpcPublisher_AE_E2E_Tests.Standalone {
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, result1.Status);
-            var response = _serializer.Deserialize<GetConfiguredEndpointsResponseApiModel>(result1.JsonPayload);
+            var response = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
             Assert.Equal(0, response.Endpoints.Count);
         }
 

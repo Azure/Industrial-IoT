@@ -151,15 +151,24 @@ namespace Azure.IIoT.OpcUa.Api {
             CancellationToken ct = default);
 
         /// <summary>
+        /// Find the endpoint and server application information that
+        /// matches the endpoint query and register it in the registry.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="ct"></param>
+        /// <returns>New Endpoint identifier</returns>
+        Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
+            CancellationToken ct = default);
+
+        /// <summary>
         /// Get endpoint
         /// </summary>
         /// <param name="endpointId"></param>
         /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<EndpointInfoModel> GetEndpointAsync(
-            string endpointId, bool? onlyServerState = null,
-            CancellationToken ct = default);
+        Task<EndpointInfoModel> GetEndpointAsync(string endpointId,
+            bool? onlyServerState = null, CancellationToken ct = default);
 
         /// <summary>
         /// Get endpoint certificate

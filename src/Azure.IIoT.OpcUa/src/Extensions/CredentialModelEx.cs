@@ -42,6 +42,36 @@ namespace Azure.IIoT.OpcUa.Api.Models {
         }
 
         /// <summary>
+        /// Get password
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static string GetPassword(this CredentialModel model) {
+            if (model?.Type == CredentialType.UserName &&
+                model.Value != null && model.Value.IsObject &&
+                model.Value.TryGetProperty("password", out var password) &&
+                password.IsString) {
+                return (string)password;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get user name
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static string GetUserName(this CredentialModel model) {
+            if (model?.Type == CredentialType.UserName &&
+                model.Value != null && model.Value.IsObject &&
+                model.Value.TryGetProperty("user", out var user) &&
+                user.IsString) {
+                return (string)user;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Deep clone
         /// </summary>
         /// <param name="model"></param>

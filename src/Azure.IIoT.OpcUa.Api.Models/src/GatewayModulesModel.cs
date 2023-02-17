@@ -13,10 +13,24 @@ namespace Azure.IIoT.OpcUa.Api.Models {
     public record class GatewayModulesModel {
 
         /// <summary>
+        /// Supervisor identity if deployed
+        /// </summary>
+        [DataMember(Name = "supervisor", Order = 0,
+            EmitDefaultValue = false)]
+        public SupervisorModel Supervisor { get; set; }
+
+        /// <summary>
         /// Publisher identity if deployed
         /// </summary>
         [DataMember(Name = "publisher", Order = 1,
             EmitDefaultValue = false)]
         public PublisherModel Publisher { get; set; }
-   }
+
+        /// <summary>
+        /// Discoverer identity if deployed
+        /// </summary>
+        [DataMember(Name = "discoverer", Order = 2,
+            EmitDefaultValue = false)]
+        public DiscovererModel Discoverer { get; set; }
+    }
 }

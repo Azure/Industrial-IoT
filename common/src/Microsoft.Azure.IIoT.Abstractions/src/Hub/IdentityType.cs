@@ -15,21 +15,10 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         public const string Gateway = "iiotedge";
 
-
-        /// <summary>
-        /// Discoverer identity
-        /// </summary>
-        public const string Discoverer = "discoverer";
-
-        /// <summary>
-        /// Twin module identity
-        /// </summary>
-        public const string Supervisor = "supervisor";
-
         /// <summary>
         /// Publisher module identity
         /// </summary>
-        public const string Publisher = "publisher";
+        public const string Publisher = "publisher_v2";
 
         /// <summary>
         /// Endpoint identity

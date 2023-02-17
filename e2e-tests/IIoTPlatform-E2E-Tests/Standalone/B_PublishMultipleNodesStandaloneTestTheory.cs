@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.Standalone {
+    using Azure.IIoT.OpcUa.Api.Models;
     using IIoTPlatform_E2E_Tests.Deploy;
     using System;
     using System.Collections.Generic;

@@ -14,37 +14,6 @@ namespace Azure.IIoT.OpcUa.Api.Models {
     public static class DiscovererModelEx {
 
         /// <summary>
-        /// Convert a device id and module to discoverer id
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
-        public static string CreateDiscovererId(string deviceId, string moduleId) {
-            return string.IsNullOrEmpty(moduleId) ? deviceId : $"{deviceId}_module_{moduleId}";
-        }
-
-        /// <summary>
-        /// Returns device id and optional module from discoverer id.
-        /// </summary>
-        /// <param name="discovererId"></param>
-        /// <param name="moduleId"></param>
-        /// <returns></returns>
-        public static string ParseDeviceId(string discovererId, out string moduleId) {
-            if (string.IsNullOrEmpty(discovererId)) {
-                moduleId = null;
-                return null;
-            }
-            var components = discovererId.Split(new string[] { "_module_" },
-                StringSplitOptions.RemoveEmptyEntries);
-            if (components.Length == 2) {
-                moduleId = components[1];
-                return components[0];
-            }
-            moduleId = null;
-            return discovererId;
-        }
-
-        /// <summary>
         /// Equality comparison
         /// </summary>
         /// <param name="model"></param>

@@ -41,14 +41,8 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             if (IdentityType.Endpoint.EqualsIgnoreCase(type)) {
                 return twin.ToEndpointRegistration(onlyServerState);
             }
-            if (IdentityType.Supervisor.EqualsIgnoreCase(type)) {
-                return twin.ToSupervisorRegistration(onlyServerState);
-            }
             if (IdentityType.Publisher.EqualsIgnoreCase(type)) {
                 return twin.ToPublisherRegistration(onlyServerState);
-            }
-            if (IdentityType.Discoverer.EqualsIgnoreCase(type)) {
-                return twin.ToDiscovererRegistration(onlyServerState);
             }
             // ...
             return null;

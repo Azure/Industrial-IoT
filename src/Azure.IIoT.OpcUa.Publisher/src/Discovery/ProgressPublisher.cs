@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// </summary>
         /// <param name="progress"></param>
         protected override void Send(DiscoveryProgressModel progress) {
-            progress.DiscovererId = DiscovererModelEx.CreateDiscovererId(
+            progress.DiscovererId = PublisherModelEx.CreatePublisherId(
                 _identity.ProcessId, _identity.Id);
             base.Send(progress);
             _processor.TrySchedule(() => SendAsync(progress));

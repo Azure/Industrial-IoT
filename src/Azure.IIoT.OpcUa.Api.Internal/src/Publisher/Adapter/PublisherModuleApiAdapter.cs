@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
+    using Azure.IIoT.OpcUa.Api;
     using Azure.IIoT.OpcUa.Api.Models;
     using System;
     using System.Threading;
@@ -18,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        public PublisherModuleApiAdapter(IPublisherModuleApi client) {
+        public PublisherModuleApiAdapter(IDiscoveryApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -29,6 +30,6 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
             return result;
         }
 
-        private readonly IPublisherModuleApi _client;
+        private readonly IDiscoveryApi _client;
     }
 }

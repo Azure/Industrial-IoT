@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
+    using System.Drawing.Printing;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -23,9 +24,9 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public RegistryServiceClient(IHttpClient httpClient, IPublisherConfig config,
+        public RegistryServiceClient(IHttpClient httpClient, IServiceApiConfig config,
             ISerializer serializer) :
-            this(httpClient, config?.OpcUaPublisherServiceUrl, serializer) {
+            this(httpClient, config?.ServiceUrl, serializer) {
         }
 
         /// <summary>
@@ -387,6 +388,18 @@ namespace Azure.IIoT.OpcUa.Api.Clients {
                 $"{_serviceUri}/v2/applications?notSeenFor={notSeenFor}", Resource.Platform);
             var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
             response.Validate();
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
+            CancellationToken ct) {
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v2/endpoints", Resource.Platform);
+
+            _serializer.SerializeToRequest(request, query);
+            var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return _serializer.DeserializeResponse<string>(response);
         }
 
         /// <inheritdoc/>

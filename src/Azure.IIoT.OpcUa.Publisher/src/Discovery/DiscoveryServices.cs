@@ -33,10 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     /// <summary>
     /// Provides discovery services
     /// </summary>
-    public class DiscoveryServices : IDiscoveryServices, IScannerServices, IDisposable {
-
-        /// <inheritdoc/>
-        public DiscoveryMode Mode => _request.Mode;
+    public class DiscoveryServices : IDiscoveryServices, IServerDiscovery, IDisposable {
 
         /// <summary>
         /// Create services
@@ -63,9 +60,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         }
 
         /// <inheritdoc/>
-        public Task ConfigureAsync(DiscoveryMode mode, DiscoveryConfigModel config) {
-            _request = new DiscoveryRequest(mode, config);
-            return Task.CompletedTask;
+        public async Task<ApplicationRegistrationModel> FindServerAsync(
+            ServerEndpointQueryModel endpoint, CancellationToken ct) {
+
+            if (endpoint?.Url == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+
+            var discoveryUrl = new Uri(endpoint.DiscoveryUrl);
+
+            // Find endpoints at the real accessible ip address
+            var eps = await _client.FindEndpointsAsync(discoveryUrl, null,
+                ct).ConfigureAwait(false);
+
+            // Match endpoints
+            foreach (var ep in eps) {
+                if ((ep.Description.SecurityMode.ToServiceType() ?? SecurityMode.None)
+                    != (endpoint.SecurityMode ?? SecurityMode.None)) {
+                    // no match
+                    continue;
+                }
+                if (endpoint.SecurityPolicy != null &&
+                    endpoint.SecurityPolicy != ep.Description.SecurityPolicyUri) {
+                    // no match
+                    continue;
+                }
+                if (endpoint.Certificate != null &&
+                    endpoint.Certificate != ep.Description.ServerCertificate.ToThumbprint()) {
+                    // no match
+                    continue;
+                }
+                return ep.ToServiceModel(discoveryUrl.Host,
+                    _identity.SiteId, _identity.ProcessId, _identity.Id, _serializer);
+            }
+            throw new ResourceNotFoundException("Endpoints could not be found.");
+        }
+
+        /// <inheritdoc/>
+        public Task RegisterAsync(ServerRegistrationRequestModel request, CancellationToken ct) {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
@@ -114,14 +147,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         }
 
         /// <inheritdoc/>
-        public Task ScanAsync() {
-            kScanAsync.Inc();
-            // Fire timer now so that new request is scheduled
-            _timer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
         public void Dispose() {
             Try.Async(StopDiscoveryRequestProcessingAsync).Wait();
 
@@ -144,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                 }
 
                 // Add new discovery request
-                if (Mode != DiscoveryMode.Off) {
+                if (_request.Mode != DiscoveryMode.Off) {
                     // Push request
                     var task = _request.Clone();
                     if (_queue.TryAdd(task)) {
@@ -655,6 +680,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
 #endif
             log();
         }
+
 #if !NO_WATCHDOG
         private int _counter;
 #endif

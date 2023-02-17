@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Services {
+namespace Azure.IIoT.OpcUa.Services.Registry {
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Api.Models;
     using Autofac;
@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Services {
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
+    using Azure.IIoT.OpcUa.Services.Services;
 
     public class ApplicationRegistryTests {
 
@@ -33,7 +34,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -57,7 +57,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -81,7 +80,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -102,7 +100,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -123,7 +120,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -147,7 +143,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -170,7 +165,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -193,7 +187,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -216,7 +209,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -240,7 +232,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -265,7 +256,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -289,7 +279,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -312,7 +301,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -339,7 +327,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -370,7 +357,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -393,7 +379,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterType<IoTHubServices>().As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 
@@ -419,7 +404,6 @@ namespace Azure.IIoT.OpcUa.Services {
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
             })) {
                 IApplicationRegistry service = mock.Create<ApplicationRegistry>();
 

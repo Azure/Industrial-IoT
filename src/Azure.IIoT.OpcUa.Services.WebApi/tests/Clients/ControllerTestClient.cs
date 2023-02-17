@@ -22,9 +22,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients {
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
-        public ControllerTestClient(IHttpClient httpClient, IPublisherConfig config,
+        public ControllerTestClient(IHttpClient httpClient, IServiceApiConfig config,
             ISerializer serializer) {
-            _serviceUri = (config?.OpcUaPublisherServiceUrl ??
+            _serviceUri = (config?.ServiceUrl ??
                 throw new ArgumentNullException(nameof(config))).TrimEnd('/') + "/twin";
             _httpClient = httpClient ??
                 throw new ArgumentNullException(nameof(httpClient));

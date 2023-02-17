@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        public HistoryRawSupervisorAdapter(IHistoryModuleApi client) {
+        public HistoryRawSupervisorAdapter(IHistoryRawApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -48,6 +48,6 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
             return result;
         }
 
-        private readonly IHistoryModuleApi _client;
+        private readonly IHistoryRawApi _client;
     }
 }
