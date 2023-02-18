@@ -209,7 +209,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 /// <inheritdoc/>
                 public string MessageSchema {
                     get {
-                        return _msg.Properties.GetValueOrDefault(CommonProperties.EventSchemaType);
+                        if (_msg.Properties.TryGetValue(CommonProperties.EventSchemaType, out var value)) {
+                            return value;
+                        }
+                        return null;
                     }
                     set {
                         if (!string.IsNullOrWhiteSpace(value)) {
@@ -221,7 +224,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 /// <inheritdoc/>
                 public string RoutingInfo {
                     get {
-                        return _msg.Properties.GetValueOrDefault(CommonProperties.RoutingInfo);
+                        if (_msg.Properties.TryGetValue(CommonProperties.RoutingInfo, out var value)) {
+                            return value;
+                        }
+                        return null;
                     }
                     set {
                         if (!string.IsNullOrWhiteSpace(value)) {
