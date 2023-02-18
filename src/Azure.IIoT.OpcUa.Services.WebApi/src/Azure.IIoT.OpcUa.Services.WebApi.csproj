@@ -18,7 +18,6 @@
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Processor\src\Microsoft.Azure.IIoT.Hub.Processor.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Api.Internal\src\Azure.IIoT.OpcUa.Api.Internal.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Services\src\Azure.IIoT.OpcUa.Services.csproj" />
   </ItemGroup>
   <ItemGroup>

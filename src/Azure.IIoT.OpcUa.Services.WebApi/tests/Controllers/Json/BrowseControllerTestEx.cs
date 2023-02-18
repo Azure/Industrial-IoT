@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers.Json {
             var log = _factory.Resolve<ILogger>();
             var serializer = _factory.Resolve<IJsonSerializer>();
             return new BrowseServicesTests<string>(() => // Create an adapter over the api
-                new TwinServicesApiAdapter(
+                new TwinWebApiAdapter(
                     new ControllerTestClient(
                        new HttpClient(_factory, log), new TestConfig(client.BaseAddress),
                             serializer)), endpointId);

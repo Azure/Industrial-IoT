@@ -12,13 +12,13 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
     /// <summary>
     /// Implements node and publish services as adapter on top of api.
     /// </summary>
-    public sealed class PublisherServicesApiAdapter : IPublishServices<string> {
+    public sealed class PublisherWebApiAdapter : IPublishServices<string> {
 
         /// <summary>
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        public PublisherServicesApiAdapter(IPublisherServiceApi client) {
+        public PublisherWebApiAdapter(IPublisherServiceApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 

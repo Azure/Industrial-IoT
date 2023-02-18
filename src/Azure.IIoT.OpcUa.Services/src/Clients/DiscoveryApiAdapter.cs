@@ -13,14 +13,14 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
     /// <summary>
     /// Implements discovery services as adapter on top of discovery api.
     /// </summary>
-    public sealed class DiscoveryModuleApiAdapter : IDiscoveryServices,
+    public sealed class DiscoveryApiAdapter : IDiscoveryServices,
         IServerDiscovery {
 
         /// <summary>
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        public DiscoveryModuleApiAdapter(IDiscoveryApi client) {
+        public DiscoveryApiAdapter(IDiscoveryApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 

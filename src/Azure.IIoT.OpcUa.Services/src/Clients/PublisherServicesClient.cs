@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
     /// <summary>
     /// Adapt the api to endpoint identifiers which are looked up through the registry.
     /// </summary>
-    public sealed class PublisherClient : IConnectionServices<string>,
+    public sealed class PublisherServicesClient : IConnectionServices<string>,
         ICertificateServices<string>, IBrowseServices<string>, INodeServices<string>,
         IHistoricAccessServices<string>, IPublishServices<string> {
 
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         /// <param name="endpoints"></param>
         /// <param name="client"></param>
         /// <param name="serializer"></param>
-        public PublisherClient(IEndpointRegistry endpoints, IMethodClient client,
+        public PublisherServicesClient(IEndpointRegistry endpoints, IMethodClient client,
             IJsonSerializer serializer) {
             _endpoints = endpoints ?? throw new ArgumentNullException(nameof(endpoints));
             _client = client ?? throw new ArgumentNullException(nameof(client));
@@ -271,7 +271,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
             var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
             var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
                 out var moduleId);
-            var client = new PublisherApiClient(_client, deviceId, moduleId, _serializer);
+            var client = new Api.Clients.PublisherApiClient(_client, deviceId, moduleId, _serializer);
             return await client.NodePublishStartAsync(new ConnectionModel {
                 Endpoint = endpoint.Registration.Endpoint,
                 User = request.Header?.Elevation
@@ -287,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
             var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
             var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
                 out var moduleId);
-            var client = new PublisherApiClient(_client, deviceId, moduleId, _serializer);
+            var client = new Api.Clients.PublisherApiClient(_client, deviceId, moduleId, _serializer);
             return await client.NodePublishStopAsync(new ConnectionModel {
                 Endpoint = endpoint.Registration.Endpoint,
                 User = request.Header?.Elevation
@@ -303,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
             var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
             var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
                 out var moduleId);
-            var client = new PublisherApiClient(_client, deviceId, moduleId, _serializer);
+            var client = new Api.Clients.PublisherApiClient(_client, deviceId, moduleId, _serializer);
             return await client.NodePublishBulkAsync(new ConnectionModel {
                 Endpoint = endpoint.Registration.Endpoint,
                 User = request.Header?.Elevation
@@ -319,7 +319,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
             var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
             var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
                 out var moduleId);
-            var client = new PublisherApiClient(_client, deviceId, moduleId, _serializer);
+            var client = new Api.Clients.PublisherApiClient(_client, deviceId, moduleId, _serializer);
             return await client.NodePublishListAsync(new ConnectionModel {
                 Endpoint = endpoint.Registration.Endpoint,
                 User = request.Header?.Elevation

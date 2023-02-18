@@ -13,14 +13,14 @@ namespace Azure.IIoT.OpcUa.Api.Registry.Adapter {
     /// <summary>
     /// Registry services adapter to run dependent services outside of cloud.
     /// </summary>
-    public sealed class RegistryServicesApiAdapter : IEndpointRegistry, ISupervisorRegistry,
+    public sealed class RegistryWebApiAdapter : IEndpointRegistry, ISupervisorRegistry,
         IApplicationRegistry, IPublisherRegistry, IDiscoveryServices, IEndpointManager {
 
         /// <summary>
         /// Create registry services
         /// </summary>
         /// <param name="client"></param>
-        public RegistryServicesApiAdapter(IRegistryServiceApi client) {
+        public RegistryWebApiAdapter(IRegistryServiceApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 

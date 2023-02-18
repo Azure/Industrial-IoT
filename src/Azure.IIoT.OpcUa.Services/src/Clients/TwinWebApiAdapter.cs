@@ -12,14 +12,14 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
     /// <summary>
     /// Implements node services as adapter on top of api.
     /// </summary>
-    public sealed class TwinServicesApiAdapter : IBrowseServices<string>,
+    public sealed class TwinWebApiAdapter : IBrowseServices<string>,
         INodeServices<string> {
 
         /// <summary>
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        public TwinServicesApiAdapter(ITwinServiceApi client) {
+        public TwinWebApiAdapter(ITwinServiceApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 

@@ -8,7 +8,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Testing\src\Azure.IIoT.OpcUa.Testing.csproj" />
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher\src\Azure.IIoT.OpcUa.Publisher.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Module.csproj" />

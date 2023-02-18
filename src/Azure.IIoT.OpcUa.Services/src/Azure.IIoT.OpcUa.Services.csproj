@@ -8,7 +8,7 @@
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Api.Internal\src\Azure.IIoT.OpcUa.Api.Internal.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Api\src\Azure.IIoT.OpcUa.Api.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Protocol\src\Azure.IIoT.OpcUa.Protocol.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>

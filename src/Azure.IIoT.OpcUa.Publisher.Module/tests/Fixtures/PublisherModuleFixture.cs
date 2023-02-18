@@ -206,15 +206,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             builder.RegisterType<DiscoveryApiClient>()
                 .AsImplementedInterfaces();
 
-            builder.RegisterType<HistoryRawSupervisorAdapter>()
+            builder.RegisterType<HistoryRawAdapter>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<TwinModuleApiAdapter>()
+            builder.RegisterType<TwinApiAdapter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<HistorianApiAdapter<ConnectionModel>>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<PublisherModuleApiAdapter>()
+            builder.RegisterType<PublisherApiAdapter>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryModuleApiAdapter>()
+            builder.RegisterType<DiscoveryApiAdapter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();

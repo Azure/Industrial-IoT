@@ -201,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
                 .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<PublisherClient>()
+            builder.RegisterType<PublisherServicesClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<HistorianApiAdapter<string>>()
                 .AsImplementedInterfaces();

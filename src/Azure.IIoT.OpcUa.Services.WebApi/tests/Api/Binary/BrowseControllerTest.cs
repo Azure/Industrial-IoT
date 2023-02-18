@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
             var log = _factory.Resolve<ILogger>();
             var serializer = _factory.Resolve<IBinarySerializer>();
             return new BrowseServicesTests<string>(() => // Create an adapter over the api
-                new TwinServicesApiAdapter(
+                new TwinWebApiAdapter(
                     new TwinServiceClient(new HttpClient(_factory, log),
                     new TestConfig(client.BaseAddress), serializer)), endpointId);
         }

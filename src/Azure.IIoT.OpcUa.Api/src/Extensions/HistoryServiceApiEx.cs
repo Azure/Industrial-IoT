@@ -4,13 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Api {
-#if ZOMBIE
+    using Azure.IIoT.OpcUa.Api.Models;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Twin service api extensions
     /// </summary>
     public static class HistoryServiceApiEx {
-#if ZOMBIE
 
         /// <summary>
         /// Read all historic values
@@ -26,8 +28,6 @@ namespace Azure.IIoT.OpcUa.Api {
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable());
         }
-#endif
-#if ZOMBIE
 
         /// <summary>
         /// Read entire list of modified values
@@ -43,8 +43,6 @@ namespace Azure.IIoT.OpcUa.Api {
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable());
         }
-#endif
-#if ZOMBIE
 
         /// <summary>
         /// Read entire historic values at specific datum
@@ -60,8 +58,6 @@ namespace Azure.IIoT.OpcUa.Api {
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable());
         }
-#endif
-#if ZOMBIE
 
         /// <summary>
         /// Read entire processed historic values
@@ -77,8 +73,6 @@ namespace Azure.IIoT.OpcUa.Api {
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable());
         }
-#endif
-#if ZOMBIE
 
         /// <summary>
         /// Read entire event history
@@ -94,8 +88,6 @@ namespace Azure.IIoT.OpcUa.Api {
             return await HistoryReadAllRemainingEventsAsync(client, endpointId, request.Header,
                 result.ContinuationToken, result.History.AsEnumerable());
         }
-#endif
-
 
         /// <summary>
         /// Read all remaining values
@@ -142,7 +134,5 @@ namespace Azure.IIoT.OpcUa.Api {
             }
             return returning;
         }
-
     }
-#endif
 }

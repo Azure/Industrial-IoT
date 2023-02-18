@@ -14,13 +14,13 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
     /// <summary>
     /// Implements historic access services as adapter on top of supervisor api.
     /// </summary>
-    public sealed class HistoryRawSupervisorAdapter : IHistoricAccessServices<ConnectionModel> {
+    public sealed class HistoryRawAdapter : IHistoricAccessServices<ConnectionModel> {
 
         /// <summary>
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        public HistoryRawSupervisorAdapter(IHistoryRawApi client) {
+        public HistoryRawAdapter(IHistoryRawApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 

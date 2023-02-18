@@ -13,9 +13,6 @@
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Http.SignalR\src\Microsoft.Azure.IIoT.Http.SignalR.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Api.Internal\src\Azure.IIoT.OpcUa.Api.Internal.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Api.csproj" />
   </ItemGroup>
 </Project>

@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
     /// <summary>
     /// Implement the discovery services through all registered publishers
     /// </summary>
-    public sealed class DiscoveryClient : IDiscoveryServices, IServerDiscovery {
+    public sealed class DiscoveryServicesClient : IDiscoveryServices, IServerDiscovery {
 
         /// <summary>
         /// Create endpoint registry
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         /// <param name="client"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public DiscoveryClient(IPublisherRegistry publishers, IMethodClient client,
+        public DiscoveryServicesClient(IPublisherRegistry publishers, IMethodClient client,
             IJsonSerializer serializer, ILogger logger) {
             _publishers = publishers ?? throw new ArgumentNullException(nameof(publishers));
             _client = client ?? throw new ArgumentNullException(nameof(client));

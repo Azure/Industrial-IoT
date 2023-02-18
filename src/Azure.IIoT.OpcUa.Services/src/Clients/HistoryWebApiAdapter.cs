@@ -12,13 +12,13 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
     /// <summary>
     /// Implements historian services as adapter on top of api.
     /// </summary>
-    public sealed class HistoryServicesApiAdapter : IHistorianServices<string> {
+    public sealed class HistoryWebApiAdapter : IHistorianServices<string> {
 
         /// <summary>
         /// Create service
         /// </summary>
         /// <param name="client"></param>
-        public HistoryServicesApiAdapter(IHistoryServiceApi client) {
+        public HistoryWebApiAdapter(IHistoryServiceApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 

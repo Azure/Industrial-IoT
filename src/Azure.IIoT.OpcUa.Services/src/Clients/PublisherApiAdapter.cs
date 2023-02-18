@@ -13,13 +13,13 @@ namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
     /// <summary>
     /// Implements node services as adapter on top of twin api.
     /// </summary>
-    public sealed class PublisherModuleApiAdapter : ICertificateServices<EndpointModel> {
+    public sealed class PublisherApiAdapter : ICertificateServices<EndpointModel> {
 
         /// <summary>
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        public PublisherModuleApiAdapter(IDiscoveryApi client) {
+        public PublisherApiAdapter(IDiscoveryApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
