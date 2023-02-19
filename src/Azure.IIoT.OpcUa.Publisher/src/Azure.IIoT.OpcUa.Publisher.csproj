@@ -16,7 +16,7 @@
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Module.Framework\src\Microsoft.Azure.IIoT.Hub.Module.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Protocol\src\Azure.IIoT.OpcUa.Protocol.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Encoders\src\Azure.IIoT.OpcUa.Encoders.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
 </Project>

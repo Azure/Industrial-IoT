@@ -19,7 +19,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Protocol.csproj" />
+    <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Encoders.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />

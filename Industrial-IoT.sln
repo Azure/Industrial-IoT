@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Testing", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Services", "src\Azure.IIoT.OpcUa.Services\src\Azure.IIoT.OpcUa.Services.csproj", "{8A464F2F-C1C0-4DDF-AE47-015C4545C609}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Protocol", "src\Azure.IIoT.OpcUa.Protocol\src\Azure.IIoT.OpcUa.Protocol.csproj", "{F18FDD31-4310-40C6-9E8A-E98E03721939}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Encoders", "src\Azure.IIoT.OpcUa.Encoders\src\Azure.IIoT.OpcUa.Encoders.csproj", "{F18FDD31-4310-40C6-9E8A-E98E03721939}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Abstractions", "common\src\Microsoft.Azure.IIoT.Abstractions\src\Microsoft.Azure.IIoT.Abstractions.csproj", "{F34353F1-AB1D-4740-9D91-D266E46F6FD6}"
 EndProject
@@ -39,7 +39,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Services.T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Testing.Cli", "src\Azure.IIoT.OpcUa.Testing\cli\Azure.IIoT.OpcUa.Testing.Cli.csproj", "{23029DA0-F9B3-46CC-B279-1BBA855D1996}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Protocol.Tests", "src\Azure.IIoT.OpcUa.Protocol\tests\Azure.IIoT.OpcUa.Protocol.Tests.csproj", "{CE5A3795-B3A9-4AEA-9319-B594E2794A0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Encoders.Tests", "src\Azure.IIoT.OpcUa.Encoders\tests\Azure.IIoT.OpcUa.Encoders.Tests.csproj", "{CE5A3795-B3A9-4AEA-9319-B594E2794A0F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Core.Tests", "common\src\Microsoft.Azure.IIoT.Core\tests\Microsoft.Azure.IIoT.Core.Tests.csproj", "{C093A5D1-56DB-4A54-9E81-4A644B6238EF}"
 EndProject

@@ -9,7 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Sdk\src\Azure.IIoT.OpcUa.Publisher.Sdk.csproj" />
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Protocol\src\Azure.IIoT.OpcUa.Protocol.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Encoders\src\Azure.IIoT.OpcUa.Encoders.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
   <ItemGroup>
