@@ -3,7 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+    using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa;
+    using Opc.Ua;
     using System;
     using System.Diagnostics;
     using System.IO;

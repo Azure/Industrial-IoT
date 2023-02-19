@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Encoders {
-    using Opc.Ua.Models;
+namespace Azure.IIoT.OpcUa.Encoders {
+    using Azure.IIoT.OpcUa.Encoders.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Opc.Ua;
     using System;
     using System.Globalization;
     using System.Linq;
@@ -414,7 +415,7 @@ namespace Opc.Ua.Encoders {
                 LastMethodReturnStatus =
                     StatusCodes.BadAggregateConfigurationRejected,
                 LastMethodSessionId = new NodeId(
-                    Utils.Nonce.CreateNonce(32)),
+                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
                 LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
             };
 
@@ -467,7 +468,7 @@ namespace Opc.Ua.Encoders {
                 LastMethodReturnStatus =
                     StatusCodes.BadAggregateConfigurationRejected,
                 LastMethodSessionId = new NodeId(
-                    Utils.Nonce.CreateNonce(32)),
+                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
                 LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
             };
             var expected = new ExtensionObject(type);

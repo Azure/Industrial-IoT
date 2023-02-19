@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Edge.History {
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Twin;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;

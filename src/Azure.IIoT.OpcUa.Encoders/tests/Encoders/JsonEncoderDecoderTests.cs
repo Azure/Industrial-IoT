@@ -3,7 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Encoders {
+namespace Azure.IIoT.OpcUa.Encoders {
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.Models;
+    using Opc.Ua;
     using System;
     using System.IO;
     using Xunit;
@@ -55,7 +58,7 @@ namespace Opc.Ua.Encoders {
                 LastMethodReturnStatus =
                     StatusCodes.BadAggregateConfigurationRejected,
                 LastMethodSessionId = new NodeId(
-                    Utils.Nonce.CreateNonce(32)),
+                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
                 LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
             };
 

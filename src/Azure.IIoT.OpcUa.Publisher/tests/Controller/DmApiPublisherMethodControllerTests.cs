@@ -4,20 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
-    using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Azure.IIoT.OpcUa.Protocol;
-    using Autofac;
     using FluentAssertions;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Models;
     using Moq;
-    using Publisher.Engine;
+    using Publisher.Services;
     using Serilog;
     using System;
     using System.Collections.Generic;

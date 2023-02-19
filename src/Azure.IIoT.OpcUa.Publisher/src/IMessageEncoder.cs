@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher {
-    using Azure.IIoT.OpcUa.Protocol.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Collections.Generic;

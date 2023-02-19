@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.PubSub {
+namespace Azure.IIoT.OpcUa.Encoders.PubSub {
 
     /// <summary>
     /// Message type

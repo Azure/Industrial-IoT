@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter;
     using Azure.IIoT.OpcUa.Services.Clients;
-    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Autofac;
     using Microsoft.Azure.IIoT.Http.Default;

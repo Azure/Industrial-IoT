@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Controllers.Json {
     using Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter;
-    using Azure.IIoT.OpcUa.Protocol;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.Http.Default;

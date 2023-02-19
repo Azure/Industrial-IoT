@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Protocol.Sample {
-    using Azure.IIoT.OpcUa.Publisher.Protocol;
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample {
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Server;

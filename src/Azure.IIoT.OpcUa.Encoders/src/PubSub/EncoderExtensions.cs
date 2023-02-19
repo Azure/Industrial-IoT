@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.PubSub {
-    using Opc.Ua.Encoders;
+namespace Azure.IIoT.OpcUa.Encoders.PubSub {
     using Newtonsoft.Json.Linq;
     using System;
+    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// Encoder extensions

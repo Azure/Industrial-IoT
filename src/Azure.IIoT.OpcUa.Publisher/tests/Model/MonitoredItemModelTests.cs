@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Model {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Azure.IIoT.OpcUa.Protocol.Models;
     using System;
     using System.Collections.Generic;
     using Xunit;

@@ -7,12 +7,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Discovery;
-    using Azure.IIoT.OpcUa.Publisher.Engine;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Twin;
-    using Azure.IIoT.OpcUa.Protocol;
-    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
@@ -30,6 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
 
     /// <summary>
     /// Publisher module
@@ -63,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
 
             if (Host.IsContainer) {
                 // Set timer to kill the entire process after 5 minutes.
-                new Timer(o => {
+                _ = new Timer(o => {
                     Log.Logger.Fatal("Killing non responsive module process!");
                     Process.GetCurrentProcess().Kill();
                 }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
@@ -188,7 +189,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<TwinMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<HistoryMethodsController>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<DiscoveryMethodsController>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<PublisherSettingsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             builder.RegisterType<RuntimeStateReporter>()

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Extensions {
-    using Opc.Ua.Models;
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using System;
     using System.Globalization;
     using System.Linq;

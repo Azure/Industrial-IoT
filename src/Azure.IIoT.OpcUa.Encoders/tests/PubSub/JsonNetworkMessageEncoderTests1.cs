@@ -3,10 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.PubSub.Tests {
-    using Opc.Ua.Encoders;
+namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using Xunit;

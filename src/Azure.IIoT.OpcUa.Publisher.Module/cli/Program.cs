@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
-    using Azure.IIoT.OpcUa.Protocol.Sample;
-    using Azure.IIoT.OpcUa.Protocol.Services;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;

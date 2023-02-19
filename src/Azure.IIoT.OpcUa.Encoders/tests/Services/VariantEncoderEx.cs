@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Protocol {
+namespace Azure.IIoT.OpcUa.Encoders {
     using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
 

@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Protocol.Services {
+namespace Azure.IIoT.OpcUa.Encoders {
     using Autofac.Extras.Moq;
-    using Azure.IIoT.OpcUa.Protocol.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;

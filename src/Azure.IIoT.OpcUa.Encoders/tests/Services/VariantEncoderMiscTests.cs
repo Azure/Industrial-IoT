@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Protocol.Services {
+namespace Azure.IIoT.OpcUa.Encoders {
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System.Xml;

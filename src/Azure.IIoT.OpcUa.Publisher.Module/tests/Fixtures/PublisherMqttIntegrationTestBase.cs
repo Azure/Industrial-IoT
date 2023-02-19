@@ -4,18 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
+    using Autofac;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.Engine;
-    using Azure.IIoT.OpcUa.Publisher.State;
-    using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
+    using Azure.IIoT.OpcUa.Publisher.State;
+    using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Azure.IIoT.OpcUa.Protocol;
-    using Azure.IIoT.OpcUa.Protocol.Services;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Autofac;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;

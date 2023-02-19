@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
     using Azure.IIoT.OpcUa.Services.Clients;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
-    using Azure.IIoT.OpcUa.Protocol.Services;
     using Azure.IIoT.OpcUa.Services;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
@@ -39,6 +38,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using System;
     using Azure.IIoT.OpcUa.Services.Registry;
     using Azure.IIoT.OpcUa.Services.Events;
+    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// Webservice startup

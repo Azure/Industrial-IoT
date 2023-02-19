@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Handlers {
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Hub;
     using Opc.Ua;
-    using Opc.Ua.PubSub;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex,"Publishing messages failed - skip");
+                _logger.Error(ex, "Publishing messages failed - skip");
             }
         }
 

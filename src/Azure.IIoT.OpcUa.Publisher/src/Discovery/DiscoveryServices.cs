@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Transport;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Azure.IIoT.OpcUa.Protocol;
-    using Azure.IIoT.OpcUa.Protocol.Models;
-    using Azure.IIoT.OpcUa.Protocol.Transport.Probe;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -525,7 +525,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                             discoveryUrl, se.Message);
                         return list;
                     }
-                    catch (Exception e){
+                    catch (Exception e) {
                         _logger.Error(e, "Failed to resolve the host for {discoveryUrl}", discoveryUrl);
                         return list;
                     }

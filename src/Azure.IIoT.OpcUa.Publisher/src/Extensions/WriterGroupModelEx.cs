@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
     using Azure.IIoT.OpcUa.Publisher;
-    using Azure.IIoT.OpcUa.Publisher.Runtime;
 
     /// <summary>
     /// Extensions for data set writer
