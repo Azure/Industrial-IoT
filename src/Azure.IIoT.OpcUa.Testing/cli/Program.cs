@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Cli {
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Protocol.Sample;
     using Azure.IIoT.OpcUa.Protocol.Services;
     using Azure.IIoT.OpcUa.Publisher.Twin;
@@ -269,7 +269,7 @@ Operations (Mutually exclusive):
                                         continue; // We have read this one already
                                     }
                                     if (!r.Target.NodeClass.HasValue ||
-                                        r.Target.NodeClass.Value != Api.Models.NodeClass.Variable) {
+                                        r.Target.NodeClass.Value != Shared.Models.NodeClass.Variable) {
                                         continue;
                                     }
                                     if (!silent) {

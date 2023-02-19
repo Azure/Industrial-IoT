@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Events {
-    using Azure.IIoT.OpcUa.Api;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Publisher.Sdk;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Threading.Tasks;

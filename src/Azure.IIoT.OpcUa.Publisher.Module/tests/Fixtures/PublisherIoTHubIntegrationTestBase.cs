@@ -8,9 +8,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Engine;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Api;
-    using Azure.IIoT.OpcUa.Api.Clients;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Publisher.Sdk;
+    using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Protocol.Services;
     using Azure.IIoT.OpcUa.Testing.Fixtures;

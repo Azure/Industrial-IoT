@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Protocol;
     using Autofac;
     using FluentAssertions;

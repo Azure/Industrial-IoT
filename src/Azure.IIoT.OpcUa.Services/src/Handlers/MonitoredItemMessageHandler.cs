@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Handlers {
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Hub;

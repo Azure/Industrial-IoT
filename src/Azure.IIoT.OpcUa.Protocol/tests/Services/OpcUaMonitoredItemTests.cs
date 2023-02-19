@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Protocol.Services {
     using Azure.IIoT.OpcUa.Protocol.Models;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Protocol.Services {
                 AttributeId = (NodeAttribute)Attributes.Value,
                 IndexRange = "5:20",
                 RelativePath = new[] { "RelativePath1", "RelativePath2" },
-                MonitoringMode = Api.Models.MonitoringMode.Sampling,
+                MonitoringMode = Shared.Models.MonitoringMode.Sampling,
                 StartNodeId = "i=2258",
                 DataSetClassFieldId = Guid.NewGuid(),
                 QueueSize = 10,
@@ -121,8 +121,8 @@ namespace Azure.IIoT.OpcUa.Protocol.Services {
         public void SetDataChangeFilterWhenBaseTemplateIsDataTemplate() {
             var template = new DataMonitoredItemModel {
                 DataChangeFilter = new DataChangeFilterModel {
-                    DataChangeTrigger = Api.Models.DataChangeTriggerType.StatusValue,
-                    DeadbandType = Api.Models.DeadbandType.Percent,
+                    DataChangeTrigger = Shared.Models.DataChangeTriggerType.StatusValue,
+                    DeadbandType = Shared.Models.DeadbandType.Percent,
                     DeadbandValue = 10.0
                 }
             };

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
-    using Azure.IIoT.OpcUa.Api;
+    using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Services.Sdk;
     using System;
 

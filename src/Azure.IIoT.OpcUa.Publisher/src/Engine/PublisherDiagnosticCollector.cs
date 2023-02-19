@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Engine {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Autofac;
     using Serilog;
     using System;

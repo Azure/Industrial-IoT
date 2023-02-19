@@ -5,7 +5,7 @@
     <Description>Azure Industrial IoT OPC UA Abstractions</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Api.Models\src\Azure.IIoT.OpcUa.Api.Models.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Shared\src\Azure.IIoT.OpcUa.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />

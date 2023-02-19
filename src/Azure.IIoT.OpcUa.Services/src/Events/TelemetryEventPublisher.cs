@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Api.Publisher.Clients {
-    using Azure.IIoT.OpcUa.Api;
-    using Azure.IIoT.OpcUa.Api.Models;
+namespace Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients {
+    using Azure.IIoT.OpcUa.Publisher.Sdk;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Services.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using System;

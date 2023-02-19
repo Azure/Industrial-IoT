@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Protocol {
     using Azure.IIoT.OpcUa.Protocol.Models;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
     using Opc.Ua.Encoders;
@@ -127,8 +127,8 @@ namespace Azure.IIoT.OpcUa.Protocol {
         /// <returns></returns>
         private static VariantValue Write(this IVariantEncoder codec,
             List<OperationResultModel> results, DiagnosticsModel config) {
-            var level = config?.Level ?? Api.Models.DiagnosticsLevel.Status;
-            if (level == Api.Models.DiagnosticsLevel.None) {
+            var level = config?.Level ?? Shared.Models.DiagnosticsLevel.Status;
+            if (level == Shared.Models.DiagnosticsLevel.None) {
                 return null;
             }
             using (var stream = new MemoryStream()) {
@@ -138,11 +138,11 @@ namespace Azure.IIoT.OpcUa.Protocol {
                     IgnoreDefaultValues = true
                 }) {
                     switch (level) {
-                        case Api.Models.DiagnosticsLevel.Diagnostics:
-                        case Api.Models.DiagnosticsLevel.Verbose:
+                        case Shared.Models.DiagnosticsLevel.Diagnostics:
+                        case Shared.Models.DiagnosticsLevel.Verbose:
                             encoder.WriteEncodeableArray(root, results.ToArray(), typeof(OperationResultModel));
                             break;
-                        case Api.Models.DiagnosticsLevel.Operations:
+                        case Shared.Models.DiagnosticsLevel.Operations:
                             var codes = results
                                 .GroupBy(d => d.StatusCode.CodeBits);
                             root = null;
@@ -151,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Protocol {
                                     code.Select(c => c.Operation).ToArray());
                             }
                             break;
-                        case Api.Models.DiagnosticsLevel.Status:
+                        case Shared.Models.DiagnosticsLevel.Status:
                             var statusCodes = results
                                 .Select(d => StatusCode.LookupSymbolicId(d.StatusCode.CodeBits))
                                 .Where(s => !string.IsNullOrEmpty(s))

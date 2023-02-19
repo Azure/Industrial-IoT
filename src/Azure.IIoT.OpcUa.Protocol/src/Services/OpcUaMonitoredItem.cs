@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Protocol.Services {
     using Azure.IIoT.OpcUa.Protocol.Models;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Text;
     using System.Threading;
+    using MonitoringMode = Shared.Models.MonitoringMode;
     using Timer = System.Timers.Timer;
 
     /// <summary>
@@ -295,13 +296,13 @@ namespace Azure.IIoT.OpcUa.Protocol.Services {
                 Item.QueueSize = Template.QueueSize;
                 itemChange = true;
             }
-            if (Template.MonitoringMode.GetValueOrDefault(Api.Models.MonitoringMode.Reporting) !=
-                model.Template.MonitoringMode.GetValueOrDefault(Api.Models.MonitoringMode.Reporting)) {
+            if (Template.MonitoringMode.GetValueOrDefault(MonitoringMode.Reporting) !=
+                model.Template.MonitoringMode.GetValueOrDefault(MonitoringMode.Reporting)) {
                 _logger.Debug("{item}: Changing monitoring mode from {old} to {new}",
-                    this, Template.MonitoringMode.GetValueOrDefault(Api.Models.MonitoringMode.Reporting),
-                    model.Template.MonitoringMode.GetValueOrDefault(Api.Models.MonitoringMode.Reporting));
+                    this, Template.MonitoringMode.GetValueOrDefault(MonitoringMode.Reporting),
+                    model.Template.MonitoringMode.GetValueOrDefault(MonitoringMode.Reporting));
                 Template.MonitoringMode = model.Template.MonitoringMode;
-                _modeChange = Template.MonitoringMode.GetValueOrDefault(Api.Models.MonitoringMode.Reporting);
+                _modeChange = Template.MonitoringMode.GetValueOrDefault(MonitoringMode.Reporting);
             }
 
             if (Template.DisplayName != model.Template.DisplayName) {
@@ -1141,7 +1142,7 @@ namespace Azure.IIoT.OpcUa.Protocol.Services {
         private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
         private Timer _conditionTimer;
         private DateTime _lastSentPendingConditions = DateTime.UtcNow;
-        private Api.Models.MonitoringMode? _modeChange;
+        private MonitoringMode? _modeChange;
         private readonly ILogger _logger;
         private readonly object _lock = new object();
     }

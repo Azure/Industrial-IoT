@@ -15,6 +15,6 @@
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Api.Models\src\Azure.IIoT.OpcUa.Api.Models.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Shared\src\Azure.IIoT.OpcUa.Shared.csproj" />
   </ItemGroup>
 </Project>

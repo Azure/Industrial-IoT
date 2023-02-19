@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
     using Azure.IIoT.OpcUa.Services.Clients;
-    using Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
     using Azure.IIoT.OpcUa.Protocol.Services;
     using Azure.IIoT.OpcUa.Services;
     using Autofac;

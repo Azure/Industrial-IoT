@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Protocol.Services {
     using Azure.IIoT.OpcUa.Protocol.Models;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
@@ -597,7 +597,7 @@ namespace Azure.IIoT.OpcUa.Protocol.Services {
                             monitoredItem.Item.Status.Error.StatusCode,
                             Name,
                             Connection.CreateConnectionId());
-                        monitoredItem.Template.MonitoringMode = Api.Models.MonitoringMode.Disabled;
+                        monitoredItem.Template.MonitoringMode = Shared.Models.MonitoringMode.Disabled;
                         noErrorFound = false;
                     }
                 }
@@ -617,7 +617,7 @@ namespace Azure.IIoT.OpcUa.Protocol.Services {
                         (monitoredItem.Item.Status.Error != null &&
                         StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode))) {
 
-                        monitoredItem.Template.MonitoringMode = Api.Models.MonitoringMode.Disabled;
+                        monitoredItem.Template.MonitoringMode = Shared.Models.MonitoringMode.Disabled;
                         noErrorFound = false;
                         applyChanges = true;
                     }
@@ -703,7 +703,7 @@ namespace Azure.IIoT.OpcUa.Protocol.Services {
                                         Name,
                                         Connection.CreateConnectionId(),
                                         results[i].StatusCode);
-                                    changeList[i].Template.MonitoringMode = Api.Models.MonitoringMode.Disabled;
+                                    changeList[i].Template.MonitoringMode = Shared.Models.MonitoringMode.Disabled;
                                     changeList[i].Item.MonitoringMode = Opc.Ua.MonitoringMode.Disabled;
                                 }
                             }

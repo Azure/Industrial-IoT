@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Extensions;
     using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.AspNetCore.Components;
-    using global::Azure.IIoT.OpcUa.Api.Models;
+    using global::Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using System.Linq;
     using System.Threading.Tasks;

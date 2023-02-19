@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Api.Models {
-    using Azure.IIoT.OpcUa.Services.Models;
+namespace Azure.IIoT.OpcUa.Services.Models {
+    using Azure.IIoT.OpcUa.Shared.Models;
     using AutoFixture;
     using AutoFixture.Kernel;
     using Microsoft.Azure.IIoT.Hub;

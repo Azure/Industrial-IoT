@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Services.Services {
     using Azure.IIoT.OpcUa.Services.Models;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;

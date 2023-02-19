@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Protocol {
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Protocol {
             return new RequestHeader {
                 AuditEntryId = diagnostics?.AuditId ?? Guid.NewGuid().ToString(),
                 ReturnDiagnostics =
-                    (uint)(diagnostics?.Level ?? Api.Models.DiagnosticsLevel.None)
+                    (uint)(diagnostics?.Level ?? Shared.Models.DiagnosticsLevel.None)
                      .ToStackType(),
                 Timestamp = diagnostics?.TimeStamp ?? DateTime.UtcNow,
                 TimeoutHint = timeoutHint,

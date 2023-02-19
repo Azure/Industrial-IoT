@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Clients {
-    using Azure.IIoT.OpcUa.Api.Clients;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;

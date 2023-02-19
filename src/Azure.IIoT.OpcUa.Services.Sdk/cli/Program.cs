@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
     using Azure.IIoT.OpcUa.Services.Sdk.Runtime;
     using Azure.IIoT.OpcUa.Services.Sdk;
     using Azure.IIoT.OpcUa.Services.Sdk.Clients;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Autofac;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;

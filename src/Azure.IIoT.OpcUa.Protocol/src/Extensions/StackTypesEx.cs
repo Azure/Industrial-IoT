@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Protocol {
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
     using UaDataChangeTrigger = Opc.Ua.DataChangeTrigger;

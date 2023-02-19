@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Twin {
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Twin {
                 var result = new BrowseResponseModel();
                 var diagnostics = new List<OperationResultModel>();
                 if (!excludeReferences) {
-                    var direction = (request.Direction ?? Api.Models.BrowseDirection.Forward)
+                    var direction = (request.Direction ?? Shared.Models.BrowseDirection.Forward)
                         .ToStackType();
                     // Browse and read children
                     result.References = new List<NodeReferenceModel>();
@@ -890,8 +890,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Twin {
                         ReferenceTypeId = reference.ReferenceTypeId.AsString(
                             session.MessageContext),
                         Direction = reference.IsForward ?
-                            Api.Models.BrowseDirection.Forward :
-                            Api.Models.BrowseDirection.Backward,
+                            Shared.Models.BrowseDirection.Forward :
+                            Shared.Models.BrowseDirection.Backward,
                         Target = model
                     });
                 }

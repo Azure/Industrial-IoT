@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
     using System;
     using System.Threading.Tasks;

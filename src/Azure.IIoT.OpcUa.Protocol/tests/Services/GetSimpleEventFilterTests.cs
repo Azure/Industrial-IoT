@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Protocol.Services {
     using Azure.IIoT.OpcUa.Protocol.Models;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;

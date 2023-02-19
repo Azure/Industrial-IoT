@@ -66,7 +66,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Publisher.Sdk", "src\Azure.IIoT.OpcUa.Api\src\Azure.IIoT.OpcUa.Publisher.Sdk.csproj", "{7B86DABE-2A93-4A9A-83BC-83643F5E2B1E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Publisher.Sdk", "src\Azure.IIoT.OpcUa.Publisher.Sdk\src\Azure.IIoT.OpcUa.Publisher.Sdk.csproj", "{7B86DABE-2A93-4A9A-83BC-83643F5E2B1E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Services.WebApi", "src\Azure.IIoT.OpcUa.Services.WebApi\src\Azure.IIoT.OpcUa.Services.WebApi.csproj", "{C7104A08-2E91-44D2-B7DF-253ECE3DC493}"
 EndProject
@@ -86,7 +86,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Serial
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Serializers.MessagePack.Tests", "common\src\Microsoft.Azure.IIoT.Serializers.MessagePack\tests\Microsoft.Azure.IIoT.Serializers.MessagePack.Tests.csproj", "{01A2DD25-32E4-424C-82E8-9C7111C64AAE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Api.Models.Tests", "src\Azure.IIoT.OpcUa.Api.Models\tests\Azure.IIoT.OpcUa.Api.Models.Tests.csproj", "{69864BDD-63E3-473D-AF33-96EA0637715B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Shared.Tests", "src\Azure.IIoT.OpcUa.Shared\tests\Azure.IIoT.OpcUa.Shared.Tests.csproj", "{69864BDD-63E3-473D-AF33-96EA0637715B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Hub.Module.Client.Tests", "common\src\Microsoft.Azure.IIoT.Hub.Module.Client\tests\Microsoft.Azure.IIoT.Hub.Module.Client.Tests\Microsoft.Azure.IIoT.Hub.Module.Client.Tests.csproj", "{C881A8B2-02DC-48CE-B9A0-EB9A67ACD94E}"
 EndProject
@@ -96,7 +96,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Publisher.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Services.WebApi.Tests", "src\Azure.IIoT.OpcUa.Services.WebApi\tests\Azure.IIoT.OpcUa.Services.WebApi.Tests.csproj", "{B8E7F608-C222-4CED-9F14-7168F7763D3A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Api.Models", "src\Azure.IIoT.OpcUa.Api.Models\src\Azure.IIoT.OpcUa.Api.Models.csproj", "{F227C420-A5F0-479C-AE95-ACBE6464933F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Shared", "src\Azure.IIoT.OpcUa.Shared\src\Azure.IIoT.OpcUa.Shared.csproj", "{F227C420-A5F0-479C-AE95-ACBE6464933F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

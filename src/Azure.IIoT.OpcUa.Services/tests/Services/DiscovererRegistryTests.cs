@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Services.Registry {
     using Azure.IIoT.OpcUa.Services.Models;
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Autofac;
     using Autofac.Extras.Moq;
     using AutoFixture;

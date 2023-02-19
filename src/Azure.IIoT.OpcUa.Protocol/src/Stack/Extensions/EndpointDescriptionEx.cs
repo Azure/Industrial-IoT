@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Extensions {
-    using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Protocol;
 
     /// <summary>
