@@ -6,15 +6,15 @@
 @page "/browser/{page}/{applicationId}/{endpointId}"
 @page "/browser/{page}/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
 
+@using Microsoft.Azure.IIoT.App.Models;
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.Drawer
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.AspNetCore.Components
 @using global::Azure.IIoT.OpcUa.Api.Models
-@using global::Azure.IIoT.OpcUa.Api
-@using Microsoft.Azure.IIoT.App.Models
-@using global::Azure.IIoT.OpcUa.Api.Clients
+@using global::Azure.IIoT.OpcUa.Services.Sdk.Clients;
+@using global::Azure.IIoT.OpcUa.Services.Sdk;
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser BrowseManager

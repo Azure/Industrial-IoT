@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
-    using Azure.IIoT.OpcUa.Api;
+    using Azure.IIoT.OpcUa.Services.Sdk;
     using Azure.IIoT.OpcUa.Api.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using System;

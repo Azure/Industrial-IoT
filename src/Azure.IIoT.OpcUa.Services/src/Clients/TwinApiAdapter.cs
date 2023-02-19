@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Api.Publisher.Adapter {
+namespace Azure.IIoT.OpcUa.Api.Services.Adapter {
     using Azure.IIoT.OpcUa.Api;
     using Azure.IIoT.OpcUa.Api.Models;
     using System;

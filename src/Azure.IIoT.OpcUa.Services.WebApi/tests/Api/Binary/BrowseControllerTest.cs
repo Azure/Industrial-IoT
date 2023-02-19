@@ -6,9 +6,9 @@
 namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
     using Azure.IIoT.OpcUa.Services.WebApi.Tests.Api;
     using Azure.IIoT.OpcUa.Services.WebApi.Tests;
-    using Azure.IIoT.OpcUa.Api.Clients;
+    using Azure.IIoT.OpcUa.Services.Sdk.Clients;
     using Azure.IIoT.OpcUa.Api.Models;
-    using Azure.IIoT.OpcUa.Api.Publisher.Adapter;
+    using Azure.IIoT.OpcUa.Api.Services.Adapter;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.Http.Default;

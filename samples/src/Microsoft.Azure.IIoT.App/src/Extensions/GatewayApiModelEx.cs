@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Extensions {
-    using global::Azure.IIoT.OpcUa.Api;
+    using global::Azure.IIoT.OpcUa.Services.Sdk;
     using global::Azure.IIoT.OpcUa.Api.Models;
     using System.Collections.Generic;
     using System.Linq;

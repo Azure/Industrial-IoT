@@ -4,6 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App {
+    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
+    using global::Azure.IIoT.OpcUa.Services.Sdk.SignalR;
+    using global::Azure.IIoT.OpcUa.Services.Sdk.Clients;
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Validation;
@@ -12,7 +15,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.AspNetCore.Storage;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Components.Authorization;
@@ -27,9 +29,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Blazored.Modal;
     using Blazored.SessionStorage;
     using FluentValidation;
-    using global::Azure.IIoT.OpcUa.Api.Auth.Runtime;
-    using global::Azure.IIoT.OpcUa.Api.Clients;
-    using global::Azure.IIoT.OpcUa.Api.Runtime;
     using Serilog;
     using Serilog.Events;
     using System;
@@ -195,8 +194,6 @@ namespace Microsoft.Azure.IIoT.App {
             // builder.RegisterModule<DefaultConfidentialClientAuthProviders>();
             builder.RegisterModule<WebAppAuthentication>();
             builder.RegisterType<AadApiWebConfig>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<AuthServiceApiWebConfig>()
                 .AsImplementedInterfaces();
 
             builder.RegisterType<DistributedProtectedCache>()

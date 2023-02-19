@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Extensions.Configuration;
-    using global::Azure.IIoT.OpcUa.Api.Runtime;
+    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
 
     /// <summary>
     /// Configuration aggregation

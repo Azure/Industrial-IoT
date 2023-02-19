@@ -13,15 +13,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.Auth;
     using System.Collections.Generic;
-    using Azure.IIoT.OpcUa.Api.Events.Runtime;
-    using Azure.IIoT.OpcUa.Api.Runtime;
-    using Microsoft.Azure.IIoT.Http.SignalR;
-    using Azure.IIoT.OpcUa.Api.Clients;
     using Microsoft.Azure.IIoT.Auth.Models;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Configuration;
     using Azure.IIoT.OpcUa.Publisher.Engine;
     using Microsoft.Azure.IIoT.Hub.Mock;
+    using Azure.IIoT.OpcUa.Services.Sdk.Clients;
+    using Azure.IIoT.OpcUa.Services.Sdk.Runtime;
+    using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
 
     /// <summary>
     /// Startup class for tests
@@ -45,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherServiceEvents>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<EventsConfig>()
+            builder.RegisterType<ApiConfig>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(new AadApiClientConfig(null))
                 .AsImplementedInterfaces().SingleInstance();

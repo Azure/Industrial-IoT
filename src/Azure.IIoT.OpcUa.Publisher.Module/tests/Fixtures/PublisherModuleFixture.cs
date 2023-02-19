@@ -7,8 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Azure.IIoT.OpcUa.Api;
     using Azure.IIoT.OpcUa.Api.Clients;
     using Azure.IIoT.OpcUa.Api.Models;
-    using Azure.IIoT.OpcUa.Api.Publisher.Adapter;
-    using Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Azure.IIoT.OpcUa.Api.Services.Adapter;
     using Azure.IIoT.OpcUa.Services.Clients;
     using Azure.IIoT.OpcUa.Protocol.Services;
     using Azure.IIoT.OpcUa.Testing.Runtime;

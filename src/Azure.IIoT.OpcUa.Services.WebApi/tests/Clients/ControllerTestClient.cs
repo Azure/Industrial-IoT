@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients {
     using Azure.IIoT.OpcUa.Api;
     using Azure.IIoT.OpcUa.Api.Models;
+    using Azure.IIoT.OpcUa.Services.Sdk;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Serializers;
     using System;

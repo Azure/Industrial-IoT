@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Api\src\Azure.IIoT.OpcUa.Api.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Api\src\Azure.IIoT.OpcUa.Publisher.Sdk.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher\src\Azure.IIoT.OpcUa.Publisher.csproj" />
   </ItemGroup>
 </Project>
