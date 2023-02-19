@@ -13,9 +13,7 @@
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.371.60" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Module.Framework\src\Microsoft.Azure.IIoT.Hub.Module.Framework.csproj" />
-  </ItemGroup>
-  <ItemGroup>
+    <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Module.Client\src\Microsoft.Azure.IIoT.Hub.Module.Client.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Encoders\src\Azure.IIoT.OpcUa.Encoders.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
