@@ -49,12 +49,15 @@
     <EmbeddedResource Include="Servers\Views\Design\Operations.PredefinedNodes.uanodes" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.4.371.60" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="xunit.assert" Version="2.4.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Protocol\src\Azure.IIoT.OpcUa.Protocol.csproj" />
+    <Folder Include="Servers\Common\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Servers\Common\" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher\src\Azure.IIoT.OpcUa.Publisher.csproj" />
   </ItemGroup>
 </Project>

@@ -4,19 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
-    using System.Collections.Generic;
 
     /// <summary>
-    /// Create servers
+    /// Variant encoder extensions
     /// </summary>
-    public interface IServerFactory {
+    public static class Extensions {
 
         /// <summary>
-        /// Create server and server configuration for hosting.
+        /// Format variant as string
         /// </summary>
+        /// <param name="encoder"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        ApplicationConfiguration CreateServer(IEnumerable<int> ports,
-            string pkiRootPath, out ServerBase server);
+        public static VariantValue Encode(this IVariantEncoder encoder, Variant value) {
+            return encoder.Encode(value, out var tmp);
+        }
     }
 }

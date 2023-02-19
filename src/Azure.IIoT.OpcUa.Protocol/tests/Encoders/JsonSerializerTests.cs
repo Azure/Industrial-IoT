@@ -371,15 +371,6 @@ namespace Opc.Ua.Encoders {
         }
 
         [Fact]
-        public void ReadWriteNodeAttributeSetNull() {
-            NodeAttributeSet expected = null;
-
-            var json = _serializer.SerializeToString(expected);
-            var result = _serializer.Deserialize<NodeAttributeSet>(json);
-            Assert.Equal(expected, result);
-        }
-
-        [Fact]
         public void ReadWriteProgramDiagnostic2DataType() {
             // Create dummy type
             var expected = new ProgramDiagnostic2DataType {

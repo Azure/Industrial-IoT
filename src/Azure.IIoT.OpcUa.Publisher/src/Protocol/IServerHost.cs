@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Protocol {
+namespace Azure.IIoT.OpcUa.Publisher.Protocol {
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;

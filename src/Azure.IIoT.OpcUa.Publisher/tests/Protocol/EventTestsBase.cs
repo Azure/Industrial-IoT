@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Protocol.Services {
+    using Autofac.Extras.Moq;
     using Azure.IIoT.OpcUa.Protocol.Models;
     using Moq;
     using Opc.Ua;

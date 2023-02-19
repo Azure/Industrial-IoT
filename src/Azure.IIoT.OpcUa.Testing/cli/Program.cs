@@ -4,19 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Cli {
-    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Protocol.Sample;
     using Azure.IIoT.OpcUa.Protocol.Services;
-    using Azure.IIoT.OpcUa.Publisher.Twin;
-    using Azure.IIoT.OpcUa.Testing.Runtime;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Newtonsoft.Json;
     using Opc.Ua;
     using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
@@ -27,9 +22,7 @@ namespace Azure.IIoT.OpcUa.Cli {
     public class Program {
         private enum Op {
             None,
-            RunSampleServer,
-            TestOpcUaServerClient,
-            TestBrowseServer,
+            RunSampleServer
         }
 
         /// <summary>
@@ -58,26 +51,6 @@ namespace Azure.IIoT.OpcUa.Cli {
                             }
                             throw new ArgumentException(
                                 "Missing arguments for port option");
-                        case "--test-client":
-                            if (op != Op.None) {
-                                throw new ArgumentException("Operations are mutually exclusive");
-                            }
-                            op = Op.TestOpcUaServerClient;
-                            i++;
-                            if (i < args.Length) {
-                                endpoint.Url = args[i];
-                            }
-                            break;
-                        case "--test-browse":
-                            if (op != Op.None) {
-                                throw new ArgumentException("Operations are mutually exclusive");
-                            }
-                            op = Op.TestBrowseServer;
-                            i++;
-                            if (i < args.Length) {
-                                endpoint.Url = args[i];
-                            }
-                            break;
                         case "-?":
                         case "-h":
                         case "--help":
@@ -116,14 +89,6 @@ Operations (Mutually exclusive):
 
     --sample / -s           Run sample server and wait for cancellation.
                             Default if port is specified.
-
-    --test-browse           Tests server browsing.
-    --test_export           Tests server model export with passed endpoint url.
-    --test-design           Test model design import
-    --test-file             Tests server model export several files for perf.
-    --test-writer           Tests server model import.
-    --test-archive          Tests server model archiving to file.
-    --test-client           Tests server stuff with passed endpoint url.
 "
                     );
                 return;
@@ -138,12 +103,6 @@ Operations (Mutually exclusive):
                     case Op.RunSampleServer:
                         RunServerAsync(ports).Wait();
                         return;
-                    case Op.TestOpcUaServerClient:
-                        TestOpcUaServerClientAsync(endpoint).Wait();
-                        break;
-                    case Op.TestBrowseServer:
-                        TestBrowseServerAsync(endpoint).Wait();
-                        break;
                     default:
                         throw new ArgumentException("Unknown.");
                 }
@@ -152,9 +111,6 @@ Operations (Mutually exclusive):
                 Console.WriteLine(e);
                 return;
             }
-
-            Console.WriteLine("Press key to exit...");
-            Console.ReadKey();
         }
 
         /// <summary>
@@ -183,127 +139,6 @@ Operations (Mutually exclusive):
             }
         }
 
-        /// <summary>
-        /// Test client
-        /// </summary>
-        private static async Task TestOpcUaServerClientAsync(EndpointModel endpoint) {
-            using (var logger = StackLogger.Create(ConsoleLogger.Create()))
-            using (var client = new OpcUaClientManager(logger.Logger, new TestClientServicesConfig()))
-            using (var server = new ServerWrapper(endpoint, logger)) {
-                await client.ExecuteServiceAsync(new ConnectionModel { Endpoint = endpoint }, session => {
-                    Console.WriteLine("Browse the OPC UA server namespace.");
-                    var w = Stopwatch.StartNew();
-                    var stack = new Stack<Tuple<string, ReferenceDescription>>();
-                    session.Browse(null, null, ObjectIds.RootFolder,
-                        0u, Opc.Ua.BrowseDirection.Forward, ReferenceTypeIds.HierarchicalReferences,
-                        true, 0, out var continuationPoint, out var references);
-                    Console.WriteLine(" DisplayName, BrowseName, NodeClass");
-                    references.Reverse();
-                    foreach (var rd in references) {
-                        stack.Push(Tuple.Create("", rd));
-                    }
-                    while (stack.Count > 0) {
-                        var browsed = stack.Pop();
-                        session.Browse(null, null,
-                            ExpandedNodeId.ToNodeId(browsed.Item2.NodeId, session.NamespaceUris),
-                            0u, Opc.Ua.BrowseDirection.Forward, ReferenceTypeIds.HierarchicalReferences,
-                            true, 0, out continuationPoint, out references);
-                        references.Reverse();
-                        foreach (var rd in references) {
-                            stack.Push(Tuple.Create(browsed.Item1 + "   ", rd));
-                        }
-                        Console.WriteLine($"{browsed.Item1}{(references.Count == 0 ? "-" : "+")} " +
-                            $"{browsed.Item2.DisplayName}, {browsed.Item2.BrowseName}, {browsed.Item2.NodeClass}");
-                    }
-                    Console.WriteLine($"   ....        took {w.ElapsedMilliseconds} ms...");
-                    return Task.FromResult(true);
-                }, default);
-            }
-        }
-
-        /// <summary>
-        /// Test address space control
-        /// </summary>
-        private static async Task TestBrowseServerAsync(EndpointModel endpoint, bool silent = false) {
-
-            using (var logger = StackLogger.Create(ConsoleLogger.Create())) {
-
-                var request = new BrowseRequestModel {
-                    TargetNodesOnly = false
-                };
-                var nodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
-                    ObjectIds.RootFolder.ToString()
-                };
-
-                using (var client = new OpcUaClientManager(logger.Logger, new TestClientServicesConfig())) {
-                    var service = new AddressSpaceServices(client, new VariantEncoderFactory(), logger.Logger);
-                    using (var server = new ServerWrapper(endpoint, logger)) {
-                        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                        var nodesRead = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                        var errors = 0;
-                        var sw = Stopwatch.StartNew();
-                        while (nodes.Count > 0) {
-                            request.NodeId = nodes.First();
-                            nodes.Remove(request.NodeId);
-                            try {
-                                if (!silent) {
-                                    Console.WriteLine($"Browsing {request.NodeId}");
-                                    Console.WriteLine($"====================");
-                                }
-                                var result = await service.NodeBrowseAsync(new ConnectionModel { Endpoint = endpoint }, request);
-                                visited.Add(request.NodeId);
-                                if (!silent) {
-                                    Console.WriteLine(JsonConvert.SerializeObject(result,
-                                        Formatting.Indented));
-                                }
-
-                                // Do recursive browse
-                                foreach (var r in result.References) {
-                                    if (!visited.Contains(r.ReferenceTypeId)) {
-                                        nodes.Add(r.ReferenceTypeId);
-                                    }
-                                    if (!visited.Contains(r.Target.NodeId)) {
-                                        nodes.Add(r.Target.NodeId);
-                                    }
-                                    if (nodesRead.Contains(r.Target.NodeId)) {
-                                        continue; // We have read this one already
-                                    }
-                                    if (!r.Target.NodeClass.HasValue ||
-                                        r.Target.NodeClass.Value != Shared.Models.NodeClass.Variable) {
-                                        continue;
-                                    }
-                                    if (!silent) {
-                                        Console.WriteLine($"Reading {r.Target.NodeId}");
-                                        Console.WriteLine($"====================");
-                                    }
-                                    try {
-                                        nodesRead.Add(r.Target.NodeId);
-                                        var read = await service.NodeValueReadAsync(new ConnectionModel { Endpoint = endpoint },
-                                            new ValueReadRequestModel {
-                                                NodeId = r.Target.NodeId
-                                            }, default);
-                                        if (!silent) {
-                                            Console.WriteLine(JsonConvert.SerializeObject(result,
-                                                Formatting.Indented));
-                                        }
-                                    }
-                                    catch (Exception ex) {
-                                        Console.WriteLine($"Reading {r.Target.NodeId} resulted in {ex}");
-                                        errors++;
-                                    }
-                                }
-                            }
-                            catch (Exception e) {
-                                Console.WriteLine($"Browse {request.NodeId} resulted in {e}");
-                                errors++;
-                            }
-                        }
-                        Console.WriteLine($"Browse took {sw.Elapsed}. Visited " +
-                            $"{visited.Count} nodes and read {nodesRead.Count} of them with {errors} errors.");
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Wraps server and disposes after use

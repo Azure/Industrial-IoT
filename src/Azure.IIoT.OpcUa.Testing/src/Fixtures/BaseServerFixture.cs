@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Testing.Fixtures {
     using Azure.IIoT.OpcUa.Testing.Runtime;
-    using Azure.IIoT.OpcUa.Protocol;
     using Azure.IIoT.OpcUa.Protocol.Sample;
     using Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -19,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Publisher.Protocol;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests

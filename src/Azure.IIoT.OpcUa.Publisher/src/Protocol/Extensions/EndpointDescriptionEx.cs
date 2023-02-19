@@ -24,8 +24,7 @@ namespace Opc.Ua.Extensions {
             return
 
             endpoint.SecurityMode == (model.SecurityMode ?? SecurityMode.SignAndEncrypt)
-           .ToStackType() &&
-       endpoint.SecurityPolicyUri == model.SecurityPolicy;
+                .ToStackType() && endpoint.SecurityPolicyUri == model.SecurityPolicy;
 
         }
     }

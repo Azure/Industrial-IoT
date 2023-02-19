@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Protocol.Sample {
+    using Azure.IIoT.OpcUa.Publisher.Protocol;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Server;

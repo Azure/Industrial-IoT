@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Protocol.Services {
+    using Azure.IIoT.OpcUa.Publisher.Protocol;
     using Opc.Ua;
     using Opc.Ua.Configuration;
     using Serilog;
