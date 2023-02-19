@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <summary>
         /// Discovery url to use to query
         /// </summary>
-        [DataMember(Name = "url", Order = 0)]
+        [DataMember(Name = "discoveryUrl", Order = 0)]
         public string DiscoveryUrl { get; set; }
 
         /// <summary>

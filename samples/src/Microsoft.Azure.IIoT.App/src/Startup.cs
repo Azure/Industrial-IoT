@@ -32,6 +32,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Serilog;
     using Serilog.Events;
     using System;
+    using global::Azure.IIoT.OpcUa.Services.Sdk;
 
     /// <summary>
     /// Webapp startup
@@ -200,23 +201,7 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces();
 
             // Register http client module (needed for api)...
-            builder.RegisterModule<HttpClientModule>();
-            builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces(); // Per request
-
-            // Register twin and registry services clients
-            builder.RegisterType<TwinServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublisherServiceClient>()
-                .AsImplementedInterfaces();
-
-            // ... with client event callbacks
-            builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces().AsSelf();
-            builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces().AsSelf();
+            builder.RegisterModule<ServiceSdk>();
 
             builder.RegisterType<Registry>()
                 .AsImplementedInterfaces().AsSelf();

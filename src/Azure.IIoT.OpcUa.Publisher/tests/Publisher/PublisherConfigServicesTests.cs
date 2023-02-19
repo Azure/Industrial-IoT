@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
                 engineConfigMock.Object, clientConfignMock.Object);
 
             // Note that each test is responsible for setting content of _tempFile;
-            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
 
             _configMock = new Mock<IPublisherConfiguration>();
             _configMock.SetupAllProperties();
@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/pn_2.5_legacy.json")]
+        [InlineData("Publisher/pn_2.5_legacy.json")]
         public async Task Legacy25PublishedNodesFile(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
@@ -159,8 +159,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/pn_2.5_legacy_error.json", false)]
-        [InlineData("Engine/pn_2.5_legacy_error.json", true)]
+        [InlineData("Publisher/pn_2.5_legacy_error.json", false)]
+        [InlineData("Publisher/pn_2.5_legacy_error.json", true)]
         public async Task Legacy25PublishedNodesFileError(string publishedNodesFile, bool useSchemaValidation) {
             if (!useSchemaValidation) {
                 _configMock.SetupGet(m => m.PublishedNodesSchemaFile).Returns((string)null);
@@ -177,8 +177,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/pn_assets.json")]
-        [InlineData("Engine/pn_assets_with_optional_fields.json")]
+        [InlineData("Publisher/pn_assets.json")]
+        [InlineData("Publisher/pn_assets_with_optional_fields.json")]
         public void Test_PnJson_With_Multiple_Jobs_Expect_DifferentJobIds(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
@@ -511,14 +511,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/pn_events.json")]
-        [InlineData("Engine/pn_pending_alarms.json")]
-        [InlineData("Engine/empty_pn.json")]
-        [InlineData("Engine/pn_assets.json")]
-        [InlineData("Engine/pn_assets_with_optional_fields.json")]
-        [InlineData("Engine/publishednodes.json")]
-        [InlineData("Engine/publishednodeswithoptionalfields.json")]
-        [InlineData("Engine/publishednodes_with_duplicates.json")]
+        [InlineData("Publisher/pn_events.json")]
+        [InlineData("Publisher/pn_pending_alarms.json")]
+        [InlineData("Publisher/empty_pn.json")]
+        [InlineData("Publisher/pn_assets.json")]
+        [InlineData("Publisher/pn_assets_with_optional_fields.json")]
+        [InlineData("Publisher/publishednodes.json")]
+        [InlineData("Publisher/publishednodeswithoptionalfields.json")]
+        [InlineData("Publisher/publishednodes_with_duplicates.json")]
         [InlineData("Controller/DmApiPayloadCollection.json")]
         [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
         public async Task Test_AddOrUpdateEndpoints_RemoveEndpoints(string publishedNodesFile) {
@@ -668,9 +668,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/pn_opc_nodes_empty.json")]
-        [InlineData("Engine/pn_opc_nodes_null.json")]
-        [InlineData("Engine/pn_opc_nodes_empty_and_null.json")]
+        [InlineData("Publisher/pn_opc_nodes_empty.json")]
+        [InlineData("Publisher/pn_opc_nodes_null.json")]
+        [InlineData("Publisher/pn_opc_nodes_empty_and_null.json")]
         public async Task Test_InitStandaloneJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
@@ -687,7 +687,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/pn_assets_with_optional_fields.json")]
+        [InlineData("Publisher/pn_assets_with_optional_fields.json")]
         public async Task OptionalFieldsPublishedNodesFile(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
@@ -753,14 +753,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/publishednodes.json")]
-        [InlineData("Engine/publishednodeswithoptionalfields.json")]
-        [InlineData("Engine/pn_assets.json")]
-        [InlineData("Engine/pn_assets_with_optional_fields.json")]
-        [InlineData("Engine/pn_events.json")]
-        [InlineData("Engine/pn_pending_alarms.json")]
+        [InlineData("Publisher/publishednodes.json")]
+        [InlineData("Publisher/publishednodeswithoptionalfields.json")]
+        [InlineData("Publisher/pn_assets.json")]
+        [InlineData("Publisher/pn_assets_with_optional_fields.json")]
+        [InlineData("Publisher/pn_events.json")]
+        [InlineData("Publisher/pn_pending_alarms.json")]
         public async Task PublishNodesOnEmptyConfiguration(string publishedNodesFile) {
-            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
             InitPublisherConfigService();
 
             string payload = Utils.GetFileContent(publishedNodesFile);
@@ -780,11 +780,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/publishednodes.json", "Engine/publishednodeswithoptionalfields.json")]
-        [InlineData("Engine/publishednodeswithoptionalfields.json", "Engine/publishednodes.json")]
-        [InlineData("Engine/pn_assets.json", "Engine/pn_assets_with_optional_fields.json")]
-        [InlineData("Engine/pn_assets_with_optional_fields.json", "Engine/pn_assets.json")]
-        [InlineData("Engine/pn_events.json", "Engine/pn_pending_alarms.json")]
+        [InlineData("Publisher/publishednodes.json", "Publisher/publishednodeswithoptionalfields.json")]
+        [InlineData("Publisher/publishednodeswithoptionalfields.json", "Publisher/publishednodes.json")]
+        [InlineData("Publisher/pn_assets.json", "Publisher/pn_assets_with_optional_fields.json")]
+        [InlineData("Publisher/pn_assets_with_optional_fields.json", "Publisher/pn_assets.json")]
+        [InlineData("Publisher/pn_events.json", "Publisher/pn_pending_alarms.json")]
         public async Task PublishNodesOnExistingConfiguration(string existingConfig, string newConfig) {
             Utils.CopyContent(existingConfig, _tempFile);
             InitPublisherConfigService();
@@ -806,10 +806,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/publishednodes.json", "Engine/pn_assets.json")]
-        [InlineData("Engine/publishednodeswithoptionalfields.json", "Engine/pn_assets_with_optional_fields.json")]
-        [InlineData("Engine/pn_assets.json", "Engine/publishednodes.json")]
-        [InlineData("Engine/pn_assets_with_optional_fields.json", "Engine/publishednodeswithoptionalfields.json")]
+        [InlineData("Publisher/publishednodes.json", "Publisher/pn_assets.json")]
+        [InlineData("Publisher/publishednodeswithoptionalfields.json", "Publisher/pn_assets_with_optional_fields.json")]
+        [InlineData("Publisher/pn_assets.json", "Publisher/publishednodes.json")]
+        [InlineData("Publisher/pn_assets_with_optional_fields.json", "Publisher/publishednodeswithoptionalfields.json")]
         public async Task PublishNodesOnNewConfiguration(string existingConfig, string newConfig) {
             Utils.CopyContent(existingConfig, _tempFile);
             InitPublisherConfigService();
@@ -831,10 +831,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/publishednodes.json")]
-        [InlineData("Engine/publishednodeswithoptionalfields.json")]
-        [InlineData("Engine/pn_assets.json")]
-        [InlineData("Engine/pn_assets_with_optional_fields.json")]
+        [InlineData("Publisher/publishednodes.json")]
+        [InlineData("Publisher/publishednodeswithoptionalfields.json")]
+        [InlineData("Publisher/pn_assets.json")]
+        [InlineData("Publisher/pn_assets_with_optional_fields.json")]
         public async Task UnpublishNodesOnExistingConfiguration(string publishedNodesFile) {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
@@ -856,10 +856,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         }
 
         [Theory]
-        [InlineData("Engine/publishednodes.json", "Engine/pn_assets.json")]
-        [InlineData("Engine/publishednodeswithoptionalfields.json", "Engine/pn_assets_with_optional_fields.json")]
-        [InlineData("Engine/pn_assets.json", "Engine/publishednodes.json")]
-        [InlineData("Engine/pn_assets_with_optional_fields.json", "Engine/publishednodeswithoptionalfields.json")]
+        [InlineData("Publisher/publishednodes.json", "Publisher/pn_assets.json")]
+        [InlineData("Publisher/publishednodeswithoptionalfields.json", "Publisher/pn_assets_with_optional_fields.json")]
+        [InlineData("Publisher/pn_assets.json", "Publisher/publishednodes.json")]
+        [InlineData("Publisher/pn_assets_with_optional_fields.json", "Publisher/publishednodeswithoptionalfields.json")]
         public async Task UnpublishNodesOnNonExistingConfiguration(string existingConfig, string newConfig) {
             Utils.CopyContent(existingConfig, _tempFile);
             InitPublisherConfigService();

@@ -28,58 +28,6 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
     public class Program : IDisposable {
 
         /// <summary>
-        /// Configure Dependency injection
-        /// </summary>
-        public static IContainer ConfigureContainer(
-            IConfiguration configuration, bool useMsgPack) {
-            var builder = new ContainerBuilder();
-
-            var config = new ApiConfig(configuration);
-
-            // Register configuration interfaces and logger
-            builder.RegisterInstance(config)
-                .AsImplementedInterfaces();
-            builder.RegisterInstance(config.Configuration)
-                .AsImplementedInterfaces();
-            builder.RegisterType<AadApiClientConfig>()
-                .AsImplementedInterfaces();
-
-            // Register logger
-            builder.AddDiagnostics(config, addConsole: false);
-            builder.RegisterModule<NewtonSoftJsonModule>();
-            if (useMsgPack) {
-                builder.RegisterModule<MessagePackModule>();
-            }
-
-            // Register http client module ...
-            builder.RegisterModule<HttpClientModule>();
-            // ... as well as signalR client (needed for api)
-            builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // Use bearer authentication
-            builder.RegisterModule<NativeClientAuthentication>();
-
-            // Register twin and registry services clients
-            builder.RegisterType<TwinServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoryServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublisherServiceClient>()
-                .AsImplementedInterfaces();
-
-            // ... with client event callbacks
-            builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces();
-
-            return builder.Build();
-        }
-
-        /// <summary>
         /// Main entry point
         /// </summary>
         public static void Main(string[] args) {
@@ -107,18 +55,12 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Configure Dependency injection
         /// </summary>
         public Program(IConfiguration configuration, bool useMsgPack) {
-            var container = ConfigureContainer(configuration, useMsgPack);
-            _scope = container.BeginLifetimeScope();
-            _twin = _scope.Resolve<ITwinServiceApi>();
-            _registry = _scope.Resolve<IRegistryServiceApi>();
-            _history = _scope.Resolve<IHistoryServiceApi>();
-            _publisher = _scope.Resolve<IPublisherServiceApi>();
-            _serializer = _scope.Resolve<IJsonSerializer>();
+            _client = new ServiceClient(configuration, useMsgPack);
         }
 
         /// <inheritdoc/>
         public void Dispose() {
-            _scope.Dispose();
+            _client.Dispose();
         }
 
         /// <summary>
@@ -513,7 +455,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 if (string.IsNullOrEmpty(nodeId)) {
                     var id = GetEndpointId(options, false);
                     if (!string.IsNullOrEmpty(id)) {
-                        var results = await _twin.NodeBrowseAsync(id, new BrowseRequestModel {
+                        var results = await _client.Twin.NodeBrowseAsync(id, new BrowseRequestModel {
                             TargetNodesOnly = true,
                             NodeId = _nodeId
                         });
@@ -537,7 +479,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Call method
         /// </summary>
         private async Task MethodCallAsync(CliOptions options) {
-            var result = await _twin.NodeMethodCallAsync(
+            var result = await _client.Twin.NodeMethodCallAsync(
                 GetEndpointId(options),
                 new MethodCallRequestModel {
                     MethodId = GetNodeId(options),
@@ -552,7 +494,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Read value
         /// </summary>
         private async Task MethodMetadataAsync(CliOptions options) {
-            var result = await _twin.NodeMethodGetMetadataAsync(
+            var result = await _client.Twin.NodeMethodGetMetadataAsync(
                 GetEndpointId(options),
                 new MethodMetadataRequestModel {
                     MethodId = GetNodeId(options)
@@ -564,12 +506,12 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Write value
         /// </summary>
         private async Task WriteAsync(CliOptions options) {
-            var result = await _twin.NodeValueWriteAsync(
+            var result = await _client.Twin.NodeValueWriteAsync(
                 GetEndpointId(options),
                 new ValueWriteRequestModel {
                     NodeId = GetNodeId(options),
                     DataType = options.GetValueOrDefault<string>("-t", "--datatype", null),
-                    Value = _serializer.FromObject(options.GetValue<string>("-v", "--value"))
+                    Value = _client.Serializer.FromObject(options.GetValue<string>("-v", "--value"))
                 });
             PrintResult(options, result);
         }
@@ -578,7 +520,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Read value
         /// </summary>
         private async Task ReadAsync(CliOptions options) {
-            var result = await _twin.NodeValueReadAsync(
+            var result = await _client.Twin.NodeValueReadAsync(
                 GetEndpointId(options),
                 new ValueReadRequestModel {
                     NodeId = GetNodeId(options)
@@ -613,8 +555,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 nodes.Remove(request.NodeId);
                 try {
                     var result = await (all ?
-                        _twin.NodeBrowseAsync(id, request) :
-                        _twin.NodeBrowseFirstAsync(id, request));
+                        _client.Twin.NodeBrowseAsync(id, request) :
+                        _client.Twin.NodeBrowseFirstAsync(id, request));
                     visited.Add(request.NodeId);
                     if (!silent) {
                         PrintResult(options, result);
@@ -643,7 +585,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                             }
                             try {
                                 nodesRead.Add(r.Target.NodeId);
-                                var read = await _twin.NodeValueReadAsync(id,
+                                var read = await _client.Twin.NodeValueReadAsync(id,
                                     new ValueReadRequestModel {
                                         NodeId = r.Target.NodeId
                                     });
@@ -672,7 +614,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Publish node
         /// </summary>
         private async Task PublishAsync(CliOptions options) {
-            var result = await _publisher.NodePublishStartAsync(
+            var result = await _client.Publisher.NodePublishStartAsync(
                 GetEndpointId(options),
                 new PublishStartRequestModel {
                     Item = new PublishedItemModel {
@@ -691,10 +633,9 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task MonitorSamplesAsync(CliOptions options) {
             var endpointId = GetEndpointId(options);
-            var events = _scope.Resolve<IPublisherServiceEvents>();
             Console.WriteLine("Press any key to stop.");
 
-            var finish = await events.NodePublishSubscribeByEndpointAsync(
+            var finish = await _client.Telemetry.NodePublishSubscribeByEndpointAsync(
                 endpointId, PrintSample);
             try {
                 Console.ReadKey();
@@ -708,7 +649,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Unpublish node
         /// </summary>
         private async Task UnpublishAsync(CliOptions options) {
-            var result = await _publisher.NodePublishStopAsync(
+            var result = await _client.Publisher.NodePublishStopAsync(
                 GetEndpointId(options),
                 new PublishStopRequestModel {
                     NodeId = GetNodeId(options)
@@ -723,12 +664,12 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task ListPublishedNodesAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await _publisher.NodePublishListAllAsync(GetEndpointId(options));
+                var result = await _client.Publisher.NodePublishListAllAsync(GetEndpointId(options));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _publisher.NodePublishListAsync(GetEndpointId(options),
+                var result = await _client.Publisher.NodePublishListAsync(GetEndpointId(options),
                     options.GetValueOrDefault<string>("-C", "--continuation", null));
                 PrintResult(options, result);
             }
@@ -769,7 +710,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             else {
                 var publisherId = options.GetValueOrDefault<string>("-i", "--id", null);
                 if (string.IsNullOrEmpty(publisherId)) {
-                    var result = await _registry.ListAllPublishersAsync();
+                    var result = await _client.Registry.ListAllPublishersAsync();
                     publisherId = ConsoleEx.Select(result.Select(r => r.Id));
                     if (string.IsNullOrEmpty(publisherId)) {
                         Console.WriteLine("Nothing selected - publisher selection cleared.");
@@ -787,13 +728,13 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task ListPublishersAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.ListAllPublishersAsync(
+                var result = await _client.Registry.ListAllPublishersAsync(
                     options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.ListPublishersAsync(
+                var result = await _client.Registry.ListPublishersAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
@@ -810,13 +751,13 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
             };
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.QueryAllPublishersAsync(query,
+                var result = await _client.Registry.QueryAllPublishersAsync(query,
                     options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.QueryPublishersAsync(query,
+                var result = await _client.Registry.QueryPublishersAsync(query,
                     options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
@@ -827,7 +768,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Get publisher
         /// </summary>
         private async Task GetPublisherAsync(CliOptions options) {
-            var result = await _registry.GetPublisherAsync(GetPublisherId(options),
+            var result = await _client.Registry.GetPublisherAsync(GetPublisherId(options),
                 options.IsProvidedOrNull("-S", "--server"));
             PrintResult(options, result);
         }
@@ -836,7 +777,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Update publisher
         /// </summary>
         private async Task UpdatePublisherAsync(CliOptions options) {
-            await _registry.UpdatePublisherAsync(GetPublisherId(options),
+            await _client.Registry.UpdatePublisherAsync(GetPublisherId(options),
                 new PublisherUpdateModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<TraceLogLevel>(
@@ -848,9 +789,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Monitor publishers
         /// </summary>
         private async Task MonitorPublishersAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribePublisherEventsAsync(PrintEvent);
+            var complete = await _client.Events.SubscribePublisherEventsAsync(PrintEvent);
             try {
                 Console.ReadKey();
             }
@@ -894,7 +834,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             else {
                 var gatewayId = options.GetValueOrDefault<string>("-i", "--id", null);
                 if (string.IsNullOrEmpty(gatewayId)) {
-                    var result = await _registry.ListAllGatewaysAsync();
+                    var result = await _client.Registry.ListAllGatewaysAsync();
                     gatewayId = ConsoleEx.Select(result.Select(r => r.Id));
                     if (string.IsNullOrEmpty(gatewayId)) {
                         Console.WriteLine("Nothing selected - gateway selection cleared.");
@@ -912,12 +852,12 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task ListGatewaysAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.ListAllGatewaysAsync();
+                var result = await _client.Registry.ListAllGatewaysAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.ListGatewaysAsync(
+                var result = await _client.Registry.ListGatewaysAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
@@ -933,12 +873,12 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
             };
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.QueryAllGatewaysAsync(query);
+                var result = await _client.Registry.QueryAllGatewaysAsync(query);
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.QueryGatewaysAsync(query,
+                var result = await _client.Registry.QueryGatewaysAsync(query,
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -948,7 +888,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Get gateway
         /// </summary>
         private async Task GetGatewayAsync(CliOptions options) {
-            var result = await _registry.GetGatewayAsync(GetGatewayId(options));
+            var result = await _client.Registry.GetGatewayAsync(GetGatewayId(options));
             PrintResult(options, result);
         }
 
@@ -956,7 +896,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Update gateway
         /// </summary>
         private async Task UpdateGatewayAsync(CliOptions options) {
-            await _registry.UpdateGatewayAsync(GetGatewayId(options),
+            await _client.Registry.UpdateGatewayAsync(GetGatewayId(options),
                 new GatewayUpdateModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                 });
@@ -966,9 +906,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Monitor gateways
         /// </summary>
         private async Task MonitorGatewaysAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeGatewayEventsAsync(PrintEvent);
+            var complete = await _client.Events.SubscribeGatewayEventsAsync(PrintEvent);
             try {
                 Console.ReadKey();
             }
@@ -1012,7 +951,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             else {
                 var supervisorId = options.GetValueOrDefault<string>("-i", "--id", null);
                 if (string.IsNullOrEmpty(supervisorId)) {
-                    var result = await _registry.ListAllSupervisorsAsync();
+                    var result = await _client.Registry.ListAllSupervisorsAsync();
                     supervisorId = ConsoleEx.Select(result.Select(r => r.Id));
                     if (string.IsNullOrEmpty(supervisorId)) {
                         Console.WriteLine("Nothing selected - supervisor selection cleared.");
@@ -1030,13 +969,13 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task ListSupervisorsAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.ListAllSupervisorsAsync(
+                var result = await _client.Registry.ListAllSupervisorsAsync(
                     options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.ListSupervisorsAsync(
+                var result = await _client.Registry.ListSupervisorsAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
@@ -1054,13 +993,13 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
             };
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.QueryAllSupervisorsAsync(query,
+                var result = await _client.Registry.QueryAllSupervisorsAsync(query,
                     options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.QuerySupervisorsAsync(query,
+                var result = await _client.Registry.QuerySupervisorsAsync(query,
                     options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
@@ -1071,7 +1010,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Get supervisor
         /// </summary>
         private async Task GetSupervisorAsync(CliOptions options) {
-            var result = await _registry.GetSupervisorAsync(GetSupervisorId(options),
+            var result = await _client.Registry.GetSupervisorAsync(GetSupervisorId(options),
                 options.IsProvidedOrNull("-S", "--server"));
             PrintResult(options, result);
         }
@@ -1080,9 +1019,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Monitor supervisors
         /// </summary>
         private async Task MonitorSupervisorsAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeSupervisorEventsAsync(PrintEvent);
+            var complete = await _client.Events.SubscribeSupervisorEventsAsync(PrintEvent);
             try {
                 Console.ReadKey();
             }
@@ -1096,7 +1034,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task UpdateSupervisorAsync(CliOptions options) {
             var config = BuildDiscoveryConfig(options);
-            await _registry.UpdateSupervisorAsync(GetSupervisorId(options),
+            await _client.Registry.UpdateSupervisorAsync(GetSupervisorId(options),
                 new SupervisorUpdateModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<TraceLogLevel>(
@@ -1139,7 +1077,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             else {
                 var discovererId = options.GetValueOrDefault<string>("-i", "--id", null);
                 if (string.IsNullOrEmpty(discovererId)) {
-                    var result = await _registry.ListAllDiscoverersAsync();
+                    var result = await _client.Registry.ListAllDiscoverersAsync();
                     discovererId = ConsoleEx.Select(result.Select(r => r.Id));
                     if (string.IsNullOrEmpty(discovererId)) {
                         Console.WriteLine("Nothing selected - discoverer selection cleared.");
@@ -1157,12 +1095,12 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task ListDiscoverersAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.ListAllDiscoverersAsync();
+                var result = await _client.Registry.ListAllDiscoverersAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.ListDiscoverersAsync(
+                var result = await _client.Registry.ListDiscoverersAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
@@ -1179,13 +1117,13 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
             };
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.QueryAllDiscoverersAsync(query,
+                var result = await _client.Registry.QueryAllDiscoverersAsync(query,
                     options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.QueryDiscoverersAsync(query,
+                var result = await _client.Registry.QueryDiscoverersAsync(query,
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -1195,7 +1133,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Get discoverer
         /// </summary>
         private async Task GetDiscovererAsync(CliOptions options) {
-            var result = await _registry.GetDiscovererAsync(GetDiscovererId(options));
+            var result = await _client.Registry.GetDiscovererAsync(GetDiscovererId(options));
             PrintResult(options, result);
         }
 
@@ -1203,17 +1141,16 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Monitor discoverers
         /// </summary>
         private async Task MonitorDiscoverersAsync(CliOptions options) {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
             IAsyncDisposable complete;
             var discovererId = options.GetValueOrDefault<string>("-i", "--id", null);
             if (discovererId != null) {
                 // If specified - monitor progress
-                complete = await events.SubscribeDiscoveryProgressByDiscovererIdAsync(
+                complete = await _client.Events.SubscribeDiscoveryProgressByDiscovererIdAsync(
                     discovererId, PrintProgress);
             }
             else {
-                complete = await events.SubscribeDiscovererEventsAsync(PrintEvent);
+                complete = await _client.Events.SubscribeDiscovererEventsAsync(PrintEvent);
             }
             try {
                 Console.ReadKey();
@@ -1228,7 +1165,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task UpdateDiscovererAsync(CliOptions options) {
             var config = BuildDiscoveryConfig(options);
-            await _registry.UpdateDiscovererAsync(GetDiscovererId(options),
+            await _client.Registry.UpdateDiscovererAsync(GetDiscovererId(options),
                 new DiscovererUpdateModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                     LogLevel = options.GetValueOrDefault<TraceLogLevel>(
@@ -1244,9 +1181,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task DiscovererScanAsync(CliOptions options) {
             var discovererId = GetDiscovererId(options);
-            var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var discovery = await events.SubscribeDiscoveryProgressByDiscovererIdAsync(
+            var discovery = await _client.Events.SubscribeDiscoveryProgressByDiscovererIdAsync(
                 discovererId, PrintProgress);
             try {
                 var config = BuildDiscoveryConfig(options);
@@ -1258,9 +1194,9 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 if (mode == DiscoveryMode.Off) {
                     throw new ArgumentException("-d/--discovery Off is not supported");
                 }
-                await _registry.SetDiscoveryModeAsync(discovererId, mode, config);
+                await _client.Registry.SetDiscoveryModeAsync(discovererId, mode, config);
                 Console.ReadKey();
-                await _registry.SetDiscoveryModeAsync(discovererId, DiscoveryMode.Off,
+                await _client.Registry.SetDiscoveryModeAsync(discovererId, DiscoveryMode.Off,
                     new DiscoveryConfigModel());
             }
             catch {
@@ -1305,7 +1241,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             else {
                 var applicationId = options.GetValueOrDefault<string>("-i", "--id", null);
                 if (string.IsNullOrEmpty(applicationId)) {
-                    var result = await _registry.ListAllApplicationsAsync();
+                    var result = await _client.Registry.ListAllApplicationsAsync();
                     applicationId = ConsoleEx.Select(result.Select(r => r.ApplicationId));
                     if (string.IsNullOrEmpty(applicationId)) {
                         Console.WriteLine("Nothing selected - application selection cleared.");
@@ -1323,7 +1259,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task RegisterApplicationAsync(CliOptions options) {
             var discoveryUrl = options.GetValueOrDefault<string>("-d", "--discoveryUrl", null);
-            var result = await _registry.RegisterAsync(
+            var result = await _client.Registry.RegisterAsync(
                 new ApplicationRegistrationRequestModel {
                     ApplicationUri = options.GetValue<string>("-u", "--url"),
                     ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
@@ -1344,7 +1280,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             IRegistryServiceEvents events = null;
             var id = options.GetValueOrDefault("-i", "--id", Guid.NewGuid().ToString());
             if (options.IsSet("-m", "--monitor")) {
-                events = _scope.Resolve<IRegistryServiceEvents>();
+                events = _client.Events;
                 var tcs = new TaskCompletionSource<bool>();
 
                 var discovery = await events.SubscribeDiscoveryProgressByRequestIdAsync(
@@ -1375,7 +1311,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Discover servers
         /// </summary>
         private async Task RegisterServerAsync(CliOptions options, string id) {
-            await _registry.RegisterAsync(
+            await _client.Registry.RegisterAsync(
                 new ServerRegistrationRequestModel {
                     Id = id,
                     DiscoveryUrl = options.GetValue<string>("-u", "--url")
@@ -1389,7 +1325,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             IRegistryServiceEvents events = null;
             var id = options.GetValueOrDefault("-i", "--id", Guid.NewGuid().ToString());
             if (options.IsSet("-m", "--monitor")) {
-                events = _scope.Resolve<IRegistryServiceEvents>();
+                events = _client.Events;
                 var tcs = new TaskCompletionSource<bool>();
                 var discovery = await events.SubscribeDiscoveryProgressByRequestIdAsync(
                     id, async ev => {
@@ -1420,7 +1356,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Discover servers
         /// </summary>
         private async Task DiscoverServersAsync(CliOptions options, string id) {
-            await _registry.DiscoverAsync(
+            await _client.Registry.DiscoverAsync(
                 new DiscoveryRequestModel {
                     Id = id,
                     Discovery = options.GetValueOrDefault("-d", "--discovery", DiscoveryMode.Fast),
@@ -1432,7 +1368,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Cancel discovery
         /// </summary>
         private async Task CancelDiscoveryAsync(CliOptions options) {
-            await _registry.CancelAsync(
+            await _client.Registry.CancelAsync(
                 new DiscoveryCancelModel {
                     Id = options.GetValue<string>("-i", "--id")
                 });
@@ -1442,7 +1378,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Update application
         /// </summary>
         private async Task UpdateApplicationAsync(CliOptions options) {
-            await _registry.UpdateApplicationAsync(GetApplicationId(options),
+            await _client.Registry.UpdateApplicationAsync(GetApplicationId(options),
                 new ApplicationRegistrationUpdateModel {
                     ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
                     GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
@@ -1456,14 +1392,14 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Disable application
         /// </summary>
         private async Task DisableApplicationAsync(CliOptions options) {
-            await _registry.DisableApplicationAsync(GetApplicationId(options));
+            await _client.Registry.DisableApplicationAsync(GetApplicationId(options));
         }
 
         /// <summary>
         /// Enable application
         /// </summary>
         private async Task EnableApplicationAsync(CliOptions options) {
-            await _registry.EnableApplicationAsync(GetApplicationId(options));
+            await _client.Registry.EnableApplicationAsync(GetApplicationId(options));
         }
 
         /// <summary>
@@ -1473,7 +1409,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
 
             var id = GetApplicationId(options, false);
             if (id != null) {
-                await _registry.UnregisterApplicationAsync(id);
+                await _client.Registry.UnregisterApplicationAsync(id);
                 return;
             }
 
@@ -1488,10 +1424,10 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             };
 
             // Unregister all applications
-            var result = await _registry.QueryAllApplicationsAsync(query);
+            var result = await _client.Registry.QueryAllApplicationsAsync(query);
             foreach (var item in result) {
                 try {
-                    await _registry.UnregisterApplicationAsync(item.ApplicationId);
+                    await _client.Registry.UnregisterApplicationAsync(item.ApplicationId);
                 }
                 catch (Exception ex) {
                     Console.WriteLine($"Failed to unregister {item.ApplicationId}: {ex.Message}");
@@ -1503,7 +1439,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Purge disabled applications not seen since specified amount of time.
         /// </summary>
         private Task PurgeDisabledApplicationsAsync(CliOptions options) {
-            return _registry.PurgeDisabledApplicationsAsync(
+            return _client.Registry.PurgeDisabledApplicationsAsync(
                 options.GetValueOrDefault("-f", "--for", TimeSpan.Zero));
         }
 
@@ -1512,12 +1448,12 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task ListApplicationsAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.ListAllApplicationsAsync();
+                var result = await _client.Registry.ListAllApplicationsAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.ListApplicationsAsync(
+                var result = await _client.Registry.ListApplicationsAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
@@ -1529,12 +1465,12 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task ListSitesAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.ListAllSitesAsync();
+                var result = await _client.Registry.ListAllSitesAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.ListSitesAsync(
+                var result = await _client.Registry.ListSitesAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
@@ -1557,12 +1493,12 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 DiscovererId = options.GetValueOrDefault<string>("-D", "--discovererId", null)
             };
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.QueryAllApplicationsAsync(query);
+                var result = await _client.Registry.QueryAllApplicationsAsync(query);
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.QueryApplicationsAsync(query,
+                var result = await _client.Registry.QueryApplicationsAsync(query,
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -1572,7 +1508,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Get application
         /// </summary>
         private async Task GetApplicationAsync(CliOptions options) {
-            var result = await _registry.GetApplicationAsync(GetApplicationId(options));
+            var result = await _client.Registry.GetApplicationAsync(GetApplicationId(options));
             PrintResult(options, result);
         }
 
@@ -1580,9 +1516,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Monitor applications
         /// </summary>
         private async Task MonitorApplicationsAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeApplicationEventsAsync(PrintEvent);
+            var complete = await _client.Events.SubscribeApplicationEventsAsync(PrintEvent);
             try {
                 Console.ReadKey();
             }
@@ -1595,7 +1530,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Monitor all
         /// </summary>
         private async Task MonitorAllAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
+            var events = _client.Events;
             Console.WriteLine("Press any key to stop.");
             var apps = await events.SubscribeApplicationEventsAsync(PrintEvent);
             try {
@@ -1607,7 +1542,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                         try {
                             var discoverers = await events.SubscribeDiscovererEventsAsync(PrintEvent);
                             try {
-                                var supervisors = await _registry.ListAllDiscoverersAsync();
+                                var supervisors = await _client.Registry.ListAllDiscoverersAsync();
                                 var discovery = await supervisors
                                     .Select(s => events.SubscribeDiscoveryProgressByDiscovererIdAsync(
                                         s.Id, PrintProgress)).AsAsyncDisposable();
@@ -1677,7 +1612,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             else {
                 var endpointId = options.GetValueOrDefault<string>("-i", "--id", null);
                 if (string.IsNullOrEmpty(endpointId)) {
-                    var result = await _registry.ListAllEndpointsAsync();
+                    var result = await _client.Registry.ListAllEndpointsAsync();
                     endpointId = ConsoleEx.Select(result.Select(r => r.Registration.Id));
                     if (string.IsNullOrEmpty(endpointId)) {
                         Console.WriteLine("Nothing selected - endpoint selection cleared.");
@@ -1695,13 +1630,13 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task ListEndpointsAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.ListAllEndpointsAsync(
+                var result = await _client.Registry.ListAllEndpointsAsync(
                     options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.ListEndpointsAsync(
+                var result = await _client.Registry.ListEndpointsAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
@@ -1726,13 +1661,13 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 DiscovererId = options.GetValueOrDefault<string>("-D", "--discovererId", null)
             };
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.QueryAllEndpointsAsync(query,
+                var result = await _client.Registry.QueryAllEndpointsAsync(query,
                     options.IsProvidedOrNull("-S", "--server"));
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _registry.QueryEndpointsAsync(query,
+                var result = await _client.Registry.QueryEndpointsAsync(query,
                     options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
@@ -1743,7 +1678,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Get endpoint
         /// </summary>
         private async Task GetEndpointAsync(CliOptions options) {
-            var result = await _registry.GetEndpointAsync(GetEndpointId(options),
+            var result = await _client.Registry.GetEndpointAsync(GetEndpointId(options),
                 options.IsProvidedOrNull("-S", "--server"));
             PrintResult(options, result);
         }
@@ -1752,7 +1687,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Get endpoint certificate
         /// </summary>
         private async Task GetEndpointCertificateAsync(CliOptions options) {
-            var result = await _registry.GetEndpointCertificateAsync(GetEndpointId(options));
+            var result = await _client.Registry.GetEndpointCertificateAsync(GetEndpointId(options));
             PrintResult(options, result);
         }
 
@@ -1760,9 +1695,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Monitor endpoints
         /// </summary>
         private async Task MonitorEndpointsAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeEndpointEventsAsync(PrintEvent);
+            var complete = await _client.Events.SubscribeEndpointEventsAsync(PrintEvent);
             try {
                 Console.ReadKey();
             }
@@ -1775,10 +1709,10 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Get status
         /// </summary>
         private async Task GetStatusAsync(CliOptions options) {
-            Console.WriteLine("Twin:      " + await _twin.GetServiceStatusAsync());
-            Console.WriteLine("Registry:  " + await _registry.GetServiceStatusAsync());
-            Console.WriteLine("Publisher: " + await _publisher.GetServiceStatusAsync());
-            Console.WriteLine("History:   " + await _history.GetServiceStatusAsync());
+            Console.WriteLine("Twin:      " + await _client.Twin.GetServiceStatusAsync());
+            Console.WriteLine("Registry:  " + await _client.Registry.GetServiceStatusAsync());
+            Console.WriteLine("Publisher: " + await _client.Publisher.GetServiceStatusAsync());
+            Console.WriteLine("History:   " + await _client.History.GetServiceStatusAsync());
         }
 
         /// <summary>
@@ -1786,7 +1720,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private void PrintResult<T>(CliOptions options, T result) {
             Console.WriteLine("==================");
-            Console.WriteLine(_serializer.SerializeToString(result,
+            Console.WriteLine(_client.Serializer.SerializeToString(result,
                 options.GetValueOrDefault("-F", "--format", SerializeOption.Indented)));
             Console.WriteLine("==================");
         }
@@ -1874,7 +1808,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Print event
         /// </summary>
         private Task PrintEvent(EndpointEventModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
+            Console.WriteLine(_client.Serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
@@ -1882,7 +1816,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Print event
         /// </summary>
         private Task PrintEvent(ApplicationEventModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
+            Console.WriteLine(_client.Serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
@@ -1890,7 +1824,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Print event
         /// </summary>
         private Task PrintEvent(SupervisorEventModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
+            Console.WriteLine(_client.Serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
@@ -1898,7 +1832,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Print event
         /// </summary>
         private Task PrintEvent(GatewayEventModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
+            Console.WriteLine(_client.Serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
@@ -1906,7 +1840,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Print event
         /// </summary>
         private Task PrintEvent(DiscovererEventModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
+            Console.WriteLine(_client.Serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
@@ -1914,7 +1848,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Print event
         /// </summary>
         private Task PrintEvent(PublisherEventModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
+            Console.WriteLine(_client.Serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
@@ -1922,7 +1856,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Print sample
         /// </summary>
         private Task PrintSample(MonitoredItemMessageModel samples) {
-            Console.WriteLine(_serializer.SerializeToString(samples));
+            Console.WriteLine(_client.Serializer.SerializeToString(samples));
             return Task.CompletedTask;
         }
 
@@ -2531,11 +2465,6 @@ Commands and Options
                 );
         }
 
-        private readonly ILifetimeScope _scope;
-        private readonly ITwinServiceApi _twin;
-        private readonly IPublisherServiceApi _publisher;
-        private readonly IRegistryServiceApi _registry;
-        private readonly IHistoryServiceApi _history;
-        private readonly IJsonSerializer _serializer;
+        private ServiceClient _client;
     }
 }

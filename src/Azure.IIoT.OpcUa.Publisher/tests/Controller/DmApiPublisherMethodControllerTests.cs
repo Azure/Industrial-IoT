@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
                 engineConfigMock.Object, clientConfignMock.Object);
 
             // Note that each test is responsible for setting content of _tempFile;
-            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
 
             _configMock = new Mock<IPublisherConfiguration>();
             _configMock.SetupAllProperties();
@@ -100,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         [Theory]
         [InlineData("Controller/DmApiPayloadCollection.json")]
         public async Task DmApiPublishUnpublishNodesTest(string publishedNodesFile) {
-            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
             InitPublisherConfigService();
 
             var methodsController = new PublisherMethodsController(_configService);
@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         [Theory]
         [InlineData("Controller/DmApiPayloadCollection.json")]
         public async Task DmApiPublishUnpublishAllNodesTest(string publishedNodesFile) {
-            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
             InitPublisherConfigService();
             var methodsController = new PublisherMethodsController(_configService);
 
@@ -210,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         [Theory]
         [InlineData("Controller/DmApiPayloadCollection.json")]
         public async Task DmApiPublishNodesToJobTest(string publishedNodesFile) {
-            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
             InitPublisherConfigService();
 
             var methodsController = new PublisherMethodsController(_configService);
@@ -331,7 +331,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
                 })
                 .ToList();
 
-            var methodsController = await PublishNodeAsync("Engine/empty_pn.json");
+            var methodsController = await PublishNodeAsync("Publisher/empty_pn.json");
 
             for (var i = 0; i < 5; ++i) {
                 await methodsController.PublishNodesAsync(endpoints[i]).ConfigureAwait(false);
@@ -458,7 +458,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         /// </summary>
         private async Task<PublisherMethodsController> PublishNodeAsync(string publishedNodesFile,
             Func<PublishedNodesEntryModel, bool> predicate = null) {
-            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
             InitPublisherConfigService();
 
             var methodsController = new PublisherMethodsController(_configService);
@@ -480,7 +480,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         [Theory]
         [InlineData("Controller/DmApiPayloadCollection.json")]
         public async Task DmApiGetConfiguredEndpointsTest(string publishedNodesFile) {
-            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
             InitPublisherConfigService();
             var methodsController = new PublisherMethodsController(_configService);
 
@@ -530,7 +530,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
 
         [Fact]
         public async Task DmApiGetDiagnosticInfoTest() {
-            Utils.CopyContent("Engine/empty_pn.json", _tempFile);
+            Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
             InitPublisherConfigService();
             var methodsController = new PublisherMethodsController(_configService);
 
