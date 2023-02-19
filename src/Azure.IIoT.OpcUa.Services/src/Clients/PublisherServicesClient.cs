@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
     /// </summary>
     public sealed class PublisherServicesClient : IConnectionServices<string>,
         ICertificateServices<string>, IBrowseServices<string>, INodeServices<string>,
-        IHistoricAccessServices<string>, IPublishServices<string> {
+        IHistoricAccessServices<string>, IHistorianServices<string>, IPublishServices<string> {
 
         /// <summary>
         /// Create endpoint registry
@@ -321,6 +321,252 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                 out var moduleId);
             var client = new PublisherApiClient(_client, deviceId, moduleId, _serializer);
             return await client.NodePublishListAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(string endpointId, HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReplaceEventsAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(string endpointId,
+            HistoryUpdateRequestModel<InsertEventsDetailsModel> request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryInsertEventsAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(string endpointId,
+            HistoryUpdateRequestModel<DeleteEventsDetailsModel> request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryDeleteEventsAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(
+            string endpointId, HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request,
+            CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryDeleteValuesAtTimesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
+            string endpointId, HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request,
+            CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryDeleteModifiedValuesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(string endpointId,
+            HistoryUpdateRequestModel<DeleteValuesDetailsModel> request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryDeleteValuesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(string endpointId,
+            HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReplaceValuesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(string endpointId,
+            HistoryUpdateRequestModel<InsertValuesDetailsModel> request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryInsertValuesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
+            string endpointId, HistoryReadRequestModel<ReadEventsDetailsModel> request,
+            CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReadEventsAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
+            string endpointId, HistoryReadNextRequestModel request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReadEventsNextAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
+            string endpointId, HistoryReadRequestModel<ReadValuesDetailsModel> request,
+            CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReadValuesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
+            string endpointId, HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request,
+            CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReadValuesAtTimesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
+            string endpointId, HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request,
+            CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReadProcessedValuesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
+            string endpointId, HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request,
+            CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReadModifiedValuesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValuesNextAsync(
+            string endpointId, HistoryReadNextRequestModel request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReadValuesNextAsync(new ConnectionModel {
                 Endpoint = endpoint.Registration.Endpoint,
                 User = request.Header?.Elevation
             }, request, ct);

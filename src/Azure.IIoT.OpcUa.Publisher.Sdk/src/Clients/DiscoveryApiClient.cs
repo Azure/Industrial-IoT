@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
         /// <param name="config"></param>
         /// <param name="serializer"></param>
         public DiscoveryApiClient(IMethodClient methodClient,
-            IModuleApiConfig config = null, IJsonSerializer serializer = null) :
+            ISdkConfig config = null, IJsonSerializer serializer = null) :
             this(methodClient, config?.DeviceId, config?.ModuleId, serializer) {
         }
 

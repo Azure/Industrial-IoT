@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     /// Harness for opc publisher module
     /// </summary>
     public class PublisherModuleFixture : IInjector,
-        IModuleApiConfig, IDisposable {
+        ISdkConfig, IDisposable {
 
         /// <summary>
         /// Device id
@@ -205,17 +205,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             builder.RegisterType<DiscoveryApiClient>()
                 .AsImplementedInterfaces();
 
-            builder.RegisterType<HistoryRawAdapter>()
+            builder.RegisterType<PublisherApiAdapter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<TwinApiAdapter>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HistorianApiAdapter<ConnectionModel>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublisherApiAdapter>()
+            builder.RegisterType<HistoryApiAdapter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DiscoveryApiAdapter>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
 
             // Register http client module

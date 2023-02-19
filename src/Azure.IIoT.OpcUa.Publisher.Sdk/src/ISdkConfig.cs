@@ -6,9 +6,9 @@
 namespace Azure.IIoT.OpcUa.Publisher.Sdk {
 
     /// <summary>
-    /// Configuration for IoT Edge module api
+    /// Configuration for IoT Edge Opc Publisher api
     /// </summary>
-    public interface IModuleApiConfig {
+    public interface ISdkConfig {
 
         /// <summary>
         /// Edge device id

@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
     /// <summary>
     /// Implements node and publish services through command control against
-    /// the OPC Publihser module receiving service requests via device method calls.
+    /// the OPC Publihser module.
     /// </summary>
     public sealed class PublisherApiClient : IPublisherApi {
 
@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
         /// <param name="config"></param>
         /// <param name="serializer"></param>
         public PublisherApiClient(IMethodClient methodClient,
-            IModuleApiConfig config = null, IJsonSerializer serializer = null) :
+            ISdkConfig config = null, IJsonSerializer serializer = null) :
             this(methodClient, config?.DeviceId, config?.ModuleId, serializer) {
         }
 

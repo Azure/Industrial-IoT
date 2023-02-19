@@ -203,8 +203,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServicesClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HistorianApiAdapter<string>>()
-                .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
 

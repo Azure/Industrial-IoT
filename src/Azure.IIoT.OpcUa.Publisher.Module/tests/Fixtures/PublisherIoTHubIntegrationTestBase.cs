@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     /// Base class for integration testing, it connects to the server, runs
     /// publisher and injects mocked IoTHub services.
     /// </summary>
-    public class PublisherIoTHubIntegrationTestBase : IModuleApiConfig {
+    public class PublisherIoTHubIntegrationTestBase : ISdkConfig {
         /// <summary>
         /// Whether the module is running.
         /// </summary>
@@ -359,7 +359,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             builder.RegisterType<PublisherApiClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(this)
-                .As<IModuleApiConfig>();
+                .As<ISdkConfig>();
             return builder.Build();
         }
 

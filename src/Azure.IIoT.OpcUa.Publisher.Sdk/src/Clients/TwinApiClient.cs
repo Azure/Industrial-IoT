@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
         /// <param name="methodClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public TwinApiClient(IMethodClient methodClient, IModuleApiConfig config = null,
+        public TwinApiClient(IMethodClient methodClient, ISdkConfig config = null,
             IJsonSerializer serializer = null) :
             this(methodClient, config?.DeviceId, config?.ModuleId, serializer) {
         }
