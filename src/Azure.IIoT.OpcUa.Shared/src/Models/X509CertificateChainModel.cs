@@ -8,15 +8,23 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Result of attribute write
+    /// Certificate chain
     /// </summary>
     [DataContract]
-    public record class WriteResponseModel {
+    public sealed class X509CertificateChainModel {
 
         /// <summary>
-        /// All results of attribute writes
+        /// Chain
         /// </summary>
-        [DataMember(Name = "results", Order = 0)]
-        public List<AttributeWriteResponseModel> Results { set; get; }
+        [DataMember(Name = "chain", Order = 0,
+            EmitDefaultValue = false)]
+        public IReadOnlyList<X509CertificateModel>? Chain { get; init; }
+
+        /// <summary>
+        /// Chain validation status if validated
+        /// </summary>
+        [DataMember(Name = "status", Order = 1,
+            EmitDefaultValue = false)]
+        public IReadOnlyList<X509ChainStatus>? Status { get; init; }
     }
 }

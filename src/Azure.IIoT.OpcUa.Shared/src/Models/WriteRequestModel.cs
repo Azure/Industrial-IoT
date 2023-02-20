@@ -5,26 +5,27 @@
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Certificate chain
+    /// Request node attribute write
     /// </summary>
     [DataContract]
-    public sealed class X509CertificateChainModel {
+    public record class WriteRequestModel {
 
         /// <summary>
-        /// Chain
+        /// Attributes to update
         /// </summary>
-        [DataMember(Name = "chain", Order = 0,
-            EmitDefaultValue = false)]
-        public List<X509CertificateModel> Chain { get; set; }
+        [DataMember(Name = "attributes", Order = 0)]
+        [Required]
+        public IReadOnlyList<AttributeWriteRequestModel>? Attributes { get; set; }
 
         /// <summary>
-        /// Chain validation status if validated
+        /// Optional request header
         /// </summary>
-        [DataMember(Name = "status", Order = 1,
+        [DataMember(Name = "header", Order = 1,
             EmitDefaultValue = false)]
-        public List<X509ChainStatus> Status { get; set; }
+        public RequestHeaderModel? Header { get; set; }
     }
 }

@@ -130,12 +130,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         PartialChain = 0x10000,
 
         /// <summary>
-        /// Specifies that the certificate has not been strong signed.
-        /// </summary>
-        [EnumMember]
-        HasWeakSignature = 0x100000,
-
-        /// <summary>
         /// Specifies that the trust list is not valid because of an invalid
         /// time value, such as one that indicates that the CTL has expired.
         /// </summary>
@@ -153,6 +147,12 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [EnumMember]
         CtlNotValidForUsage = 0x80000,
+
+        /// <summary>
+        /// Specifies that the certificate has not been strong signed.
+        /// </summary>
+        [EnumMember]
+        HasWeakSignature = 0x100000,
 
         /// <summary>
         /// Specifies that the online certificate revocation list

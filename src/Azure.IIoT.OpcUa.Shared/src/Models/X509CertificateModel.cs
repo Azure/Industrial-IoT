@@ -18,47 +18,47 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "subject", Order = 0,
             EmitDefaultValue = false)]
-        public string Subject { get; set; }
+        public string? Subject { get; init; }
 
         /// <summary>
         /// Thumbprint
         /// </summary>
         [DataMember(Name = "thumbprint", Order = 1,
             EmitDefaultValue = false)]
-        public string Thumbprint { get; set; }
+        public string? Thumbprint { get; init; }
 
         /// <summary>
         /// Serial number
         /// </summary>
         [DataMember(Name = "serialNumber", Order = 2,
             EmitDefaultValue = false)]
-        public string SerialNumber { get; set; }
+        public string? SerialNumber { get; init; }
 
         /// <summary>
         /// Not before validity
         /// </summary>
         [DataMember(Name = "notBeforeUtc", Order = 3,
             EmitDefaultValue = false)]
-        public DateTime? NotBeforeUtc { get; set; }
+        public DateTime? NotBeforeUtc { get; init; }
 
         /// <summary>
         /// Not after validity
         /// </summary>
         [DataMember(Name = "notAfterUtc", Order = 4,
             EmitDefaultValue = false)]
-        public DateTime? NotAfterUtc { get; set; }
+        public DateTime? NotAfterUtc { get; init; }
 
         /// <summary>
         /// Self signed certificate
         /// </summary>
         [DataMember(Name = "selfSigned", Order = 5,
             EmitDefaultValue = false)]
-        public bool? SelfSigned { get; set; }
+        public bool? SelfSigned { get; init; }
 
         /// <summary>
         /// Raw data
         /// </summary>
         [DataMember(Name = "certificate", Order = 6)]
-        public byte[] Certificate { get; set; }
+        public IReadOnlyCollection<byte>? Certificate { get; init; }
     }
 }

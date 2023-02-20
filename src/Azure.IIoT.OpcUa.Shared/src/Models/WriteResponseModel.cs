@@ -5,27 +5,25 @@
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
     using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Request node attribute write
+    /// Result of attribute write
     /// </summary>
     [DataContract]
-    public record class WriteRequestModel {
+    public record class WriteResponseModel {
 
         /// <summary>
-        /// Attributes to update
+        /// All results of attribute writes
         /// </summary>
-        [DataMember(Name = "attributes", Order = 0)]
-        [Required]
-        public List<AttributeWriteRequestModel> Attributes { get; set; }
+        [DataMember(Name = "results", Order = 0)]
+        public List<AttributeWriteResponseModel> Results { set; get; }
 
         /// <summary>
-        /// Optional request header
+        /// Service result in case of error
         /// </summary>
-        [DataMember(Name = "header", Order = 1,
+        [DataMember(Name = "errorInfo", Order = 1,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public ServiceResultModel ErrorInfo { get; set; }
     }
 }
