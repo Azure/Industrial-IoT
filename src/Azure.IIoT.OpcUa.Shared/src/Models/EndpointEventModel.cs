@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Endpoint Event model
     /// </summary>
     [DataContract]
-    public record class EndpointEventModel {
+    public sealed record class EndpointEventModel {
 
         /// <summary>
         /// Type of event
@@ -23,20 +23,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "id", Order = 1,
             EmitDefaultValue = false)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Endpoint info
         /// </summary>
-        [DataMember(Name = "endpoint", Order = 2,
-            EmitDefaultValue = false)]
-        public EndpointInfoModel Endpoint { get; set; }
+        [DataMember(Name = "endpoint", Order = 2)]
+        public EndpointInfoModel Endpoint { get; set; } = null!;
 
         /// <summary>
         /// Context
         /// </summary>
         [DataMember(Name = "context", Order = 3,
             EmitDefaultValue = false)]
-        public RegistryOperationContextModel Context { get; set; }
+        public OperationContextModel? Context { get; set; }
     }
 }

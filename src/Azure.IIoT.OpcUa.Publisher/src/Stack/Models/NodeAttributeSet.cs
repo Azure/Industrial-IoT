@@ -319,7 +319,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object o) {
-            if (!(o is NodeAttributeSet node)) {
+            if (o is not NodeAttributeSet node) {
                 return false;
             }
             if (ReferenceEquals(node._attributes, _attributes)) {
@@ -331,11 +331,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             if (_attributes.SequenceEqual(node._attributes)) {
                 return true;
             }
-            var optional = false;
-            var attributes = _attributeMap.GetNodeClassAttributes(NodeClass);
+            var attributes = AttributeMap.GetNodeClassAttributes(NodeClass);
             foreach (var attributeId in attributes) {
-                var defaultObject = _attributeMap.GetDefault(
-                    NodeClass, attributeId, ref optional);
+                var defaultObject = AttributeMap.GetDefaultValue(
+                    NodeClass, attributeId, false);
                 object o1 = null;
                 object o2 = null;
                 if (_attributes.TryGetValue(attributeId, out var dataValue)) {
@@ -361,8 +360,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             if (nodeClass == NodeClass.Unspecified) {
                 return default;
             }
-            var optional = false;
-            var defaultValue = _attributeMap.GetDefault(nodeClass, attribute, ref optional);
+            var defaultValue = AttributeMap.GetDefaultValue(nodeClass, attribute, false);
             return (T)defaultValue;
         }
 
@@ -402,6 +400,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         protected readonly NamespaceTable _namespaces;
         /// <summary>Attributes to use in derived classes</summary>
         protected SortedDictionary<uint, DataValue> _attributes;
-        private static readonly AttributeMap _attributeMap = new AttributeMap();
     }
 }

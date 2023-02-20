@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="historian"></param>
-        public ReplaceController(IHistorianServices<string> historian) {
+        public ReplaceController(IHistoryServices<string> historian) {
             _historian = historian ?? throw new ArgumentNullException(nameof(historian));
         }
 
@@ -36,8 +36,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Replace historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history replace request</param>
@@ -45,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -58,8 +57,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Replace historic events using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history replace request</param>
@@ -67,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -75,6 +73,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             return writeResult;
         }
 
-        private readonly IHistorianServices<string> _historian;
+        private readonly IHistoryServices<string> _historian;
     }
 }

@@ -5,28 +5,29 @@
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Endpoint registration model
+    /// Endpoint info
     /// </summary>
     [DataContract]
-    public record class EndpointInfoModel {
+    public sealed record class EndpointInfoModel {
 
         /// <summary>
         /// Endpoint registration
         /// </summary>
         [DataMember(Name = "registration", Order = 0)]
         [Required]
-        public EndpointRegistrationModel Registration { get; set; }
+        public EndpointRegistrationModel Registration { get; set; } = null!;
 
         /// <summary>
         /// Application id endpoint is registered under.
         /// </summary>
         [DataMember(Name = "applicationId", Order = 1)]
         [Required]
-        public string ApplicationId { get; set; }
+        public string ApplicationId { get; set; } = null!;
 
         /// <summary>
         /// Last state of the activated endpoint

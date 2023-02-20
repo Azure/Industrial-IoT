@@ -11,19 +11,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// List of application sites
     /// </summary>
     [DataContract]
-    public record class ApplicationSiteListModel {
+    public sealed record class ApplicationSiteListModel {
 
         /// <summary>
         /// Sites
         /// </summary>
         [DataMember(Name = "sites", Order = 0)]
-        public List<string> Sites { get; set; }
+        public List<string>? Sites { get; set; }
 
         /// <summary>
         /// Continuation or null if final
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 1,
             EmitDefaultValue = false)]
-        public string ContinuationToken { get; set; }
+        public string? ContinuationToken { get; set; }
     }
 }

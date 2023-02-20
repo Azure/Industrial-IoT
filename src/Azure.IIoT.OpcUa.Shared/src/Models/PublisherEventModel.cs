@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Publisher event
     /// </summary>
     [DataContract]
-    public record class PublisherEventModel {
+    public sealed record class PublisherEventModel {
 
         /// <summary>
         /// Event type
@@ -23,20 +23,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "id", Order = 1,
             EmitDefaultValue = false)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Publisher
         /// </summary>
         [DataMember(Name = "publisher", Order = 2,
             EmitDefaultValue = false)]
-        public PublisherModel Publisher { get; set; }
+        public PublisherModel? Publisher { get; set; }
 
         /// <summary>
         /// Context
         /// </summary>
         [DataMember(Name = "context", Order = 3,
             EmitDefaultValue = false)]
-        public RegistryOperationContextModel Context { get; set; }
+        public OperationContextModel? Context { get; set; }
     }
 }

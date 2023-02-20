@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            if (!(obj is PublisherRegistration registration)) {
+            if (obj is not PublisherRegistration registration) {
                 return false;
             }
             if (!base.Equals(registration)) {

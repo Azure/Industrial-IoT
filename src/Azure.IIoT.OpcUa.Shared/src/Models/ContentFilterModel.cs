@@ -11,12 +11,12 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Content filter
     /// </summary>
     [DataContract]
-    public record class ContentFilterModel {
+    public sealed record class ContentFilterModel {
 
         /// <summary>
         /// The flat list of elements in the filter AST
         /// </summary>
         [DataMember(Name = "elements", Order = 0)]
-        public List<ContentFilterElementModel> Elements { get; set; }
+        public IReadOnlyList<ContentFilterElementModel>? Elements { get; set; }
     }
 }

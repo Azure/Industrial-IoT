@@ -11,12 +11,12 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Published items
     /// </summary>
     [DataContract]
-    public record class PublishedDataItemsModel {
+    public sealed record class PublishedDataItemsModel {
 
         /// <summary>
         /// Published data variables
         /// </summary>
         [DataMember(Name = "publishedData", Order = 0)]
-        public List<PublishedDataSetVariableModel> PublishedData { get; set; }
+        public List<PublishedDataSetVariableModel>? PublishedData { get; set; }
     }
 }

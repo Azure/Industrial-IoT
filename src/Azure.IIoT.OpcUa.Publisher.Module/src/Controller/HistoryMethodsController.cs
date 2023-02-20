@@ -23,8 +23,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// Create controller with service
         /// </summary>
         /// <param name="historian"></param>
-        public HistoryMethodsController(IHistorianServices<ConnectionModel> historian) {
-            _historian = historian ?? throw new ArgumentNullException(nameof(historian));
+        public HistoryMethodsController(IHistoryServices<ConnectionModel> historian) {
+            _history = historian ?? throw new ArgumentNullException(nameof(historian));
         }
 
         /// <summary>
@@ -34,11 +34,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// <param name="request"></param>
         /// <returns></returns>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReplaceEventsAsync(connection, request);
+            var result = await _history.HistoryReplaceEventsAsync(connection, request);
             return result;
         }
 
@@ -49,11 +49,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// <param name="request"></param>
         /// <returns></returns>
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<InsertEventsDetailsModel> request) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryInsertEventsAsync(connection, request);
+            var result = await _history.HistoryInsertEventsAsync(connection, request);
+            return result;
+        }
+
+        /// <summary>
+        /// Upsert events
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(ConnectionModel connection,
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _history.HistoryUpsertEventsAsync(connection, request);
             return result;
         }
 
@@ -68,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryDeleteEventsAsync(connection, request);
+            var result = await _history.HistoryDeleteEventsAsync(connection, request);
             return result;
         }
 
@@ -83,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryDeleteValuesAtTimesAsync(connection, request);
+            var result = await _history.HistoryDeleteValuesAtTimesAsync(connection, request);
             return result;
         }
 
@@ -94,11 +109,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// <param name="request"></param>
         /// <returns></returns>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request) {
+            HistoryUpdateRequestModel<DeleteValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryDeleteModifiedValuesAsync(connection, request);
+            var result = await _history.HistoryDeleteModifiedValuesAsync(connection, request);
             return result;
         }
 
@@ -113,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryDeleteValuesAsync(connection, request);
+            var result = await _history.HistoryDeleteValuesAsync(connection, request);
             return result;
         }
 
@@ -124,11 +139,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// <param name="request"></param>
         /// <returns></returns>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReplaceValuesAsync(connection, request);
+            var result = await _history.HistoryReplaceValuesAsync(connection, request);
             return result;
         }
 
@@ -139,11 +154,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// <param name="request"></param>
         /// <returns></returns>
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<InsertValuesDetailsModel> request) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryInsertValuesAsync(connection, request);
+            var result = await _history.HistoryInsertValuesAsync(connection, request);
+            return result;
+        }
+
+        /// <summary>
+        /// Upsert values
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(ConnectionModel connection,
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _history.HistoryUpsertValuesAsync(connection, request);
             return result;
         }
 
@@ -158,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReadEventsAsync(connection, request);
+            var result = await _history.HistoryReadEventsAsync(connection, request);
             return result;
         }
 
@@ -173,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReadEventsNextAsync(connection, request);
+            var result = await _history.HistoryReadEventsNextAsync(connection, request);
             return result;
         }
 
@@ -188,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReadValuesAsync(connection, request);
+            var result = await _history.HistoryReadValuesAsync(connection, request);
             return result;
         }
 
@@ -203,7 +233,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReadValuesAtTimesAsync(connection, request);
+            var result = await _history.HistoryReadValuesAtTimesAsync(connection, request);
             return result;
         }
 
@@ -218,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReadProcessedValuesAsync(connection, request);
+            var result = await _history.HistoryReadProcessedValuesAsync(connection, request);
             return result;
         }
 
@@ -233,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReadModifiedValuesAsync(connection, request);
+            var result = await _history.HistoryReadModifiedValuesAsync(connection, request);
             return result;
         }
 
@@ -248,10 +278,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReadValuesNextAsync(connection, request);
+            var result = await _history.HistoryReadValuesNextAsync(connection, request);
             return result;
         }
 
-        private readonly IHistorianServices<ConnectionModel> _historian;
+        private readonly IHistoryServices<ConnectionModel> _history;
     }
 }

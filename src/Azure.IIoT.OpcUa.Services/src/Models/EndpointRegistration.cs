@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// The credential policies supported by the registered endpoint
         /// </summary>
         [DataMember]
-        public Dictionary<string, AuthenticationMethodModel> AuthenticationMethods { get; set; }
+        public IReadOnlyDictionary<string, AuthenticationMethodModel> AuthenticationMethods { get; set; }
 
         /// <summary>
         /// Endoint url for direct server access
@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// Alternative urls
         /// </summary>
         [DataMember]
-        public Dictionary<string, string> AlternativeUrls { get; set; }
+        public IReadOnlyDictionary<string, string> AlternativeUrls { get; set; }
 
         /// <summary>
         /// Endpoint security policy to use.

@@ -7,17 +7,17 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
-        /// <summary>
+    /// <summary>
     /// Endpoint model
     /// </summary>
     [DataContract]
-    public record class EndpointModel {
+    public sealed record class EndpointModel {
 
         /// <summary>
         /// Endpoint url to use to connect with
         /// </summary>
         [DataMember(Name = "url", Order = 0)]
-        public string Url { get; set; }
+        public string? Url { get; set; } = null!;
 
         /// <summary>
         /// Alternative endpoint urls that can be used for
@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "alternativeUrls", Order = 1,
             EmitDefaultValue = false)]
-        public HashSet<string> AlternativeUrls { get; set; }
+        public IReadOnlySet<string>? AlternativeUrls { get; set; }
 
         /// <summary>
         /// Security Mode to use for communication.
@@ -41,13 +41,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "securityPolicy", Order = 3,
             EmitDefaultValue = false)]
-        public string SecurityPolicy { get; set; }
+        public string? SecurityPolicy { get; set; }
 
         /// <summary>
         /// Endpoint certificate thumbprint
         /// </summary>
         [DataMember(Name = "certificate", Order = 4,
             EmitDefaultValue = false)]
-        public string Certificate { get; set; }
+        public string? Certificate { get; set; }
     }
 }

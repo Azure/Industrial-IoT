@@ -15,6 +15,12 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     public enum RolePermissions {
 
         /// <summary>
+        /// No permissions
+        /// </summary>
+        [EnumMember]
+        None = 0x0,
+
+        /// <summary>
         /// Gives role the Browse permissions.
         /// </summary>
         [EnumMember]

@@ -5,12 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack {
     using Azure.IIoT.OpcUa.Shared.Models;
+    using UaAggregateBits = Opc.Ua.AggregateBits;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
     using UaDataChangeTrigger = Opc.Ua.DataChangeTrigger;
+    using UaTimestampsToReturn = Opc.Ua.TimestampsToReturn;
     using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
     using UaDeadbandType = Opc.Ua.DeadbandType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
+    using UaExceptionDeviationFormat = Opc.Ua.ExceptionDeviationFormat;
     using UaFilterOperator = Opc.Ua.FilterOperator;
     using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;
     using JsonNetworkMessageContentMask = Opc.Ua.JsonNetworkMessageContentMask;
@@ -27,8 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// <summary>
     /// Stack types conversions
     /// </summary>
-    public static class StackTypesEx {
-
+    internal static class StackTypesEx {
         /// <summary>
         /// Convert node class
         /// </summary>
@@ -90,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="nodeClasses"></param>
         /// <returns></returns>
-        public static List<NodeClass> ToServiceMask(this UaNodeClass nodeClasses) {
+        public static IReadOnlyList<NodeClass> ToServiceMask(this UaNodeClass nodeClasses) {
             if (nodeClasses == UaNodeClass.Unspecified) {
                 return null;
             }
@@ -128,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// </summary>
         /// <param name="nodeClasses"></param>
         /// <returns></returns>
-        public static UaNodeClass ToStackMask(this List<NodeClass> nodeClasses) {
+        public static UaNodeClass ToStackMask(this IReadOnlyList<NodeClass> nodeClasses) {
             var mask = 0u;
             if (nodeClasses != null) {
                 foreach (var nodeClass in nodeClasses) {
@@ -228,14 +230,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="level"></param>
         /// <returns></returns>
         public static UaDiagnosticsLevel ToStackType(this DiagnosticsLevel level) {
-            switch (level) {
-                case DiagnosticsLevel.Diagnostics:
-                    return UaDiagnosticsLevel.SymbolicIdAndText | UaDiagnosticsLevel.InnerDiagnostics;
-                case DiagnosticsLevel.Verbose:
-                    return UaDiagnosticsLevel.All;
-                default:
-                    return UaDiagnosticsLevel.None;
+            var result = UaDiagnosticsLevel.None;
+            if (level == DiagnosticsLevel.None) {
+                return result;
             }
+            result |= UaDiagnosticsLevel.SymbolicIdAndText;
+            if (level == DiagnosticsLevel.Status) {
+                return result;
+            }
+            result |= UaDiagnosticsLevel.AdditionalInfo;
+            result |= UaDiagnosticsLevel.InnerStatusCode;
+            if (level == DiagnosticsLevel.Operations) {
+                return result;
+            }
+            result |= UaDiagnosticsLevel.InnerDiagnostics;
+            if (level == DiagnosticsLevel.Diagnostics) {
+                return result;
+            }
+            result |= UaDiagnosticsLevel.All;
+            return result;
         }
 
         /// <summary>
@@ -256,6 +269,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                     return UaMonitoringMode.Reporting;
                 default:
                     return UaMonitoringMode.Reporting;
+            }
+        }
+
+        /// <summary>
+        /// Convert timestamp to return
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static UaTimestampsToReturn ToStackType(this TimestampsToReturn mode) {
+            switch (mode) {
+                case TimestampsToReturn.None:
+                    return UaTimestampsToReturn.Neither;
+                case TimestampsToReturn.Server:
+                    return UaTimestampsToReturn.Server;
+                case TimestampsToReturn.Source:
+                    return UaTimestampsToReturn.Source;
+                default:
+                    return UaTimestampsToReturn.Both;
             }
         }
 
@@ -346,6 +377,114 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 default:
                     throw new NotSupportedException($"{type} not supported");
             }
+        }
+
+        /// <summary>
+        /// Convert to stack type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static FilterOperatorType ToServiceType(this UaFilterOperator type) {
+            switch (type) {
+                case UaFilterOperator.Equals:
+                    return FilterOperatorType.Equals;
+                case UaFilterOperator.IsNull:
+                    return FilterOperatorType.IsNull;
+                case UaFilterOperator.GreaterThan:
+                    return FilterOperatorType.GreaterThan;
+                case UaFilterOperator.LessThan:
+                    return FilterOperatorType.LessThan;
+                case UaFilterOperator.GreaterThanOrEqual:
+                    return FilterOperatorType.GreaterThanOrEqual;
+                case UaFilterOperator.LessThanOrEqual:
+                    return FilterOperatorType.LessThanOrEqual;
+                case UaFilterOperator.Like:
+                    return FilterOperatorType.Like;
+                case UaFilterOperator.Not:
+                    return FilterOperatorType.Not;
+                case UaFilterOperator.Between:
+                    return FilterOperatorType.Between;
+                case UaFilterOperator.InList:
+                    return FilterOperatorType.InList;
+                case UaFilterOperator.And:
+                    return FilterOperatorType.And;
+                case UaFilterOperator.Or:
+                    return FilterOperatorType.Or;
+                case UaFilterOperator.Cast:
+                    return FilterOperatorType.Cast;
+                case UaFilterOperator.InView:
+                    return FilterOperatorType.InView;
+                case UaFilterOperator.OfType:
+                    return FilterOperatorType.OfType;
+                case UaFilterOperator.RelatedTo:
+                    return FilterOperatorType.RelatedTo;
+                case UaFilterOperator.BitwiseAnd:
+                    return FilterOperatorType.BitwiseAnd;
+                case UaFilterOperator.BitwiseOr:
+                    return FilterOperatorType.BitwiseOr;
+                default:
+                    throw new NotSupportedException($"{type} not supported");
+            }
+        }
+
+        /// <summary>
+        /// To service type
+        /// </summary>
+        /// <param name="format"></param>
+        /// <returns></returns>
+        public static ExceptionDeviationType? ToExceptionDeviationType(
+            this UaExceptionDeviationFormat? format) {
+            switch (format) {
+                case UaExceptionDeviationFormat.AbsoluteValue:
+                    return ExceptionDeviationType.AbsoluteValue;
+                case UaExceptionDeviationFormat.PercentOfValue:
+                    return ExceptionDeviationType.PercentOfValue;
+                case UaExceptionDeviationFormat.PercentOfRange:
+                    return ExceptionDeviationType.PercentOfRange;
+                case UaExceptionDeviationFormat.PercentOfEURange:
+                    return ExceptionDeviationType.PercentOfEURange;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert data location
+        /// </summary>
+        /// <param name="aggregateBits"></param>
+        /// <returns></returns>
+        public static DataLocation? ToDataLocation(this UaAggregateBits aggregateBits) {
+            if ((aggregateBits & UaAggregateBits.Calculated) != 0) {
+                return DataLocation.Calculated;
+            }
+            else if ((aggregateBits & UaAggregateBits.Interpolated) != 0) {
+                return DataLocation.Interpolated;
+            }
+            else {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert additional data
+        /// </summary>
+        /// <param name="aggregateBits"></param>
+        /// <returns></returns>
+        public static AdditionalData? ToAdditionalData(this UaAggregateBits aggregateBits) {
+            AdditionalData result = 0;
+            if ((aggregateBits & UaAggregateBits.ExtraData) != 0) {
+                result |= AdditionalData.ExtraData;
+            }
+            if ((aggregateBits & UaAggregateBits.MultipleValues) != 0) {
+                result |= AdditionalData.MultipleValues;
+            }
+            if ((aggregateBits & UaAggregateBits.Partial) != 0) {
+                result |= AdditionalData.Partial;
+            }
+            if (result == 0) {
+                return null;
+            }
+            return result;
         }
 
         /// <summary>

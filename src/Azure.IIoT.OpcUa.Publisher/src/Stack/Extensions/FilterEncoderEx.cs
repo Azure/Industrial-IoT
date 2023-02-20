@@ -61,6 +61,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <summary>
         /// Convert to stack model
         /// </summary>
+        /// <param name="model"></param>
+        /// <param name="encoder"></param>
+        /// <returns></returns>
+        public static EventFilterModel Encode(this IVariantEncoder encoder, EventFilter model) {
+            if (model == null) {
+                return null;
+            }
+            return new EventFilterModel {
+                SelectClauses = model.SelectClauses?
+                    .Select(c => c.ToServiceModel(encoder.Context))
+                    .ToList(),
+                WhereClause = encoder.Encode(model.WhereClause)
+            };
+        }
+
+        /// <summary>
+        /// Convert to stack model
+        /// </summary>
         /// <param name="encoder"></param>
         /// <param name="model"></param>
         /// <param name="onlySimpleAttributeOperands"></param>
@@ -74,6 +92,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 Elements = new ContentFilterElementCollection(model.Elements == null ?
                     Enumerable.Empty<ContentFilterElement>() : model.Elements
                         .Select(e => encoder.Decode(e, onlySimpleAttributeOperands)))
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="encoder"></param>
+        /// <returns></returns>
+        public static ContentFilterModel Encode(this IVariantEncoder encoder, ContentFilter model) {
+            if (model == null) {
+                return null;
+            }
+            return new ContentFilterModel {
+                Elements = model.Elements?
+                    .Select(e => encoder.Encode(e))
+                    .ToList()
             };
         }
 
@@ -95,6 +130,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                         .Select(e => new ExtensionObject(
                             encoder.Decode(e, onlySimpleAttributeOperands)))),
                 FilterOperator = model.FilterOperator.ToStackType()
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="encoder"></param>
+        /// <returns></returns>
+        public static ContentFilterElementModel Encode(this IVariantEncoder encoder,
+            ContentFilterElement model) {
+            if (model == null) {
+                return null;
+            }
+            return new ContentFilterElementModel {
+                FilterOperands = model.FilterOperands
+                    .Select(e => e.Body)
+                    .Cast<FilterOperand>()
+                    .Select(o => encoder.Encode(o))
+                    .ToList(),
+                FilterOperator = model.FilterOperator.ToServiceType()
             };
         }
 

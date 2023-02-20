@@ -11,20 +11,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Published data set describing metadata and dataset source
     /// </summary>
     [DataContract]
-    public record class PublishedDataSetModel {
+    public sealed record class PublishedDataSetModel {
 
         /// <summary>
         /// Name of the published dataset
         /// </summary>
         [DataMember(Name = "name", Order = 0,
             EmitDefaultValue = false)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Data set source
         /// </summary>
         [DataMember(Name = "dataSetSource", Order = 1)]
-        public PublishedDataSetSourceModel DataSetSource { get; set; }
+        public PublishedDataSetSourceModel? DataSetSource { get; set; }
 
         /// <summary>
         /// Provides context of the dataset meta data that is to
@@ -32,13 +32,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "dataSetMetaData", Order = 2,
             EmitDefaultValue = false)]
-        public DataSetMetaDataModel DataSetMetaData { get; set; }
+        public DataSetMetaDataModel? DataSetMetaData { get; set; }
 
         /// <summary>
         /// Extension fields
         /// </summary>
         [DataMember(Name = "extensionFields", Order = 3,
             EmitDefaultValue = false)]
-        public Dictionary<string, string> ExtensionFields { get; set; }
+        public Dictionary<string, string>? ExtensionFields { get; set; }
     }
 }

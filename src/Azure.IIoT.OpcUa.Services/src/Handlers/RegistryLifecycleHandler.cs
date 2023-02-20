@@ -108,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <returns></returns>
         private async Task HandleDeleteAsync(DeviceTwinModel twin, DateTime timestamp) {
             var type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
-            var ctx = new RegistryOperationContextModel {
+            var ctx = new OperationContextModel {
                 Time = timestamp
             };
             switch (type) {
@@ -142,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         /// <returns></returns>
         private async Task HandleCreateAsync(DeviceTwinModel twin, DateTime timestamp) {
             var type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
-            var ctx = new RegistryOperationContextModel {
+            var ctx = new OperationContextModel {
                 Time = timestamp
             };
             switch (type) {

@@ -11,17 +11,17 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Attribute to read
     /// </summary>
     [DataContract]
-    public record class AttributeReadRequestModel {
+    public sealed record class AttributeReadRequestModel {
 
         /// <summary>
-        /// Node to read from (mandatory)
+        /// Node to read from or write to (mandatory)
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0)]
         [Required]
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
-        /// Attribute to read
+        /// Attribute to read or write
         /// </summary>
         [DataMember(Name = "attribute", Order = 1)]
         [Required]

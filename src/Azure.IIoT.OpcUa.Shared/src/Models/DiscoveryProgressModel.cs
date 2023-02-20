@@ -12,14 +12,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Discovery progress
     /// </summary>
     [DataContract]
-    public record class DiscoveryProgressModel {
+    public sealed record class DiscoveryProgressModel {
 
         /// <summary>
         /// Id of discovery request
         /// </summary>
         [DataMember(Name = "requestId", Order = 0,
             EmitDefaultValue = false)]
-        public string RequestId { get; set; }
+        public string? RequestId { get; set; }
 
         /// <summary>
         /// Event type
@@ -32,14 +32,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "discovererId", Order = 2,
             EmitDefaultValue = false)]
-        public string DiscovererId { get; set; }
+        public string? DiscovererId { get; set; }
 
         /// <summary>
         /// Additional request information as per event
         /// </summary>
         [DataMember(Name = "requestDetails", Order = 3,
             EmitDefaultValue = false)]
-        public Dictionary<string, string> RequestDetails { get; set; }
+        public IReadOnlyDictionary<string, string>? RequestDetails { get; set; }
 
         /// <summary>
         /// Timestamp of the message
@@ -80,20 +80,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "result", Order = 9,
             EmitDefaultValue = false)]
-        public string Result { get; set; }
+        public string? Result { get; set; }
 
         /// <summary>
         /// Discovery result details
         /// </summary>
         [DataMember(Name = "resultDetails", Order = 10,
             EmitDefaultValue = false)]
-        public Dictionary<string, string> ResultDetails { get; set; }
+        public IReadOnlyDictionary<string, string>? ResultDetails { get; set; }
 
         /// <summary>
         /// Discovery request
         /// </summary>
         [DataMember(Name = "request", Order = 11,
             EmitDefaultValue = false)]
-        public DiscoveryRequestModel Request { get; set; }
+        public DiscoveryRequestModel Request { get; set; } = null!;
     }
 }

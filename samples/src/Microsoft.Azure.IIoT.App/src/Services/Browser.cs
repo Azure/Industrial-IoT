@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
             var pageResult = new PagedResult<ListNode>();
             var previousPage = new PagedResult<ListNode>();
-            var model = new BrowseRequestModel {
+            var model = new BrowseFirstRequestModel {
                 TargetNodesOnly = true,
                 ReadVariableValues = true,
                 MaxReferencesToReturn = _MAX_REFERENCES
@@ -229,7 +229,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 return response.ErrorInfo == null
                     ? string.Format("value successfully written to node '{0}'", nodeId)
-                    : response.ErrorInfo.Diagnostics != null ? response.ErrorInfo.Diagnostics.ToString() : response.ErrorInfo.ToString();
+                    : response.ErrorInfo.ErrorMessage;
             }
             catch (UnauthorizedAccessException) {
                 return "Unauthorized access: Bad User Access Denied.";
@@ -254,10 +254,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             };
             try {
                 Parameter = await _twinService.NodeMethodGetMetadataAsync(endpointId, model);
-
-                return Parameter.ErrorInfo == null
-                    ? null
-                    : Parameter.ErrorInfo.Diagnostics != null ? Parameter.ErrorInfo.Diagnostics.ToString() : Parameter.ErrorInfo.ToString();
+                return Parameter.ErrorInfo?.ErrorMessage;
             }
             catch (UnauthorizedAccessException) {
                 return "Unauthorized access: Bad User Access Denied.";
@@ -299,11 +296,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
                 MethodCallResponse = await _twinService.NodeMethodCallAsync(endpointId, model);
 
-                return MethodCallResponse.ErrorInfo == null
-                    ? null
-                    : MethodCallResponse.ErrorInfo.Diagnostics != null
-                        ? MethodCallResponse.ErrorInfo.Diagnostics.ToString()
-                        : MethodCallResponse.ErrorInfo.ToString();
+                return MethodCallResponse.ErrorInfo?.ErrorMessage;
             }
             catch (UnauthorizedAccessException) {
                 return "Unauthorized access: Bad User Access Denied.";

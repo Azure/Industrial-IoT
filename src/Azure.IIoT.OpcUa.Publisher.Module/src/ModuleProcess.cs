@@ -31,6 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
     using System.Threading.Tasks;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Shared.Models;
 
     /// <summary>
     /// Publisher module
@@ -175,7 +176,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TwinServices>()
                  .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<AddressSpaceServices>()
+            builder.RegisterType<NodeServices<ConnectionModel>>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<HistoryServices<ConnectionModel>>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<DiscoveryServices>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();

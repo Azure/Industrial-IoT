@@ -10,20 +10,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// <summary>
     /// Result of bulk request
     /// </summary>
-    public record class PublishBulkResponseModel {
+    public sealed record class PublishBulkResponseModel {
 
         /// <summary>
         /// Node to add
         /// </summary>
         [DataMember(Name = "nodesToAdd", Order = 0,
             EmitDefaultValue = false)]
-        public List<ServiceResultModel> NodesToAdd { get; set; }
+        public List<ServiceResultModel>? NodesToAdd { get; set; }
 
         /// <summary>
         /// Node to remove
         /// </summary>
         [DataMember(Name = "nodesToRemove", Order = 1,
             EmitDefaultValue = false)]
-        public List<ServiceResultModel> NodesToRemove { get; set; }
+        public List<ServiceResultModel>? NodesToRemove { get; set; }
     }
 }

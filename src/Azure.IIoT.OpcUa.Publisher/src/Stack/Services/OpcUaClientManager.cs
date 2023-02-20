@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     /// <summary>
     /// Client manager
     /// </summary>
-    public class OpcUaClientManager : IClientHost, IEndpointServices,
+    public class OpcUaClientManager : IClientHost, ISessionProvider<ConnectionModel>,
         ISubscriptionManager, IEndpointDiscovery, IDisposable,
         ICertificateServices<EndpointModel>, IConnectionServices<ConnectionModel> {
 
@@ -37,14 +37,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// Create client manager
         /// </summary>
         /// <param name="clientConfig"></param>
+        /// <param name="codec"></param>
         /// <param name="identity"></param>
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
         public OpcUaClientManager(ILogger logger, IClientServicesConfig clientConfig,
-            IProcessIdentity identity = null, IMetricsContext metrics = null)
+            IVariantEncoderFactory codec = null, IProcessIdentity identity = null,
+            IMetricsContext metrics = null)
             : this(metrics ?? new EmptyMetricsContext()) {
             _clientConfig = clientConfig ??
                 throw new ArgumentNullException(nameof(clientConfig));
+            _codec = codec ?? new VariantEncoderFactory();
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _configuration = _clientConfig.BuildApplicationConfigurationAsync(
@@ -109,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <inheritdoc/>
         public async Task DisconnectAsync(ConnectionModel connection,
             CredentialModel credential, CancellationToken ct) {
-            await _lock.WaitAsync();
+            await _lock.WaitAsync(ct);
             try {
                 var id = new ConnectionIdentifier(connection);
                 if (!_clients.TryGetValue(id, out var client)) {
@@ -414,7 +417,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <param name="metrics"></param>
         /// <returns></returns>
         private OpcUaClient CreateClient(ConnectionIdentifier id, IMetricsContext metrics) {
-            return new OpcUaClient(_configuration.Result, id, _logger, metrics) {
+            return new OpcUaClient(_configuration.Result, id, _logger, _codec, metrics) {
                 KeepAliveInterval = _clientConfig.KeepAliveInterval,
                 SessionLifeTime = _clientConfig.DefaultSessionTimeout
             };
@@ -422,7 +425,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
         /// <inheritdoc/>
         public async Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
-            Uri discoveryUrl, List<string> locales, CancellationToken ct) {
+            Uri discoveryUrl, IReadOnlyList<string> locales, CancellationToken ct) {
             var results = new HashSet<DiscoveredEndpointModel>();
             var visitedUris = new HashSet<string> {
                 CreateDiscoveryUri(discoveryUrl.ToString(), 4840)
@@ -486,7 +489,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
         /// <inheritdoc/>
         public async Task<T> ExecuteServiceAsync<T>(ConnectionModel connection,
-            Func<ISession, Task<T>> service, CancellationToken ct) {
+            Func<ISessionHandle, Task<T>> service, CancellationToken ct) {
             if (connection.Endpoint == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
@@ -494,9 +497,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
             _cts.Token.ThrowIfCancellationRequested();
-            var client = await GetOrCreateSessionAsync(connection, null, ct)
-                as OpcUaClient;
-            if (client == null) {
+            if (await GetOrCreateSessionAsync(connection, null, ct) is not OpcUaClient client) {
                 throw new ConnectionException("Failed to execute call, " +
                     $"no connection for {connection?.Endpoint?.Url}");
             }
@@ -615,6 +616,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private bool _disposed;
         private readonly ILogger _logger;
         private readonly IClientServicesConfig _clientConfig;
+        private readonly IVariantEncoderFactory _codec;
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients =
             new ConcurrentDictionary<ConnectionIdentifier, OpcUaClient>();
         private readonly SemaphoreSlim _lock;

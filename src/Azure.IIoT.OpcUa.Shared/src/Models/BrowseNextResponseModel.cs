@@ -11,27 +11,27 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Result of node browse continuation
     /// </summary>
     [DataContract]
-    public record class BrowseNextResponseModel {
+    public sealed record class BrowseNextResponseModel {
 
         /// <summary>
         /// References, if included, otherwise null.
         /// </summary>
         [DataMember(Name = "references", Order = 0,
             EmitDefaultValue = false)]
-        public List<NodeReferenceModel> References { get; set; }
+        public IReadOnlyList<NodeReferenceModel>? References { get; set; }
 
         /// <summary>
         /// Continuation token if more results pending.
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 1,
             EmitDefaultValue = false)]
-        public string ContinuationToken { get; set; }
+        public string? ContinuationToken { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 2,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }

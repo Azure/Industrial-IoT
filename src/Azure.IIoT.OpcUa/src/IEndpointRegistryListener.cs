@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        Task OnEndpointNewAsync(RegistryOperationContextModel context,
+        Task OnEndpointNewAsync(OperationContextModel context,
             EndpointInfoModel endpoint);
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        Task OnEndpointDisabledAsync(RegistryOperationContextModel context,
+        Task OnEndpointDisabledAsync(OperationContextModel context,
             EndpointInfoModel endpoint);
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        Task OnEndpointEnabledAsync(RegistryOperationContextModel context,
+        Task OnEndpointEnabledAsync(OperationContextModel context,
             EndpointInfoModel endpoint);
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="endpointId"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        Task OnEndpointDeletedAsync(RegistryOperationContextModel context,
+        Task OnEndpointDeletedAsync(OperationContextModel context,
             string endpointId, EndpointInfoModel endpoint);
     }
 }

@@ -10,14 +10,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Aggregate configuration
     /// </summary>
     [DataContract]
-    public record class AggregateConfigurationModel {
-
-        /// <summary>
-        /// Whether to use the default server caps
-        /// </summary>
-        [DataMember(Name = "useServerCapabilitiesDefaults", Order = 0,
-            EmitDefaultValue = false)]
-        public bool? UseServerCapabilitiesDefaults { get; set; }
+    public sealed record class AggregateConfigurationModel {
 
         /// <summary>
         /// Whether to treat uncertain as bad

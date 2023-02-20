@@ -26,20 +26,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// <param name="clients"></param>
         /// <param name="discovery"></param>
         /// <param name="nodes"></param>
-        /// <param name="historian"></param>
-        /// <param name="browse"></param>
         public TwinMethodsController(
             IConnectionServices<ConnectionModel> clients,
             ICertificateServices<EndpointModel> discovery,
-            INodeServices<ConnectionModel> nodes,
-            IHistoricAccessServices<ConnectionModel> historian,
-            IBrowseServices<ConnectionModel> browse) {
+            INodeServices<ConnectionModel> nodes) {
             _discovery = discovery ??
                 throw new ArgumentNullException(nameof(discovery));
-            _browse = browse ??
-                throw new ArgumentNullException(nameof(browse));
-            _historian = historian ??
-                throw new ArgumentNullException(nameof(historian));
             _nodes = nodes ??
                 throw new ArgumentNullException(nameof(nodes));
             _clients = clients ??
@@ -52,15 +44,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// <param name="connection"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<BrowseResponseModel> BrowseAsync(
-            ConnectionModel connection, BrowseRequestModel request) {
+        public async Task<BrowseFirstResponseModel> BrowseAsync(
+            ConnectionModel connection, BrowseFirstRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _browse.NodeBrowseFirstAsync(
+            var result = await _nodes.BrowseFirstAsync(
                 connection, request);
             return result;
         }
@@ -79,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _browse.NodeBrowseNextAsync(
+            var result = await _nodes.BrowseNextAsync(
                 connection, request);
             return result;
         }
@@ -98,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _browse.NodeBrowsePathAsync(
+            var result = await _nodes.BrowsePathAsync(
                 connection, request);
             return result;
         }
@@ -117,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.NodeValueReadAsync(
+            var result = await _nodes.ValueReadAsync(
                 connection, request);
             return result;
         }
@@ -136,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.NodeValueWriteAsync(
+            var result = await _nodes.ValueWriteAsync(
                 connection, request);
             return result;
         }
@@ -155,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.NodeMethodGetMetadataAsync(
+            var result = await _nodes.GetMethodMetadataAsync(
                 connection, request);
             return result;
         }
@@ -174,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
-            var result = await _nodes.NodeMethodCallAsync(
+            var result = await _nodes.MethodCallAsync(
                 connection, request);
             return result;
         }
@@ -190,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.NodeReadAsync(
+            var result = await _nodes.ReadAsync(
                 connection, request);
             return result;
         }
@@ -206,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _nodes.NodeWriteAsync(
+            var result = await _nodes.WriteAsync(
                 connection, request);
             return result;
         }
@@ -222,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReadAsync(
+            var result = await _nodes.HistoryReadAsync(
                connection, request);
             return result;
         }
@@ -238,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryReadNextAsync(
+            var result = await _nodes.HistoryReadNextAsync(
                connection, request);
             return result;
         }
@@ -254,7 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _historian.HistoryUpdateAsync(
+            var result = await _nodes.HistoryUpdateAsync(
                connection, request);
             return result;
         }
@@ -302,8 +294,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
 
         private readonly ICertificateServices<EndpointModel> _discovery;
         private readonly IConnectionServices<ConnectionModel> _clients;
-        private readonly IBrowseServices<ConnectionModel> _browse;
-        private readonly IHistoricAccessServices<ConnectionModel> _historian;
         private readonly INodeServices<ConnectionModel> _nodes;
     }
 }

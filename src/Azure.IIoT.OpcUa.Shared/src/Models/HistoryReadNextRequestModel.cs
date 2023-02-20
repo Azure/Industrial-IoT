@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Request node history read continuation
     /// </summary>
     [DataContract]
-    public record class HistoryReadNextRequestModel {
+    public sealed record class HistoryReadNextRequestModel {
 
         /// <summary>
         /// Continuation token to continue reading more
@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 0)]
         [Required]
-        public string ContinuationToken { get; set; }
+        public string? ContinuationToken { get; set; }
 
         /// <summary>
         /// Abort reading after this read
@@ -33,6 +33,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "header", Order = 2,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
     }
 }

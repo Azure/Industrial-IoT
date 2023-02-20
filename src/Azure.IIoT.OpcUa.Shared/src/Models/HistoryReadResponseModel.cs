@@ -10,26 +10,26 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// History read results
     /// </summary>
     [DataContract]
-    public record class HistoryReadResponseModel<T> {
+    public sealed record class HistoryReadResponseModel<T> where T : class {
 
         /// <summary>
         /// History as json encoded extension object
         /// </summary>
         [DataMember(Name = "history", Order = 0)]
-        public T History { get; set; }
+        public T History { get; set; } = null!;
 
         /// <summary>
         /// Continuation token if more results pending.
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 1,
             EmitDefaultValue = false)]
-        public string ContinuationToken { get; set; }
+        public string? ContinuationToken { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 2,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }

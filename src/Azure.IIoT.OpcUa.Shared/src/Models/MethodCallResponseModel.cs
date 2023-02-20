@@ -11,19 +11,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Method call response model
     /// </summary>
     [DataContract]
-    public record class MethodCallResponseModel {
+    public sealed record class MethodCallResponseModel {
 
         /// <summary>
         /// Resulting output values of method call
         /// </summary>
         [DataMember(Name = "results", Order = 0)]
-        public List<MethodCallArgumentModel> Results { get; set; }
+        public IReadOnlyList<MethodCallArgumentModel> Results { get; set; } = null!;
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 1,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }

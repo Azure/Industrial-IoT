@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                 PercentDataBad = model.PercentDataBad,
                 PercentDataGood = model.PercentDataGood,
                 TreatUncertainAsBad = model.TreatUncertainAsBad,
-                UseServerCapabilitiesDefaults = model.UseServerCapabilitiesDefaults,
                 UseSlopedExtrapolation = model.UseSlopedExtrapolation
             };
         }
@@ -49,9 +48,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                 return false;
             }
             if (model.TreatUncertainAsBad != other.TreatUncertainAsBad) {
-                return false;
-            }
-            if (model.UseServerCapabilitiesDefaults != other.UseServerCapabilitiesDefaults) {
                 return false;
             }
             if (model.UseSlopedExtrapolation != other.UseSlopedExtrapolation) {

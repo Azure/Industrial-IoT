@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Control {
     using Azure.IIoT.OpcUa.Edge.Tests;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Twin;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
@@ -23,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Control {
 
         private CallScalarMethodTests<ConnectionModel> GetTests() {
             return new CallScalarMethodTests<ConnectionModel>(
-                () => new AddressSpaceServices(_server.Client,
+                () => new NodeServices<ConnectionModel>(_server.Client,
                     new VariantEncoderFactory(), _server.Logger), new ConnectionModel {
                         Endpoint = new EndpointModel {
                             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",

@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// Application name locale
         /// </summary>
         [DataMember]
-        public Dictionary<string, string> LocalizedNames { get; set; }
+        public IReadOnlyDictionary<string, string> LocalizedNames { get; set; }
 
         /// <summary>
         /// Discovery profile uri
@@ -114,19 +114,19 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// Returns discovery urls of the application
         /// </summary>
         [DataMember]
-        public Dictionary<string, string> DiscoveryUrls { get; set; }
+        public IReadOnlyDictionary<string, string> DiscoveryUrls { get; set; }
 
         /// <summary>
         /// Host address of server application
         /// </summary>
         [DataMember]
-        public Dictionary<string, string> HostAddresses { get; set; }
+        public IReadOnlyDictionary<string, string> HostAddresses { get; set; }
 
         /// <summary>
         /// Capabilities
         /// </summary>
         [DataMember]
-        public Dictionary<string, bool> Capabilities { get; set; }
+        public IReadOnlyDictionary<string, bool> Capabilities { get; set; }
 
         /// <summary>
         /// Create time
@@ -168,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            if (!(obj is ApplicationRegistration registration)) {
+            if (obj is not ApplicationRegistration registration) {
                 return false;
             }
             if (!base.Equals(registration)) {

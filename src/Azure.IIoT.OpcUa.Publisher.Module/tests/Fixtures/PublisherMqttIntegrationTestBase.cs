@@ -284,14 +284,14 @@ $"--ttt={topicRoot}",
                         var module = hostScope.Resolve<IModuleHost>();
                         var events = hostScope.Resolve<IEventEmitter>();
                         var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                        IEndpointServices sessionManager = null;
+                        ISessionProvider<ConnectionModel> sessionManager = null;
 
                         try {
                             var version = GetType().Assembly.GetReleaseVersion().ToString();
                             logger.Information("Starting module OpcPublisher version {version}.", version);
                             // Start module
                             await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
-                            sessionManager = hostScope.Resolve<IEndpointServices>();
+                            sessionManager = hostScope.Resolve<ISessionProvider<ConnectionModel>>();
 
                             _apiScope = ConfigureContainer(configurationRoot, mqttBroker);
                             _running.TrySetResult(true);

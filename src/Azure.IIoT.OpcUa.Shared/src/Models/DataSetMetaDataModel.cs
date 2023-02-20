@@ -11,14 +11,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Metadata for the published dataset
     /// </summary>
     [DataContract]
-    public record class DataSetMetaDataModel {
+    public sealed record class DataSetMetaDataModel {
 
         /// <summary>
         /// Name of the dataset
         /// </summary>
         [DataMember(Name = "name", Order = 0,
             EmitDefaultValue = false)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Dataset class id
@@ -32,6 +32,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "description", Order = 4,
             EmitDefaultValue = false)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 }

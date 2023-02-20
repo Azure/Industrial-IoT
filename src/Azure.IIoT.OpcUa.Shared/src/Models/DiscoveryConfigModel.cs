@@ -12,14 +12,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Discovery configuration api model
     /// </summary>
     [DataContract]
-    public record class DiscoveryConfigModel {
+    public sealed record class DiscoveryConfigModel {
 
         /// <summary>
         /// Address ranges to scan (null == all wired nics)
         /// </summary>
         [DataMember(Name = "addressRangesToScan", Order = 0,
             EmitDefaultValue = false)]
-        public string AddressRangesToScan { get; set; }
+        public string? AddressRangesToScan { get; set; }
 
         /// <summary>
         /// Network probe timeout
@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "portRangesToScan", Order = 3,
             EmitDefaultValue = false)]
-        public string PortRangesToScan { get; set; }
+        public string? PortRangesToScan { get; set; }
 
         /// <summary>
         /// Port probe timeout
@@ -108,13 +108,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "discoveryUrls", Order = 8,
             EmitDefaultValue = false)]
-        public List<string> DiscoveryUrls { get; set; }
+        public List<string>? DiscoveryUrls { get; set; }
 
         /// <summary>
         /// List of locales to filter with during discovery
         /// </summary>
         [DataMember(Name = "locales", Order = 9,
             EmitDefaultValue = false)]
-        public List<string> Locales { get; set; }
+        public List<string>? Locales { get; set; }
     }
 }

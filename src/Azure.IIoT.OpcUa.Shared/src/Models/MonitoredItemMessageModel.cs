@@ -12,62 +12,62 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Publisher monitored item sample model
     /// </summary>
     [DataContract]
-    public record class MonitoredItemMessageModel {
+    public sealed record class MonitoredItemMessageModel {
 
         /// <summary>
         /// Publisher Id
         /// </summary>
         [DataMember(Name = "publisherId", Order = 0,
             EmitDefaultValue = false)]
-        public string PublisherId { get; set; }
+        public string? PublisherId { get; set; }
 
         /// <summary>
         /// DataSetWriterId
         /// </summary>
         [DataMember(Name = "dataSetWriterId", Order = 1,
             EmitDefaultValue = false)]
-        public string DataSetWriterId { get; set; }
+        public string? DataSetWriterId { get; set; }
 
         /// <summary>
         /// Endpoint
         /// </summary>
         [DataMember(Name = "endpointId", Order = 2,
             EmitDefaultValue = false)]
-        public string EndpointId { get; set; }
+        public string? EndpointId { get; set; }
 
         /// <summary>
         /// Node id
         /// </summary>
         [DataMember(Name = "nodeId", Order = 3)]
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// Node's display name
         /// </summary>
         [DataMember(Name = "displayName", Order = 4,
             EmitDefaultValue = false)]
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
         /// <summary>
         /// Value
         /// </summary>
         [DataMember(Name = "value", Order = 5,
             EmitDefaultValue = false)]
-        public VariantValue Value { get; set; }
+        public VariantValue? Value { get; set; }
 
         /// <summary>
         /// Type id
         /// </summary>
         [DataMember(Name = "dataType", Order = 6,
             EmitDefaultValue = false)]
-        public string DataType { get; set; }
+        public string? DataType { get; set; }
 
         /// <summary>
         /// Status of the value (Quality)
         /// </summary>
         [DataMember(Name = "status", Order = 7,
             EmitDefaultValue = false)]
-        public string Status { get; set; }
+        public string? Status { get; set; }
 
         /// <summary>
         /// Sent time stamp

@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="publisher"></param>
         /// <returns></returns>
-        Task OnPublisherNewAsync(RegistryOperationContextModel context,
+        Task OnPublisherNewAsync(OperationContextModel context,
             PublisherModel publisher);
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="publisher"></param>
         /// <returns></returns>
-        Task OnPublisherUpdatedAsync(RegistryOperationContextModel context,
+        Task OnPublisherUpdatedAsync(OperationContextModel context,
             PublisherModel publisher);
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="publisherId"></param>
         /// <returns></returns>
-        Task OnPublisherDeletedAsync(RegistryOperationContextModel context,
+        Task OnPublisherDeletedAsync(OperationContextModel context,
             string publisherId);
     }
 }

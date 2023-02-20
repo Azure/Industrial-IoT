@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.NodeMethodGetMetadataAsync(_endpoint,
+            var result = await service.GetMethodMetadataAsync(_endpoint,
                 new MethodMetadataRequestModel {
                     MethodId = methodId
                 });
@@ -318,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.NodeMethodGetMetadataAsync(_endpoint,
+            var result = await service.GetMethodMetadataAsync(_endpoint,
                 new MethodMetadataRequestModel {
                     MethodId = methodId
                 });
@@ -577,7 +577,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.NodeMethodGetMetadataAsync(_endpoint,
+            var result = await service.GetMethodMetadataAsync(_endpoint,
                 new MethodMetadataRequestModel {
                     MethodId = methodId
                 });
@@ -726,7 +726,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
@@ -770,7 +770,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
@@ -828,7 +828,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId
@@ -883,7 +883,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
@@ -989,7 +989,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
@@ -1156,7 +1156,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
@@ -1211,7 +1211,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId
@@ -1254,7 +1254,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
@@ -1322,7 +1322,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
@@ -1364,7 +1364,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
@@ -1431,7 +1431,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             };
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId,
@@ -1455,7 +1455,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var objectId = "http://test.org/UA/Data/#i=10755";
 
             // Act
-            var result = await service.NodeMethodCallAsync(_endpoint,
+            var result = await service.MethodCallAsync(_endpoint,
                 new MethodCallRequestModel {
                     MethodId = methodId,
                     ObjectId = objectId

@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="gateway"></param>
         /// <returns></returns>
-        Task OnGatewayNewAsync(RegistryOperationContextModel context,
+        Task OnGatewayNewAsync(OperationContextModel context,
             GatewayModel gateway);
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="gateway"></param>
         /// <returns></returns>
-        Task OnGatewayUpdatedAsync(RegistryOperationContextModel context,
+        Task OnGatewayUpdatedAsync(OperationContextModel context,
             GatewayModel gateway);
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="gatewayId"></param>
         /// <returns></returns>
-        Task OnGatewayDeletedAsync(RegistryOperationContextModel context,
+        Task OnGatewayDeletedAsync(OperationContextModel context,
             string gatewayId);
     }
 }

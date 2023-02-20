@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Application event
     /// </summary>
     [DataContract]
-    public record class ApplicationEventModel {
+    public sealed record class ApplicationEventModel {
 
         /// <summary>
         /// Event type
@@ -23,20 +23,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "id", Order = 1,
             EmitDefaultValue = false)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Application
         /// </summary>
         [DataMember(Name = "application", Order = 2,
             EmitDefaultValue = false)]
-        public ApplicationInfoModel Application { get; set; }
+        public ApplicationInfoModel? Application { get; set; }
 
         /// <summary>
         /// Context
         /// </summary>
         [DataMember(Name = "context", Order = 3,
             EmitDefaultValue = false)]
-        public RegistryOperationContextModel Context { get; set; }
+        public OperationContextModel? Context { get; set; }
     }
 }

@@ -22,8 +22,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         ScalarOrOneDimension = -3,
 
         /// <summary>
-        /// The variable may be a scalar or an array
-        /// of any dimension.
+        /// The variable may be a scalar or an array of
+        /// any dimension.
         /// </summary>
         [EnumMember]
         Any = -2,
@@ -32,25 +32,24 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// The variable is always a scalar.
         /// </summary>
         [EnumMember]
-        Scalar = -1,
+        Scalar = Any | OneDimension,
 
         /// <summary>
-        /// The variable is always an array with one
-        /// or more dimensions.
+        /// The variable is always an array with one or
+        /// more dimensions.
         /// </summary>
         [EnumMember]
         OneOrMoreDimensions = 0,
 
         /// <summary>
-        /// The variable is always one dimensional
-        /// array.
+        /// The variable is always one dimensional array.
         /// </summary>
         [EnumMember]
         OneDimension = 1,
 
         /// <summary>
-        /// The variable is always an array with
-        /// two or more dimensions.
+        /// The variable is always an array with two or
+        /// more dimensions.
         /// </summary>
         [EnumMember]
         TwoDimensions = 2

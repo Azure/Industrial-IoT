@@ -36,8 +36,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Write variable node's value.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The write value request</param>
@@ -48,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _nodes.NodeValueWriteAsync(
+            var writeResult = await _nodes.ValueWriteAsync(
                 endpointId, request);
             return writeResult;
         }
@@ -58,8 +57,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Write any attribute of a node.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The batch write request</param>
@@ -70,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _nodes.NodeWriteAsync(
+            var writeResult = await _nodes.WriteAsync(
                 endpointId, request);
             return writeResult;
         }

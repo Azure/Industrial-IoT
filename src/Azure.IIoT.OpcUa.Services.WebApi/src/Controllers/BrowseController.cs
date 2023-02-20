@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="browser"></param>
-        public BrowseController(IBrowseServices<string> browser) {
+        public BrowseController(INodeServices<string> browser) {
             _browser = browser;
         }
 
@@ -38,19 +38,18 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Browse a node on the specified endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The browse request</param>
         /// <returns>The browse response</returns>
         [HttpPost("{endpointId}")]
-        public async Task<BrowseResponseModel> BrowseAsync(string endpointId,
-            [FromBody] [Required] BrowseRequestModel request) {
+        public async Task<BrowseFirstResponseModel> BrowseAsync(string endpointId,
+            [FromBody] [Required] BrowseFirstRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var browseresult = await _browser.NodeBrowseAsync(endpointId, request);
+            var browseresult = await _browser.BrowseAsync(endpointId, request);
             return browseresult;
         }
 
@@ -59,8 +58,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Browse next set of references on the endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The request body with continuation token.</param>
@@ -74,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request.ContinuationToken == null) {
                 throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            var browseresult = await _browser.NodeBrowseNextAsync(endpointId, request);
+            var browseresult = await _browser.BrowseNextAsync(endpointId, request);
             return browseresult;
         }
 
@@ -84,8 +82,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <remarks>
         /// Browse using a path from the specified node id.
         /// This call uses TranslateBrowsePathsToNodeIds service under the hood.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The browse path request</param>
@@ -96,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var browseresult = await _browser.NodeBrowsePathAsync(endpointId, request);
+            var browseresult = await _browser.BrowsePathAsync(endpointId, request);
             return browseresult;
         }
 
@@ -105,8 +102,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Browse the set of unique hierarchically referenced target nodes on the endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// The root node id to browse from can be provided as part of the query
         /// parameters.
         /// If it is not provided, the RootFolder node is browsed. Note that this
@@ -118,17 +114,17 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </param>
         /// <returns>The browse response</returns>
         [HttpGet("{endpointId}")]
-        public async Task<BrowseResponseModel> GetSetOfUniqueNodesAsync(
+        public async Task<BrowseFirstResponseModel> GetSetOfUniqueNodesAsync(
             string endpointId, [FromQuery] string nodeId) {
             if (string.IsNullOrEmpty(nodeId)) {
                 nodeId = null;
             }
-            var request = new BrowseRequestModel {
+            var request = new BrowseFirstRequestModel {
                 NodeId = nodeId,
                 TargetNodesOnly = true,
                 ReadVariableValues = true
             };
-            var browseresult = await _browser.NodeBrowseAsync(endpointId, request);
+            var browseresult = await _browser.BrowseAsync(endpointId, request);
             return browseresult;
         }
 
@@ -138,8 +134,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <remarks>
         /// Browse the next set of unique hierarchically referenced target nodes on the
         /// endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// Note that this is the same as the POST method with the model containing
         /// the continuation token and the targetNodesOnly flag set to true.
         /// </remarks>
@@ -163,10 +158,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 TargetNodesOnly = true,
                 ReadVariableValues = true
             };
-            var browseresult = await _browser.NodeBrowseNextAsync(endpointId, request);
+            var browseresult = await _browser.BrowseNextAsync(endpointId, request);
             return browseresult;
         }
 
-        private readonly IBrowseServices<string> _browser;
+        private readonly INodeServices<string> _browser;
     }
 }

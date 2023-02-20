@@ -20,8 +20,8 @@ namespace System.Collections.Generic {
         /// <param name="that"></param>
         /// <param name="equality"></param>
         /// <returns></returns>
-        public static bool DictionaryEqualsSafe<K, V>(this IDictionary<K, V> dict,
-            IDictionary<K, V> that, Func<V, V, bool> equality) {
+        public static bool DictionaryEqualsSafe<K, V>(this IReadOnlyDictionary<K, V> dict,
+            IReadOnlyDictionary<K, V> that, Func<V, V, bool> equality) {
             if (dict == that) {
                 return true;
             }
@@ -57,8 +57,8 @@ namespace System.Collections.Generic {
         /// <param name="dict"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool DictionaryEqualsSafe<K, V>(this IDictionary<K, V> dict,
-            IDictionary<K, V> that) {
+        public static bool DictionaryEqualsSafe<K, V>(this IReadOnlyDictionary<K, V> dict,
+            IReadOnlyDictionary<K, V> that) {
             return DictionaryEqualsSafe(dict, that, (x, y) => x.EqualsSafe(y));
         }
 

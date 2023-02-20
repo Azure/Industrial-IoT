@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (string.IsNullOrEmpty(requestId)) {
                 throw new ArgumentNullException(nameof(requestId));
             }
-            await _onboarding.CancelAsync(new DiscoveryCancelModel {
+            await _onboarding.CancelAsync(new DiscoveryCancelRequestModel {
                 Id = requestId
                 // TODO: AuthorityId = User.Identity.Name;
             });

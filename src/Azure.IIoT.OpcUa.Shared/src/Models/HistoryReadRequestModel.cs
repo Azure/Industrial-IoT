@@ -4,19 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Request node history read
     /// </summary>
     [DataContract]
-    public record class HistoryReadRequestModel<T> {
+    public sealed record class HistoryReadRequestModel<T> where T : class {
 
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0)]
-        public string NodeId { get; set; }
+        [Required]
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// An optional path from NodeId instance to
@@ -24,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
-        public string[] BrowsePath { get; set; }
+        public IReadOnlyList<string>? BrowsePath { get; set; }
 
         /// <summary>
         /// The HistoryReadDetailsType extension object
@@ -32,7 +35,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// Historian reader request.
         /// </summary>
         [DataMember(Name = "details", Order = 2)]
-        public T Details { get; set; }
+        [Required]
+        public T? Details { get; set; }
 
         /// <summary>
         /// Index range to read, e.g. 1:2,0:1 for 2 slices
@@ -42,13 +46,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "indexRange", Order = 3,
             EmitDefaultValue = false)]
-        public string IndexRange { get; set; }
+        public string? IndexRange { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 4,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
+
+        /// <summary>
+        /// Decide what timestamps to return.
+        /// </summary>
+        [DataMember(Name = "timestampsToReturn", Order = 5,
+            EmitDefaultValue = false)]
+        public TimestampsToReturn TimestampsToReturn { get; set; }
     }
 }

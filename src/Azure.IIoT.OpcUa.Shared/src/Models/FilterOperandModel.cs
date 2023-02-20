@@ -5,13 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
     using Microsoft.Azure.IIoT.Serializers;
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Filter operand
     /// </summary>
     [DataContract]
-    public record class FilterOperandModel {
+    public sealed record class FilterOperandModel {
 
         /// <summary>
         /// Element reference in the outer list if
@@ -26,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "value", Order = 1,
             EmitDefaultValue = false)]
-        public VariantValue Value { get; set; }
+        public VariantValue? Value { get; set; }
 
         /// <summary>
         /// Type definition node id if operand is
@@ -34,14 +35,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "nodeId", Order = 2,
             EmitDefaultValue = false)]
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// Browse path of attribute operand
         /// </summary>
         [DataMember(Name = "browsePath", Order = 3,
             EmitDefaultValue = false)]
-        public string[] BrowsePath { get; set; }
+        public IReadOnlyList<string>? BrowsePath { get; set; }
 
         /// <summary>
         /// Attribute id
@@ -55,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "indexRange", Order = 5,
             EmitDefaultValue = false)]
-        public string IndexRange { get; set; }
+        public string? IndexRange { get; set; }
 
         /// <summary>
         /// Optional alias to refer to it makeing it a
@@ -63,6 +64,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "alias", Order = 6,
             EmitDefaultValue = false)]
-        public string Alias { get; set; }
+        public string? Alias { get; set; }
     }
 }

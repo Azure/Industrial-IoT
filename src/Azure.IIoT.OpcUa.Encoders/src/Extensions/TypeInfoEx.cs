@@ -11,6 +11,23 @@ namespace Opc.Ua {
     /// Typeinfo extensions
     /// </summary>
     public static class TypeInfoEx {
+        /// <summary>
+        /// Gets a default event filter.
+        /// </summary>
+        /// <returns></returns>
+        internal static EventFilter GetDefaultEventFilter() {
+            var filter = new EventFilter();
+            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.EventId);
+            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.EventType);
+            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.SourceNode);
+            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.SourceName);
+            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.Time);
+            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.ReceiveTime);
+            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.LocalTime);
+            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.Message);
+            filter.AddSelectClause(ObjectTypes.BaseEventType, BrowseNames.Severity);
+            return filter;
+        }
 
         /// <summary>
         /// Returns default value for type
@@ -46,7 +63,7 @@ namespace Opc.Ua {
             if (value == null) {
                 value = typeInfo.GetDefaultValue();
             }
-            if (!(value is Variant var)) {
+            if (value is not Variant var) {
                 var aex = new List<Exception>();
                 if (typeInfo.BuiltInType == BuiltInType.Enumeration) {
                     typeInfo = new TypeInfo(BuiltInType.Int32, typeInfo.ValueRank);
@@ -61,16 +78,16 @@ namespace Opc.Ua {
                         return Variant.Null; // Matrix or scalar
                     }
                 }
-                else if (value is object[] boxed) {
+                else if (value is Array arr) {
                     try {
-                        var array = Array.CreateInstance(
-                            TypeInfo.GetSystemType(typeInfo.BuiltInType, -1), boxed.Length);
-                        Array.Copy(boxed, array, boxed.Length);
-                        value = array;
+                        var unboxed = Array.CreateInstance(
+                            TypeInfo.GetSystemType(typeInfo.BuiltInType, -1), arr.Length);
+                        Array.Copy(arr, unboxed, arr.Length);
+                        value = unboxed;
                     }
                     catch (Exception ex) {
                         aex.Add(ex);
-                        value = boxed;
+                        value = arr;
                     }
                 }
                 if (typeInfo.ValueRank >= 2) {

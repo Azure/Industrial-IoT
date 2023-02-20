@@ -10,20 +10,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Request list of published items
     /// </summary>
     [DataContract]
-    public record class PublishedItemListRequestModel {
+    public sealed record class PublishedItemListRequestModel {
 
         /// <summary>
         /// Continuation token or null to start
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 0,
             EmitDefaultValue = false)]
-        public string ContinuationToken { get; set; }
+        public string? ContinuationToken { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 2,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
     }
 }

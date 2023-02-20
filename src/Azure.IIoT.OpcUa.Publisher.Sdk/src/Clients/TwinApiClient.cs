@@ -45,8 +45,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseResponseModel> NodeBrowseFirstAsync(ConnectionModel connection,
-            BrowseRequestModel request, CancellationToken ct) {
+        public async Task<BrowseFirstResponseModel> NodeBrowseFirstAsync(ConnectionModel connection,
+            BrowseFirstRequestModel request, CancellationToken ct) {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                     connection,
                     request
                 }), null, ct);
-            return _serializer.Deserialize<BrowseResponseModel>(response);
+            return _serializer.Deserialize<BrowseFirstResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -100,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                 throw new ArgumentNullException(nameof(request));
             }
             if (request.BrowsePaths == null || request.BrowsePaths.Count == 0 ||
-                request.BrowsePaths.Any(p => p == null || p.Length == 0)) {
+                request.BrowsePaths.Any(p => p == null || p.Count == 0)) {
                 throw new ArgumentNullException(nameof(request.BrowsePaths));
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
@@ -238,6 +238,146 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
                     request
                 }), null, ct);
             return _serializer.Deserialize<MethodCallResponseModel>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(ConnectionModel connection,
+            CancellationToken ct) {
+            if (connection == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "GetServerCapabilities_V2", _serializer.SerializeToString(connection), null, ct);
+            return _serializer.Deserialize<ServerCapabilitiesModel>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<NodeMetadataResponseModel> GetMetadataAsync(ConnectionModel connection,
+            NodeMetadataRequestModel request, CancellationToken ct) {
+            if (connection == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "GetMetadata_V2", _serializer.SerializeToString(new {
+                    connection,
+                    request
+                }), null, ct);
+            return _serializer.Deserialize<NodeMetadataResponseModel>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
+            ConnectionModel connection, CancellationToken ct) {
+            if (connection == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "HistoryGetServerCapabilities_V2", _serializer.SerializeToString(connection), null, ct);
+            return _serializer.Deserialize<HistoryServerCapabilitiesModel>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
+            ConnectionModel connection, HistoryConfigurationRequestModel request, CancellationToken ct) {
+            if (connection == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "HistoryGetConfiguration_V2", _serializer.SerializeToString(new {
+                    connection,
+                    request
+                }), null, ct);
+            return _serializer.Deserialize<HistoryConfigurationResponseModel>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
+            ConnectionModel connection, HistoryReadRequestModel<VariantValue> request,
+            CancellationToken ct) {
+            if (connection == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Details == null) {
+                throw new ArgumentNullException(nameof(request.Details));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "HistoryRead_V2", _serializer.SerializeToString(new {
+                    connection,
+                    request
+                }), null, ct);
+            return _serializer.Deserialize<HistoryReadResponseModel<VariantValue>>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
+            ConnectionModel connection, HistoryReadNextRequestModel request,
+            CancellationToken ct) {
+            if (connection == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (string.IsNullOrEmpty(request.ContinuationToken)) {
+                throw new ArgumentNullException(nameof(request.ContinuationToken));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "HistoryReadNext_V2", _serializer.SerializeToString(new {
+                    connection,
+                    request
+                }), null, ct);
+            return _serializer.Deserialize<HistoryReadNextResponseModel<VariantValue>>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
+            ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request,
+            CancellationToken ct) {
+            if (connection == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Details == null) {
+                throw new ArgumentNullException(nameof(request.Details));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "HistoryUpdate_V2", _serializer.SerializeToString(new {
+                    connection,
+                    request
+                }), null, ct);
+            return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
         }
 
         /// <inheritdoc/>

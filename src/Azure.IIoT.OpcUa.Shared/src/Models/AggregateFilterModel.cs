@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Aggregate Filter
     /// </summary>
     [DataContract]
-    public record class AggregateFilterModel {
+    public sealed record class AggregateFilterModel {
 
         /// <summary>
         /// Start time
@@ -25,20 +25,23 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "aggregateTypeId", Order = 1,
             EmitDefaultValue = false)]
-        public string AggregateTypeId { get; set; }
+        public string? AggregateTypeId { get; set; }
 
         /// <summary>
         /// Processing Interval
         /// </summary>
         [DataMember(Name = "processingInterval", Order = 2,
             EmitDefaultValue = false)]
-        public double? ProcessingInterval { get; set; }
+        public TimeSpan? ProcessingInterval { get; set; }
 
         /// <summary>
-        /// Aggregate Configuration
+        /// Aggregate Configuration - use an empty configuration
+        /// to clear the configuration and use the server defaults.
+        /// Returns null if the default configuration in the
+        /// server is being used.
         /// </summary>
         [DataMember(Name = "aggregateConfiguration", Order = 3,
             EmitDefaultValue = false)]
-        public AggregateConfigurationModel AggregateConfiguration { get; set; }
+        public AggregateConfigurationModel? AggregateConfiguration { get; set; }
     }
 }

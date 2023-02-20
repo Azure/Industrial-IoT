@@ -11,20 +11,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// History update results
     /// </summary>
     [DataContract]
-    public record class HistoryUpdateResponseModel {
+    public sealed record class HistoryUpdateResponseModel {
 
         /// <summary>
         /// List of results from the update operation
         /// </summary>
         [DataMember(Name = "results", Order = 0,
             EmitDefaultValue = false)]
-        public List<ServiceResultModel> Results { get; set; }
+        public IReadOnlyList<ServiceResultModel>? Results { get; set; }
 
         /// <summary>
         /// Service result in case of service call error
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 1,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }

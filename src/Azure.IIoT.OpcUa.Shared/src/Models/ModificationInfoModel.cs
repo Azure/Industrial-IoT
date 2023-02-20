@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Modification information
     /// </summary>
     [DataContract]
-    public record class ModificationInfoModel {
+    public sealed record class ModificationInfoModel {
 
         /// <summary>
         /// Modification time
@@ -32,6 +32,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "userName", Order = 2,
             EmitDefaultValue = false)]
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
     }
 }

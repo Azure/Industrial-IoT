@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api {
 
         private HistoryReadValuesTests<ConnectionModel> GetTests() {
             return new HistoryReadValuesTests<ConnectionModel>(
-                () => _module.HubContainer.Resolve<IHistorianServices<ConnectionModel>>(),
+                () => _module.HubContainer.Resolve<IHistoryServices<ConnectionModel>>(),
                 new ConnectionModel {
                     Endpoint = new EndpointModel {
                         Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",

@@ -11,21 +11,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Publisher registration
     /// </summary>
     [DataContract]
-    public record class PublisherModel {
+    public sealed record class PublisherModel {
 
         /// <summary>
         /// Identifier of the publisher
         /// </summary>
         [DataMember(Name = "id", Order = 0)]
         [Required]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Site of the publisher
         /// </summary>
         [DataMember(Name = "siteId", Order = 1,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Current log level
@@ -54,6 +54,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "version", Order = 6,
             EmitDefaultValue = false)]
-        public string Version { get; set; }
+        public string? Version { get; set; }
     }
 }

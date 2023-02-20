@@ -34,8 +34,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseResponseModel> NodeBrowseFirstAsync(string endpointId,
-            BrowseRequestModel content, CancellationToken ct) {
+        public async Task<BrowseFirstResponseModel> NodeBrowseFirstAsync(string endpointId,
+            BrowseFirstRequestModel content, CancellationToken ct) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients {
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return _serializer.DeserializeResponse<BrowseResponseModel>(response);
+            return _serializer.DeserializeResponse<BrowseFirstResponseModel>(response);
         }
 
         /// <inheritdoc/>
@@ -133,6 +133,41 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Clients {
         public Task<BrowsePathResponseModel> NodeBrowsePathAsync(string endpointId,
             BrowsePathRequestModel content, CancellationToken ct) {
             return Task.FromException<BrowsePathResponseModel>(new NotImplementedException());
+        }
+
+        public Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(string endpointId,
+            CancellationToken ct) {
+            return Task.FromException<ServerCapabilitiesModel>(new NotImplementedException());
+        }
+
+        public Task<NodeMetadataResponseModel> GetMetadataAsync(string endpointId,
+            NodeMetadataRequestModel request, CancellationToken ct) {
+            return Task.FromException<NodeMetadataResponseModel>(new NotImplementedException());
+        }
+
+        public Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(string endpointId,
+            CancellationToken ct) {
+            return Task.FromException<HistoryServerCapabilitiesModel>(new NotImplementedException());
+        }
+
+        public Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(string endpointId,
+            HistoryConfigurationRequestModel request, CancellationToken ct) {
+            return Task.FromException<HistoryConfigurationResponseModel>(new NotImplementedException());
+        }
+
+        public Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(string endpointId,
+            HistoryReadRequestModel<VariantValue> request, CancellationToken ct) {
+            return Task.FromException<HistoryReadResponseModel<VariantValue>>(new NotImplementedException());
+        }
+
+        public Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(string endpointId,
+            HistoryReadNextRequestModel request, CancellationToken ct) {
+            return Task.FromException<HistoryReadNextResponseModel<VariantValue>>(new NotImplementedException());
+        }
+
+        public Task<HistoryUpdateResponseModel> HistoryUpdateAsync(string endpointId,
+            HistoryUpdateRequestModel<VariantValue> request, CancellationToken ct) {
+            return Task.FromException<HistoryUpdateResponseModel>(new NotImplementedException());
         }
 
         private readonly IHttpClient _httpClient;

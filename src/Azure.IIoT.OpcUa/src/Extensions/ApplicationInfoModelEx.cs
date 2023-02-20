@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="context"></param>
         /// <returns></returns>
         public static ApplicationRegistrationRequestModel ToRegistrationRequest(
-            this ApplicationInfoModel model, RegistryOperationContextModel context = null) {
+            this ApplicationInfoModel model, OperationContextModel context = null) {
             return new ApplicationRegistrationRequestModel {
                 ApplicationName = model.ApplicationName,
                 ApplicationType = model.ApplicationType,
@@ -166,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <returns></returns>
         public static ApplicationInfoModel ToApplicationInfo(
             this ApplicationRegistrationRequestModel request,
-            RegistryOperationContextModel context,
+            OperationContextModel context,
             bool disabled = true) {
             return new ApplicationInfoModel {
                 ApplicationName = request.ApplicationName,

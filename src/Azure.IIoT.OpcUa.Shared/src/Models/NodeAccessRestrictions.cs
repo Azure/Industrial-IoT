@@ -14,6 +14,11 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     [Flags]
     [DataContract]
     public enum NodeAccessRestrictions {
+        /// <summary>
+        /// No restrictions
+        /// </summary>
+        [EnumMember]
+        None = 0x0,
 
         /// <summary>
         /// The Client can only access the Node when using a

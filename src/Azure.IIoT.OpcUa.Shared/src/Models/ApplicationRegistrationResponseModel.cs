@@ -10,12 +10,12 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Result of an application registration
     /// </summary>
     [DataContract]
-    public record class ApplicationRegistrationResponseModel {
+    public sealed record class ApplicationRegistrationResponseModel {
 
         /// <summary>
         /// New id application was registered under
         /// </summary>
         [DataMember(Name = "id", Order = 0)]
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
     }
 }

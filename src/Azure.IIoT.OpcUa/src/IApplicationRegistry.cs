@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task DisableApplicationAsync(string applicationId,
-            RegistryOperationContextModel context = null,
+            OperationContextModel context = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task EnableApplicationAsync(string applicationId,
-            RegistryOperationContextModel context = null,
+            OperationContextModel context = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task UnregisterApplicationAsync(string applicationId,
-            RegistryOperationContextModel context = null,
+            OperationContextModel context = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task PurgeDisabledApplicationsAsync(TimeSpan notSeenFor,
-            RegistryOperationContextModel context = null,
+            OperationContextModel context = null,
             CancellationToken ct = default);
     }
 }

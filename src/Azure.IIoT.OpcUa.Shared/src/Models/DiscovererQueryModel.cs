@@ -10,14 +10,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Discoverer registration query
     /// </summary>
     [DataContract]
-    public record class DiscovererQueryModel {
+    public sealed record class DiscovererQueryModel {
 
         /// <summary>
         /// Site of the discoverer
         /// </summary>
         [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Discovery mode of discoverer

@@ -11,27 +11,27 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Request header model
     /// </summary>
     [DataContract]
-    public record class RequestHeaderModel {
+    public sealed record class RequestHeaderModel {
 
         /// <summary>
         /// Optional User Elevation
         /// </summary>
         [DataMember(Name = "elevation", Order = 0,
             EmitDefaultValue = false)]
-        public CredentialModel Elevation { get; set; }
+        public CredentialModel? Elevation { get; set; }
 
         /// <summary>
         /// Optional list of locales in preference order.
         /// </summary>
         [DataMember(Name = "locales", Order = 1,
             EmitDefaultValue = false)]
-        public List<string> Locales { get; set; }
+        public IReadOnlyList<string>? Locales { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration
         /// </summary>
         [DataMember(Name = "diagnostics", Order = 2,
             EmitDefaultValue = false)]
-        public DiagnosticsModel Diagnostics { get; set; }
+        public DiagnosticsModel? Diagnostics { get; set; }
     }
 }

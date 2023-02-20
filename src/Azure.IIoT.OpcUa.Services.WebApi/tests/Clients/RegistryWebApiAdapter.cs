@@ -160,25 +160,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
 
         /// <inheritdoc/>
         public Task DisableApplicationAsync(string applicationId,
-            RegistryOperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct) {
             return _client.DisableApplicationAsync(applicationId, ct);
         }
 
         /// <inheritdoc/>
         public Task EnableApplicationAsync(string applicationId,
-            RegistryOperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct) {
             return _client.EnableApplicationAsync(applicationId, ct);
         }
 
         /// <inheritdoc/>
         public Task UnregisterApplicationAsync(string applicationId,
-            RegistryOperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct) {
             return _client.UnregisterApplicationAsync(applicationId, ct);
         }
 
         /// <inheritdoc/>
         public Task PurgeDisabledApplicationsAsync(TimeSpan notSeenFor,
-            RegistryOperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct) {
             return _client.PurgeDisabledApplicationsAsync(notSeenFor, ct);
         }
 
@@ -189,7 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
         }
 
         /// <inheritdoc/>
-        public Task CancelAsync(DiscoveryCancelModel request, CancellationToken ct) {
+        public Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct) {
             return _client.CancelAsync(request, ct);
         }
 

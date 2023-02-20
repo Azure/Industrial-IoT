@@ -10,14 +10,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Gateway registration query
     /// </summary>
     [DataContract]
-    public record class GatewayQueryModel {
+    public sealed record class GatewayQueryModel {
 
         /// <summary>
         /// Site of the Gateway
         /// </summary>
         [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Included connected or disconnected

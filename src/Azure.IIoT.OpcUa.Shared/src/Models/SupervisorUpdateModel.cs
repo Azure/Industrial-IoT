@@ -10,14 +10,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Supervisor update request
     /// </summary>
     [DataContract]
-    public record class SupervisorUpdateModel {
+    public sealed record class SupervisorUpdateModel {
 
         /// <summary>
         /// Site the supervisor is part of
         /// </summary>
         [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Current log level

@@ -23,7 +23,8 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="list"></param>
         /// <returns></returns>
-        public static Dictionary<string, T> EncodeAsDictionary<T>(this List<T> list) {
+        public static IReadOnlyDictionary<string, T> EncodeAsDictionary<T>(
+            this IReadOnlyList<T> list) {
             return EncodeAsDictionary(list, t => t);
         }
 
@@ -33,8 +34,8 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="list"></param>
         /// <param name="converter"></param>
         /// <returns></returns>
-        public static Dictionary<string, V> EncodeAsDictionary<T, V>(this List<T> list,
-            Func<T, V> converter) {
+        public static IReadOnlyDictionary<string, V> EncodeAsDictionary<T, V>(
+            this IReadOnlyList<T> list, Func<T, V> converter) {
             if (list == null) {
                 return null;
             }
@@ -50,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="dictionary"></param>
         /// <returns></returns>
-        public static List<T> DecodeAsList<T>(this Dictionary<string, T> dictionary) {
+        public static IReadOnlyList<T> DecodeAsList<T>(this IReadOnlyDictionary<string, T> dictionary) {
             return DecodeAsList(dictionary, t => t);
         }
 
@@ -60,7 +61,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="dictionary"></param>
         /// <param name="converter"></param>
         /// <returns></returns>
-        public static List<T> DecodeAsList<T, V>(this Dictionary<string, V> dictionary,
+        public static IReadOnlyList<T> DecodeAsList<T, V>(this IReadOnlyDictionary<string, V> dictionary,
             Func<V, T> converter) {
             if (dictionary == null) {
                 return null;
@@ -77,7 +78,8 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// </summary>
         /// <param name="dictionary"></param>
         /// <returns></returns>
-        public static HashSet<string> DecodeAsSet(this Dictionary<string, bool> dictionary) {
+        public static IReadOnlySet<string> DecodeAsSet(
+            this IReadOnlyDictionary<string, bool> dictionary) {
             if (dictionary == null) {
                 return null;
             }
@@ -90,8 +92,8 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="set"></param>
         /// <param name="upperCase"></param>
         /// <returns></returns>
-        public static Dictionary<string, bool> EncodeAsDictionary(this ISet<string> set,
-            bool? upperCase = null) {
+        public static IReadOnlyDictionary<string, bool> EncodeAsDictionary(
+            this IReadOnlySet<string> set, bool? upperCase = null) {
             if (set == null) {
                 return null;
             }

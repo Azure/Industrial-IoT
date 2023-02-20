@@ -9,17 +9,17 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Browse view model
+    /// View to browse
     /// </summary>
     [DataContract]
-    public record class BrowseViewModel {
+    public sealed record class BrowseViewModel {
 
         /// <summary>
         /// Node of the view to browse
         /// </summary>
         [DataMember(Name = "viewId", Order = 0)]
         [Required]
-        public string ViewId { get; set; }
+        public string? ViewId { get; set; }
 
         /// <summary>
         /// Browses specific version of the view.

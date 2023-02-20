@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="convert"></param>
         /// <returns></returns>
         public static HistoryReadRequestModel<VariantValue> ToRawModel<T>(
-            this HistoryReadRequestModel<T> request, Func<T, VariantValue> convert) {
+            this HistoryReadRequestModel<T> request, Func<T, VariantValue> convert) where T : class {
             return new HistoryReadRequestModel<VariantValue> {
                 NodeId = request.NodeId,
                 BrowsePath = request.BrowsePath,

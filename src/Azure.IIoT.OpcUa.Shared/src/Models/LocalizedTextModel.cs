@@ -4,21 +4,25 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Replace historic data
+    /// Localized text.
     /// </summary>
     [DataContract]
-    public record class ReplaceValuesDetailsModel {
+    public sealed record class LocalizedTextModel {
 
         /// <summary>
-        /// Values to replace
+        /// Text
         /// </summary>
-        [DataMember(Name = "values", Order = 0)]
-        [Required]
-        public List<HistoricValueModel> Values { get; set; }
+        [DataMember(Name = "text", Order = 0)]
+        public string Text { get; set; } = null!;
+
+        /// <summary>
+        /// Locale or null for default locale
+        /// </summary>
+        [DataMember(Name = "locale", Order = 1,
+            EmitDefaultValue = false)]
+        public string? Locale { get; set; }
     }
 }

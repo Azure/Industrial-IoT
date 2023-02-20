@@ -5,27 +5,28 @@
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
     using System;
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Simple attribute operand model
     /// </summary>
     [DataContract]
-    public record class SimpleAttributeOperandModel {
+    public sealed record class SimpleAttributeOperandModel {
 
         /// <summary>
         /// Type definition node id if operand is
         /// simple or full attribute operand.
         /// </summary>
         [DataMember(Name = "typeDefinitionId", Order = 0)]
-        public string TypeDefinitionId { get; set; }
+        public string? TypeDefinitionId { get; set; }
 
         /// <summary>
         /// Browse path of attribute operand
         /// </summary>
         [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
-        public string[] BrowsePath { get; set; }
+        public IReadOnlyList<string>? BrowsePath { get; set; }
 
         /// <summary>
         /// Attribute id
@@ -39,14 +40,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "indexRange", Order = 3,
             EmitDefaultValue = false)]
-        public string IndexRange { get; set; }
+        public string? IndexRange { get; set; }
 
         /// <summary>
-        /// Optional display name (Publisher extension)
+        /// Optional display name
         /// </summary>
         [DataMember(Name = "displayName", Order = 4,
             EmitDefaultValue = false)]
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
         /// <summary>
         /// Optional data set class field id (Publisher extension)

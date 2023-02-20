@@ -114,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            if (!(obj is OpcUaMonitoredItem wrapper)) {
+            if (obj is not OpcUaMonitoredItem wrapper) {
                 return false;
             }
             if (Template.GetType() != wrapper.Template.GetType()) {
@@ -935,7 +935,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 found = null;
                 while (found == null) {
                     found = nodeCache.Find(nodeId);
-                    if (!(found is Node node)) {
+                    if (found is not Node node) {
                         return null;
                     }
 

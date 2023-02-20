@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Publisher processing engine configuration
     /// </summary>
     [DataContract]
-    public record class EngineConfigurationModel {
+    public sealed record class EngineConfigurationModel {
 
         /// <summary>
         /// Number of subscription notifications that
@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "defaultMetaDataQueueName", Order = 7,
             EmitDefaultValue = false)]
-        public string DefaultMetaDataQueueName { get; set; }
+        public string? DefaultMetaDataQueueName { get; set; }
 
         /// <summary>
         /// Default max messages per publish operation

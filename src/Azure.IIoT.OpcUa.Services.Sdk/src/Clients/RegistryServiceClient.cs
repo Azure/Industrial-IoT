@@ -243,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task CancelAsync(DiscoveryCancelModel content, CancellationToken ct) {
+        public async Task CancelAsync(DiscoveryCancelRequestModel content, CancellationToken ct) {
             if (content?.Id == null) {
                 throw new ArgumentNullException(nameof(content));
             }

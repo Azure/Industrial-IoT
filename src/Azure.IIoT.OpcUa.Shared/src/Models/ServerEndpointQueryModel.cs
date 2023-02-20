@@ -10,19 +10,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Endpoint model
     /// </summary>
     [DataContract]
-    public record class ServerEndpointQueryModel {
+    public sealed record class ServerEndpointQueryModel {
 
         /// <summary>
         /// Discovery url to use to query
         /// </summary>
         [DataMember(Name = "discoveryUrl", Order = 0)]
-        public string DiscoveryUrl { get; set; }
+        public string? DiscoveryUrl { get; set; }
 
         /// <summary>
         /// Endpoint url that should match the found endpoint
         /// </summary>
         [DataMember(Name = "url", Order = 1)]
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         /// <summary>
         /// Endpoint must support this Security Mode.
@@ -36,13 +36,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "securityPolicy", Order = 3,
             EmitDefaultValue = false)]
-        public string SecurityPolicy { get; set; }
+        public string? SecurityPolicy { get; set; }
 
         /// <summary>
         /// Endpoint must match with this certificate thumbprint
         /// </summary>
         [DataMember(Name = "certificate", Order = 4,
             EmitDefaultValue = false)]
-        public string Certificate { get; set; }
+        public string? Certificate { get; set; }
     }
 }

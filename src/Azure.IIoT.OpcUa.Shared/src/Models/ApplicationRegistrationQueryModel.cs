@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Application information
     /// </summary>
     [DataContract]
-    public record class ApplicationRegistrationQueryModel {
+    public sealed record class ApplicationRegistrationQueryModel {
 
         /// <summary>
         /// Type of application
@@ -24,56 +24,56 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "applicationUri", Order = 1,
             EmitDefaultValue = false)]
-        public string ApplicationUri { get; set; }
+        public string? ApplicationUri { get; set; }
 
         /// <summary>
         /// Product uri
         /// </summary>
         [DataMember(Name = "productUri", Order = 2,
             EmitDefaultValue = false)]
-        public string ProductUri { get; set; }
+        public string? ProductUri { get; set; }
 
         /// <summary>
         /// Name of application
         /// </summary>
         [DataMember(Name = "applicationName", Order = 3,
             EmitDefaultValue = false)]
-        public string ApplicationName { get; set; }
+        public string? ApplicationName { get; set; }
 
         /// <summary>
         /// Locale of application name - default is "en"
         /// </summary>
         [DataMember(Name = "locale", Order = 4,
             EmitDefaultValue = false)]
-        public string Locale { get; set; }
+        public string? Locale { get; set; }
 
         /// <summary>
         /// Application capability to query with
         /// </summary>
         [DataMember(Name = "capability", Order = 5,
             EmitDefaultValue = false)]
-        public string Capability { get; set; }
+        public string? Capability { get; set; }
 
         /// <summary>
         /// Discovery profile uri
         /// </summary>
         [DataMember(Name = "discoveryProfileUri", Order = 6,
             EmitDefaultValue = false)]
-        public string DiscoveryProfileUri { get; set; }
+        public string? DiscoveryProfileUri { get; set; }
 
         /// <summary>
         /// Gateway server uri
         /// </summary>
         [DataMember(Name = "gatewayServerUri", Order = 7,
             EmitDefaultValue = false)]
-        public string GatewayServerUri { get; set; }
+        public string? GatewayServerUri { get; set; }
 
         /// <summary>
         /// Supervisor or site the application belongs to.
         /// </summary>
         [DataMember(Name = "siteOrGatewayId", Order = 8,
            EmitDefaultValue = false)]
-        public string SiteOrGatewayId { get; set; }
+        public string? SiteOrGatewayId { get; set; }
 
         /// <summary>
         /// Whether to include apps that were soft deleted
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "discovererId", Order = 10,
             EmitDefaultValue = false)]
-        public string DiscovererId { get; set; }
+        public string? DiscovererId { get; set; }
     }
 }
 

@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// An expression element in the filter ast
     /// </summary>
     [DataContract]
-    public record class ContentFilterElementModel {
+    public sealed record class ContentFilterElementModel {
 
         /// <summary>
         /// The operator to use on the operands
@@ -25,6 +25,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "filterOperands", Order = 1,
             EmitDefaultValue = false)]
-        public List<FilterOperandModel> FilterOperands { get; set; }
+        public IReadOnlyList<FilterOperandModel>? FilterOperands { get; set; }
     }
 }

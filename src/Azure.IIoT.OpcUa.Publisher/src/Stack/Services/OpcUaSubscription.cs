@@ -69,8 +69,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <summary>
         /// Subscription
         /// </summary>
-        private OpcUaSubscription(IEndpointServices session, IClientServicesConfig config,
-            IVariantEncoderFactory codec, ILogger logger, IMetricsContext metrics)
+        private OpcUaSubscription(ISessionProvider<ConnectionModel> session,
+            IClientServicesConfig config, IVariantEncoderFactory codec,
+            ILogger logger, IMetricsContext metrics)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _sessions = session ??
                 throw new ArgumentNullException(nameof(session));
@@ -96,7 +97,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal static async ValueTask<ISubscription> CreateAsync(IEndpointServices outer,
+        internal static async ValueTask<ISubscription> CreateAsync(
+            ISessionProvider<ConnectionModel> outer,
             IClientServicesConfig config, IVariantEncoderFactory codec,
             SubscriptionModel subscription, ILogger logger, IMetricsContext metrics,
             CancellationToken ct = default) {
@@ -1222,7 +1224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
         private ImmutableDictionary<uint, OpcUaMonitoredItem> _currentlyMonitored;
         private SubscriptionModel _subscription;
-        private readonly IEndpointServices _sessions;
+        private readonly ISessionProvider<ConnectionModel> _sessions;
         private readonly IClientServicesConfig _config;
         private readonly IVariantEncoderFactory _codec;
         private readonly ILogger _logger;

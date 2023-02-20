@@ -11,14 +11,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Model for a diagnostic info.
     /// </summary>
     [DataContract]
-    public record class PublishDiagnosticInfoModel {
+    public sealed record class PublishDiagnosticInfoModel {
 
         /// <summary>
         /// Endpoint Information
         /// </summary>
         [DataMember(Name = "endpoint", Order = 0,
             EmitDefaultValue = true)]
-        public PublishedNodesEntryModel Endpoint { get; set; }
+        public PublishedNodesEntryModel? Endpoint { get; set; }
 
         /// <summary>
 		/// SentMessagesPerSec

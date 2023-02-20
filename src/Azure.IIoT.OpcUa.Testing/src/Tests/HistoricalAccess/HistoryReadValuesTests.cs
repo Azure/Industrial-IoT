@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         /// </summary>
         /// <param name="services"></param>
         /// <param name="endpoint"></param>
-        public HistoryReadValuesTests(Func<IHistorianServices<T>> services, T endpoint) {
+        public HistoryReadValuesTests(Func<IHistoryServices<T>> services, T endpoint) {
             _services = services;
             _endpoint = endpoint;
         }
@@ -40,59 +40,59 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal(14, results.History.Length);
             Assert.Collection(results.History,
                 arg => {
-                    Assert.Equal(2161573888, arg.StatusCode);
+                    Assert.Equal(2161573888, arg.Status.StatusCode);
                     Assert.Null(arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(10 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(20 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(25 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(30 == arg.Value);
                 },
                 arg => {
-                    Assert.Equal(2147483648, arg.StatusCode);
+                    Assert.Equal(2147483648, arg.Status.StatusCode);
                     Assert.Null(arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(40 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(50 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(60 == arg.Value);
                 },
                 arg => {
-                    Assert.Equal(1073741824u, arg.StatusCode);
+                    Assert.Equal(1073741824u, arg.Status.StatusCode);
                     Assert.True(70 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(70 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(80 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(90 == arg.Value);
                 },
                 arg => {
-                    Assert.Equal(2161573888, arg.StatusCode);
+                    Assert.Equal(2161573888, arg.Status.StatusCode);
                     Assert.Null(arg.Value);
                 });
         }
@@ -115,43 +115,43 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal(10, results.History.Length);
             Assert.Collection(results.History,
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(10 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(20 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(25 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(30 == arg.Value);
                 },
                 arg => {
-                    Assert.Equal(2147483648u, arg.StatusCode);
+                    Assert.Equal(2147483648u, arg.Status.StatusCode);
                     Assert.Null(arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(40 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(50 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(60 == arg.Value);
                 },
                 arg => {
-                    Assert.Equal(1073741824u, arg.StatusCode);
+                    Assert.Equal(1073741824u, arg.Status.StatusCode);
                     Assert.True(70 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(70 == arg.Value);
                 });
         }
@@ -174,51 +174,51 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal(12, results.History.Length);
             Assert.Collection(results.History,
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(10 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(20 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(25 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(30 == arg.Value);
                 },
                 arg => {
-                    Assert.Equal(2147483648, arg.StatusCode);
+                    Assert.Equal(2147483648, arg.Status.StatusCode);
                     Assert.Null(arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(40 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(50 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(60 == arg.Value);
                 },
                 arg => {
-                    Assert.Equal(1073741824u, arg.StatusCode);
+                    Assert.Equal(1073741824u, arg.Status.StatusCode);
                     Assert.True(70 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(70 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(80 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(90 == arg.Value);
                 });
         }
@@ -241,48 +241,48 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal(10, results.History.Length);
             Assert.Collection(results.History,
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(90 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(80 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(70 == arg.Value);
                 },
                 arg => {
-                    Assert.Equal(1073741824u, arg.StatusCode);
+                    Assert.Equal(1073741824u, arg.Status.StatusCode);
                     Assert.True(70 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(60 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(50 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(40 == arg.Value);
                 },
                 arg => {
-                    Assert.Equal(2147483648, arg.StatusCode);
+                    Assert.Equal(2147483648, arg.Status.StatusCode);
                     Assert.Null(arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(30 == arg.Value);
                 },
                 arg => {
-                    Assert.Null(arg.StatusCode);
+                    Assert.Null(arg.Status.StatusCode);
                     Assert.True(25 == arg.Value);
                 });
         }
 
         private readonly T _endpoint;
-        private readonly Func<IHistorianServices<T>> _services;
+        private readonly Func<IHistoryServices<T>> _services;
     }
 }

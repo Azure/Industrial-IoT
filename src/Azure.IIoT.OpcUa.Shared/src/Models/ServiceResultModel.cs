@@ -4,34 +4,61 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-    using Microsoft.Azure.IIoT.Serializers;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Service result
     /// </summary>
     [DataContract]
-    public record class ServiceResultModel {
+    public sealed record class ServiceResultModel {
 
         /// <summary>
         /// Error code - if null operation succeeded.
         /// </summary>
         [DataMember(Name = "statusCode", Order = 0,
             EmitDefaultValue = false)]
-        public uint? StatusCode { get; set; }
+        public uint StatusCode { get; set; }
 
         /// <summary>
         /// Error message in case of error or null.
         /// </summary>
         [DataMember(Name = "errorMessage", Order = 1,
             EmitDefaultValue = false)]
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
+
 
         /// <summary>
-        /// Additional diagnostics information
+        /// Symbolic identifier
         /// </summary>
-        [DataMember(Name = "diagnostics", Order = 2,
+        [DataMember(Name = "symbolicId", Order = 2)]
+        public string? SymbolicId { get; set; }
+
+        /// <summary>
+        /// Locale of the error message
+        /// </summary>
+        [DataMember(Name = "locale", Order = 3,
             EmitDefaultValue = false)]
-        public VariantValue Diagnostics { get; set; }
+        public string? Locale { get; set; }
+
+        /// <summary>
+        /// Additional information if available
+        /// </summary>
+        [DataMember(Name = "additionalInfo", Order = 4,
+            EmitDefaultValue = false)]
+        public string? AdditionalInfo { get; set; }
+
+        /// <summary>
+        /// Namespace uri
+        /// </summary>
+        [DataMember(Name = "namespaceUri", Order = 5,
+            EmitDefaultValue = false)]
+        public string? NamespaceUri { get; set; }
+
+        /// <summary>
+        /// Inner result if any
+        /// </summary>
+        [DataMember(Name = "inner", Order = 6,
+            EmitDefaultValue = false)]
+        public ServiceResultModel? Inner { get; set; }
     }
 }

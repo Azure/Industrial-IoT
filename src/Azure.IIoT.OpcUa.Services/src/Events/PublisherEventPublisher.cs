@@ -21,21 +21,21 @@ namespace Azure.IIoT.OpcUa.Services.Events {
         }
 
         /// <inheritdoc/>
-        public Task OnPublisherDeletedAsync(RegistryOperationContextModel context,
+        public Task OnPublisherDeletedAsync(OperationContextModel context,
             string publisherId) {
             return PublishAsync(PublisherEventType.Deleted, context,
                 publisherId, null);
         }
 
         /// <inheritdoc/>
-        public Task OnPublisherNewAsync(RegistryOperationContextModel context,
+        public Task OnPublisherNewAsync(OperationContextModel context,
             PublisherModel publisher) {
             return PublishAsync(PublisherEventType.New, context,
                 publisher.Id, publisher);
         }
 
         /// <inheritdoc/>
-        public Task OnPublisherUpdatedAsync(RegistryOperationContextModel context,
+        public Task OnPublisherUpdatedAsync(OperationContextModel context,
             PublisherModel publisher) {
             return PublishAsync(PublisherEventType.Updated, context,
                 publisher.Id, publisher);
@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Services.Events {
         /// <param name="publisher"></param>
         /// <returns></returns>
         public Task PublishAsync(PublisherEventType type,
-            RegistryOperationContextModel context, string publisherId,
+            OperationContextModel context, string publisherId,
             PublisherModel publisher) {
             var arguments = new object[] {
                 new PublisherEventModel {

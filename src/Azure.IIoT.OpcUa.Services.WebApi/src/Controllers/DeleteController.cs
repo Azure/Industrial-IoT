@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="historian"></param>
-        public DeleteController(IHistorianServices<string> historian) {
+        public DeleteController(IHistoryServices<string> historian) {
             _historian = historian ?? throw new ArgumentNullException(nameof(historian));
         }
 
@@ -35,8 +35,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Delete value history using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
@@ -57,8 +56,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Delete historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
@@ -79,8 +77,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Delete historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
@@ -88,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/modified")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -101,8 +98,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Delete historic events using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The history update request</param>
@@ -118,6 +114,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             return writeResult;
         }
 
-        private readonly IHistorianServices<string> _historian;
+        private readonly IHistoryServices<string> _historian;
     }
 }

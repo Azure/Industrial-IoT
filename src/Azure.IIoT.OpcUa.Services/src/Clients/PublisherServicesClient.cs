@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Serializers;
     using System;
-    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -18,8 +17,8 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
     /// Adapt the api to endpoint identifiers which are looked up through the registry.
     /// </summary>
     public sealed class PublisherServicesClient : IConnectionServices<string>,
-        ICertificateServices<string>, IBrowseServices<string>, INodeServices<string>,
-        IHistoricAccessServices<string>, IHistorianServices<string>, IPublishServices<string> {
+        ICertificateServices<string>, INodeServices<string>, IPublishServices<string>,
+        IHistoryServices<string> {
 
         /// <summary>
         /// Create endpoint registry
@@ -71,8 +70,8 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseResponseModel> NodeBrowseFirstAsync(string endpointId,
-            BrowseRequestModel request, CancellationToken ct) {
+        public async Task<BrowseFirstResponseModel> BrowseFirstAsync(string endpointId,
+            BrowseFirstRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -87,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BrowseNextResponseModel> NodeBrowseNextAsync(string endpointId,
+        public async Task<BrowseNextResponseModel> BrowseNextAsync(string endpointId,
             BrowseNextRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -103,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<BrowsePathResponseModel> NodeBrowsePathAsync(string endpointId,
+        public async Task<BrowsePathResponseModel> BrowsePathAsync(string endpointId,
             BrowsePathRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -119,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<ValueReadResponseModel> NodeValueReadAsync(string endpointId,
+        public async Task<ValueReadResponseModel> ValueReadAsync(string endpointId,
             ValueReadRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -135,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<ValueWriteResponseModel> NodeValueWriteAsync(string endpointId,
+        public async Task<ValueWriteResponseModel> ValueWriteAsync(string endpointId,
             ValueWriteRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -151,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<MethodMetadataResponseModel> NodeMethodGetMetadataAsync(string endpointId,
+        public async Task<MethodMetadataResponseModel> GetMethodMetadataAsync(string endpointId,
             MethodMetadataRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -167,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<MethodCallResponseModel> NodeMethodCallAsync(string endpointId,
+        public async Task<MethodCallResponseModel> MethodCallAsync(string endpointId,
             MethodCallRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -183,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<ReadResponseModel> NodeReadAsync(string endpointId,
+        public async Task<ReadResponseModel> ReadAsync(string endpointId,
             ReadRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -199,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<WriteResponseModel> NodeWriteAsync(string endpointId,
+        public async Task<WriteResponseModel> WriteAsync(string endpointId,
             WriteRequestModel request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -215,6 +214,62 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
+        public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(string endpointId,
+            CancellationToken ct) {
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new TwinApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.GetServerCapabilitiesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint
+            }, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<NodeMetadataResponseModel> GetMetadataAsync(string endpointId,
+            NodeMetadataRequestModel request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new TwinApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.GetMetadataAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
+            string endpointId, CancellationToken ct) {
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new TwinApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryGetServerCapabilitiesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+            }, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
+            string endpointId, HistoryConfigurationRequestModel request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new TwinApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryGetConfigurationAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(string endpointId,
             HistoryReadRequestModel<VariantValue> request, CancellationToken ct) {
             if (request == null) {
@@ -223,8 +278,8 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
             var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
             var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
                 out var moduleId);
-            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
-            return await client.HistoryReadRawAsync(new ConnectionModel {
+            var client = new TwinApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReadAsync(new ConnectionModel {
                 Endpoint = endpoint.Registration.Endpoint,
                 User = request.Header?.Elevation
             }, request, ct);
@@ -239,8 +294,8 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
             var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
             var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
                 out var moduleId);
-            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
-            return await client.HistoryReadRawNextAsync(new ConnectionModel {
+            var client = new TwinApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryReadNextAsync(new ConnectionModel {
                 Endpoint = endpoint.Registration.Endpoint,
                 User = request.Header?.Elevation
             }, request, ct);
@@ -255,8 +310,8 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
             var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
             var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
                 out var moduleId);
-            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
-            return await client.HistoryUpdateRawAsync(new ConnectionModel {
+            var client = new TwinApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryUpdateAsync(new ConnectionModel {
                 Endpoint = endpoint.Registration.Endpoint,
                 User = request.Header?.Elevation
             }, request, ct);
@@ -327,7 +382,8 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(string endpointId, HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request, CancellationToken ct) {
+        public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(string endpointId,
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -343,7 +399,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<InsertEventsDetailsModel> request, CancellationToken ct) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -352,6 +408,22 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                 out var moduleId);
             var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
             return await client.HistoryInsertEventsAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(string endpointId,
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryUpsertEventsAsync(new ConnectionModel {
                 Endpoint = endpoint.Registration.Endpoint,
                 User = request.Header?.Elevation
             }, request, ct);
@@ -392,7 +464,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
-            string endpointId, HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request,
+            string endpointId, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
@@ -425,7 +497,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request, CancellationToken ct) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -441,7 +513,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<InsertValuesDetailsModel> request, CancellationToken ct) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -450,6 +522,22 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                 out var moduleId);
             var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
             return await client.HistoryInsertValuesAsync(new ConnectionModel {
+                Endpoint = endpoint.Registration.Endpoint,
+                User = request.Header?.Elevation
+            }, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(string endpointId,
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, true, ct);
+            var deviceId = PublisherModelEx.ParseDeviceId(endpoint.Registration.DiscovererId,
+                out var moduleId);
+            var client = new HistoryApiClient(_client, deviceId, moduleId, _serializer);
+            return await client.HistoryUpsertValuesAsync(new ConnectionModel {
                 Endpoint = endpoint.Registration.Endpoint,
                 User = request.Header?.Elevation
             }, request, ct);

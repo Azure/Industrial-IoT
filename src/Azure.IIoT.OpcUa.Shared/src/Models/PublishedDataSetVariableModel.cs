@@ -13,28 +13,28 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// A published variable
     /// </summary>
     [DataContract]
-    public record class PublishedDataSetVariableModel {
+    public sealed record class PublishedDataSetVariableModel {
 
         /// <summary>
         /// Name of variable in the dataset.
         /// </summary>
         [DataMember(Name = "id", Order = 0,
             EmitDefaultValue = false)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Node id of the variable
         /// </summary>
         [DataMember(Name = "publishedVariableNodeId", Order = 1,
             EmitDefaultValue = false)]
-        public string PublishedVariableNodeId { get; set; }
+        public string? PublishedVariableNodeId { get; set; }
 
         /// <summary>
         /// Display name of the published variable
         /// </summary>
         [DataMember(Name = "publishedVariableDisplayName", Order = 2,
             EmitDefaultValue = false)]
-        public string PublishedVariableDisplayName { get; set; }
+        public string? PublishedVariableDisplayName { get; set; }
 
         /// <summary>
         /// An optional component path from the node identified by
@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "browsePath", Order = 3,
             EmitDefaultValue = false)]
-        public string[] BrowsePath { get; set; }
+        public string[]? BrowsePath { get; set; }
 
         /// <summary>
         /// Default is <see cref="NodeAttribute.Value"/>.
@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "indexRange", Order = 5,
             EmitDefaultValue = false)]
-        public string IndexRange { get; set; }
+        public string? IndexRange { get; set; }
 
         /// <summary>
         /// Sampling Interval hint - default is best effort
@@ -92,14 +92,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "substituteValue", Order = 10,
             EmitDefaultValue = false)]
-        public VariantValue SubstituteValue { get; set; }
+        public VariantValue? SubstituteValue { get; set; }
 
         /// <summary>
         /// MetaData properties qualified names. (not supported yet)
         /// </summary>
         [DataMember(Name = "metaDataProperties", Order = 11,
             EmitDefaultValue = false)]
-        public List<string> MetaDataProperties { get; set; }
+        public List<string>? MetaDataProperties { get; set; }
 
         /// <summary>
         /// Monitoring mode (Publisher extension)

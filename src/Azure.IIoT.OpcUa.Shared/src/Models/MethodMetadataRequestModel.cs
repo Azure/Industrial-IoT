@@ -4,20 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Method metadata request model
     /// </summary>
     [DataContract]
-    public record class MethodMetadataRequestModel {
+    public sealed record class MethodMetadataRequestModel {
 
         /// <summary>
         /// Method id of method to call.
         /// (Required)
         /// </summary>
         [DataMember(Name = "methodId", Order = 0)]
-        public string MethodId { get; set; }
+        public string? MethodId { get; set; }
 
         /// <summary>
         /// An optional component path from the node identified by
@@ -25,13 +26,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "methodBrowsePath", Order = 1,
             EmitDefaultValue = false)]
-        public string[] MethodBrowsePath { get; set; }
+        public IReadOnlyList<string>? MethodBrowsePath { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 2,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
     }
 }

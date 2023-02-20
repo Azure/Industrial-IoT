@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
@@ -11,13 +12,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Request node history update
     /// </summary>
     [DataContract]
-    public record class HistoryUpdateRequestModel<T> {
+    public sealed record class HistoryUpdateRequestModel<T> {
 
         /// <summary>
         /// Node to update
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0)]
-        public string NodeId { get; set; }
+        [Required]
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// An optional path from NodeId instance to
@@ -25,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
-        public string[] BrowsePath { get; set; }
+        public IReadOnlyList<string>? BrowsePath { get; set; }
 
         /// <summary>
         /// The HistoryUpdateDetailsType extension object
@@ -35,13 +37,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "details", Order = 2)]
         [Required]
-        public T Details { get; set; }
+        public T? Details { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 3,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
     }
 }

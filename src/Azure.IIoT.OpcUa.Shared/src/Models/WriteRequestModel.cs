@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Request node attribute write
     /// </summary>
     [DataContract]
-    public record class WriteRequestModel {
+    public sealed record class WriteRequestModel {
 
         /// <summary>
         /// Attributes to update

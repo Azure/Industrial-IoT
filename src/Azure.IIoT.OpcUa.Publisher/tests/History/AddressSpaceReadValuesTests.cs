@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Edge.History {
     using System.Net.Sockets;
     using System.Threading.Tasks;
     using Xunit;
+    using Azure.IIoT.OpcUa.Publisher.Services;
 
     [Collection(HistoryReadCollection.Name)]
     public class AddressSpaceReadValuesTests {
@@ -29,8 +30,8 @@ namespace Azure.IIoT.OpcUa.Edge.History {
         private HistoryReadValuesTests<ConnectionModel> GetTests() {
             var codec = new VariantEncoderFactory();
             return new HistoryReadValuesTests<ConnectionModel>(
-                () => new HistorianApiAdapter<ConnectionModel>(new AddressSpaceServices(_server.Client,
-                    codec, _server.Logger), codec), new ConnectionModel {
+                () => new HistoryServices<ConnectionModel>(new NodeServices<ConnectionModel>(_server.Client,
+                    codec, _server.Logger)), new ConnectionModel {
                         Endpoint = new EndpointModel {
                             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                             AlternativeUrls = _hostEntry?.AddressList

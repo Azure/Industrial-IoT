@@ -9,23 +9,15 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Replace historic events
+    /// Insert, upsert, or update historic values
     /// </summary>
     [DataContract]
-    public record class ReplaceEventsDetailsModel {
-
+    public sealed record class UpdateValuesDetailsModel {
         /// <summary>
-        /// The filter to use to select the events
+        /// Values to insert
         /// </summary>
-        [DataMember(Name = "filter", Order = 0,
-            EmitDefaultValue = false)]
-        public EventFilterModel Filter { get; set; }
-
-        /// <summary>
-        /// The new events to replace
-        /// </summary>
-        [DataMember(Name = "events", Order = 1)]
+        [DataMember(Name = "values", Order = 0)]
         [Required]
-        public List<HistoricEventModel> Events { get; set; }
+        public IReadOnlyList<HistoricValueModel>? Values { get; set; }
     }
 }

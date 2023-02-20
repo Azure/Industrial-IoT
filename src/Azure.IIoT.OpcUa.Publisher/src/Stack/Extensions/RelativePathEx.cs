@@ -2,10 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
+#nullable enable
 namespace Opc.Ua.Extensions {
     using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Opc.Ua;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -19,7 +21,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="path"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static RelativePath ToRelativePath(this string[] path,
+        public static RelativePath ToRelativePath(this IReadOnlyList<string> path,
             IServiceMessageContext context) {
             if (path == null) {
                 return new RelativePath();
@@ -37,14 +39,14 @@ namespace Opc.Ua.Extensions {
         /// <param name="path"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static string[] AsString(this RelativePath path,
+        public static IReadOnlyList<string>? AsString(this RelativePath path,
             IServiceMessageContext context) {
             if (path == null) {
                 return null;
             }
             return path.Elements
                 .Select(p => FormatRelativePathElement(p, context))
-                .ToArray();
+                .ToList();
         }
 
         /// <summary>
@@ -133,7 +135,7 @@ namespace Opc.Ua.Extensions {
                             "Reference path starts in < but does not end in >");
                     }
                 }
-                var reference = element.Substring(index, to - index);
+                var reference = element[index..to];
                 // TODO: Deescape &<, &>, &/, &., &:, &&
                 index = to + 1;
                 pathElement.ReferenceTypeId = reference.ToNodeId(context);
@@ -144,7 +146,7 @@ namespace Opc.Ua.Extensions {
                     }
                 }
             }
-            var target = element.Substring(index);
+            var target = element[index..];
             // TODO: Deescape &<, &>, &/, &., &:, &&
             if (string.IsNullOrEmpty(target)) {
                 throw new FormatException("Bad target name is empty");
@@ -180,7 +182,7 @@ namespace Opc.Ua.Extensions {
                 value += "#";
             }
             if (writeReference) {
-                string reference = null;
+                string? reference = null;
                 if (element.ReferenceTypeId.NamespaceIndex == 0 &&
                     element.ReferenceTypeId.Identifier is uint id) {
                     TypeMaps.ReferenceTypes.Value.TryGetBrowseName(id, out reference);

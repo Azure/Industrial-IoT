@@ -11,13 +11,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Result of GetConfiguredNodesOnEndpoint method call
     /// </summary>
     [DataContract]
-    public record class GetConfiguredNodesOnEndpointResponseModel {
+    public sealed record class GetConfiguredNodesOnEndpointResponseModel {
 
         /// <summary>
         /// Collection of Nodes configured for a particular endpoint
         /// </summary>
         [DataMember(Name = "opcNodes", Order = 0,
             EmitDefaultValue = false)]
-        public List<OpcNodeModel> OpcNodes { get; set; }
+        public List<OpcNodeModel>? OpcNodes { get; set; }
     }
 }

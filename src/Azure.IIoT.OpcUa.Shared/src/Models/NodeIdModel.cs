@@ -10,13 +10,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Node id serialized as object
     /// </summary>
     [DataContract]
-    public record class NodeIdModel {
+    public sealed record class NodeIdModel {
 
         /// <summary>
         /// Identifier
         /// </summary>
         [DataMember(Name = "Identifier", Order = 0,
             EmitDefaultValue = false)]
-        public string Identifier { get; set; }
+        public string? Identifier { get; set; }
     }
 }

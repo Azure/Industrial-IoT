@@ -11,20 +11,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Data set writer description
     /// </summary>
     [DataContract]
-    public record class DataSetWriterModel {
+    public sealed record class DataSetWriterModel {
 
         /// <summary>
         /// Dataset writer name.
         /// </summary>
         [DataMember(Name = "dataSetWriterName", Order = 0)]
-        public string DataSetWriterName { get; set; }
+        public string? DataSetWriterName { get; set; }
 
         /// <summary>
         /// Published dataset inline definition
         /// </summary>
         [DataMember(Name = "dataSet", Order = 1,
             EmitDefaultValue = false)]
-        public PublishedDataSetModel DataSet { get; set; }
+        public PublishedDataSetModel? DataSet { get; set; }
 
         /// <summary>
         /// Dataset field content mask
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "messageSettings", Order = 3,
             EmitDefaultValue = false)]
-        public DataSetWriterMessageSettingsModel MessageSettings { get; set; }
+        public DataSetWriterMessageSettingsModel? MessageSettings { get; set; }
 
         /// <summary>
         /// Keyframe count
@@ -59,6 +59,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "metaDataQueueName", Order = 7,
             EmitDefaultValue = false)]
-        public string MetaDataQueueName { get; set; }
+        public string? MetaDataQueueName { get; set; }
     }
 }

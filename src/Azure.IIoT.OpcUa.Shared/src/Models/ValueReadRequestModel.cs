@@ -5,28 +5,29 @@
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
     using System;
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Node value read request webservice api model
+    /// Request node value read
     /// </summary>
     [DataContract]
-    public record class ValueReadRequestModel {
+    public sealed record class ValueReadRequestModel {
 
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0,
             EmitDefaultValue = false)]
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// An optional path from NodeId instance to
-        /// the actual node.
+        /// an actual node.
         /// </summary>
         [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
-        public string[] BrowsePath { get; set; }
+        public IReadOnlyList<string>? BrowsePath { get; set; }
 
         /// <summary>
         /// Index range to read, e.g. 1:2,0:1 for 2 slices
@@ -36,20 +37,32 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "indexRange", Order = 2,
             EmitDefaultValue = false)]
-        public string IndexRange { get; set; }
+        public string? IndexRange { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 3,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
 
         /// <summary>
-        /// Max age of value
+        /// Maximum age of the value to be read in milliseconds.
+        /// The age of the value is based on the difference
+        /// between the ServerTimestamp and the time when
+        /// the Server starts processing the request.
+        /// If not supplied, the Server shall attempt to read
+        /// a new value from the data source.
         /// </summary>
         [DataMember(Name = "maxAge", Order = 4,
             EmitDefaultValue = false)]
         public TimeSpan? MaxAge { get; set; }
+
+        /// <summary>
+        /// Decide what timestamps to return.
+        /// </summary>
+        [DataMember(Name = "timestampsToReturn", Order = 5,
+            EmitDefaultValue = false)]
+        public TimestampsToReturn TimestampsToReturn { get; set; }
     }
 }

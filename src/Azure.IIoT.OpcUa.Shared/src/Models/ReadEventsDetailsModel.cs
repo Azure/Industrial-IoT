@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Read event data
     /// </summary>
     [DataContract]
-    public record class ReadEventsDetailsModel {
+    public sealed record class ReadEventsDetailsModel {
 
         /// <summary>
         /// Start time to read from
@@ -39,6 +39,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "filter", Order = 3,
             EmitDefaultValue = false)]
-        public EventFilterModel Filter { get; set; }
+        public EventFilterModel? Filter { get; set; }
     }
 }

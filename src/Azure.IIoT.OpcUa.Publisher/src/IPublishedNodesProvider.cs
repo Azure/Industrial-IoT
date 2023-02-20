@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher {
-
     using System;
     using System.IO;
 

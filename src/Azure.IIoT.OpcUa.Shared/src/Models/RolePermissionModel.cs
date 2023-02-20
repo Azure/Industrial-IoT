@@ -11,14 +11,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Role permission model
     /// </summary>
     [DataContract]
-    public record class RolePermissionModel {
+    public sealed record class RolePermissionModel {
 
         /// <summary>
         /// Identifier of the role object.
         /// </summary>
         [DataMember(Name = "roleId", Order = 0)]
         [Required]
-        public string RoleId { get; set; }
+        public string RoleId { get; set; } = null!;
 
         /// <summary>
         /// Permissions assigned for the role.

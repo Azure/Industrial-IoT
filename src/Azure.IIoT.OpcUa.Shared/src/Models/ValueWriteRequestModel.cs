@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
     using Microsoft.Azure.IIoT.Serializers;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
@@ -12,14 +13,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Value write request model
     /// </summary>
     [DataContract]
-    public record class ValueWriteRequestModel {
+    public sealed record class ValueWriteRequestModel {
 
         /// <summary>
-        /// Node id to to write value to.
+        /// Node id to write value to.
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0,
             EmitDefaultValue = false)]
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// An optional path from NodeId instance to
@@ -27,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
-        public string[] BrowsePath { get; set; }
+        public IReadOnlyList<string>? BrowsePath { get; set; }
 
         /// <summary>
         /// Value to write. The system tries to convert
@@ -37,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "value", Order = 2)]
         [Required]
-        public VariantValue Value { get; set; }
+        public VariantValue? Value { get; set; }
 
         /// <summary>
         /// A built in datatype for the value. This can
@@ -47,20 +48,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "dataType", Order = 3,
             EmitDefaultValue = false)]
-        public string DataType { get; set; }
+        public string? DataType { get; set; }
 
         /// <summary>
         /// Index range to write
         /// </summary>
         [DataMember(Name = "indexRange", Order = 4,
             EmitDefaultValue = false)]
-        public string IndexRange { get; set; }
+        public string? IndexRange { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 5,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
     }
 }

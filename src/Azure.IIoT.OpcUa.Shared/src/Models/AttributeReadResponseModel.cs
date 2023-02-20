@@ -11,19 +11,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Attribute value read
     /// </summary>
     [DataContract]
-    public record class AttributeReadResponseModel {
+    public sealed record class AttributeReadResponseModel {
 
         /// <summary>
         /// Attribute value
         /// </summary>
         [DataMember(Name = "value", Order = 0)]
-        public VariantValue Value { get; set; }
+        public VariantValue Value { get; set; } = null!;
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 1,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }

@@ -7,23 +7,33 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Discovery cancel request
+    /// Timestamps
     /// </summary>
     [DataContract]
-    public record class DiscoveryCancelModel {
+    public enum TimestampsToReturn {
 
         /// <summary>
-        /// Id of discovery request
+        /// Both time stamps
         /// </summary>
-        [DataMember(Name = "id", Order = 0,
-            EmitDefaultValue = false)]
-        public string Id { get; set; }
+        [EnumMember]
+        Both,
 
         /// <summary>
-        /// Operation audit context
+        /// Source time
         /// </summary>
-        [DataMember(Name = "context", Order = 1,
-            EmitDefaultValue = false)]
-        public RegistryOperationContextModel Context { get; set; }
+        [EnumMember]
+        Source,
+
+        /// <summary>
+        /// Server time
+        /// </summary>
+        [EnumMember]
+        Server,
+
+        /// <summary>
+        /// No timestamp
+        /// </summary>
+        [EnumMember]
+        None
     }
 }

@@ -11,19 +11,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Endpoint info list
     /// </summary>
     [DataContract]
-    public record class EndpointInfoListModel {
+    public sealed record class EndpointInfoListModel {
 
         /// <summary>
         /// Endpoint infos
         /// </summary>
         [DataMember(Name = "items", Order = 0)]
-        public List<EndpointInfoModel> Items { get; set; }
+        public IReadOnlyList<EndpointInfoModel> Items { get; set; } = null!;
 
         /// <summary>
         /// Continuation or null if final
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 1,
             EmitDefaultValue = false)]
-        public string ContinuationToken { get; set; }
+        public string? ContinuationToken { get; set; }
     }
 }

@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Services.Events {
         }
 
         /// <inheritdoc/>
-        public Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
+        public Task OnApplicationDeletedAsync(OperationContextModel context,
             string applicationId, ApplicationInfoModel application) {
             return PublishAsync(ApplicationEventType.Deleted, context,
                 applicationId, application);
@@ -29,27 +29,27 @@ namespace Azure.IIoT.OpcUa.Services.Events {
 
         /// <inheritdoc/>
         public Task HandleApplicationDisabledAsync(
-            RegistryOperationContextModel context, ApplicationInfoModel application) {
+            OperationContextModel context, ApplicationInfoModel application) {
             return PublishAsync(ApplicationEventType.Disabled, context,
                 application.ApplicationId, application);
         }
 
         /// <inheritdoc/>
         public Task OnApplicationEnabledAsync(
-            RegistryOperationContextModel context, ApplicationInfoModel application) {
+            OperationContextModel context, ApplicationInfoModel application) {
             return PublishAsync(ApplicationEventType.Enabled, context,
                 application.ApplicationId, application);
         }
 
         /// <inheritdoc/>
         public Task OnApplicationNewAsync(
-            RegistryOperationContextModel context, ApplicationInfoModel application) {
+            OperationContextModel context, ApplicationInfoModel application) {
             return PublishAsync(ApplicationEventType.New, context,
                 application.ApplicationId, application);
         }
 
         /// <inheritdoc/>
-        public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
+        public Task OnApplicationUpdatedAsync(OperationContextModel context,
             ApplicationInfoModel application) {
             return PublishAsync(ApplicationEventType.Updated, context,
                 application.ApplicationId, application);
@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Services.Events {
         /// <param name="application"></param>
         /// <returns></returns>
         public Task PublishAsync(ApplicationEventType type,
-            RegistryOperationContextModel context, string applicationId,
+            OperationContextModel context, string applicationId,
             ApplicationInfoModel application) {
             var arguments = new object[] {
                 new ApplicationEventModel {

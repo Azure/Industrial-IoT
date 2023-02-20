@@ -544,12 +544,12 @@ namespace Azure.IIoT.OpcUa.Services.Models {
         /// <param name="authorityId"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        private static RegistryOperationContextModel ToOperationModel(
+        private static OperationContextModel ToOperationModel(
             string authorityId, DateTime? time) {
             if (string.IsNullOrEmpty(authorityId) && time == null) {
                 return null;
             }
-            return new RegistryOperationContextModel {
+            return new OperationContextModel {
                 AuthorityId = authorityId,
                 Time = time ?? DateTime.MinValue
             };

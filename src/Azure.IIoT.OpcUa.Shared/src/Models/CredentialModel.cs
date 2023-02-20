@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Credential model
     /// </summary>
     [DataContract]
-    public record class CredentialModel {
+    public sealed record class CredentialModel {
 
         /// <summary>
         /// Type of credential
@@ -25,6 +25,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "value", Order = 1,
             EmitDefaultValue = false)]
-        public VariantValue Value { get; set; }
+        public VariantValue? Value { get; set; }
     }
 }

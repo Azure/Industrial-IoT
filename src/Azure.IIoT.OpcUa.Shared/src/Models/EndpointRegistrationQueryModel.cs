@@ -10,21 +10,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Endpoint query
     /// </summary>
     [DataContract]
-    public record class EndpointRegistrationQueryModel {
+    public sealed record class EndpointRegistrationQueryModel {
 
         /// <summary>
         /// Endoint url for direct server access
         /// </summary>
         [DataMember(Name = "url", Order = 0,
             EmitDefaultValue = false)]
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         /// <summary>
         /// Certificate thumbprint of the endpoint
         /// </summary>
         [DataMember(Name = "certificate", Order = 1,
             EmitDefaultValue = false)]
-        public string Certificate { get; set; }
+        public string? Certificate { get; set; }
 
         /// <summary>
         /// Security mode to use for communication - null = Best
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "securityPolicy", Order = 3,
             EmitDefaultValue = false)]
-        public string SecurityPolicy { get; set; }
+        public string? SecurityPolicy { get; set; }
 
         /// <summary>
         /// The last state of the the activated endpoint
@@ -59,21 +59,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "discovererId", Order = 8,
             EmitDefaultValue = false)]
-        public string DiscovererId { get; set; }
+        public string? DiscovererId { get; set; }
 
         /// <summary>
         /// Application id to filter
         /// </summary>
         [DataMember(Name = "applicationId", Order = 9,
             EmitDefaultValue = false)]
-        public string ApplicationId { get; set; }
+        public string? ApplicationId { get; set; }
 
         /// <summary>
         /// Site or gateway id to filter with
         /// </summary>
         [DataMember(Name = "siteOrGatewayId", Order = 11,
             EmitDefaultValue = false)]
-        public string SiteOrGatewayId { get; set; }
+        public string? SiteOrGatewayId { get; set; }
     }
 }
 

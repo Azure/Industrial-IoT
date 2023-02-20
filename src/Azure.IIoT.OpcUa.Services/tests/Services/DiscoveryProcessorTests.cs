@@ -163,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 out var publisher, out var gateway, out var existing,
                 out var found, out var registry, -1, x => {
                     x.Application.DiscovererId = discoverer2;
-                    x.Endpoints.ForEach(e => e.DiscovererId = discoverer2);
+                    x.Endpoints.ToList().ForEach(e => e.DiscovererId = discoverer2);
                     return x;
                 });
 
@@ -189,7 +189,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 out var publisher, out var gateway, out var existing,
                 out var found, out var registry, -1, x => {
                     x.Application.DiscovererId = discoverer2;
-                    x.Endpoints.ForEach(e => e.DiscovererId = discoverer2);
+                    x.Endpoints.ToList().ForEach(e => e.DiscovererId = discoverer2);
                     return x;
                 });
 
@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 out var publisher, out var gateway, out var existing,
                 out var found, out var registry, -1, x => {
                     x.Application.DiscovererId = discoverer2;
-                    x.Endpoints.ForEach(e => e.DiscovererId = discoverer2);
+                    x.Endpoints.ToList().ForEach(e => e.DiscovererId = discoverer2);
                     return x;
                 }, true);
 
@@ -249,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 out var publisher, out var gateway, out var existing,
                 out var found, out var registry, -1, x => {
                     x.Application.DiscovererId = discoverer2;
-                    x.Endpoints.ForEach(e => e.DiscovererId = discoverer2);
+                    x.Endpoints.ToList().ForEach(e => e.DiscovererId = discoverer2);
                     return x;
                 }, true);
 
@@ -283,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 out var publisher, out var gateway, out var existing,
                 out var found, out var registry, -1, x => {
                     x.Application.DiscovererId = discoverer2;
-                    x.Endpoints.ForEach(e => e.DiscovererId = discoverer2);
+                    x.Endpoints.ToList().ForEach(e => e.DiscovererId = discoverer2);
                     return x;
                 });
 

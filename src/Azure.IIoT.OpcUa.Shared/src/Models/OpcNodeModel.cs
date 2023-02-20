@@ -11,14 +11,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Describing an entry in the node list
     /// </summary>
     [DataContract]
-    public record class OpcNodeModel {
+    public sealed record class OpcNodeModel {
 
         /// <summary>
         /// Node Identifier
         /// </summary>
         [DataMember(Name = "Id", Order = 0,
             EmitDefaultValue = false)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Sampling interval in milliseconds
@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "DataSetFieldId", Order = 3,
             EmitDefaultValue = false)]
-        public string DataSetFieldId { get; set; }
+        public string? DataSetFieldId { get; set; }
 
         /// <summary>
         /// The identifier of the field in the dataset class.
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "DisplayName", Order = 5,
             EmitDefaultValue = false)]
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
         /// <summary>
         /// Queue Size for the monitored item on the server.
@@ -104,14 +104,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "EventFilter", Order = 11,
             EmitDefaultValue = false)]
-        public EventFilterModel EventFilter { get; set; }
+        public EventFilterModel? EventFilter { get; set; }
 
         /// <summary>
         /// Settings for pending condition handling
         /// </summary>
         [DataMember(Name = "ConditionHandling", Order = 12,
             EmitDefaultValue = false)]
-        public ConditionHandlingOptionsModel ConditionHandling { get; set; }
+        public ConditionHandlingOptionsModel? ConditionHandling { get; set; }
 
         /// <summary>
         /// Heartbeat interval in seconds
@@ -154,6 +154,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "ExpandedNodeId", Order = 30,
             EmitDefaultValue = false)]
-        public string ExpandedNodeId { get; set; }
+        public string? ExpandedNodeId { get; set; }
     }
 }

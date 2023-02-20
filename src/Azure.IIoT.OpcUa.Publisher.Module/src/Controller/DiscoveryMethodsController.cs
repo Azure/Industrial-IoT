@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controller {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<bool> CancelAsync(DiscoveryCancelModel request) {
+        public async Task<bool> CancelAsync(DiscoveryCancelRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }

@@ -8,10 +8,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Delete raw data
+    /// Delete values
     /// </summary>
     [DataContract]
-    public record class DeleteValuesDetailsModel {
+    public sealed record class DeleteValuesDetailsModel {
 
         /// <summary>
         /// Start time

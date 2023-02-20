@@ -12,13 +12,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// The events to delete
     /// </summary>
     [DataContract]
-    public record class DeleteEventsDetailsModel {
+    public sealed record class DeleteEventsDetailsModel {
 
         /// <summary>
         /// Events to delete
         /// </summary>
         [DataMember(Name = "eventIds", Order = 0)]
         [Required]
-        public List<byte[]> EventIds { get; set; }
+        public IReadOnlyList<byte[]>? EventIds { get; set; }
     }
 }

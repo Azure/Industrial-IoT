@@ -1,24 +1,22 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Insert historic data
+    /// Data type metadata model
     /// </summary>
     [DataContract]
-    public record class InsertValuesDetailsModel {
+    public sealed record class DataTypeMetadataModel {
 
         /// <summary>
-        /// Values to insert
+        /// The data type for the instance declaration.
         /// </summary>
-        [DataMember(Name = "values", Order = 0)]
-        [Required]
-        public List<HistoricValueModel> Values { get; set; }
+        [DataMember(Name = "dataType", Order = 0,
+            EmitDefaultValue = false)]
+        public string? DataType { get; set; }
     }
 }

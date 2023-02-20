@@ -37,8 +37,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <remarks>
         /// Return method meta data to support a user interface displaying forms to
         /// input and output arguments.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The method metadata request</param>
@@ -49,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var metadataresult = await _nodes.NodeMethodGetMetadataAsync(
+            var metadataresult = await _nodes.GetMethodMetadataAsync(
                 endpointId, request);
             return metadataresult;
         }
@@ -59,8 +58,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Invoke method node with specified input arguments.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The method call request</param>
@@ -74,8 +72,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
 
             // TODO: Permissions
 
-            var callresult = await _nodes.NodeMethodCallAsync(
-                endpointId, request);
+            var callresult = await _nodes.MethodCallAsync(endpointId, request);
             return callresult;
         }
 

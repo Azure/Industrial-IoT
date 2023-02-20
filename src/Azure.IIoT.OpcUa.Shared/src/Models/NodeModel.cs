@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Node model
     /// </summary>
     [DataContract]
-    public record class NodeModel {
+    public sealed record class NodeModel {
 
         /// <summary>
         /// Type of node
@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "displayName", Order = 1,
             EmitDefaultValue = false)]
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
         /// <summary>
         /// Id of node.
@@ -36,21 +36,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "nodeId", Order = 2)]
         [Required]
-        public string NodeId { get; set; }
+        public string NodeId { get; set; } = null!;
 
         /// <summary>
         /// Description if any
         /// </summary>
         [DataMember(Name = "description", Order = 3,
             EmitDefaultValue = false)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         /// <summary>
         /// Browse name
         /// </summary>
         [DataMember(Name = "browseName", Order = 4,
             EmitDefaultValue = false)]
-        public string BrowseName { get; set; }
+        public string? BrowseName { get; set; }
 
         /// <summary>
         /// Value of variable or default value of the
@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "value", Order = 5,
             EmitDefaultValue = false)]
-        public VariantValue Value { get; set; }
+        public VariantValue? Value { get; set; }
 
         /// <summary>
         /// Pico seconds part of when value was read at source.
@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 10,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
 
         /// <summary>
         /// Node access restrictions if any.
@@ -164,13 +164,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         public bool? UserExecutable { get; set; }
 
         /// <summary>
-        /// Data type definition as extension object
-        /// in case node is a data type node and definition
-        /// is available, otherwise null.
+        /// Data type definition in case node is a
+        /// data type node and definition is available,
+        /// otherwise null.
         /// </summary>
         [DataMember(Name = "dataTypeDefinition", Order = 19,
             EmitDefaultValue = false)]
-        public VariantValue DataTypeDefinition { get; set; }
+        public VariantValue? DataTypeDefinition { get; set; }
 
         /// <summary>
         /// Default access level for value in variable
@@ -196,7 +196,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "dataType", Order = 22,
             EmitDefaultValue = false)]
-        public string DataType { get; set; }
+        public string? DataType { get; set; }
 
         /// <summary>
         /// Value rank of the variable data of a variable
@@ -213,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "arrayDimensions", Order = 24,
             EmitDefaultValue = false)]
-        public uint[] ArrayDimensions { get; set; }
+        public IReadOnlyList<uint>? ArrayDimensions { get; set; }
 
         /// <summary>
         /// Whether the value of a variable is historizing.
@@ -238,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "inverseName", Order = 27,
             EmitDefaultValue = false)]
-        public string InverseName { get; set; }
+        public string? InverseName { get; set; }
 
         /// <summary>
         /// Whether the reference is symmetric in case
@@ -254,21 +254,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "rolePermissions", Order = 29,
             EmitDefaultValue = false)]
-        public List<RolePermissionModel> RolePermissions { get; set; }
+        public IReadOnlyList<RolePermissionModel>? RolePermissions { get; set; }
 
         /// <summary>
         /// User Role permissions
         /// </summary>
         [DataMember(Name = "userRolePermissions", Order = 30,
             EmitDefaultValue = false)]
-        public List<RolePermissionModel> UserRolePermissions { get; set; }
+        public IReadOnlyList<RolePermissionModel>? UserRolePermissions { get; set; }
 
         /// <summary>
         /// Optional type definition of the node
         /// </summary>
         [DataMember(Name = "typeDefinitionId", Order = 31,
             EmitDefaultValue = false)]
-        public string TypeDefinitionId { get; set; }
+        public string? TypeDefinitionId { get; set; }
 
         /// <summary>
         /// Whether node has children which are defined as
@@ -285,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <ignore/>
         [IgnoreDataMember]
         [Obsolete]
-        public string Id => NodeId;
+        public string? Id => NodeId;
         /// <ignore/>
         [IgnoreDataMember]
         [Obsolete]
@@ -293,6 +293,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <ignore/>
         [IgnoreDataMember]
         [Obsolete]
-        public string Name => BrowseName;
+        public string? Name => BrowseName;
     }
 }

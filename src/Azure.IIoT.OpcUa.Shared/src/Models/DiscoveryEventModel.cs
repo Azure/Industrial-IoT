@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// <summary>
     /// One of n events with the discovered application info
     /// </summary>
-    public record class DiscoveryEventModel {
+    public sealed record class DiscoveryEventModel {
 
         /// <summary>
         /// Timestamp of the discovery sweep.
@@ -24,16 +24,16 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <summary>
         /// Discovered endpoint in form of endpoint registration
         /// </summary>
-        public EndpointRegistrationModel Registration { get; set; }
+        public EndpointRegistrationModel? Registration { get; set; }
 
         /// <summary>
         /// Application to which this endpoint belongs
         /// </summary>
-        public ApplicationInfoModel Application { get; set; }
+        public ApplicationInfoModel? Application { get; set; }
 
         /// <summary>
         /// Discovery result summary on last element
         /// </summary>
-        public DiscoveryResultModel Result { get; set; }
+        public DiscoveryResultModel? Result { get; set; }
     }
 }

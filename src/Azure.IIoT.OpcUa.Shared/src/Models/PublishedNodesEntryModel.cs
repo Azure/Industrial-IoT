@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Contains the nodes which should be published
     /// </summary>
     [DataContract]
-    public record class PublishedNodesEntryModel {
+    public sealed record class PublishedNodesEntryModel {
 
         /// <summary>
         /// Version number of the entry
@@ -33,21 +33,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "DataSetWriterId", Order = 2,
             EmitDefaultValue = false)]
-        public string DataSetWriterId { get; set; }
+        public string? DataSetWriterId { get; set; }
 
         /// <summary>
         /// The Group the writer belongs to.
         /// </summary>
         [DataMember(Name = "DataSetWriterGroup", Order = 3,
             EmitDefaultValue = false)]
-        public string DataSetWriterGroup { get; set; }
+        public string? DataSetWriterGroup { get; set; }
 
         /// <summary>
         /// Nodes defined in the collection.
         /// </summary>
         [DataMember(Name = "OpcNodes", Order = 4,
             EmitDefaultValue = false)]
-        public List<OpcNodeModel> OpcNodes { get; set; }
+        public List<OpcNodeModel>? OpcNodes { get; set; }
 
         /// <summary>
         /// A dataset class id.
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "DataSetName", Order = 6,
             EmitDefaultValue = false)]
-        public string DataSetName { get; set; }
+        public string? DataSetName { get; set; }
 
         /// <summary>
         /// The Publishing interval for a dataset writer
@@ -109,21 +109,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "MetaDataQueueName", Order = 12,
             EmitDefaultValue = false)]
-        public string MetaDataQueueName { get; set; }
+        public string? MetaDataQueueName { get; set; }
 
         /// <summary>
         /// The endpoint URL of the OPC UA server.
         /// </summary>
         [DataMember(Name = "EndpointUrl", Order = 13,
             EmitDefaultValue = false)]
-        public string EndpointUrl { get; set; }
+        public string? EndpointUrl { get; set; }
 
         /// <summary>
         /// The optional description of the dataset.
         /// </summary>
         [DataMember(Name = "DataSetDescription", Order = 15,
             EmitDefaultValue = false)]
-        public string DataSetDescription { get; set; }
+        public string? DataSetDescription { get; set; }
 
         /// <summary>
         /// Secure transport should be used to connect to
@@ -143,34 +143,34 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "EncryptedAuthUsername", Order = 32,
             EmitDefaultValue = false)]
-        public string EncryptedAuthUsername { get; set; }
+        public string? EncryptedAuthUsername { get; set; }
 
         /// <summary>
         /// encrypted password
         /// </summary>
         [DataMember(Name = "EncryptedAuthPassword", Order = 33,
             EmitDefaultValue = false)]
-        public string EncryptedAuthPassword { get; set; }
+        public string? EncryptedAuthPassword { get; set; }
 
         /// <summary>
         /// plain username
         /// </summary>
         [DataMember(Name = "OpcAuthenticationUsername", Order = 34,
             EmitDefaultValue = false)]
-        public string OpcAuthenticationUsername { get; set; }
+        public string? OpcAuthenticationUsername { get; set; }
 
         /// <summary>
         /// plain password
         /// </summary>
         [DataMember(Name = "OpcAuthenticationPassword", Order = 35,
             EmitDefaultValue = false)]
-        public string OpcAuthenticationPassword { get; set; }
+        public string? OpcAuthenticationPassword { get; set; }
 
         /// <summary>
         /// The node to monitor in "ns=" syntax.
         /// </summary>
         [DataMember(Name = "NodeId", Order = 40,
             EmitDefaultValue = false)]
-        public NodeIdModel NodeId { get; set; }
+        public NodeIdModel? NodeId { get; set; }
     }
 }

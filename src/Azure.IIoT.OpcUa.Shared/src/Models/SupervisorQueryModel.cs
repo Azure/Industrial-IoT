@@ -10,21 +10,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Supervisor registration query
     /// </summary>
     [DataContract]
-    public record class SupervisorQueryModel {
+    public sealed record class SupervisorQueryModel {
 
         /// <summary>
         /// Site for the supervisors
         /// </summary>
         [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Managing provided endpoint twin
         /// </summary>
         [DataMember(Name = "endpointId", Order = 1,
             EmitDefaultValue = false)]
-        public string EndpointId { get; set; }
+        public string? EndpointId { get; set; }
 
         /// <summary>
         /// Included connected or disconnected

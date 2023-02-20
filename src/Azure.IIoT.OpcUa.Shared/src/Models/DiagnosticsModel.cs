@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Diagnostics configuration
     /// </summary>
     [DataContract]
-    public record class DiagnosticsModel {
+    public sealed record class DiagnosticsModel {
 
         /// <summary>
         /// Requested level of response diagnostics.
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "auditId", Order = 1,
             EmitDefaultValue = false)]
-        public string AuditId { get; set; }
+        public string? AuditId { get; set; }
 
         /// <summary>
         /// Timestamp of request.

@@ -12,13 +12,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Network message writer group model
     /// </summary>
     [DataContract]
-    public record class WriterGroupModel {
+    public sealed record class WriterGroupModel {
 
         /// <summary>
         /// Dataset writer group identifier
         /// </summary>
         [DataMember(Name = "writerGroupId", Order = 0)]
-        public string WriterGroupId { get; set; }
+        public string? WriterGroupId { get; set; }
 
         /// <summary>
         /// Network message types to generate
@@ -34,14 +34,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "dataSetWriters", Order = 2,
             EmitDefaultValue = false)]
-        public List<DataSetWriterModel> DataSetWriters { get; set; }
+        public List<DataSetWriterModel>? DataSetWriters { get; set; }
 
         /// <summary>
         /// Network message configuration
         /// </summary>
         [DataMember(Name = "messageSettings", Order = 3,
             EmitDefaultValue = false)]
-        public WriterGroupMessageSettingsModel MessageSettings { get; set; }
+        public WriterGroupMessageSettingsModel? MessageSettings { get; set; }
 
         /// <summary>
         /// Priority of the writer group
@@ -55,21 +55,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "name", Order = 5,
             EmitDefaultValue = false)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Locales to use
         /// </summary>
         [DataMember(Name = "localeIds", Order = 6,
             EmitDefaultValue = false)]
-        public List<string> LocaleIds { get; set; }
+        public List<string>? LocaleIds { get; set; }
 
         /// <summary>
         /// Header layout uri
         /// </summary>
         [DataMember(Name = "headerLayoutUri", Order = 7,
             EmitDefaultValue = false)]
-        public string HeaderLayoutUri { get; set; }
+        public string? HeaderLayoutUri { get; set; }
 
         /// <summary>
         /// Security mode
@@ -83,14 +83,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "securityGroupId", Order = 9,
             EmitDefaultValue = false)]
-        public string SecurityGroupId { get; set; }
+        public string? SecurityGroupId { get; set; }
 
         /// <summary>
         /// Security key services to use
         /// </summary>
         [DataMember(Name = "securityKeyServices", Order = 10,
             EmitDefaultValue = false)]
-        public List<ConnectionModel> SecurityKeyServices { get; set; }
+        public List<ConnectionModel>? SecurityKeyServices { get; set; }
 
         /// <summary>
         /// Max network message size

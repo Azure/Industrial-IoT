@@ -11,20 +11,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Unpublish request
     /// </summary>
     [DataContract]
-    public record class PublishStopRequestModel {
+    public sealed record class PublishStopRequestModel {
 
         /// <summary>
         /// Node of published item to unpublish
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0)]
         [Required]
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 1,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
     }
 }

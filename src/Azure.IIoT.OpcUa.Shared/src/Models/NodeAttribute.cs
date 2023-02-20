@@ -13,10 +13,16 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     public enum NodeAttribute {
 
         /// <summary>
+        /// Node identifier
+        /// </summary>
+        [EnumMember]
+        NodeId = 1,
+
+        /// <summary>
         /// Node class
         /// </summary>
         [EnumMember]
-        NodeClass = 2,
+        NodeClass,
 
         /// <summary>
         /// Browse name

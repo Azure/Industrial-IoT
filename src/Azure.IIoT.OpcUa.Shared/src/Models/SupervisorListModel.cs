@@ -11,19 +11,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Supervisor list
     /// </summary>
     [DataContract]
-    public record class SupervisorListModel {
+    public sealed record class SupervisorListModel {
 
         /// <summary>
         /// Registrations
         /// </summary>
         [DataMember(Name = "items", Order = 0)]
-        public List<SupervisorModel> Items { get; set; }
+        public List<SupervisorModel>? Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 1,
             EmitDefaultValue = false)]
-        public string ContinuationToken { get; set; }
+        public string? ContinuationToken { get; set; }
     }
 }

@@ -77,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request,
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -88,7 +88,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<InsertValuesDetailsModel> request,
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Upsert historic values
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(ConnectionModel connection,
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -110,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request,
+            HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -154,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request,
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -165,7 +176,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<InsertEventsDetailsModel> request,
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Upsert historic events
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(ConnectionModel connection,
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -177,39 +199,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk {
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(ConnectionModel connection,
             HistoryUpdateRequestModel<DeleteEventsDetailsModel> request,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Read node history with custom encoded extension object details
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<HistoryReadResponseModel<VariantValue>> HistoryReadRawAsync(
-            ConnectionModel connection, HistoryReadRequestModel<VariantValue> request,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Read history call with custom encoded extension object details
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadRawNextAsync(
-            ConnectionModel connection, HistoryReadNextRequestModel request,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Update using raw extension object details
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<HistoryUpdateResponseModel> HistoryUpdateRawAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request,
             CancellationToken ct = default);
     }
 }

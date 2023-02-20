@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="client"></param>
-        public HistoryController(IHistoricAccessServices<string> client) {
+        public HistoryController(INodeServices<string> client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -95,6 +95,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             return writeResult;
         }
 
-        private readonly IHistoricAccessServices<string> _client;
+        private readonly INodeServices<string> _client;
     }
 }

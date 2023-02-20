@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Read historic values
     /// </summary>
     [DataContract]
-    public record class ReadValuesDetailsModel {
+    public sealed record class ReadValuesDetailsModel {
 
         /// <summary>
         /// Beginning of period to read. Set to null

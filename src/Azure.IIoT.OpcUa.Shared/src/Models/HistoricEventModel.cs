@@ -12,13 +12,12 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Historic event
     /// </summary>
     [DataContract]
-    public record class HistoricEventModel {
+    public sealed record class HistoricEventModel {
 
         /// <summary>
         /// The selected fields of the event
         /// </summary>
-        [DataMember(Name = "eventFields", Order = 0,
-            EmitDefaultValue = false)]
-        public List<VariantValue> EventFields { get; set; }
+        [DataMember(Name = "eventFields", Order = 0)]
+        public IReadOnlyList<VariantValue> EventFields { get; set; } = null!;
     }
 }

@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             }
 
             // Act
-            var result = await browser.NodeReadAsync(_endpoint,
+            var result = await browser.ReadAsync(_endpoint,
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -55,8 +55,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result);
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
-            Assert.True(result.Results.TrueForAll(r => r.ErrorInfo == null));
-            Assert.True(result.Results.TrueForAll(r => (int)r.Value == (int)expected));
+            Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
+            Assert.All(result.Results, r => Assert.Equal((int)expected, (int)r.Value));
         }
 
 
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             }
 
             // Act
-            var result = await browser.NodeReadAsync(_endpoint,
+            var result = await browser.ReadAsync(_endpoint,
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -88,8 +88,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result);
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
-            Assert.True(result.Results.TrueForAll(r => r.ErrorInfo == null));
-            Assert.True(result.Results.TrueForAll(r => (int)r.Value == expected));
+            Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
+            Assert.All(result.Results, r => Assert.Equal((int)expected, (int)r.Value));
         }
 
 
@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             }
 
             // Act
-            var result = await browser.NodeReadAsync(_endpoint,
+            var result = await browser.ReadAsync(_endpoint,
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -121,8 +121,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result);
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
-            Assert.True(result.Results.TrueForAll(r => r.ErrorInfo == null));
-            Assert.True(result.Results.TrueForAll(r => (int)r.Value == 0));
+            Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
+            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value));
         }
 
 
@@ -139,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             }
 
             // Act
-            var result = await browser.NodeReadAsync(_endpoint,
+            var result = await browser.ReadAsync(_endpoint,
                 new ReadRequestModel {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
@@ -154,8 +154,8 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result);
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
-            Assert.True(result.Results.TrueForAll(r => r.ErrorInfo == null));
-            Assert.True(result.Results.TrueForAll(r => (int)r.Value == 0));
+            Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
+            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value));
         }
 
 
@@ -166,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -195,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -224,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -248,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -277,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -306,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -335,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -364,7 +364,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -393,7 +393,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -422,7 +422,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -451,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -480,7 +480,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -509,7 +509,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -538,7 +538,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -567,7 +567,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -599,7 +599,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -628,7 +628,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -657,7 +657,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -686,7 +686,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -715,7 +715,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -744,7 +744,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -774,7 +774,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -797,7 +797,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -826,7 +826,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -856,7 +856,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -884,7 +884,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });
@@ -912,7 +912,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             var expected = await _readExpected(_endpoint, node);
 
             // Act
-            var result = await browser.NodeValueReadAsync(_endpoint,
+            var result = await browser.ValueReadAsync(_endpoint,
                 new ValueReadRequestModel {
                     NodeId = node
                 });

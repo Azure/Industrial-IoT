@@ -16,10 +16,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static RegistryOperationContextModel Clone(
-            this RegistryOperationContextModel model) {
+        public static OperationContextModel Clone(
+            this OperationContextModel model) {
             model = model.Validate();
-            return new RegistryOperationContextModel {
+            return new OperationContextModel {
                 AuthorityId = model.AuthorityId,
                 Time = model.Time
             };
@@ -30,10 +30,10 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static RegistryOperationContextModel Validate(
-            this RegistryOperationContextModel context) {
+        public static OperationContextModel Validate(
+            this OperationContextModel context) {
             if (context == null) {
-                context = new RegistryOperationContextModel {
+                context = new OperationContextModel {
                     AuthorityId = null, // Should throw if configured
                     Time = DateTime.UtcNow
                 };

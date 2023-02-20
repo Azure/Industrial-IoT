@@ -22,28 +22,28 @@ namespace Azure.IIoT.OpcUa.Services.Events {
 
         /// <inheritdoc/>
         public Task OnEndpointDeletedAsync(
-            RegistryOperationContextModel context, string endpointId, EndpointInfoModel endpoint) {
+            OperationContextModel context, string endpointId, EndpointInfoModel endpoint) {
             return PublishAsync(EndpointEventType.Deleted, context,
                 endpointId, endpoint);
         }
 
         /// <inheritdoc/>
         public Task OnEndpointDisabledAsync(
-            RegistryOperationContextModel context, EndpointInfoModel endpoint) {
+            OperationContextModel context, EndpointInfoModel endpoint) {
             return PublishAsync(EndpointEventType.Disabled, context,
                 endpoint.Registration.Id, endpoint);
         }
 
         /// <inheritdoc/>
         public Task OnEndpointEnabledAsync(
-            RegistryOperationContextModel context, EndpointInfoModel endpoint) {
+            OperationContextModel context, EndpointInfoModel endpoint) {
             return PublishAsync(EndpointEventType.Enabled, context,
                 endpoint.Registration.Id, endpoint);
         }
 
         /// <inheritdoc/>
         public Task OnEndpointNewAsync(
-            RegistryOperationContextModel context, EndpointInfoModel endpoint) {
+            OperationContextModel context, EndpointInfoModel endpoint) {
             return PublishAsync(EndpointEventType.New, context,
                 endpoint.Registration.Id, endpoint);
         }
@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Services.Events {
         /// <param name="endpoint"></param>
         /// <returns></returns>
         public Task PublishAsync(EndpointEventType type,
-            RegistryOperationContextModel context, string endpointId,
+            OperationContextModel context, string endpointId,
             EndpointInfoModel endpoint) {
             var arguments = new object[] {
                     new EndpointEventModel {

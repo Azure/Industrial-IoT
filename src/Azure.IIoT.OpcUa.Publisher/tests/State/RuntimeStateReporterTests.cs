@@ -119,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
 
             _message.Verify(m => m.Dispose(), Times.Once());
 
-            Assert.Equal(1, receivedParameters.Count);
+            Assert.Single(receivedParameters);
 
             var message = receivedParameters[0];
             Assert.Equal("runtimeinfo", message.RoutingInfo);

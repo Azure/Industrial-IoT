@@ -12,21 +12,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Value read response model
     /// </summary>
     [DataContract]
-    public record class ValueReadResponseModel {
+    public sealed record class ValueReadResponseModel {
 
         /// <summary>
         /// Value read
         /// </summary>
         [DataMember(Name = "value", Order = 0,
             EmitDefaultValue = false)]
-        public VariantValue Value { get; set; }
+        public VariantValue? Value { get; set; }
 
         /// <summary>
         /// Built in data type of the value read.
         /// </summary>
         [DataMember(Name = "dataType", Order = 1,
             EmitDefaultValue = false)]
-        public string DataType { get; set; }
+        public string? DataType { get; set; }
 
         /// <summary>
         /// Pico seconds part of when value was read at source.
@@ -61,6 +61,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 6,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }

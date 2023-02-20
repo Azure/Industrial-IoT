@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Endpoint registration
     /// </summary>
     [DataContract]
-    public record class EndpointRegistrationModel {
+    public sealed record class EndpointRegistrationModel {
 
         /// <summary>
         /// Endpoint identifier which is hashed from
@@ -20,34 +20,34 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "id", Order = 0)]
         [Required]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Original endpoint url of the endpoint
         /// </summary>
         [DataMember(Name = "endpointUrl", Order = 1,
             EmitDefaultValue = false)]
-        public string EndpointUrl { get; set; }
+        public string? EndpointUrl { get; set; }
 
         /// <summary>
         /// Registered site of the endpoint
         /// </summary>
         [DataMember(Name = "siteId", Order = 2,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Entity that registered and can access the endpoint
         /// </summary>
         [DataMember(Name = "discovererId", Order = 4,
             EmitDefaultValue = false)]
-        public string DiscovererId { get; set; }
+        public string? DiscovererId { get; set; }
 
         /// <summary>
         /// Endpoint information of the registration
         /// </summary>
         [DataMember(Name = "endpoint", Order = 5)]
-        public EndpointModel Endpoint { get; set; }
+        public EndpointModel? Endpoint { get; set; }
 
         /// <summary>
         /// Security level of the endpoint
@@ -62,6 +62,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "authenticationMethods", Order = 7,
             EmitDefaultValue = false)]
-        public List<AuthenticationMethodModel> AuthenticationMethods { get; set; }
+        public IReadOnlyList<AuthenticationMethodModel>? AuthenticationMethods { get; set; }
     }
 }

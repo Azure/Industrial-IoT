@@ -10,14 +10,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Publisher registration update request
     /// </summary>
     [DataContract]
-    public record class PublisherUpdateModel {
+    public sealed record class PublisherUpdateModel {
 
         /// <summary>
         /// Site of the publisher
         /// </summary>
         [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Current log level

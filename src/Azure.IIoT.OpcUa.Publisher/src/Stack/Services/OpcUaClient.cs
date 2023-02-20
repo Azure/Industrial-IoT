@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
+#nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Exceptions;
@@ -22,6 +22,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     using System.Threading;
     using System.Threading.Tasks;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
+    using Opc.Ua.Extensions;
+    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -29,10 +32,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     public class OpcUaClient : IAsyncDisposable, ISessionHandle, IMetricsContext {
 
         /// <inheritdoc/>
-        public event EventHandler<EndpointConnectivityState> OnConnectionStateChange;
+        public event EventHandler<EndpointConnectivityState>? OnConnectionStateChange;
 
         /// <inheritdoc/>
-        public ISession Session => _session;
+        public IVariantEncoder Codec { get; private set; }
+
+        /// <inheritdoc/>
+        public ISession? Session => _session;
 
         /// <inheritdoc/>
         public TagList TagList { get; }
@@ -79,19 +85,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             _lastActivity + TimeSpan.FromSeconds(SessionLifeTime) > DateTime.UtcNow;
 
         /// <summary>
-        /// Initializes a new instance.
+        /// Create client
         /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="connection"></param>
+        /// <param name="logger"></param>
+        /// <param name="codec"></param>
+        /// <param name="metrics"></param>
+        /// <param name="sessionName"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public OpcUaClient(ApplicationConfiguration configuration,
-            ConnectionIdentifier connection, ILogger logger, IMetricsContext metrics,
-            string sessionName = null) : this(metrics, connection) {
+            ConnectionIdentifier connection, ILogger logger,
+            IVariantEncoderFactory codec, IMetricsContext metrics,
+            string? sessionName = null) {
 
-            _configuration = configuration ??
-                throw new ArgumentNullException(nameof(configuration));
+            if (connection?.Connection?.Endpoint == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (metrics == null) {
+                throw new ArgumentNullException(nameof(metrics));
+            }
+
+            _connection = connection.Connection;
+            _codec = codec;
+            _configuration = configuration;
             _connected = new AsyncManualResetEvent();
             _lastState = EndpointConnectivityState.Connecting;
             _sessionName = sessionName ?? connection.ToString();
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
+
+            Codec = _codec.Default;
+            TagList = new TagList(metrics.TagList.ToArray().AsSpan()) {
+                { "EndpointUrl", _connection.Endpoint.Url },
+                { "SecurityMode", _connection.Endpoint.SecurityMode }
+            };
+            InitializeMetrics();
         }
 
         /// <inheritdoc/>
@@ -148,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 _logger.Error(ex, "Error creating session {Name}.", _sessionName);
                 _session?.Dispose();
                 _session = null;
-                _complexTypeSystem = null;
+                Codec = _codec.Default;
                 connected = false;
             }
             finally {
@@ -174,7 +203,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         }
 
         /// <inheritdoc/>
-        public async Task<T> RunAsync<T>(Func<ISession, Task<T>> service,
+        public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
+            CancellationToken ct = default) {
+            if (_server != null) {
+                return _server;
+            }
+            if (_limits == null) {
+                _limits = await FetchOperationLimitsAsync(new RequestHeader(),
+                    ct).ConfigureAwait(false);
+            }
+            _server = await FetchServerCapabilitiesAsync(new RequestHeader(),
+                ct).ConfigureAwait(false);
+            return _server ?? new ServerCapabilitiesModel {
+                OperationLimits = _limits ?? new OperationLimitsModel()
+            };
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryServerCapabilitiesModel> GetHistoryCapabilitiesAsync(
+            CancellationToken ct = default) {
+            if (_history != null) {
+                return _history;
+            }
+            _history = await FetchHistoryCapabilitiesAsync(new RequestHeader(),
+                ct).ConfigureAwait(false);
+            return _history ?? new HistoryServerCapabilitiesModel();
+        }
+
+        /// <inheritdoc/>
+        public async Task<T> RunAsync<T>(Func<ISessionHandle, Task<T>> service,
             CancellationToken ct) {
             while (true) {
                 await _connected.WaitAsync(ct);
@@ -190,7 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     continue;
                 }
                 try {
-                    return await service(_session);
+                    return await service(this);
                 }
                 catch (Exception ex) when (!_session.Connected) {
                     _logger.Information("Session disconnected during service call " +
@@ -206,8 +263,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 throw new ObjectDisposedException(_sessionName);
             }
             _disposed = true;
-            Session session;
-            List<ISubscription> subscriptions;
+            Session? session;
+            List<ISubscription>? subscriptions;
             await _lock.WaitAsync();
             try {
                 NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
@@ -221,6 +278,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             finally {
                 _lock.Release();
                 NumberOfConnectRetries = 0;
+            }
+
+            if (session == null) {
+                return;
             }
 
             try {
@@ -268,7 +329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
             if (IsConnected) {
                 // Nothing to do but try ensure complex type system is loaded
-                if (!_complexTypeSystem.IsCompleted) {
+                if (_complexTypeSystem != null && !_complexTypeSystem.IsCompleted) {
                     await _complexTypeSystem;
                 }
                 return true;
@@ -278,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
             _logger.Debug("Initializing session '{Name}'...", _sessionName);
 
-            var endpointUrlCandidates = _connection.Endpoint.Url.YieldReturn();
+            var endpointUrlCandidates = _connection.Endpoint!.Url.YieldReturn();
             if (_connection.Endpoint.AlternativeUrls != null) {
                 endpointUrlCandidates = endpointUrlCandidates.Concat(
                     _connection.Endpoint.AlternativeUrls);
@@ -325,6 +386,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         _sessionName, endpointUrl, _connection.Endpoint.Url);
 
                     // Try and load type system - does not throw but logs error
+                    Debug.Assert(_complexTypeSystem != null);
                     await _complexTypeSystem;
                     NumberOfConnectRetries++;
                     return true;
@@ -344,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// Load complex type system
         /// </summary>
         /// <returns></returns>
-        public async ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync() {
+        public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync() {
             await _lock.WaitAsync();
             try {
                 if (_complexTypeSystem == null) {
@@ -355,6 +417,325 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             finally {
                 _lock.Release();
             }
+        }
+
+        /// <summary>
+        /// Gets the response
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private static T ValidateResponse<T>(IServiceResponse response)
+            where T : IServiceResponse, new() {
+            if (response?.ResponseHeader == null) {
+                // Throw - this is likely an issue in the transport.
+                throw new ServiceResultException(StatusCodes.BadUnknownResponse);
+            }
+            if (response is not T result) {
+                // Received a response, but not the type we expected.
+                // Promote to expected Type.
+                result = new T();
+
+                result.ResponseHeader.ServiceResult =
+                    response.ResponseHeader.ServiceResult;
+                result.ResponseHeader.StringTable =
+                    response.ResponseHeader.StringTable;
+                result.ResponseHeader.AdditionalHeader =
+                    response.ResponseHeader.AdditionalHeader;
+                result.ResponseHeader.RequestHandle =
+                    response.ResponseHeader.RequestHandle;
+                result.ResponseHeader.ServiceDiagnostics =
+                    response.ResponseHeader.ServiceDiagnostics;
+                result.ResponseHeader.Timestamp =
+                    response.ResponseHeader.Timestamp;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Read operation limits limits
+        /// </summary>
+        /// <param name="header"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task<OperationLimitsModel?> FetchOperationLimitsAsync(RequestHeader header,
+            CancellationToken ct) {
+            var session = _session;
+            if (session == null) {
+                return null;
+            }
+            var requests = new ReadValueIdCollection {
+                new ReadValueId {
+                    NodeId = Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead,
+                    AttributeId = Attributes.Value,
+                }
+            };
+            var response = await session.ReadAsync(header, 0,
+                Opc.Ua.TimestampsToReturn.Both, requests, ct).ConfigureAwait(false);
+            var results = response.Validate(response.Results, r => r.StatusCode,
+                response.DiagnosticInfos, requests);
+            results.ThrowIfError();
+            var maxNodesPerRead =
+                Validate32(results[0].Result.GetValueOrDefault<uint>());
+
+            var nodes = new[] {
+                    Variables.Server_ServerCapabilities_MaxArrayLength,
+                    Variables.Server_ServerCapabilities_MaxBrowseContinuationPoints,
+                    Variables.Server_ServerCapabilities_MaxByteStringLength,
+                    Variables.Server_ServerCapabilities_MaxHistoryContinuationPoints,
+                    Variables.Server_ServerCapabilities_MaxQueryContinuationPoints,
+                    Variables.Server_ServerCapabilities_MaxStringLength,
+                    Variables.Server_ServerCapabilities_MinSupportedSampleRate,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement,
+                    Variables.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall
+                };
+
+            var values = Enumerable.Empty<DataValue>();
+            var chunks = nodes.Batch((int)maxNodesPerRead);
+            foreach (var chunk in chunks) {
+                // Group the reads
+                requests = new ReadValueIdCollection(chunk
+                    .Select(n => new ReadValueId {
+                        NodeId = n,
+                        AttributeId = Attributes.Value,
+                    }));
+                response = await session.ReadAsync(header, 0,
+                    Opc.Ua.TimestampsToReturn.Both, requests, ct).ConfigureAwait(false);
+                results = response.Validate(response.Results, d => d.StatusCode,
+                    response.DiagnosticInfos, requests);
+                results.ThrowIfError();
+                values = values.Concat(results.Select(r => r.Result));
+            }
+
+            var value = values.ToList();
+            return new OperationLimitsModel {
+                MaxArrayLength =
+                    Validate32(value[0].GetValueOrDefault<uint>()),
+                MaxBrowseContinuationPoints =
+                    Validate16(value[1].GetValueOrDefault<ushort>()),
+                MaxByteStringLength =
+                    Validate32(value[2].GetValueOrDefault<uint>()),
+                MaxHistoryContinuationPoints =
+                    Validate16(value[3].GetValueOrDefault<ushort>()),
+                MaxQueryContinuationPoints =
+                    Validate16(value[4].GetValueOrDefault<ushort>()),
+                MaxStringLength =
+                    Validate32(value[5].GetValueOrDefault<uint>()),
+                MinSupportedSampleRate =
+                    value[6].GetValueOrDefault<double>(),
+                MaxNodesPerHistoryReadData =
+                    Validate32(value[7].GetValueOrDefault<uint>()),
+                MaxNodesPerHistoryReadEvents =
+                    Validate32(value[8].GetValueOrDefault<uint>()),
+                MaxNodesPerWrite =
+                    Validate32(value[9].GetValueOrDefault<uint>()),
+                MaxNodesPerHistoryUpdateData =
+                    Validate32(value[10].GetValueOrDefault<uint>()),
+                MaxNodesPerHistoryUpdateEvents =
+                    Validate32(value[11].GetValueOrDefault<uint>()),
+                MaxNodesPerMethodCall =
+                    Validate32(value[12].GetValueOrDefault<uint>()),
+                MaxNodesPerBrowse =
+                    Validate32(value[13].GetValueOrDefault<uint>()),
+                MaxNodesPerRegisterNodes =
+                    Validate32(value[14].GetValueOrDefault<uint>()),
+                MaxNodesPerTranslatePathsToNodeIds =
+                    Validate32(value[15].GetValueOrDefault<uint>()),
+                MaxNodesPerNodeManagement =
+                    Validate32(value[16].GetValueOrDefault<uint>()),
+                MaxMonitoredItemsPerCall =
+                    Validate32(value[17].GetValueOrDefault<uint>()),
+                MaxNodesPerRead = maxNodesPerRead
+            };
+
+            static uint Validate32(uint v) => v > 0 && v < int.MaxValue ? v : int.MaxValue;
+            static ushort Validate16(ushort v) => v > 0 ? v : ushort.MaxValue;
+        }
+
+        /// <summary>
+        /// Read the server capabilities if available
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private async Task<ServerCapabilitiesModel?> FetchServerCapabilitiesAsync(
+            RequestHeader requestHeader, CancellationToken ct) {
+            var session = _session;
+            if (session == null) {
+                return null;
+            }
+            // load the defaults for the historical capabilities object.
+            var config =
+                new ServerCapabilitiesState(null);
+            config.ServerProfileArray =
+                new PropertyState<string[]>(config);
+            config.LocaleIdArray =
+                new PropertyState<string[]>(config);
+            config.SoftwareCertificates =
+                new PropertyState<SignedSoftwareCertificate[]>(config);
+            config.ModellingRules =
+                new FolderState(config);
+            config.AggregateFunctions =
+                new FolderState(config);
+            config.Create(session.SystemContext, null,
+                BrowseNames.ServerCapabilities, null, false);
+
+            var relativePath = new RelativePath();
+            relativePath.Elements.Add(new RelativePathElement {
+                ReferenceTypeId = ReferenceTypeIds.HasComponent,
+                IsInverse = false,
+                IncludeSubtypes = false,
+                TargetName = BrowseNames.ServerCapabilities
+            });
+            var errorInfo = await this.ReadNodeStateAsync(requestHeader, config,
+                Objects.Server, relativePath, ct).ConfigureAwait(false);
+            if (errorInfo != null) {
+                return null;
+            }
+
+            var functions = new List<BaseInstanceState>();
+            config.AggregateFunctions.GetChildren(session.SystemContext, functions);
+            var aggregateFunctions = functions.OfType<BaseObjectState>().ToDictionary(
+                c => c.BrowseName.AsString(session.MessageContext),
+                c => c.NodeId.AsString(session.MessageContext) ?? string.Empty);
+            var rules = new List<BaseInstanceState>();
+            config.ModellingRules.GetChildren(session.SystemContext, rules);
+            var modellingRules = rules.OfType<BaseObjectState>().ToDictionary(
+                c => c.BrowseName.AsString(session.MessageContext),
+                c => c.NodeId.AsString(session.MessageContext) ?? string.Empty);
+            return new ServerCapabilitiesModel {
+                OperationLimits = _limits ?? new OperationLimitsModel(),
+                ModellingRules =
+                    modellingRules.Count == 0 ? null : modellingRules,
+                SupportedLocales =
+                    config.LocaleIdArray.GetValueOrDefault(
+                        v => v == null || v.Length == 0 ? null : v),
+                ServerProfiles =
+                    config.ServerProfileArray.GetValueOrDefault(
+                        v => v == null || v.Length == 0 ? null : v),
+                AggregateFunctions =
+                    aggregateFunctions.Count == 0 ? null : aggregateFunctions,
+            };
+        }
+
+        /// <summary>
+        /// Read the history server capabilities if available
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private async Task<HistoryServerCapabilitiesModel?> FetchHistoryCapabilitiesAsync(
+            RequestHeader requestHeader, CancellationToken ct) {
+            var session = _session;
+            if (session == null) {
+                return null;
+            }
+            // load the defaults for the historical capabilities object.
+            var config =
+                new HistoryServerCapabilitiesState(null);
+            config.AccessHistoryDataCapability =
+                new PropertyState<bool>(config);
+            config.AccessHistoryEventsCapability =
+                new PropertyState<bool>(config);
+            config.MaxReturnDataValues =
+                new PropertyState<uint>(config);
+            config.MaxReturnEventValues =
+                new PropertyState<uint>(config);
+            config.InsertDataCapability =
+                new PropertyState<bool>(config);
+            config.ReplaceDataCapability =
+                new PropertyState<bool>(config);
+            config.UpdateDataCapability =
+                new PropertyState<bool>(config);
+            config.DeleteRawCapability =
+                new PropertyState<bool>(config);
+            config.DeleteAtTimeCapability =
+                new PropertyState<bool>(config);
+            config.InsertEventCapability =
+                new PropertyState<bool>(config);
+            config.ReplaceEventCapability =
+                new PropertyState<bool>(config);
+            config.UpdateEventCapability =
+                new PropertyState<bool>(config);
+            config.DeleteEventCapability =
+                new PropertyState<bool>(config);
+            config.InsertAnnotationCapability =
+                new PropertyState<bool>(config);
+            config.ServerTimestampSupported =
+                new PropertyState<bool>(config);
+            config.AggregateFunctions =
+                new FolderState(config);
+            config.Create(session.SystemContext, null,
+                BrowseNames.HistoryServerCapabilities, null, false);
+
+            var relativePath = new RelativePath();
+            relativePath.Elements.Add(new RelativePathElement {
+                ReferenceTypeId = ReferenceTypeIds.HasComponent,
+                IsInverse = false,
+                IncludeSubtypes = false,
+                TargetName = BrowseNames.HistoryServerCapabilities
+            });
+            var errorInfo = await this.ReadNodeStateAsync(requestHeader, config,
+                Objects.Server_ServerCapabilities, relativePath, ct).ConfigureAwait(false);
+            if (errorInfo != null) {
+                return null;
+            }
+            var supportsValues =
+              config.AccessHistoryDataCapability.GetValueOrDefault() ?? false;
+            var supportsEvents =
+                config.AccessHistoryEventsCapability.GetValueOrDefault() ?? false;
+            Dictionary<string, string>? aggregateFunctions = null;
+            if (supportsEvents || supportsValues) {
+                var children = new List<BaseInstanceState>();
+                config.AggregateFunctions.GetChildren(session.SystemContext, children);
+                aggregateFunctions = children.OfType<BaseObjectState>().ToDictionary(
+                    c => c.BrowseName.AsString(session.MessageContext),
+                    c => c.NodeId.AsString(session.MessageContext) ?? string.Empty);
+            }
+            return new HistoryServerCapabilitiesModel {
+                AccessHistoryDataCapability =
+                    supportsValues,
+                AccessHistoryEventsCapability =
+                    supportsEvents,
+                MaxReturnDataValues =
+                    config.MaxReturnDataValues.GetValueOrDefault(
+                        v => !supportsValues ? null : v == 0 ? uint.MaxValue : v),
+                MaxReturnEventValues =
+                    config.MaxReturnEventValues.GetValueOrDefault(
+                        v => !supportsEvents ? null : v == 0 ? uint.MaxValue : v),
+                InsertDataCapability =
+                    config.InsertDataCapability.GetValueOrDefault(),
+                ReplaceDataCapability =
+                    config.ReplaceDataCapability.GetValueOrDefault(),
+                UpdateDataCapability =
+                    config.UpdateDataCapability.GetValueOrDefault(),
+                DeleteRawCapability =
+                    config.DeleteRawCapability.GetValueOrDefault(),
+                DeleteAtTimeCapability =
+                    config.DeleteAtTimeCapability.GetValueOrDefault(),
+                InsertEventCapability =
+                    config.InsertEventCapability.GetValueOrDefault(),
+                ReplaceEventCapability =
+                    config.ReplaceEventCapability.GetValueOrDefault(),
+                UpdateEventCapability =
+                    config.UpdateEventCapability.GetValueOrDefault(),
+                DeleteEventCapability =
+                    config.DeleteEventCapability.GetValueOrDefault(),
+                InsertAnnotationCapability =
+                    config.InsertAnnotationCapability.GetValueOrDefault(),
+                ServerTimestampSupported =
+                    config.ServerTimestampSupported.GetValueOrDefault(),
+                AggregateFunctions = aggregateFunctions == null ||
+                    aggregateFunctions.Count == 0 ? null : aggregateFunctions,
+            };
         }
 
         /// <summary>
@@ -409,18 +790,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <summary>
         /// Called when the reconnect attempt was successful.
         /// </summary>
-        private void Client_ReconnectComplete(object sender, EventArgs e) {
+        private void Client_ReconnectComplete(object? sender, EventArgs e) {
             // ignore callbacks from discarded objects.
             if (!ReferenceEquals(sender, _reconnectHandler)) {
                 return;
             }
 
-            Session newSession;
+            Session? newSession;
             _lock.Wait();
             try {
                 // if session recovered, Session property is not null
-                newSession = _reconnectHandler.Session as Session;
-                _reconnectHandler.Dispose();
+                newSession = _reconnectHandler?.Session as Session;
+                _reconnectHandler?.Dispose();
                 _reconnectHandler = null;
             }
             finally {
@@ -463,6 +844,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 UnsetSession();
 
                 // override keep alive interval
+                Codec = _codec.Create(session.MessageContext);
                 _session = session;
                 _session.KeepAliveInterval = KeepAliveInterval;
                 _complexTypeSystem = LoadComplexTypeSystemAsync();
@@ -483,7 +865,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private void UnsetSession(bool noDispose = false) {
             var session = _session;
             _session = null;
-            _complexTypeSystem = null;
+            _complexTypeSystem = Task.FromResult<ComplexTypeSystem?>(null);
 
             if (session == null) {
                 return;
@@ -493,6 +875,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             if (noDispose) {
                 return;
             }
+            Codec = _codec.Default;
             session.Dispose();
             _logger.Debug("Session {Name} disposed.", _sessionName);
         }
@@ -501,7 +884,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// Load complex type system
         /// </summary>
         /// <returns></returns>
-        private async Task<ComplexTypeSystem> LoadComplexTypeSystemAsync() {
+        private async Task<ComplexTypeSystem?> LoadComplexTypeSystemAsync() {
             try {
                 if (_session != null && _session.Connected) {
                     var complexTypeSystem = new ComplexTypeSystem(_session);
@@ -546,7 +929,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 // a specific error state already set...
                 _logger.Debug(
                     "Error, connection to {endpoint} - leaving state at {previous}.",
-                    _connection.Endpoint.Url, previous);
+                    _connection.Endpoint!.Url, previous);
                 return;
             }
 
@@ -559,7 +942,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             _logger.Information(
                 "Connecting to {endpoint} changed from {previous} to {state}",
-                _connection.Endpoint.Url, previous, state);
+                _connection.Endpoint!.Url, previous, state);
             try {
                 OnConnectionStateChange?.Invoke(this, state);
             }
@@ -634,22 +1017,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <summary>
         /// Create observable metrics
         /// </summary>
-        /// <param name="metrics"></param>
-        /// <param name="connection"></param>
-        private OpcUaClient(IMetricsContext metrics, ConnectionIdentifier connection) {
-            if (connection?.Connection?.Endpoint == null) {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (metrics == null) {
-                throw new ArgumentNullException(nameof(metrics));
-            }
-
-            _connection = connection.Connection;
-            TagList = new TagList(metrics.TagList.ToArray().AsSpan()) {
-                { "EndpointUrl", _connection.Endpoint.Url },
-                { "SecurityMode", _connection.Endpoint.SecurityMode }
-            };
-
+        private void InitializeMetrics() {
             Diagnostics.Meter_CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
                 () => new Measurement<long>(NumberOfConnectRetries, TagList), "Connection attempts",
                 "OPC UA connect retries.");
@@ -658,11 +1026,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 "OPC UA connection success flag.");
         }
 
-        private SessionReconnectHandler _reconnectHandler;
-        private Session _session;
-        private Task<ComplexTypeSystem> _complexTypeSystem;
+        private SessionReconnectHandler? _reconnectHandler;
+        private ServerCapabilitiesModel? _server;
+        private OperationLimitsModel? _limits;
+        private HistoryServerCapabilitiesModel? _history;
+        private Session? _session;
+        private Task<ComplexTypeSystem?>? _complexTypeSystem;
         private EndpointConnectivityState _lastState;
         private bool _disposed;
+        private readonly IVariantEncoderFactory _codec;
         private readonly SemaphoreSlim _connecting = new SemaphoreSlim(1, 1);
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly ApplicationConfiguration _configuration;

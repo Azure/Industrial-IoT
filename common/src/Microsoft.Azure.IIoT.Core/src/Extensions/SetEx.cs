@@ -18,7 +18,7 @@ namespace System.Collections.Generic {
         /// <param name="seq"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool SetEqualsSafe<T>(this ISet<T> seq, IEnumerable<T> that) {
+        public static bool SetEqualsSafe<T>(this IReadOnlySet<T> seq, IEnumerable<T> that) {
             if (seq == that) {
                 return true;
             }
@@ -38,15 +38,13 @@ namespace System.Collections.Generic {
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        public static HashSet<T> MergeWith<T>(this HashSet<T> a, IEnumerable<T> b) {
+        public static IReadOnlySet<T> MergeWith<T>(this IReadOnlySet<T> a, IEnumerable<T> b) {
             if (b?.Any() ?? false) {
                 if (a == null) {
-                    a = b.ToHashSetSafe();
+                    return b.ToHashSetSafe();
                 }
                 else {
-                    foreach (var item in b) {
-                        a.Add(item);
-                    }
+                    return a.Concat(b).ToHashSet();
                 }
             }
             return a;

@@ -10,14 +10,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Discovery request
     /// </summary>
     [DataContract]
-    public record class DiscoveryRequestModel {
+    public sealed record class DiscoveryRequestModel {
 
         /// <summary>
         /// Id of discovery request
         /// </summary>
         [DataMember(Name = "id", Order = 0,
             EmitDefaultValue = false)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Discovery mode to use
@@ -31,13 +31,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "configuration", Order = 2,
             EmitDefaultValue = false)]
-        public DiscoveryConfigModel Configuration { get; set; }
+        public DiscoveryConfigModel? Configuration { get; set; }
 
         /// <summary>
         /// Operation audit context
         /// </summary>
         [DataMember(Name = "context", Order = 3,
             EmitDefaultValue = false)]
-        public RegistryOperationContextModel Context { get; set; }
+        public OperationContextModel? Context { get; set; }
     }
 }

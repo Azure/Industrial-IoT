@@ -11,39 +11,39 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Describes event fields to be published
     /// </summary>
     [DataContract]
-    public record class PublishedDataSetEventModel {
+    public sealed record class PublishedDataSetEventModel {
 
         /// <summary>
         /// Identifier of event in the dataset.
         /// </summary>
         [DataMember(Name = "id", Order = 0,
             EmitDefaultValue = false)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Event notifier to subscribe to (or start node)
         /// </summary>
         [DataMember(Name = "eventNotifier", Order = 1)]
-        public string EventNotifier { get; set; }
+        public string? EventNotifier { get; set; }
 
         /// <summary>
         /// Browse path to event notifier node (Publisher extension)
         /// </summary>
         [DataMember(Name = "browsePath", Order = 2,
             EmitDefaultValue = false)]
-        public string[] BrowsePath { get; set; }
+        public string[]? BrowsePath { get; set; }
 
         /// <summary>
         /// Event fields to select
         /// </summary>
         [DataMember(Name = "selectClauses", Order = 3)]
-        public List<SimpleAttributeOperandModel> SelectClauses { get; set; }
+        public List<SimpleAttributeOperandModel>? SelectClauses { get; set; }
 
         /// <summary>
         /// Filter to use to select event fields
         /// </summary>
         [DataMember(Name = "whereClause", Order = 4)]
-        public ContentFilterModel WhereClause { get; set; }
+        public ContentFilterModel? WhereClause { get; set; }
 
         /// <summary>
         /// Queue size (Publisher extension)
@@ -70,19 +70,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// Condition handling settings
         /// </summary>
         [DataMember(Name = "conditionHandling", Order = 9)]
-        public ConditionHandlingOptionsModel ConditionHandling { get; set; }
+        public ConditionHandlingOptionsModel? ConditionHandling { get; set; }
 
         /// <summary>
         /// Simple event Type definition id
         /// </summary>
         [DataMember(Name = "typeDefinitionId", Order = 10)]
-        public string TypeDefinitionId { get; set; }
+        public string? TypeDefinitionId { get; set; }
 
         /// <summary>
         /// Event name
         /// </summary>
         [DataMember(Name = "publishedEventName", Order = 11,
             EmitDefaultValue = false)]
-        public string PublishedEventName { get; set; }
+        public string? PublishedEventName { get; set; }
     }
 }

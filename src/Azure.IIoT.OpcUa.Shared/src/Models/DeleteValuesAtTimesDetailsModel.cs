@@ -12,13 +12,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Deletes data at times
     /// </summary>
     [DataContract]
-    public record class DeleteValuesAtTimesDetailsModel {
+    public sealed record class DeleteValuesAtTimesDetailsModel {
 
         /// <summary>
         /// The timestamps to delete
         /// </summary>
         [DataMember(Name = "reqTimes", Order = 0)]
         [Required]
-        public DateTime[] ReqTimes { get; set; }
+        public DateTime[]? ReqTimes { get; set; }
     }
 }

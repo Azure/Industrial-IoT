@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Edge.Control.Services {
     using Azure.IIoT.OpcUa.Edge.Tests;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Twin;
     using Azure.IIoT.OpcUa.Shared.Models;
@@ -30,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Edge.Control.Services {
 
         private WriteArrayValueTests<ConnectionModel> GetTests() {
             return new WriteArrayValueTests<ConnectionModel>(
-                () => new AddressSpaceServices(_server.Client,
+                () => new NodeServices<ConnectionModel>(_server.Client,
                     new VariantEncoderFactory(), _server.Logger), new ConnectionModel {
                         Endpoint = new EndpointModel {
                             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",

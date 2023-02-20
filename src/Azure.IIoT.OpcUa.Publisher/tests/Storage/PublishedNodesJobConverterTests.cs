@@ -404,16 +404,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal(1, jobs
+            Assert.Single(jobs
                 .Single().WriterGroup.DataSetWriters
-                .First().DataSet.DataSetSource.PublishedVariables.PublishedData.Count);
+                .First().DataSet.DataSetSource.PublishedVariables.PublishedData);
             Assert.Equal("testfieldid1", jobs
                 .Single().WriterGroup.DataSetWriters
                 .First().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
             Assert.Equal("i=2258", jobs
                 .Single().WriterGroup.DataSetWriters
                 .First().DataSet.DataSetSource.PublishedVariables.PublishedData.First().PublishedVariableNodeId);
-            Assert.Equal(null, jobs
+            Assert.Null(jobs
                 .Single().WriterGroup.DataSetWriters
                 .Last().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
             Assert.Equal("i=2259", jobs
@@ -796,7 +796,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal(null, jobs
+            Assert.Null(jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
         }

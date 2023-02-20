@@ -10,13 +10,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Value write response model
     /// </summary>
     [DataContract]
-    public record class ValueWriteResponseModel {
+    public sealed record class ValueWriteResponseModel {
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 0,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }

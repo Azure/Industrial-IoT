@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
     /// <summary>
     /// Implements historian services as adapter on top of api.
     /// </summary>
-    public sealed class HistoryWebApiAdapter : IHistorianServices<string> {
+    public sealed class HistoryWebApiAdapter : IHistoryServices<string> {
 
         /// <summary>
         /// Create service
@@ -25,15 +25,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(
-            string endpoint, HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request, CancellationToken ct) {
+            string endpoint, HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct) {
             var result = await _client.HistoryReplaceEventsAsync(endpoint, request);
             return result;
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(
-            string endpoint, HistoryUpdateRequestModel<InsertEventsDetailsModel> request, CancellationToken ct) {
+            string endpoint, HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct) {
             var result = await _client.HistoryInsertEventsAsync(endpoint, request);
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(
+            string endpoint, HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct) {
+            var result = await _client.HistoryUpsertEventsAsync(endpoint, request);
             return result;
         }
 
@@ -53,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
-            string endpoint, HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request, CancellationToken ct) {
+            string endpoint, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request, CancellationToken ct) {
             var result = await _client.HistoryDeleteModifiedValuesAsync(endpoint, request);
             return result;
         }
@@ -67,15 +74,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(
-            string endpoint, HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request, CancellationToken ct) {
+            string endpoint, HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct) {
             var result = await _client.HistoryReplaceValuesAsync(endpoint, request);
             return result;
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(
-            string endpoint, HistoryUpdateRequestModel<InsertValuesDetailsModel> request, CancellationToken ct) {
+            string endpoint, HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct) {
             var result = await _client.HistoryInsertValuesAsync(endpoint, request);
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(
+            string endpoint, HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct) {
+            var result = await _client.HistoryUpsertValuesAsync(endpoint, request);
             return result;
         }
 

@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Request node browsing continuation
     /// </summary>
     [DataContract]
-    public record class BrowseNextRequestModel {
+    public sealed record class BrowseNextRequestModel {
 
         /// <summary>
         /// Continuation token from previews browse request.
@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 0)]
         [Required]
-        public string ContinuationToken { get; set; }
+        public string? ContinuationToken { get; set; }
 
         /// <summary>
         /// Whether to abort browse and release.
@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "header", Order = 4,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
 
         /// <summary>
         /// Whether to only return the raw node id

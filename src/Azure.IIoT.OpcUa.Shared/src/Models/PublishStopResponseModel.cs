@@ -10,13 +10,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Result of publish stop request
     /// </summary>
     [DataContract]
-    public record class PublishStopResponseModel {
+    public sealed record class PublishStopResponseModel {
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 0,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }

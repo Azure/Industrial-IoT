@@ -108,20 +108,16 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                 return;
             }
 
-            if (model.AlternativeUrls == null) {
-                model.AlternativeUrls = endpoint.AlternativeUrls;
-            }
-            else {
-                model.AlternativeUrls = model.AlternativeUrls.MergeWith(
-                    endpoint.AlternativeUrls);
-            }
+            var alternativeUrls = model.AlternativeUrls.MergeWith(
+                    endpoint.AlternativeUrls).ToHashSet();
             if (model.Url == null) {
                 model.Url = endpoint.Url;
             }
             else {
-                model.AlternativeUrls.Add(endpoint.Url);
+                alternativeUrls.Add(endpoint.Url);
             }
-            model.AlternativeUrls.Remove(model.Url);
+            alternativeUrls.Remove(model.Url);
+            model.AlternativeUrls = alternativeUrls;
         }
 
         /// <summary>

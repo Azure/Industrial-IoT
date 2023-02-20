@@ -10,33 +10,33 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Data set source akin to a monitored item subscription.
     /// </summary>
     [DataContract]
-    public record class PublishedDataSetSourceModel {
+    public sealed record class PublishedDataSetSourceModel {
 
         /// <summary>
         /// Either published data variables
         /// </summary>
         [DataMember(Name = "publishedVariables", Order = 0,
             EmitDefaultValue = false)]
-        public PublishedDataItemsModel PublishedVariables { get; set; }
+        public PublishedDataItemsModel? PublishedVariables { get; set; }
 
         /// <summary>
         /// Or published events data
         /// </summary>
         [DataMember(Name = "publishedEvents", Order = 1,
             EmitDefaultValue = false)]
-        public PublishedEventItemsModel PublishedEvents { get; set; }
+        public PublishedEventItemsModel? PublishedEvents { get; set; }
 
         /// <summary>
         /// Connection information (publisher extension)
         /// </summary>
         [DataMember(Name = "connection", Order = 2)]
-        public ConnectionModel Connection { get; set; }
+        public ConnectionModel? Connection { get; set; }
 
         /// <summary>
         /// Subscription settings (publisher extension)
         /// </summary>
         [DataMember(Name = "subscriptionSettings", Order = 3,
             EmitDefaultValue = false)]
-        public PublishedDataSetSettingsModel SubscriptionSettings { get; set; }
+        public PublishedDataSetSettingsModel? SubscriptionSettings { get; set; }
     }
 }

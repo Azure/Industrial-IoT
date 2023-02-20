@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="discoverer"></param>
         /// <returns></returns>
-        Task OnDiscovererNewAsync(RegistryOperationContextModel context,
+        Task OnDiscovererNewAsync(OperationContextModel context,
             DiscovererModel discoverer);
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="discoverer"></param>
         /// <returns></returns>
-        Task OnDiscovererUpdatedAsync(RegistryOperationContextModel context,
+        Task OnDiscovererUpdatedAsync(OperationContextModel context,
             DiscovererModel discoverer);
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="context"></param>
         /// <param name="discovererId"></param>
         /// <returns></returns>
-        Task OnDiscovererDeletedAsync(RegistryOperationContextModel context,
+        Task OnDiscovererDeletedAsync(OperationContextModel context,
             string discovererId);
     }
 }

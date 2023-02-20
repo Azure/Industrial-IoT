@@ -11,20 +11,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Publish request
     /// </summary>
     [DataContract]
-    public record class PublishStartRequestModel {
+    public sealed record class PublishStartRequestModel {
 
         /// <summary>
         /// Node to publish
         /// </summary>
         [DataMember(Name = "item", Order = 0)]
         [Required]
-        public PublishedItemModel Item { get; set; }
+        public PublishedItemModel? Item { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 1,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
     }
 }

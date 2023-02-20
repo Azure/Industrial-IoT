@@ -12,20 +12,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Application with optional list of endpoints
     /// </summary>
     [DataContract]
-    public record class ApplicationRegistrationModel {
+    public sealed record class ApplicationRegistrationModel {
 
         /// <summary>
         /// Application information
         /// </summary>
         [DataMember(Name = "application", Order = 0)]
         [Required]
-        public ApplicationInfoModel Application { get; set; }
+        public ApplicationInfoModel Application { get; set; } = null!;
 
         /// <summary>
         /// List of endpoints for it
         /// </summary>
         [DataMember(Name = "endpoints", Order = 1,
             EmitDefaultValue = false)]
-        public List<EndpointRegistrationModel> Endpoints { get; set; }
+        public IReadOnlyList<EndpointRegistrationModel>? Endpoints { get; set; }
     }
 }

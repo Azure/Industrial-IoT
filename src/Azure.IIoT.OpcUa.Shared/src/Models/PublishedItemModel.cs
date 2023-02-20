@@ -12,21 +12,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// A monitored and published item
     /// </summary>
     [DataContract]
-    public record class PublishedItemModel {
+    public sealed record class PublishedItemModel {
 
         /// <summary>
         /// Variable node monitored
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0)]
         [Required]
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// Display name of the variable node monitored
         /// </summary>
         [DataMember(Name = "displayName", Order = 1,
             EmitDefaultValue = false)]
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
         /// <summary>
         /// Publishing interval to use

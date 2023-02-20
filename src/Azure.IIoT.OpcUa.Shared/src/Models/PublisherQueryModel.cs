@@ -10,14 +10,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Publisher registration query request
     /// </summary>
     [DataContract]
-    public record class PublisherQueryModel {
+    public sealed record class PublisherQueryModel {
 
         /// <summary>
         /// Site for the supervisors
         /// </summary>
         [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Included connected or disconnected

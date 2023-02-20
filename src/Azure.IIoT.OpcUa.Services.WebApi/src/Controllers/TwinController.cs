@@ -36,8 +36,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Read a variable node's value.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The read value request</param>
@@ -48,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _nodes.NodeValueReadAsync(
+            var readresult = await _nodes.ValueReadAsync(
                 endpointId, request);
             return readresult;
         }
@@ -58,8 +57,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Read attributes of a node.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="request">The read request</param>
@@ -70,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var readresult = await _nodes.NodeReadAsync(
+            var readresult = await _nodes.ReadAsync(
                 endpointId, request);
             return readresult;
         }
@@ -80,8 +78,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// </summary>
         /// <remarks>
         /// Get a variable node's value using its node id.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be in the registry and the server accessible.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
         /// <param name="nodeId">The node to read</param>
@@ -93,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
                 throw new ArgumentNullException(nameof(nodeId));
             }
             var request = new ValueReadRequestModel { NodeId = nodeId };
-            var readresult = await _nodes.NodeValueReadAsync(
+            var readresult = await _nodes.ValueReadAsync(
                 endpointId, request);
             return readresult;
         }

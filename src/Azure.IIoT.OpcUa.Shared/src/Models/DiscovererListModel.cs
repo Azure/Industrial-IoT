@@ -11,19 +11,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Discoverer registration list
     /// </summary>
     [DataContract]
-    public record class DiscovererListModel {
+    public sealed record class DiscovererListModel {
 
         /// <summary>
         /// Registrations
         /// </summary>
         [DataMember(Name = "items", Order = 0)]
-        public List<DiscovererModel> Items { get; set; }
+        public List<DiscovererModel>? Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 1,
             EmitDefaultValue = false)]
-        public string ContinuationToken { get; set; }
+        public string? ContinuationToken { get; set; }
     }
 }

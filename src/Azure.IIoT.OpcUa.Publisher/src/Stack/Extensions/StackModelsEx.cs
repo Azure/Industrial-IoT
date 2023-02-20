@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
+    using Opc.Ua.Client;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -17,24 +18,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     /// Stack models extensions
     /// </summary>
     public static class StackModelsEx {
+        /// <summary>
+        /// Convert diagnostics to request header
+        /// </summary>
+        /// <param name="header"></param>
+        /// <param name="timeoutHint"></param>
+        /// <returns></returns>
+        public static RequestHeader ToRequestHeader(this RequestHeaderModel header,
+            uint timeoutHint = 0) {
+            return (header?.Diagnostics?.Level).ToRequestHeader(header?.Diagnostics?.AuditId,
+                header?.Diagnostics?.TimeStamp, timeoutHint);
+        }
 
         /// <summary>
         /// Convert diagnostics to request header
         /// </summary>
-        /// <param name="diagnostics"></param>
+        /// <param name="context"></param>
+        /// <param name="level"></param>
+        /// <param name="timestamp"></param>
         /// <param name="timeoutHint"></param>
         /// <returns></returns>
-        public static RequestHeader ToStackModel(this DiagnosticsModel diagnostics,
+        public static RequestHeader ToRequestHeader(this OperationContextModel context,
+            Shared.Models.DiagnosticsLevel? level = null, DateTime? timestamp = null,
             uint timeoutHint = 0) {
-            if (diagnostics == null && timeoutHint == 0) {
-                return null;
-            }
+            return level.ToRequestHeader(context?.AuthorityId, timestamp, timeoutHint);
+        }
+
+        /// <summary>
+        /// Convert diagnostics to request header
+        /// </summary>
+        /// <param name="level"></param>
+        /// <param name="auditId"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="timeoutHint"></param>
+        /// <returns></returns>
+        public static RequestHeader ToRequestHeader(this Shared.Models.DiagnosticsLevel? level,
+            string auditId = null, DateTime? timestamp = null, uint timeoutHint = 0) {
             return new RequestHeader {
-                AuditEntryId = diagnostics?.AuditId ?? Guid.NewGuid().ToString(),
+                AuditEntryId = auditId ?? Guid.NewGuid().ToString(),
                 ReturnDiagnostics =
-                    (uint)(diagnostics?.Level ?? Shared.Models.DiagnosticsLevel.None)
+                    (uint)(level ?? Shared.Models.DiagnosticsLevel.Status)
                      .ToStackType(),
-                Timestamp = diagnostics?.TimeStamp ?? DateTime.UtcNow,
+                Timestamp = timestamp ?? DateTime.UtcNow,
                 TimeoutHint = timeoutHint,
                 AdditionalHeader = null // TODO
             };
@@ -52,10 +77,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 return null;
             }
             return new ViewDescription {
-                Timestamp = viewModel.Timestamp ??
-                    DateTime.MinValue,
-                ViewVersion = viewModel.Version ??
-                    0,
+                Timestamp = viewModel.Timestamp ?? DateTime.MinValue,
+                ViewVersion = viewModel.Version ?? 0,
                 ViewId = viewModel.ViewId.ToNodeId(context)
             };
         }
@@ -68,11 +91,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <returns></returns>
         public static RolePermissionModel ToServiceModel(this RolePermissionType type,
             IServiceMessageContext context) {
-            if (type == null) {
-                return null;
+            var roleId = type.RoleId.AsString(context);
+            if (roleId == null) {
+                throw new ArgumentException("Permission type not a valid node id");
             }
             return new RolePermissionModel {
-                RoleId = type.RoleId.AsString(context),
+                RoleId = roleId,
                 Permissions = ((PermissionType)type.Permissions).ToServiceType()
             };
         }
@@ -108,28 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 AggregateConfiguration = model.AggregateConfiguration.ToStackModel(),
                 AggregateType = model.AggregateTypeId.ToNodeId(context),
                 StartTime = model.StartTime ?? DateTime.MinValue,
-                ProcessingInterval = model.ProcessingInterval ?? 0.0
-            };
-        }
-
-        /// <summary>
-        /// Convert to service model
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static AggregateFilterModel ToServiceModel(this AggregateFilter model,
-            IServiceMessageContext context) {
-            if (model == null) {
-                return null;
-            }
-            return new AggregateFilterModel {
-                AggregateConfiguration = model.AggregateConfiguration.ToServiceModel(),
-                AggregateTypeId = model.AggregateType.AsString(context),
-                StartTime = model.StartTime == DateTime.MinValue ? (DateTime?)null :
-                    model.StartTime,
-                ProcessingInterval = (int)model.ProcessingInterval == 0 ? (double?)null :
-                    model.ProcessingInterval
+                ProcessingInterval = (model.ProcessingInterval?.TotalMilliseconds) ?? 0.0
             };
         }
 
@@ -141,38 +144,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         public static AggregateConfiguration ToStackModel(
             this AggregateConfigurationModel model) {
             if (model == null) {
-                return new AggregateConfiguration();
+                return new AggregateConfiguration {
+                    UseServerCapabilitiesDefaults = true
+                };
             }
             return new AggregateConfiguration {
-                UseServerCapabilitiesDefaults = model.UseServerCapabilitiesDefaults ?? true,
                 PercentDataBad = model.PercentDataBad ?? 0,
                 PercentDataGood = model.PercentDataGood ?? 0,
                 TreatUncertainAsBad = model.TreatUncertainAsBad ?? true,
                 UseSlopedExtrapolation = model.UseSlopedExtrapolation ?? true
-            };
-        }
-
-        /// <summary>
-        /// Convert to service model
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static AggregateConfigurationModel ToServiceModel(
-            this AggregateConfiguration model) {
-            if (model == null) {
-                return null;
-            }
-            return new AggregateConfigurationModel {
-                UseServerCapabilitiesDefaults = model.UseServerCapabilitiesDefaults ? (bool?)null :
-                    model.UseServerCapabilitiesDefaults,
-                PercentDataBad = model.PercentDataBad == 0 ? (byte?)null :
-                    model.PercentDataBad,
-                PercentDataGood = model.PercentDataGood == 0 ? (byte?)null :
-                    model.PercentDataGood,
-                TreatUncertainAsBad = model.TreatUncertainAsBad ? (bool?)null :
-                    model.TreatUncertainAsBad,
-                UseSlopedExtrapolation = model.UseSlopedExtrapolation ? (bool?)null :
-                    model.UseSlopedExtrapolation
             };
         }
 
@@ -193,6 +173,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
                     Enumerable.Empty<QualifiedName>() :
                     model.BrowsePath?.Select(n => n.ToQualifiedName(context))),
+                IndexRange = model.IndexRange
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static SimpleAttributeOperandModel ToServiceModel(this SimpleAttributeOperand model,
+            IServiceMessageContext context) {
+            if (model == null) {
+                return null;
+            }
+            return new SimpleAttributeOperandModel {
+                TypeDefinitionId = model.TypeDefinitionId.AsString(context),
+                AttributeId = (NodeAttribute)model.AttributeId,
+                BrowsePath = model.BrowsePath?.Select(p => p.AsString(context)).ToArray(),
                 IndexRange = model.IndexRange
             };
         }
@@ -231,33 +230,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
             if (policy == null) {
                 return null;
             }
-            var result = new AuthenticationMethodModel {
-                Id = policy.PolicyId,
-                SecurityPolicy = policy.SecurityPolicyUri
-            };
+            var configuration = VariantValue.Null;
+            var credentialType = CredentialType.None;
             switch (policy.TokenType) {
                 case UserTokenType.Anonymous:
-                    result.CredentialType = CredentialType.None;
                     break;
                 case UserTokenType.UserName:
-                    result.CredentialType = CredentialType.UserName;
+                    credentialType = CredentialType.UserName;
                     break;
                 case UserTokenType.Certificate:
-                    result.CredentialType = CredentialType.X509Certificate;
-                    result.Configuration = policy.IssuerEndpointUrl;
+                    credentialType = CredentialType.X509Certificate;
+                    configuration = policy.IssuerEndpointUrl;
                     break;
                 case UserTokenType.IssuedToken:
                     switch (policy.IssuedTokenType) {
                         case "http://opcfoundation.org/UA/UserToken#JWT":
-                            result.CredentialType = CredentialType.JwtToken;
+                            credentialType = CredentialType.JwtToken;
                             try {
                                 // See part 6
-                                result.Configuration = serializer.Parse(
+                                configuration = serializer.Parse(
                                     policy.IssuerEndpointUrl);
                             }
                             catch {
                                 // Store as string
-                                result.Configuration = policy.IssuerEndpointUrl;
+                                configuration = policy.IssuerEndpointUrl;
                             }
                             break;
                         default:
@@ -268,7 +264,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 default:
                     return null;
             }
-            return result;
+            return new AuthenticationMethodModel {
+                Id = policy.PolicyId,
+                SecurityPolicy = policy.SecurityPolicyUri,
+                Configuration = configuration,
+                CredentialType = credentialType,
+            };
         }
 
         /// <summary>
@@ -310,9 +311,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="authentication"></param>
         /// <returns></returns>
         public static UserIdentityToken ToUserIdentityToken(this CredentialModel authentication) {
-            switch (authentication?.Type ?? CredentialType.None) {
+            if (authentication is null) {
+                return new AnonymousIdentityToken();
+            }
+            switch (authentication.Type ?? CredentialType.None) {
                 case CredentialType.UserName:
-                    if (authentication.Value.IsObject &&
+                    if (authentication.Value?.IsObject == true &&
                         authentication.Value.TryGetProperty("user", out var user) &&
                             user.IsString &&
                         authentication.Value.TryGetProperty("password", out var password) &&
@@ -323,21 +327,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                         };
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
-                        $"User/passord token format is not supported.");
+                        "User/password credential as provided is not supported.");
                 case CredentialType.X509Certificate:
+                    var rawData = authentication.Value?.ConvertTo<byte[]>();
+                    if (rawData == null) {
+                        throw new ServiceResultException(StatusCodes.BadNotSupported,
+                            "X509 credential as provided is not supported.");
+                    }
                     return new X509IdentityToken {
-                        Certificate = new X509Certificate2(
-                        authentication.Value?.ConvertTo<byte[]>())
+                        Certificate = new X509Certificate2(rawData)
                     };
                 case CredentialType.JwtToken:
+                    var token = authentication.Value?.ConvertTo<byte[]>();
+                    if (token == null) {
+                        throw new ServiceResultException(StatusCodes.BadNotSupported,
+                            "Jwt credential as provided is not supported.");
+                    }
                     return new IssuedIdentityToken {
-                        DecryptedTokenData = authentication.Value?.ConvertTo<byte[]>()
+                        DecryptedTokenData = token
                     };
                 case CredentialType.None:
                     return new AnonymousIdentityToken();
                 default:
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
-                        $"Token type {authentication.Type} is not supported");
+                        $"Credential type {authentication.Type} is not supported");
             }
         }
 

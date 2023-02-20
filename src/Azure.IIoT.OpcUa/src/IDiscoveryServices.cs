@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa {
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task CancelAsync(DiscoveryCancelModel request,
+        Task CancelAsync(DiscoveryCancelRequestModel request,
             CancellationToken ct = default);
     }
 }

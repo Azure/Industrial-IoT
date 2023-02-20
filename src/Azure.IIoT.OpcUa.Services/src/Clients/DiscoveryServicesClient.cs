@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task CancelAsync(DiscoveryCancelModel request, CancellationToken ct) {
+        public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct) {
             await foreach(var publisher in EnumeratePublishersAsync(ct)) {
                 var deviceId = PublisherModelEx.ParseDeviceId(publisher.Id, out var moduleId);
                 var client = new DiscoveryApiClient(_client, deviceId, moduleId, _serializer);

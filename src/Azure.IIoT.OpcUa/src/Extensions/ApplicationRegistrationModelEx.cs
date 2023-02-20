@@ -122,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                     foreach (var ep in server.Endpoints) {
                         var found = model.Endpoints.Where(ep.IsSameAs);
                         if (!found.Any()) {
-                            model.Endpoints.Add(ep);
+                            model.Endpoints = model.Endpoints.Append(ep).ToList();
                         }
                         foreach (var existing in found) {
                             if (existing.Endpoint == null) {

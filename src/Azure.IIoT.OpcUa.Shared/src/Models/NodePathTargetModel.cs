@@ -4,25 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Node path target
     /// </summary>
     [DataContract]
-    public record class NodePathTargetModel {
+    public sealed record class NodePathTargetModel {
 
         /// <summary>
         /// The target browse path
         /// </summary>
         [DataMember(Name = "browsePath", Order = 0)]
-        public string[] BrowsePath { get; set; }
+        public IReadOnlyList<string> BrowsePath { get; set; } = null!;
 
         /// <summary>
         /// Target node
         /// </summary>
         [DataMember(Name = "target", Order = 1)]
-        public NodeModel Target { get; set; }
+        public NodeModel Target { get; set; } = null!;
 
         /// <summary>
         /// Remaining index in path

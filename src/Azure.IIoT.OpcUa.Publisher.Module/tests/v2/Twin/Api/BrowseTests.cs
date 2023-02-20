@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.v2.Twin.Api {
 
         private BrowseServicesTests<ConnectionModel> GetTests() {
             return new BrowseServicesTests<ConnectionModel>(
-                () => _module.HubContainer.Resolve<IBrowseServices<ConnectionModel>>(),
+                () => _module.HubContainer.Resolve<INodeServices<ConnectionModel>>(),
                 new ConnectionModel {
                     Endpoint = new EndpointModel {
                         Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",

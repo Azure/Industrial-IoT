@@ -11,21 +11,21 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Discoverer registration
     /// </summary>
     [DataContract]
-    public record class DiscovererModel {
+    public sealed record class DiscovererModel {
 
         /// <summary>
         /// Discoverer id
         /// </summary>
         [DataMember(Name = "id", Order = 0)]
         [Required]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Site of the discoverer
         /// </summary>
         [DataMember(Name = "siteId", Order = 1,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Whether the discoverer is in discovery mode
@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "discoveryConfig", Order = 3,
             EmitDefaultValue = false)]
-        public DiscoveryConfigModel DiscoveryConfig { get; set; }
+        public DiscoveryConfigModel? DiscoveryConfig { get; set; }
 
         /// <summary>
         /// Requested discovery mode
@@ -53,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "requestedConfig", Order = 5,
             EmitDefaultValue = false)]
-        public DiscoveryConfigModel RequestedConfig { get; set; }
+        public DiscoveryConfigModel? RequestedConfig { get; set; }
 
         /// <summary>
         /// Current log level
@@ -82,6 +82,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "version", Order = 9,
             EmitDefaultValue = false)]
-        public string Version { get; set; }
+        public string? Version { get; set; }
     }
 }

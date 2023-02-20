@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Published dataset settings - corresponds to SubscriptionModel
     /// </summary>
     [DataContract]
-    public record class PublishedDataSetSettingsModel {
+    public sealed record class PublishedDataSetSettingsModel {
 
         /// <summary>
         /// Publishing interval

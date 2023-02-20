@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         }
 
         /// <inheritdoc/>
-        public async Task CancelAsync(DiscoveryCancelModel request, CancellationToken ct) {
+        public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct) {
             kCancelAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));

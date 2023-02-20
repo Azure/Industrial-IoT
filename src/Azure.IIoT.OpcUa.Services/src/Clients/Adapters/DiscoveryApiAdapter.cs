@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
         }
 
         /// <inheritdoc/>
-        public async Task CancelAsync(DiscoveryCancelModel request,
+        public async Task CancelAsync(DiscoveryCancelRequestModel request,
             CancellationToken ct = default) {
             await _client.CancelAsync(request, ct);
         }

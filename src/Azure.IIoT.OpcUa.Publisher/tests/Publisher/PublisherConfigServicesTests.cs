@@ -102,19 +102,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             InitPublisherConfigService();
 
             var endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);
-            Assert.Equal(1, endpoints.Count);
+            Assert.Single(endpoints);
 
             var endpoint = endpoints[0];
-            Assert.Equal(endpoint.EndpointUrl, "opc.tcp://opcplc:50000");
-            Assert.Equal(endpoint.UseSecurity, false);
-            Assert.Equal(endpoint.OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
-            Assert.Equal(endpoint.OpcAuthenticationUsername, "username");
-            Assert.Equal(endpoint.OpcAuthenticationPassword, null);
+            Assert.Equal("opc.tcp://opcplc:50000", endpoint.EndpointUrl);
+            Assert.False(endpoint.UseSecurity);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, endpoint.OpcAuthenticationMode);
+            Assert.Equal("username", endpoint.OpcAuthenticationUsername);
+            Assert.Null(endpoint.OpcAuthenticationPassword);
 
             endpoint.OpcAuthenticationPassword = "password";
 
             var nodes = await _configService.GetConfiguredNodesOnEndpointAsync(endpoint).ConfigureAwait(false);
-            Assert.Equal(1, nodes.Count);
+            Assert.Single(nodes);
             Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1", nodes[0].Id);
 
             endpoint.OpcNodes = new List<OpcNodeModel> {
@@ -126,7 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             await _configService.PublishNodesAsync(endpoint).ConfigureAwait(false);
 
             endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);
-            Assert.Equal(1, endpoints.Count);
+            Assert.Single(endpoints);
 
             endpoint.OpcNodes = null;
             nodes = await _configService.GetConfiguredNodesOnEndpointAsync(endpoint).ConfigureAwait(false);
@@ -141,14 +141,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
 
             // We should get the same endpoint and nodes after restart.
             endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);
-            Assert.Equal(1, endpoints.Count);
+            Assert.Single(endpoints);
 
             endpoint = endpoints[0];
-            Assert.Equal(endpoint.EndpointUrl, "opc.tcp://opcplc:50000");
-            Assert.Equal(endpoint.UseSecurity, false);
-            Assert.Equal(endpoint.OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
-            Assert.Equal(endpoint.OpcAuthenticationUsername, "username");
-            Assert.Equal(endpoint.OpcAuthenticationPassword, null);
+            Assert.Equal("opc.tcp://opcplc:50000", endpoint.EndpointUrl);
+            Assert.False(endpoint.UseSecurity);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, endpoint.OpcAuthenticationMode);
+            Assert.Equal("username", endpoint.OpcAuthenticationUsername);
+            Assert.Null(endpoint.OpcAuthenticationPassword);
 
             endpoint.OpcAuthenticationPassword = "password";
 
@@ -173,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             // Engine/pn_2.5_legacy_error.json contains both NodeId and OpcNodes.
             // So as a result, we should end up with zero endpoints.
             var endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);
-            Assert.Equal(0, endpoints.Count);
+            Assert.Empty(endpoints);
         }
 
         [Theory]
@@ -507,7 +507,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
                 AssertSameNodes(endpoints[i], endpointNodes);
             }
 
-            Assert.Equal(1, _publisher.WriterGroups.Count());
+            Assert.Single(_publisher.WriterGroups);
         }
 
         [Theory]
@@ -562,7 +562,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             var configuredEndpoints = await _configService
                 .GetConfiguredEndpointsAsync()
                 .ConfigureAwait(false);
-            Assert.Equal(0, configuredEndpoints.Count);
+            Assert.Empty(configuredEndpoints);
         }
 
         [Fact]
@@ -680,7 +680,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             var configuredEndpoints = await _configService
                 .GetConfiguredEndpointsAsync()
                 .ConfigureAwait(false);
-            Assert.Equal(0, configuredEndpoints.Count);
+            Assert.Empty(configuredEndpoints);
 
             // There should also not be any job entries.
             Assert.Empty(_publisher.WriterGroups);
@@ -695,22 +695,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             var endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);
             Assert.Equal(2, endpoints.Count);
 
-            Assert.Equal(endpoints[0].DataSetWriterGroup, "Leaf0");
-            Assert.Equal(endpoints[0].EndpointUrl, "opc.tcp://opcplc:50000");
-            Assert.Equal(endpoints[0].UseSecurity, false);
-            Assert.Equal(endpoints[0].OpcAuthenticationMode, OpcAuthenticationMode.Anonymous);
-            Assert.Equal(endpoints[0].DataSetWriterId, "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
-            Assert.Equal(endpoints[0].DataSetName, "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
+            Assert.Equal("Leaf0", endpoints[0].DataSetWriterGroup);
+            Assert.Equal("opc.tcp://opcplc:50000", endpoints[0].EndpointUrl);
+            Assert.False(endpoints[0].UseSecurity);
+            Assert.Equal(OpcAuthenticationMode.Anonymous, endpoints[0].OpcAuthenticationMode);
+            Assert.Equal("Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234", endpoints[0].DataSetWriterId);
+            Assert.Equal("Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234", endpoints[0].DataSetName);
 
-            Assert.Equal(endpoints[1].DataSetWriterGroup, "Leaf1");
-            Assert.Equal(endpoints[1].EndpointUrl, "opc.tcp://opcplc:50000");
-            Assert.Equal(endpoints[1].UseSecurity, false);
-            Assert.Equal(endpoints[1].OpcAuthenticationMode, OpcAuthenticationMode.UsernamePassword);
-            Assert.Equal(endpoints[1].DataSetWriterId, "Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
-            Assert.Equal(endpoints[1].DataSetName, "Tag_Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d");
+            Assert.Equal("Leaf1", endpoints[1].DataSetWriterGroup);
+            Assert.Equal("opc.tcp://opcplc:50000", endpoints[1].EndpointUrl);
+            Assert.False(endpoints[1].UseSecurity);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, endpoints[1].OpcAuthenticationMode);
+            Assert.Equal("Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d", endpoints[1].DataSetWriterId);
+            Assert.Equal("Tag_Leaf1_10000_2e4fc28f-ffa2-4532-9f22-378d47bbee5d", endpoints[1].DataSetName);
             endpoints[0].OpcNodes = null;
             var nodes = await _configService.GetConfiguredNodesOnEndpointAsync(endpoints[0]).ConfigureAwait(false);
-            Assert.Equal(1, nodes.Count);
+            Assert.Single(nodes);
             Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp", nodes[0].Id);
 
             endpoints[0].OpcNodes = new List<OpcNodeModel> {
@@ -722,7 +722,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             await _configService.PublishNodesAsync(endpoints[0]).ConfigureAwait(false);
 
             endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);
-            Assert.Equal(1, endpoints.Count);
+            Assert.Single(endpoints);
 
             endpoints[0].OpcNodes = null;
             nodes = await _configService.GetConfiguredNodesOnEndpointAsync(endpoints[0]).ConfigureAwait(false);
@@ -737,14 +737,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
 
             // We should get the same endpoint and nodes after restart.
             endpoints = await _configService.GetConfiguredEndpointsAsync().ConfigureAwait(false);
-            Assert.Equal(1, endpoints.Count);
+            Assert.Single(endpoints);
 
-            Assert.Equal(endpoints[0].DataSetWriterGroup, "Leaf0");
-            Assert.Equal(endpoints[0].EndpointUrl, "opc.tcp://opcplc:50000");
-            Assert.Equal(endpoints[0].UseSecurity, false);
-            Assert.Equal(endpoints[0].OpcAuthenticationMode, OpcAuthenticationMode.Anonymous);
-            Assert.Equal(endpoints[0].DataSetWriterId, "Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
-            Assert.Equal(endpoints[0].DataSetName, "Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234");
+            Assert.Equal("Leaf0", endpoints[0].DataSetWriterGroup);
+            Assert.Equal("opc.tcp://opcplc:50000", endpoints[0].EndpointUrl);
+            Assert.False(endpoints[0].UseSecurity);
+            Assert.Equal(OpcAuthenticationMode.Anonymous, endpoints[0].OpcAuthenticationMode);
+            Assert.Equal("Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234", endpoints[0].DataSetWriterId);
+            Assert.Equal("Tag_Leaf0_10000_3085991c-b85c-4311-9bfb-a916da952234", endpoints[0].DataSetName);
 
             nodes = await _configService.GetConfiguredNodesOnEndpointAsync(endpoints[0]).ConfigureAwait(false);
             Assert.Equal(2, nodes.Count);

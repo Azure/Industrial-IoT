@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request,
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -94,7 +94,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<InsertValuesDetailsModel> request,
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Upsert historic values
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(string endpointId,
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -116,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(string endpointId,
-            HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request,
+            HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -160,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request,
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -171,7 +182,18 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(string endpointId,
-            HistoryUpdateRequestModel<InsertEventsDetailsModel> request,
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Upsert historic events
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(string endpointId,
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct = default);
 
         /// <summary>

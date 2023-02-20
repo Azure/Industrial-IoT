@@ -1,30 +1,29 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-    using System;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Delete raw modified data
+    /// Discovery cancel request
     /// </summary>
     [DataContract]
-    public record class DeleteModifiedValuesDetailsModel {
+    public sealed record class DiscoveryCancelRequestModel {
 
         /// <summary>
-        /// Start time
+        /// Id of discovery request
         /// </summary>
-        [DataMember(Name = "startTime", Order = 0,
+        [DataMember(Name = "id", Order = 0,
             EmitDefaultValue = false)]
-        public DateTime? StartTime { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
-        /// End time to delete until
+        /// Operation audit context
         /// </summary>
-        [DataMember(Name = "endTime", Order = 1,
+        [DataMember(Name = "context", Order = 1,
             EmitDefaultValue = false)]
-        public DateTime? EndTime { get; set; }
+        public OperationContextModel? Context { get; set; }
     }
 }

@@ -12,14 +12,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Attribute and value to write to it
     /// </summary>
     [DataContract]
-    public record class AttributeWriteRequestModel {
+    public sealed record class AttributeWriteRequestModel {
 
         /// <summary>
         /// Node to write to (mandatory)
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0)]
         [Required]
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// Attribute to write (mandatory)
@@ -33,6 +33,6 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "value", Order = 2)]
         [Required]
-        public VariantValue Value { get; set; }
+        public VariantValue? Value { get; set; }
     }
 }

@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="model"></param>
         /// <param name="convert"></param>
         public static HistoryReadResponseModel<T> ToSpecificModel<T>(
-            this HistoryReadResponseModel<VariantValue> model, Func<VariantValue, T> convert) {
+            this HistoryReadResponseModel<VariantValue> model, Func<VariantValue, T> convert) where T : class {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
@@ -35,7 +35,8 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <param name="model"></param>
         /// <param name="convert"></param>
         public static HistoryReadNextResponseModel<T> ToSpecificModel<T>(
-            this HistoryReadNextResponseModel<VariantValue> model, Func<VariantValue, T> convert) {
+            this HistoryReadNextResponseModel<VariantValue> model, Func<VariantValue, T> convert)
+            where T : class {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }

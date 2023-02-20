@@ -12,7 +12,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     using System.Threading;
     using System.Threading.Tasks;
 
-    public static class EndpointServicesEx {
+    /// <summary>
+    /// Session provider extensions
+    /// </summary>
+    public static class SessionProviderEx {
 
         /// <summary>
         /// Read value
@@ -21,8 +24,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="connection"></param>
         /// <param name="readNode"></param>
         /// <returns></returns>
-        public static Task<VariantValue> ReadValueAsync(this IEndpointServices client,
-            ConnectionModel connection, string readNode, CancellationToken ct = default) {
+        public static Task<VariantValue> ReadValueAsync<T>(this ISessionProvider<T> client,
+            T connection, string readNode, CancellationToken ct = default) {
             var codec = new VariantEncoderFactory();
             return client.ExecuteServiceAsync(connection, session => {
                 var nodesToRead = new ReadValueIdCollection {
@@ -31,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                         AttributeId = Attributes.Value
                     }
                 };
-                var responseHeader = session.Read(null, 0, TimestampsToReturn.Both,
+                var responseHeader = session.Session.Read(null, 0, Opc.Ua.TimestampsToReturn.Both,
                     nodesToRead, out var values, out var diagnosticInfos);
                 var result = codec.Create(session.MessageContext)
                     .Encode(values[0].WrappedValue, out var tmp);

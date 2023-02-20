@@ -11,13 +11,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Result of GetConfiguredEndpoints method call
     /// </summary>
     [DataContract]
-    public record class GetConfiguredEndpointsResponseModel {
+    public sealed record class GetConfiguredEndpointsResponseModel {
 
         /// <summary>
         /// Collection of Endpoints in the configuration
         /// </summary>
         [DataMember(Name = "endpoints", Order = 0,
             EmitDefaultValue = false)]
-        public List<PublishedNodesEntryModel> Endpoints { get; set; }
+        public List<PublishedNodesEntryModel>? Endpoints { get; set; }
     }
 }

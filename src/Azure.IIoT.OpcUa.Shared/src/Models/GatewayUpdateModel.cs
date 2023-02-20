@@ -10,13 +10,13 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Gateway registration update request
     /// </summary>
     [DataContract]
-    public record class GatewayUpdateModel {
+    public sealed record class GatewayUpdateModel {
 
         /// <summary>
         /// Site of the Gateway
         /// </summary>
         [DataMember(Name = "siteId", Order = 1,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
     }
 }

@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task DisableApplicationAsync(string applicationId,
-            RegistryOperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct) {
             context = context.Validate();
 
             var app = await UpdateApplicationAsync(applicationId, (application, disabled) => {
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task EnableApplicationAsync(string applicationId,
-            RegistryOperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct) {
             context = context.Validate();
 
             var app = await UpdateApplicationAsync(applicationId, (application, disabled) => {
@@ -105,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task UnregisterApplicationAsync(string applicationId,
-            RegistryOperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct) {
             context = context.Validate();
 
             await DeleteEndpointsAsync(context, applicationId);
@@ -280,7 +280,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
 
         /// <inheritdoc/>
         public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenSince,
-            RegistryOperationContextModel context, CancellationToken ct) {
+            OperationContextModel context, CancellationToken ct) {
             context = context.Validate();
             var absolute = DateTime.UtcNow - notSeenSince;
             string continuation = null;
@@ -873,7 +873,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="context"></param>
         /// <param name="application"></param>
         /// <returns></returns>
-        private async Task HandleApplicationEnabledAsync(RegistryOperationContextModel context,
+        private async Task HandleApplicationEnabledAsync(OperationContextModel context,
             ApplicationInfoModel application) {
             var endpoints = await GetEndpointsAsync(application.ApplicationId, true);
             foreach (var registration in endpoints) {
@@ -902,7 +902,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="context"></param>
         /// <param name="application"></param>
         /// <returns></returns>
-        public async Task HandleApplicationDisabledAsync(RegistryOperationContextModel context,
+        public async Task HandleApplicationDisabledAsync(OperationContextModel context,
             ApplicationInfoModel application) {
             // Disable endpoints
             var endpoints = await GetEndpointsAsync(application.ApplicationId, true);
@@ -930,7 +930,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
         /// <param name="context"></param>
         /// <param name="applicationId"></param>
         /// <returns></returns>
-        private async Task DeleteEndpointsAsync(RegistryOperationContextModel context,
+        private async Task DeleteEndpointsAsync(OperationContextModel context,
             string applicationId) {
             // Get all endpoint registrations and for each one, call delete, if failure,
             // stop half way and throw and do not complete.

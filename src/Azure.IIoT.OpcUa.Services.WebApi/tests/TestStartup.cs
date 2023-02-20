@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
     using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
     using Azure.IIoT.OpcUa.Services.WebApi;
     using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.Auth;
@@ -61,7 +62,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TestClientServicesConfig>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AddressSpaceServices>()
+            builder.RegisterType<NodeServices<ConnectionModel>>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<HistoryServices<ConnectionModel>>()
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();

@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// Create controller with service
         /// </summary>
         /// <param name="historian"></param>
-        public ReadController(IHistorianServices<string> historian) {
+        public ReadController(IHistoryServices<string> historian) {
             _historian = historian ?? throw new ArgumentNullException(nameof(historian));
         }
 
@@ -185,6 +185,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
             return readresult;
         }
 
-        private readonly IHistorianServices<string> _historian;
+        private readonly IHistoryServices<string> _historian;
     }
 }

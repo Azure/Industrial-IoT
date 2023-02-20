@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Read modified data
     /// </summary>
     [DataContract]
-    public record class ReadModifiedValuesDetailsModel {
+    public sealed record class ReadModifiedValuesDetailsModel {
 
         /// <summary>
         /// The start time to read from

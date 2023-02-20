@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Data set writer message model
     /// </summary>
     [DataContract]
-    public record class DataSetWriterMessageSettingsModel {
+    public sealed record class DataSetWriterMessageSettingsModel {
 
         /// <summary>
         /// Dataset message content

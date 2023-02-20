@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Data change filter
     /// </summary>
     [DataContract]
-    public record class DataChangeFilterModel {
+    public sealed record class DataChangeFilterModel {
 
         /// <summary>
         /// Data change trigger type

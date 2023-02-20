@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Gateway event
     /// </summary>
     [DataContract]
-    public record class GatewayEventModel {
+    public sealed record class GatewayEventModel {
 
         /// <summary>
         /// Event type
@@ -23,20 +23,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "id", Order = 1,
             EmitDefaultValue = false)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Gateway
         /// </summary>
         [DataMember(Name = "gateway", Order = 2,
             EmitDefaultValue = false)]
-        public GatewayModel Gateway { get; set; }
+        public GatewayModel? Gateway { get; set; }
 
         /// <summary>
         /// Context
         /// </summary>
         [DataMember(Name = "context", Order = 3,
             EmitDefaultValue = false)]
-        public RegistryOperationContextModel Context { get; set; }
+        public OperationContextModel? Context { get; set; }
     }
 }

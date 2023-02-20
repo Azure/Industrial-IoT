@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         Network,
 
         /// <summary>
-        /// Limit network scan to */24 and known list of ports
+        /// Fast network scan of */24 and known list of ports
         /// </summary>
         [EnumMember]
         Fast,

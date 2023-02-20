@@ -12,14 +12,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Application information
     /// </summary>
     [DataContract]
-    public record class ApplicationRegistrationRequestModel {
+    public sealed record class ApplicationRegistrationRequestModel {
 
         /// <summary>
         /// Unique application uri
         /// </summary>
         [DataMember(Name = "applicationUri", Order = 0)]
         [Required]
-        public string ApplicationUri { get; set; }
+        public string? ApplicationUri { get; set; }
 
         /// <summary>
         /// Type of application
@@ -35,35 +35,35 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <example>http://contoso.com/fridge/1.0</example>
         [DataMember(Name = "productUri", Order = 2,
             EmitDefaultValue = false)]
-        public string ProductUri { get; set; }
+        public string? ProductUri { get; set; }
 
         /// <summary>
         /// Default name of the server or client.
         /// </summary>
         [DataMember(Name = "applicationName", Order = 3,
             EmitDefaultValue = false)]
-        public string ApplicationName { get; set; }
+        public string? ApplicationName { get; set; }
 
         /// <summary>
         /// Locale of default name
         /// </summary>
         [DataMember(Name = "locale", Order = 4,
             EmitDefaultValue = false)]
-        public string Locale { get; set; }
+        public string? Locale { get; set; }
 
         /// <summary>
         /// Site of the application
         /// </summary>
         [DataMember(Name = "siteId", Order = 5,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Localized names key off locale id.
         /// </summary>
         [DataMember(Name = "localizedNames", Order = 6,
             EmitDefaultValue = false)]
-        public Dictionary<string, string> LocalizedNames { get; set; }
+        public IReadOnlyDictionary<string, string>? LocalizedNames { get; set; }
 
         /// <summary>
         /// The OPC UA defined capabilities of the server.
@@ -72,34 +72,34 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// <example>DA</example>
         [DataMember(Name = "capabilities", Order = 7,
             EmitDefaultValue = false)]
-        public HashSet<string> Capabilities { get; set; }
+        public IReadOnlySet<string>? Capabilities { get; set; }
 
         /// <summary>
         /// Discovery urls of the server.
         /// </summary>
         [DataMember(Name = "discoveryUrls", Order = 8,
             EmitDefaultValue = false)]
-        public HashSet<string> DiscoveryUrls { get; set; }
+        public IReadOnlySet<string>? DiscoveryUrls { get; set; }
 
         /// <summary>
         /// The discovery profile uri of the server.
         /// </summary>
         [DataMember(Name = "discoveryProfileUri", Order = 9,
             EmitDefaultValue = false)]
-        public string DiscoveryProfileUri { get; set; }
+        public string? DiscoveryProfileUri { get; set; }
 
         /// <summary>
         /// Gateway server uri
         /// </summary>
         [DataMember(Name = "gatewayServerUri", Order = 10,
             EmitDefaultValue = false)]
-        public string GatewayServerUri { get; set; }
+        public string? GatewayServerUri { get; set; }
 
         /// <summary>
         /// Operation audit context
         /// </summary>
         [DataMember(Name = "context", Order = 11,
             EmitDefaultValue = false)]
-        public RegistryOperationContextModel Context { get; set; }
+        public OperationContextModel? Context { get; set; }
     }
 }

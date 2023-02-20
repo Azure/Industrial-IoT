@@ -2,11 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
+#nullable enable
 namespace Azure.IIoT.OpcUa.Encoders.Utils {
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
 
     /// <summary>
@@ -56,9 +57,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils {
                 BindingFlags.Public | BindingFlags.Static);
             foreach (var field in fields) {
                 try {
-                    var value = (uint)field.GetValue(type);
-                    _reverse.Add(field.Name, value);
-                    _forward.Add(value, field.Name);
+                    var value = (uint?)field.GetValue(type);
+                    if (value.HasValue) {
+                        _reverse.Add(field.Name, value.Value);
+                        _forward.Add(value.Value, field.Name);
+                    }
                 }
                 catch {
                     continue;
@@ -72,8 +75,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils {
         /// <param name="id"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool TryGetBrowseName(uint id, out string value) {
-            return _forward.TryGetValue(id, out value);
+        public bool TryGetBrowseName(uint id, [NotNullWhen(true)] out string? value) {
+            if (_forward.TryGetValue(id, out value) && value != null) {
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -86,10 +92,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils {
             return _reverse.TryGetValue(value, out id);
         }
 
-        private readonly Dictionary<uint, string> _forward =
-            new Dictionary<uint, string>();
-        private readonly Dictionary<string, uint> _reverse =
-            new Dictionary<string, uint>();
+        private readonly SortedDictionary<uint, string> _forward =
+            new SortedDictionary<uint, string>();
+        private readonly SortedDictionary<string, uint> _reverse =
+            new SortedDictionary<string, uint>();
 
     }
 }

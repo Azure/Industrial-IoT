@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -14,8 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
     /// <summary>
     /// Adapts historian services to historic access services
     /// </summary>
-    public sealed class HistoryApiAdapter : IHistorianServices<ConnectionModel>,
-        IHistoricAccessServices<ConnectionModel> {
+    public sealed class HistoryApiAdapter : IHistoryServices<ConnectionModel> {
 
         /// <summary>
         /// Create service
@@ -23,30 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
         /// <param name="client"></param>
         public HistoryApiAdapter(IHistoryApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            ConnectionModel connection, HistoryReadRequestModel<VariantValue> request,
-            CancellationToken ct) {
-            var result = await _client.HistoryReadRawAsync(connection, request, ct);
-            return result;
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
-            ConnectionModel connection, HistoryReadNextRequestModel request,
-            CancellationToken ct) {
-            var result = await _client.HistoryReadRawNextAsync(connection, request, ct);
-            return result;
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request,
-            CancellationToken ct) {
-            var result = await _client.HistoryUpdateRawAsync(connection, request, ct);
-            return result;
         }
 
         /// <inheritdoc/>
@@ -64,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request,
+            ConnectionModel connection, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct) {
             return _client.HistoryDeleteModifiedValuesAsync(connection, request, ct);
         }
@@ -78,30 +52,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request,
+            ConnectionModel connection, HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct) {
             return _client.HistoryReplaceEventsAsync(connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request,
+            ConnectionModel connection, HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct) {
             return _client.HistoryReplaceValuesAsync(connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<InsertEventsDetailsModel> request,
+            ConnectionModel connection, HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
             CancellationToken ct) {
             return _client.HistoryInsertEventsAsync(connection, request, ct);
         }
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<InsertValuesDetailsModel> request,
+            ConnectionModel connection, HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
             CancellationToken ct) {
             return _client.HistoryInsertValuesAsync(connection, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(
+            ConnectionModel connection, HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
+            CancellationToken ct) {
+            return _client.HistoryUpsertEventsAsync(connection, request, ct);
+        }
+
+        /// <inheritdoc/>
+        public Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(
+            ConnectionModel connection, HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
+            CancellationToken ct) {
+            return _client.HistoryUpsertValuesAsync(connection, request, ct);
         }
 
         /// <inheritdoc/>

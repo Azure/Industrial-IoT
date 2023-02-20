@@ -9,17 +9,17 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Node reference
+    /// Reference model
     /// </summary>
     [DataContract]
-    public record class NodeReferenceModel {
+    public sealed record class NodeReferenceModel {
 
         /// <summary>
-        /// Reference Type identifier
+        /// Reference Type id
         /// </summary>
         [DataMember(Name = "referenceTypeId", Order = 0,
             EmitDefaultValue = false)]
-        public string ReferenceTypeId { get; set; }
+        public string? ReferenceTypeId { get; set; }
 
         /// <summary>
         /// Browse direction of reference
@@ -33,28 +33,35 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "target", Order = 2)]
         [Required]
-        public NodeModel Target { get; set; }
+        public NodeModel Target { get; set; } = null!;
+
+        /// <summary>
+        /// Service result in case of error
+        /// </summary>
+        [DataMember(Name = "errorInfo", Order = 3,
+            EmitDefaultValue = false)]
+        public ServiceResultModel? ErrorInfo { get; set; }
 
         // Legacy
 
         /// <ignore/>
         [IgnoreDataMember]
         [Obsolete]
-        public string TypeId => ReferenceTypeId;
+        public string? TypeId => ReferenceTypeId;
 
         /// <ignore/>
         [IgnoreDataMember]
         [Obsolete]
-        public string BrowseName => Target?.BrowseName;
+        public string? BrowseName => Target?.BrowseName;
 
         /// <ignore/>
         [IgnoreDataMember]
         [Obsolete]
-        public string DisplayName => Target?.DisplayName;
+        public string? DisplayName => Target?.DisplayName;
 
         /// <ignore/>
         [IgnoreDataMember]
         [Obsolete]
-        public string TypeDefinition => Target?.TypeDefinitionId;
+        public string? TypeDefinition => Target?.TypeDefinitionId;
     }
 }

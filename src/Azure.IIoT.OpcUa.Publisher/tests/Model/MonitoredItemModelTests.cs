@@ -18,11 +18,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Model {
                     PercentDataBad = 10,
                     PercentDataGood = 20,
                     TreatUncertainAsBad = false,
-                    UseServerCapabilitiesDefaults = true,
                     UseSlopedExtrapolation = false
                 },
                 AggregateTypeId = "DataAggregateTypeId",
-                ProcessingInterval = 25,
+                ProcessingInterval = TimeSpan.FromMilliseconds(25),
                 StartTime = DateTime.Now
             },
             DataSetClassFieldId = Guid.NewGuid(),

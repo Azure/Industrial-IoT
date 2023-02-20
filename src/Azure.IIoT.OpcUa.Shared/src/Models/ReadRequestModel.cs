@@ -12,20 +12,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Request node attribute read
     /// </summary>
     [DataContract]
-    public record class ReadRequestModel {
+    public sealed record class ReadRequestModel {
 
         /// <summary>
         /// Attributes to read
         /// </summary>
         [DataMember(Name = "attributes", Order = 0)]
         [Required]
-        public List<AttributeReadRequestModel> Attributes { get; set; }
+        public IReadOnlyList<AttributeReadRequestModel>? Attributes { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 1,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
     }
 }

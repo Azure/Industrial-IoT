@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Discoverer event
     /// </summary>
     [DataContract]
-    public record class DiscovererEventModel {
+    public sealed record class DiscovererEventModel {
 
         /// <summary>
         /// Event type
@@ -23,20 +23,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "id", Order = 1,
             EmitDefaultValue = false)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Discoverer
         /// </summary>
         [DataMember(Name = "discoverer", Order = 2,
             EmitDefaultValue = false)]
-        public DiscovererModel Discoverer { get; set; }
+        public DiscovererModel? Discoverer { get; set; }
 
         /// <summary>
         /// Context
         /// </summary>
         [DataMember(Name = "context", Order = 3,
             EmitDefaultValue = false)]
-        public RegistryOperationContextModel Context { get; set; }
+        public OperationContextModel? Context { get; set; }
     }
 }

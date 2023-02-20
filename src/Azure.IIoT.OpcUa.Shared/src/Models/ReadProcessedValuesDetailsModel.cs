@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Read processed historic data
     /// </summary>
     [DataContract]
-    public record class ReadProcessedValuesDetailsModel {
+    public sealed record class ReadProcessedValuesDetailsModel {
 
         /// <summary>
         /// Start time to read from.
@@ -32,20 +32,24 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "processingInterval", Order = 2,
             EmitDefaultValue = false)]
-        public double? ProcessingInterval { get; set; }
+        public TimeSpan? ProcessingInterval { get; set; }
 
         /// <summary>
-        /// The aggregate type node ids
+        /// The aggregate type to apply. Can be the name of
+        /// the aggregate if available in the history server
+        /// capabilities, or otherwise will be used as a node
+        /// id referring to the aggregate.
         /// </summary>
-        [DataMember(Name = "aggregateTypeId", Order = 3,
+        [DataMember(Name = "aggregateType", Order = 3,
             EmitDefaultValue = false)]
-        public string AggregateTypeId { get; set; }
+        public string? AggregateType { get; set; }
 
         /// <summary>
-        /// A configuration for the aggregate
+        /// Aggregate Configuration - use null or empty configuration
+        /// to use the server defaults.
         /// </summary>
         [DataMember(Name = "aggregateConfiguration", Order = 4,
             EmitDefaultValue = false)]
-        public AggregateConfigurationModel AggregateConfiguration { get; set; }
+        public AggregateConfigurationModel? AggregateConfiguration { get; set; }
     }
 }

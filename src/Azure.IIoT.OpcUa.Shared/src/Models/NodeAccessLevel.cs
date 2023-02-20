@@ -13,6 +13,11 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     [Flags]
     [DataContract]
     public enum NodeAccessLevel {
+        /// <summary>
+        /// No access
+        /// </summary>
+        [EnumMember]
+        None = 0x0,
 
         /// <summary>
         /// The current value of the Variable may be read.

@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
+#nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     using Opc.Ua;
     using Azure.IIoT.OpcUa.Encoders.Utils;
@@ -12,15 +12,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
     /// <summary>
     /// Represents validity and default value map for attributes
     /// </summary>
-    public class AttributeMap {
-        private const int Object = 0;
-        private const int Variable = 1;
-        private const int Method = 2;
-        private const int ObjectType = 3;
-        private const int VariableType = 4;
-        private const int ReferenceType = 5;
-        private const int DataType = 6;
-        private const int View = 7;
+    public static class AttributeMap {
+        internal const int Object = 0;
+        internal const int Variable = 1;
+        internal const int Method = 2;
+        internal const int ObjectType = 3;
+        internal const int VariableType = 4;
+        internal const int ReferenceType = 5;
+        internal const int DataType = 6;
+        internal const int View = 7;
 
         /// <summary>
         /// Get built in type of attribute
@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
                 case Attributes.UserRolePermissions:
                     return BuiltInType.ExtensionObject;
                 default:
-                    System.Diagnostics.Debug.Assert(false, "Unknown attribute");
+                    System.Diagnostics.Debug.Fail("Unknown attribute");
                     return BuiltInType.Null;
             }
         }
@@ -109,9 +109,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="nodeClass"></param>
         /// <returns></returns>
-        public IEnumerable<uint> GetNodeClassAttributes(NodeClass nodeClass) {
+        public static IEnumerable<uint> GetNodeClassAttributes(NodeClass nodeClass) {
             for (uint i = 0; i < 32; i++) {
-                if (_map[NodeClassId(nodeClass), i] != null) {
+                if (kMap[NodeClassId(nodeClass), i] != null) {
                     yield return i;
                 }
             }
@@ -122,16 +122,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="nodeClass"></param>
         /// <param name="attributeId"></param>
-        /// <param name="optional"></param>
+        /// <param name="returnNullIfOptional"></param>
         /// <returns></returns>
-        public object GetDefault(NodeClass nodeClass, uint attributeId, ref bool optional) {
+        public static object? GetDefaultValue(NodeClass nodeClass,
+            uint attributeId, bool returnNullIfOptional) {
             if (attributeId > 32) {
                 return null;
             }
-            var entry = _map[NodeClassId(nodeClass), attributeId];
+            var entry = kMap[NodeClassId(nodeClass), attributeId];
             if (entry != null) {
-                optional = entry.Optional;
-                return entry.Value;
+                if (!entry.Optional || !returnNullIfOptional) {
+                    return entry.Value;
+                }
             }
             return null;
         }
@@ -140,224 +142,223 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// Initialize attribute map
         /// See Part 3 Table 20 – Overview of Attributes
         /// </summary>
-        public AttributeMap() {
-
-            _map[Variable, Attributes.AccessLevel] =
+        static AttributeMap() {
+            kMap[Variable, Attributes.AccessLevel] =
                 new MapEntry((byte)1);
-            _map[Variable, Attributes.ArrayDimensions] =
+            kMap[Variable, Attributes.ArrayDimensions] =
                 new MapEntry(Array.Empty<uint>(), true);
-            _map[Variable, Attributes.BrowseName] = new
+            kMap[Variable, Attributes.BrowseName] = new
                 MapEntry(QualifiedName.Null);
-            _map[Variable, Attributes.DataType] = new
+            kMap[Variable, Attributes.DataType] = new
                 MapEntry(NodeId.Null);
-            _map[Variable, Attributes.Description] = new
+            kMap[Variable, Attributes.Description] = new
                 MapEntry(LocalizedText.Null, true);
-            _map[Variable, Attributes.DisplayName] = new
+            kMap[Variable, Attributes.DisplayName] = new
                 MapEntry(LocalizedText.Null);
-            _map[Variable, Attributes.Historizing] = new
+            kMap[Variable, Attributes.Historizing] = new
                 MapEntry(false);
-            _map[Variable, Attributes.MinimumSamplingInterval] =
+            kMap[Variable, Attributes.MinimumSamplingInterval] =
                 new MapEntry((double)-1, true);
-            _map[Variable, Attributes.NodeClass] =
+            kMap[Variable, Attributes.NodeClass] =
                 new MapEntry(NodeClass.Variable);
-            _map[Variable, Attributes.NodeId] =
+            kMap[Variable, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-            _map[Variable, Attributes.UserAccessLevel] =
+            kMap[Variable, Attributes.UserAccessLevel] =
                 new MapEntry((byte)1, true);
-            _map[Variable, Attributes.AccessLevelEx] =
+            kMap[Variable, Attributes.AccessLevelEx] =
                 new MapEntry((uint)0, true);
-            _map[Variable, Attributes.AccessRestrictions] =
+            kMap[Variable, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
-            _map[Variable, Attributes.RolePermissions] =
+            kMap[Variable, Attributes.RolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[Variable, Attributes.UserRolePermissions] =
+            kMap[Variable, Attributes.UserRolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[Variable, Attributes.UserWriteMask] =
+            kMap[Variable, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
-            _map[Variable, Attributes.Value] = new
+            kMap[Variable, Attributes.Value] = new
                 MapEntry(Variant.Null);
-            _map[Variable, Attributes.ValueRank] =
+            kMap[Variable, Attributes.ValueRank] =
                 new MapEntry(ValueRanks.Scalar);
-            _map[Variable, Attributes.WriteMask] =
+            kMap[Variable, Attributes.WriteMask] =
                 new MapEntry((uint)0, true);
 
-            _map[VariableType, Attributes.ArrayDimensions] =
+            kMap[VariableType, Attributes.ArrayDimensions] =
                 new MapEntry(Array.Empty<uint>(), true);
-            _map[VariableType, Attributes.BrowseName] =
+            kMap[VariableType, Attributes.BrowseName] =
                 new MapEntry(QualifiedName.Null);
-            _map[VariableType, Attributes.DataType] =
+            kMap[VariableType, Attributes.DataType] =
                 new MapEntry(NodeId.Null);
-            _map[VariableType, Attributes.Description] =
+            kMap[VariableType, Attributes.Description] =
                 new MapEntry(LocalizedText.Null, true);
-            _map[VariableType, Attributes.DisplayName] =
+            kMap[VariableType, Attributes.DisplayName] =
                 new MapEntry(LocalizedText.Null);
-            _map[VariableType, Attributes.IsAbstract] =
+            kMap[VariableType, Attributes.IsAbstract] =
                 new MapEntry(true);
-            _map[VariableType, Attributes.NodeClass] =
+            kMap[VariableType, Attributes.NodeClass] =
                 new MapEntry(NodeClass.VariableType);
-            _map[VariableType, Attributes.NodeId] =
+            kMap[VariableType, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-            _map[VariableType, Attributes.AccessRestrictions] =
+            kMap[VariableType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
-            _map[VariableType, Attributes.RolePermissions] =
+            kMap[VariableType, Attributes.RolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[VariableType, Attributes.UserRolePermissions] =
+            kMap[VariableType, Attributes.UserRolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[VariableType, Attributes.UserWriteMask] =
+            kMap[VariableType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
-            _map[VariableType, Attributes.Value] =
+            kMap[VariableType, Attributes.Value] =
                 new MapEntry(Variant.Null, true);
-            _map[VariableType, Attributes.ValueRank] =
+            kMap[VariableType, Attributes.ValueRank] =
                 new MapEntry(ValueRanks.Scalar);
-            _map[VariableType, Attributes.WriteMask] =
+            kMap[VariableType, Attributes.WriteMask] =
                 new MapEntry((uint)0, true);
 
-            _map[Object, Attributes.BrowseName] =
+            kMap[Object, Attributes.BrowseName] =
                 new MapEntry(QualifiedName.Null);
-            _map[Object, Attributes.Description] =
+            kMap[Object, Attributes.Description] =
                 new MapEntry(LocalizedText.Null, true);
-            _map[Object, Attributes.DisplayName] =
+            kMap[Object, Attributes.DisplayName] =
                 new MapEntry(LocalizedText.Null);
-            _map[Object, Attributes.EventNotifier] =
+            kMap[Object, Attributes.EventNotifier] =
                 new MapEntry((byte)0);
-            _map[Object, Attributes.NodeClass] =
+            kMap[Object, Attributes.NodeClass] =
                 new MapEntry(NodeClass.Object);
-            _map[Object, Attributes.NodeId] =
+            kMap[Object, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-            _map[Object, Attributes.AccessRestrictions] =
+            kMap[Object, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
-            _map[Object, Attributes.RolePermissions] =
+            kMap[Object, Attributes.RolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[Object, Attributes.UserRolePermissions] =
+            kMap[Object, Attributes.UserRolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[Object, Attributes.UserWriteMask] =
+            kMap[Object, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
-            _map[Object, Attributes.WriteMask] =
+            kMap[Object, Attributes.WriteMask] =
                 new MapEntry((uint)0, true);
 
-            _map[ObjectType, Attributes.BrowseName] =
+            kMap[ObjectType, Attributes.BrowseName] =
                 new MapEntry(QualifiedName.Null);
-            _map[ObjectType, Attributes.Description] =
+            kMap[ObjectType, Attributes.Description] =
                 new MapEntry(LocalizedText.Null, true);
-            _map[ObjectType, Attributes.DisplayName] =
+            kMap[ObjectType, Attributes.DisplayName] =
                 new MapEntry(LocalizedText.Null);
-            _map[ObjectType, Attributes.IsAbstract] =
+            kMap[ObjectType, Attributes.IsAbstract] =
                 new MapEntry(true);
-            _map[ObjectType, Attributes.NodeClass] =
+            kMap[ObjectType, Attributes.NodeClass] =
                 new MapEntry(NodeClass.ObjectType);
-            _map[ObjectType, Attributes.NodeId] =
+            kMap[ObjectType, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-            _map[ObjectType, Attributes.AccessRestrictions] =
+            kMap[ObjectType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
-            _map[ObjectType, Attributes.RolePermissions] =
+            kMap[ObjectType, Attributes.RolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[ObjectType, Attributes.UserRolePermissions] =
+            kMap[ObjectType, Attributes.UserRolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[ObjectType, Attributes.UserWriteMask] =
+            kMap[ObjectType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
-            _map[ObjectType, Attributes.WriteMask] =
+            kMap[ObjectType, Attributes.WriteMask] =
                 new MapEntry((uint)0, true);
 
-            _map[ReferenceType, Attributes.BrowseName] =
+            kMap[ReferenceType, Attributes.BrowseName] =
                 new MapEntry(QualifiedName.Null);
-            _map[ReferenceType, Attributes.Description] =
+            kMap[ReferenceType, Attributes.Description] =
                 new MapEntry(LocalizedText.Null, true);
-            _map[ReferenceType, Attributes.DisplayName] =
+            kMap[ReferenceType, Attributes.DisplayName] =
                 new MapEntry(LocalizedText.Null);
-            _map[ReferenceType, Attributes.InverseName] =
+            kMap[ReferenceType, Attributes.InverseName] =
                 new MapEntry(LocalizedText.Null, true);
-            _map[ReferenceType, Attributes.IsAbstract] =
+            kMap[ReferenceType, Attributes.IsAbstract] =
                 new MapEntry(true);
-            _map[ReferenceType, Attributes.NodeClass] =
+            kMap[ReferenceType, Attributes.NodeClass] =
                 new MapEntry(NodeClass.ReferenceType);
-            _map[ReferenceType, Attributes.NodeId] =
+            kMap[ReferenceType, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-            _map[ReferenceType, Attributes.Symmetric] =
+            kMap[ReferenceType, Attributes.Symmetric] =
                 new MapEntry(true);
-            _map[ReferenceType, Attributes.AccessRestrictions] =
+            kMap[ReferenceType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
-            _map[ReferenceType, Attributes.RolePermissions] =
+            kMap[ReferenceType, Attributes.RolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[ReferenceType, Attributes.UserRolePermissions] =
+            kMap[ReferenceType, Attributes.UserRolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[ReferenceType, Attributes.UserWriteMask] =
+            kMap[ReferenceType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
-            _map[ReferenceType, Attributes.WriteMask] =
+            kMap[ReferenceType, Attributes.WriteMask] =
                 new MapEntry((uint)0, true);
 
-            _map[DataType, Attributes.BrowseName] =
+            kMap[DataType, Attributes.BrowseName] =
                 new MapEntry(QualifiedName.Null);
-            _map[DataType, Attributes.DataTypeDefinition] =
+            kMap[DataType, Attributes.DataTypeDefinition] =
                 new MapEntry(new ExtensionObject(), true);
-            _map[DataType, Attributes.Description] =
+            kMap[DataType, Attributes.Description] =
                 new MapEntry(LocalizedText.Null, true);
-            _map[DataType, Attributes.DisplayName] =
+            kMap[DataType, Attributes.DisplayName] =
                 new MapEntry(LocalizedText.Null);
-            _map[DataType, Attributes.IsAbstract] =
+            kMap[DataType, Attributes.IsAbstract] =
                 new MapEntry(true);
-            _map[DataType, Attributes.NodeClass] =
+            kMap[DataType, Attributes.NodeClass] =
                 new MapEntry(NodeClass.DataType);
-            _map[DataType, Attributes.NodeId] =
+            kMap[DataType, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-            _map[DataType, Attributes.AccessRestrictions] =
+            kMap[DataType, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
-            _map[DataType, Attributes.RolePermissions] =
+            kMap[DataType, Attributes.RolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[DataType, Attributes.UserRolePermissions] =
+            kMap[DataType, Attributes.UserRolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[DataType, Attributes.UserWriteMask] =
+            kMap[DataType, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
-            _map[DataType, Attributes.WriteMask] =
+            kMap[DataType, Attributes.WriteMask] =
                 new MapEntry((uint)0, true);
 
-            _map[Method, Attributes.BrowseName] =
+            kMap[Method, Attributes.BrowseName] =
                 new MapEntry(QualifiedName.Null);
-            _map[Method, Attributes.Description] =
+            kMap[Method, Attributes.Description] =
                 new MapEntry(LocalizedText.Null, true);
-            _map[Method, Attributes.DisplayName] =
+            kMap[Method, Attributes.DisplayName] =
                 new MapEntry(LocalizedText.Null);
-            _map[Method, Attributes.Executable] =
+            kMap[Method, Attributes.Executable] =
                 new MapEntry(false);
-            _map[Method, Attributes.NodeClass] =
+            kMap[Method, Attributes.NodeClass] =
                 new MapEntry(NodeClass.Method);
-            _map[Method, Attributes.NodeId] =
+            kMap[Method, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-            _map[Method, Attributes.UserExecutable] =
+            kMap[Method, Attributes.UserExecutable] =
                 new MapEntry(false);
-            _map[Method, Attributes.AccessRestrictions] =
+            kMap[Method, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
-            _map[Method, Attributes.RolePermissions] =
+            kMap[Method, Attributes.RolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[Method, Attributes.UserRolePermissions] =
+            kMap[Method, Attributes.UserRolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[Method, Attributes.UserWriteMask] =
+            kMap[Method, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
-            _map[Method, Attributes.WriteMask] =
+            kMap[Method, Attributes.WriteMask] =
                 new MapEntry((uint)0, true);
 
-            _map[View, Attributes.BrowseName] =
+            kMap[View, Attributes.BrowseName] =
                 new MapEntry(QualifiedName.Null);
-            _map[View, Attributes.ContainsNoLoops] =
+            kMap[View, Attributes.ContainsNoLoops] =
                 new MapEntry(true);
-            _map[View, Attributes.Description] =
+            kMap[View, Attributes.Description] =
                 new MapEntry(LocalizedText.Null, true);
-            _map[View, Attributes.DisplayName] =
+            kMap[View, Attributes.DisplayName] =
                 new MapEntry(LocalizedText.Null);
-            _map[View, Attributes.EventNotifier] =
+            kMap[View, Attributes.EventNotifier] =
                 new MapEntry((byte)0);
-            _map[View, Attributes.NodeClass] =
+            kMap[View, Attributes.NodeClass] =
                 new MapEntry(NodeClass.View);
-            _map[View, Attributes.NodeId] =
+            kMap[View, Attributes.NodeId] =
                 new MapEntry(NodeId.Null);
-            _map[View, Attributes.AccessRestrictions] =
+            kMap[View, Attributes.AccessRestrictions] =
                 new MapEntry((ushort)0, true);
-            _map[View, Attributes.RolePermissions] =
+            kMap[View, Attributes.RolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[View, Attributes.UserRolePermissions] =
+            kMap[View, Attributes.UserRolePermissions] =
                 new MapEntry(Array.Empty<ExtensionObject>(), true);
-            _map[View, Attributes.UserWriteMask] =
+            kMap[View, Attributes.UserWriteMask] =
                 new MapEntry((uint)0, true);
-            _map[View, Attributes.WriteMask] =
+            kMap[View, Attributes.WriteMask] =
                 new MapEntry((uint)0, true);
         }
 
@@ -366,7 +367,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         /// </summary>
         /// <param name="nodeClass"></param>
         /// <returns></returns>
-        private int NodeClassId(NodeClass nodeClass) {
+        private static int NodeClassId(NodeClass nodeClass) {
             switch (nodeClass) {
                 case NodeClass.Object:
                     return Object;
@@ -389,7 +390,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
         }
 
         private class MapEntry {
-
             /// <summary>
             /// Attribute map entry
             /// </summary>
@@ -411,6 +411,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             public bool Optional { get; }
         }
 
-        private readonly MapEntry[,] _map = new MapEntry[8, 32];
+        private static readonly MapEntry[,] kMap = new MapEntry[8, 32];
     }
 }

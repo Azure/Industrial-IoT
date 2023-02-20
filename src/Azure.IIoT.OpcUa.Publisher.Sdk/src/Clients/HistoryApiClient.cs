@@ -44,78 +44,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadRawAsync(
-            ConnectionModel connection, HistoryReadRequestModel<VariantValue> request,
-            CancellationToken ct) {
-            if (connection == null) {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
-            }
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (request.Details == null) {
-                throw new ArgumentNullException(nameof(request.Details));
-            }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryRead_V2", _serializer.SerializeToString(new {
-                    connection,
-                    request
-                }), null, ct);
-            return _serializer.Deserialize<HistoryReadResponseModel<VariantValue>>(response);
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadRawNextAsync(
-            ConnectionModel connection, HistoryReadNextRequestModel request,
-            CancellationToken ct) {
-            if (connection == null) {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
-            }
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (string.IsNullOrEmpty(request.ContinuationToken)) {
-                throw new ArgumentNullException(nameof(request.ContinuationToken));
-            }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryReadNext_V2", _serializer.SerializeToString(new {
-                    connection,
-                    request
-                }), null, ct);
-            return _serializer.Deserialize<HistoryReadNextResponseModel<VariantValue>>(response);
-        }
-
-        /// <inheritdoc/>
-        public async Task<HistoryUpdateResponseModel> HistoryUpdateRawAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request,
-            CancellationToken ct) {
-            if (connection == null) {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
-                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
-            }
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            if (request.Details == null) {
-                throw new ArgumentNullException(nameof(request.Details));
-            }
-            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
-                "HistoryUpdate_V2", _serializer.SerializeToString(new {
-                    connection,
-                    request
-                }), null, ct);
-            return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
-        }
-
-        /// <inheritdoc/>
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
             ConnectionModel connection, HistoryReadRequestModel<ReadValuesDetailsModel> request,
             CancellationToken ct = default) {
@@ -236,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<ReplaceValuesDetailsModel> request, CancellationToken ct = default) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct = default) {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
@@ -259,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<InsertValuesDetailsModel> request, CancellationToken ct = default) {
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct = default) {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
@@ -274,6 +202,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryInsertValues_V2", _serializer.SerializeToString(new {
+                    connection,
+                    request
+                }), null, ct);
+            return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(ConnectionModel connection,
+            HistoryUpdateRequestModel<UpdateValuesDetailsModel> request, CancellationToken ct = default) {
+            if (connection == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Details == null) {
+                throw new ArgumentNullException(nameof(request.Details));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "HistoryUpsertValues_V2", _serializer.SerializeToString(new {
                     connection,
                     request
                 }), null, ct);
@@ -305,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<DeleteModifiedValuesDetailsModel> request,
+            ConnectionModel connection, HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
             CancellationToken ct = default) {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
@@ -400,7 +351,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<ReplaceEventsDetailsModel> request, CancellationToken ct = default) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct = default) {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
@@ -423,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(ConnectionModel connection,
-            HistoryUpdateRequestModel<InsertEventsDetailsModel> request, CancellationToken ct = default) {
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct = default) {
             if (connection == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
@@ -438,6 +389,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
             }
             var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
                 "HistoryInsertEvents_V2", _serializer.SerializeToString(new {
+                    connection,
+                    request
+                }), null, ct);
+            return _serializer.Deserialize<HistoryUpdateResponseModel>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(ConnectionModel connection,
+            HistoryUpdateRequestModel<UpdateEventsDetailsModel> request, CancellationToken ct = default) {
+            if (connection == null) {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(connection.Endpoint.Url));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Details == null) {
+                throw new ArgumentNullException(nameof(request.Details));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "HistoryUpsertEvents_V2", _serializer.SerializeToString(new {
                     connection,
                     request
                 }), null, ct);

@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
             if (obj is string s) {
                 return s == ToString();
             }
-            if (!(obj is EndpointIdentifier key)) {
+            if (obj is not EndpointIdentifier key) {
                 return false;
             }
             if (!Endpoint.IsSameAs(key.Endpoint)) {

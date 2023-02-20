@@ -12,14 +12,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Read data at specified times
     /// </summary>
     [DataContract]
-    public record class ReadValuesAtTimesDetailsModel {
+    public sealed record class ReadValuesAtTimesDetailsModel {
 
         /// <summary>
         /// Requested datums
         /// </summary>
         [DataMember(Name = "reqTimes", Order = 0)]
         [Required]
-        public DateTime[] ReqTimes { get; set; }
+        public DateTime[]? ReqTimes { get; set; }
 
         /// <summary>
         /// Whether to use simple bounds

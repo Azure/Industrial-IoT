@@ -10,33 +10,33 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Connection model
     /// </summary>
     [DataContract]
-    public record class ConnectionModel {
+    public sealed record class ConnectionModel {
 
         /// <summary>
-        /// Endpoint
+        /// Endpoint information
         /// </summary>
         [DataMember(Name = "endpoint", Order = 0)]
-        public EndpointModel Endpoint { get; set; }
+        public EndpointModel? Endpoint { get; set; }
 
         /// <summary>
-        /// Elevation
+        /// User
         /// </summary>
         [DataMember(Name = "user", Order = 1,
             EmitDefaultValue = false)]
-        public CredentialModel User { get; set; }
+        public CredentialModel? User { get; set; }
 
         /// <summary>
         /// Diagnostics configuration
         /// </summary>
         [DataMember(Name = "diagnostics", Order = 2,
              EmitDefaultValue = false)]
-        public DiagnosticsModel Diagnostics { get; set; }
+        public DiagnosticsModel? Diagnostics { get; set; }
 
         /// <summary>
         /// Group Id of the data set associated to the 
 		/// connection that the stram belongs to.
         /// </summary>
         [DataMember(Name = "group", Order = 3)]
-        public string Group { get; set; }
+        public string? Group { get; set; }
     }
 }

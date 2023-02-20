@@ -4,28 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Shared.Models {
-    using System;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Registry operation log model
+    /// Response with history configuration
     /// </summary>
     [DataContract]
-    public record class RegistryOperationContextModel {
+    public sealed record class HistoryConfigurationResponseModel {
 
         /// <summary>
-        /// User
+        /// History Configuration
+        /// results.
         /// </summary>
-        [DataMember(Name = "AuthorityId", Order = 0,
-            EmitDefaultValue = false)]
-        public string AuthorityId { get; set; }
+        [DataMember(Name = "configuration", Order = 0)]
+        public HistoryConfigurationModel? Configuration { get; set; }
 
         /// <summary>
-        /// Operation time
+        /// Service result in case of error
         /// </summary>
-        [DataMember(Name = "Time", Order = 1,
+        [DataMember(Name = "errorInfo", Order = 1,
             EmitDefaultValue = false)]
-        public DateTime Time { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }
-

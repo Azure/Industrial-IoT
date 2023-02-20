@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            if (!(obj is SubscriptionIdentifier that)) {
+            if (obj is not SubscriptionIdentifier that) {
                 return false;
             }
             return that.Equals(this);

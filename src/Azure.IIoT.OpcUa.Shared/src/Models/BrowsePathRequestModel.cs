@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Browse nodes by path
     /// </summary>
     [DataContract]
-    public record class BrowsePathRequestModel {
+    public sealed record class BrowsePathRequestModel {
 
         /// <summary>
         /// Node to browse from.
@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0,
             EmitDefaultValue = false)]
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// The paths to browse from node.
@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "browsePaths", Order = 1)]
         [Required]
-        public List<string[]> BrowsePaths { get; set; }
+        public IReadOnlyList<IReadOnlyList<string>>? BrowsePaths { get; set; }
 
         /// <summary>
         /// Whether to read variable values on target nodes.
@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "header", Order = 3,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
 
         /// <summary>
         /// Whether to only return the raw node id
@@ -53,6 +53,5 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         [DataMember(Name = "nodeIdsOnly", Order = 4,
             EmitDefaultValue = false)]
         public bool? NodeIdsOnly { get; set; }
-
     }
 }

@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Writer group message configuration
     /// </summary>
     [DataContract]
-    public record class WriterGroupMessageSettingsModel {
+    public sealed record class WriterGroupMessageSettingsModel {
 
         /// <summary>
         /// Network message content
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "publishingOffset", Order = 4,
             EmitDefaultValue = false)]
-        public List<double> PublishingOffset { get; set; }
+        public List<double>? PublishingOffset { get; set; }
 
         /// <summary>
         /// Max messages per publish

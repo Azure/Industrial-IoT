@@ -60,8 +60,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
             return
                 model.Id == that.Id &&
                 model.SecurityPolicy == that.SecurityPolicy &&
-                (that.CredentialType ?? CredentialType.None) ==
-                    (model.CredentialType ?? CredentialType.None);
+                model.CredentialType == that.CredentialType;
         }
 
         /// <summary>

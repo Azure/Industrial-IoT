@@ -11,19 +11,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Publisher list
     /// </summary>
     [DataContract]
-    public record class PublisherListModel {
+    public sealed record class PublisherListModel {
 
         /// <summary>
         /// Registrations
         /// </summary>
         [DataMember(Name = "items", Order = 0)]
-        public List<PublisherModel> Items { get; set; }
+        public List<PublisherModel>? Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 1,
             EmitDefaultValue = false)]
-        public string ContinuationToken { get; set; }
+        public string? ContinuationToken { get; set; }
     }
 }

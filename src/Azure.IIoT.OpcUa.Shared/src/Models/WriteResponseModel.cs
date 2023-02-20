@@ -11,19 +11,19 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Result of attribute write
     /// </summary>
     [DataContract]
-    public record class WriteResponseModel {
+    public sealed record class WriteResponseModel {
 
         /// <summary>
         /// All results of attribute writes
         /// </summary>
         [DataMember(Name = "results", Order = 0)]
-        public List<AttributeWriteResponseModel> Results { set; get; }
+        public IReadOnlyList<AttributeWriteResponseModel> Results { get; set; } = null!;
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 1,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }

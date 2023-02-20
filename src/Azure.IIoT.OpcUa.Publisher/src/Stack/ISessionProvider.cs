@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack {
-    using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
@@ -13,9 +12,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Endpoint services
+    /// Session services
     /// </summary>
-    public interface IEndpointServices {
+    public interface ISessionProvider<T> {
 
         /// <summary>
         /// Get a connected session
@@ -25,26 +24,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask<ISessionHandle> GetOrCreateSessionAsync(
-            ConnectionModel connection, IMetricsContext metrics = null,
+            T connection, IMetricsContext metrics = null,
             CancellationToken ct = default);
 
         /// <summary>
         /// Execute the service on the provided session.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
         /// <param name="connection"></param>
         /// <param name="service"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<T> ExecuteServiceAsync<T>(ConnectionModel connection,
-            Func<ISession, Task<T>> service, CancellationToken ct);
+        Task<R> ExecuteServiceAsync<R>(T connection,
+            Func<ISessionHandle, Task<R>> service, CancellationToken ct);
 
         /// <summary>
         /// Get or create session handle
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        ISessionHandle GetSessionHandle(ConnectionModel connection);
+        ISessionHandle GetSessionHandle(T connection);
 
         /// <summary>
         /// Get complex type system from session

@@ -10,14 +10,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Discoverer update request
     /// </summary>
     [DataContract]
-    public record class DiscovererUpdateModel {
+    public sealed record class DiscovererUpdateModel {
 
         /// <summary>
         /// Site the discoverer is part of
         /// </summary>
         [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
-        public string SiteId { get; set; }
+        public string? SiteId { get; set; }
 
         /// <summary>
         /// Discovery mode of discoverer
@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "discoveryConfig", Order = 2,
             EmitDefaultValue = false)]
-        public DiscoveryConfigModel DiscoveryConfig { get; set; }
+        public DiscoveryConfigModel? DiscoveryConfig { get; set; }
 
         /// <summary>
         /// Current log level

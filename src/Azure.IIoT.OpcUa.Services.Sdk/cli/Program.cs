@@ -455,7 +455,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 if (string.IsNullOrEmpty(nodeId)) {
                     var id = GetEndpointId(options, false);
                     if (!string.IsNullOrEmpty(id)) {
-                        var results = await _client.Twin.NodeBrowseAsync(id, new BrowseRequestModel {
+                        var results = await _client.Twin.NodeBrowseAsync(id, new BrowseFirstRequestModel {
                             TargetNodesOnly = true,
                             NodeId = _nodeId
                         });
@@ -537,7 +537,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             var all = options.IsSet("-A", "--all");
             var recursive = options.IsSet("-r", "--recursive");
             var readDuringBrowse = options.IsProvidedOrNull("-v", "--readvalue");
-            var request = new BrowseRequestModel {
+            var request = new BrowseFirstRequestModel {
                 TargetNodesOnly = options.IsProvidedOrNull("-t", "--targets"),
                 ReadVariableValues = readDuringBrowse,
                 MaxReferencesToReturn = options.GetValueOrDefault<uint>("-x", "--maxrefs", null),
@@ -1369,7 +1369,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task CancelDiscoveryAsync(CliOptions options) {
             await _client.Registry.CancelAsync(
-                new DiscoveryCancelModel {
+                new DiscoveryCancelRequestModel {
                     Id = options.GetValue<string>("-i", "--id")
                 });
         }

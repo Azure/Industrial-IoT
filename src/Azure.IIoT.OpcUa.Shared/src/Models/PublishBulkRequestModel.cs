@@ -11,27 +11,27 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Publish in bulk request
     /// </summary>
     [DataContract]
-    public record class PublishBulkRequestModel {
+    public sealed record class PublishBulkRequestModel {
 
         /// <summary>
         /// Node to add
         /// </summary>
         [DataMember(Name = "nodesToAdd", Order = 0,
             EmitDefaultValue = false)]
-        public List<PublishedItemModel> NodesToAdd { get; set; }
+        public List<PublishedItemModel>? NodesToAdd { get; set; }
 
         /// <summary>
         /// Node to remove
         /// </summary>
         [DataMember(Name = "nodesToRemove", Order = 1,
             EmitDefaultValue = false)]
-        public List<string> NodesToRemove { get; set; }
+        public List<string>? NodesToRemove { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 2,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
     }
 }

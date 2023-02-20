@@ -11,14 +11,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Browse request model
     /// </summary>
     [DataContract]
-    public record class BrowseRequestModel {
+    public sealed record class BrowseFirstRequestModel {
 
         /// <summary>
         /// Node to browse.
         /// (defaults to root folder).
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0)]
-        public string NodeId { get; set; }
+        public string? NodeId { get; set; }
 
         /// <summary>
         /// Direction to browse in
@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "view", Order = 2,
             EmitDefaultValue = false)]
-        public BrowseViewModel View { get; set; }
+        public BrowseViewModel? View { get; set; }
 
         /// <summary>
         /// Reference types to browse.
@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "referenceTypeId", Order = 3,
             EmitDefaultValue = false)]
-        public string ReferenceTypeId { get; set; }
+        public string? ReferenceTypeId { get; set; }
 
         /// <summary>
         /// Whether to include subtypes of the reference type.
@@ -88,14 +88,14 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
         /// </summary>
         [DataMember(Name = "nodeClassFilter", Order = 8,
             EmitDefaultValue = false)]
-        public List<NodeClass> NodeClassFilter { get; set; }
+        public IReadOnlyList<NodeClass>? NodeClassFilter { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
         [DataMember(Name = "header", Order = 9,
             EmitDefaultValue = false)]
-        public RequestHeaderModel Header { get; set; }
+        public RequestHeaderModel? Header { get; set; }
 
         /// <summary>
         /// Whether to only return the raw node id

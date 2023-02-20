@@ -13,25 +13,25 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     public enum ApplicationType {
 
         /// <summary>
-        /// Server
+        /// Application is server
         /// </summary>
         [EnumMember]
         Server,
 
         /// <summary>
-        /// Client
+        /// Application is client
         /// </summary>
         [EnumMember]
         Client,
 
         /// <summary>
-        /// Client and server
+        /// Application is client and server
         /// </summary>
         [EnumMember]
         ClientAndServer,
 
         /// <summary>
-        /// Discovery server
+        /// Application is discovery server
         /// </summary>
         [EnumMember]
         DiscoveryServer

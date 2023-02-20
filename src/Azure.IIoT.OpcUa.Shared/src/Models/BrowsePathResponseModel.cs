@@ -11,20 +11,20 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
     /// Result of node browse continuation
     /// </summary>
     [DataContract]
-    public record class BrowsePathResponseModel {
+    public sealed record class BrowsePathResponseModel {
 
         /// <summary>
         /// Targets
         /// </summary>
         [DataMember(Name = "targets", Order = 0,
             EmitDefaultValue = false)]
-        public List<NodePathTargetModel> Targets { get; set; }
+        public IReadOnlyList<NodePathTargetModel>? Targets { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 1,
             EmitDefaultValue = false)]
-        public ServiceResultModel ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; set; }
     }
 }
