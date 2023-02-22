@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+    using Microsoft.Extensions.Logging;
     using Prometheus;
     using System.Net;
 
@@ -16,19 +17,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Start metric server
         /// </summary>
         /// <returns></returns>
-        public static void StartWhenEnabled(this IMetricServer server, IModuleConfig config, Serilog.ILogger logger) {
+        public static void StartWhenEnabled(this IMetricServer server, IModuleConfig config, ILogger logger) {
             if (config.EnableMetrics) {
                 try {
                     server.Start();
-                    logger.Information("Prometheus metric server started.");
+                    logger.LogInformation("Prometheus metric server started.");
                 }
-                catch (HttpListenerException e){
-                    logger.Error(e, "Unable to start metric server. For more info, please check troubleshooting guide for edge metrics collection");
+                catch (HttpListenerException e) {
+                    logger.LogError(e, "Unable to start metric server. For more info, please check troubleshooting guide for edge metrics collection");
                 }
 
             }
             else {
-                logger.Information("Metrics Collection is disabled. Not starting prometheus metric server.");
+                logger.LogInformation("Metrics Collection is disabled. Not starting prometheus metric server.");
             }
 
         }
@@ -37,10 +38,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Stop metric server if enabled
         /// </summary>
         /// <returns></returns>
-        public static void StopWhenEnabled(this IMetricServer server, IModuleConfig config, Serilog.ILogger logger) {
+        public static void StopWhenEnabled(this IMetricServer server, IModuleConfig config, ILogger logger) {
             if (config.EnableMetrics) {
                 server.Stop(); ;
-                logger.Information("Stopped prometheus metric server");
+                logger.LogInformation("Stopped prometheus metric server");
             }
         }
     }

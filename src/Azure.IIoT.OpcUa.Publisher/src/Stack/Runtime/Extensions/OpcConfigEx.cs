@@ -4,12 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Configuration;
-    using Serilog;
     using System;
     using System.Net.NetworkInformation;
     using System.Threading;
@@ -71,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                         var ownCertificate = appConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
 
                         if (ownCertificate == null) {
-                            logger.Information("No application own certificate found. Creating a self-signed " +
+                            logger.LogInformation("No application own certificate found. Creating a self-signed " +
                                 "own certificate valid since yesterday for {defaultLifeTime} months, with a " +
                                 "{defaultKeySize} bit key and {defaultHashSize} bit hash.",
                                 CertificateFactory.DefaultLifeTime,
@@ -79,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                                 CertificateFactory.DefaultHashSize);
                         }
                         else {
-                            logger.Information("Own certificate Subject '{subject}' (thumbprint: {thumbprint}) loaded.",
+                            logger.LogInformation("Own certificate Subject '{subject}' (thumbprint: {thumbprint}) loaded.",
                                 ownCertificate.Subject, ownCertificate.Thumbprint);
                         }
 
@@ -92,13 +91,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
 
                         if (!hasAppCertificate ||
                             appConfig.SecurityConfiguration.ApplicationCertificate.Certificate == null) {
-                            logger.Error("Failed to load or create application own certificate.");
+                            logger.LogError("Failed to load or create application own certificate.");
                             throw new InvalidConfigurationException("OPC UA application own certificate invalid");
                         }
 
                         if (ownCertificate == null) {
                             ownCertificate = appConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
-                            logger.Information("Own certificate Subject '{subject}' (thumbprint: {thumbprint}) created.",
+                            logger.LogInformation("Own certificate Subject '{subject}' (thumbprint: {thumbprint}) created.",
                                 ownCertificate.Subject, ownCertificate.Thumbprint);
                         }
 
@@ -124,14 +123,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 using var certStore = appConfig.SecurityConfiguration.ApplicationCertificate.OpenStore();
                 var certs = await certStore.Enumerate().ConfigureAwait(false);
                 var certNum = 1;
-                logger.Information("Application own certificate store contains {count} certs.", certs.Count);
+                logger.LogInformation("Application own certificate store contains {count} certs.", certs.Count);
                 foreach (var cert in certs) {
-                    logger.Information("{certNum:D2}: Subject '{subject}' (thumbprint: {thumbprint})",
+                    logger.LogInformation("{certNum:D2}: Subject '{subject}' (thumbprint: {thumbprint})",
                         certNum++, cert.Subject, cert.Thumbprint);
                 }
             }
             catch (Exception e) {
-                logger.Error(e, "Error while trying to read information from application store.");
+                logger.LogError(e, "Error while trying to read information from application store.");
             }
 
             // show trusted issuer certs
@@ -139,23 +138,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 using var certStore = appConfig.SecurityConfiguration.TrustedIssuerCertificates.OpenStore();
                 var certs = await certStore.Enumerate().ConfigureAwait(false);
                 var certNum = 1;
-                logger.Information("Trusted issuer store contains {count} certs.", certs.Count);
+                logger.LogInformation("Trusted issuer store contains {count} certs.", certs.Count);
                 foreach (var cert in certs) {
-                    logger.Information("{certNum:D2}: Subject '{subject}' (thumbprint: {thumbprint})",
+                    logger.LogInformation("{certNum:D2}: Subject '{subject}' (thumbprint: {thumbprint})",
                         certNum++, cert.Subject, cert.Thumbprint);
                 }
                 if (certStore.SupportsCRLs) {
                     var crls = await certStore.EnumerateCRLs().ConfigureAwait(false);
                     var crlNum = 1;
-                    logger.Information("Trusted issuer store has {count} CRLs.", crls.Count);
+                    logger.LogInformation("Trusted issuer store has {count} CRLs.", crls.Count);
                     foreach (var crl in crls) {
-                        logger.Information("{crlNum:D2}: Issuer '{issuer}', Next update time '{nextUpdate}'",
+                        logger.LogInformation("{crlNum:D2}: Issuer '{issuer}', Next update time '{nextUpdate}'",
                             crlNum++, crl.Issuer, crl.NextUpdate);
                     }
                 }
             }
             catch (Exception e) {
-                logger.Error(e, "Error while trying to read information from trusted issuer store.");
+                logger.LogError(e, "Error while trying to read information from trusted issuer store.");
             }
 
             // show trusted peer certs
@@ -163,23 +162,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 using var certStore = appConfig.SecurityConfiguration.TrustedPeerCertificates.OpenStore();
                 var certs = await certStore.Enumerate().ConfigureAwait(false);
                 var certNum = 1;
-                logger.Information("Trusted peer store contains {count} certs.", certs.Count);
+                logger.LogInformation("Trusted peer store contains {count} certs.", certs.Count);
                 foreach (var cert in certs) {
-                    logger.Information("{certNum:D2}: Subject '{subject}' (thumbprint: {thumbprint})",
+                    logger.LogInformation("{certNum:D2}: Subject '{subject}' (thumbprint: {thumbprint})",
                         certNum++, cert.Subject, cert.Thumbprint);
                 }
                 if (certStore.SupportsCRLs) {
                     var crls = await certStore.EnumerateCRLs().ConfigureAwait(false);
                     var crlNum = 1;
-                    logger.Information("Trusted peer store has {count} CRLs.", crls.Count);
+                    logger.LogInformation("Trusted peer store has {count} CRLs.", crls.Count);
                     foreach (var crl in crls) {
-                        logger.Information("{crlNum:D2}: Issuer '{issuer}', Next update time '{nextUpdate}'",
+                        logger.LogInformation("{crlNum:D2}: Issuer '{issuer}', Next update time '{nextUpdate}'",
                             crlNum++, crl.Issuer, crl.NextUpdate);
                     }
                 }
             }
             catch (Exception e) {
-                logger.Error(e, "Error while trying to read information from trusted peer store.");
+                logger.LogError(e, "Error while trying to read information from trusted peer store.");
             }
 
             // show rejected peer certs
@@ -187,14 +186,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                 using var certStore = appConfig.SecurityConfiguration.RejectedCertificateStore.OpenStore();
                 var certs = await certStore.Enumerate().ConfigureAwait(false);
                 var certNum = 1;
-                logger.Information("Rejected certificate store contains {count} certs.", certs.Count);
+                logger.LogInformation("Rejected certificate store contains {count} certs.", certs.Count);
                 foreach (var cert in certs) {
-                    logger.Information("{certNum:D2}: Subject '{subject}' (thumbprint: {thumbprint})",
+                    logger.LogInformation("{certNum:D2}: Subject '{subject}' (thumbprint: {thumbprint})",
                         certNum++, cert.Subject, cert.Thumbprint);
                 }
             }
             catch (Exception e) {
-                logger.Error(e, "Error while trying to read information from rejected certificate store.");
+                logger.LogError(e, "Error while trying to read information from rejected certificate store.");
             }
         }
     }

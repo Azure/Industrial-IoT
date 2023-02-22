@@ -6,9 +6,9 @@
 namespace Azure.IIoT.OpcUa.Publisher.State {
     using Azure.IIoT.OpcUa.Publisher.State.Models;
     using Azure.IIoT.OpcUa.Publisher;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Text;
     using System.Threading.Tasks;
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.State {
             }
 
             if (_clientAccessor.Client is null) {
-                _logger.Warning("Hub client is not initialized yet. Unable to send restart announcement.");
+                _logger.LogWarning("Hub client is not initialized yet. Unable to send restart announcement.");
                 return;
             }
 
@@ -66,16 +66,16 @@ namespace Azure.IIoT.OpcUa.Publisher.State {
 
                 await _clientAccessor.Client.SendEventAsync(message).ConfigureAwait(false);
 
-                _logger.Information("Restart announcement sent successfully.");
+                _logger.LogInformation("Restart announcement sent successfully.");
             }
             catch (InvalidOperationException) {
                 // In this case DeviceClient was used which does not support
                 // sending messages to a specific output target.
-                _logger.Information("Unable to send restart announcement as " +
+                _logger.LogInformation("Unable to send restart announcement as " +
                     "OPC Publisher is not running in IoT Edge context.");
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to send restart announcement.");
+                _logger.LogError(ex, "Failed to send restart announcement.");
             }
         }
     }

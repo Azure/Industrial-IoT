@@ -5,21 +5,21 @@
 
 namespace Azure.IIoT.OpcUa.Services.Registry {
     using Azure.IIoT.OpcUa.Services.Models;
+    using Azure.IIoT.OpcUa.Services.Services;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Autofac;
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
-    using Azure.IIoT.OpcUa.Services.Services;
 
     public class DiscoveryProcessorTests {
 
@@ -366,8 +366,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         /// <param name="registry"></param>
         private static AutoMock Setup(IoTHubServices registry, out IDiscoveryResultProcessor processor) {
             var mock = AutoMock.GetLoose(builder => {
-                builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
-                builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
+                //   // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
+                builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(registry).As<IIoTHubTwinServices>();
                 builder.RegisterType<DiscovererRegistry>().As<IDiscovererRegistry>();
                 builder.RegisterType<SupervisorRegistry>().As<ISupervisorRegistry>();
@@ -524,6 +524,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 .Concat(Publisher.YieldReturn()));
         }
 
-        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
+        private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
     }
 }

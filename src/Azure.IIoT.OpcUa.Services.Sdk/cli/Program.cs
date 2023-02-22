@@ -4,14 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Cli {
-    using Azure.IIoT.OpcUa.Services.Sdk.Runtime;
     using Azure.IIoT.OpcUa.Services.Sdk;
-    using Azure.IIoT.OpcUa.Services.Sdk.Clients;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Autofac;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -20,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Services.Sdk.SignalR;
 
     /// <summary>
     /// Api command line interface
@@ -451,7 +446,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 Console.WriteLine(_nodeId);
             }
             else {
-                var nodeId = options.GetValueOrDefault<string>("-n", "--nodeid", null);
+                var nodeId = options.GetValueOrNull<string>("-n", "--nodeid");
                 if (string.IsNullOrEmpty(nodeId)) {
                     var id = GetEndpointId(options, false);
                     if (!string.IsNullOrEmpty(id)) {
@@ -483,7 +478,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 GetEndpointId(options),
                 new MethodCallRequestModel {
                     MethodId = GetNodeId(options),
-                    ObjectId = options.GetValue<string>("-o", "--objectid")
+                    ObjectId = options.GetValueOrThrow<string>("-o", "--objectid")
 
                     // ...
                 });
@@ -510,8 +505,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 GetEndpointId(options),
                 new ValueWriteRequestModel {
                     NodeId = GetNodeId(options),
-                    DataType = options.GetValueOrDefault<string>("-t", "--datatype", null),
-                    Value = _client.Serializer.FromObject(options.GetValue<string>("-v", "--value"))
+                    DataType = options.GetValueOrNull<string>("-t", "--datatype"),
+                    Value = _client.Serializer.FromObject(options.GetValueOrThrow<string>("-v", "--value"))
                 });
             PrintResult(options, result);
         }
@@ -540,11 +535,11 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             var request = new BrowseFirstRequestModel {
                 TargetNodesOnly = options.IsProvidedOrNull("-t", "--targets"),
                 ReadVariableValues = readDuringBrowse,
-                MaxReferencesToReturn = options.GetValueOrDefault<uint>("-x", "--maxrefs", null),
-                Direction = options.GetValueOrDefault<BrowseDirection>("-d", "--direction", null)
+                MaxReferencesToReturn = options.GetValueOrNull<uint>("-x", "--maxrefs"),
+                Direction = options.GetValueOrNull<BrowseDirection>("-d", "--direction")
             };
             var nodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
-                options.GetValueOrDefault<string>("-n", "--nodeid", null)
+                options.GetValueOrNull<string>("-n", "--nodeid")
             };
             var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var nodesRead = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -735,9 +730,9 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
             else {
                 var result = await _client.Registry.ListPublishersAsync(
-                    options.GetValueOrDefault<string>("-C", "--continuation", null),
+                    options.GetValueOrNull<string>("-C", "--continuation"),
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -748,7 +743,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         private async Task QueryPublishersAsync(CliOptions options) {
             var query = new PublisherQueryModel {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
-                SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
+                SiteId = options.GetValueOrNull<string>("-s", "--siteId")
             };
             if (options.IsSet("-A", "--all")) {
                 var result = await _client.Registry.QueryAllPublishersAsync(query,
@@ -759,7 +754,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             else {
                 var result = await _client.Registry.QueryPublishersAsync(query,
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -779,9 +774,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         private async Task UpdatePublisherAsync(CliOptions options) {
             await _client.Registry.UpdatePublisherAsync(GetPublisherId(options),
                 new PublisherUpdateModel {
-                    SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
-                    LogLevel = options.GetValueOrDefault<TraceLogLevel>(
-                        "-l", "--log-level", null),
+                    SiteId = options.GetValueOrNull<string>("-s", "--siteId"),
+                    LogLevel = options.GetValueOrNull<TraceLogLevel>("-l", "--log-level"),
                 });
         }
 
@@ -832,7 +826,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 Console.WriteLine(_gatewayId);
             }
             else {
-                var gatewayId = options.GetValueOrDefault<string>("-i", "--id", null);
+                var gatewayId = options.GetValueOrNull<string>("-i", "--id");
                 if (string.IsNullOrEmpty(gatewayId)) {
                     var result = await _client.Registry.ListAllGatewaysAsync();
                     gatewayId = ConsoleEx.Select(result.Select(r => r.Id));
@@ -858,8 +852,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
             else {
                 var result = await _client.Registry.ListGatewaysAsync(
-                    options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<string>("-C", "--continuation"),
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -870,7 +864,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         private async Task QueryGatewaysAsync(CliOptions options) {
             var query = new GatewayQueryModel {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
-                SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
+                SiteId = options.GetValueOrNull<string>("-s", "--siteId")
             };
             if (options.IsSet("-A", "--all")) {
                 var result = await _client.Registry.QueryAllGatewaysAsync(query);
@@ -879,7 +873,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
             else {
                 var result = await _client.Registry.QueryGatewaysAsync(query,
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -976,9 +970,9 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
             else {
                 var result = await _client.Registry.ListSupervisorsAsync(
-                    options.GetValueOrDefault<string>("-C", "--continuation", null),
+                    options.GetValueOrNull<string>("-C", "--continuation"),
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -989,8 +983,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         private async Task QuerySupervisorsAsync(CliOptions options) {
             var query = new SupervisorQueryModel {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
-                EndpointId = options.GetValueOrDefault<string>("-e", "--endpoint", null),
-                SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
+                EndpointId = options.GetValueOrNull<string>("-e", "--endpoint"),
+                SiteId = options.GetValueOrNull<string>("-s", "--siteId")
             };
             if (options.IsSet("-A", "--all")) {
                 var result = await _client.Registry.QueryAllSupervisorsAsync(query,
@@ -1001,7 +995,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             else {
                 var result = await _client.Registry.QuerySupervisorsAsync(query,
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -1036,9 +1030,9 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             var config = BuildDiscoveryConfig(options);
             await _client.Registry.UpdateSupervisorAsync(GetSupervisorId(options),
                 new SupervisorUpdateModel {
-                    SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
-                    LogLevel = options.GetValueOrDefault<TraceLogLevel>(
-                        "-l", "--log-level", null)
+                    SiteId = options.GetValueOrNull<string>("-s", "--siteId"),
+                    LogLevel = options.GetValueOrNull<TraceLogLevel>(
+                        "-l", "--log-level")
                 });
         }
 
@@ -1048,7 +1042,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Get discoverer id
         /// </summary>
         private string GetDiscovererId(CliOptions options, bool shouldThrow = true) {
-            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            var id = options.GetValueOrNull<string>("-i", "--id");
             if (_discovererId != null) {
                 if (id == null) {
                     return _discovererId;
@@ -1075,7 +1069,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 Console.WriteLine(_discovererId);
             }
             else {
-                var discovererId = options.GetValueOrDefault<string>("-i", "--id", null);
+                var discovererId = options.GetValueOrNull<string>("-i", "--id");
                 if (string.IsNullOrEmpty(discovererId)) {
                     var result = await _client.Registry.ListAllDiscoverersAsync();
                     discovererId = ConsoleEx.Select(result.Select(r => r.Id));
@@ -1101,8 +1095,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
             else {
                 var result = await _client.Registry.ListDiscoverersAsync(
-                    options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<string>("-C", "--continuation"),
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -1113,8 +1107,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         private async Task QueryDiscoverersAsync(CliOptions options) {
             var query = new DiscovererQueryModel {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
-                Discovery = options.GetValueOrDefault<DiscoveryMode>("-d", "--discovery", null),
-                SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
+                Discovery = options.GetValueOrNull<DiscoveryMode>("-d", "--discovery"),
+                SiteId = options.GetValueOrNull<string>("-s", "--siteId")
             };
             if (options.IsSet("-A", "--all")) {
                 var result = await _client.Registry.QueryAllDiscoverersAsync(query,
@@ -1124,7 +1118,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
             else {
                 var result = await _client.Registry.QueryDiscoverersAsync(query,
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -1143,7 +1137,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         private async Task MonitorDiscoverersAsync(CliOptions options) {
             Console.WriteLine("Press any key to stop.");
             IAsyncDisposable complete;
-            var discovererId = options.GetValueOrDefault<string>("-i", "--id", null);
+            var discovererId = options.GetValueOrNull<string>("-i", "--id");
             if (discovererId != null) {
                 // If specified - monitor progress
                 complete = await _client.Events.SubscribeDiscoveryProgressByDiscovererIdAsync(
@@ -1167,11 +1161,12 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             var config = BuildDiscoveryConfig(options);
             await _client.Registry.UpdateDiscovererAsync(GetDiscovererId(options),
                 new DiscovererUpdateModel {
-                    SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
-                    LogLevel = options.GetValueOrDefault<TraceLogLevel>(
+                    SiteId = options.GetValueOrNull<string>("-s", "--siteId", null),
+                    LogLevel = options.GetValueOrNull<TraceLogLevel>(
                         "-l", "--log-level", null),
-                    Discovery = options.GetValueOrDefault("-d", "--discovery",
-                        config == null ? (DiscoveryMode?)null : DiscoveryMode.Fast),
+                    Discovery = options.GetValueOrDefault(
+                        config == null ? (DiscoveryMode?)null : DiscoveryMode.Fast,
+                        "-d", "--discovery"),
                     DiscoveryConfig = config,
                 });
         }
@@ -1186,8 +1181,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 discovererId, PrintProgress);
             try {
                 var config = BuildDiscoveryConfig(options);
-                var mode = options.GetValueOrDefault("-d", "--discovery",
-                    config == null ? DiscoveryMode.Fast : DiscoveryMode.Scan);
+                var mode = options.GetValueOrDefault(
+                    config == null ? DiscoveryMode.Fast : DiscoveryMode.Scan, "-d", "--discovery");
                 if (config == null) {
                     config = new DiscoveryConfigModel();
                 }
@@ -1212,7 +1207,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// <param name="options"></param>
         /// <returns></returns>
         private string GetApplicationId(CliOptions options, bool shouldThrow = true) {
-            var id = options.GetValueOrDefault<string>("-i", "--id", null);
+            var id = options.GetValueOrNull<string>("-i", "--id");
             if (_applicationId != null) {
                 if (id == null) {
                     return _applicationId;
@@ -1239,7 +1234,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 Console.WriteLine(_applicationId);
             }
             else {
-                var applicationId = options.GetValueOrDefault<string>("-i", "--id", null);
+                var applicationId = options.GetValueOrNull<string>("-i", "--id");
                 if (string.IsNullOrEmpty(applicationId)) {
                     var result = await _client.Registry.ListAllApplicationsAsync();
                     applicationId = ConsoleEx.Select(result.Select(r => r.ApplicationId));
@@ -1258,15 +1253,15 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// Registers application
         /// </summary>
         private async Task RegisterApplicationAsync(CliOptions options) {
-            var discoveryUrl = options.GetValueOrDefault<string>("-d", "--discoveryUrl", null);
+            var discoveryUrl = options.GetValueOrNull<string>("-d", "--discoveryUrl");
             var result = await _client.Registry.RegisterAsync(
                 new ApplicationRegistrationRequestModel {
-                    ApplicationUri = options.GetValue<string>("-u", "--url"),
-                    ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
-                    GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
-                    ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
-                    ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
-                    DiscoveryProfileUri = options.GetValueOrDefault<string>("-r", "--dpuri", null),
+                    ApplicationUri = options.GetValueOrThrow<string>("-u", "--url"),
+                    ApplicationName = options.GetValueOrNull<string>("-n", "--name"),
+                    GatewayServerUri = options.GetValueOrNull<string>("-g", "--gwuri"),
+                    ApplicationType = options.GetValueOrNull<ApplicationType>("-t", "--type"),
+                    ProductUri = options.GetValueOrNull<string>("-p", "--product"),
+                    DiscoveryProfileUri = options.GetValueOrNull<string>("-r", "--dpuri"),
                     DiscoveryUrls = string.IsNullOrEmpty(discoveryUrl) ? null :
                         new HashSet<string> { discoveryUrl }
                 });
@@ -1278,7 +1273,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task RegisterServerAsync(CliOptions options) {
             IRegistryServiceEvents events = null;
-            var id = options.GetValueOrDefault("-i", "--id", Guid.NewGuid().ToString());
+            var id = options.GetValueOrDefault(Guid.NewGuid().ToString(), "-i", "--id");
             if (options.IsSet("-m", "--monitor")) {
                 events = _client.Events;
                 var tcs = new TaskCompletionSource<bool>();
@@ -1314,7 +1309,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             await _client.Registry.RegisterAsync(
                 new ServerRegistrationRequestModel {
                     Id = id,
-                    DiscoveryUrl = options.GetValue<string>("-u", "--url")
+                    DiscoveryUrl = options.GetValueOrThrow<string>("-u", "--url")
                 });
         }
 
@@ -1359,7 +1354,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             await _client.Registry.DiscoverAsync(
                 new DiscoveryRequestModel {
                     Id = id,
-                    Discovery = options.GetValueOrDefault("-d", "--discovery", DiscoveryMode.Fast),
+                    Discovery = options.GetValueOrNull<DiscoveryMode?>("-d", "--discovery") ?? DiscoveryMode.Fast,
                     Configuration = BuildDiscoveryConfig(options)
                 });
         }
@@ -1370,7 +1365,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         private async Task CancelDiscoveryAsync(CliOptions options) {
             await _client.Registry.CancelAsync(
                 new DiscoveryCancelRequestModel {
-                    Id = options.GetValue<string>("-i", "--id")
+                    Id = options.GetValueOrThrow<string>("-i", "--id")
                 });
         }
 
@@ -1380,10 +1375,10 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         private async Task UpdateApplicationAsync(CliOptions options) {
             await _client.Registry.UpdateApplicationAsync(GetApplicationId(options),
                 new ApplicationRegistrationUpdateModel {
-                    ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
-                    GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
-                    ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
-                    DiscoveryProfileUri = options.GetValueOrDefault<string>("-r", "--dpuri", null)
+                    ApplicationName = options.GetValueOrNull<string>("-n", "--name"),
+                    GatewayServerUri = options.GetValueOrNull<string>("-g", "--gwuri"),
+                    ProductUri = options.GetValueOrNull<string>("-p", "--product"),
+                    DiscoveryProfileUri = options.GetValueOrNull<string>("-r", "--dpuri")
                     // ...
                 });
         }
@@ -1414,13 +1409,13 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
 
             var query = new ApplicationRegistrationQueryModel {
-                ApplicationUri = options.GetValueOrDefault<string>("-u", "--uri", null),
-                ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
-                ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
-                ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
-                GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
-                DiscoveryProfileUri = options.GetValueOrDefault<string>("-r", "--dpuri", null),
-                Locale = options.GetValueOrDefault<string>("-l", "--locale", null)
+                ApplicationUri = options.GetValueOrNull<string>("-u", "--uri"),
+                ApplicationType = options.GetValueOrNull<ApplicationType>("-t", "--type"),
+                ApplicationName = options.GetValueOrNull<string>("-n", "--name"),
+                ProductUri = options.GetValueOrNull<string>("-p", "--product"),
+                GatewayServerUri = options.GetValueOrNull<string>("-g", "--gwuri"),
+                DiscoveryProfileUri = options.GetValueOrNull<string>("-r", "--dpuri"),
+                Locale = options.GetValueOrNull<string>("-l", "--locale")
             };
 
             // Unregister all applications
@@ -1440,7 +1435,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private Task PurgeDisabledApplicationsAsync(CliOptions options) {
             return _client.Registry.PurgeDisabledApplicationsAsync(
-                options.GetValueOrDefault("-f", "--for", TimeSpan.Zero));
+                options.GetValueOrDefault(TimeSpan.Zero, "-f", "--for"));
         }
 
         /// <summary>
@@ -1454,8 +1449,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
             else {
                 var result = await _client.Registry.ListApplicationsAsync(
-                    options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<string>("-C", "--continuation"),
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -1471,8 +1466,8 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
             else {
                 var result = await _client.Registry.ListSitesAsync(
-                    options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<string>("-C", "--continuation"),
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -1482,15 +1477,15 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task QueryApplicationsAsync(CliOptions options) {
             var query = new ApplicationRegistrationQueryModel {
-                ApplicationUri = options.GetValueOrDefault<string>("-u", "--uri", null),
-                ProductUri = options.GetValueOrDefault<string>("-p", "--product", null),
-                GatewayServerUri = options.GetValueOrDefault<string>("-g", "--gwuri", null),
-                DiscoveryProfileUri = options.GetValueOrDefault<string>("-r", "--dpuri", null),
-                ApplicationType = options.GetValueOrDefault<ApplicationType>("-t", "--type", null),
-                ApplicationName = options.GetValueOrDefault<string>("-n", "--name", null),
-                Locale = options.GetValueOrDefault<string>("-l", "--locale", null),
+                ApplicationUri = options.GetValueOrNull<string>("-u", "--uri"),
+                ProductUri = options.GetValueOrNull<string>("-p", "--product"),
+                GatewayServerUri = options.GetValueOrNull<string>("-g", "--gwuri"),
+                DiscoveryProfileUri = options.GetValueOrNull<string>("-r", "--dpuri"),
+                ApplicationType = options.GetValueOrNull<ApplicationType>("-t", "--type"),
+                ApplicationName = options.GetValueOrNull<string>("-n", "--name"),
+                Locale = options.GetValueOrNull<string>("-l", "--locale"),
                 IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted"),
-                DiscovererId = options.GetValueOrDefault<string>("-D", "--discovererId", null)
+                DiscovererId = options.GetValueOrNull<string>("-D", "--discovererId")
             };
             if (options.IsSet("-A", "--all")) {
                 var result = await _client.Registry.QueryAllApplicationsAsync(query);
@@ -1499,7 +1494,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
             else {
                 var result = await _client.Registry.QueryApplicationsAsync(query,
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -1637,9 +1632,9 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             }
             else {
                 var result = await _client.Registry.ListEndpointsAsync(
-                    options.GetValueOrDefault<string>("-C", "--continuation", null),
+                    options.GetValueOrNull<string>("-C", "--continuation"),
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -1649,16 +1644,16 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         /// </summary>
         private async Task QueryEndpointsAsync(CliOptions options) {
             var query = new EndpointRegistrationQueryModel {
-                Url = options.GetValueOrDefault<string>("-u", "--uri", null),
+                Url = options.GetValueOrNull<string>("-u", "--uri"),
                 SecurityMode = options
-                    .GetValueOrDefault<SecurityMode>("-m", "--mode", null),
-                SecurityPolicy = options.GetValueOrDefault<string>("-l", "--policy", null),
-                EndpointState = options.GetValueOrDefault<EndpointConnectivityState>(
+                    .GetValueOrNull<SecurityMode>("-m", "--mode"),
+                SecurityPolicy = options.GetValueOrNull<string>("-l", "--policy"),
+                EndpointState = options.GetValueOrNull<EndpointConnectivityState>(
                     "-s", "--state", null),
                 IncludeNotSeenSince = options.IsProvidedOrNull("-d", "--deleted"),
-                ApplicationId = options.GetValueOrDefault<string>("-R", "--applicationId", null),
-                SiteOrGatewayId = options.GetValueOrDefault<string>("-G", "--siteId", null),
-                DiscovererId = options.GetValueOrDefault<string>("-D", "--discovererId", null)
+                ApplicationId = options.GetValueOrNull<string>("-R", "--applicationId"),
+                SiteOrGatewayId = options.GetValueOrNull<string>("-G", "--siteId"),
+                DiscovererId = options.GetValueOrNull<string>("-D", "--discovererId")
             };
             if (options.IsSet("-A", "--all")) {
                 var result = await _client.Registry.QueryAllEndpointsAsync(query,
@@ -1669,7 +1664,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             else {
                 var result = await _client.Registry.QueryEndpointsAsync(query,
                     options.IsProvidedOrNull("-S", "--server"),
-                    options.GetValueOrDefault<int>("-P", "--page-size", null));
+                    options.GetValueOrNull<int>("-P", "--page-size"));
                 PrintResult(options, result);
             }
         }
@@ -1721,7 +1716,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
         private void PrintResult<T>(CliOptions options, T result) {
             Console.WriteLine("==================");
             Console.WriteLine(_client.Serializer.SerializeToString(result,
-                options.GetValueOrDefault("-F", "--format", SerializeOption.Indented)));
+                options.GetValueOrDefault(SerializeOption.Indented, "-F", "--format")));
             Console.WriteLine("==================");
         }
 
@@ -1867,7 +1862,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
             var config = new DiscoveryConfigModel();
             var empty = true;
 
-            var addressRange = options.GetValueOrDefault<string>("-r", "--address-ranges", null);
+            var addressRange = options.GetValueOrNull<string>("-r", "--address-ranges");
             if (addressRange != null) {
                 if (addressRange == "true") {
                     config.AddressRangesToScan = "";
@@ -1878,7 +1873,7 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 empty = false;
             }
 
-            var portRange = options.GetValueOrDefault<string>("-p", "--port-ranges", null);
+            var portRange = options.GetValueOrNull<string>("-p", "--port-ranges");
             if (portRange != null) {
                 if (portRange == "true") {
                     config.PortRangesToScan = "";
@@ -1889,31 +1884,31 @@ namespace Azure.IIoT.OpcUa.Services.Cli {
                 empty = false;
             }
 
-            var netProbes = options.GetValueOrDefault<int>("-R", "--address-probes", null);
+            var netProbes = options.GetValueOrNull<int?>("-R", "--address-probes");
             if (netProbes != null && netProbes != 0) {
                 config.MaxNetworkProbes = netProbes;
                 empty = false;
             }
 
-            var portProbes = options.GetValueOrDefault<int>("-P", "--port-probes", null);
+            var portProbes = options.GetValueOrNull<int?>("-P", "--port-probes");
             if (portProbes != null && portProbes != 0) {
                 config.MaxPortProbes = portProbes;
                 empty = false;
             }
 
-            var netProbeTimeout = options.GetValueOrDefault<int>("-T", "--address-probe-timeout", null);
+            var netProbeTimeout = options.GetValueOrNull<int?>("-T", "--address-probe-timeout");
             if (netProbeTimeout != null && netProbeTimeout != 0) {
                 config.NetworkProbeTimeout = TimeSpan.FromMilliseconds(netProbeTimeout.Value);
                 empty = false;
             }
 
-            var portProbeTimeout = options.GetValueOrDefault<int>("-t", "--port-probe-timeout", null);
+            var portProbeTimeout = options.GetValueOrNull<int?>("-t", "--port-probe-timeout");
             if (portProbeTimeout != null && portProbeTimeout != 0) {
                 config.PortProbeTimeout = TimeSpan.FromMilliseconds(portProbeTimeout.Value);
                 empty = false;
             }
 
-            var idleTime = options.GetValueOrDefault<int>("-I", "--idle-time", null);
+            var idleTime = options.GetValueOrNull<int?>("-I", "--idle-time");
             if (idleTime != null && idleTime != 0) {
                 config.IdleTimeBetweenScans = TimeSpan.FromSeconds(idleTime.Value);
                 empty = false;

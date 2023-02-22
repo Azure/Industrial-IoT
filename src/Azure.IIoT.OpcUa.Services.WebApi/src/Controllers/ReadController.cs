@@ -17,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Historic access read services
     /// </summary>
-    [ApiVersion("2")][Route("history/v{version:apiVersion}/read")]
+    [ApiVersion("2")]
+    [Route("history/v{version:apiVersion}/read")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
@@ -45,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadRequestModel<ReadEventsDetailsModel> request) {
+            [FromBody][Required] HistoryReadRequestModel<ReadEventsDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -67,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/events/next")]
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadNextRequestModel request) {
+            [FromBody][Required] HistoryReadNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -89,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadRequestModel<ReadValuesDetailsModel> request) {
+            [FromBody][Required] HistoryReadRequestModel<ReadValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -111,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/pick")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request) {
+            [FromBody][Required] HistoryReadRequestModel<ReadValuesAtTimesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -133,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/processed")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request) {
+            [FromBody][Required] HistoryReadRequestModel<ReadProcessedValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -155,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/modified")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request) {
+            [FromBody][Required] HistoryReadRequestModel<ReadModifiedValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -177,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/next")]
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValueNextAsync(
             string endpointId,
-            [FromBody] [Required] HistoryReadNextRequestModel request) {
+            [FromBody][Required] HistoryReadNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }

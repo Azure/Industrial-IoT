@@ -150,9 +150,7 @@ namespace Reference {
         /// <param name="start">The start position.</param>
         /// <returns>The interpolated value.</returns>
         private DataValue Interpolate(DateTime timestamp, LinkedListNode<DataValue> start) {
-            if (start == null) {
-                start = _values.First;
-            }
+            start ??= _values.First;
 
             if (start == null) {
                 return new DataValue(Variant.Null, StatusCodes.BadNoData, timestamp, timestamp);
@@ -292,9 +290,7 @@ namespace Reference {
         /// <param name="timestamp">The timestamp to search.</param>
         /// <returns>The first good value that follows the timestamp.</returns>
         private LinkedListNode<DataValue> FindLateBound(LinkedListNode<DataValue> start, DateTime timestamp) {
-            if (start == null) {
-                start = _values.First;
-            }
+            start ??= _values.First;
 
             if (start == null) {
                 return null;

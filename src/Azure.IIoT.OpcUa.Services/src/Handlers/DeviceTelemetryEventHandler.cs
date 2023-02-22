@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Handlers {
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;

@@ -5,7 +5,7 @@
 
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
-    using Serilog;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Logger provider

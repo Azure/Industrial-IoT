@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders {
-    using Opc.Ua;
-    using Opc.Ua.Extensions;
+    using Azure.IIoT.OpcUa.Encoders.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -15,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     using System.Linq;
     using System.Text;
     using System.Xml;
-    using Azure.IIoT.OpcUa.Encoders.Models;
 
     /// <summary>
     /// Writes objects to a json
@@ -1524,8 +1524,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     case BuiltInType.DataValue: { WriteDataValueArray(fieldName, (DataValue[])array); return; }
                     case BuiltInType.DiagnosticInfo: { WriteDiagnosticInfoArray(fieldName, (DiagnosticInfo[])array); return; }
                     case BuiltInType.Enumeration: {
-                            var enumArray = array as Array;
-                            if (enumArray == null) {
+                            if (array is not Array enumArray) {
                                 throw ServiceResultException.Create(
                                     StatusCodes.BadEncodingError,
                                     "Unexpected non Array type encountered while encoding an array of enumeration.");
@@ -1535,16 +1534,13 @@ namespace Azure.IIoT.OpcUa.Encoders {
                         }
 
                     case BuiltInType.Variant: {
-                            var variants = array as Variant[];
-
-                            if (variants != null) {
+                            if (array is Variant[] variants) {
                                 WriteVariantArray(fieldName, variants);
                                 return;
                             }
 
-                            var objects = array as object[];
 
-                            if (objects != null) {
+                            if (array is object[] objects) {
                                 WriteObjectArray(fieldName, objects);
                                 return;
                             }
@@ -1558,8 +1554,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             }
             // write matrix.
             else if (valueRank > ValueRanks.OneDimension) {
-                var matrix = array as Matrix;
-                if (matrix != null) {
+                if (array is Matrix matrix) {
                     var index = 0;
                     WriteStructureMatrix(fieldName, matrix, 0, ref index, matrix.TypeInfo);
 

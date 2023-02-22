@@ -9,10 +9,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
         /// <returns></returns>
         public IEnumerable<PublishedNodesEntryModel> Read(string publishedNodesContent) {
             var sw = Stopwatch.StartNew();
-            _logger.Debug("Reading and validating published nodes file...");
+            _logger.LogDebug("Reading and validating published nodes file...");
             try {
                 var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(
                     publishedNodesContent);
@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                     throw new SerializerException("Published nodes files, malformed.");
                 }
 
-                _logger.Information(
+                _logger.LogInformation(
                     "Read {count} entry models from published nodes file in {elapsed}",
                     items.Count, sw.Elapsed);
                 return items;
@@ -195,10 +195,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                     });
             }
             catch (Exception ex) {
-                _logger.Error(ex, "failed to convert the published nodes.");
+                _logger.LogError(ex, "failed to convert the published nodes.");
             }
             finally {
-                _logger.Information("Converted published nodes entry models to jobs in {elapsed}",
+                _logger.LogInformation("Converted published nodes entry models to jobs in {elapsed}",
                     sw.Elapsed);
                 sw.Stop();
             }
@@ -243,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                         .Batch(configuration.MaxNodesPerPublishedEndpoint))
                     .ToList()
                     .Select(
-                        opcNodes => (Header: opcNodes.First().Header, Source: new PublishedDataSetSourceModel {
+                        opcNodes => (opcNodes.First().Header, Source: new PublishedDataSetSourceModel {
                             Connection = new ConnectionModel {
                                 Endpoint = group.Key.Endpoint.Clone(),
                                 User = group.Key.User.Clone(),
@@ -299,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                 ).ToList();
 
                 if (!flattenedEndpoints.Any()) {
-                    _logger.Information("No OpcNodes after job conversion.");
+                    _logger.LogInformation("No OpcNodes after job conversion.");
                     return Enumerable.Empty<WriterGroupJobModel>();
                 }
 
@@ -371,9 +371,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                             .SelectMany(g => g.WriterGroup.DataSetWriters)
                             .ToList();
                         foreach (var dataSetWriter in writers) {
-                            int count = dataSetWriter.DataSet?.DataSetSource?
+                            var count = dataSetWriter.DataSet?.DataSetSource?
                                 .PublishedVariables?.PublishedData?.Count ?? 0;
-                            _logger.Debug("writerId: {writer} nodes: {count}",
+                            _logger.LogDebug("writerId: {writer} nodes: {count}",
                                 dataSetWriter.DataSetWriterName, count);
                         }
                         var top = group.First();
@@ -382,11 +382,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage {
                     });
             }
             catch (Exception ex) {
-                _logger.Error(ex, "failed to convert the published nodes.");
+                _logger.LogError(ex, "failed to convert the published nodes.");
                 return Enumerable.Empty<WriterGroupJobModel>();
             }
             finally {
-                _logger.Information("Converted published nodes entry models to jobs in {elapsed}",
+                _logger.LogInformation("Converted published nodes entry models to jobs in {elapsed}",
                     sw.Elapsed);
                 sw.Stop();
             }

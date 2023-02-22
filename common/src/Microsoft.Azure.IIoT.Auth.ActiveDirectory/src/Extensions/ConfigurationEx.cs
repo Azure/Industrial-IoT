@@ -4,13 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Extensions.Configuration {
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Primitives;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Auth.KeyVault;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
-    using Serilog;
+    using Furly.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -154,11 +155,9 @@ namespace Microsoft.Extensions.Configuration {
                     // Save singleton creation
                     if (_singleton == null) {
                         lock (kLock) {
-                            if (_singleton == null) {
-                                // Create instance
-                                _singleton = CreateInstanceAsync(configuration, false,
-                                    keyVaultUrlVarName, false);
-                            }
+                            // Create instance
+                            _singleton ??= CreateInstanceAsync(configuration, false,
+                                keyVaultUrlVarName, false);
                         }
                     }
                     return await _singleton;
@@ -179,13 +178,14 @@ namespace Microsoft.Extensions.Configuration {
             private static async Task<KeyVaultConfigurationProvider> CreateInstanceAsync(
                 IConfigurationRoot configuration, bool allowInteractiveLogon, string keyVaultUrlVarName,
                 bool lazyLoad) {
+                var logger = Log.Console<KeyVaultConfigurationProvider>();
                 var vaultUri = configuration.GetValue<string>(keyVaultUrlVarName, null);
                 if (string.IsNullOrEmpty(vaultUri)) {
-                    Log.Logger.Debug("No keyvault uri found in configuration under {key}. ",
+                    logger.LogDebug("No keyvault uri found in configuration under {key}. ",
                         keyVaultUrlVarName);
                     vaultUri = Environment.GetEnvironmentVariable(keyVaultUrlVarName);
                     if (string.IsNullOrEmpty(vaultUri)) {
-                        Log.Logger.Debug("No keyvault uri found in environment under {key}. " +
+                        logger.LogDebug("No keyvault uri found in environment under {key}. " +
                             "Not reading configuration from keyvault without keyvault uri.",
                             keyVaultUrlVarName);
                         return null;
@@ -211,10 +211,10 @@ namespace Microsoft.Extensions.Configuration {
                             break;
                         }
                         // try again...
-                        catch (TaskCanceledException) {}
-                        catch (SocketException) {}
+                        catch (TaskCanceledException) { }
+                        catch (SocketException) { }
                         await Task.Delay(TimeSpan.FromSeconds(1));
-                        Log.Logger.Information(
+                        logger.LogInformation(
                             "Failed loading secrets due to timeout or network - try again ...");
                     }
                 }
@@ -257,7 +257,7 @@ namespace Microsoft.Extensions.Configuration {
                     if (secretPage.NextPageLink == null) {
                         break;
                     }
-                    secretPage =  await _keyVault.Client.GetSecretsNextAsync(
+                    secretPage = await _keyVault.Client.GetSecretsNextAsync(
                         secretPage.NextPageLink).ConfigureAwait(false);
                     allSecrets.AddRange(secretPage.ToList());
                 }

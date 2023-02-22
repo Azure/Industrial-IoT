@@ -3,19 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Module.Framework.Client {
-    using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
+using Microsoft.Azure.IIoT.Module.Framework;
+using Microsoft.Azure.IIoT.Module.Framework.Client;
+
+namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default {
     using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Transport.Mqtt;
-    using Serilog;
-    using Serilog.Events;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.Tracing;
     using System.IO;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     /// <summary>
     /// Injectable factory that creates clients
     /// </summary>
-    public sealed class IoTSdkFactory : IClientFactory, IDisposable {
+    public sealed class IoTSdkFactory : IClientFactory {
 
         /// <inheritdoc />
         public string DeviceId { get; }
@@ -42,15 +42,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Create sdk factory
         /// </summary>
         /// <param name="config"></param>
-        /// <param name="broker"></param>
         /// <param name="logger"></param>
-        public IoTSdkFactory(IModuleConfig config, IEventSourceBroker broker, ILogger logger) {
+        public IoTSdkFactory(IModuleConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _telemetryTopicTemplate = config.TelemetryTopicTemplate;
-
-            if (broker != null) {
-                _logHook = broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
-            }
 
             // The runtime injects this as an environment variable
             var deviceId = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID);
@@ -100,14 +95,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                         _deviceClientCs = IotHubConnectionStringBuilder.Create(
                             config.EdgeHubConnectionString + ";GatewayHostName=" + ehubHost);
 
-                        _logger.Information($"Details of gateway host are added to IoT Hub connection string: " +
+                        _logger.LogInformation($"Details of gateway host are added to IoT Hub connection string: " +
                             $"GatewayHostName={ehubHost}");
                     }
                     _timeout = TimeSpan.FromMinutes(5);
                 }
             }
             catch (Exception e) {
-                _logger.Error(e, "Bad configuration value in EdgeHubConnectionString config.");
+                _logger.LogError(e, "Bad configuration value in EdgeHubConnectionString config.");
             }
 
             ModuleId = moduleId;
@@ -121,7 +116,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     "You can run the module using the command line interface or in IoT Edge context, or " +
                     "manually set the 'EdgeHubConnectionString' environment variable.");
 
-                _logger.Error(ex, "The sdk factory was not configured correctly. Device Id is missing.");
+                _logger.LogError(ex, "The sdk factory was not configured correctly. Device Id is missing.");
                 throw ex;
             }
 
@@ -149,7 +144,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 else {
                     _transport = TransportOption.AmqpOverTcp;
                 }
-                _logger.Information("Connecting all clients to {edgeHub} using {transport}.",
+                _logger.LogInformation("Connecting all clients to {edgeHub} using {transport}.",
                     ehubHost, _transport);
             }
             else {
@@ -158,19 +153,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
-            _logHook?.Dispose();
-        }
-
-
-        /// <inheritdoc/>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5359:Do Not Disable Certificate Validation",
             Justification = "<Pending>")]
         public async Task<IClient> CreateAsync(string product,
             IMetricsContext metrics, IProcessControl ctrl) {
 
             if (_bypassCertValidation) {
-                _logger.Warning("Bypassing certificate validation for client.");
+                _logger.LogWarning("Bypassing certificate validation for client.");
             }
 
             // Configure transport settings
@@ -213,12 +202,25 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 transportSettings.Add(setting);
             }
             if (transportSettings.Count != 0) {
-                return await Try.Options(transportSettings
+                return await TryAll(transportSettings
                     .Select<ITransportSettings, Func<Task<IClient>>>(t =>
                          () => CreateAdapterAsync(product, () => ctrl?.Reset(), metrics, t))
                     .ToArray());
             }
             return await CreateAdapterAsync(product, () => ctrl?.Reset(), metrics);
+
+            static async Task<T> TryAll<T>(params Func<Task<T>>[] options) {
+                var exceptions = new List<Exception>();
+                foreach (var option in options) {
+                    try {
+                        return await option();
+                    }
+                    catch (Exception ex) {
+                        exceptions.Add(ex);
+                    }
+                }
+                throw new AggregateException(exceptions);
+            }
         }
 
         /// <summary>
@@ -257,7 +259,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private void InstallCert(string certPath) {
             if (!File.Exists(certPath)) {
                 // We cannot proceed further without a proper cert file
-                _logger.Error("Missing certificate file: {certPath}", certPath);
+                _logger.LogError("Missing certificate file: {certPath}", certPath);
                 throw new InvalidOperationException("Missing certificate file.");
             }
 
@@ -266,36 +268,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             using (var cert = new X509Certificate2(X509Certificate.CreateFromCertFile(certPath))) {
                 store.Add(cert);
             }
-            _logger.Information("Added Cert: {certPath}", certPath);
+            _logger.LogInformation("Added Cert: {certPath}", certPath);
             store.Close();
-        }
-
-        /// <summary>
-        /// Sdk logger event source hook
-        /// </summary>
-        internal sealed class IoTSdkLogger : EventSourceSerilogSink {
-
-            /// <inheritdoc/>
-            public IoTSdkLogger(ILogger logger) :
-                base(logger.ForContext("SourceContext", EventSource.Replace('-', '.'))) {
-            }
-
-            /// <inheritdoc/>
-            public override void OnEvent(EventWrittenEventArgs eventData) {
-                switch (eventData.EventName) {
-                    case "Enter":
-                    case "Exit":
-                    case "Associate":
-                        WriteEvent(LogEventLevel.Verbose, eventData);
-                        break;
-                    default:
-                        WriteEvent(LogEventLevel.Debug, eventData);
-                        break;
-                }
-            }
-
-            // ddbee999-a79e-5050-ea3c-6d1a8a7bafdd
-            public const string EventSource = "Microsoft-Azure-Devices-Device-Client";
         }
 
         private readonly TimeSpan _timeout;
@@ -304,7 +278,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         private readonly MqttClientConnectionStringBuilder _mqttClientCs;
         private readonly ILogger _logger;
         private readonly string _telemetryTopicTemplate;
-        private readonly IDisposable _logHook;
         private readonly bool _bypassCertValidation;
         private readonly bool _enableOutputRouting;
     }

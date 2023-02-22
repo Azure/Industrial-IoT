@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using global::Azure.IIoT.OpcUa.Services.Sdk;
     using global::Azure.IIoT.OpcUa.Shared.Models;
-    using Serilog;
     using System;
     using System.Threading.Tasks;
 
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 var message = $"Cannot get published nodes for endpointId'{endpointId}'";
-                _logger.Error(e, message);
+                _logger.LogError(e, message);
                 pageResult.Error = message;
             }
             pageResult.PageSize = _commonHelper.PageLength;
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return resultModel.ErrorInfo == null;
             }
             catch (Exception e) {
-                _logger.Error(e, "Cannot publish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
+                _logger.LogError(e, "Cannot publish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
             }
             return false;
         }
@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return resultModel.ErrorInfo == null;
             }
             catch (Exception e) {
-                _logger.Error(e, "Cannot unpublish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
+                _logger.LogError(e, "Cannot unpublish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
             }
             return false;
         }

@@ -4,11 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Clients {
-    using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading;
     using System.Threading.Tasks;

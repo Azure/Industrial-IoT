@@ -6,7 +6,7 @@
 namespace Microsoft.Extensions.DependencyInjection {
     using Microsoft.Extensions.Options;
     using Microsoft.AspNetCore.SignalR;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
     using MessagePack.Resolvers;
     using Newtonsoft.Json;
     using System;
@@ -33,7 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection {
             // Configure json serializer settings transiently to pick up all converters
             builder.Services.AddTransient<IConfigureOptions<NewtonsoftJsonHubProtocolOptions>>(services =>
                 new ConfigureNamedOptions<NewtonsoftJsonHubProtocolOptions>(Options.DefaultName, options => {
-                    var provider = services.GetService<IJsonSerializerSettingsProvider>();
+                    var provider = services.GetService<INewtonsoftSerializerSettingsProvider>();
                     var settings = provider?.Settings;
                     if (settings == null) {
                         return;

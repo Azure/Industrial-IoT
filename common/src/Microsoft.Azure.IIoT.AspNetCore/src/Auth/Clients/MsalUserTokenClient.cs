@@ -10,8 +10,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Identity.Client;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.IdentityModel.Tokens.Jwt;
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     var result = await AcquireTokenSilentAsync(decorator.Client,
                         _ctx.HttpContext.User, GetScopes(config, scopes), config.TenantId);
                     if (result != null) {
-                        _logger.Debug(
+                        _logger.LogDebug(
                             "Successfully acquired token {resource} with {config}.",
                             resource, config.GetName());
                         return result.ToTokenResult();
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     // Expected if not in cache - continue down
                 }
                 catch (Exception e) {
-                    _logger.Debug(e, "Failed to get token silently for {resource} with {config}.",
+                    _logger.LogDebug(e, "Failed to get token silently for {resource} with {config}.",
                         resource, config.GetName());
                     exceptions.Add(e);
                     continue;
@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     try {
                         var result = await decorator.Client.AcquireTokenOnBehalfOf(
                             GetScopes(config, scopes), new UserAssertion(accessToken)).ExecuteAsync();
-                        _logger.Information(
+                        _logger.LogInformation(
                             "Successfully acquired on behalf token for {resource} with {config}.",
                                 resource, config.GetName());
                         return result.ToTokenResult();
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     }
                 }
                 else {
-                    _logger.Debug("Could not find token for {resource} with {config} in http context.",
+                    _logger.LogDebug("Could not find token for {resource} with {config} in http context.",
                         resource, config.GetName());
                 }
             }
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     }
                 }
                 catch (Exception e) {
-                    _logger.Error(e, "Failed to get token for code with {config}.",
+                    _logger.LogError(e, "Failed to get token for code with {config}.",
                          config.GetName());
                 }
             }
@@ -303,7 +303,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             builder = builder
                 .WithClientSecret(config.ClientSecret)
                 .WithTenantId(config.TenantId)
-              //  .WithHttpClientFactory(...)
+                //  .WithHttpClientFactory(...)
                 .WithAuthority($"{config.GetAuthorityUrl()}/")
                 ;
             return new MsalConfidentialClientDecorator(builder.Build(), _cache, config.ClientId,
@@ -311,7 +311,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         }
 
         /// <summary> Scopes requested internally already </summary>
-        public static readonly string[] ScopesRequestedByMsal = new [] {
+        public static readonly string[] ScopesRequestedByMsal = new[] {
             "openid", "profile", "offline_acccess"
         };
 

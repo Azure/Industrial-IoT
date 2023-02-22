@@ -58,9 +58,7 @@ namespace HistoricalEvents {
             _configuration = configuration.ParseExtension<HistoricalEventsServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null) {
-                _configuration = new HistoricalEventsServerConfiguration();
-            }
+            _configuration ??= new HistoricalEventsServerConfiguration();
 
             // initilize the report generator.
             _generator = new ReportGenerator();

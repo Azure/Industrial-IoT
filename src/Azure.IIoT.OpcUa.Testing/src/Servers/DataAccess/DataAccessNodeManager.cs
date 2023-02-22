@@ -51,9 +51,7 @@ namespace DataAccess {
             _configuration = configuration.ParseExtension<DataAccessServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null) {
-                _configuration = new DataAccessServerConfiguration();
-            }
+            _configuration ??= new DataAccessServerConfiguration();
 
             // create the table to store the cached blocks.
             _blocks = new Dictionary<NodeId, BlockState>();

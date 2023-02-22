@@ -17,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Call node method services
     /// </summary>
-    [ApiVersion("2")][Route("twin/v{version:apiVersion}/call")]
+    [ApiVersion("2")]
+    [Route("twin/v{version:apiVersion}/call")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
@@ -44,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The method metadata response</returns>
         [HttpPost("{endpointId}/metadata")]
         public async Task<MethodMetadataResponseModel> GetCallMetadataAsync(
-            string endpointId, [FromBody] [Required] MethodMetadataRequestModel request) {
+            string endpointId, [FromBody][Required] MethodMetadataRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -65,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The method call response</returns>
         [HttpPost("{endpointId}")]
         public async Task<MethodCallResponseModel> CallMethodAsync(
-            string endpointId, [FromBody] [Required] MethodCallRequestModel request) {
+            string endpointId, [FromBody][Required] MethodCallRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }

@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Furly.Extensions.Logging;
     using Microsoft.Azure.IIoT.Messaging;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
                         AttributeId = k
                     };
                     if (eventList) {
-                        var handle = new OpcUaMonitoredItem(new EventMonitoredItemModel(), ConsoleLogger.Create());
+                        var handle = new OpcUaMonitoredItem(new EventMonitoredItemModel(), Log.Console<OpcUaMonitoredItem>());
                         handle.Fields.Add(("1", default));
                         handle.Fields.Add(("2", default));
                         handle.Fields.Add(("3", default));

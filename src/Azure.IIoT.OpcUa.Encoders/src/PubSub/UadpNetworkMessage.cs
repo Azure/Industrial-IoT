@@ -4,12 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub {
-    using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa;
-    using Opc.Ua;
     using Microsoft.Azure.IIoT;
     using Microsoft.IO;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -420,7 +418,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver resolver) {
             var messages = new List<byte[]>();
-            bool isChunkMessage = false;
+            var isChunkMessage = false;
             var remainingChunks = EncodePayloadChunks(context, resolver).AsSpan();
 
             // Write one message even if it does not contain anything (heartbeat)
@@ -929,7 +927,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 + 4  // ByteString Length
                 ;
 
-            int payloadOffset = encoder.Position;
+            var payloadOffset = encoder.Position;
             var available = maxMessageSize - payloadOffset
                     - SecurityFooterSize - (Signature?.Length ?? 0) - kChunkHeaderSize;
             if (available < 0) {

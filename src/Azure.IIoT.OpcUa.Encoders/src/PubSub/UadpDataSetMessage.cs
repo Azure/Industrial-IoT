@@ -4,9 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub {
-    using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa;
     using Opc.Ua;
     using System;
     using System.Diagnostics;
@@ -473,7 +470,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         /// <returns></returns>
         private void ReadPayloadDeltaFrame(BinaryDecoder binaryDecoder, DataSetMetaDataType metadata) {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
-            ushort fieldCount = binaryDecoder.ReadUInt16(null);
+            var fieldCount = binaryDecoder.ReadUInt16(null);
 
             for (var i = 0; i < fieldCount; i++) {
                 var fieldIndex = binaryDecoder.ReadUInt16(null);
@@ -596,7 +593,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
             if (builtInType == BuiltInType.Null) {
                 return;
             }
-            object valueToEncode = variant.Value;
+            var valueToEncode = variant.Value;
             if (valueRank == ValueRanks.Scalar) {
                 switch (builtInType) {
                     case BuiltInType.Boolean:

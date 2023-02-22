@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.AspNetCore.Components.Authorization;
     using Microsoft.AspNetCore.Components.Server;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <inheritdoc/>
         public void Dispose() {
             _cts?.Cancel();
-            _logger.Debug("Token revalidation loop exit.");
+            _logger.LogDebug("Token revalidation loop exit.");
         }
 
         /// <inheritdoc/>
@@ -117,13 +117,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             CancellationToken ct) {
             try {
                 var authenticationState = await authenticationStateTask;
-                _logger.Debug("Starting token revalidation loop");
+                _logger.LogDebug("Starting token revalidation loop");
                 if (authenticationState.User.Identity.IsAuthenticated) {
                     while (!ct.IsCancellationRequested) {
                         bool isValid;
                         try {
                             await Task.Delay(_config?.RevalidateInterval ?? TimeSpan.FromSeconds(10), ct);
-                            _logger.Debug("Testing token still valid...");
+                            _logger.LogDebug("Testing token still valid...");
                             isValid = await ValidateAuthenticationStateAsync(authenticationState, ct);
                         }
                         catch (TaskCanceledException tce) {
@@ -135,14 +135,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                             throw;
                         }
                         if (!isValid) {
-                            _logger.Information("Token invalid - signing out...");
+                            _logger.LogInformation("Token invalid - signing out...");
                             ForceSignOut();
                             break;
                         }
                     }
                 }
             }
-            catch  {
+            catch {
                 ForceSignOut();
             }
         }

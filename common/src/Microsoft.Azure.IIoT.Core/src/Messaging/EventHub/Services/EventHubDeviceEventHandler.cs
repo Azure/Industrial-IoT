@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Utils;
+    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -53,8 +53,7 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
             }
         }
 
-        private readonly ConcurrentQueue<IDeviceTelemetryHandler> _used =
-            new();
+        private readonly ConcurrentQueue<IDeviceTelemetryHandler> _used = new();
         private readonly ConcurrentDictionary<string, IDeviceTelemetryHandler> _handlers;
     }
 }

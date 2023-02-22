@@ -4,18 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Exceptions;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Exceptions;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
-    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 if (!_clients.TryGetValue(id, out var client)) {
                     client = CreateClient(id, metrics ?? _metrics);
                     _clients.AddOrUpdate(id, client);
-                    _logger.Information(
+                    _logger.LogInformation(
                         "New session {Name} added, current number of sessions is {Count}.",
                         id, _clients.Count);
                 }
@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     await client.ConnectAsync(false, ct);
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Failed to connect session {Name}. " +
+                    _logger.LogError(ex, "Failed to connect session {Name}. " +
                         "Continue with unconnected session.", id);
                 }
                 return client;
@@ -145,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     return await client.GetComplexTypeSystemAsync();
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Failed to get complex type system from session.");
+                    _logger.LogError(ex, "Failed to get complex type system from session.");
                 }
             }
             return null;
@@ -163,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             var certificate = chain.First();
             try {
-                _logger.Information("Adding Certificate {Thumbprint}, " +
+                _logger.LogInformation("Adding Certificate {Thumbprint}, " +
                     "{Subject} to trust list...", certificate.Thumbprint,
                     certificate.Subject);
                 configuration.SecurityConfiguration.TrustedPeerCertificates
@@ -176,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 return;
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to add Certificate {Thumbprint}, " +
+                _logger.LogError(ex, "Failed to add Certificate {Thumbprint}, " +
                     "{Subject} to trust list.", certificate.Thumbprint,
                     certificate.Subject);
                 throw;
@@ -198,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             var certificate = chain.First();
             try {
-                _logger.Information("Removing Certificate {Thumbprint}, " +
+                _logger.LogInformation("Removing Certificate {Thumbprint}, " +
                     "{Subject} from trust list...", certificate.Thumbprint,
                     certificate.Subject);
                 configuration.SecurityConfiguration.TrustedPeerCertificates
@@ -208,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 return;
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to remove Certificate {Thumbprint}, " +
+                _logger.LogError(ex, "Failed to remove Certificate {Thumbprint}, " +
                     "{Subject} from trust list.", certificate.Thumbprint,
                     certificate.Subject);
                 throw;
@@ -232,16 +232,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             _disposed = true;
             try {
-                _logger.Information("Stopping client manager process ...");
+                _logger.LogInformation("Stopping client manager process ...");
                 _cts.Cancel();
                 await _processor;
             }
             finally {
-                _logger.Debug("Client manager process stopped.");
+                _logger.LogDebug("Client manager process stopped.");
                 _cts.Dispose();
             }
 
-            _logger.Information("Stopping all client sessions...");
+            _logger.LogInformation("Stopping all client sessions...");
             await _lock.WaitAsync();
             try {
                 foreach (var client in _clients) {
@@ -250,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     }
                     catch (OperationCanceledException) { }
                     catch (Exception ex) {
-                        _logger.Error(ex, "Unexpected exception disposing session {Name}",
+                        _logger.LogError(ex, "Unexpected exception disposing session {Name}",
                             client.Key);
                     }
                 }
@@ -259,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             finally {
                 _lock.Release();
                 _lock.Dispose();
-                _logger.Information(
+                _logger.LogInformation(
                     "Stopped all sessions, current number of sessions is 0");
             }
         }
@@ -293,13 +293,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <returns></returns>
         private async Task RunClientManagerAsync(TimeSpan period, CancellationToken ct) {
             var timer = new PeriodicTimer(period);
-            _logger.Debug("Client manager starting...");
+            _logger.LogDebug("Client manager starting...");
             while (ct.IsCancellationRequested) {
                 if (!await timer.WaitForNextTickAsync(ct)) {
                     break;
                 }
 
-                _logger.Debug("Running client manager connection and garbage collection cycle...");
+                _logger.LogDebug("Running client manager connection and garbage collection cycle...");
                 var inactive = new Dictionary<ConnectionIdentifier, OpcUaClient>();
                 await _lock.WaitAsync(ct);
                 try {
@@ -315,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                                     await connect;
                                 }
                                 catch (Exception ex) {
-                                    _logger.Debug(ex,
+                                    _logger.LogDebug(ex,
                                         "Client manager failed to re-connect session {Name}.",
                                         client.Key);
                                 }
@@ -336,7 +336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     break;
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Client manager encountered unexpected error.");
+                    _logger.LogError(ex, "Client manager encountered unexpected error.");
                 }
                 finally {
                     _lock.Release();
@@ -347,14 +347,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     foreach (var client in inactive.Values) {
                         await client.DisposeAsync();
                     }
-                    _logger.Information(
+                    _logger.LogInformation(
                         "Garbage collected {Sessions} sessions" +
                         ", current number of sessions is {Count}.",
                         inactive.Count, _clients.Count);
                     inactive.Clear();
                 }
             }
-            _logger.Debug("Client manager exiting...");
+            _logger.LogDebug("Client manager exiting...");
         }
 
         // Validate certificates
@@ -365,7 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             var configuration = _configuration.Result;
             if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
                 if (configuration.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
-                    _logger.Warning("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+                    _logger.LogWarning("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
                         "due to AutoAccept(UntrustedCertificates) set!",
                         e.Certificate.Thumbprint, e.Certificate.Subject);
                     e.Accept = true;
@@ -378,7 +378,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate)) {
                         e.Accept = true;
 
-                        _logger.Information("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+                        _logger.LogInformation("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
                             "since it was specified in the endpoint!",
                             e.Certificate.Thumbprint, e.Certificate.Subject);
 
@@ -397,14 +397,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                             }
                         }
                         catch (Exception ex) {
-                            _logger.Warning(ex, "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
+                            _logger.LogWarning(ex, "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
                                 "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
                         }
                     }
                 }
             }
             if (!e.Accept) {
-                _logger.Information("Rejecting peer certificate {Thumbprint}, '{Subject}' " +
+                _logger.LogInformation("Rejecting peer certificate {Thumbprint}, '{Subject}' " +
                     "because of {Status}.", e.Certificate.Thumbprint, e.Certificate.Subject,
                     e.Error.StatusCode);
             }
@@ -438,7 +438,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 var nextServer = queue.Dequeue();
                 discoveryUrl = nextServer.Item1;
                 var sw = Stopwatch.StartNew();
-                _logger.Debug("Try finding endpoints at {discoveryUrl}...", discoveryUrl);
+                _logger.LogDebug("Try finding endpoints at {discoveryUrl}...", discoveryUrl);
                 try {
                     await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
                             localeIds, nextServer.Item2, 20000, visitedUris,
@@ -447,15 +447,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         kMaxDiscoveryAttempts - 1).ConfigureAwait(false);
                 }
                 catch (Exception ex) {
-                    _logger.Debug(ex, "Exception occurred duringing FindEndpoints at {discoveryUrl}.",
+                    _logger.LogDebug(ex, "Exception occurred duringing FindEndpoints at {discoveryUrl}.",
                         discoveryUrl);
-                    _logger.Error("Could not find endpoints at {discoveryUrl} " +
+                    _logger.LogError("Could not find endpoints at {discoveryUrl} " +
                         "due to {error} (after {elapsed}).",
                         discoveryUrl, ex.Message, sw.Elapsed);
                     return new HashSet<DiscoveredEndpointModel>();
                 }
                 ct.ThrowIfCancellationRequested();
-                _logger.Debug("Finding endpoints at {discoveryUrl} completed in {elapsed}.",
+                _logger.LogDebug("Finding endpoints at {discoveryUrl} completed in {elapsed}.",
                     discoveryUrl, sw.Elapsed);
             }
             return results;
@@ -479,10 +479,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 // Match to provided endpoint info
                 var ep = endpoints.Endpoints?.FirstOrDefault(e => e.IsSameAs(endpoint));
                 if (ep == null) {
-                    _logger.Debug("No endpoints at {discoveryUrl}...", discoveryUrl);
+                    _logger.LogDebug("No endpoints at {discoveryUrl}...", discoveryUrl);
                     throw new ResourceNotFoundException("Endpoint not found");
                 }
-                _logger.Debug("Found endpoint at {discoveryUrl}...", discoveryUrl);
+                _logger.LogDebug("Found endpoint at {discoveryUrl}...", discoveryUrl);
                 return ep.ServerCertificate.ToCertificateChain();
             }
         }
@@ -528,10 +528,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 var endpoints = await client.GetEndpointsAsync(null,
                     client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
                 if (!(endpoints?.Endpoints?.Any() ?? false)) {
-                    _logger.Debug("No endpoints at {discoveryUrl}...", discoveryUrl);
+                    _logger.LogDebug("No endpoints at {discoveryUrl}...", discoveryUrl);
                     return;
                 }
-                _logger.Debug("Found endpoints at {discoveryUrl}...", discoveryUrl);
+                _logger.LogDebug("Found endpoints at {discoveryUrl}...", discoveryUrl);
 
                 foreach (var ep in endpoints.Endpoints.Where(ep =>
                     ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer)) {
@@ -563,7 +563,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 }
                 catch {
                     // Old lds, just continue...
-                    _logger.Debug("{discoveryUrl} does not support ME extension...",
+                    _logger.LogDebug("{discoveryUrl} does not support ME extension...",
                         discoveryUrl);
                 }
 

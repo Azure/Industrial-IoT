@@ -9,11 +9,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.IdentityModel.Protocols.OpenIdConnect;
     using global::IdentityModel;
     using global::IdentityModel.Client;
-    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            Http = new HttpClientFactory(logger.ForContext<HttpClientFactory>());
+            Http = new HttpClientFactory(logger); // TODO: Use logger factory here
         }
 
         /// <inheritdoc/>
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             }
 
             if (!user.Identity.IsAuthenticated) {
-                _logger.Debug("User is not authenticated.");
+                _logger.LogDebug("User is not authenticated.");
                 return null;
             }
             var userName = user.FindFirst(JwtClaimTypes.Name)?.Value ??
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
             var (accessToken, expiration, refreshToken) = await GetTokenFromCacheAsync();
             if (refreshToken == null) {
-                _logger.Debug("No token data found in user token store.");
+                _logger.LogDebug("No token data found in user token store.");
                 return null;
             }
 
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             var exceptions = new List<Exception>();
             foreach (var config in _config.Query(resource, AuthProvider.AuthService)) {
                 try {
-                    _logger.Debug("Token for user {user} needs refreshing.", userName);
+                    _logger.LogDebug("Token for user {user} needs refreshing.", userName);
                     try {
                         accessToken = await kRequests.GetOrAdd(refreshToken, t => {
                             return new Lazy<Task<string>>(async () => {
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                         }).Value;
                         var token = JwtSecurityTokenEx.Parse(accessToken);
                         token.Cached = true;
-                        _logger.Information(
+                        _logger.LogInformation(
                             "Successfully refreshed token for {resource} with {config}.",
                             resource, config.GetName());
                         return token;
@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     }
                 }
                 catch (Exception e) {
-                    _logger.Debug(e, "Failed to get token for {resource} with {config}.",
+                    _logger.LogDebug(e, "Failed to get token for {resource} with {config}.",
                         resource, config.GetName());
                     exceptions.Add(e);
                     continue;
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     response.RefreshToken);
             }
             else {
-                _logger.Error("Error refreshing access token. Error = {error}",
+                _logger.LogError("Error refreshing access token. Error = {error}",
                     response.Error);
             }
             return response;
@@ -174,7 +174,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             var client = Http.CreateClient("token_client");
             var configuration = await GetOpenIdConfigurationAsync(config.Provider);
             if (configuration == null) {
-                _logger.Information(
+                _logger.LogInformation(
                     "Failed to revoke token for scheme {schemeName}", config.Provider);
                 return;
             }
@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 TokenTypeHint = OidcConstants.TokenTypes.RefreshToken
             });
             if (response.IsError) {
-                _logger.Error("Error revoking refresh token. Error = {error}",
+                _logger.LogError("Error revoking refresh token. Error = {error}",
                     response.Error);
             }
         }
@@ -208,7 +208,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 return await options.ConfigurationManager.GetConfigurationAsync(default);
             }
             catch (Exception e) {
-                _logger.Debug(e,
+                _logger.LogDebug(e,
                     "Unable to load OpenID configuration for scheme {schemeName}", schemeName);
                 return null;
             }

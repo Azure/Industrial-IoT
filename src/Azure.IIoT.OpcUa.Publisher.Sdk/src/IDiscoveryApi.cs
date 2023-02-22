@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Sdk {
     using Azure.IIoT.OpcUa.Shared.Models;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Discovery api

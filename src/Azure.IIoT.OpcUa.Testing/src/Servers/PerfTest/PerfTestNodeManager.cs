@@ -50,9 +50,7 @@ namespace PerfTest {
             _configuration = configuration.ParseExtension<PerfTestServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null) {
-                _configuration = new PerfTestServerConfiguration();
-            }
+            _configuration ??= new PerfTestServerConfiguration();
         }
 
         /// <summary>

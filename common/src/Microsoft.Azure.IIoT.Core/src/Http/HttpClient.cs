@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Default {
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics;
     using System.Net;
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 }
 
                 var sw = Stopwatch.StartNew();
-                _logger.Verbose("Sending {method} request to {uri}...", httpMethod,
+                _logger.LogTrace("Sending {method} request to {uri}...", httpMethod,
                     httpRequest.Uri);
 
                 // We will use this local function for Exception formatting
@@ -103,10 +103,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                         errorMessage += " - " + e.InnerException.Message;
                     }
                     if (!httpRequest.Options.SuppressHttpClientLogging) {
-                        _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                        _logger.LogWarning("{method} to {uri} failed (after {elapsed}) : {message}!",
                             httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
                     }
-                    _logger.Debug(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
+                    _logger.LogDebug(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
                         httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
                     return new HttpRequestException(errorMessage, e);
                 }
@@ -124,17 +124,17 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                             };
                             if (result.IsError()) {
                                 if (!httpRequest.Options.SuppressHttpClientLogging) {
-                                    _logger.Warning("{method} to {uri} returned {code} (took {elapsed}) {error}.",
+                                    _logger.LogWarning("{method} to {uri} returned {code} (took {elapsed}) {error}.",
                                         httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
                                          result.GetContentAsString(Encoding.UTF8));
                                 }
                                 else {
-                                    _logger.Debug("{method} to {uri} returned {code} (took {elapsed}).",
+                                    _logger.LogDebug("{method} to {uri} returned {code} (took {elapsed}).",
                                         httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
                                 }
                             }
                             else {
-                                _logger.Verbose("{method} to {uri} returned {code} (took {elapsed}).",
+                                _logger.LogTrace("{method} to {uri} returned {code} (took {elapsed}).",
                                     httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
                             }
                             return result;
@@ -158,7 +158,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     }
                     catch (Exception ex) {
                         if (!httpRequest.Options.SuppressHttpClientLogging) {
-                            _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                            _logger.LogWarning("{method} to {uri} failed (after {elapsed}) : {message}!",
                                 httpMethod, httpRequest.Uri, sw.Elapsed, ex.Message);
                         }
                         throw;
@@ -183,7 +183,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 if (!uri.Scheme.EqualsIgnoreCase("http") && !uri.Scheme.EqualsIgnoreCase("https")) {
                     // Need a way to work around request uri validation - add uds path to header.
                     Request.Headers.TryAddWithoutValidation(HttpHeader.UdsPath,
-                        uri.ParseUdsPath(out uri));
+                        ParseUdsPath(uri, out uri));
                 }
                 Request.RequestUri = uri;
                 ResourceId = resourceId;
@@ -214,6 +214,49 @@ namespace Microsoft.Azure.IIoT.Http.Default {
 
             /// <inheritdoc/>
             public string ResourceId { get; }
+
+            /// <summary>
+            /// Parse uds uri
+            /// </summary>
+            /// <param name="fileUri"></param>
+            /// <param name="httpRequestUri"></param>
+            private static string ParseUdsPath(Uri fileUri, out Uri httpRequestUri) {
+                var localPath = fileUri.LocalPath;
+                // Find socket
+                var builder = new UriBuilder(fileUri) {
+                    Scheme = "https",
+                    Host = Dns.GetHostName()
+                };
+                string fileDevice;
+                string pathAndQuery;
+                var index = localPath.IndexOf("sock", StringComparison.InvariantCultureIgnoreCase);
+                if (index != -1) {
+                    fileDevice = localPath.Substring(0, index + 4);
+                    pathAndQuery = localPath.Substring(index + 4);
+                }
+                else {
+                    // Find fake port delimiter
+                    index = localPath.IndexOf(':');
+                    if (index != -1) {
+                        fileDevice = localPath.Substring(0, index);
+                        pathAndQuery = localPath.Substring(index + 1);
+                    }
+                    else {
+                        builder.Path = "/";
+                        httpRequestUri = builder.Uri;
+                        return localPath.TrimEnd('/');
+                    }
+                }
+
+                // Find first path character and strip off everything before...
+                index = pathAndQuery.IndexOf('/');
+                if (index > 0) {
+                    pathAndQuery = pathAndQuery.Substring(index, pathAndQuery.Length - index);
+                }
+                builder.Path = pathAndQuery;
+                httpRequestUri = builder.Uri;
+                return fileDevice;
+            }
         }
 
 

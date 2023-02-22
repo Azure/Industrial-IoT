@@ -6,9 +6,9 @@
 namespace Azure.IIoT.OpcUa.Services.Clients {
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Runtime.CompilerServices;
@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
 
         /// <inheritdoc/>
         public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct) {
-            await foreach(var publisher in EnumeratePublishersAsync(ct)) {
+            await foreach (var publisher in EnumeratePublishersAsync(ct)) {
                 var deviceId = PublisherModelEx.ParseDeviceId(publisher.Id, out var moduleId);
                 var client = new DiscoveryApiClient(_client, deviceId, moduleId, _serializer);
                 try {
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                     return;
                 }
                 catch (Exception ex) {
-                    _logger.Verbose(ex, "Failed to cancel discovery on publisher {Id}", publisher.Id);
+                    _logger.LogTrace(ex, "Failed to cancel discovery on publisher {Id}", publisher.Id);
                     continue;
                 }
             }
@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                     return await client.FindServerAsync(query, ct);
                 }
                 catch (Exception ex) {
-                    _logger.Verbose(ex, "Failed to find server on publisher {Id}", publisher.Id);
+                    _logger.LogTrace(ex, "Failed to find server on publisher {Id}", publisher.Id);
                     exceptions.Add(ex);
                     continue;
                 }
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                     await client.DiscoverAsync(request, ct);
                 }
                 catch (Exception ex) {
-                    _logger.Debug(ex, "Failed to call discovery on publisher {Id}", publisher.Id);
+                    _logger.LogDebug(ex, "Failed to call discovery on publisher {Id}", publisher.Id);
                     continue;
                 }
             }
@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                     return;
                 }
                 catch (Exception ex) {
-                    _logger.Debug(ex, "Failed to register on publisher {Id}", publisher.Id);
+                    _logger.LogDebug(ex, "Failed to register on publisher {Id}", publisher.Id);
                     continue;
                 }
             }
@@ -119,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Services.Clients {
                 }
                 continuationToken = result.ContinuationToken;
             }
-            while (continuationToken!= null);
+            while (continuationToken != null);
         }
 
         private readonly IPublisherRegistry _publishers;

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders {
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
     using Opc.Ua;
 
     /// <summary>

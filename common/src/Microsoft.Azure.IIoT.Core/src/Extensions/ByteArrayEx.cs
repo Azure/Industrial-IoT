@@ -14,42 +14,6 @@ namespace System {
     public static class ByteArrayEx {
 
         /// <summary>
-        /// Convert to base 16
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="upperCase"></param>
-        /// <returns></returns>
-        public static string ToBase16String(this byte[] value,
-            bool upperCase = true) {
-            if (value == null) {
-                return null;
-            }
-            var charLookup = upperCase ?
-                "0123456789ABCDEF" : "0123456789abcdef";
-            var chars = new char[value.Length * 2];
-            // no checking needed here
-            var j = 0;
-            for (var i = 0; i < value.Length; i++) {
-                chars[j++] = charLookup[value[i] >> 4];
-                chars[j++] = charLookup[value[i] & 0xf];
-            }
-            return new string(chars);
-        }
-
-        /// <summary>
-        /// Convert to base 64
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static string ToBase64String(this byte[] value) {
-            if (value == null) {
-                return null;
-            }
-            return Convert.ToBase64String(value);
-        }
-
-
-        /// <summary>
         /// Hashes the string
         /// </summary>
         /// <param name="bytestr">string to hash</param>

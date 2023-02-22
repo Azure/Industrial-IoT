@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     using Azure.IIoT.OpcUa.Publisher;
     using Autofac;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -75,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         .As<IMetricsContext>().SingleInstance();
 
                     // Register default serializers...
-                    builder.RegisterModule<NewtonSoftJsonModule>();
+                    builder.AddNewtonsoftJsonSerializer();
 
                     // Register data flow - source, encode, sink
                     builder.RegisterType<WriterGroupDataFlow>()

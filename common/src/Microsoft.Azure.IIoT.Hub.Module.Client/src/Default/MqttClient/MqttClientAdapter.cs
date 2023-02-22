@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Common;
     using Microsoft.Azure.Devices.Shared;
+    using Microsoft.Extensions.Logging;
     using MQTTnet;
     using MQTTnet.Client;
     using MQTTnet.Extensions.ManagedClient;
@@ -18,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using MQTTnet.Packets;
     using MQTTnet.Protocol;
     using Newtonsoft.Json;
-    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -269,10 +269,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 }
             }
             catch (TaskCanceledException) {
-                _logger.Error("Failed to get twin due to timeout: {Timeout}", _timeout);
+                _logger.LogError("Failed to get twin due to timeout: {Timeout}", _timeout);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to get twin.");
+                _logger.LogError(ex, "Failed to get twin.");
             }
             _responses.Remove(requestId, out _);
             return result;
@@ -316,7 +316,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             string contentType = null, bool retain = false, TimeSpan? ttl = null,
             Dictionary<string, string> properties = null, byte[] correlationData = null) {
 
-            _logger.Debug("Publishing {ByteCount} bytes to {Topic}",
+            _logger.LogDebug("Publishing {ByteCount} bytes to {Topic}",
                 payload != null ? payload.Length : 0, topic);
 
             // Check topic length.
@@ -355,7 +355,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 return _client.EnqueueAsync(mqttmessage);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to publish MQTT message.");
+                _logger.LogError(ex, "Failed to publish MQTT message.");
             }
             return Task.CompletedTask;
         }
@@ -366,7 +366,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
         private Task OnConnected(MqttClientConnectedEventArgs eventArgs) {
-            _logger.Information("{counter}: Device {deviceId} connected or reconnected",
+            _logger.LogInformation("{counter}: Device {deviceId} connected or reconnected",
                 _reconnectCounter, _deviceId);
             _reconnectCounter++;
             IsConnected = true;
@@ -379,7 +379,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
         private Task SynchronizingSubscriptionsFailed(ManagedProcessFailedEventArgs eventArgs) {
-            _logger.Information("{counter}: Device {deviceId} subscription sync failed.",
+            _logger.LogInformation("{counter}: Device {deviceId} subscription sync failed.",
                 _reconnectCounter, _deviceId);
             return Task.CompletedTask;
         }
@@ -390,7 +390,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <param name="eventArgs">Event arguments.</param>
         /// <returns></returns>
         private Task OnConnectionStateChanged(EventArgs eventArgs) {
-            _logger.Information("{counter}: Device {deviceId} connection state changed.",
+            _logger.LogInformation("{counter}: Device {deviceId} connection state changed.",
                 _reconnectCounter, _deviceId);
             return Task.CompletedTask;
         }
@@ -403,7 +403,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private Task OnConnectingFailed(ConnectingFailedEventArgs eventArgs) {
             IsConnected = false;
 
-            _logger.Information("{counter}: Device {deviceId} disconnected due to {reason}",
+            _logger.LogInformation("{counter}: Device {deviceId} disconnected due to {reason}",
                  _reconnectCounter, _deviceId, eventArgs.ToString());
 
             // _onConnectionLost?.Invoke();
@@ -421,7 +421,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
             IsConnected = false;
 
-            _logger.Information("{counter}: Device {deviceId} disconnected due to {reason}",
+            _logger.LogInformation("{counter}: Device {deviceId} disconnected due to {reason}",
                  _reconnectCounter, _deviceId, eventArgs.Reason);
 
             // _onConnectionLost?.Invoke();
@@ -533,7 +533,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to call method \"{MethodName}\"", methodName);
+                _logger.LogError(ex, "Failed to call method \"{MethodName}\"", methodName);
                 var statusCode = ((int)HttpStatusCode.InternalServerError).ToString();
                 if (IsMqttv5) {
                     await InternalSendEventAsync(eventArgs.ApplicationMessage.ResponseTopic,
@@ -563,7 +563,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <returns></returns>
         private Task OnApplicationMessageReceivedHandler(MqttApplicationMessageReceivedEventArgs eventArgs) {
             if (eventArgs.ProcessingFailed) {
-                _logger.Warning("Failed to process MQTT message: {reasonCode}", eventArgs.ReasonCode);
+                _logger.LogWarning("Failed to process MQTT message: {reasonCode}", eventArgs.ReasonCode);
                 return Task.CompletedTask;
             }
             var topic = eventArgs.ApplicationMessage.Topic;
@@ -593,7 +593,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to process MQTT message.");
+                _logger.LogError(ex, "Failed to process MQTT message.");
             }
             return Task.CompletedTask;
         }

@@ -4,9 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App {
-    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
-    using global::Azure.IIoT.OpcUa.Services.Sdk.SignalR;
-    using global::Azure.IIoT.OpcUa.Services.Sdk.Clients;
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Validation;
@@ -14,8 +11,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Storage;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Components.Authorization;
     using Microsoft.AspNetCore.Hosting;
@@ -24,15 +19,15 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Configuration;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Blazored.Modal;
     using Blazored.SessionStorage;
     using FluentValidation;
-    using Serilog;
-    using Serilog.Events;
-    using System;
     using global::Azure.IIoT.OpcUa.Services.Sdk;
+    using global::Azure.IIoT.OpcUa.Services.Sdk.Runtime;
+    using System;
 
     /// <summary>
     /// Webapp startup
@@ -123,7 +118,7 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            // services.AddLogging(o => o.AddConsole().AddDebug());
+            services.AddLogging(o => o.AddConsole());
             services.AddHeaderForwarding();
 
             services.AddSession(option => {
@@ -183,13 +178,9 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces();
 
-            // Register logger
-            builder.AddDiagnostics(Config, new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft.AspNetCore.Components", LogEventLevel.Information)
-                .MinimumLevel.Override("Microsoft.AspNetCore.SignalR", LogEventLevel.Information));
-
-            builder.RegisterModule<MessagePackModule>();
-            builder.RegisterModule<NewtonSoftJsonModule>();
+            builder.AddDiagnostics();
+            builder.AddMessagePackSerializer();
+            builder.AddNewtonsoftJsonSerializer();
 
             // Use web app openid authentication
             // builder.RegisterModule<DefaultConfidentialClientAuthProviders>();

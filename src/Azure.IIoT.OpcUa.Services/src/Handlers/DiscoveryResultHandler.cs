@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Services.Handlers {
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                 discovery = _serializer.Deserialize<DiscoveryEventModel>(payload);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to convert discovery result {json}",
+                _logger.LogError(ex, "Failed to convert discovery result {json}",
                     Encoding.UTF8.GetString(payload));
                 return;
             }
@@ -59,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                     discovery, checkpoint);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Handling discovery event failed with exception - skip");
+                _logger.LogError(ex, "Handling discovery event failed with exception - skip");
             }
         }
 
@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                                 discovererId, queue.Result, queue.Events);
                     }
                     catch (Exception ex) {
-                        _logger.Error(ex,
+                        _logger.LogError(ex,
                             "Failure during discovery processing in registry. Skip.");
                     }
 

@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Auth.KeyVault {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -42,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
             var builder = new ContainerBuilder();
             builder.RegisterInstance(configuration)
                 .AsImplementedInterfaces();
-            builder.RegisterModule(new LoggerProviderModule());
+            builder.AddDiagnostics();
             builder.RegisterModule<KeyVaultAuthentication>();
 
             if (allowInteractiveLogon) {

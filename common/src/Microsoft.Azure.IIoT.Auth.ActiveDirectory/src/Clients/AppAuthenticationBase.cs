@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.Services.AppAuthentication;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -53,13 +53,13 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                     if (result.ExpiresOn < DateTime.UtcNow) {
                         return null;
                     }
-                    _logger.Information(
+                    _logger.LogInformation(
                         "Successfully acquired token for {resource} with {config}.",
                         resource, config.GetName());
                     return result;
                 }
                 catch (Exception ex) {
-                    _logger.Debug(ex,
+                    _logger.LogDebug(ex,
                         "Failed to retrieve token for {resource} using {config}",
                         resource, config.GetName());
                     exceptions.Add(ex);

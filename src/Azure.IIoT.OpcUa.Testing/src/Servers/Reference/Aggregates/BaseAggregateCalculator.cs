@@ -113,9 +113,7 @@ namespace Opc.Ua.Aggregates {
             // rawValue belongs in or we've reached the one that goes to the EndTime. Ensure
             // that the raw value is added to the last one created.
             TimeSlice tmpTS = null;
-            if (_pending == null) {
-                _pending = new Queue<TimeSlice>();
-            }
+            _pending ??= new Queue<TimeSlice>();
 
             if (_latest == null) {
                 tmpTS = TimeSlice.CreateInitial(StartTime, EndTime, ProcessingInterval);
@@ -140,9 +138,7 @@ namespace Opc.Ua.Aggregates {
             // it into a processed point. If so, dequeue it and add the processed value to the
             // _released list. Keep doing it until one of the TimeSlices returns null or we
             // run out of enqueued TimeSlices (should only happen on termination).
-            if (_released == null) {
-                _released = new List<DataValue>();
-            }
+            _released ??= new List<DataValue>();
 
             foreach (var b in _pending) {
                 UpdateBoundingValues(b, state);

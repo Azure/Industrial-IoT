@@ -18,7 +18,7 @@ namespace System.Collections.Generic {
         /// <param name="seq"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool SetEqualsSafe<T>(this IReadOnlySet<T> seq, IEnumerable<T> that) {
+        public static bool RoSetEqualsSafe<T>(this IReadOnlySet<T> seq, IEnumerable<T> that) {
             if (seq == that) {
                 return true;
             }

@@ -7,16 +7,16 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
     using Azure.IIoT.OpcUa.Services.WebApi.Tests.Api;
     using Azure.IIoT.OpcUa.Services.WebApi.Tests;
     using Azure.IIoT.OpcUa.Services.Sdk.Clients;
-    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
-    using Serilog;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
@@ -48,10 +48,10 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.Binary {
 
         public EndpointModel Endpoint => new() {
             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
-                AlternativeUrls = _hostEntry?.AddressList
+            AlternativeUrls = _hostEntry?.AddressList
                 .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                 .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
-                Certificate = _server.Certificate?.RawData?.ToThumbprint()
+            Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 
         private readonly WebApiTestFixture _factory;

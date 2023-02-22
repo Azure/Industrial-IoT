@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the endpoint micro service.");
             }
-            _serializer = serializer ?? new NewtonSoftJsonSerializer();
+            _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _serviceUri = serviceUri.TrimEnd('/') + "/publisher";
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }

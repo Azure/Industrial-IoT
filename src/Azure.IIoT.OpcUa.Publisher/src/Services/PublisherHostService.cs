@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     using Autofac;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
@@ -156,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException) {
                         exceptions.Add(ex);
-                        _logger.Error(ex, "Failed to process change.");
+                        _logger.LogError(ex, "Failed to process change.");
                     }
                 }
             }
@@ -168,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException) {
                     exceptions.Add(ex);
-                    _logger.Error(ex, "Failed to dispose job before removal.");
+                    _logger.LogError(ex, "Failed to dispose job before removal.");
                 }
                 _currentJobs.Remove(delete.Id);
             }
@@ -252,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     return job;
                 }
                 catch (Exception ex) {
-                    outer._logger.Error(ex, "Failed to create job {Name}", job.Id);
+                    outer._logger.LogError(ex, "Failed to create job {Name}", job.Id);
                     await job.DisposeAsync();
                     throw;
                 }
@@ -275,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     Id = Job.GetJobId();
                 }
                 catch (Exception ex) {
-                    _outer._logger.Error(ex, "Failed to update job {Name}", Id);
+                    _outer._logger.LogError(ex, "Failed to update job {Name}", Id);
                     throw;
                 }
                 finally {
@@ -289,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     await Source.DisposeAsync();
                 }
                 catch (Exception ex) {
-                    _outer._logger.Error(ex, "Failed to dispose job {Name}", Id);
+                    _outer._logger.LogError(ex, "Failed to dispose job {Name}", Id);
                 }
                 finally {
                     _scope.Dispose();

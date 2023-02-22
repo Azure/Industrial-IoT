@@ -8,9 +8,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Extensions.Logging;
     using Moq;
     using Opc.Ua;
-    using Serilog;
     using System;
     using System.Diagnostics;
     using System.Linq;

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Events {
-    using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
@@ -52,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Services.Events {
         public Task PublishAsync(DiscovererEventType type,
             OperationContextModel context, string discovererId,
             DiscovererModel discoverer) {
-            var arguments = new [] {
+            var arguments = new[] {
                 new DiscovererEventModel {
                     EventType = type,
                     Context = context,

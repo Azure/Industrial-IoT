@@ -58,9 +58,7 @@ namespace TestData {
             _configuration = configuration.ParseExtension<TestDataNodeManagerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null) {
-                _configuration = new TestDataNodeManagerConfiguration();
-            }
+            _configuration ??= new TestDataNodeManagerConfiguration();
 
             _lastUsedId = _configuration.NextUnusedId - 1;
 

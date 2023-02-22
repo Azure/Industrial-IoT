@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;

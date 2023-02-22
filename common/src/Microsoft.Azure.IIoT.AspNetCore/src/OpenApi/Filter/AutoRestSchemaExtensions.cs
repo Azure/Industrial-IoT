@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.OpenApi.Any;
     using Microsoft.OpenApi.Models;
+    using Furly.Extensions.Serializers;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Swashbuckle.AspNetCore.SwaggerGen;

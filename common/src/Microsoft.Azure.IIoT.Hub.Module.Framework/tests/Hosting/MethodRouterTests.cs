@@ -8,11 +8,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.Devices.Client;
     using Autofac;
-    using Serilog;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Xunit;
 
     public class MethodRouterTests {
-        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
+        private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
 
         [Fact]
         public async Task TestTest1Invocation() {
@@ -333,7 +333,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest1InvocationChunked() {
             var router = GetRouter();
             var client = new ChunkMethodClient(new TestMethodClient(router),
-                _serializer, Log.Logger);
+                _serializer, Log.Console<ChunkMethodClient>());
 
             var buffer = new byte[300809];
             kRand.NextBytes(buffer);
@@ -419,7 +419,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest2InvocationChunked(int size) {
             var router = GetRouter();
             var client = new ChunkMethodClient(new TestMethodClient(router),
-                _serializer, Log.Logger);
+                _serializer, Log.Console<ChunkMethodClient>());
             var expected = new byte[size];
             kRand.NextBytes(expected);
             var response = client.CallMethodAsync("test", "test", "Test2_V1",
@@ -441,7 +441,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest8InvocationV1Chunked(int size) {
             var router = GetRouter();
             var client = new ChunkMethodClient(new TestMethodClient(router),
-                _serializer, Log.Logger);
+                _serializer, Log.Console<ChunkMethodClient>());
             var expected = new byte[size];
             kRand.NextBytes(expected);
             var response = client.CallMethodAsync("test", "test", "Test8_V1",
@@ -463,7 +463,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public void TestTest8InvocationV2Chunked(int size) {
             var router = GetRouter();
             var client = new ChunkMethodClient(new TestMethodClient(router),
-                _serializer, Log.Logger);
+                _serializer, Log.Console<ChunkMethodClient>());
             var expected = new byte[size];
             kRand.NextBytes(expected);
             var response = client.CallMethodAsync("test", "test", "Test8_V2",
@@ -529,7 +529,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private static readonly Random kRand = new();
 
         private MethodRouter GetRouter() {
-            return new MethodRouter(_serializer, Log.Logger) {
+            return new MethodRouter(_serializer, Log.Console<ChunkMethodClient>()) {
                 Controllers = GetControllers()
             };
         }

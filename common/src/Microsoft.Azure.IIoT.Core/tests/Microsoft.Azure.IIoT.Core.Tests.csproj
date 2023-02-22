@@ -20,7 +20,6 @@
 	<PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Serializers.NewtonSoft\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft.csproj" />
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Core.csproj" />
   </ItemGroup>
   <ItemGroup>

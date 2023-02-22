@@ -4,21 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
-    using Autofac;
+    using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Autofac;
     using FluentAssertions;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Extensions.Logging;
     using Models;
     using Moq;
     using Publisher.Services;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -31,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
     /// </summary>
     public class DmApiPublisherControllerTests : TempFileProviderBase {
 
-        private readonly NewtonSoftJsonSerializer _newtonSoftJsonSerializer;
+        private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
         private readonly ILogger _logger;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private readonly Mock<IPublisherConfiguration> _configMock;
@@ -45,8 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         /// Constructor that initializes common resources used by tests.
         /// </summary>
         public DmApiPublisherControllerTests() {
-            _newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
-            _logger = TraceLogger.Create();
+            _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
+            _logger = Log.Console<DmApiPublisherControllerTests>();
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -111,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
 
             foreach (var request in publishNodesRequest) {
                 var initialNode = request.OpcNodes.First();
-                for (int i = 0; i < 10000; i++) {
+                for (var i = 0; i < 10000; i++) {
                     request.OpcNodes.Add(new OpcNodeModel {
                         Id = initialNode.Id + i.ToString(),
                         DataSetFieldId = initialNode.DataSetFieldId,
@@ -165,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
 
             foreach (var request in publishNodesRequest) {
                 var initialNode = request.OpcNodes.First();
-                for (int i = 0; i < 10000; i++) {
+                for (var i = 0; i < 10000; i++) {
                     request.OpcNodes.Add(new OpcNodeModel {
                         Id = initialNode.Id + i.ToString(),
                         DataSetFieldId = initialNode.DataSetFieldId,

@@ -6,12 +6,10 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
-    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter;
-    using Azure.IIoT.OpcUa.Services.Clients;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Testing.Runtime;
     using Autofac;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -19,9 +17,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -188,10 +186,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         private IContainer CreateHubContainer() {
             var builder = new ContainerBuilder();
 
-            builder.RegisterModule<NewtonSoftJsonModule>();
-            builder.RegisterInstance(this).AsImplementedInterfaces();
-            builder.RegisterInstance(_config).AsImplementedInterfaces();
-            builder.AddDiagnostics();
+            builder.AddNewtonsoftJsonSerializer();
+            builder.RegisterInstance(this)
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(_config)
+                .AsImplementedInterfaces();
+
+            builder.AddDiagnostics(logging => logging.AddConsole());
             builder.RegisterModule<IoTHubMockService>();
             builder.RegisterType<TestIoTHubConfig>()
                 .AsImplementedInterfaces();

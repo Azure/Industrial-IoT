@@ -6,11 +6,11 @@
 namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
     using Azure.IIoT.OpcUa.Publisher.State;
     using FluentAssertions;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Moq;
     using System.Collections.Generic;
     using System.Text;
@@ -25,12 +25,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
             var _clientAccessorMock = new Mock<IClientAccessor>();
             _clientAccessorMock.Setup(m => m.Client).Returns(_client.Object);
 
-            IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
+            IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
             var _config = new Mock<IRuntimeStateReporterConfiguration>();
             // This will disable state reporting.
             _config.Setup(c => c.EnableRuntimeStateReporting).Returns(false);
 
-            var _logger = TraceLogger.Create();
+            var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
                 _clientAccessorMock.Object,
@@ -53,11 +53,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
             var _clientAccessorMock = new Mock<IClientAccessor>();
             _clientAccessorMock.Setup(m => m.Client).Returns((IClient)null);
 
-            IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
+            IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
             var _config = new Mock<IRuntimeStateReporterConfiguration>();
             _config.Setup(c => c.EnableRuntimeStateReporting).Returns(true);
 
-            var _logger = TraceLogger.Create();
+            var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
                 _clientAccessorMock.Object,
@@ -96,11 +96,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.State {
             var _clientAccessorMock = new Mock<IClientAccessor>();
             _clientAccessorMock.Setup(m => m.Client).Returns(_client.Object);
 
-            IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
+            IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
             var _config = new Mock<IRuntimeStateReporterConfiguration>();
             _config.Setup(c => c.EnableRuntimeStateReporting).Returns(true);
 
-            var _logger = TraceLogger.Create();
+            var _logger = Log.Console<RuntimeStateReporter>();
 
             var runtimeStateReporter = new RuntimeStateReporter(
                 _clientAccessorMock.Object,

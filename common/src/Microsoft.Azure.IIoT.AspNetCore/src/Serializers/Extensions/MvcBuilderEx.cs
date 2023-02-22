@@ -7,8 +7,8 @@ namespace Microsoft.Extensions.DependencyInjection {
     using Microsoft.Extensions.Options;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.IIoT.AspNetCore.Serializers;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
@@ -42,7 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection {
                     option.OutputFormatters.RemoveType<SerializerOutputFormatter>();
                     option.InputFormatters.RemoveType<SerializerInputFormatter>();
                     foreach (var serializer in serializers) {
-                        if (serializer is NewtonSoftJsonSerializer) {
+                        if (serializer is NewtonsoftJsonSerializer) {
                             continue;  // skip
                         }
                         option.OutputFormatters.Add(new SerializerOutputFormatter(serializer));
@@ -68,7 +68,7 @@ namespace Microsoft.Extensions.DependencyInjection {
             // Configure json serializer settings transiently to pick up all converters
             builder.Services.AddTransient<IConfigureOptions<MvcNewtonsoftJsonOptions>>(services =>
                 new ConfigureNamedOptions<MvcNewtonsoftJsonOptions>(Options.DefaultName, options => {
-                    var provider = services.GetService<IJsonSerializerSettingsProvider>();
+                    var provider = services.GetService<INewtonsoftSerializerSettingsProvider>();
                     var settings = provider?.Settings;
                     if (settings == null) {
                         return;

@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Sdk {
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
     using System.Threading;
     using System.Threading.Tasks;
 

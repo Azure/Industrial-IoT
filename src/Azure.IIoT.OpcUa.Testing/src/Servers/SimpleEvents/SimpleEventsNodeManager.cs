@@ -56,9 +56,7 @@ namespace SimpleEvents {
             _configuration = configuration.ParseExtension<SimpleEventsServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null) {
-                _configuration = new SimpleEventsServerConfiguration();
-            }
+            _configuration ??= new SimpleEventsServerConfiguration();
         }
 
         /// <summary>

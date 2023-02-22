@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Threading;
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Clients {
             }
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _serviceUri = serviceUri.TrimEnd('/');
-            _serializer = serializer ?? new NewtonSoftJsonSerializer();
+            _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
 

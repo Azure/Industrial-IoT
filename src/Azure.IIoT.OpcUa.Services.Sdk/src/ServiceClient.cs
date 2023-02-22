@@ -5,11 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Services.Sdk {
     using Autofac;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.IdentityModel.Abstractions;
     using System;
-    using System.IO;
 
     /// <summary>
     /// Service client
@@ -96,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk {
                 .AsImplementedInterfaces();
             builder.RegisterModule<ServiceSdk>();
             if (useMsgPack) {
-                builder.RegisterModule<MessagePackModule>();
+                builder.AddMessagePackSerializer();
             }
             return builder.Build();
         }

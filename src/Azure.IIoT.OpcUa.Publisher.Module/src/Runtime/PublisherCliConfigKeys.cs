@@ -159,6 +159,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         public const string LogFileFlushTimeSpanSec = "LogFileFlushTimeSpan";
 
         /// <summary>
+        /// Log level to set during start
+        /// </summary>
+        public const string LogLevelKey = "LogLevel";
+
+        /// <summary>
         /// Key for the log file name.
         /// </summary>
         public const string LogFileName = "LogFileName";

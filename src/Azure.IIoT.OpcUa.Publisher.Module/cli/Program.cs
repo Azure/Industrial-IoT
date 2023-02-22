@@ -6,23 +6,21 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
-    using Serilog;
-    using Serilog.Events;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.Tracing;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -41,9 +39,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
             var verbose = false;
             string deviceId = null, moduleId = null;
 
-            var logger = ConsoleLogger.Create(LogEventLevel.Error);
+            var logger = Log.Console<Program>();
 
-            logger.Information("Publisher module command line interface.");
+            logger.LogInformation("Publisher module command line interface.");
             var configuration = new ConfigurationBuilder()
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
@@ -57,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 cs = configuration.GetValue<string>("_HUB_CS", null);
             }
             IIoTHubConfig config = null;
-            int instances = 1;
+            var instances = 1;
             var unknownArgs = new List<string>();
             try {
                 for (var i = 0; i < args.Length; i++) {
@@ -110,18 +108,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
 
                 if (deviceId == null) {
                     deviceId = Utils.GetHostName();
-                    logger.Information($"Using <deviceId> '{deviceId}'");
+                    logger.LogInformation($"Using <deviceId> '{deviceId}'");
                 }
                 if (moduleId == null) {
                     moduleId = "publisher";
-                    logger.Information($"Using <moduleId> '{moduleId}'");
+                    logger.LogInformation($"Using <moduleId> '{moduleId}'");
                 }
 
                 args = unknownArgs.ToArray();
             }
             catch (Exception e) {
-                logger.Error(e.Message);
-                logger.Error(
+                logger.LogError(e.Message);
+                logger.LogError(
                     @"
 Usage:       Azure.IIoT.OpcUa.Publisher.Module.Cli [options]
 
@@ -140,7 +138,7 @@ Options:
             }
 
             AppDomain.CurrentDomain.UnhandledException += (s, e) => {
-                logger.Fatal(e.ExceptionObject as Exception, "Exception");
+                logger.LogError(e.ExceptionObject as Exception, "Exception");
             };
 
             var tasks = new List<Task>(instances);
@@ -150,7 +148,7 @@ Options:
                     tasks.Add(HostAsync(config, logger, deviceId + "_" + i, moduleId, args, verbose, !checkTrust));
                 }
                 if (!withServer) {
-                    tasks.Add(HostAsync(config, logger, deviceId, moduleId, args, verbose, !checkTrust, enableEventBroker));
+                    tasks.Add(HostAsync(config, logger, deviceId, moduleId, args, verbose, !checkTrust));
                 }
                 else {
                     tasks.Add(WithServerAsync(config, logger, deviceId, moduleId, args, verbose));
@@ -158,7 +156,7 @@ Options:
                 Task.WaitAll(tasks.ToArray());
             }
             catch (Exception e) {
-                logger.Error(e, "Exception");
+                logger.LogError(e, "Exception");
             }
         }
 
@@ -167,29 +165,18 @@ Options:
         /// </summary>
         private static async Task HostAsync(IIoTHubConfig config, ILogger logger,
             string deviceId, string moduleId, string[] args, bool verbose = false,
-            bool acceptAll = false, bool eventBroker = false) {
-            logger.Information("Create or retrieve connection string for {deviceId} {moduleId}...",
+            bool acceptAll = false) {
+            logger.LogInformation("Create or retrieve connection string for {deviceId} {moduleId}...",
                 deviceId, moduleId);
 
-            var cs = await Retry.WithExponentialBackoff(logger,
+            var cs = await Retry2.WithExponentialBackoff(logger,
                 () => AddOrGetAsync(config, deviceId, moduleId, logger));
 
-            // Hook event source
-            if (eventBroker) {
-                using (var broker = new EventSourceBroker()) {
-                    broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
-                    Run(logger, deviceId, moduleId, args, verbose, acceptAll, eventBroker, cs);
-                }
-            }
-            else {
-                Run(logger, deviceId, moduleId, args, verbose, acceptAll, eventBroker, cs);
-            }
+            Run(logger, deviceId, moduleId, args, verbose, acceptAll, cs);
 
             static void Run(ILogger logger, string deviceId, string moduleId, string[] args,
-                bool verbose, bool acceptAll, bool eventBroker, ConnectionString cs) {
-                LogControl.Level.MinimumLevel = verbose ? LogEventLevel.Verbose : LogEventLevel.Information;
-
-                logger.Information("Starting publisher module {deviceId} {moduleId}...",
+                bool verbose, bool acceptAll, ConnectionString cs) {
+                logger.LogInformation("Starting publisher module {deviceId} {moduleId}...",
                     deviceId, moduleId);
                 var arguments = args.ToList();
                 arguments.Add($"--ec={cs}");
@@ -197,7 +184,7 @@ Options:
                     arguments.Add("--aa");
                 }
                 Module.Program.Main(arguments.ToArray());
-                logger.Information("Publisher module {deviceId} {moduleId} exited.",
+                logger.LogInformation("Publisher module {deviceId} {moduleId} exited.",
                     deviceId, moduleId);
             }
         }
@@ -217,7 +204,7 @@ Options:
                     Console.WriteLine("Press key to cancel...");
                     Console.ReadKey();
 
-                    logger.Information("Server exiting - tear down publisher...");
+                    logger.LogInformation("Server exiting - tear down publisher...");
                     cts.Cancel();
 
                     await host;
@@ -232,7 +219,7 @@ Options:
         private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
             string deviceId, string moduleId, ILogger logger) {
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, new NewtonSoftJsonSerializer(), logger);
+                config, new NewtonsoftJsonSerializer(), logger);
             try {
                 await registry.CreateOrUpdateAsync(new DeviceTwinModel {
                     Id = deviceId,
@@ -245,7 +232,7 @@ Options:
                 }, false, CancellationToken.None);
             }
             catch (ConflictingResourceException) {
-                logger.Information("Gateway {deviceId} exists.", deviceId);
+                logger.LogInformation("Gateway {deviceId} exists.", deviceId);
             }
             try {
                 await registry.CreateOrUpdateAsync(new DeviceTwinModel {
@@ -254,7 +241,7 @@ Options:
                 }, false, CancellationToken.None);
             }
             catch (ConflictingResourceException) {
-                logger.Information("Module {moduleId} exists...", moduleId);
+                logger.LogInformation("Module {moduleId} exists...", moduleId);
             }
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
             return cs;
@@ -272,7 +259,7 @@ Options:
             /// </summary>
             public ServerWrapper(ILogger logger) {
                 _cts = new CancellationTokenSource();
-                _server = RunSampleServerAsync(_cts.Token, logger);
+                _server = RunSampleServerAsync(logger, _cts.Token);
                 EndpointUrl = "opc.tcp://" + Utils.GetHostName() +
                     ":51210/UA/SampleServer";
             }
@@ -287,7 +274,7 @@ Options:
             /// <summary>
             /// Run server until cancelled
             /// </summary>
-            private static async Task RunSampleServerAsync(CancellationToken ct, ILogger logger) {
+            private static async Task RunSampleServerAsync(ILogger logger, CancellationToken ct) {
                 var tcs = new TaskCompletionSource<bool>();
                 ct.Register(() => tcs.TrySetResult(true));
                 using (var server = new ServerConsoleHost(new ServerFactory(logger) {
@@ -295,41 +282,16 @@ Options:
                 }, logger) {
                     AutoAccept = true
                 }) {
-                    logger.Information("Starting server.");
+                    logger.LogInformation("Starting server.");
                     await server.StartAsync(new List<int> { 51210 });
-                    logger.Information("Server started.");
+                    logger.LogInformation("Server started.");
                     await tcs.Task;
-                    logger.Information("Server exited.");
+                    logger.LogInformation("Server exited.");
                 }
             }
 
             private readonly CancellationTokenSource _cts;
             private readonly Task _server;
-        }
-
-        /// <summary>
-        /// Sdk logger event source hook
-        /// </summary>
-        sealed class IoTSdkLogger : EventSourceSerilogSink {
-            public IoTSdkLogger(ILogger logger) :
-                base(logger.ForContext("SourceContext", EventSource.Replace('-', '.'))) {
-            }
-
-            public override void OnEvent(EventWrittenEventArgs eventData) {
-                switch (eventData.EventName) {
-                    case "Enter":
-                    case "Exit":
-                    case "Associate":
-                        WriteEvent(LogEventLevel.Verbose, eventData);
-                        break;
-                    default:
-                        WriteEvent(LogEventLevel.Debug, eventData);
-                        break;
-                }
-            }
-
-            // ddbee999-a79e-5050-ea3c-6d1a8a7bafdd
-            public const string EventSource = "Microsoft-Azure-Devices-Device-Client";
         }
     }
 }

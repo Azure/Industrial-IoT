@@ -4,12 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub {
-    using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa;
-    using Opc.Ua;
     using Microsoft.Azure.IIoT;
     using Microsoft.IO;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
 

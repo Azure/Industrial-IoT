@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
     using Azure.IIoT.OpcUa.Services.Sdk;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -220,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests.Api.SignalR {
                 SiteId = "TestSigfsdfg  ff",
                 ApplicationType = ApplicationType.Client,
                 NotSeenSince = DateTime.UtcNow,
-                Capabilities = new HashSet<string>{ "ag", "sadf", "" },
+                Capabilities = new HashSet<string> { "ag", "sadf", "" },
             };
             var result = new TaskCompletionSource<ApplicationEventModel>();
             await using (await client.SubscribeApplicationEventsAsync(ev => {

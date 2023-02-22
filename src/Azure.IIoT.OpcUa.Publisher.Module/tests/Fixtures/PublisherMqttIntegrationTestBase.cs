@@ -4,20 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
+    using Azure.IIoT.OpcUa.Publisher.Services;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Autofac;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
@@ -25,15 +27,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
     using Moq;
     using MQTTnet;
     using MQTTnet.Formatter;
     using MQTTnet.Protocol;
     using MQTTnet.Server;
-    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -201,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <param name="publishedNodesFile"></param>
         /// <returns></returns>
         protected PublishedNodesEntryModel[] GetEndpointsFromFile(string publishedNodesFile) {
-            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
+            IJsonSerializer serializer = new NewtonsoftJsonSerializer();
             var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}", _serverFixture.Port.ToString());
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
@@ -277,41 +277,37 @@ $"--ttt={topicRoot}",
         /// </summary>
         private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, MqttBroker mqttBroker) {
             try {
-                // Hook event source
-                using (var broker = new EventSourceBroker()) {
+                using (var hostScope = ConfigureContainer(configurationRoot)) {
+                    var module = hostScope.Resolve<IModuleHost>();
+                    var events = hostScope.Resolve<IEventEmitter>();
+                    var moduleConfig = hostScope.Resolve<IModuleConfig>();
+                    ISessionProvider<ConnectionModel> sessionManager = null;
 
-                    using (var hostScope = ConfigureContainer(configurationRoot)) {
-                        var module = hostScope.Resolve<IModuleHost>();
-                        var events = hostScope.Resolve<IEventEmitter>();
-                        var moduleConfig = hostScope.Resolve<IModuleConfig>();
-                        ISessionProvider<ConnectionModel> sessionManager = null;
+                    try {
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
+                        logger.LogInformation("Starting module OpcPublisher version {version}.", version);
+                        // Start module
+                        await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
+                        sessionManager = hostScope.Resolve<ISessionProvider<ConnectionModel>>();
 
-                        try {
-                            var version = GetType().Assembly.GetReleaseVersion().ToString();
-                            logger.Information("Starting module OpcPublisher version {version}.", version);
-                            // Start module
-                            await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
-                            sessionManager = hostScope.Resolve<ISessionProvider<ConnectionModel>>();
+                        _apiScope = ConfigureContainer(configurationRoot, mqttBroker);
+                        _running.TrySetResult(true);
+                        await Task.WhenAny(_exit.Task);
+                        logger.LogInformation("Module exits...");
+                    }
+                    catch (Exception ex) {
+                        _running.TrySetException(ex);
+                    }
+                    finally {
+                        await module.StopAsync();
 
-                            _apiScope = ConfigureContainer(configurationRoot, mqttBroker);
-                            _running.TrySetResult(true);
-                            await Task.WhenAny(_exit.Task);
-                            logger.Information("Module exits...");
-                        }
-                        catch (Exception ex) {
-                            _running.TrySetException(ex);
-                        }
-                        finally {
-                            await module.StopAsync();
-
-                            _apiScope?.Dispose();
-                            _apiScope = null;
-                        }
+                        _apiScope?.Dispose();
+                        _apiScope = null;
                     }
                 }
             }
             catch (Exception ex) {
-                logger.Error(ex, "Error when initializing module host.");
+                logger.LogError(ex, "Error when initializing module host.");
                 throw;
             }
         }
@@ -325,10 +321,12 @@ $"--ttt={topicRoot}",
         private IContainer ConfigureContainer(IConfiguration configurationRoot,
             IJsonMethodClient methodClient) {
             var builder = new ContainerBuilder();
-            builder.RegisterInstance(configurationRoot).AsImplementedInterfaces();
-            builder.RegisterInstance(methodClient).ExternallyOwned();
-            builder.AddConsoleLogger();
-            builder.RegisterModule<NewtonSoftJsonModule>();
+            builder.RegisterInstance(configurationRoot)
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(methodClient)
+                .ExternallyOwned();
+            builder.AddDiagnostics(logging => logging.AddConsole());
+            builder.AddNewtonsoftJsonSerializer();
             builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherApiClient>()
@@ -344,7 +342,6 @@ $"--ttt={topicRoot}",
         private static IContainer ConfigureContainer(IConfiguration configuration) {
             var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
-            var cliOptions = new PublisherCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -354,10 +351,11 @@ $"--ttt={topicRoot}",
 
             // Register module and agent framework ...
             builder.RegisterModule<ModuleFramework>();
-            builder.RegisterModule<NewtonSoftJsonModule>();
+            builder.AddNewtonsoftJsonSerializer();
 
-            builder.AddDiagnostics(config, cliOptions.ToLoggerConfiguration());
-            builder.RegisterInstance(cliOptions).AsImplementedInterfaces();
+            builder.AddDiagnostics(logging => logging.AddConsole());
+            builder.RegisterType<PublisherCliOptions>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
 
             builder.RegisterType<PublisherIdentity>()
                 .AsImplementedInterfaces();
@@ -504,7 +502,7 @@ $"--ttt={topicRoot}",
             /// Handle connection
             /// </summary>
             private Task HandleClientConnectedAsync(ClientConnectedEventArgs args) {
-                _logger.Information("Client {ClientId} connected.", args.ClientId);
+                _logger.LogInformation("Client {ClientId} connected.", args.ClientId);
                 return Task.CompletedTask;
             }
 
@@ -513,7 +511,7 @@ $"--ttt={topicRoot}",
             /// </summary>
             /// <param name="args"></param>
             private Task HandleClientUnsubscribedTopicAsync(ClientUnsubscribedTopicEventArgs args) {
-                _logger.Information("Client {ClientId} unsubscribed from {Topic}.",
+                _logger.LogInformation("Client {ClientId} unsubscribed from {Topic}.",
                     args.ClientId, args.TopicFilter);
                 return Task.CompletedTask;
             }
@@ -523,7 +521,7 @@ $"--ttt={topicRoot}",
             /// </summary>
             /// <param name="args"></param>
             private Task HandleClientSubscribedTopicAsync(ClientSubscribedTopicEventArgs args) {
-                _logger.Information("Client {ClientId} subscribed to {Topic}.",
+                _logger.LogInformation("Client {ClientId} subscribed to {Topic}.",
                     args.ClientId, args.TopicFilter);
                 return Task.CompletedTask;
             }
@@ -537,7 +535,7 @@ $"--ttt={topicRoot}",
                     return;
                 }
                 var topic = args.ApplicationMessage.Topic;
-                _logger.Debug("Client received message from {Client} on {Topic}",
+                _logger.LogDebug("Client received message from {Client} on {Topic}",
                     args.ClientId, topic);
                 await _lock.WaitAsync().ConfigureAwait(false);
                 try {
@@ -574,7 +572,7 @@ $"--ttt={topicRoot}",
             /// </summary>
             /// <param name="args"></param>
             private Task HandleClientDisconnectedAsync(ClientDisconnectedEventArgs args) {
-                _logger.Information("Disconnected client {ClientId} with type {Reason}",
+                _logger.LogInformation("Disconnected client {ClientId} with type {Reason}",
                     args.ClientId, args.DisconnectType);
                 return Task.CompletedTask;
             }
@@ -602,7 +600,7 @@ $"--ttt={topicRoot}",
             public static async Task<MqttBroker> CreateAsync(string protocol,
                 Func<string, ReadOnlyMemory<byte>, string, Task> subscription, int port, string topicRoot,
                 ILogger logger = null) {
-                logger ??= ConsoleLogger.Create();
+                logger ??= Log.Console<MqttBroker>();
                 var optionsBuilder = new MqttServerOptionsBuilder()
                     .WithDefaultEndpoint()
                     .WithDefaultEndpointPort(port)

@@ -1940,8 +1940,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
                     }
                     if (!hasInnerArray) {
                         // read array from one dimension
-                        var part = ReadArray(null, ValueRanks.OneDimension, builtInType, null, null) as System.Collections.IList;
-                        if (part != null && part.Count > 0) {
+                        if (ReadArray(null, ValueRanks.OneDimension, builtInType, null, null) is System.Collections.IList part && part.Count > 0) {
                             // add part elements to final list
                             foreach (var item in part) {
                                 elements.Add(item);

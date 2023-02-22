@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.App.Validation {
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.Net.Models;
     using FluentValidation;
     using System;
     using System.Collections.Generic;
@@ -48,11 +47,11 @@ namespace Microsoft.Azure.IIoT.App.Validation {
         }
 
         private bool BeValidAddressRanges(string value) {
-            return utils.ShouldUseDefaultValue(value) || AddressRange.TryParse(value, out _);
+            return utils.ShouldUseDefaultValue(value) /*|| AddressRange.TryParse(value, out _)*/;
         }
 
         private bool BeValidPortRanges(string value) {
-            return utils.ShouldUseDefaultValue(value) || PortRange.TryParse(value, out _);
+            return utils.ShouldUseDefaultValue(value) /*|| PortRange.TryParse(value, out _)*/;
         }
 
         private bool BeAPositiveInteger(string value) {

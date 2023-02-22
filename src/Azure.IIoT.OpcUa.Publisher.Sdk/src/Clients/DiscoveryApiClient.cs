@@ -6,9 +6,9 @@
 namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients {
         /// <param name="serializer"></param>
         public DiscoveryApiClient(IMethodClient methodClient, string deviceId,
             string moduleId = null, IJsonSerializer serializer = null) {
-            _serializer = serializer ?? new NewtonSoftJsonSerializer();
+            _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _methodClient = methodClient ??
                 throw new ArgumentNullException(nameof(methodClient));
             _moduleId = moduleId;

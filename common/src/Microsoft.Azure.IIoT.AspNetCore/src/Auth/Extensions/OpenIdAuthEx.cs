@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
 
             // Add oidc scheme configuration
             builder.Services.AddTransient<IConfigureOptions<OpenIdConnectOptions>>(services => {
-            var schemes = services.GetRequiredService<IClientAuthConfig>();
+                var schemes = services.GetRequiredService<IClientAuthConfig>();
                 return new ConfigureNamedOptions<OpenIdConnectOptions>(openIdConnectScheme, options => {
 
                     // Find whether the scheme is configurable

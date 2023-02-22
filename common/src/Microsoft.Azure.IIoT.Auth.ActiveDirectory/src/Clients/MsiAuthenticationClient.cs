@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.Services.AppAuthentication;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 .Select(c => CreateProvider(c, logger))
                 .ToList();
             if (!_config.Any()) {
-                logger.Information("No managed service identity configured for this service.");
+                logger.LogInformation("No managed service identity configured for this service.");
             }
         }
 
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 cs += $";TenantId={config.TenantId}";
             }
             var provider = new AzureServiceTokenProvider(cs, config.GetAuthorityUrl(true));
-            logger.Information("Managed service identity {clientId} in {tenant} registered.",
+            logger.LogInformation("Managed service identity {clientId} in {tenant} registered.",
                 config.ClientId, config.TenantId);
             return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform, (config, provider));
         }

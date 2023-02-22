@@ -19,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Browse nodes services
     /// </summary>
-    [ApiVersion("2")][Route("twin/v{version:apiVersion}/browse")]
+    [ApiVersion("2")]
+    [Route("twin/v{version:apiVersion}/browse")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
@@ -45,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The browse response</returns>
         [HttpPost("{endpointId}")]
         public async Task<BrowseFirstResponseModel> BrowseAsync(string endpointId,
-            [FromBody] [Required] BrowseFirstRequestModel request) {
+            [FromBody][Required] BrowseFirstRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -65,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The browse response</returns>
         [HttpPost("{endpointId}/next")]
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
-            string endpointId, [FromBody] [Required] BrowseNextRequestModel request) {
+            string endpointId, [FromBody][Required] BrowseNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -89,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The browse path response</returns>
         [HttpPost("{endpointId}/path")]
         public async Task<BrowsePathResponseModel> BrowseUsingPathAsync(string endpointId,
-            [FromBody] [Required] BrowsePathRequestModel request) {
+            [FromBody][Required] BrowsePathRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -145,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpGet("{endpointId}/next")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<BrowseNextResponseModel> GetNextSetOfUniqueNodesAsync(
-            string endpointId, [FromQuery] [Required] string continuationToken) {
+            string endpointId, [FromQuery][Required] string continuationToken) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken]
                     .FirstOrDefault();

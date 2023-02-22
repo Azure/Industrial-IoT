@@ -4,16 +4,16 @@
 // ------------------------------------------------------------
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Services {
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Extensions;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -1238,7 +1238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             }
                         }
                         catch (Exception ex) {
-                            _logger.Information(ex, "Failed to obtain child information");
+                            _logger.LogInformation(ex, "Failed to obtain child information");
                         }
                     }
                     var (model, _) = await session.ReadNodeAsync(header, nodeId,

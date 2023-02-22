@@ -159,7 +159,7 @@ namespace Opc.Ua.Sample {
                         return Int32.MaxValue;
                     }
 
-                    DateTime now = DateTime.UtcNow;
+                    var now = DateTime.UtcNow;
 
                     if (m_nextSampleTime <= now.Ticks) {
                         return 0;
@@ -219,7 +219,7 @@ namespace Opc.Ua.Sample {
                 m_clientHandle = clientHandle;
 
                 // subtract the previous sampling interval.
-                long oldSamplingInterval = (long)(m_samplingInterval * TimeSpan.TicksPerMillisecond);
+                var oldSamplingInterval = (long)(m_samplingInterval * TimeSpan.TicksPerMillisecond);
 
                 if (oldSamplingInterval < m_nextSampleTime) {
                     m_nextSampleTime -= oldSamplingInterval;
@@ -228,7 +228,7 @@ namespace Opc.Ua.Sample {
                 m_samplingInterval = samplingInterval;
 
                 // calculate the next sampling interval.                
-                long newSamplingInterval = (long)(m_samplingInterval * TimeSpan.TicksPerMillisecond);
+                var newSamplingInterval = (long)(m_samplingInterval * TimeSpan.TicksPerMillisecond);
 
                 if (m_samplingInterval > 0) {
                     m_nextSampleTime += newSamplingInterval;
@@ -247,9 +247,7 @@ namespace Opc.Ua.Sample {
 
                 // update the queue size.
                 if (queueSize > 1) {
-                    if (m_queue == null) {
-                        m_queue = new MonitoredItemQueue(m_id);
-                    }
+                    m_queue ??= new MonitoredItemQueue(m_id);
 
                     m_queue.SetQueueSize(queueSize, discardOldest, diagnosticsMasks);
                     m_queue.SetSamplingInterval(samplingInterval);
@@ -266,9 +264,9 @@ namespace Opc.Ua.Sample {
         /// Called when the attribute being monitored changed. Reads and queues the value.
         /// </summary>
         public void ValueChanged(ISystemContext context) {
-            DataValue value = new DataValue();
+            var value = new DataValue();
 
-            ServiceResult error = m_source.Node.ReadAttribute(context, m_attributeId, NumericRange.Empty, null, value);
+            var error = m_source.Node.ReadAttribute(context, m_attributeId, NumericRange.Empty, null, value);
 
             if (ServiceResult.IsBad(error)) {
                 value = new DataValue(error.StatusCode);
@@ -293,7 +291,7 @@ namespace Opc.Ua.Sample {
         /// </summary>
         public Session Session {
             get {
-                ISubscription subscription = m_subscription;
+                var subscription = m_subscription;
 
                 if (subscription != null) {
                     return subscription.Session;
@@ -308,7 +306,7 @@ namespace Opc.Ua.Sample {
         /// </summary>
         public uint SubscriptionId {
             get {
-                ISubscription subscription = m_subscription;
+                var subscription = m_subscription;
 
                 if (subscription != null) {
                     return subscription.Id;
@@ -376,7 +374,7 @@ namespace Opc.Ua.Sample {
                     }
 
                     // re-queue if too little time has passed since the last publish.
-                    long now = DateTime.UtcNow.Ticks;
+                    var now = DateTime.UtcNow.Ticks;
 
                     if (m_nextSampleTime > now) {
                         return false;
@@ -410,12 +408,9 @@ namespace Opc.Ua.Sample {
         }
 
         /// <inheritdoc/>
-        public bool IsResendData
-        {
-            get
-            {
-                lock (m_lock)
-                {
+        public bool IsResendData {
+            get {
+                lock (m_lock) {
                     return m_resendData;
                 }
             }
@@ -463,12 +458,9 @@ namespace Opc.Ua.Sample {
         }
 
         /// <inheritdoc/>
-        public void SetupResendDataTrigger()
-        {
-            lock (m_lock)
-            {
-                if (m_monitoringMode == MonitoringMode.Reporting)
-                {
+        public void SetupResendDataTrigger() {
+            lock (m_lock) {
+                if (m_monitoringMode == MonitoringMode.Reporting) {
                     m_resendData = true;
                 }
             }
@@ -499,7 +491,7 @@ namespace Opc.Ua.Sample {
 
                 // make a shallow copy of the value.
                 if (value != null) {
-                    DataValue copy = new DataValue();
+                    var copy = new DataValue();
 
                     copy.WrappedValue = value.WrappedValue;
                     copy.StatusCode = value.StatusCode;
@@ -559,7 +551,7 @@ namespace Opc.Ua.Sample {
         /// </summary>
         public MonitoringMode SetMonitoringMode(MonitoringMode monitoringMode) {
             lock (m_lock) {
-                MonitoringMode previousMode = m_monitoringMode;
+                var previousMode = m_monitoringMode;
 
                 if (previousMode == monitoringMode) {
                     return previousMode;
@@ -594,11 +586,11 @@ namespace Opc.Ua.Sample {
         /// </summary>
         private void IncrementSampleTime() {
             // update next sample time.
-            long now = DateTime.UtcNow.Ticks;
-            long samplingInterval = (long)(m_samplingInterval * TimeSpan.TicksPerMillisecond);
+            var now = DateTime.UtcNow.Ticks;
+            var samplingInterval = (long)(m_samplingInterval * TimeSpan.TicksPerMillisecond);
 
             if (m_nextSampleTime > 0) {
-                long delta = now - m_nextSampleTime;
+                var delta = now - m_nextSampleTime;
 
                 if (samplingInterval > 0 && delta >= 0) {
                     m_nextSampleTime += ((delta / samplingInterval) + 1) * samplingInterval;
@@ -629,24 +621,20 @@ namespace Opc.Ua.Sample {
                 m_readyToTrigger = false;
 
                 // check if queuing is enabled.
-                if (m_queue != null && (!m_resendData || m_queue.ItemsInQueue != 0))
-                {
+                if (m_queue != null && (!m_resendData || m_queue.ItemsInQueue != 0)) {
                     DataValue value = null;
                     ServiceResult error = null;
 
-                    while (m_queue.Publish(out value, out error))
-                    {
+                    while (m_queue.Publish(out value, out error)) {
                         Publish(context, value, error, notifications, diagnostics);
 
-                        if (m_resendData)
-                        {
+                        if (m_resendData) {
                             m_readyToPublish = m_queue.ItemsInQueue > 0;
                             break;
                         }
                     }
                 }
-                else
-                {
+                else {
                     Publish(context, m_lastValue, m_lastError, notifications, diagnostics);
                 }
 
@@ -705,7 +693,7 @@ namespace Opc.Ua.Sample {
             }
 
             // copy data value.
-            MonitoredItemNotification item = new MonitoredItemNotification();
+            var item = new MonitoredItemNotification();
 
             item.ClientHandle = m_clientHandle;
             item.Value = value;

@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -910,11 +910,11 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.NotNull(results.ErrorInfo.ErrorMessage);
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
-           // TODO Assert.True(results.ErrorInfo.Diagnostics.IsListOfValues);
-           // TODO Assert.Collection(results.ErrorInfo.Diagnostics.Values, j => {
-           // TODO     Assert.True(j.IsString);
-           // TODO     Assert.Equal("BadNodeIdUnknown", (string)j);
-           // TODO });
+            // TODO Assert.True(results.ErrorInfo.Diagnostics.IsListOfValues);
+            // TODO Assert.Collection(results.ErrorInfo.Diagnostics.Values, j => {
+            // TODO     Assert.True(j.IsString);
+            // TODO     Assert.Equal("BadNodeIdUnknown", (string)j);
+            // TODO });
         }
 
 
@@ -938,14 +938,14 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(results.ErrorInfo.ErrorMessage);
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
 
-           // TODO Assert.NotNull(results.ErrorInfo.Diagnostics);
-           // TODO Assert.True(results.ErrorInfo.Diagnostics.IsObject);
-           // TODO results.ErrorInfo.Diagnostics.TryGetProperty("BadNodeIdUnknown", out var item);
-           // TODO Assert.NotNull(item);
-           // TODO Assert.True(item.IsListOfValues);
-           // TODO Assert.NotEqual(0, item.Count);
-           // TODO Assert.NotEmpty(item.Values);
-           // TODO Assert.Equal("ReadValue_ns=9;s=unknown", (string)item[0]);
+            // TODO Assert.NotNull(results.ErrorInfo.Diagnostics);
+            // TODO Assert.True(results.ErrorInfo.Diagnostics.IsObject);
+            // TODO results.ErrorInfo.Diagnostics.TryGetProperty("BadNodeIdUnknown", out var item);
+            // TODO Assert.NotNull(item);
+            // TODO Assert.True(item.IsListOfValues);
+            // TODO Assert.NotEqual(0, item.Count);
+            // TODO Assert.NotEmpty(item.Values);
+            // TODO Assert.Equal("ReadValue_ns=9;s=unknown", (string)item[0]);
         }
 
 

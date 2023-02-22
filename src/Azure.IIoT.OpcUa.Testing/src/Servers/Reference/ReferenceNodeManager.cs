@@ -52,9 +52,7 @@ namespace Reference {
             _configuration = configuration.ParseExtension<ReferenceServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null) {
-                _configuration = new ReferenceServerConfiguration();
-            }
+            _configuration ??= new ReferenceServerConfiguration();
 
             _dynamicNodes = new List<BaseDataVariableState>();
         }
@@ -2159,11 +2157,9 @@ namespace Reference {
         }
 
         private object GetNewValue(BaseVariableState variable) {
-            if (_generator == null) {
-                _generator = new Opc.Ua.Test.TestDataGenerator() {
-                    BoundaryValueFrequency = 0
-                };
-            }
+            _generator ??= new Opc.Ua.Test.TestDataGenerator() {
+                BoundaryValueFrequency = 0
+            };
 
             object value = null;
             var retryCount = 0;

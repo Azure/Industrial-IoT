@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Autofac.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
-    using Serilog;
 
     /// <summary>
     /// Main entry point
@@ -30,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         public static IHostBuilder CreateHostBuilder(string[] args) {
             return Host.CreateDefaultBuilder(args)
                 .UseAutofac()
-                .UseSerilog()
                 .ConfigureWebHostDefaults(builder => builder
                     .UseUrls("http://*:9045")
                     .UseStartup<Startup>()

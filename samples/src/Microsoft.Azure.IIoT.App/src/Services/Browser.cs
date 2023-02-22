@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using global::Azure.IIoT.OpcUa.Services.Sdk;
     using global::Azure.IIoT.OpcUa.Shared.Models;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 var message = $"Cannot browse node '{id}'";
-                _logger.Error(e, message);
+                _logger.LogError(e, message);
                 pageResult.Error = message;
             }
             return pageResult;
@@ -177,7 +177,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 var message = "Cannot browse";
-                _logger.Error(e, message);
+                _logger.LogError(e, message);
                 pageResult.Error = message;
             }
             return pageResult;
@@ -204,7 +204,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Error(e, "Cannot read value of node '{nodeId}'", nodeId);
+                _logger.LogError(e, "Cannot read value of node '{nodeId}'", nodeId);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 return errorMessage;
             }
@@ -235,7 +235,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Error(e, "Cannot write value of node '{nodeId}'", nodeId);
+                _logger.LogError(e, "Cannot write value of node '{nodeId}'", nodeId);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 return errorMessage;
             }
@@ -260,7 +260,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Error(e, "Cannot get method parameter from node '{nodeId}'", nodeId);
+                _logger.LogError(e, "Cannot get method parameter from node '{nodeId}'", nodeId);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 return errorMessage;
             }
@@ -302,7 +302,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Error(e, "Cannot get method parameter from node '{nodeId}'", nodeId);
+                _logger.LogError(e, "Cannot get method parameter from node '{nodeId}'", nodeId);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 return errorMessage;
             }

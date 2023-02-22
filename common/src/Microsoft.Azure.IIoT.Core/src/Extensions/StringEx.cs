@@ -80,20 +80,6 @@ namespace System {
         }
 
         /// <summary>
-        /// Trims quotes
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static string TrimQuotes(this string value) {
-            Contract.Assert(value != null);
-            var trimmed = value.TrimMatchingChar('"');
-            if (trimmed == value) {
-                return value.TrimMatchingChar('\'');
-            }
-            return trimmed;
-        }
-
-        /// <summary>
         /// Split string using a predicate for each character that
         /// determines whether the position is a split point.
         /// </summary>
@@ -127,20 +113,6 @@ namespace System {
             }
         }
 
-        /// <summary>
-        /// Trims a char from front and back if both match
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="match"></param>
-        /// <returns></returns>
-        public static string TrimMatchingChar(this string value, char match) {
-            Contract.Assert(value != null);
-            if (value.Length >= 2 && value[0] == match &&
-                value[value.Length - 1] == match) {
-                return value.Substring(1, value.Length - 2);
-            }
-            return value;
-        }
 
         /// <summary>
         /// Removes all whitespace and replaces it with single space.

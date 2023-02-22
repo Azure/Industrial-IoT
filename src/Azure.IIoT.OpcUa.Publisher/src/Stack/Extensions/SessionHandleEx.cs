@@ -4,18 +4,18 @@
 // ------------------------------------------------------------
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
+    using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua;
-    using System.Runtime.CompilerServices;
-    using Azure.IIoT.OpcUa.Shared.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Opc.Ua.Extensions;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Session Handle extensions
@@ -1100,9 +1100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions {
         private static List<BrowsePath> GetBrowsePathFromNodeState(
             this ISessionHandle session, NodeId rootId, NodeState parent,
             RelativePath? parentPath, List<BrowsePath>? browsePaths = null) {
-            if (browsePaths == null) {
-                browsePaths = new List<BrowsePath>();
-            }
+            browsePaths ??= new List<BrowsePath>();
             var children = new List<BaseInstanceState>();
             parent.GetChildren(session.Session.SystemContext, children);
             foreach (var child in children) {

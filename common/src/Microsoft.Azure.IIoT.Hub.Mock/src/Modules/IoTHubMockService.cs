@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Serializers;
     using Autofac;
 
     /// <summary>
@@ -31,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 .AsImplementedInterfaces();
 
             // Register default serializers...
-            builder.RegisterModule<NewtonSoftJsonModule>();
+            builder.AddNewtonsoftJsonSerializer();
 
             base.Load(builder);
         }

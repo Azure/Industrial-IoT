@@ -8,8 +8,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Extensions.Logging;
     using Moq;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;

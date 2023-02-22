@@ -4,21 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
+    using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Shared.Models;
     using FluentAssertions;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Extensions.Logging;
     using Models;
     using Moq;
     using Publisher.Services;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -32,8 +33,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
     /// </summary>
     public class PublisherConfigServicesTests : TempFileProviderBase {
 
-        private readonly NewtonSoftJsonSerializer _newtonSoftJsonSerializer;
-        private readonly NewtonSoftJsonSerializerRaw _newtonSoftJsonSerializerRaw;
+        private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
+        private readonly NewtonsoftJsonSerializerRaw _newtonSoftJsonSerializerRaw;
         private readonly ILogger _logger;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private readonly Mock<IPublisherConfiguration> _configMock;
@@ -46,9 +47,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         /// Constructor that initializes common resources used by tests.
         /// </summary>
         public PublisherConfigServicesTests() {
-            _newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
-            _newtonSoftJsonSerializerRaw = new NewtonSoftJsonSerializerRaw();
-            _logger = TraceLogger.Create();
+            _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
+            _newtonSoftJsonSerializerRaw = new NewtonsoftJsonSerializerRaw();
+            _logger = Log.Console<PublisherConfigServicesTests>();
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
@@ -525,10 +526,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
 
-            string payload = Utils.GetFileContent(publishedNodesFile);
+            var payload = Utils.GetFileContent(publishedNodesFile);
             var payloadRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
-            int index = 0;
+            var index = 0;
             foreach (var request in payloadRequests) {
                 request.OpcNodes = index % 2 == 0
                     ? null
@@ -763,7 +764,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
             InitPublisherConfigService();
 
-            string payload = Utils.GetFileContent(publishedNodesFile);
+            var payload = Utils.GetFileContent(publishedNodesFile);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in publishNodesRequest) {
@@ -789,7 +790,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             Utils.CopyContent(existingConfig, _tempFile);
             InitPublisherConfigService();
 
-            string payload = Utils.GetFileContent(newConfig);
+            var payload = Utils.GetFileContent(newConfig);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in publishNodesRequest) {
@@ -814,7 +815,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             Utils.CopyContent(existingConfig, _tempFile);
             InitPublisherConfigService();
 
-            string payload = Utils.GetFileContent(newConfig);
+            var payload = Utils.GetFileContent(newConfig);
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in publishNodesRequest) {
@@ -839,7 +840,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             InitPublisherConfigService();
 
-            string payload = Utils.GetFileContent(publishedNodesFile);
+            var payload = Utils.GetFileContent(publishedNodesFile);
             var unpublishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in unpublishNodesRequest) {
@@ -864,7 +865,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             Utils.CopyContent(existingConfig, _tempFile);
             InitPublisherConfigService();
 
-            string payload = Utils.GetFileContent(newConfig);
+            var payload = Utils.GetFileContent(newConfig);
             var unpublishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             foreach (var request in unpublishNodesRequest) {
@@ -891,7 +892,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
             InitPublisherConfigService();
 
             var payload = new List<PublishedNodesEntryModel>();
-            for (int endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
+            for (var endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
                 var model = new PublishedNodesEntryModel {
                     EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
                 };
@@ -932,7 +933,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
 
             // Publish one more node for each endpoint.
             var payloadDiff = new List<PublishedNodesEntryModel>();
-            for (int endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
+            for (var endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
                 var model = new PublishedNodesEntryModel {
                     EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
                     OpcNodes = new List<OpcNodeModel> {

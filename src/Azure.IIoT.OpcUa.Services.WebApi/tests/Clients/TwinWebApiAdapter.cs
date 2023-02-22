@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Sdk.Services.Adapter {
-    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Services.Sdk;
+    using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Implements node services as adapter on top of api.

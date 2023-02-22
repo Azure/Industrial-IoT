@@ -9,12 +9,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Client.Exceptions;
     using Microsoft.Azure.Devices.Shared;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 try {
                     await _lock.WaitAsync();
                     if (Client != null) {
-                        _logger.Information("Stopping Module Host...");
+                        _logger.LogInformation("Stopping Module Host...");
                         try {
                             await Client.DisposeAsync();
                         }
@@ -67,13 +67,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         catch (DeviceNotFoundException) { }
                         catch (UnauthorizedException) { }
                         catch (Exception se) {
-                            _logger.Error(se, "Module Host not cleanly disconnected.");
+                            _logger.LogError(se, "Module Host not cleanly disconnected.");
                         }
                     }
-                    _logger.Information("Module Host stopped.");
+                    _logger.LogInformation("Module Host stopped.");
                 }
                 catch (Exception ce) {
-                    _logger.Error(ce, "Module Host stopping caused exception.");
+                    _logger.LogError(ce, "Module Host stopping caused exception.");
                 }
                 finally {
                     Client?.Dispose();
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     await _lock.WaitAsync();
                     if (Client == null) {
                         // Create client
-                        _logger.Debug("Starting Module Host...");
+                        _logger.LogDebug("Starting Module Host...");
                         Client = await _factory.CreateAsync(productInfo + "_" + version, _metrics, reset);
                         // Register callback to be called when a method request is received
                         await Client.SetMethodHandlerAsync((request, _) =>
@@ -113,12 +113,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         twinSettings[TwinProperty.Version] = version;
                         await Client.UpdateReportedPropertiesAsync(twinSettings);
 
-                        _logger.Information("Module Host started.");
+                        _logger.LogInformation("Module Host started.");
                         return;
                     }
                 }
                 catch (Exception) {
-                    _logger.Error("Module Host failed to start.");
+                    _logger.LogError("Module Host failed to start.");
                     if (Client != null) {
                         await Try.Async(() => Client.DisposeAsync().AsTask());
                         Client.Dispose();
@@ -248,11 +248,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             // Process settings on controllers
-            _logger.Information("Applying initial desired state.");
+            _logger.LogInformation("Applying initial desired state.");
             await _settings.ProcessSettingsAsync(desired);
 
             // Synchronize all controllers with reported
-            _logger.Information("Reporting currently initial state.");
+            _logger.LogInformation("Reporting currently initial state.");
             await ReportControllerStateAsync(twin, reported);
         }
 
@@ -295,13 +295,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
             }
             if (reported.Count > 0) {
-                _logger.Debug("Reporting controller state...");
+                _logger.LogDebug("Reporting controller state...");
                 var collection = new TwinCollection();
                 foreach (var item in reported) {
                     collection[item.Key] = item.Value?.ConvertTo<object>();
                 }
                 await Client.UpdateReportedPropertiesAsync(collection);
-                _logger.Debug("Complete controller state reported (properties: {@settings}).",
+                _logger.LogDebug("Complete controller state reported (properties: {@settings}).",
                     reported.Keys);
             }
         }
@@ -333,7 +333,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                             collection[item.Key] = item.Value?.ConvertTo<object>();
                         }
                         await Client.UpdateReportedPropertiesAsync(collection);
-                        _logger.Debug("Internal state updated...", reporting);
+                        _logger.LogDebug("Internal state updated...", reporting);
                     }
 
                     // Any controller properties left?
@@ -341,11 +341,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         return;
                     }
 
-                    _logger.Debug("Processing new settings...");
+                    _logger.LogDebug("Processing new settings...");
                     var reported = await _settings.ProcessSettingsAsync(desired);
 
                     if (reported != null && reported.Count != 0) {
-                        _logger.Debug("Reporting setting results...");
+                        _logger.LogDebug("Reporting setting results...");
                         var collection = new TwinCollection();
                         foreach (var item in reported) {
                             collection[item.Key] = item.Value?.ConvertTo<object>();
@@ -355,7 +355,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                             _reported.AddOrUpdate(item.Key, item.Value);
                         }
                     }
-                    _logger.Information("New settings processed.");
+                    _logger.LogInformation("New settings processed.");
                 }
                 finally {
                     _lock.Release();

@@ -4,17 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
-    using Azure.IIoT.OpcUa.Shared.Models;
 
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using System;
     using Xunit;
 
     public class OpcNodeModelExTests {
 
         [Fact]
-        public void ComparerTest()
-        {
+        public void ComparerTest() {
             var comparer = OpcNodeModelEx.Comparer;
 
             var opcNode1 = new OpcNodeModel();

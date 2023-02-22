@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.Metrics;
@@ -162,12 +162,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             _status = status;
             _reason = reason;
             if (status == ConnectionStatus.Connected) {
-                logger.Information("{counter}: Device {deviceId} reconnected " +
+                logger.LogInformation("{counter}: Device {deviceId} reconnected " +
                     "due to {reason}.", _reconnectCounter, deviceId, reason);
                 _reconnectCounter++;
                 return;
             }
-            logger.Information("{counter}: Device {deviceId} disconnected " +
+            logger.LogInformation("{counter}: Device {deviceId} disconnected " +
                 "due to {reason} - now {status}...", _reconnectCounter, deviceId,
                     reason, status);
             if (IsClosed) {

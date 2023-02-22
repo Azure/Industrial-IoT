@@ -16,7 +16,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Services to delete history
     /// </summary>
-    [ApiVersion("2")][Route("history/v{version:apiVersion}/delete")]
+    [ApiVersion("2")]
+    [Route("history/v{version:apiVersion}/delete")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/pick")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request) {
+            [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -64,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request) {
+            [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -85,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values/modified")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request) {
+            [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -106,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestModel<DeleteEventsDetailsModel> request) {
+            [FromBody][Required] HistoryUpdateRequestModel<DeleteEventsDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }

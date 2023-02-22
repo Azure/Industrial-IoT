@@ -20,7 +20,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Configure discovery
     /// </summary>
-    [ApiVersion("2")][Route("registry/v{version:apiVersion}/discovery")]
+    [ApiVersion("2")]
+    [Route("registry/v{version:apiVersion}/discovery")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
@@ -61,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPatch("{discovererId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateDiscovererAsync(string discovererId,
-            [FromBody] [Required] DiscovererUpdateModel request) {
+            [FromBody][Required] DiscovererUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -117,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Discoverers</returns>
         [HttpPost("query")]
         public async Task<DiscovererListModel> QueryDiscoverersAsync(
-            [FromBody] [Required] DiscovererQueryModel query,
+            [FromBody][Required] DiscovererQueryModel query,
             [FromQuery] int? pageSize) {
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
@@ -147,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Discoverers</returns>
         [HttpGet("query")]
         public async Task<DiscovererListModel> GetFilteredListOfDiscoverersAsync(
-            [FromQuery] [Required] DiscovererQueryModel query,
+            [FromQuery][Required] DiscovererQueryModel query,
             [FromQuery] int? pageSize) {
 
             if (query == null) {
@@ -176,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{discovererId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task SetDiscoveryModeAsync(string discovererId,
-            [FromQuery] [Required] Shared.Models.DiscoveryMode mode,
+            [FromQuery][Required] Shared.Models.DiscoveryMode mode,
             [FromBody] DiscoveryConfigModel config) {
             var request = new DiscovererUpdateModel {
                 Discovery = mode,

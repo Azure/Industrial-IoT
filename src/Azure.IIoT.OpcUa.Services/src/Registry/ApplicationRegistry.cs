@@ -6,17 +6,17 @@
 namespace Azure.IIoT.OpcUa.Services.Services {
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
+    using Prometheus;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Prometheus;
 
     /// <summary>
     /// Application and endpoint registry services using the IoT Hub
@@ -208,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
             }
             if (model?.Capability != null) {
                 // If Capabilities provided, filter results
-                var tag = VariantValueEx.SanitizePropertyName(model.Capability)
+                var tag = VariantValueEx2.SanitizePropertyName(model.Capability)
                     .ToUpperInvariant();
                 query += $"AND tags.{tag} = true ";
             }
@@ -311,7 +311,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                             app.ApplicationId, app);
                     }
                     catch (Exception ex) {
-                        _logger.Error(ex, "Exception purging application {id} - continue",
+                        _logger.LogError(ex, "Exception purging application {id} - continue",
                             application.ApplicationId);
                         continue;
                     }
@@ -531,7 +531,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                     }
                     catch (Exception ex) {
                         unchanged++;
-                        _logger.Error(ex, "Exception during application disabling.");
+                        _logger.LogError(ex, "Exception during application disabling.");
                     }
                 }
             }
@@ -564,7 +564,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                 }
                 catch (Exception ex) {
                     unchanged++;
-                    _logger.Error(ex, "Exception adding application from discovery.");
+                    _logger.LogError(ex, "Exception adding application from discovery.");
                 }
             }
 
@@ -616,12 +616,12 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                 }
                 catch (Exception ex) {
                     unchanged++;
-                    _logger.Error(ex, "Exception during update.");
+                    _logger.LogError(ex, "Exception during update.");
                 }
             }
 
             var log = added != 0 || removed != 0 || updated != 0;
-            _logger.Information("... processed discovery results from {discovererId}: " +
+            _logger.LogInformation("... processed discovery results from {discovererId}: " +
                 "{added} applications added, {updated} updated, {removed} disabled, and " +
                 "{unchanged} unchanged.", discovererId, added, updated, removed, unchanged);
             kAppsAdded.Set(added);
@@ -704,7 +704,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                     }
                     catch (Exception ex) {
                         unchanged++;
-                        _logger.Error(ex, "Exception during discovery removal.");
+                        _logger.LogError(ex, "Exception during discovery removal.");
                     }
                 }
             }
@@ -732,7 +732,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                 }
                 catch (Exception ex) {
                     unchanged++;
-                    _logger.Error(ex, "Exception during update.");
+                    _logger.LogError(ex, "Exception during update.");
                 }
             }
 
@@ -748,12 +748,12 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                 }
                 catch (Exception ex) {
                     unchanged++;
-                    _logger.Error(ex, "Exception adding endpoint from discovery.");
+                    _logger.LogError(ex, "Exception adding endpoint from discovery.");
                 }
             }
 
             if (added != 0 || removed != 0) {
-                _logger.Information("processed endpoint results: {added} endpoints added, {updated} " +
+                _logger.LogInformation("processed endpoint results: {added} endpoints added, {updated} " +
                     "updated, {removed} removed or disabled, and {unchanged} unchanged.",
                     added, updated, removed, unchanged);
             }
@@ -783,7 +783,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                 }
                 catch (ResourceOutOfDateException ex) {
                     // Retry create/update
-                    _logger.Debug(ex, "Retry updating application...");
+                    _logger.LogDebug(ex, "Retry updating application...");
                     continue;
                 }
             }
@@ -834,7 +834,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                 }
                 catch (ResourceOutOfDateException ex) {
                     // Retry create/update
-                    _logger.Debug(ex, "Retry deleting application...");
+                    _logger.LogDebug(ex, "Retry deleting application...");
                     continue;
                 }
             }
@@ -889,7 +889,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                     await _endpointEvents?.OnEndpointEnabledAsync(context, endpoint);
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Failed re-enabling endpoint {id}", registration.Id);
+                    _logger.LogError(ex, "Failed re-enabling endpoint {id}", registration.Id);
                     continue;
                 }
             }
@@ -917,7 +917,7 @@ namespace Azure.IIoT.OpcUa.Services.Services {
                         await _endpointEvents?.OnEndpointDisabledAsync(context, endpoint);
                     }
                     catch (Exception ex) {
-                        _logger.Error(ex, "Failed disabling endpoint {id}", registration.Id);
+                        _logger.LogError(ex, "Failed disabling endpoint {id}", registration.Id);
                     }
                 }
             }

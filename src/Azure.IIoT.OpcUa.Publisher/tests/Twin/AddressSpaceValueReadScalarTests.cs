@@ -8,11 +8,10 @@ namespace Azure.IIoT.OpcUa.Edge.Control.Services {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Publisher.Twin;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Testing.Tests;
-    using Microsoft.Azure.IIoT.Utils;
+    using Furly.Extensions.Utils;
     using Opc.Ua;
     using System.Linq;
     using System.Net;

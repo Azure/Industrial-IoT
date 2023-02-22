@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Autofac;
@@ -44,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 .IfNotRegistered(typeof(ITaskScheduler));
 
             // Register default serializers...
-            builder.RegisterModule<NewtonSoftJsonModule>();
+            builder.AddNewtonsoftJsonSerializer();
             base.Load(builder);
         }
     }

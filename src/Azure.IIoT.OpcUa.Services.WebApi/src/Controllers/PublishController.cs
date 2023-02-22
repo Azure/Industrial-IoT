@@ -20,7 +20,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Value and Event publishing services
     /// </summary>
-    [ApiVersion("2")][Route("publisher/v{version:apiVersion}/publish")]
+    [ApiVersion("2")]
+    [Route("publisher/v{version:apiVersion}/publish")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
@@ -47,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The publish response</returns>
         [HttpPost("{endpointId}/start")]
         public async Task<PublishStartResponseModel> StartPublishingValuesAsync(
-            string endpointId, [FromBody] [Required] PublishStartRequestModel request) {
+            string endpointId, [FromBody][Required] PublishStartRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -68,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The bulk publish response</returns>
         [HttpPost("{endpointId}/bulk")]
         public async Task<PublishBulkResponseModel> BulkPublishValuesAsync(
-            string endpointId, [FromBody] [Required] PublishBulkRequestModel request) {
+            string endpointId, [FromBody][Required] PublishBulkRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -90,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The unpublish response</returns>
         [HttpPost("{endpointId}/stop")]
         public async Task<PublishStopResponseModel> StopPublishingValuesAsync(
-            string endpointId, [FromBody] [Required] PublishStopRequestModel request) {
+            string endpointId, [FromBody][Required] PublishStopRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -112,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The list of published nodes</returns>
         [HttpPost("{endpointId}")]
         public async Task<PublishedItemListResponseModel> GetFirstListOfPublishedNodesAsync(
-            string endpointId, [FromBody] [Required] PublishedItemListRequestModel request) {
+            string endpointId, [FromBody][Required] PublishedItemListRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -135,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpGet("{endpointId}")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<PublishedItemListResponseModel> GetNextListOfPublishedNodesAsync(
-            string endpointId, [FromQuery] [Required] string continuationToken) {
+            string endpointId, [FromQuery][Required] string continuationToken) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
                 continuationToken = Request.Headers[HttpHeader.ContinuationToken].FirstOrDefault();
             }

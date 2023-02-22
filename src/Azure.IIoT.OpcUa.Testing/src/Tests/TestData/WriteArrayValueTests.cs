@@ -6,8 +6,8 @@
 namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using System;
     using System.Linq;
@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             Func<T, string, Task<VariantValue>> readExpected) {
             _services = services;
             _endpoint = endpoint;
-            _serializer = new NewtonSoftJsonSerializer();
+            _serializer = new NewtonsoftJsonSerializer();
             _readExpected = readExpected;
         }
 

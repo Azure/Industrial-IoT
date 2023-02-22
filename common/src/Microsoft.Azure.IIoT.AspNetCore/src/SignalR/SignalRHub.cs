@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.AspNetCore.SignalR;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
                     arguments ?? Array.Empty<object>(), ct);
             }
             catch (Exception ex) {
-                _logger.Verbose(ex, "Failed to send broadcast message");
+                _logger.LogTrace(ex, "Failed to send broadcast message");
             }
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
                     arguments ?? Array.Empty<object>(), ct);
             }
             catch (Exception ex) {
-                _logger.Verbose(ex, "Failed to send multicast message");
+                _logger.LogTrace(ex, "Failed to send multicast message");
             }
         }
 

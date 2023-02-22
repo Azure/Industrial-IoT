@@ -204,9 +204,7 @@ namespace HistoricalAccess {
             // get the data set to use.
             var dataset = item.DataSet;
 
-            if (dataset == null) {
-                dataset = CreateDataSet();
-            }
+            dataset ??= CreateDataSet();
 
             // generate one hour worth of data by default.
             var startTime = DateTime.UtcNow.AddHours(-1);

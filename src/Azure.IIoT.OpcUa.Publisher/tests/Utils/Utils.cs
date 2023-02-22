@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         /// <param name="sourcePath"></param>
         /// <returns></returns>
         public static void CopyContent(string sourcePath, string destinationPath) {
-            string content = GetFileContent(sourcePath);
+            var content = GetFileContent(sourcePath);
 
             using (var fileStream = new FileStream(destinationPath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite)) {
                 fileStream.Write(Encoding.UTF8.GetBytes(content));

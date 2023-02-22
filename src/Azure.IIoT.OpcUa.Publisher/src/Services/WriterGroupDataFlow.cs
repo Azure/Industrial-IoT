@@ -5,16 +5,16 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services {
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
 
     /// <summary>
     /// Dataflow engine
@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                             input, _maxEncodedMessageSize, _notificationBufferSize != 1);
                     }
                     catch (Exception e) {
-                        _logger.Error(e, "Encoding failure.");
+                        _logger.LogError(e, "Encoding failure.");
                         return Enumerable.Empty<ITelemetryEvent>();
                     }
                 },
@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Message received handler
         /// </summary>
         private void OnMessageReceived(object sender, SubscriptionNotificationModel args) {
-            _logger.Debug("Message source received message with sequenceNumber {SequenceNumber}",
+            _logger.LogDebug("Message source received message with sequenceNumber {SequenceNumber}",
                 args.SequenceNumber);
 
             if (_dataFlowStartTime == DateTime.MinValue) {
@@ -130,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 }
                 _diagnostics?.ResetWriterGroupDiagnostics();
                 _dataFlowStartTime = DateTime.UtcNow;
-                _logger.Information("Started data flow with message from subscription {Name} on {Endpoint}.",
+                _logger.LogInformation("Started data flow with message from subscription {Name} on {Endpoint}.",
                     args.SubscriptionName, args.EndpointUrl);
             }
 

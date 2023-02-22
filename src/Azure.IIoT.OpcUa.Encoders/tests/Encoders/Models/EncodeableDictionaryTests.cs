@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders {
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Opc.Ua;
     using System.IO;

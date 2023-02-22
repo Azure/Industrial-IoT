@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher {
-    using Azure.IIoT.OpcUa.Publisher;
-
     /// <summary>
     /// Creates writer group scopes
     /// </summary>

@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 }
                 catch (Exception e) {
                     kMessagesErrors.Add(1, _tagList);
-                    _logger.Error(e, "Error sending network message(s)");
+                    _logger.LogError(e, "Error sending network message(s)");
                 }
                 kSendingDuration.Record(sw.ElapsedMilliseconds, _tagList);
             }

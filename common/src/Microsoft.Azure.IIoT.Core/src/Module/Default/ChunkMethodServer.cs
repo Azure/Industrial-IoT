@@ -7,8 +7,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Concurrent;
     using System.Net;
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     catch (Exception ex) {
                         // Unexpected
                         status = (int)HttpStatusCode.InternalServerError;
-                        _outer._logger.Error(ex,
+                        _outer._logger.LogError(ex,
                             "Processing message resulted in unexpected error");
                     }
                     _sent = 0;

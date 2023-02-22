@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Serializers {
+namespace Furly.Extensions.Serializers {
     using Microsoft.Azure.IIoT.Http;
     using System;
     using System.Buffers;
@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
     /// Serializer extensions
     /// </summary>
     public static class SerializerEx {
-
         /// <summary>
         /// Serialize to byte array
         /// </summary>
@@ -76,6 +75,31 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
 
         /// <summary>
+        /// Deserialize from response
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="serializer"></param>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        public static T DeserializeResponse<T>(this ISerializer serializer,
+            IHttpResponse response) {
+            var typed = serializer.Deserialize(response.Content, typeof(T));
+            return typed == null ? default : (T)typed;
+        }
+
+        /// <summary>
+        /// Parse response
+        /// </summary>
+        /// <param name="serializer"></param>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        public static VariantValue ParseResponse(this ISerializer serializer,
+            IHttpResponse response) {
+            return serializer.Parse(response.Content);
+        }
+
+
+        /// <summary>
         /// Serialize into indented string
         /// </summary>
         /// <param name="serializer"></param>
@@ -98,20 +122,18 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
 
         /// <summary>
-        /// Deserialize from string
+        /// Deserialize from reader
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="serializer"></param>
-        /// <param name="str"></param>
-        /// <param name="type"></param>
-        /// <param name="schemaReader"></param>
+        /// <param name="reader"></param>
         /// <returns></returns>
-        public static object Deserialize(this ISerializer serializer,
-            string str, Type type, TextReader schemaReader = null) {
-            var buffer = serializer.ContentEncoding?.GetBytes(str)
-                ?? Convert.FromBase64String(str);
-
-            return serializer.Deserialize(buffer, type);
+        public static T Deserialize<T>(this ISerializer serializer,
+            TextReader reader) {
+            return serializer.Deserialize<T>(reader.ReadToEnd());
         }
+
+#if ZOMBIE
 
         /// <summary>
         /// Deserialize from reader
@@ -126,42 +148,15 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
 
         /// <summary>
-        /// Deserialize from reader
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="serializer"></param>
-        /// <param name="reader"></param>
-        /// <returns></returns>
-        public static T Deserialize<T>(this ISerializer serializer,
-            TextReader reader) {
-            return serializer.Deserialize<T>(reader.ReadToEnd());
-        }
-
-        /// <summary>
         /// Deserialize from string
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="serializer"></param>
         /// <param name="json"></param>
-        /// <param name="schemaReader"></param>
         /// <returns></returns>
         public static T Deserialize<T>(this ISerializer serializer,
-            string json,
-            TextReader schemaReader = null) {
-            var typed = serializer.Deserialize(json, typeof(T), schemaReader);
-            return typed == null ? default : (T)typed;
-        }
-
-        /// <summary>
-        /// Deserialize from response
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="serializer"></param>
-        /// <param name="response"></param>
-        /// <returns></returns>
-        public static T DeserializeResponse<T>(this ISerializer serializer,
-            IHttpResponse response) {
-            var typed = serializer.Deserialize(response.Content, typeof(T));
+            string json) {
+            var typed = serializer.Deserialize(json, typeof(T));
             return typed == null ? default : (T)typed;
         }
 
@@ -176,28 +171,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
             return serializer.FromObject(a);
         }
 
-        /// <summary>
-        /// Parse string
-        /// </summary>
-        /// <param name="serializer"></param>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        public static VariantValue Parse(this ISerializer serializer,
-            string str) {
-            var buffer = serializer.ContentEncoding?.GetBytes(str)
-                ?? Convert.FromBase64String(str);
-            return serializer.Parse(buffer);
-        }
-
-        /// <summary>
-        /// Parse response
-        /// </summary>
-        /// <param name="serializer"></param>
-        /// <param name="response"></param>
-        /// <returns></returns>
-        public static VariantValue ParseResponse(this ISerializer serializer,
-            IHttpResponse response) {
-            return serializer.Parse(response.Content);
-        }
+#endif
     }
 }

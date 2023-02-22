@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack {
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Shared.Models;
     using UaAggregateBits = Opc.Ua.AggregateBits;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
     using UaDataChangeTrigger = Opc.Ua.DataChangeTrigger;
-    using UaTimestampsToReturn = Opc.Ua.TimestampsToReturn;
     using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
     using UaDeadbandType = Opc.Ua.DeadbandType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
@@ -21,11 +21,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     using UaMonitoringMode = Opc.Ua.MonitoringMode;
     using UaNodeClass = Opc.Ua.NodeClass;
     using UaPermissionType = Opc.Ua.PermissionType;
+    using UaTimestampsToReturn = Opc.Ua.TimestampsToReturn;
     using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
     using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
     using System;
     using System.Collections.Generic;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
 
     /// <summary>
     /// Stack types conversions
@@ -494,14 +494,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="encoding"></param>
         /// <returns></returns>
         public static uint ToStackType(this NetworkMessageContentMask? mask, MessageEncoding? encoding) {
-            if (mask == null) {
-                mask =
+            mask ??=
                     NetworkMessageContentMask.NetworkMessageHeader |
                     NetworkMessageContentMask.NetworkMessageNumber |
                     NetworkMessageContentMask.DataSetMessageHeader |
                     NetworkMessageContentMask.PublisherId |
                     NetworkMessageContentMask.DataSetClassId;
-            }
             switch (encoding) {
                 case MessageEncoding.Uadp:
                     return (uint)ToUadpStackType(mask.Value);
@@ -520,8 +518,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <returns></returns>
         public static uint ToStackType(this DataSetContentMask? mask,
             DataSetFieldContentMask? fieldMask, MessageEncoding? encoding) {
-            if (mask == null) {
-                mask =
+            mask ??=
                     DataSetContentMask.DataSetWriterId |
                     DataSetContentMask.DataSetWriterName |
                     DataSetContentMask.MetaDataVersion |
@@ -531,7 +528,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
                     DataSetContentMask.Timestamp |
                     DataSetContentMask.MessageType |
                     DataSetContentMask.Status;
-            }
             switch (encoding) {
                 case MessageEncoding.Uadp:
                     return (uint)ToUadpStackType(mask.Value);
@@ -708,14 +704,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="mask"></param>
         /// <returns></returns>
         public static UaDataSetFieldContentMask ToStackType(this DataSetFieldContentMask? mask) {
-            if (mask == null) {
-                mask =
+            mask ??=
                     DataSetFieldContentMask.StatusCode |
                     DataSetFieldContentMask.SourceTimestamp |
                     DataSetFieldContentMask.SourcePicoSeconds |
                     DataSetFieldContentMask.ServerPicoSeconds |
                     DataSetFieldContentMask.ServerTimestamp;
-            }
             var result = UaDataSetFieldContentMask.None;
             if (0 != (mask & DataSetFieldContentMask.StatusCode)) {
                 result |= UaDataSetFieldContentMask.StatusCode;

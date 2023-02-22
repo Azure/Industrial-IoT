@@ -5,9 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Services.Sdk {
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Utils;
+    using Furly.Extensions.Utils;
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;

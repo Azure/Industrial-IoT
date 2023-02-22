@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module {
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
     using System.Threading.Tasks;
 
     /// <summary>

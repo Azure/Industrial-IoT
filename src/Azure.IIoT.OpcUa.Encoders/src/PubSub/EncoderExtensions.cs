@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub {
+    using Azure.IIoT.OpcUa.Encoders;
     using Newtonsoft.Json.Linq;
     using System;
-    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// Encoder extensions

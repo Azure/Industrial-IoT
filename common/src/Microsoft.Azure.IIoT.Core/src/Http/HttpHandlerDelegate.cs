@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Default {
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
 
             var root = next.GetRoot();
             if (root == null) {
-                _logger.Error("Cannot configure root handler, inner " +
+                _logger.LogError("Cannot configure root handler, inner " +
                     "most handler is not a configurable client handler");
                 return;
             }
@@ -47,15 +47,13 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     root.Proxy = proxy;
                 }
                 else {
-                    _logger.Warning("Proxy configuration provided, but " +
+                    _logger.LogWarning("Proxy configuration provided, but " +
                         "underlying handler does not support proxy " +
                         "configuration.  Skipping proxy.");
                 }
             }
 
-            if (handlers == null) {
-                handlers = Enumerable.Empty<IHttpHandler>();
-            }
+            handlers ??= Enumerable.Empty<IHttpHandler>();
 
             // Register validators
             var validators = handlers

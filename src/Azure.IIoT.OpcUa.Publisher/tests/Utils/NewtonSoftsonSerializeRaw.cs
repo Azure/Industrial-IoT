@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils {
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils {
     /// <summary>
     /// Newtonsoft json raw serializer
     /// </summary>
-    public class NewtonSoftJsonSerializerRaw : NewtonSoftJsonSerializer { 
+    public class NewtonsoftJsonSerializerRaw : NewtonsoftJsonSerializer {
 
         /// <summary>
         /// Json raw converter

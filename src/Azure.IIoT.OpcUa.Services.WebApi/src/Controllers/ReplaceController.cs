@@ -17,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// History replace services
     /// </summary>
-    [ApiVersion("2")][Route("history/v{version:apiVersion}/replace")]
+    [ApiVersion("2")]
+    [Route("history/v{version:apiVersion}/replace")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
@@ -44,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request) {
+            [FromBody][Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -65,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request) {
+            [FromBody][Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }

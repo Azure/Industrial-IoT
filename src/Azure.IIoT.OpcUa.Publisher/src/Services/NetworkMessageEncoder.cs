@@ -4,17 +4,17 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Services {
-    using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                         // a message containing only a single data set message which
                         // contains (parts) of a notification.
                         //
-                        _logger.Warning("Resulting chunk is too large, dropped a notification.");
+                        _logger.LogWarning("Resulting chunk is too large, dropped a notification.");
                         continue;
                     }
                     validChunks++;
@@ -344,9 +344,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         }
 
         private void Drop(IEnumerable<SubscriptionNotificationModel> messages) {
-            int totalNotifications = messages.Sum(m => m?.Notifications?.Count ?? 0);
+            var totalNotifications = messages.Sum(m => m?.Notifications?.Count ?? 0);
             NotificationsDroppedCount += totalNotifications;
-            _logger.Warning("Dropped {totalNotifications} values", totalNotifications);
+            _logger.LogWarning("Dropped {totalNotifications} values", totalNotifications);
         }
 
         private static readonly ConfigurationVersionDataType kEmptyConfiguration =

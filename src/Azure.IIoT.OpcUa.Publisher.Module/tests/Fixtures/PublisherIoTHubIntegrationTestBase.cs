@@ -4,18 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Module.Controller;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
+    using Azure.IIoT.OpcUa.Publisher.Services;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Testing.Fixtures;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Autofac;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Mock;
@@ -27,13 +28,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
     using Moq;
     using Opc.Ua;
-    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -237,7 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// <param name="publishedNodesFile"></param>
         /// <returns></returns>
         protected PublishedNodesEntryModel[] GetEndpointsFromFile(string publishedNodesFile) {
-            IJsonSerializer serializer = new NewtonSoftJsonSerializer();
+            IJsonSerializer serializer = new NewtonsoftJsonSerializer();
             var fileContent = File.ReadAllText(publishedNodesFile).Replace("{{Port}}", _serverFixture.Port.ToString());
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }
@@ -254,12 +253,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             try {
                 var config = _typedConnectionString.ToIoTHubConfig();
                 arguments = arguments.Concat(
-                     new[]
-                            {
-                                $"--ec={_typedConnectionString}",
-                                "--aa",
-                                $"--pf={publishedNodesFilePath}"
-                            }
+                    new[]
+                    {
+                        $"--ec={_typedConnectionString}",
+                        "--aa",
+                        $"--pf={publishedNodesFilePath}"
+                    }
                     ).ToArray();
 
                 var configuration = new ConfigurationBuilder()
@@ -296,42 +295,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
         /// </summary>
         private async Task HostAsync(ILogger logger, IConfiguration configurationRoot, List<(DeviceTwinModel, DeviceModel)> devices) {
             try {
-                // Hook event source
-                using (var broker = new EventSourceBroker()) {
+                using (var hostScope = ConfigureContainer(configurationRoot, devices)) {
+                    var module = hostScope.Resolve<IModuleHost>();
+                    var events = hostScope.Resolve<IEventEmitter>();
+                    var moduleConfig = hostScope.Resolve<IModuleConfig>();
 
-                    using (var hostScope = ConfigureContainer(configurationRoot, devices)) {
-                        var module = hostScope.Resolve<IModuleHost>();
-                        var events = hostScope.Resolve<IEventEmitter>();
-                        var moduleConfig = hostScope.Resolve<IModuleConfig>();
+                    Events = hostScope.Resolve<IIoTHub>().Events;
 
-                        Events = hostScope.Resolve<IIoTHub>().Events;
+                    try {
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
+                        logger.LogInformation("Starting module OpcPublisher version {version}.", version);
+                        // Start module
+                        await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
 
-                        try {
-                            var version = GetType().Assembly.GetReleaseVersion().ToString();
-                            logger.Information("Starting module OpcPublisher version {version}.", version);
-                            // Start module
-                            await module.StartAsync(IdentityType.Publisher, "OpcPublisher", version, null);
+                        _apiScope = ConfigureContainer(configurationRoot, hostScope.Resolve<IIoTHubTwinServices>());
+                        _running.TrySetResult(true);
+                        await Task.WhenAny(_exit.Task);
+                        logger.LogInformation("Module exits...");
+                    }
+                    catch (Exception ex) {
+                        _running.TrySetException(ex);
+                    }
+                    finally {
+                        await module.StopAsync();
 
-                            _apiScope = ConfigureContainer(configurationRoot, hostScope.Resolve<IIoTHubTwinServices>());
-                            _running.TrySetResult(true);
-                            await Task.WhenAny(_exit.Task);
-                            logger.Information("Module exits...");
-                        }
-                        catch (Exception ex) {
-                            _running.TrySetException(ex);
-                        }
-                        finally {
-                            await module.StopAsync();
-
-                            Events = null;
-                            _apiScope?.Dispose();
-                            _apiScope = null;
-                        }
+                        Events = null;
+                        _apiScope?.Dispose();
+                        _apiScope = null;
                     }
                 }
             }
             catch (Exception ex) {
-                logger.Error(ex, "Error when initializing module host.");
+                logger.LogError(ex, "Error when initializing module host.");
                 throw;
             }
         }
@@ -349,8 +344,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
                 .AsImplementedInterfaces();
             builder.RegisterInstance(ioTHubTwinServices)
                 .ExternallyOwned();
-            builder.AddConsoleLogger();
-            builder.RegisterModule<NewtonSoftJsonModule>();
+            builder.AddDiagnostics(logging => logging.AddConsole());
+            builder.AddNewtonsoftJsonSerializer();
             builder.RegisterType<IoTHubTwinMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()
@@ -369,22 +364,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures {
             List<(DeviceTwinModel, DeviceModel)> devices) {
             var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
-            var cliOptions = new PublisherCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces();
+            builder.RegisterType<PublisherCliOptions>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
 
             // Register module and agent framework ...
             builder.RegisterModule<ModuleFramework>();
-            builder.RegisterModule<NewtonSoftJsonModule>();
+            builder.AddNewtonsoftJsonSerializer();
 
-            builder.AddDiagnostics(config, cliOptions.ToLoggerConfiguration());
-            builder.RegisterInstance(cliOptions)
-                .AsImplementedInterfaces();
-
+            builder.AddDiagnostics(logging => logging.AddConsole());
             builder.RegisterType<IoTHubClientFactory>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.Register(ctx => IoTHubServices.Create(devices))

@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         public CallArrayMethodTests(Func<INodeServices<T>> services, T endpoint) {
             _services = services;
             _endpoint = endpoint;
-            _serializer = new NewtonSoftJsonSerializer();
+            _serializer = new NewtonsoftJsonSerializer();
         }
 
         public async Task NodeMethodMetadataStaticArrayMethod1TestAsync() {

@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <returns>A converted or default value for the property.</returns>
         public static T GetOptional<T>(this IDictionary<string, string> properties, string propertyName, T defaultValue = default(T))
             where T : IConvertible {
-            properties.TryGetValue(propertyName, out string value);
+            properties.TryGetValue(propertyName, out var value);
             try {
                 return (T)Convert.ChangeType(value, typeof(T));
             }

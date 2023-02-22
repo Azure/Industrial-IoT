@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
         /// <param name="provider"></param>
         /// <param name="jsonSettings"></param>
         public SignalRHubClient(ISignalRClientConfig config, ILogger logger,
-            ITokenProvider provider = null, IJsonSerializerSettingsProvider jsonSettings = null) {
+            ITokenProvider provider = null, INewtonsoftSerializerSettingsProvider jsonSettings = null) {
             _jsonSettings = jsonSettings;
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -127,14 +127,15 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
             internal static async Task<SignalRClientRegistrar> CreateAsync(
                 ISignalRClientConfig config, string endpointUrl, ILogger logger,
                 string resourceId, ITokenProvider provider,
-                IJsonSerializerSettingsProvider jsonSettings = null) {
+                INewtonsoftSerializerSettingsProvider jsonSettings = null) {
 
                 if (string.IsNullOrEmpty(endpointUrl)) {
                     throw new ArgumentException(nameof(endpointUrl));
                 }
+
                 var host = new SignalRHubClientHost(endpointUrl,
                     config.UseMessagePackProtocol,
-                    logger.ForContext<SignalRHubClientHost>(),
+                    logger, // TODO: should use logger factory here
                     resourceId, provider, jsonSettings);
 
                 await host.StartAsync().ConfigureAwait(false);
@@ -166,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
             private readonly SignalRHubClientHost _client;
         }
 
-        private readonly IJsonSerializerSettingsProvider _jsonSettings;
+        private readonly INewtonsoftSerializerSettingsProvider _jsonSettings;
         private readonly ISignalRClientConfig _config;
         private readonly Dictionary<string, SignalRClientRegistrar> _clients;
         private readonly SemaphoreSlim _lock;

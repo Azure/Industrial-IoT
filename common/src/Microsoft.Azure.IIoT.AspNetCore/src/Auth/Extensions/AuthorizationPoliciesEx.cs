@@ -82,9 +82,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                     // No schemes configured - require nothing in terms of authorization
                     configure = (n, builder, p) => builder.RequireAssertion(ctx => true);
                 }
-                else if (configure == null) {
-                    configure = (n, builder, p) => builder.RequireAuthenticatedUser();
-                }
+                else configure ??= (n, builder, p) => builder.RequireAuthenticatedUser();
 
                 return new ConfigureNamedOptions<AuthorizationOptions>(Options.DefaultName, options => {
                     // Set default policy

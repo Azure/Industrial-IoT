@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Hub.Client {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// <inheritdoc/>
         public async Task<string> CallMethodAsync(string deviceId, string moduleId,
             string method, string payload, TimeSpan? timeout, CancellationToken ct) {
-            _logger.Verbose("Call {method} on {device} ({module}) with {payload}... ",
+            _logger.LogTrace("Call {method} on {device} ({module}) with {payload}... ",
                 method, deviceId, moduleId, payload);
             var result = await _twin.CallMethodAsync(deviceId, moduleId,
                 new MethodParameterModel {
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     JsonPayload = payload
                 }, ct);
             if (result.Status != 200) {
-                _logger.Debug("Call {method} on {device} ({module}) with {payload} " +
+                _logger.LogDebug("Call {method} on {device} ({module}) with {payload} " +
                     "returned with error {status}: {result}",
                     method, deviceId, moduleId, payload, result.Status, result.JsonPayload);
                 throw new MethodCallStatusException(result.JsonPayload, result.Status);

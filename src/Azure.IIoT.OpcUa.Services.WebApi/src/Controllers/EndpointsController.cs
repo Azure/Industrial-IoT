@@ -19,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Activate, Deactivate and Query endpoint resources
     /// </summary>
-    [ApiVersion("2")][Route("registry/v{version:apiVersion}/endpoints")]
+    [ApiVersion("2")]
+    [Route("registry/v{version:apiVersion}/endpoints")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
@@ -132,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         [HttpPost("query")]
         public async Task<EndpointInfoListModel> QueryEndpointsAsync(
-            [FromBody] [Required] EndpointRegistrationQueryModel query,
+            [FromBody][Required] EndpointRegistrationQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
             if (query == null) {
@@ -166,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         [HttpGet("query")]
         public async Task<EndpointInfoListModel> GetFilteredListOfEndpointsAsync(
-            [FromQuery] [Required] EndpointRegistrationQueryModel query,
+            [FromQuery][Required] EndpointRegistrationQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
             if (query == null) {

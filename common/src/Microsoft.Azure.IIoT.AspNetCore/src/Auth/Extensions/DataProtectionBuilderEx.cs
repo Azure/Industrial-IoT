@@ -19,7 +19,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.AspNetCore.DataProtection;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -36,10 +38,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="configuration"></param>
         public static void AddAzureDataProtection(
             this IServiceCollection services, IConfiguration configuration = null) {
-            if (configuration == null) {
-                configuration = services.BuildServiceProvider()
+            configuration ??= services.BuildServiceProvider()
                     .GetRequiredService<IConfiguration>();
-            }
             services.AddDataProtection()
                 .AddAzureBlobKeyStorage(configuration)
                 .AddAzureKeyVaultDataProtection(configuration);
@@ -79,9 +79,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             var containerName = storage.BlobStorageContainerDataProtection;
             var connectionString = storage.GetStorageConnString();
             if (string.IsNullOrEmpty(connectionString)) {
-               throw new InvalidConfigurationException(
-                   "Storage configuration is missing in your configuration for " +
-                   "dataprotection to store all keys across all instances.");
+                throw new InvalidConfigurationException(
+                    "Storage configuration is missing in your configuration for " +
+                    "dataprotection to store all keys across all instances.");
             }
             var storageAccount = CloudStorageAccount.Parse(storage.GetStorageConnString());
             var relativePath = $"{containerName}/keys.xml";
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                 return true;
             }
             catch (Exception ex) {
-                Log.Logger.Debug(ex, "Failed to authenticate to keyvault {url}.",
+                Log.Console<DataProtectionConfig>().LogDebug(ex, "Failed to authenticate to keyvault {url}.",
                     vaultUri);
                 return false;
             }
@@ -128,7 +128,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <summary>
         /// Data protection default configuration
         /// </summary>
-        internal sealed class DataProtectionConfig : ConfigBase, IKeyVaultConfig, IStorageConfig  {
+        internal sealed class DataProtectionConfig : ConfigBase, IKeyVaultConfig, IStorageConfig {
 
             private const string kKeyVaultKeyDataProtectionDefault = "dataprotection";
             private const string kBlobStorageContainerDataProtectionDefault = "dataprotection";

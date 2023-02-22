@@ -7,9 +7,9 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Filters;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
@@ -17,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// History raw access services
     /// </summary>
-    [ApiVersion("2")][Route("history/v{version:apiVersion}/history")]
+    [ApiVersion("2")]
+    [Route("history/v{version:apiVersion}/history")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
@@ -44,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The history read response</returns>
         [HttpPost("read/{endpointId}")]
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadRawAsync(
-            string endpointId, [FromBody] [Required] HistoryReadRequestModel<VariantValue> request) {
+            string endpointId, [FromBody][Required] HistoryReadRequestModel<VariantValue> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -65,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The history read response</returns>
         [HttpPost("read/{endpointId}/next")]
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadRawNextAsync(
-            string endpointId, [FromBody] [Required] HistoryReadNextRequestModel request) {
+            string endpointId, [FromBody][Required] HistoryReadNextRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -87,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("update/{endpointId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task<HistoryUpdateResponseModel> HistoryUpdateRawAsync(
-            string endpointId, [FromBody] [Required] HistoryUpdateRequestModel<VariantValue> request) {
+            string endpointId, [FromBody][Required] HistoryUpdateRequestModel<VariantValue> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }

@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-
     /// <summary>
     /// Client services configuration
     /// </summary>

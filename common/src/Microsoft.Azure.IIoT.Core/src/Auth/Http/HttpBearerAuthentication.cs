@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Http.Auth {
     using Microsoft.Azure.IIoT.Auth;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
     using System.Net;
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
                         "Bearer", result.RawToken);
                 }
                 else {
-                    _logger.Error("Failed to aquire token calling " +
+                    _logger.LogError("Failed to aquire token calling " +
                         "{request} ({resource}) - calling without...",
                         requestUri, resourceId);
                 }

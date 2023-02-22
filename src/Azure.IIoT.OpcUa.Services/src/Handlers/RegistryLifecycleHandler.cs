@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Handlers {
-    using Azure.IIoT.OpcUa.Shared.Models;
     using Azure.IIoT.OpcUa.Services.Models;
+    using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Utils;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
             _ = DateTime.TryParse(ts, out var timestamp);
             if (timestamp + TimeSpan.FromSeconds(10) < DateTime.UtcNow) {
                 // Drop twin events that are too far in our past.
-                _logger.Debug("Skipping {event} from {deviceId}({moduleId}) from {ts}.",
+                _logger.LogDebug("Skipping {event} from {deviceId}({moduleId}) from {ts}.",
                     opType, deviceId, moduleId, timestamp);
                 return;
             }
@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                     type = twin.Tags?.GetValueOrDefault<string>(TwinProperty.Type, null);
                 }
                 catch (Exception ex) {
-                    _logger.Information(ex, "Failed to materialize twin from registry.");
+                    _logger.LogInformation(ex, "Failed to materialize twin from registry.");
                     return;
                 }
             }

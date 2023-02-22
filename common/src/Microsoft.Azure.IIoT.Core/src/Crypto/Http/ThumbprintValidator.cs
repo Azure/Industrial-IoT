@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Ssl {
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Net.Http.Headers;
     using System.Net.Security;
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Http.Ssl {
             X509Certificate2 cert, X509Chain chain, SslPolicyErrors? errors) {
             var sslThumbprint = cert.Thumbprint.ToLowerInvariant();
             if (sslThumbprint != _thumbprint) {
-                _logger.Error(
+                _logger.LogError(
                     "The remote endpoint is using an unknown/invalid SSL " +
                     "certificate, the thumbprint of the certificate doesn't " +
                     "match the value provided.", sslThumbprint, _thumbprint);

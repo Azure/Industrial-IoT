@@ -50,9 +50,7 @@ namespace Views {
             _configuration = configuration.ParseExtension<ViewsServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null) {
-                _configuration = new ViewsServerConfiguration();
-            }
+            _configuration ??= new ViewsServerConfiguration();
         }
 
         /// <summary>

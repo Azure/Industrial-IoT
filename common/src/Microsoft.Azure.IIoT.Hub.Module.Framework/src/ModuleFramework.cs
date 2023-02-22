@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework {
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Hub.Module.Client.Default;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Autofac;
@@ -25,8 +25,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
 
             // Register sdk and host
             builder.RegisterType<IoTSdkFactory>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<EventSourceBroker>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ModuleHost>()
                 .AsImplementedInterfaces().SingleInstance();

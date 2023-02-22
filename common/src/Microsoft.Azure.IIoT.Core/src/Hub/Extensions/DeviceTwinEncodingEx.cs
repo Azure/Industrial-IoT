@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Hub {
             }
             var result = new Dictionary<string, bool>();
             foreach (var s in set) {
-                var add = VariantValueEx.SanitizePropertyName(s);
+                var add = VariantValueEx2.SanitizePropertyName(s);
                 if (upperCase != null) {
                     add = (bool)upperCase ? add.ToUpperInvariant() : add.ToLowerInvariant();
                 }

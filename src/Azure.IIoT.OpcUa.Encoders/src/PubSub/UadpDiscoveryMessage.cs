@@ -4,9 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub {
-    using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -83,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
         public override IReadOnlyList<byte[]> Encode(IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver resolver) {
             var messages = new List<byte[]>();
-            bool isChunkMessage = false;
+            var isChunkMessage = false;
             var remainingChunks = EncodePayloadChunks(context, resolver).AsSpan();
 
             // Re-evaluate flags every go around

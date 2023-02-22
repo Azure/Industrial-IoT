@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services {
-    using Autofac;
     using Azure.IIoT.OpcUa.Services.Handlers;
+    using Autofac;
 
     /// <summary>
     /// Injected event handlers

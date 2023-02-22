@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.Services.AppAuthentication;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.InteropServices;

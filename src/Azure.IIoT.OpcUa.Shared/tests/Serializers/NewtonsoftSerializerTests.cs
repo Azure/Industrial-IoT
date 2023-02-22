@@ -6,8 +6,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Json {
     using AutoFixture;
     using AutoFixture.Kernel;
     using FluentAssertions;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Newtonsoft.Json;
     using System;
     using System.Collections;
@@ -97,6 +97,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Json {
             result.Should().BeEquivalentTo(instance, opt => opt.AllowingInfiniteRecursion());
         }
 
-        private readonly NewtonSoftJsonSerializer _serializer = new();
+        private readonly NewtonsoftJsonSerializer _serializer = new();
     }
 }

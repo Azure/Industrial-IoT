@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
     using Microsoft.Azure.IIoT.AspNetCore.Models;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
-    using Serilog;
     using System;
     using System.Linq;
 
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
         /// </summary>
         public CorsSetup(ICorsConfig config, ILogger logger) {
             _config = config;
-            _log = logger;
+            _logger = logger;
         }
 
         /// <summary>
@@ -30,14 +30,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
         /// <param name="app"></param>
         public void UseMiddleware(IApplicationBuilder app) {
             if (!_config.CorsEnabled) {
-                _log.Information("CORS is disabled");
+                _logger.LogInformation("CORS is disabled");
                 return;
             }
             app.UseCors(builder => {
-                _log.Information("CORS is enabled");
+                _logger.LogInformation("CORS is enabled");
 
                 if (_config.CorsWhitelist == "*") {
-                    _log.Information("Allow all headers, origins and methods");
+                    _logger.LogInformation("Allow all headers, origins and methods");
                     builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod();
                     return;
                 }
@@ -64,14 +64,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
         private void Configure(string name, string[] policies, Action all,
             Action<string[]> specific) {
             if (policies == null) {
-                _log.Information("No setting for CORS {name} policy was found, ignore", name);
+                _logger.LogInformation("No setting for CORS {name} policy was found, ignore", name);
             }
             else if (policies.Contains("*")) {
-                _log.Information("CORS policy for {name} allows any header", name);
+                _logger.LogInformation("CORS policy for {name} allows any header", name);
                 all();
             }
             else {
-                _log.Information("Add specified {name} policies to CORS policy", name, policies);
+                _logger.LogInformation("Add specified {name} policies to CORS policy", name, policies);
                 specific(policies);
             }
         }
@@ -85,19 +85,19 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
                 var model = JsonConvert.DeserializeObject<CorsWhitelistModel>(
                     _config.CorsWhitelist);
                 if (model == null) {
-                    _log.Error("Invalid CORS whitelist {whitelist}. Ignored",
+                    _logger.LogError("Invalid CORS whitelist {whitelist}. Ignored",
                         _config.CorsWhitelist);
                 }
                 return model;
             }
             catch (Exception ex) {
-                _log.Error(ex, "Invalid CORS whitelist {whitelist}. Ignored",
+                _logger.LogError(ex, "Invalid CORS whitelist {whitelist}. Ignored",
                     _config.CorsWhitelist);
                 return null;
             }
         }
 
         private readonly ICorsConfig _config;
-        private readonly ILogger _log;
+        private readonly ILogger _logger;
     }
 }

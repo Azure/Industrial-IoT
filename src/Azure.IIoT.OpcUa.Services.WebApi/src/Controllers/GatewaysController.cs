@@ -20,7 +20,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Read, Update and Query Gateway resources
     /// </summary>
-    [ApiVersion("2")][Route("registry/v{version:apiVersion}/gateways")]
+    [ApiVersion("2")]
+    [Route("registry/v{version:apiVersion}/gateways")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
@@ -61,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPatch("{GatewayId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateGatewayAsync(string GatewayId,
-            [FromBody] [Required] GatewayUpdateModel request) {
+            [FromBody][Required] GatewayUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -117,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Gateway</returns>
         [HttpPost("query")]
         public async Task<GatewayListModel> QueryGatewayAsync(
-            [FromBody] [Required] GatewayQueryModel query,
+            [FromBody][Required] GatewayQueryModel query,
             [FromQuery] int? pageSize) {
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
@@ -146,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Gateway</returns>
         [HttpGet("query")]
         public async Task<GatewayListModel> GetFilteredListOfGatewayAsync(
-            [FromQuery] [Required] GatewayQueryModel query,
+            [FromQuery][Required] GatewayQueryModel query,
             [FromQuery] int? pageSize) {
 
             if (query == null) {

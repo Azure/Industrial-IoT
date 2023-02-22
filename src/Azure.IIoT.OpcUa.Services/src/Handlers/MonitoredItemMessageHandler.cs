@@ -9,8 +9,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                 var pubSubMessage = PubSubMessage.Decode(payload, ContentMimeType.Json,
                     context, null, MessageSchema);
                 if (pubSubMessage is not BaseNetworkMessage networkMessage) {
-                    _logger.Information("Received non network message.");
+                    _logger.LogInformation("Received non network message.");
                     return;
                 }
 
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Publishing messages failed - skip");
+                _logger.LogError(ex, "Publishing messages failed - skip");
             }
         }
 

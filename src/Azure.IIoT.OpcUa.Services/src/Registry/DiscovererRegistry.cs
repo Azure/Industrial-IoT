@@ -6,15 +6,15 @@
 namespace Azure.IIoT.OpcUa.Services.Registry {
     using Azure.IIoT.OpcUa.Services.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Discoverer registry which uses the IoT Hub twin services for discoverer
@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                     // Update registration from update request
                     var patched = registration.ToDiscovererModel();
                     if (request.Discovery != null && request.Discovery != DiscoveryMode.Off) {
-                        _logger.Warning("Discovery mode setting is no longer supported." +
+                        _logger.LogWarning("Discovery mode setting is no longer supported." +
                             " Changes will not take effect.");
                     }
 
@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                     }
 
                     if (request.DiscoveryConfig != null) {
-                        _logger.Warning("Discovery configuration is no longer supported." +
+                        _logger.LogWarning("Discovery configuration is no longer supported." +
                             " Changes will not take effect.");
                     }
                     // Patch
@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                     return;
                 }
                 catch (ResourceOutOfDateException ex) {
-                    _logger.Debug(ex, "Retrying updating discoverer...");
+                    _logger.LogDebug(ex, "Retrying updating discoverer...");
                     continue;
                 }
             }

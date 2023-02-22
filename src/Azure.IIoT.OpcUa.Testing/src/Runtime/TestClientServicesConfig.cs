@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Testing.Runtime {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Microsoft.Azure.IIoT.Utils;
+    using Furly.Extensions.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;

@@ -4,9 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Models {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Transport;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Net;
-    using Microsoft.Azure.IIoT.Net.Models;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;

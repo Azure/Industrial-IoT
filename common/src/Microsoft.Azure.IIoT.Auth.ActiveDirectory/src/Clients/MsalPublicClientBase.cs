@@ -8,8 +8,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Auth.Storage;
     using Microsoft.Azure.IIoT.Storage.Default;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Identity.Client;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                         // Expected if not in cache - continue down
                     }
                     catch (Exception ex) {
-                        _logger.Debug(ex, "Failed to get token for {resource} from cache...",
+                        _logger.LogDebug(ex, "Failed to get token for {resource} from cache...",
                             resource);
                         exceptions.Add(ex);
                         continue;
@@ -69,20 +69,20 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 try {
                     var token = await GetTokenAsync(decorator.Client, resource, scopes);
                     if (token != null) {
-                        _logger.Information(
+                        _logger.LogInformation(
                            "Successfully acquired token for {resource} with {config}.",
                            resource, config.GetName());
                         return token;
                     }
                 }
                 catch (MsalException ex) {
-                    _logger.Debug(ex, "Failed to get token for {resource} with {config} " +
+                    _logger.LogDebug(ex, "Failed to get token for {resource} with {config} " +
                         "- error: {error}",
                         resource, config.GetName(), ex.ErrorCode);
                     exceptions.Add(ex);
                 }
                 catch (Exception e) {
-                    _logger.Debug(e, "Failed to get token for {resource} with {config}.",
+                    _logger.LogDebug(e, "Failed to get token for {resource} with {config}.",
                         resource, config.GetName());
                     exceptions.Add(e);
                 }

@@ -24,10 +24,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="configuration"></param>
         protected ConfigBase(IConfiguration configuration) {
-            if (configuration == null) {
-                configuration = new ConfigurationBuilder()
+            configuration ??= new ConfigurationBuilder()
                     .Build();
-            }
             Configuration = configuration;
         }
 

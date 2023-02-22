@@ -7,8 +7,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using System;
     using System.IO;
     using System.Text;
@@ -48,12 +48,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             if (string.IsNullOrEmpty(method)) {
                 throw new ArgumentNullException(nameof(method));
             }
-            if (payload == null) {
-                payload = new byte[] { (byte)' ' };
-            }
-            if (contentType == null) {
-                contentType = ContentMimeType.Json;
-            }
+            payload ??= new byte[] { (byte)' ' };
+            contentType ??= ContentMimeType.Json;
             // Send chunks
             var buffer = payload.Zip(); // Gzip payload
             var status = 200;
@@ -103,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 payload = received.ToArray().Unzip();
                 if (status != 200) {
                     var result = AsString(payload);
-                    _logger.Debug("Chunked call on {method} on {device} ({module}) with {payload} " +
+                    _logger.LogDebug("Chunked call on {method} on {device} ({module}) with {payload} " +
                          "returned with error {status}: {result}",
                          method, deviceId, moduleId, payload, status, result);
                     throw new MethodCallStatusException(result, status);

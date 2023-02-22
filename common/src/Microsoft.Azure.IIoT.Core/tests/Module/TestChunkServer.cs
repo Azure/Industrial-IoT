@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Module {
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Text;
     using System.Threading;
@@ -20,11 +20,11 @@ namespace Microsoft.Azure.IIoT.Module {
             MaxMethodPayloadCharacterCount = size;
             _handler = handler;
             _serializer = serializer;
-            _server = new ChunkMethodServer(_serializer, TraceLogger.Create());
+            _server = new ChunkMethodServer(_serializer, Log.Console<ChunkMethodServer>());
         }
 
         public IMethodClient CreateClient() {
-            return new ChunkMethodClient(this, _serializer, TraceLogger.Create());
+            return new ChunkMethodClient(this, _serializer, Log.Console<ChunkMethodClient>());
         }
 
         public int MaxMethodPayloadCharacterCount { get; }

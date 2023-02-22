@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace System {
-    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using Newtonsoft.Json.Linq;
@@ -13,20 +12,6 @@ namespace System {
     /// Assembly type extensions
     /// </summary>
     public static class AssemblyEx {
-
-        /// <summary>
-        /// Get assembly version
-        /// </summary>
-        public static Version GetReleaseVersion(this Assembly assembly) {
-            if (assembly == null) {
-                throw new ArgumentNullException(nameof(assembly));
-            }
-            var ver = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-            if (ver == null || !Version.TryParse(ver, out var assemblyVersion)) {
-                throw new KeyNotFoundException("Version attribute not found");
-            }
-            return assemblyVersion;
-        }
 
         /// <summary>
         /// Get assembly info version

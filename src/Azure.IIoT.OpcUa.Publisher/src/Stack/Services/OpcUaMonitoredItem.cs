@@ -7,18 +7,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
-    using Serilog;
+    using MonitoringMode = Shared.Models.MonitoringMode;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Text;
     using System.Threading;
-    using MonitoringMode = Shared.Models.MonitoringMode;
     using Timer = System.Timers.Timer;
 
     /// <summary>
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         }
                     }
                     conditionTimer.Start();
-                    _logger.Debug("{item}: Restarted pending condition handling after item went online.", this);
+                    _logger.LogDebug("{item}: Restarted pending condition handling after item went online.", this);
                 }
                 else if (enabled) {
                     conditionTimer.Stop();
@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         _conditionHandlingState?.Active.Clear();
                     }
                     if (!online) {
-                        _logger.Debug("{item}: Stopped pending condition handling while item is offline.", this);
+                        _logger.LogDebug("{item}: Stopped pending condition handling while item is offline.", this);
                     }
                 }
             }
@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// Create wrapper
         /// </summary>
         public OpcUaMonitoredItem(BaseMonitoredItemModel template, ILogger logger) {
-            _logger = logger?.ForContext<OpcUaMonitoredItem>() ??
+            _logger = logger /*?.ForContext<OpcUaMonitoredItem>() TODO: USE LOGGERFACTORY HERE */ ??
                 throw new ArgumentNullException(nameof(logger));
             Template = template?.Clone() ??
                 throw new ArgumentNullException(nameof(template));
@@ -143,17 +143,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         public override int GetHashCode() {
             var hashCode = 1301977042;
             // Event item is incompatible with a data item
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<Type>.Default.GetHashCode(Template.GetType());
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Template.Id);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string[]>.Default.GetHashCode(Template.RelativePath);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Template.StartNodeId);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(Template.IndexRange);
-            hashCode = hashCode * -1521134295 +
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<NodeAttribute?>.Default.GetHashCode(Template.AttributeId);
             return hashCode;
         }
@@ -207,7 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 }
             }
             catch (Exception e) {
-                _logger.Error(e, "{item}: Failed to get metadata.", this);
+                _logger.LogError(e, "{item}: Failed to get metadata.", this);
             }
         }
 
@@ -270,7 +270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             var itemChange = false;
             if (Template.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1)) !=
                 model.Template.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1))) {
-                _logger.Debug("{item}: Changing sampling interval from {old} to {new}",
+                _logger.LogDebug("{item}: Changing sampling interval from {old} to {new}",
                     this, Template.SamplingInterval.GetValueOrDefault(
                         TimeSpan.FromSeconds(1)).TotalMilliseconds,
                     model.Template.SamplingInterval.GetValueOrDefault(
@@ -282,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             if (Template.DiscardNew.GetValueOrDefault(false) !=
                     model.Template.DiscardNew.GetValueOrDefault()) {
-                _logger.Debug("{item}: Changing discard new mode from {old} to {new}",
+                _logger.LogDebug("{item}: Changing discard new mode from {old} to {new}",
                     this, Template.DiscardNew.GetValueOrDefault(false),
                     model.Template.DiscardNew.GetValueOrDefault(false));
                 Template.DiscardNew = model.Template.DiscardNew;
@@ -290,7 +290,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 itemChange = true;
             }
             if (Template.QueueSize != model.Template.QueueSize) {
-                _logger.Debug("{item}: Changing queue size from {old} to {new}",
+                _logger.LogDebug("{item}: Changing queue size from {old} to {new}",
                     this, Template.QueueSize,
                     model.Template.QueueSize);
                 Template.QueueSize = model.Template.QueueSize;
@@ -299,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             if (Template.MonitoringMode.GetValueOrDefault(MonitoringMode.Reporting) !=
                 model.Template.MonitoringMode.GetValueOrDefault(MonitoringMode.Reporting)) {
-                _logger.Debug("{item}: Changing monitoring mode from {old} to {new}",
+                _logger.LogDebug("{item}: Changing monitoring mode from {old} to {new}",
                     this, Template.MonitoringMode.GetValueOrDefault(MonitoringMode.Reporting),
                     model.Template.MonitoringMode.GetValueOrDefault(MonitoringMode.Reporting));
                 Template.MonitoringMode = model.Template.MonitoringMode;
@@ -321,7 +321,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 if (DataTemplate.DataSetClassFieldId != model.DataTemplate.DataSetClassFieldId) {
                     var previous = DataSetFieldId;
                     DataTemplate.DataSetClassFieldId = model.DataTemplate.DataSetClassFieldId;
-                    _logger.Debug("{item}: Changing dataset class field id from {old} to {new}",
+                    _logger.LogDebug("{item}: Changing dataset class field id from {old} to {new}",
                         this, previous, DataSetFieldId);
                     metadataChange = true;
                 }
@@ -329,7 +329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 // Update change filter
                 if (!model.DataTemplate.DataChangeFilter.IsSameAs(DataTemplate.DataChangeFilter)) {
                     DataTemplate.DataChangeFilter = model.DataTemplate.DataChangeFilter;
-                    _logger.Debug("{item}: Changing data change filter.");
+                    _logger.LogDebug("{item}: Changing data change filter.");
                     Item.Filter = DataTemplate.DataChangeFilter.ToStackModel();
                     itemChange = true;
                 }
@@ -337,13 +337,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 // Update AggregateFilter
                 else if (!model.DataTemplate.AggregateFilter.IsSameAs(DataTemplate.AggregateFilter)) {
                     DataTemplate.AggregateFilter = model.DataTemplate.AggregateFilter;
-                    _logger.Debug("{item}: Changing aggregate change filter.");
+                    _logger.LogDebug("{item}: Changing aggregate change filter.");
                     Item.Filter = DataTemplate.AggregateFilter.ToStackModel(messageContext);
                     itemChange = true;
                 }
 
                 if (model.DataTemplate.HeartbeatInterval != DataTemplate.HeartbeatInterval) {
-                    _logger.Debug("{item}: Changing heartbeat from {old} to {new}",
+                    _logger.LogDebug("{item}: Changing heartbeat from {old} to {new}",
                         this, DataTemplate.HeartbeatInterval, model.DataTemplate.HeartbeatInterval);
                     DataTemplate.HeartbeatInterval = model.DataTemplate.HeartbeatInterval;
 
@@ -354,11 +354,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     DataTemplate.SkipFirst = model.DataTemplate.SkipFirst;
 
                     if (model.TrySetSkipFirst(model.DataTemplate.SkipFirst)) {
-                        _logger.Debug("{item}: Setting skip first setting to {new}", this,
+                        _logger.LogDebug("{item}: Setting skip first setting to {new}", this,
                             model.DataTemplate.SkipFirst);
                     }
                     else {
-                        _logger.Information("{item}: Tried to set SkipFirst but it was set" +
+                        _logger.LogInformation("{item}: Tried to set SkipFirst but it was set" +
                             "previously or first value was already processed.", this,
                             model.DataTemplate.SkipFirst);
                     }
@@ -373,7 +373,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
                     EventTemplate.ConditionHandling = model.EventTemplate.ConditionHandling;
                     EventTemplate.EventFilter = model.EventTemplate.EventFilter;
-                    _logger.Debug("{item}: Changing event filter.");
+                    _logger.LogDebug("{item}: Changing event filter.");
 
                     metadataChange = true;
                     itemChange = true;
@@ -425,7 +425,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 lock (_lock) {
                     _conditionHandlingState = null;
                 }
-                _logger.Information("{item}: Disabled pending alarm handling.", this);
+                _logger.LogInformation("{item}: Disabled pending alarm handling.", this);
             }
 
             var eventFilter = new EventFilter();
@@ -438,7 +438,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 }
             }
 
-            TestWhereClause(messageContext, nodeCache, typeTree, eventFilter);
+            TestWhereClause(messageContext, nodeCache, eventFilter);
 
             // let's keep track of the internal fields we add so that they don't show up in the output
             var internalSelectClauses = new List<SimpleAttributeOperand>();
@@ -455,7 +455,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     _conditionHandlingState = conditionHandlingState;
                 }
                 _conditionTimer.Start();
-                _logger.Information("{item}: {Action} pending alarm handling.", this, created ? "Enabled" : "Re-enabled");
+                _logger.LogInformation("{item}: {Action} pending alarm handling.", this, created ? "Enabled" : "Re-enabled");
             }
 
             var sb = new StringBuilder();
@@ -677,7 +677,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         lock (_lock) {
                             state.Active.Clear();
                         }
-                        _logger.Debug("{item}: Stopped pending alarm handling during condition refresh.", this);
+                        _logger.LogDebug("{item}: Stopped pending alarm handling during condition refresh.", this);
                     }
                     return;
                 }
@@ -685,7 +685,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     if (state != null) {
                         // restart the timers once condition refresh is done.
                         _conditionTimer.Start();
-                        _logger.Debug("{item}: Restarted pending alarm handling after condition refresh.", this);
+                        _logger.LogDebug("{item}: Restarted pending alarm handling after condition refresh.", this);
                     }
                     return;
                 }
@@ -693,26 +693,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     var noErrorFound = true;
 
                     // issue a condition refresh to make sure we are in a correct state
-                    _logger.Information("{item}: Issuing ConditionRefresh for item {item} on subscription " +
+                    _logger.LogInformation("{item}: Issuing ConditionRefresh for item {item} on subscription " +
                         "{subscription} due to receiving a RefreshRequired event", this,
                         Item.DisplayName ?? "", Item.Subscription.DisplayName);
                     try {
                         Item.Subscription.ConditionRefresh();
                     }
                     catch (ServiceResultException e) {
-                        _logger.Information("{item}: ConditionRefresh for item {item} on subscription " +
+                        _logger.LogInformation("{item}: ConditionRefresh for item {item} on subscription " +
                             "{subscription} failed with a ServiceResultException '{message}'", this,
                             Item.DisplayName ?? "", Item.Subscription.DisplayName, e.Message);
                         noErrorFound = false;
                     }
                     catch (Exception e) {
-                        _logger.Information("{item}: ConditionRefresh for item {item} on subscription " +
+                        _logger.LogInformation("{item}: ConditionRefresh for item {item} on subscription " +
                             "{subscription} failed with an exception '{message}'", this,
                             Item.DisplayName ?? "", Item.Subscription.DisplayName, e.Message);
                         noErrorFound = false;
                     }
                     if (noErrorFound) {
-                        _logger.Information("{item}: ConditionRefresh for item {item} on subscription " +
+                        _logger.LogInformation("{item}: ConditionRefresh for item {item} on subscription " +
                             "{subscription} has completed", this,
                             Item.DisplayName ?? "", Item.Subscription.DisplayName);
                     }
@@ -734,9 +734,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         else if (retain && !monitoredItemNotifications.All(m => m.Value?.Value == null)) {
                             state.Dirty = true;
                             monitoredItemNotifications.ForEach(notification => {
-                                if (notification.Value == null) {
-                                    notification.Value = new DataValue(StatusCodes.BadNoData);
-                                }
+                                notification.Value ??= new DataValue(StatusCodes.BadNoData);
                                 // Set SourceTimestamp to publish time
                                 notification.Value.SourceTimestamp = message.Timestamp;
                             });
@@ -754,7 +752,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         }
 
         private void TestWhereClause(IServiceMessageContext messageContext,
-            INodeCache nodeCache, ITypeTable typeTree, EventFilter eventFilter) {
+            INodeCache nodeCache, EventFilter eventFilter) {
             foreach (var element in eventFilter.WhereClause.Elements) {
                 if (element.FilterOperator == FilterOperator.OfType) {
                     foreach (var filterOperand in element.FilterOperands) {
@@ -764,7 +762,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                             nodeCache.FetchNode(nodeId.ToExpandedNodeId(messageContext.NamespaceUris)); // it will throw an exception if it doesn't work
                         }
                         catch (Exception ex) {
-                            _logger.Warning("{item}: Where clause is doing OfType({nodeId}) and we got this message {message} while looking it up",
+                            _logger.LogWarning("{item}: Where clause is doing OfType({nodeId}) and we got this message {message} while looking it up",
                                 this, nodeId, ex.Message);
                         }
                     }
@@ -806,7 +804,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     }
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "{item}: SendPendingConditions failed.", this);
+                    _logger.LogError(ex, "{item}: SendPendingConditions failed.", this);
                 }
                 finally {
                     _conditionTimer.Start();
@@ -851,14 +849,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             ComplexTypeSystem typeSystem, FieldMetaDataCollection fields, NodeIdDictionary<DataTypeDescription> dataTypes) {
             var nodeId = Template.StartNodeId.ToExpandedNodeId(messageContext);
             try {
-                var variable = nodeCache.FetchNode(nodeId) as VariableNode;
-                if (variable != null) {
+                if (nodeCache.FetchNode(nodeId) is VariableNode variable) {
                     AddVariableField(fields, dataTypes, nodeCache, typeTree, typeSystem, variable,
                         string.IsNullOrEmpty(Item.DisplayName) ? Template.Id : Item.DisplayName, (Uuid)DataSetFieldId);
                 }
             }
             catch (Exception ex) {
-                _logger.Warning("{item}: Failed to get meta data for field {field} with node {nodeId}: {message}",
+                _logger.LogWarning("{item}: Failed to get meta data for field {field} with node {nodeId}: {message}",
                     this, string.IsNullOrEmpty(Item.DisplayName) ? Template.Id : Item.DisplayName, nodeId, ex.Message);
             }
         }
@@ -978,7 +975,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 try {
                     var dataType = nodeCache.FetchNode(baseType);
                     if (dataType == null) {
-                        _logger.Warning("{item}: Failed to find node for data type {baseType}!", this, baseType);
+                        _logger.LogWarning("{item}: Failed to find node for data type {baseType}!", this, baseType);
                         break;
                     }
 
@@ -1035,7 +1032,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     }
                 }
                 catch (Exception ex) {
-                    _logger.Warning("{item}: Failed to get meta data for type {dataType} (base: {baseType}) with message: {message}",
+                    _logger.LogWarning("{item}: Failed to get meta data for type {dataType} (base: {baseType}) with message: {message}",
                         this, dataTypeId, baseType, ex.Message);
                 }
             }

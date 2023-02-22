@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default {
+    using Microsoft.Extensions.Logging;
     using Prometheus;
-    using Serilog;
     using System;
     using System.Threading.Tasks;
 
@@ -28,14 +28,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default {
         /// <inheritdoc/>
         public ValueTask StartAsync() {
             _metricServer.Start();
-            _logger.Information("Started prometheus at {0}/metrics", _config.Port);
+            _logger.LogInformation("Started prometheus at {0}/metrics", _config.Port);
             return ValueTask.CompletedTask;
         }
 
         /// <inheritdoc/>
         public async ValueTask DisposeAsync() {
             await _metricServer.StopAsync();
-            _logger.Information("Metric server stopped.");
+            _logger.LogInformation("Metric server stopped.");
         }
 
         private readonly IMetricServer _metricServer;

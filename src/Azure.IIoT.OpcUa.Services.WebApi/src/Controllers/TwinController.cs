@@ -17,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Node access read services
     /// </summary>
-    [ApiVersion("2")][Route("twin/v{version:apiVersion}/read")]
+    [ApiVersion("2")]
+    [Route("twin/v{version:apiVersion}/read")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The read value response</returns>
         [HttpPost("{endpointId}")]
         public async Task<ValueReadResponseModel> ReadValueAsync(
-            string endpointId, [FromBody] [Required] ValueReadRequestModel request) {
+            string endpointId, [FromBody][Required] ValueReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -64,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The read response</returns>
         [HttpPost("{endpointId}/attributes")]
         public async Task<ReadResponseModel> ReadAttributesAsync(
-            string endpointId, [FromBody] [Required] ReadRequestModel request) {
+            string endpointId, [FromBody][Required] ReadRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -85,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The read value response</returns>
         [HttpGet("{endpointId}")]
         public async Task<ValueReadResponseModel> GetValueAsync(
-            string endpointId, [FromQuery] [Required] string nodeId) {
+            string endpointId, [FromQuery][Required] string nodeId) {
             if (string.IsNullOrEmpty(nodeId)) {
                 throw new ArgumentNullException(nameof(nodeId));
             }

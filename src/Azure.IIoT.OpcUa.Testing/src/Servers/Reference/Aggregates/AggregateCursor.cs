@@ -203,9 +203,7 @@ namespace Opc.Ua.Aggregates {
                         }
                         break;
                     case 1:
-                        if (LatePoint == null) {
-                            LatePoint = rawData;
-                        }
+                        LatePoint ??= rawData;
 
                         _aggregationActor.UpdateProcessedData(rawData, this);
                         break;

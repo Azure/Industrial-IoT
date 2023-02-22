@@ -9,11 +9,11 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// <summary>
     /// Mock device registry
     /// </summary>
-    public class IoTHubServices : IIoTHubTwinServices,
+    public sealed class IoTHubServices : IIoTHubTwinServices,
         IEventProcessingHost, IIoTHub {
 
         /// <inheritdoc/>
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 _devices.AddRange(devices
                     .Select(d => new IoTHubDeviceModel(this, d.Item2, d.Item1)));
             }
-            _serializer = serializer ?? new NewtonSoftJsonSerializer();
+            _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _query = new SqlQuery(this, _serializer);
         }
 
@@ -211,9 +211,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             int? pageSize, CancellationToken ct) {
             lock (_lock) {
                 var result = _query.Query(query).Select(r => r.Copy()).ToList();
-                if (pageSize == null) {
-                    pageSize = int.MaxValue;
-                }
+                pageSize ??= int.MaxValue;
 
                 _ = int.TryParse(continuation, out var index);
                 var count = Math.Max(0, Math.Min(pageSize.Value, result.Count - index));
@@ -331,9 +329,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     twin.ConnectionState = null;
                     twin.Status = null;
 
-                    if (twin.Properties == null) {
-                        twin.Properties = new TwinPropertiesModel();
-                    }
+                    twin.Properties ??= new TwinPropertiesModel();
                     if (twin.Properties.Reported == null) {
                         twin.Properties.Reported = new Dictionary<string, VariantValue>();
                     }
@@ -459,7 +455,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <summary>
         /// Event messages
         /// </summary>
-        public class EventMessage : ITelemetryEvent {
+        public sealed class EventMessage : ITelemetryEvent {
 
             /// <summary>
             /// Default constructor

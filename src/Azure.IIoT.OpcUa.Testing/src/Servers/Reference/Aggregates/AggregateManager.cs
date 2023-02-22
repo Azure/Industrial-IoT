@@ -111,14 +111,12 @@ namespace Opc.Ua.Aggregates {
         public AggregateConfiguration GetDefaultConfiguration(NodeId variableId) {
             System.Diagnostics.Contracts.Contract.Assume(variableId != null);
             lock (_lock) {
-                if (_defaultConfiguration == null) {
-                    _defaultConfiguration = new AggregateConfiguration {
-                        PercentDataBad = 0,
-                        PercentDataGood = 100,
-                        TreatUncertainAsBad = false,
-                        UseSlopedExtrapolation = false
-                    };
-                }
+                _defaultConfiguration ??= new AggregateConfiguration {
+                    PercentDataBad = 0,
+                    PercentDataGood = 100,
+                    TreatUncertainAsBad = false,
+                    UseSlopedExtrapolation = false
+                };
 
                 return _defaultConfiguration;
             }

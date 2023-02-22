@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Utils {
+    using Microsoft.Extensions.Logging;
     using Autofac;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -29,12 +29,12 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <inheritdoc/>
         public void Start() {
             try {
-                _logger.Debug("Starting all hosts...");
+                _logger.LogDebug("Starting all hosts...");
                 Task.WhenAll(_host.Select(async h => await h.StartAsync())).Wait();
-                _logger.Information("All hosts started.");
+                _logger.LogInformation("All hosts started.");
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to start some hosts.");
+                _logger.LogError(ex, "Failed to start some hosts.");
                 throw;
             }
         }
@@ -42,13 +42,13 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <inheritdoc/>
         public void Dispose() {
             try {
-                _logger.Debug("Stopping all hosts...");
+                _logger.LogDebug("Stopping all hosts...");
                 Task.WhenAll(_host.OfType<IAsyncDisposable>()
                     .Select(async h => await h.DisposeAsync())).Wait();
-                _logger.Information("All hosts stopped.");
+                _logger.LogInformation("All hosts stopped.");
             }
             catch (Exception ex) {
-                _logger.Warning(ex, "Failed to stop all hosts.");
+                _logger.LogWarning(ex, "Failed to stop all hosts.");
             }
         }
 

@@ -4,12 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.WebApi {
-    using Autofac.Extensions.Hosting;
     using Azure.IIoT.OpcUa.Services.WebApi.Tests;
+    using Autofac.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using Xunit;
@@ -40,7 +39,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         public SignalRTestFixture() {
             _server = Host.CreateDefaultBuilder()
                 .UseAutofac()
-                .UseSerilog()
                 .ConfigureWebHostDefaults(builder => builder
                     .UseContentRoot(".")
                     .UseUrls("http://*:" + Port)
@@ -49,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
                             .AddInMemoryCollection(new Dictionary<string, string> {
                                 ["PCS_EVENTS_SERVICE_URL"] = BaseAddress
                             });
-                        }
+                    }
                     )
                     .UseStartup<TestStartup>()
                     .UseKestrel(o => o.AddServerHeader = false))

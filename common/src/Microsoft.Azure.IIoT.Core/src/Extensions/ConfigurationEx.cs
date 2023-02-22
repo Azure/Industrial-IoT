@@ -6,67 +6,11 @@
 namespace Microsoft.Extensions.Configuration {
     using System;
     using System.Collections.Generic;
-    using System.IO;
 
     /// <summary>
     /// Extension methods
     /// </summary>
     public static class ConfigurationEx {
-
-        /// <summary>
-        /// Adds .env file environment variables from an .env file that is in current
-        /// folder or below up to root.
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <returns></returns>
-        public static IConfigurationBuilder AddFromDotEnvFile(this IConfigurationBuilder builder) {
-            try {
-                // Find .env file
-                var curDir = Path.GetFullPath(Environment.CurrentDirectory);
-                while (!string.IsNullOrEmpty(curDir) && !File.Exists(Path.Combine(curDir, ".env"))) {
-                    curDir = Path.GetDirectoryName(curDir);
-                }
-                if (!string.IsNullOrEmpty(curDir)) {
-                    builder.AddFromDotEnvFile(Path.Combine(curDir, ".env"));
-                }
-            }
-            catch (IOException) { }
-            return builder;
-        }
-
-
-        /// <summary>
-        /// Adds .env file environment variables
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="filePath"></param>
-        /// <returns></returns>
-        public static IConfigurationBuilder AddFromDotEnvFile(this IConfigurationBuilder builder,
-            string filePath) {
-            if (!string.IsNullOrEmpty(filePath)) {
-                try {
-                    var lines = File.ReadAllLines(filePath);
-                    var values = new Dictionary<string, string>();
-                    foreach (var line in lines) {
-                        var offset = line.IndexOf('=');
-                        if (offset == -1) {
-                            continue;
-                        }
-                        var key = line.Substring(0, offset).Trim();
-                        if (key.StartsWith("#", StringComparison.Ordinal)) {
-                            continue;
-                        }
-                        key = key.Replace("__", ConfigurationPath.KeyDelimiter);
-                        values.AddOrUpdate(key, line.Substring(offset + 1)
-                            .Replace("\\n", "\n")
-                            .Replace("\\r", "\r"));
-                    }
-                    builder.AddInMemoryCollection(values);
-                }
-                catch (IOException) { }
-            }
-            return builder;
-        }
 
         /// <summary>
         /// Add environment variables

@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Services {
     using Azure.IIoT.OpcUa.Services.Registry;
-    using Autofac;
     using Azure.IIoT.OpcUa.Services.Services;
+    using Autofac;
 
     /// <summary>
     /// Injected registry services

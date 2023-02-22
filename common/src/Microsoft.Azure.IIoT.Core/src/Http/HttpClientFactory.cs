@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Default {
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Net.Http;
@@ -200,7 +200,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                                 entry.Dispose();
                             }
                             catch (Exception ex) {
-                                _logger.Error(ex, "Failed to cleanup handler {name}",
+                                _logger.LogError(ex, "Failed to cleanup handler {name}",
                                     entry.Name);
                             }
                         }

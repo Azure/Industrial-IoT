@@ -8,30 +8,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Services;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Twin;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Shared.Models;
     using Autofac;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
     using Prometheus;
-    using Serilog;
     using System;
     using System.Diagnostics;
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Shared.Models;
 
     /// <summary>
     /// Publisher module
@@ -66,7 +65,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
             if (Host.IsContainer) {
                 // Set timer to kill the entire process after 5 minutes.
                 _ = new Timer(o => {
-                    Log.Logger.Fatal("Killing non responsive module process!");
                     Process.GetCurrentProcess().Kill();
                 }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
             }
@@ -93,8 +91,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
                     var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
-                        logger.Information("Starting module OpcPublisher version {version}.", version);
-                        logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
+                        logger.LogInformation("Starting module OpcPublisher version {version}.", version);
+                        logger.LogInformation("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
 
                         // Start module
@@ -111,21 +109,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task).ConfigureAwait(false);
                         if (_exit.Task.IsCompleted) {
-                            logger.Information("Module exits...");
+                            logger.LogInformation("Module exits...");
                             return _exitCode;
                         }
                         _reset = new TaskCompletionSource<bool>();
-                        logger.Information("Module reset...");
+                        logger.LogInformation("Module reset...");
                     }
                     catch (Exception ex) {
-                        logger.Error(ex, "Error during module execution - restarting!");
+                        logger.LogError(ex, "Error during module execution - restarting!");
                     }
                     finally {
                         OnRunning?.Invoke(this, false);
 
                         server.StopWhenEnabled(moduleConfig, logger);
                         await module.StopAsync().ConfigureAwait(false);
-                        logger.Information("Module stopped.");
+                        logger.LogInformation("Module stopped.");
                     }
                 }
             }
@@ -141,7 +139,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
 
             var config = new PublisherConfig(configuration);
             var builder = new ContainerBuilder();
-            var cliOptions = new PublisherCliOptions(configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
@@ -153,12 +150,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
 
             // Register module framework ...
             builder.RegisterModule<ModuleFramework>();
-            builder.RegisterModule<NewtonSoftJsonModule>();
+            builder.AddNewtonsoftJsonSerializer();
 
-            builder.AddDiagnostics(config,
-                cliOptions.ToLoggerConfiguration());
-            builder.RegisterInstance(cliOptions)
-                .AsImplementedInterfaces();
+            builder.AddDiagnostics();
+            builder.RegisterType<PublisherCliOptions>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
 
             builder.RegisterType<PublisherIdentity>()
                 .AsImplementedInterfaces();
@@ -195,8 +191,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module {
             builder.RegisterType<HistoryMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<DiscoveryMethodsController>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<PublisherSettingsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             builder.RegisterType<RuntimeStateReporter>()

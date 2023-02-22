@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Extensions.Logging;
     using global::Azure.IIoT.OpcUa.Services.Sdk;
     using global::Azure.IIoT.OpcUa.Shared.Models;
-    using Serilog;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 var message = "Cannot get endpoint list";
-                _logger.Warning(e, message);
+                _logger.LogWarning(e, message);
                 pageResult.Error = message;
             }
             return pageResult;
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 var message = "Cannot get discoverers as list";
-                _logger.Warning(e, message);
+                _logger.LogWarning(e, message);
                 pageResult.Error = message;
             }
             return pageResult;
@@ -194,7 +194,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 var message = "Can not get applications list";
-                _logger.Warning(e, message);
+                _logger.LogWarning(e, message);
                 pageResult.Error = message;
             }
             return pageResult;
@@ -215,7 +215,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception exception) {
-                _logger.Error(exception, "Failed to set discovery mode.");
+                _logger.LogError(exception, "Failed to set discovery mode.");
                 var errorMessageTrace = string.Concat(exception.Message,
                     exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 return errorMessageTrace;
@@ -240,7 +240,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception exception) {
-                _logger.Error(exception, "Failed to update discoverer");
+                _logger.LogError(exception, "Failed to update discoverer");
                 var errorMessageTrace = string.Concat(exception.Message,
                     exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 return errorMessageTrace;
@@ -267,7 +267,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception exception) {
-                _logger.Error(exception, "Failed to discoverer servers.");
+                _logger.LogError(exception, "Failed to discoverer servers.");
                 var errorMessageTrace = string.Concat(exception.Message,
                     exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 return errorMessageTrace;
@@ -319,7 +319,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 var message = "Cannot get gateways list";
-                _logger.Warning(e, message);
+                _logger.LogWarning(e, message);
                 pageResult.Error = message;
             }
             return pageResult;
@@ -369,7 +369,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 var message = "Cannot get publisher list";
-                _logger.Warning(e, message);
+                _logger.LogWarning(e, message);
                 pageResult.Error = message;
             }
             return pageResult;
@@ -389,7 +389,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception exception) {
-                _logger.Error(exception, "Failed to unregister application");
+                _logger.LogError(exception, "Failed to unregister application");
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 return errorMessageTrace;
             }
@@ -441,7 +441,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 var message = "Cannot get supervisor list";
-                _logger.Warning(e, message);
+                _logger.LogWarning(e, message);
                 pageResult.Error = message;
             }
             return pageResult;

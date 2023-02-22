@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
-    using Microsoft.Azure.IIoT.Utils;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="clients"></param>
         /// <param name="logger"></param>
         public TokenClientAggregateSource(IEnumerable<ITokenClient> clients, ILogger logger) :
-            this (Reorder(clients), Http.Resource.Platform, logger) {
+            this(Reorder(clients), Http.Resource.Platform, logger) {
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="prefer"></param>
         protected TokenClientAggregateSource(IEnumerable<ITokenClient> clients,
             string resource, ILogger logger, params ITokenClient[] prefer)
-            : this (Reorder(clients, prefer), resource, logger) {
+            : this(Reorder(clients, prefer), resource, logger) {
         }
 
         /// <summary>
@@ -64,12 +64,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             IEnumerable<string> scopes = null) {
             var exceptions = new List<Exception>();
             foreach (var client in _clients) {
-                _logger.Debug("Try acquiring token for {resource} using {client}.",
+                _logger.LogDebug("Try acquiring token for {resource} using {client}.",
                     Resource, client.GetType());
                 try {
                     var token = await client.GetTokenForAsync(Resource, scopes);
                     if (token != null) {
-                        _logger.Debug("Successfully acquired token for {resource} using {client}.",
+                        _logger.LogDebug("Successfully acquired token for {resource} using {client}.",
                             Resource, client.GetType());
                         return token;
                     }
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             }
             if (exceptions.Count != 0) {
                 var aex = new AggregateException(exceptions).Flatten();
-                _logger.Error(aex, "Failed to acquire a token for {resource}.", Resource);
+                _logger.LogError(aex, "Failed to acquire a token for {resource}.", Resource);
             }
             return null;
         }

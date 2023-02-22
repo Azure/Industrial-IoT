@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Engine {
         /// </summary>
         [DataMember(Name = "Details", Order = 1,
             EmitDefaultValue = true)]
-        [JsonConverter(typeof(Tests.Utils.NewtonSoftJsonSerializerRaw.RawJsonConverter))]
+        [JsonConverter(typeof(Tests.Utils.NewtonsoftJsonSerializerRaw.RawJsonConverter))]
         public string Details { get; set; }
     }
 }

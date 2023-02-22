@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Services.Models {
     using AutoFixture;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Linq;
     using Xunit;
@@ -134,6 +134,6 @@ namespace Azure.IIoT.OpcUa.Services.Models {
             return r1;
         }
 
-        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
+        private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
     }
 }

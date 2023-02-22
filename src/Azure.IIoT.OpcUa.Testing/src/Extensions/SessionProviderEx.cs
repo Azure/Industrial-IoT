@@ -5,8 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack {
     using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System.Threading;

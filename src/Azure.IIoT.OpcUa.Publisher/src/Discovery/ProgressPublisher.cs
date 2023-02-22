@@ -5,13 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Tasks;
-    using Microsoft.Azure.IIoT.Utils;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Threading.Tasks;
 
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <param name="logger"></param>
         public ProgressPublisher(IEventEmitter events, ITaskProcessor processor,
             IJsonSerializer serializer, IProcessIdentity identity, ILogger logger)
-            : base (logger) {
+            : base(logger) {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _processor = processor ?? throw new ArgumentNullException(nameof(processor));

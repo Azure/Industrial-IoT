@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders {
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
-    using Microsoft.Azure.IIoT.Utils;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
+    using Furly.Extensions.Utils;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// </summary>
         /// <param name="serializer"></param>
         public VariantEncoderFactory(IJsonSerializer serializer = null) {
-            _serializer = serializer ?? new NewtonSoftJsonSerializer();
+            _serializer = serializer ?? new NewtonsoftJsonSerializer();
         }
 
         /// <inheritdoc/>
@@ -53,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             /// <param name="serializer"></param>
             internal JsonVariantEncoder(IServiceMessageContext context, IJsonSerializer serializer) {
                 Context = context ?? throw new ArgumentNullException(nameof(context));
-                Serializer = serializer ?? new NewtonSoftJsonSerializer();
+                Serializer = serializer ?? new NewtonsoftJsonSerializer();
             }
 
             /// <inheritdoc/>

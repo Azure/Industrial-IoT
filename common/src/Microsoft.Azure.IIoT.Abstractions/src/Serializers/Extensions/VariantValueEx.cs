@@ -3,23 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Serializers {
+namespace Furly.Extensions.Serializers {
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Variant extensions
     /// </summary>
-    public static class VariantValueEx {
-
-        /// <summary>
-        /// Test for null
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool IsNull(this VariantValue value) {
-            return value is null || value.IsNull;
-        }
+    public static class VariantValueEx2 {
 
         /// <summary>
         /// Helper to get values from token dictionary
@@ -75,11 +66,9 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// <typeparam name="T"></typeparam>
         /// <param name="t"></param>
         /// <param name="key"></param>
-        /// <param name="compare"></param>
         /// <returns></returns>
-        public static T GetValueOrDefault<T>(this VariantValue t, string key,
-            StringComparison compare = StringComparison.Ordinal) {
-            return GetValueOrDefault(t, key, () => default(T), compare);
+        public static T GetValueOrDefault<T>(this VariantValue t, string key) {
+            return GetValueOrDefault(t, key, () => default(T));
         }
 
         /// <summary>
@@ -89,13 +78,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// <param name="t"></param>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
-        /// <param name="compare"></param>
         /// <returns></returns>
         public static T GetValueOrDefault<T>(this VariantValue t,
-            string key, Func<T> defaultValue,
-            StringComparison compare = StringComparison.Ordinal) {
+            string key, Func<T> defaultValue) {
             if (t.IsObject &&
-                t.TryGetProperty(key, out var value, compare) &&
+                t.TryGetProperty(key, out var value) &&
                 !(value is null)) {
                 try {
                     return value.ConvertTo<T>();

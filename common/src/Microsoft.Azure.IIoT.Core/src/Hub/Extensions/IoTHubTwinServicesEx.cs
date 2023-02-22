@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Hub {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
+    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;

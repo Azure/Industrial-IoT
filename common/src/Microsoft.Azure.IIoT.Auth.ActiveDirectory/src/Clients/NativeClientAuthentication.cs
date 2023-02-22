@@ -7,8 +7,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Storage.Default;
+    using Microsoft.Extensions.Logging;
     using Autofac;
-    using Serilog;
     using System.Collections.Generic;
 
     /// <summary>

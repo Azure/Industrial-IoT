@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -344,7 +344,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests {
             ConvertToOpcUaUniversalTime(networkMessage);
 
             // Compare payload as raw data equivalent
-            var serializer = new NewtonSoftJsonSerializer();
+            var serializer = new NewtonsoftJsonSerializer();
             var result = serializer.Parse(serializer.SerializeToString(buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context)).Messages)

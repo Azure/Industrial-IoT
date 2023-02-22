@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
+    using Microsoft.Extensions.Logging;
     using MQTTnet.Extensions.ManagedClient;
     using Newtonsoft.Json;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -33,18 +33,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// <inheritdoc />
         public async Task<IList<ManagedMqttApplicationMessage>> LoadQueuedMessagesAsync() {
             if (File.Exists(_stateFile)) {
-               try {
+                try {
                     var content = await File.ReadAllTextAsync(_stateFile, Encoding.UTF8);
                     var messages = JsonConvert.DeserializeObject<List<ManagedMqttApplicationMessage>>(content);
-                    _logger.Information("Loaded MQTT state from: {StateFile}", _stateFile);
+                    _logger.LogInformation("Loaded MQTT state from: {StateFile}", _stateFile);
                     return messages;
                 }
                 catch (IOException ex) {
-                    _logger.Error(ex, "Failed to load MQTT state.");
+                    _logger.LogError(ex, "Failed to load MQTT state.");
                 }
             }
             else {
-                _logger.Debug("MQTT state file {StateFile} not found, starting empty.", _stateFile);
+                _logger.LogDebug("MQTT state file {StateFile} not found, starting empty.", _stateFile);
             }
             return new List<ManagedMqttApplicationMessage>();
         }
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     await File.WriteAllTextAsync(_stateFile, content, Encoding.UTF8);
                 }
                 catch (IOException ex) {
-                    _logger.Error(ex, "Failed to save MQTT state.");
+                    _logger.LogError(ex, "Failed to save MQTT state.");
                 }
             }
         }

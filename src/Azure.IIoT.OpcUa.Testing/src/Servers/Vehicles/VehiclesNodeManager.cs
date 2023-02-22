@@ -56,9 +56,7 @@ namespace Vehicles {
             _configuration = configuration.ParseExtension<VehiclesServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null) {
-                _configuration = new VehiclesServerConfiguration();
-            }
+            _configuration ??= new VehiclesServerConfiguration();
         }
 
         /// <summary>

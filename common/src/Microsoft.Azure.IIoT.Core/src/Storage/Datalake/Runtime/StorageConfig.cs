@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Runtime {
     /// <summary>
     /// Blob storage configuration
     /// </summary>
-    public class StorageConfig : ConfigBase, IStorageConfig  {
+    public class StorageConfig : ConfigBase, IStorageConfig {
 
         /// <summary>
         /// Configuration keys

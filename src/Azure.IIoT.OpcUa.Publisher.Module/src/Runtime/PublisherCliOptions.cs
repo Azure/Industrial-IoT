@@ -6,21 +6,20 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Publisher.State;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Logging;
     using Microsoft.Azure.IIoT.Abstractions;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
     using Mono.Options;
     using Opc.Ua;
-    using Serilog;
-    using Serilog.Events;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Linq;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from
@@ -35,11 +34,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// Creates a new instance of the the cli options based on existing configuration values.
         /// </summary>
         /// <param name="config"></param>
-        public PublisherCliOptions(IConfiguration config) {
+        /// <param name="logger"></param>
+        public PublisherCliOptions(IConfiguration config, ILogger logger) {
             foreach (var item in config.GetChildren()) {
                 this[item.Key] = item.Value;
             }
-            _logger = ConsoleLogger.Create(LogEventLevel.Warning);
+            _logger = logger;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// <param name="args">The specified command line arguments.</param>
         public PublisherCliOptions(string[] args) {
 
-            _logger = ConsoleLogger.Create(LogEventLevel.Warning);
+            _logger = Log.Console<PublisherCliOptions>();
 
             var showHelp = false;
             var unsupportedOptions = new List<string>();
@@ -303,15 +303,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 { $"di|diagnosticsinterval=|{PublisherCliConfigKeys.DiagnosticsInterval}=",
                     "Shows publisher diagnostic information at this specified interval in seconds in the OPC Publisher log (need log level info). `-1` disables remote diagnostic log and diagnostic output.\nDefault:60000 (60 seconds).\nAlternatively can be set using `DiagnosticsInterval` environment variable in the form of a time span string formatted string `[d.]hh:mm:ss[.fffffff]`\".\n",
                     (int i) => this[PublisherCliConfigKeys.DiagnosticsInterval] = TimeSpan.FromSeconds(i).ToString() },
-                { $"l|lf|logfile=|{PublisherCliConfigKeys.LogFileName}=",
-                    "The filename of the logfile to write log output to.\nDefault: `not set` (publisher logs to the console only).\n",
-                    s => this[PublisherCliConfigKeys.LogFileName] = s },
-                { $"lt|logflushtimespan=|{PublisherCliConfigKeys.LogFileFlushTimeSpanSec}=",
-                    "The timespan in seconds when the logfile should be flushed to disk.\nDefault: `not set`.\n",
-                    (int i) => this[PublisherCliConfigKeys.LogFileFlushTimeSpanSec] = TimeSpan.FromSeconds(i).ToString() },
                 { "ll|loglevel=",
-                    $"The loglevel to use. Allowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(LogEventLevel)))}`\nDefault: `{LogEventLevel.Information}`.\n",
-                    (LogEventLevel l) => LogControl.Level.MinimumLevel = l },
+                    $"The loglevel to use. Allowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(LogLevel)))}`\nDefault: `{LogLevel.Information}`.\n",
+                    (LogLevel l) => this[PublisherCliConfigKeys.LogLevelKey] = l.ToString() },
                 { $"em|{PublisherCliConfigKeys.EnableMetricsKey}=",
                     "Enables exporting prometheus metrics on the default prometheus endpoint.\nDefault: `True` (set to `False` to disable metrics exporting).\n",
                     (bool b) => this[PublisherCliConfigKeys.EnableMetricsKey] = b.ToString() },
@@ -355,6 +349,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 { "sd|shopfloordomain=", "Legacy - do not use.", b => {legacyOptions.Add("sd|shopfloordomain"); }, true },
                 { "vc|verboseconsole=", "Legacy - do not use.", b => {legacyOptions.Add("vc|verboseconsole"); }, true },
                 { "as|autotrustservercerts=", "Legacy - do not use.", b => {legacyOptions.Add("as|autotrustservercerts"); }, true },
+                { "l|lf|logfile=", "Legacy - do not use.", b => {legacyOptions.Add("l|lf|logfile"); }, true },
+                { "lt|logflushtimespan=", "Legacy - do not use.", b => {legacyOptions.Add("lt|logflushtimespan"); }, true },
             };
 
             try {
@@ -366,7 +362,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
                 return;
             }
 
-            if (_logger.IsEnabled(LogEventLevel.Debug)) {
+            if (_logger.IsEnabled(LogLevel.Debug)) {
                 foreach (var key in Keys) {
                     Debug("Parsed command line option: '{key}'='{value}'", key, this[key]);
                 }
@@ -532,22 +528,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         }
 
         /// <summary>
-        /// Gets the additional loggerConfiguration that represents the command line arguments.
-        /// </summary>
-        /// <returns></returns>
-        public LoggerConfiguration ToLoggerConfiguration() {
-            LoggerConfiguration loggerConfiguration = null;
-
-            if (!string.IsNullOrWhiteSpace(StandaloneCliModel.LogFilename)) {
-                loggerConfiguration ??= new LoggerConfiguration();
-                loggerConfiguration = loggerConfiguration.WriteTo.File(
-                    StandaloneCliModel.LogFilename, flushToDiskInterval: StandaloneCliModel.LogFileFlushTimeSpan);
-            }
-
-            return loggerConfiguration;
-        }
-
-        /// <summary>
         /// Call exit with exit code
         /// </summary>
         public virtual void Exit(int exitCode) {
@@ -559,7 +539,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// </summary>
         /// <param name="messageTemplate">Message template describing the event.</param>
         public virtual void Warning(string messageTemplate) {
-            _logger.Warning(messageTemplate);
+            _logger.LogWarning(messageTemplate);
         }
 
         /// <summary>
@@ -568,14 +548,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
         /// <param name="messageTemplate">Message template describing the event.</param>
         /// <param name="propertyValue">Object positionally formatted into the message template.</param>
         public virtual void Warning<T>(string messageTemplate, T propertyValue) {
-            _logger.Warning(messageTemplate, propertyValue);
+            _logger.LogWarning(messageTemplate, propertyValue);
         }
 
         /// <summary>
         /// Write a log event with the Debug level.
         /// </summary>
         public virtual void Debug<T0, T1>(string messageTemplate, T0 propertyValue0, T1 propertyValue1) {
-            _logger.Debug(messageTemplate, propertyValue0, propertyValue1);
+            _logger.LogDebug(messageTemplate, propertyValue0, propertyValue1);
         }
 
         private StandaloneCliModel ToStandaloneCliModel() {

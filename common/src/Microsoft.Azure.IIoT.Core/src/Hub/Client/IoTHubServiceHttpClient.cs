@@ -7,10 +7,10 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 throw new ArgumentNullException(nameof(twin.Id));
             }
             // Retry transient errors
-            return Retry.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
                 // First try create device
                 try {
                     var device = NewRequest($"/devices/{twin.Id}");
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(twin.Id)) {
                 throw new ArgumentNullException(nameof(twin.Id));
             }
-            return Retry.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
 
                 // Then update twin assuming it now exists. If fails, retry...
                 var patch = NewRequest(
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     var response = await _httpClient.PatchAsync(patch, ct);
                     response.Validate();
                     var result = _serializer.DeserializeResponse<DeviceTwinModel>(response);
-                    _logger.Information(
+                    _logger.LogInformation(
                         "{id} ({moduleId}) created or updated ({twinEtag} -> {resultEtag})",
                         twin.Id, twin.ModuleId ?? string.Empty, twin.Etag ?? "*", result.Etag);
                     return result;
@@ -216,7 +216,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest(
                     $"/twins/{ToResourceId(deviceId, moduleId)}");
                 _serializer.SerializeToRequest(request, new {
@@ -238,7 +238,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest(
                     $"/twins/{ToResourceId(deviceId, moduleId)}");
                 var response = await _httpClient.GetAsync(request, ct);
@@ -253,7 +253,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (string.IsNullOrEmpty(deviceId)) {
                 throw new ArgumentNullException(nameof(deviceId));
             }
-            return Retry.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest(
                     $"/devices/{ToResourceId(deviceId, moduleId)}");
                 var response = await _httpClient.GetAsync(request, ct);
@@ -303,7 +303,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 throw new ArgumentNullException(nameof(deviceId));
             }
             etag = null; // TODO : Fix - Currently prevents internal server error
-            return Retry.WithExponentialBackoff(_logger, ct, async () => {
+            return Retry2.WithExponentialBackoff(_logger, ct, async () => {
                 var request = NewRequest(
                     $"/devices/{ToResourceId(deviceId, moduleId)}");
                 request.Headers.Add("If-Match",

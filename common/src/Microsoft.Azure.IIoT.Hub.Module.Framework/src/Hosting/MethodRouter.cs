@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.Devices.Client;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var result = await InvokeAsync(request.Name, request.Data,
                     ContentMimeType.Json);
                 if (result.Length > kMaxMessageSize) {
-                    _logger.Error("Result (Payload too large => {Length}", result.Length);
+                    _logger.LogError("Result (Payload too large => {Length}", result.Length);
                     return new MethodResponse((int)HttpStatusCode.RequestEntityTooLarge);
                 }
                 return new MethodResponse(result, 200);
@@ -168,7 +168,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="controllerMethod"></param>
             /// <param name="serializer"></param>
             public void Add(object controller, MethodInfo controllerMethod, IJsonSerializer serializer) {
-                _logger.Verbose("Adding {controller}.{method} method to invoker...",
+                _logger.LogTrace("Adding {controller}.{method} method to invoker...",
                     controller.GetType().Name, controllerMethod.Name);
                 _invokers.Add(new JsonMethodInvoker(controller, controllerMethod, serializer, _logger));
                 MethodName = controllerMethod.Name;
@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         e = ex;
                     }
                 }
-                _logger.Verbose(e, "Exception during method invocation.");
+                _logger.LogTrace(e, "Exception during method invocation.");
                 throw e;
             }
 
@@ -260,8 +260,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     else {
                         var data = _serializer.Parse(payload);
                         inputs = _methodParams.Select(param => {
-                            if (data.TryGetProperty(param.Name,
-                                out var value, StringComparison.InvariantCultureIgnoreCase)) {
+                            if (data.TryGetProperty(param.Name, out var value /*, StringComparison.InvariantCultureIgnoreCase*/)) {
                                 return value.ConvertTo(param.ParameterType);
                             }
                             return param.HasDefaultValue ? param.DefaultValue : null;
@@ -295,10 +294,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 return task.ContinueWith(tr => {
                     if (tr.IsFaulted || tr.IsCanceled) {
                         var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
-                        if (ex == null) {
-                            ex = new TaskCanceledException(tr);
-                        }
-                        _logger.Verbose(ex, "Method call error");
+                        ex ??= new TaskCanceledException(tr);
+                        _logger.LogTrace(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
                         if (ex is MethodCallStatusException) {
                             throw ex;
@@ -320,10 +317,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 return task.ContinueWith(tr => {
                     if (tr.IsFaulted || tr.IsCanceled) {
                         var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
-                        if (ex == null) {
-                            ex = new TaskCanceledException(tr);
-                        }
-                        _logger.Verbose(ex, "Method call error");
+                        ex ??= new TaskCanceledException(tr);
+                        _logger.LogTrace(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
                         if (ex is MethodCallStatusException) {
                             throw ex;

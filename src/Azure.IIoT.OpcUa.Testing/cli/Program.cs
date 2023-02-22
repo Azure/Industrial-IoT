@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Cli {
+namespace Azure.IIoT.OpcUa.Testing.Cli {
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Furly.Extensions.Logging;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Runtime.Loader;
@@ -117,25 +117,24 @@ Operations (Mutually exclusive):
         /// Run server until exit
         /// </summary>
         private static async Task RunServerAsync(IEnumerable<int> ports) {
-            using (var logger = StackLogger.Create(ConsoleLogger.Create())) {
-                var tcs = new TaskCompletionSource<bool>();
-                AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-                using (var server = new ServerConsoleHost(new ServerFactory(logger.Logger),
-                    logger.Logger) {
-                    AutoAccept = true
-                }) {
-                    await server.StartAsync(ports);
+            var logger = StackLogger.Create(Log.Console<StackLogger>());
+            var tcs = new TaskCompletionSource<bool>();
+            AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
+            using (var server = new ServerConsoleHost(new ServerFactory(logger.Logger),
+                logger.Logger) {
+                AutoAccept = true
+            }) {
+                await server.StartAsync(ports);
 #if DEBUG
-                    if (!Console.IsInputRedirected) {
-                        Console.WriteLine("Press any key to exit...");
-                        Console.TreatControlCAsInput = true;
-                        await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey()));
-                        return;
-                    }
-#endif
-                    await tcs.Task;
-                    logger.Logger.Information("Exiting.");
+                if (!Console.IsInputRedirected) {
+                    Console.WriteLine("Press any key to exit...");
+                    Console.TreatControlCAsInput = true;
+                    await Task.WhenAny(tcs.Task, Task.Run(() => Console.ReadKey()));
+                    return;
                 }
+#endif
+                await tcs.Task;
+                logger.Logger.LogInformation("Exiting.");
             }
         }
 

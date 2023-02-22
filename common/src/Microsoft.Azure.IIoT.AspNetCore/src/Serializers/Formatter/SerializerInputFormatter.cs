@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Serializers {
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.AspNetCore.Mvc.Formatters;
     using Microsoft.Net.Http.Headers;
+    using Furly.Extensions.Serializers;
     using System;
     using System.IO;
     using System.Reflection;

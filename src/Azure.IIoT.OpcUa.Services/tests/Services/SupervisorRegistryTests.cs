@@ -10,12 +10,12 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -29,8 +29,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
             using (var mock = AutoMock.GetLoose(builder => {
                 var hub = IoTHubServices.Create(modules);
-                builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
-                builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
+                // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
+                builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
@@ -51,8 +51,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
             using (var mock = AutoMock.GetLoose(builder => {
                 var hub = IoTHubServices.Create(modules);
-                builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
-                builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
+                // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
+                builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
@@ -71,8 +71,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
             using (var mock = AutoMock.GetLoose(builder => {
                 var hub = IoTHubServices.Create(modules);
-                builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
-                builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
+                // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
+                builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
@@ -91,8 +91,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
             using (var mock = AutoMock.GetLoose(builder => {
                 var hub = IoTHubServices.Create(modules);
-                builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
-                builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
+                // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
+                builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
@@ -111,8 +111,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
             using (var mock = AutoMock.GetLoose(builder => {
                 var hub = IoTHubServices.Create(modules);
-                builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
-                builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
+                // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
+                builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
@@ -133,8 +133,8 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
 
             using (var mock = AutoMock.GetLoose(builder => {
                 var hub = IoTHubServices.Create(modules);
-                builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
-                builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
+                // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
+                builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
             })) {
                 ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
@@ -187,6 +187,6 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                 .ToList();
         }
 
-        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
+        private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
     }
 }

@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Services {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Serilog;
+    using Autofac;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -53,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             var diag = new WriterGroupDiagnosticModel { IngestionStart = DateTime.UtcNow };
             writerGroupId ??= Constants.DefaultWriterGroupId;
             _diagnostics.AddOrUpdate(writerGroupId, _ => diag, (_, _) => diag);
-            _logger.Information("Tracking diagnostics for {WriterGroup} was (re-)started.",
+            _logger.LogInformation("Tracking diagnostics for {WriterGroup} was (re-)started.",
                 writerGroupId);
         }
 
@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         public bool RemoveWriterGroup(string writerGroupId) {
             writerGroupId ??= Constants.DefaultWriterGroupId;
             if (_diagnostics.TryRemove(writerGroupId, out _)) {
-                _logger.Information("Stop tracking diagnostics for {WriterGroup}.",
+                _logger.LogInformation("Stop tracking diagnostics for {WriterGroup}.",
                     writerGroupId);
                 return true;
             }
@@ -151,21 +151,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             }
             void LogDiagnosticInfo(string writerGroupId, WriterGroupDiagnosticModel info, TimeSpan ingestionDuration) {
                 var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
-                double valueChangesPerSec = info.IngressValueChanges / ingestionDuration.TotalSeconds;
-                double dataChangesPerSec = info.IngressDataChanges / ingestionDuration.TotalSeconds;
+                var valueChangesPerSec = info.IngressValueChanges / ingestionDuration.TotalSeconds;
+                var dataChangesPerSec = info.IngressDataChanges / ingestionDuration.TotalSeconds;
                 var dataChangesLastMin = info.IngressDataChangesInLastMinute;
-                double valueChangesPerSecLastMin = info.IngressValueChangesInLastMinute / Math.Min(totalSeconds, 60d);
-                double dataChangesPerSecLastMin = info.IngressDataChangesInLastMinute / Math.Min(totalSeconds, 60d);
+                var valueChangesPerSecLastMin = info.IngressValueChangesInLastMinute / Math.Min(totalSeconds, 60d);
+                var dataChangesPerSecLastMin = info.IngressDataChangesInLastMinute / Math.Min(totalSeconds, 60d);
 
                 var diagInfo = new StringBuilder();
                 diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
                 diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
-                string dataChangesPerSecFormatted = info.IngressDataChanges > 0 && ingestionDuration.TotalSeconds > 0
+                var dataChangesPerSecFormatted = info.IngressDataChanges > 0 && ingestionDuration.TotalSeconds > 0
                     ? $"(All time ~{dataChangesPerSec:0.##}/s; {dataChangesLastMin.ToString("D2")} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
                     : "";
                 diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
                 diagInfo.AppendLine("  # Ingress EventData (from OPC)       : {eventNotificationCount,14:n0}");
-                string valueChangesPerSecFormatted = info.IngressValueChanges > 0 && ingestionDuration.TotalSeconds > 0
+                var valueChangesPerSecFormatted = info.IngressValueChanges > 0 && ingestionDuration.TotalSeconds > 0
                     ? $"(All time ~{valueChangesPerSec:0.##}/s; {dataChangesLastMin.ToString("D2")} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
                     : "";
                 diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
@@ -184,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 diagInfo.AppendLine("  # Outgress input buffer count        : {sinkBlockInputCount,14:n0}");
                 diagInfo.AppendLine("  # Outgress input buffer dropped      : {sinkBlockInputDroppedCount,14:n0}");
 
-                string sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 && ingestionDuration.TotalSeconds > 0
+                var sentMessagesPerSecFormatted = info.OutgressIoTMessageCount > 0 && ingestionDuration.TotalSeconds > 0
                     ? $"({info.SentMessagesPerSec:0.##}/s)" : "";
                 diagInfo.AppendLine("  # Outgress IoT message count         : {messageSinkSentMessagesCount,14:n0} {sentMessagesPerSecFormatted}");
                 diagInfo.AppendLine("  # Connection retries                 : {connectionRetries,14:0}");
@@ -192,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 diagInfo.AppendLine("  # Monitored Opc nodes succeeded count: {goodNodes,14:0}");
                 diagInfo.AppendLine("  # Monitored Opc nodes failed count   : {badNodes,14:0}");
 
-                _logger.Information(diagInfo.ToString(),
+                _logger.LogInformation(diagInfo.ToString(),
                     writerGroupId,
                     ingestionDuration,
                     info.IngressDataChanges, dataChangesPerSecFormatted,

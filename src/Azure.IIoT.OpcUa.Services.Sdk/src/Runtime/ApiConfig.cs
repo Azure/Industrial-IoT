@@ -8,8 +8,8 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Extensions.Configuration;
-    using System.Net.Sockets;
     using System.Net;
+    using System.Net.Sockets;
 
     /// <summary>
     /// Complete api configuration

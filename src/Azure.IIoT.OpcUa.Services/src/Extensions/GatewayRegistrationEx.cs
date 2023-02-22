@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Services.Models {
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
 
@@ -125,9 +125,7 @@ namespace Azure.IIoT.OpcUa.Services.Models {
                 connected = false;
                 return null;
             }
-            if (twin.Tags == null) {
-                twin.Tags = new Dictionary<string, VariantValue>();
-            }
+            twin.Tags ??= new Dictionary<string, VariantValue>();
 
             var consolidated =
                 ToGatewayRegistration(twin, twin.GetConsolidatedProperties());

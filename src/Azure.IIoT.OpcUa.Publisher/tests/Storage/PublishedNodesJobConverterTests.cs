@@ -9,9 +9,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Moq;
     using System;
     using System.Collections.Generic;
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -136,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -174,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -211,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -255,7 +255,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -299,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -346,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -394,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -455,7 +455,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -491,7 +491,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -529,7 +529,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -567,7 +567,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -601,7 +601,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -638,7 +638,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -676,7 +676,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -716,7 +716,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -752,7 +752,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -786,7 +786,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -822,7 +822,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -857,7 +857,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -892,7 +892,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -926,7 +926,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -962,7 +962,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -997,7 +997,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1032,7 +1032,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1077,7 +1077,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1122,7 +1122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1164,7 +1164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1202,7 +1202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1243,7 +1243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1284,7 +1284,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1328,7 +1328,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1383,7 +1383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1426,7 +1426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1492,7 +1492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1557,11 +1557,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
-
 
             var entries = converter.Read(pn);
             var jobs = converter.ToWriterGroupJobs(entries, GetConfig());
@@ -1630,7 +1629,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1703,7 +1702,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1774,7 +1773,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1800,7 +1799,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             var pn = await File.ReadAllTextAsync(publishedNodesJsonFile);
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1855,7 +1854,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -1911,7 +1910,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -2001,7 +2000,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ");
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -2117,7 +2116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -2271,7 +2270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -2336,7 +2335,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
 ";
             var engineConfigMock = new Mock<IEngineConfiguration>();
             var clientConfignMock = new Mock<IClientServicesConfig>();
-            var logger = TraceLogger.Create();
+            var logger = Log.Console<PublishedNodesJobConverter>();
 
             var converter = new PublishedNodesJobConverter(logger, _serializer,
                 engineConfigMock.Object, clientConfignMock.Object);
@@ -2372,6 +2371,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage {
             return config;
         }
 
-        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
+        private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
     }
 }

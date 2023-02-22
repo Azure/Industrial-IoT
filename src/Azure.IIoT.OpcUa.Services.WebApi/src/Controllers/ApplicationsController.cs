@@ -16,12 +16,12 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Threading;
 
     /// <summary>
     /// CRUD and Query application resources
     /// </summary>
-    [ApiVersion("2")][Route("registry/v{version:apiVersion}/applications")]
+    [ApiVersion("2")]
+    [Route("registry/v{version:apiVersion}/applications")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task RegisterServerAsync(
-            [FromBody] [Required] ServerRegistrationRequestModel request) {
+            [FromBody][Required] ServerRegistrationRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPost("discover")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DiscoverServerAsync(
-            [FromBody] [Required] DiscoveryRequestModel request) {
+            [FromBody][Required] DiscoveryRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPut]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task<ApplicationRegistrationResponseModel> CreateApplicationAsync(
-            [FromBody] [Required] ApplicationRegistrationRequestModel request) {
+            [FromBody][Required] ApplicationRegistrationRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPatch("{applicationId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateApplicationRegistrationAsync(string applicationId,
-            [FromBody] [Required] ApplicationRegistrationUpdateModel request) {
+            [FromBody][Required] ApplicationRegistrationUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -296,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Applications</returns>
         [HttpPost("query")]
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
-            [FromBody] [Required] ApplicationRegistrationQueryModel query,
+            [FromBody][Required] ApplicationRegistrationQueryModel query,
             [FromQuery] int? pageSize) {
 
             if (query == null) {
@@ -327,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Applications</returns>
         [HttpGet("query")]
         public async Task<ApplicationInfoListModel> GetFilteredListOfApplicationsAsync(
-            [FromBody] [Required] ApplicationRegistrationQueryModel query,
+            [FromBody][Required] ApplicationRegistrationQueryModel query,
             [FromQuery] int? pageSize) {
 
             if (query == null) {

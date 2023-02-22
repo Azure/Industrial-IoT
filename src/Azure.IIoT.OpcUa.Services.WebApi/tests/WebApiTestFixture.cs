@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
     using Autofac.Extensions.Hosting;
+    using Furly.Extensions.Serializers.MessagePack;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
-    using Microsoft.Azure.IIoT.Serializers.MessagePack;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Extensions.Hosting;
     using System.Collections.Generic;
     using System.Net.Http;
@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Tests {
 
         public static IEnumerable<object[]> GetSerializers() {
             yield return new object[] { new MessagePackSerializer() };
-            yield return new object[] { new NewtonSoftJsonSerializer() };
+            yield return new object[] { new NewtonsoftJsonSerializer() };
         }
 
         /// <inheritdoc/>

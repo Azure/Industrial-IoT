@@ -7,19 +7,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Transport;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner;
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Net.Models;
-    using Microsoft.Azure.IIoT.Net.Scanner;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Logging;
     using Prometheus;
-    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -111,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
             var scheduled = _queue.TryAdd(task);
             if (!scheduled) {
                 task.Dispose();
-                _logger.Error("Discovey request not scheduled, internal server error!");
+                _logger.LogError("Discovey request not scheduled, internal server error!");
                 var ex = new ResourceExhaustionException("Failed to schedule task");
                 _progress.OnDiscoveryError(request, ex);
                 throw ex;
@@ -210,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
             }
             catch (OperationCanceledException) { }
             catch (Exception ex) {
-                _logger.Error(ex, "Unexpected exception stopping processor thread.");
+                _logger.LogError(ex, "Unexpected exception stopping processor thread.");
             }
         }
 
@@ -220,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task ProcessDiscoveryRequestsAsync(CancellationToken ct) {
-            _logger.Information("Starting discovery processor...");
+            _logger.LogInformation("Starting discovery processor...");
             // Process all discovery requests
             while (!ct.IsCancellationRequested) {
                 try {
@@ -243,12 +244,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Discovery processor error occurred - continue...");
+                    _logger.LogError(ex, "Discovery processor error occurred - continue...");
                 }
             }
             // Send cancellation for all pending items
             await CancelPendingRequestsAsync();
-            _logger.Information("Stopped discovery processor.");
+            _logger.LogInformation("Stopped discovery processor.");
         }
 
         /// <summary>
@@ -256,7 +257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// </summary>
         /// <param name="request"></param>
         private async Task ProcessDiscoveryRequestAsync(DiscoveryRequest request) {
-            _logger.Debug("Processing discovery request...");
+            _logger.LogDebug("Processing discovery request...");
             _progress.OnDiscoveryStarted(request.Request);
             object diagnostics = null;
 
@@ -309,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                     request.Configuration.Locales);
             }
 
-            _logger.Information("Start {mode} discovery run...", request.Mode);
+            _logger.LogInformation("Start {mode} discovery run...", request.Mode);
             var watch = Stopwatch.StartNew();
 
             //
@@ -396,7 +397,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
             var discovered = await DiscoverServersAsync(request, discoveryUrls,
                 request.Configuration.Locales);
 
-            _logger.Information("Discovery took {elapsed} and found {count} servers.",
+            _logger.LogInformation("Discovery took {elapsed} and found {count} servers.",
                 watch.Elapsed, discovered.Count);
             return discovered;
         }
@@ -521,12 +522,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                         break;
                     }
                     catch (SocketException se) {
-                        _logger.Warning("Failed to resolve the host for {discoveryUrl} due to {message}",
+                        _logger.LogWarning("Failed to resolve the host for {discoveryUrl} due to {message}",
                             discoveryUrl, se.Message);
                         return list;
                     }
                     catch (Exception e) {
-                        _logger.Error(e, "Failed to resolve the host for {discoveryUrl}", discoveryUrl);
+                        _logger.LogError(e, "Failed to resolve the host for {discoveryUrl}", discoveryUrl);
                         return list;
                     }
                 }
@@ -541,20 +542,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <returns></returns>
         private async Task AddLoopbackAddressesAsync(List<IPAddress> addresses) {
             // Check local host
-            string hostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
+            var hostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
             try {
                 if (Host.IsContainer) {
                     // Resolve docker host since we are running in a container
                     if (string.IsNullOrEmpty(hostName)) {
-                        _logger.Information("Gateway host name not set");
+                        _logger.LogInformation("Gateway host name not set");
                         return;
                     }
-                    _logger.Debug("Resolve IP for gateway host name: {address}", hostName);
+                    _logger.LogDebug("Resolve IP for gateway host name: {address}", hostName);
                     var entry = await Dns.GetHostEntryAsync(hostName);
                     foreach (var address in entry.AddressList
                                 .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
                                 .Where(a => !addresses.Any(b => a.Equals(b)))) {
-                        _logger.Information("Including gateway host address {address}", address);
+                        _logger.LogInformation("Including gateway host address {address}", address);
                         addresses.Add(address);
                     }
                 }
@@ -564,11 +565,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                 }
             }
             catch (SocketException se) {
-                _logger.Warning("Failed to add address for gateway host {hostName} due to {error}.",
+                _logger.LogWarning("Failed to add address for gateway host {hostName} due to {error}.",
                     hostName, se.Message);
             }
             catch (Exception e) {
-                _logger.Error(e, "Failed to add address for gateway host {hostName}.", hostName);
+                _logger.LogError(e, "Failed to add address for gateway host {hostName}.", hostName);
             }
         }
 
@@ -584,7 +585,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         private async Task SendDiscoveryResultsAsync(DiscoveryRequest request,
             List<ApplicationRegistrationModel> discovered, DateTime timestamp,
             object diagnostics, CancellationToken ct) {
-            _logger.Information("Uploading {count} results...", discovered.Count);
+            _logger.LogInformation("Uploading {count} results...", discovered.Count);
             var messages = discovered
                 .SelectMany(server => server.Endpoints
                     .Select(registration => new DiscoveryEventModel {
@@ -611,7 +612,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
             await Task.Run(() => _events.SendEventAsync(
                 messages.Select(message => _serializer.SerializeToBytes(message).ToArray()).ToList(),
                     ContentMimeType.Json, MessageSchemaTypes.DiscoveryEvents, "utf-8"), ct);
-            _logger.Information("{count} results uploaded.", discovered.Count);
+            _logger.LogInformation("{count} results uploaded.", discovered.Count);
         }
 
         /// <summary>
@@ -619,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// </summary>
         /// <returns></returns>
         private async Task CancelPendingRequestsAsync() {
-            _logger.Information("Cancelling all pending requests...");
+            _logger.LogInformation("Cancelling all pending requests...");
             await _lock.WaitAsync();
             try {
                 foreach (var request in _pending) {
@@ -631,7 +632,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
             finally {
                 _lock.Release();
             }
-            _logger.Information("Pending requests cancelled...");
+            _logger.LogInformation("Pending requests cancelled...");
         }
 
         /// <summary>
@@ -650,7 +651,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
                 }
             }
             catch (Exception ex) {
-                _logger.Warning(ex, "Failed to send pending event");
+                _logger.LogWarning(ex, "Failed to send pending event");
             }
             finally {
                 _lock.Release();
@@ -663,7 +664,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         /// <param name="log"></param>
         private void ProgressTimer(Action log) {
             if ((_counter % 3) == 0) {
-                _logger.Information("GC Mem: {gcmem} kb, Working set / Private Mem: " +
+                _logger.LogInformation("GC Mem: {gcmem} kb, Working set / Private Mem: " +
                     "{privmem} kb / {privmemsize} kb, Handles: {handles}",
                     GC.GetTotalMemory(false) / 1024,
                     Process.GetCurrentProcess().WorkingSet64 / 1024,

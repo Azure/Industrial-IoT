@@ -6,8 +6,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.MsgPack {
     using AutoFixture;
     using AutoFixture.Kernel;
     using FluentAssertions;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.MessagePack;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.MessagePack;
     using System;
     using System.Collections;
     using System.Collections.Generic;

@@ -4,8 +4,8 @@
 
 namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using System.Collections.Generic;
 
     using Xunit;
@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
 
         [Fact]
         public void UseSecurityDeserializationTest() {
-            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
 
             var modelJson = @"
 {
@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
 
         [Fact]
         public void UseSecuritySerializationTest() {
-            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
 
             var model = new PublishedNodesEntryModel {
                 EndpointUrl = "opc.tcp://localhost:50000",
@@ -100,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
 
         [Fact]
         public void OpcAuthenticationModeDeserializationTest() {
-            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
 
             var modelJson = @"
 {
@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models.Tests {
 
         [Fact]
         public void OpcAuthenticationModeSerializationTest() {
-            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
 
             var model = new PublishedNodesEntryModel {
                 EndpointUrl = "opc.tcp://localhost:50000",

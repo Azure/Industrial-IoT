@@ -4,15 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Services {
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     foreach (var subscription in _subscriptions.Values) {
                         await subscription.DisposeAsync();
                     }
-                    _logger.Information("Removed all subscriptions from writer group {Name}.",
+                    _logger.LogInformation("Removed all subscriptions from writer group {Name}.",
                         writerGroup.WriterGroupId);
                     _subscriptions.Clear();
                     _writerGroup = writerGroup;
@@ -119,11 +119,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     }
                 }
                 if (_writerGroup.WriterGroupId != writerGroup.WriterGroupId) {
-                    _logger.Information("Update writer group from {Previous} to writer group {Name}.",
+                    _logger.LogInformation("Update writer group from {Previous} to writer group {Name}.",
                         _writerGroup.WriterGroupId, writerGroup.WriterGroupId);
                 }
 
-                _logger.Information("Update all subscriptions inside writer group {Name}.",
+                _logger.LogInformation("Update all subscriptions inside writer group {Name}.",
                     writerGroup.WriterGroupId);
                 _writerGroup = writerGroup;
             }
@@ -193,10 +193,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// </summary>
             public async ValueTask UpdateAsync(DataSetWriterModel dataSetWriter, CancellationToken ct) {
                 if (Subscription == null) {
-                    _outer._logger.Warning("Subscription does not exist");
+                    _outer._logger.LogWarning("Subscription does not exist");
                     return;
                 }
-                _outer._logger.Debug("Updating subscription {Id} in writer group {Name}...",
+                _outer._logger.LogDebug("Updating subscription {Id} in writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
                 _dataSetWriter = dataSetWriter.Clone();
@@ -209,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 // Apply changes
                 await Subscription.UpdateAsync(_subscriptionInfo, ct).ConfigureAwait(false);
 
-                _outer._logger.Information("Updated subscription {Id} in writer group {Name}.",
+                _outer._logger.LogInformation("Updated subscription {Id} in writer group {Name}.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
@@ -236,7 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// </summary>
             /// <returns></returns>
             private async ValueTask OpenAsync(CancellationToken ct) {
-                _outer._logger.Debug("Creating new subscription {Id} in writer group {Name}...",
+                _outer._logger.LogDebug("Creating new subscription {Id} in writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
                 //
@@ -262,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 if (_metadataTimer != null) {
                     _metadataTimer.Start();
                 }
-                _outer._logger.Information("Created new subscription {Id} in writer group {Name}.",
+                _outer._logger.LogInformation("Created new subscription {Id} in writer group {Name}.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
@@ -271,7 +271,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// </summary>
             /// <returns></returns>
             private async ValueTask CloseAsync() {
-                _outer._logger.Debug("Removing subscription {Id} from writer group {Name}...",
+                _outer._logger.LogDebug("Removing subscription {Id} from writer group {Name}...",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
 
                 await Subscription.CloseAsync().ConfigureAwait(false);
@@ -288,7 +288,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 Subscription.Dispose();
                 Subscription = null;
 
-                _outer._logger.Information("Removed subscription {Id} from writer group {Name}.",
+                _outer._logger.LogInformation("Removed subscription {Id} from writer group {Name}.",
                     Id, _outer._writerGroup.WriterGroupId ?? Constants.DefaultWriterGroupId);
             }
 
@@ -342,7 +342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     return;
                 }
 
-                _outer._logger.Debug("Insert metadata message into Subscription {id}...", Id);
+                _outer._logger.LogDebug("Insert metadata message into Subscription {id}...", Id);
                 var notification = Subscription.CreateKeepAlive();
                 if (notification != null) {
                     // This call udpates the message type, so no need to do it here.
@@ -379,7 +379,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
                         _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
                         // reset both
-                        _outer._logger.Debug("Notifications counter in subscription {Id} has been reset to prevent" +
+                        _outer._logger.LogDebug("Notifications counter in subscription {Id} has been reset to prevent" +
                             " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
                             "value changes were invoked by message source.",
                             Id, _outer.DataChangesCount, _outer.ValueChangesCount);
@@ -410,7 +410,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     if (_outer._eventCount >= kNumberOfInvokedMessagesResetThreshold ||
                         _outer._eventNotificationCount >= kNumberOfInvokedMessagesResetThreshold) {
                         // reset both
-                        _outer._logger.Debug("Notifications counter in subscription {Id} has been reset to prevent" +
+                        _outer._logger.LogDebug("Notifications counter in subscription {Id} has been reset to prevent" +
                             " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
                             "event value changes were invoked by message source.",
                             Id, _outer._eventCount, _outer._eventNotificationCount);
@@ -480,7 +480,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     }
                 }
                 catch (Exception ex) {
-                    _outer._logger.Warning(ex, "Failed to produce message.");
+                    _outer._logger.LogWarning(ex, "Failed to produce message.");
                 }
 
                 WriterGroupMessageContext CreateMessageContext(ref uint sequenceNumber) {
@@ -518,7 +518,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
             // with cleaned buffer, we can just accumulate all buckets
             long sum = 0;
-            for (int index = 0; index < array.Length; index++) {
+            for (var index = 0; index < array.Length; index++) {
                 sum += array[index];
             }
             return sum;

@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         public BrowseServicesTests(Func<INodeServices<T>> services, T endpoint) {
             _services = services;
             _endpoint = endpoint;
-            _serializer = new NewtonSoftJsonSerializer();
+            _serializer = new NewtonsoftJsonSerializer();
         }
 
         public async Task NodeBrowseInRootTest1Async() {
@@ -2329,7 +2329,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
 
             // Assert
             Assert.NotNull(results.ErrorInfo);
-          // TODO:  Assert.Null(results.ErrorInfo.ErrorMessage);
+            // TODO:  Assert.Null(results.ErrorInfo.ErrorMessage);
             Assert.NotNull(results.ErrorInfo.StatusCode);
             Assert.Equal(results.ErrorInfo.StatusCode, Opc.Ua.StatusCodes.BadNodeIdUnknown);
         }
@@ -2356,12 +2356,12 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.NotNull(results.ErrorInfo.ErrorMessage);
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
-           // Assert.NotNull(results.ErrorInfo.Diagnostics);
-           // Assert.True(results.ErrorInfo.Diagnostics.IsListOfValues);
-           // Assert.Collection(results.ErrorInfo.Diagnostics.Values, j => {
-           //     Assert.True(j.IsString);
-           //     Assert.Equal("BadNodeIdUnknown", (string)j);
-           // });
+            // Assert.NotNull(results.ErrorInfo.Diagnostics);
+            // Assert.True(results.ErrorInfo.Diagnostics.IsListOfValues);
+            // Assert.Collection(results.ErrorInfo.Diagnostics.Values, j => {
+            //     Assert.True(j.IsString);
+            //     Assert.Equal("BadNodeIdUnknown", (string)j);
+            // });
         }
 
 
@@ -2384,11 +2384,11 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.NotNull(results.ErrorInfo.ErrorMessage);
             Assert.Equal(Opc.Ua.StatusCodes.BadNodeIdUnknown, results.ErrorInfo.StatusCode);
-         // TODO  Assert.NotNull(item);
-         // TODO  Assert.True(item.IsListOfValues);
-         // TODO  Assert.NotEqual(0, item.Count);
-         // TODO  Assert.NotEmpty(item.Values);
-         // TODO  Assert.Equal("Browse_ns=9;s=unknown", (string)item[0]);
+            // TODO  Assert.NotNull(item);
+            // TODO  Assert.True(item.IsListOfValues);
+            // TODO  Assert.NotEqual(0, item.Count);
+            // TODO  Assert.NotEmpty(item.Values);
+            // TODO  Assert.Equal("Browse_ns=9;s=unknown", (string)item[0]);
         }
 
 

@@ -4,15 +4,19 @@
 // ------------------------------------------------------------
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
-    using Azure.IIoT.OpcUa.Shared.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Exceptions;
+    using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
-    using Serilog;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -21,10 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
-    using Opc.Ua.Extensions;
-    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -129,12 +129,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             _lock.Wait();
             try {
                 _subscriptions.AddOrUpdate(subscription.Name, subscription, (_, _) => subscription);
-                _logger.Information(
+                _logger.LogInformation(
                     "Subscription {subscriptionId} registered/updated in session {id}.",
                     subscription.Name, id);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to register subscription");
+                _logger.LogError(ex, "Failed to register subscription");
             }
             finally {
                 _lock.Release();
@@ -146,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             _lock.Wait();
             try {
                 if (_subscriptions.TryRemove(subscription.Name, out _)) {
-                    _logger.Information(
+                    _logger.LogInformation(
                         "Subscription {subscriptionId} unregistered from session {id}.",
                         subscription.Name, _sessionName);
                 }
@@ -174,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             catch (Exception ex) {
                 // Log Error
-                _logger.Error(ex, "Error creating session {Name}.", _sessionName);
+                _logger.LogError(ex, "Error creating session {Name}.", _sessionName);
                 _session?.Dispose();
                 _session = null;
                 Codec = _codec.Default;
@@ -194,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 foreach (var subscription in _subscriptions.Values) {
                     await subscription.ReapplyToSessionAsync(this);
                 }
-                _logger.Information("Reapplied all subscriptions to session {Name}.",
+                _logger.LogInformation("Reapplied all subscriptions to session {Name}.",
                     _sessionName);
             }
 
@@ -240,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                         $"Session {_sessionName} was closed.");
                 }
                 if (_session == null || !_session.Connected) {
-                    _logger.Information(
+                    _logger.LogInformation(
                         "Connected signaled but not connected, retry in 5 seconds...");
                     // Delay and try again
                     await Task.Delay(TimeSpan.FromSeconds(5), ct);
@@ -250,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     return await service(this);
                 }
                 catch (Exception ex) when (!_session.Connected) {
-                    _logger.Information("Session disconnected during service call " +
+                    _logger.LogInformation("Session disconnected during service call " +
                         "with message {message}, retrying.", ex.Message);
                     continue;
                 }
@@ -285,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
 
             try {
-                _logger.Information("Closing session {Name}...", _sessionName);
+                _logger.LogInformation("Closing session {Name}...", _sessionName);
 
                 if (subscriptions.Count > 0) {
                     //
@@ -303,10 +303,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 await session.CloseAsync();
 
                 // Log Session Disconnected event
-                _logger.Debug("Session {Name} closed.", _sessionName);
+                _logger.LogDebug("Session {Name} closed.", _sessionName);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Error during closing of session {Name}.", _sessionName);
+                _logger.LogError(ex, "Error during closing of session {Name}.", _sessionName);
             }
             finally {
                 session.Dispose();
@@ -322,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private async ValueTask<bool> ConnectAsyncCore() {
             if (IsReconnecting) {
                 // Cannot connect while reconnecting.
-                _logger.Information("Session {Name} is reconnecting. Not connecting.",
+                _logger.LogInformation("Session {Name} is reconnecting. Not connecting.",
                     _sessionName);
                 return false;
             }
@@ -337,7 +337,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
             UnsetSession(); // Ensure any previous session is disposed here.
             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
-            _logger.Debug("Initializing session '{Name}'...", _sessionName);
+            _logger.LogDebug("Initializing session '{Name}'...", _sessionName);
 
             var endpointUrlCandidates = _connection.Endpoint!.Url.YieldReturn();
             if (_connection.Endpoint.AlternativeUrls != null) {
@@ -362,13 +362,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     if (_connection.Endpoint.SecurityMode.HasValue &&
                         _connection.Endpoint.SecurityMode != SecurityMode.None &&
                         endpointDescription.SecurityMode == MessageSecurityMode.None) {
-                        _logger.Warning("Although the use of security was configured, " +
+                        _logger.LogWarning("Although the use of security was configured, " +
                             "there was no security-enabled endpoint available at url " +
                             "{endpointUrl}. An endpoint with no security will be used.",
                             endpointUrl);
                     }
 
-                    _logger.Information(
+                    _logger.LogInformation(
                         "#{Attempt}: Creating session {Name} for endpoint {endpointUrl}...",
                         ++attempt, _sessionName, endpointUrl);
                     var userIdentity = _connection.User.ToStackModel()
@@ -381,7 +381,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
                     // Assign the created session
                     SetSession(session);
-                    _logger.Information(
+                    _logger.LogInformation(
                         "New Session {Name} created with endpoint {endpointUrl} ({Original}).",
                         _sessionName, endpointUrl, _connection.Endpoint.Url);
 
@@ -394,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 catch (Exception ex) {
                     NotifyConnectivityStateChange(ToConnectivityState(ex));
                     NumberOfConnectRetries++;
-                    _logger.Information(
+                    _logger.LogInformation(
                         "#{Attempt}: Failed to create session {Name} to {endpointUrl}: {message}...",
                         ++attempt, _sessionName, endpointUrl, ex.Message);
                 }
@@ -409,9 +409,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync() {
             await _lock.WaitAsync();
             try {
-                if (_complexTypeSystem == null) {
-                    _complexTypeSystem = LoadComplexTypeSystemAsync();
-                }
+                _complexTypeSystem ??= LoadComplexTypeSystemAsync();
                 return await _complexTypeSystem.ConfigureAwait(false);
             }
             finally {
@@ -751,7 +749,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 // start reconnect sequence on communication error.
                 if (ServiceResult.IsBad(e.Status)) {
                     if (ReconnectPeriod <= 0) {
-                        _logger.Warning(
+                        _logger.LogWarning(
                             "KeepAlive status {Status} for session {Name}, but reconnect is disabled.",
                             e.Status, _sessionName);
                         return;
@@ -760,7 +758,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     _lock.Wait();
                     try {
                         if (_reconnectHandler == null) {
-                            _logger.Information(
+                            _logger.LogInformation(
                                 "KeepAlive status {Status} for session {Name}, reconnecting in {Period}ms.",
                                 e.Status, _sessionName, ReconnectPeriod);
                             _reconnectHandler = new SessionReconnectHandler(true);
@@ -769,7 +767,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
                         }
                         else {
-                            _logger.Debug(
+                            _logger.LogDebug(
                                 "KeepAlive status {Status} for session {Name}, reconnect in progress.",
                                 e.Status, _sessionName);
                         }
@@ -816,7 +814,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 return;
             }
 
-            _logger.Information("--- SESSION {Name} RECONNECTED ---", _sessionName);
+            _logger.LogInformation("--- SESSION {Name} RECONNECTED ---", _sessionName);
             NumberOfConnectRetries++;
 
             NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
@@ -831,7 +829,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <param name="session"></param>
         private void SetSession(Session session) {
             if (session == null || !session.Connected) {
-                _logger.Information("Session not connected.");
+                _logger.LogInformation("Session not connected.");
                 return;
             }
 
@@ -877,7 +875,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
             Codec = _codec.Default;
             session.Dispose();
-            _logger.Debug("Session {Name} disposed.", _sessionName);
+            _logger.LogDebug("Session {Name} disposed.", _sessionName);
         }
 
         /// <summary>
@@ -889,13 +887,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 if (_session != null && _session.Connected) {
                     var complexTypeSystem = new ComplexTypeSystem(_session);
                     await complexTypeSystem.Load().ConfigureAwait(false);
-                    _logger.Information("Session {Name} complex type system loaded",
+                    _logger.LogInformation("Session {Name} complex type system loaded",
                         _sessionName);
                     return complexTypeSystem;
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to load complex type system.");
+                _logger.LogError(ex, "Failed to load complex type system.");
             }
             return null;
         }
@@ -927,7 +925,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 state == EndpointConnectivityState.Error) {
                 // Do not change state to generic error once we have
                 // a specific error state already set...
-                _logger.Debug(
+                _logger.LogDebug(
                     "Error, connection to {endpoint} - leaving state at {previous}.",
                     _connection.Endpoint!.Url, previous);
                 return;
@@ -940,14 +938,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             else {
                 _connected.Reset();
             }
-            _logger.Information(
+            _logger.LogInformation(
                 "Connecting to {endpoint} changed from {previous} to {state}",
                 _connection.Endpoint!.Url, previous, state);
             try {
                 OnConnectionStateChange?.Invoke(this, state);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Exception during state callback");
+                _logger.LogError(ex, "Exception during state callback");
             }
         }
 
@@ -1004,11 +1002,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                             state = EndpointConnectivityState.Error;
                             break;
                     }
-                    _logger.Debug("{result} => {state}", sre.Result, state);
+                    _logger.LogDebug("{result} => {state}", sre.Result, state);
                     break;
                 default:
                     state = EndpointConnectivityState.Error;
-                    _logger.Debug("{message} => {state}", ex.Message, state);
+                    _logger.LogDebug("{message} => {state}", ex.Message, state);
                     break;
             }
             return state;

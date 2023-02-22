@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.Devices.Client;
-    using Microsoft.Azure.Devices.Common;
     using Microsoft.Azure.Devices.Shared;
     using System;
     using System.Collections.Generic;

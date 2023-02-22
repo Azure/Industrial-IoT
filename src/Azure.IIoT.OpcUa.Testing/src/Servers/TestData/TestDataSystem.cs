@@ -454,9 +454,7 @@ namespace TestData {
 
         public void StartMonitoringValue(uint monitoredItemId, double samplingInterval, BaseVariableState variable) {
             lock (_lock) {
-                if (_monitoredNodes == null) {
-                    _monitoredNodes = new Dictionary<uint, BaseVariableState>();
-                }
+                _monitoredNodes ??= new Dictionary<uint, BaseVariableState>();
                 _monitoredNodes[monitoredItemId] = variable;
                 SetSamplingInterval(samplingInterval);
             }

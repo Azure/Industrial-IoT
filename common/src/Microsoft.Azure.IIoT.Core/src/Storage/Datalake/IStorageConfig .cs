@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake {
     /// <summary>
     /// Storage configuration
     /// </summary>
-    public interface IStorageConfig  {
+    public interface IStorageConfig {
 
         /// <summary>
         /// Storage endpoint

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Services.Models {
-    using Microsoft.Azure.IIoT.Serializers;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Runtime.Serialization;
 
@@ -12,14 +12,14 @@ namespace Azure.IIoT.OpcUa.Services.Models {
     /// Data value model
     /// </summary>
     [DataContract]
-    public class DataValueModel{
+    public class DataValueModel {
 
         /// <summary>
         /// Value
         /// </summary>
         [DataMember(Name = "value", Order = 0,
             EmitDefaultValue = false)]
-        public VariantValue Value {get; set; }
+        public VariantValue Value { get; set; }
 
         /// <summary>
         /// Data type of value

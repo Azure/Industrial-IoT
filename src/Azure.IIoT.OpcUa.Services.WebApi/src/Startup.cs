@@ -6,9 +6,12 @@
 namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Azure.IIoT.OpcUa.Services.WebApi.Auth;
     using Azure.IIoT.OpcUa.Services.WebApi.Runtime;
-    using Azure.IIoT.OpcUa.Services.Clients;
-    using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
     using Azure.IIoT.OpcUa.Services;
+    using Azure.IIoT.OpcUa.Services.Clients;
+    using Azure.IIoT.OpcUa.Services.Events;
+    using Azure.IIoT.OpcUa.Services.Registry;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Sdk.Publisher.Clients;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Builder;
@@ -26,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -34,11 +36,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
     using Prometheus;
-    using ILogger = Serilog.ILogger;
     using System;
-    using Azure.IIoT.OpcUa.Services.Registry;
-    using Azure.IIoT.OpcUa.Services.Events;
-    using Azure.IIoT.OpcUa.Encoders;
 
     /// <summary>
     /// Webservice startup
@@ -94,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            // services.AddLogging(o => o.AddConsole().AddDebug());
+            services.AddLogging(o => o.AddConsole().AddDebug());
 
             services.AddHeaderForwarding();
             services.AddCors();
@@ -156,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}",
+            log.LogInformation("{service} web service started with id {id}",
                 ServiceInfo.Name, ServiceInfo.ProcessId);
         }
 
@@ -175,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
                 .AsImplementedInterfaces();
 
             // Add diagnostics
-            builder.AddDiagnostics(Config);
+            builder.AddDiagnostics();
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
 #if DEBUG
@@ -183,8 +181,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi {
                 .AsImplementedInterfaces();
 #endif
             // Add serializers
-            builder.RegisterModule<MessagePackModule>();
-            builder.RegisterModule<NewtonSoftJsonModule>();
+            builder.AddMessagePackSerializer();
+            builder.AddNewtonsoftJsonSerializer();
 
             // Add service to service authentication
             builder.RegisterModule<WebApiAuthentication>();

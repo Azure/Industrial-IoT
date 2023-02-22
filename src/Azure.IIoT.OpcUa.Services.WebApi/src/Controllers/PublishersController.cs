@@ -20,7 +20,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Read, Update and Query publisher resources
     /// </summary>
-    [ApiVersion("2")][Route("registry/v{version:apiVersion}/publishers")]
+    [ApiVersion("2")]
+    [Route("registry/v{version:apiVersion}/publishers")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
@@ -66,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         [HttpPatch("{publisherId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdatePublisherAsync(string publisherId,
-            [FromBody] [Required] PublisherUpdateModel request) {
+            [FromBody][Required] PublisherUpdateModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -128,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Publisher</returns>
         [HttpPost("query")]
         public async Task<PublisherListModel> QueryPublisherAsync(
-            [FromBody] [Required] PublisherQueryModel query,
+            [FromBody][Required] PublisherQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
             if (query == null) {
@@ -164,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>Publisher</returns>
         [HttpGet("query")]
         public async Task<PublisherListModel> GetFilteredListOfPublisherAsync(
-            [FromQuery] [Required] PublisherQueryModel query,
+            [FromQuery][Required] PublisherQueryModel query,
             [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
 

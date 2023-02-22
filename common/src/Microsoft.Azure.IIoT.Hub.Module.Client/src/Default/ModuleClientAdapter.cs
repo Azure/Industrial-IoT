@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics.Metrics;
     using System.Threading;
@@ -63,10 +63,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             IMetricsContext metrics) {
 
             if (cs == null) {
-                logger.Information("Running in iotedge context.");
+                logger.LogInformation("Running in iotedge context.");
             }
             else {
-                logger.Information("Running outside iotedge context.");
+                logger.LogInformation("Running outside iotedge context.");
             }
 
             var client = await CreateAsync(cs, transportSetting);
@@ -190,12 +190,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             _status = status;
             _reason = reason;
             if (status == ConnectionStatus.Connected) {
-                logger.Information("{counter}: Module {deviceId}_{moduleId} reconnected " +
+                logger.LogInformation("{counter}: Module {deviceId}_{moduleId} reconnected " +
                     "due to {reason}.", _reconnectCounter, deviceId, moduleId, reason);
                 _reconnectCounter++;
                 return;
             }
-            logger.Information("{counter}: Module {deviceId}_{moduleId} disconnected " +
+            logger.LogInformation("{counter}: Module {deviceId}_{moduleId} disconnected " +
                 "due to {reason} - now {status}...", _reconnectCounter, deviceId, moduleId,
                     reason, status);
             if (IsClosed) {

@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
     using Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Extensions.Logging;
     using Moq;
     using MQTTnet;
     using MQTTnet.Client;
@@ -13,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
     using MQTTnet.Formatter;
     using MQTTnet.Packets;
     using MQTTnet.Protocol;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -62,8 +62,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
                     x.ClientOptions.ChannelOptions.As<MqttClientTcpOptions>().TlsOptions.UseTls &&
                     x.ClientOptions.ChannelOptions.As<MqttClientTcpOptions>().TlsOptions.Certificates.Count == 1 &&
                     x.ClientOptions.ChannelOptions.As<MqttClientTcpOptions>().TlsOptions.SslProtocol == SslProtocols.Tls12 &&
-                   // !string.IsNullOrWhiteSpace(x.ClientOptions.Credentials.GetUserName()) &&
-                   // x.ClientOptions.Credentials.GetPassword().Length > 0 &&
+                    // !string.IsNullOrWhiteSpace(x.ClientOptions.Credentials.GetUserName()) &&
+                    // x.ClientOptions.Credentials.GetPassword().Length > 0 &&
                     x.Storage is ManagedMqttClientStorage)));
             mock.Verify(x => x.SubscribeAsync(
                 It.Is<ICollection<MqttTopicFilter>>(x =>
@@ -239,8 +239,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.Tests {
                     x.ClientOptions.ChannelOptions.As<MqttClientTcpOptions>().TlsOptions.UseTls &&
                     x.ClientOptions.ChannelOptions.As<MqttClientTcpOptions>().TlsOptions.Certificates.Count == 1 &&
                     x.ClientOptions.ChannelOptions.As<MqttClientTcpOptions>().TlsOptions.SslProtocol == SslProtocols.Tls12 &&
-                 //   !string.IsNullOrWhiteSpace(x.ClientOptions.Credentials.Username) &&
-                 //   x.ClientOptions.Credentials.Password.Length > 0 &&
+                    //   !string.IsNullOrWhiteSpace(x.ClientOptions.Credentials.Username) &&
+                    //   x.ClientOptions.Credentials.Password.Length > 0 &&
                     x.Storage is ManagedMqttClientStorage)));
             mock.VerifyNoOtherCalls();
         }

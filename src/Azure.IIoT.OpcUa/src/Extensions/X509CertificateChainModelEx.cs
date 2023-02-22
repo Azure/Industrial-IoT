@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Shared.Models {
                      new X509Certificate2Collection(chain.SkipLast(1).ToArray()));
                 validator.Build(chain.Last());
                 var result = new List<X509ChainStatus>();
-                foreach(var item in validator.ChainElements) {
+                foreach (var item in validator.ChainElements) {
                     var state = X509ChainStatusFlags.NoError;
                     foreach (var status in item.ChainElementStatus) {
                         state |= status.Status;

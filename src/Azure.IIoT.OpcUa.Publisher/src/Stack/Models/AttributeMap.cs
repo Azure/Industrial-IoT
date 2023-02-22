@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models {
-    using Opc.Ua;
     using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
 

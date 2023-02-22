@@ -6,10 +6,8 @@
 namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using Autofac.Extensions.Hosting;
-    using Serilog;
-    using Serilog.Events;
-    using System;
     using System.IO;
 
     public class Program {
@@ -19,27 +17,7 @@ namespace Microsoft.Azure.IIoT.App {
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft.AspNetCore.Components", LogEventLevel.Information)
-                .MinimumLevel.Override("Microsoft.AspNetCore.SignalR", LogEventLevel.Information)
-                .MinimumLevel.ControlledBy(Diagnostics.LogControl.Level)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .CreateLogger();
-#if DEBUG
-            Diagnostics.LogControl.Level.MinimumLevel = LogEventLevel.Debug;
-#endif
-            try {
-                CreateHostBuilder(args).Build().Run();
-            }
-            catch (Exception ex) {
-                Log.Fatal(ex, "Host terminated unexpectedly");
-                throw;
-            }
-            finally {
-                Log.CloseAndFlush();
-            }
+            CreateHostBuilder(args).Build().Run();
         }
 
         /// <summary>
@@ -56,7 +34,7 @@ namespace Microsoft.Azure.IIoT.App {
                     .UseKestrel(o => o.AddServerHeader = false)
                     .UseIISIntegration()
                     .UseSetting(WebHostDefaults.DetailedErrorsKey, "true"))
-                .UseSerilog()
+                .ConfigureLogging(builder => builder.AddConsole())
                     ;
         }
     }

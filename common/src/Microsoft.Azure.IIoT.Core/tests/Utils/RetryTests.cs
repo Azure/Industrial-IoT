@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Core.Tests.Utils {
-    using Microsoft.Azure.IIoT.Http.Exceptions;
+namespace Microsoft.Azure.IIoT.Utils.Tests {
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Http.Exceptions;
+    using Microsoft.Extensions.Logging;
     using Moq;
-    using Serilog;
     using System;
     using System.Net;
     using System.Threading;
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Core.Tests.Utils {
                 var maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Retry.WithExponentialBackoff(
+                await Retry2.WithExponentialBackoff(
                     logger,
                     () => { ++retryCounter; },
                     maxRetryCount
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Core.Tests.Utils {
                 var maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Assert.ThrowsAsync<ArgumentException>(() => Retry.WithExponentialBackoff(
+                await Assert.ThrowsAsync<ArgumentException>(() => Retry2.WithExponentialBackoff(
                     logger,
                     () => {
                         ++retryCounter;
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Core.Tests.Utils {
                 var maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Assert.ThrowsAsync<HttpTransientException>(() => Retry.WithExponentialBackoff(
+                await Assert.ThrowsAsync<HttpTransientException>(() => Retry2.WithExponentialBackoff(
                     logger,
                     () => {
                         ++retryCounter;
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Core.Tests.Utils {
                 var maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Retry.WithExponentialBackoff(
+                await Retry2.WithExponentialBackoff(
                     logger,
                     cts.Token,
                     () => {
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Core.Tests.Utils {
                 var maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Assert.ThrowsAsync<ArgumentException>(() => Retry.WithExponentialBackoff(
+                await Assert.ThrowsAsync<ArgumentException>(() => Retry2.WithExponentialBackoff(
                     logger,
                     cts.Token,
                     () => {
@@ -118,7 +118,7 @@ namespace Microsoft.Azure.IIoT.Core.Tests.Utils {
                 var maxRetryCount = 5;
                 var retryCounter = 0;
 
-                await Assert.ThrowsAsync<TaskCanceledException>(() => Retry.WithExponentialBackoff(
+                await Assert.ThrowsAsync<TaskCanceledException>(() => Retry2.WithExponentialBackoff(
                     logger,
                     cts.Token,
                     () => {

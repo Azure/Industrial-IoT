@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Services.Handlers {
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                 discovery = _serializer.Deserialize<DiscoveryProgressModel>(payload);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to convert discovery message {json}",
+                _logger.LogError(ex, "Failed to convert discovery message {json}",
                     Encoding.UTF8.GetString(payload));
                 return;
             }
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
                 await Task.WhenAll(_handlers.Select(h => h.OnDiscoveryProgressAsync(discovery)));
             }
             catch (Exception ex) {
-                _logger.Error(ex,
+                _logger.LogError(ex,
                     "Publishing discovery message failed with exception - skip");
             }
         }

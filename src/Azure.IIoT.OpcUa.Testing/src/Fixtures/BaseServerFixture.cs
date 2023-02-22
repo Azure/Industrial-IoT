@@ -5,21 +5,19 @@
 
 namespace Azure.IIoT.OpcUa.Testing.Fixtures {
     using Azure.IIoT.OpcUa.Testing.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Utils;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Furly.Extensions.Logging;
+    using Furly.Extensions.Utils;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua.Server;
-    using Serilog;
-    using Serilog.Events;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -58,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
             if (nodes == null) {
                 throw new ArgumentNullException(nameof(nodes));
             }
-            Logger = ConsoleOutLogger.Create(LogEventLevel.Debug);
+            Logger = Log.Console<BaseServerFixture>(LogLevel.Debug);
             _config = new TestClientServicesConfig();
             _client = new Lazy<OpcUaClientManager>(() => {
                 return new OpcUaClientManager(Logger, _config);
@@ -75,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
                         PkiRootPath = PkiRootPath,
                         AutoAccept = true
                     };
-                    Logger.Information("Starting server host on {port}...",
+                    Logger.LogInformation("Starting server host on {port}...",
                         port);
                     _serverHost.StartAsync(new int[] { port }).Wait();
                     Port = port;
@@ -83,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
                 }
                 catch (Exception ex) {
                     port = Interlocked.Increment(ref _nextPort);
-                    Logger.Error(ex, "Failed to start server host, retrying {port}...",
+                    Logger.LogError(ex, "Failed to start server host, retrying {port}...",
                         port);
                 }
             }
@@ -91,20 +89,20 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
 
         /// <inheritdoc/>
         public void Dispose() {
-            Logger.Information("Disposing server and client fixture...");
+            Logger.LogInformation("Disposing server and client fixture...");
             _serverHost.Dispose();
             // Clean up all created certificates
             if (Directory.Exists(PkiRootPath)) {
-                Logger.Information("Server disposed - cleaning up server certificates...");
+                Logger.LogInformation("Server disposed - cleaning up server certificates...");
                 Try.Op(() => Directory.Delete(PkiRootPath, true));
             }
             if (_client.IsValueCreated) {
-                Logger.Information("Disposing client...");
+                Logger.LogInformation("Disposing client...");
                 Task.Run(() => _client.Value.Dispose()).Wait();
             }
-            Logger.Information("Client disposed - cleaning up client certificates...");
+            Logger.LogInformation("Client disposed - cleaning up client certificates...");
             _config?.Dispose();
-            Logger.Information("Server and client fixture disposed.");
+            Logger.LogInformation("Server and client fixture disposed.");
         }
 
         private static readonly Random kRand = new();

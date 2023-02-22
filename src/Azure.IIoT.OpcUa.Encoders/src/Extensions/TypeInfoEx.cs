@@ -60,9 +60,7 @@ namespace Opc.Ua {
         /// <param name="value"></param>
         /// <returns></returns>
         public static Variant CreateVariant(this TypeInfo typeInfo, object value) {
-            if (value == null) {
-                value = typeInfo.GetDefaultValue();
-            }
+            value ??= typeInfo.GetDefaultValue();
             if (value is not Variant var) {
                 var aex = new List<Exception>();
                 if (typeInfo.BuiltInType == BuiltInType.Enumeration) {

@@ -17,7 +17,8 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
     /// <summary>
     /// Node writing services
     /// </summary>
-    [ApiVersion("2")][Route("twin/v{version:apiVersion}/write")]
+    [ApiVersion("2")]
+    [Route("twin/v{version:apiVersion}/write")]
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
@@ -43,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The write value response</returns>
         [HttpPost("{endpointId}")]
         public async Task<ValueWriteResponseModel> WriteValueAsync(
-            string endpointId, [FromBody] [Required] ValueWriteRequestModel request) {
+            string endpointId, [FromBody][Required] ValueWriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -64,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Controllers {
         /// <returns>The batch write response</returns>
         [HttpPost("{endpointId}/attributes")]
         public async Task<WriteResponseModel> WriteAttributesAsync(
-            string endpointId, [FromBody] [Required] WriteRequestModel request) {
+            string endpointId, [FromBody][Required] WriteRequestModel request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }

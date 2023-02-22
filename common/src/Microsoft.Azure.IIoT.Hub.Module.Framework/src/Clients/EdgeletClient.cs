@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
+    using Furly.Extensions.Serializers;
     using System;
     using System.Runtime.Serialization;
     using System.Threading;
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 $"{_workloaduri}/modules/{_moduleId}/genid/{_moduleGenerationId}/" +
                 $"encrypt?api-version={_apiVersion}");
             _serializer.SerializeToRequest(request, new { initializationVector, plaintext });
-            return await Retry.WithExponentialBackoff(_logger, ct, async () => {
+            return await Retry2.WithExponentialBackoff(_logger, ct, async () => {
                 var response = await _client.PostAsync(request, ct);
                 response.Validate();
                 return _serializer.DeserializeResponse<EncryptResponse>(response).CipherText;
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 $"{_workloaduri}/modules/{_moduleId}/genid/{_moduleGenerationId}/" +
                 $"decrypt?api-version={_apiVersion}");
             _serializer.SerializeToRequest(request, new { initializationVector, ciphertext });
-            return await Retry.WithExponentialBackoff(_logger, ct, async () => {
+            return await Retry2.WithExponentialBackoff(_logger, ct, async () => {
                 var response = await _client.PostAsync(request, ct);
                 response.Validate();
                 return _serializer.DeserializeResponse<DecryptResponse>(response).Plaintext;

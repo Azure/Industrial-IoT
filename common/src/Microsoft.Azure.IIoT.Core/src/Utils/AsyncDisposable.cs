@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Utils {
+    using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
     using System.Linq;

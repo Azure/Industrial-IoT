@@ -97,9 +97,7 @@ namespace Opc.Ua.Test {
             NamespaceUris = new NamespaceTable();
             ServerUris = new StringTable();
             _random = random;
-            if (_random == null) {
-                _random = new RandomSource();
-            }
+            _random ??= new RandomSource();
             _boundaryValues = new SortedDictionary<string, object[]>();
             for (var i = 0; i < kAvailableBoundaryValues.Length; i++) {
                 _boundaryValues[kAvailableBoundaryValues[i].SystemType.Name] =
@@ -377,9 +375,7 @@ namespace Opc.Ua.Test {
                     if (UseBoundaryValue()) {
                         obj = GetBoundaryValue(typeof(T));
                     }
-                    if (obj == null) {
-                        obj = GetRandom(typeof(T));
-                    }
+                    obj ??= GetRandom(typeof(T));
                 }
                 while (obj == null);
                 array[i] = (T)obj;

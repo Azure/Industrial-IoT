@@ -53,11 +53,9 @@ namespace HistoricalAccess {
             _configuration = configuration.ParseExtension<HistoricalAccessServerConfiguration>();
 
             // use suitable defaults if no configuration exists.
-            if (_configuration == null) {
-                _configuration = new HistoricalAccessServerConfiguration {
-                    ArchiveRoot = "Historian"
-                };
-            }
+            _configuration ??= new HistoricalAccessServerConfiguration {
+                ArchiveRoot = "Historian"
+            };
 
             SystemContext.SystemHandle = _system = new UnderlyingSystem(_configuration, NamespaceIndex);
             SystemContext.NodeIdFactory = this;
@@ -335,21 +333,18 @@ namespace HistoricalAccess {
             ISystemContext context,
             NodeHandle handle,
             IDataChangeMonitoredItem2 dataChangeMonitoredItem) {
-            ArchiveItemState item = handle.Node as ArchiveItemState;
-
-            if (item == null || dataChangeMonitoredItem.AttributeId != Attributes.Value) {
+            if (handle.Node is not ArchiveItemState item || dataChangeMonitoredItem.AttributeId != Attributes.Value) {
                 return base.ReadInitialValue(context, handle, dataChangeMonitoredItem);
             }
 
-            MonitoredItem monitoredItem = dataChangeMonitoredItem as MonitoredItem;
-            AggregateFilter filter = monitoredItem.Filter as AggregateFilter;
+            var monitoredItem = dataChangeMonitoredItem as MonitoredItem;
 
-            if (filter == null || filter.StartTime >= DateTime.UtcNow.AddMilliseconds(-filter.ProcessingInterval)) {
+            if (monitoredItem.Filter is not AggregateFilter filter || filter.StartTime >= DateTime.UtcNow.AddMilliseconds(-filter.ProcessingInterval)) {
                 return base.ReadInitialValue(context, handle, dataChangeMonitoredItem);
             }
 
             ServiceResult error = StatusCodes.Good;
-            ReadRawModifiedDetails details = new ReadRawModifiedDetails();
+            var details = new ReadRawModifiedDetails();
 
             details.StartTime = filter.StartTime;
             details.EndTime = DateTime.UtcNow;
@@ -357,12 +352,12 @@ namespace HistoricalAccess {
             details.IsReadModified = false;
             details.NumValuesPerNode = 0;
 
-            HistoryReadValueId nodeToRead = new HistoryReadValueId();
+            var nodeToRead = new HistoryReadValueId();
             nodeToRead.NodeId = handle.NodeId;
             nodeToRead.ParsedIndexRange = NumericRange.Empty;
 
             try {
-                HistoryReadRequest request = CreateHistoryReadRequest(
+                var request = CreateHistoryReadRequest(
                     context,
                     details,
                     handle,
@@ -373,7 +368,7 @@ namespace HistoricalAccess {
                         break;
                     }
 
-                    DataValue value = request.Values.First.Value;
+                    var value = request.Values.First.Value;
                     request.Values.RemoveFirst();
                     monitoredItem.QueueValue(value, null);
                 }
@@ -395,9 +390,7 @@ namespace HistoricalAccess {
                 if (root != null) {
 
                     if (root is ArchiveItemState item) {
-                        if (_monitoredItems == null) {
-                            _monitoredItems = new Dictionary<string, ArchiveItemState>();
-                        }
+                        _monitoredItems ??= new Dictionary<string, ArchiveItemState>();
 
                         if (!_monitoredItems.ContainsKey(item.ArchiveItem.UniquePath)) {
                             _monitoredItems.Add(item.ArchiveItem.UniquePath, item);
@@ -405,9 +398,7 @@ namespace HistoricalAccess {
 
                         item.SubscribeCount++;
 
-                        if (_simulationTimer == null) {
-                            _simulationTimer = new Timer(DoSimulation, null, 500, 500);
-                        }
+                        _simulationTimer ??= new Timer(DoSimulation, null, 500, 500);
                     }
                 }
             }

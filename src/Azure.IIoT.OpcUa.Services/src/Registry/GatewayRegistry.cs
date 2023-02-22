@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
-    using Serilog;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
     using System.Threading;
@@ -114,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
                     return;
                 }
                 catch (ResourceOutOfDateException ex) {
-                    _logger.Debug(ex, "Retrying updating gateway...");
+                    _logger.LogDebug(ex, "Retrying updating gateway...");
                     continue;
                 }
             }

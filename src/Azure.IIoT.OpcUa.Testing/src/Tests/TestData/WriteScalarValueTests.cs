@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Testing.Tests {
     using Azure.IIoT.OpcUa.Shared.Models;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using MemoryBuffer;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Threading.Tasks;
     using System.Xml;
@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
             _services = services;
             _endpoint = endpoint;
             _readExpected = readExpected;
-            _serializer = new NewtonSoftJsonSerializer();
+            _serializer = new NewtonsoftJsonSerializer();
         }
 
         public async Task NodeWriteStaticScalarBooleanValueVariableTestAsync() {

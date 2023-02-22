@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Models {
     using Opc.Ua;
-    using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -61,8 +60,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models {
             if (ReferenceEquals(this, encodeable)) {
                 return true;
             }
-            var value = encodeable as KeyDataValuePair;
-            if (value == null) {
+            if (encodeable is not KeyDataValuePair value) {
                 return false;
             }
             if (!Utils.IsEqual(Key, value.Key)) return false;

@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Services.Sdk {
     using Azure.IIoT.OpcUa.Shared.Models;
-    using Microsoft.Extensions.Configuration;
     using System.Threading;
     using System.Threading.Tasks;
 
