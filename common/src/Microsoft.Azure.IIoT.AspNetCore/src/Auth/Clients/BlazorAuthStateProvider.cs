@@ -183,7 +183,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
         private readonly ILogger _logger;
         private readonly IAuthStateProviderConfig _config;
-        private CancellationTokenSource _cts = new CancellationTokenSource();
+        private CancellationTokenSource _cts = new();
         private readonly IEnumerable<IUserTokenClient> _clients;
     }
 }

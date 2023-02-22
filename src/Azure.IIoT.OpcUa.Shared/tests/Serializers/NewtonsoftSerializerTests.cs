@@ -11,10 +11,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Json {
     using Newtonsoft.Json;
     using System;
     using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
     using Xunit;
 
-    public class JsonSerializerTests {
+    public class NewtonsoftSerializerTests {
 
         [Theory]
         [MemberData(nameof(TypeFixture.GetDataContractTypes), MemberType = typeof(TypeFixture))]
@@ -47,6 +48,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Json {
         public void SerializerDeserializeScalarTypeToBufferWithFixture(Type type) {
 
             var fixture = new Fixture();
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlySet<>), typeof(HashSet<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyList<>), typeof(List<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyDictionary<,>), typeof(Dictionary<,>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyCollection<>), typeof(List<>)));
+            fixture.Behaviors
+                .OfType<ThrowingRecursionBehavior>()
+                .ToList()
+                .ForEach(b => fixture.Behaviors.Remove(b));
+            fixture.Behaviors.Add(new OmitOnRecursionBehavior(recursionDepth: 2));
             // Create some random variant value
             fixture.Register(() => _serializer.FromObject(Activator.CreateInstance(type)));
             // Ensure utc datetimes
@@ -64,6 +74,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Json {
         public void SerializerDeserializeArrayTypeToBufferWithFixture(Type type) {
 
             var fixture = new Fixture();
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlySet<>), typeof(HashSet<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyList<>), typeof(List<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyDictionary<,>), typeof(Dictionary<,>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyCollection<>), typeof(List<>)));
+            fixture.Behaviors
+                .OfType<ThrowingRecursionBehavior>()
+                .ToList()
+                .ForEach(b => fixture.Behaviors.Remove(b));
+            fixture.Behaviors.Add(new OmitOnRecursionBehavior(recursionDepth: 2));
             // Create some random variant value
             fixture.Register(() => _serializer.FromObject(Activator.CreateInstance(type)));
             // Ensure utc datetimes
@@ -78,6 +97,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Json {
             result.Should().BeEquivalentTo(instance, opt => opt.AllowingInfiniteRecursion());
         }
 
-        private readonly NewtonSoftJsonSerializer _serializer = new NewtonSoftJsonSerializer();
+        private readonly NewtonSoftJsonSerializer _serializer = new();
     }
 }

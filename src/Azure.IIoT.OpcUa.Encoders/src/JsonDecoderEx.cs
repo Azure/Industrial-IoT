@@ -2046,6 +2046,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
 
         private readonly JsonReader _reader;
-        private readonly Stack<JToken> _stack = new Stack<JToken>();
+        private readonly Stack<JToken> _stack = new();
     }
 }

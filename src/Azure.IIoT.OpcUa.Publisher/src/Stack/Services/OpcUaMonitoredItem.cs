@@ -72,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// </summary>
         public Guid DataSetFieldId => DataTemplate.DataSetClassFieldId == Guid.Empty ? _fieldId
             : DataTemplate.DataSetClassFieldId;
-        private Guid _fieldId = Guid.NewGuid();
+        private readonly Guid _fieldId = Guid.NewGuid();
 
         /// <summary>
         /// Property setter that gets indication if item is online or not.
@@ -1145,7 +1145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private DateTime _lastSentPendingConditions = DateTime.UtcNow;
         private MonitoringMode? _modeChange;
         private readonly ILogger _logger;
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
     }
 }
 

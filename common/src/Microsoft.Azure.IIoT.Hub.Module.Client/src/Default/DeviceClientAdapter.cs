@@ -291,7 +291,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 _template.Dispose();
             }
 
-            Message _template = new Message();
+            readonly Message _template = new();
         }
 
         /// <summary>

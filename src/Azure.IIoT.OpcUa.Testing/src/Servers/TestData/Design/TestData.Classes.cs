@@ -319,7 +319,7 @@ namespace TestData {
     #endregion
 
     #region TestDataObjectState Class
-#if (!OPCUA_EXCLUDE_TestDataObjectState)
+#if !OPCUA_EXCLUDE_TestDataObjectState
     /// <summary>
     /// Stores an instance of the TestDataObjectType ObjectType.
     /// </summary>
@@ -340,7 +340,7 @@ namespace TestData {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.TestDataObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-#if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -1067,7 +1067,7 @@ namespace TestData {
     #endregion
 
     #region ScalarValueObjectState Class
-#if (!OPCUA_EXCLUDE_ScalarValueObjectState)
+#if !OPCUA_EXCLUDE_ScalarValueObjectState
     /// <summary>
     /// Stores an instance of the ScalarValueObjectType ObjectType.
     /// </summary>
@@ -1088,7 +1088,7 @@ namespace TestData {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.ScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-#if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -2147,7 +2147,7 @@ namespace TestData {
     #endregion
 
     #region AnalogScalarValueObjectState Class
-#if (!OPCUA_EXCLUDE_AnalogScalarValueObjectState)
+#if !OPCUA_EXCLUDE_AnalogScalarValueObjectState
     /// <summary>
     /// Stores an instance of the AnalogScalarValueObjectType ObjectType.
     /// </summary>
@@ -2168,7 +2168,7 @@ namespace TestData {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.AnalogScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-#if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -3262,7 +3262,7 @@ namespace TestData {
     #endregion
 
     #region ArrayValueObjectState Class
-#if (!OPCUA_EXCLUDE_ArrayValueObjectState)
+#if !OPCUA_EXCLUDE_ArrayValueObjectState
     /// <summary>
     /// Stores an instance of the ArrayValueObjectType ObjectType.
     /// </summary>
@@ -3283,7 +3283,7 @@ namespace TestData {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.ArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-#if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -4346,7 +4346,7 @@ namespace TestData {
     #endregion
 
     #region AnalogArrayValueObjectState Class
-#if (!OPCUA_EXCLUDE_AnalogArrayValueObjectState)
+#if !OPCUA_EXCLUDE_AnalogArrayValueObjectState
     /// <summary>
     /// Stores an instance of the AnalogArrayValueObjectType ObjectType.
     /// </summary>
@@ -4367,7 +4367,7 @@ namespace TestData {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.AnalogArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-#if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -4950,7 +4950,7 @@ namespace TestData {
     #endregion
 
     #region UserScalarValueObjectState Class
-#if (!OPCUA_EXCLUDE_UserScalarValueObjectState)
+#if !OPCUA_EXCLUDE_UserScalarValueObjectState
     /// <summary>
     /// Stores an instance of the UserScalarValueObjectType ObjectType.
     /// </summary>
@@ -4971,7 +4971,7 @@ namespace TestData {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.UserScalarValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-#if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -6245,7 +6245,7 @@ namespace TestData {
     #endregion
 
     #region UserArrayValueObjectState Class
-#if (!OPCUA_EXCLUDE_UserArrayValueObjectState)
+#if !OPCUA_EXCLUDE_UserArrayValueObjectState
     /// <summary>
     /// Stores an instance of the UserArrayValueObjectType ObjectType.
     /// </summary>
@@ -6266,7 +6266,7 @@ namespace TestData {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.UserArrayValueObjectType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-#if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -7547,7 +7547,7 @@ namespace TestData {
     #endregion
 
     #region MethodTestState Class
-#if (!OPCUA_EXCLUDE_MethodTestState)
+#if !OPCUA_EXCLUDE_MethodTestState
     /// <summary>
     /// Stores an instance of the MethodTestType ObjectType.
     /// </summary>
@@ -7568,7 +7568,7 @@ namespace TestData {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.MethodTestType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-#if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -8131,7 +8131,7 @@ namespace TestData {
     #endregion
 
     #region TestSystemConditionState Class
-#if (!OPCUA_EXCLUDE_TestSystemConditionState)
+#if !OPCUA_EXCLUDE_TestSystemConditionState
     /// <summary>
     /// Stores an instance of the TestSystemConditionType ObjectType.
     /// </summary>
@@ -8152,7 +8152,7 @@ namespace TestData {
             return Opc.Ua.NodeId.Create(TestData.ObjectTypes.TestSystemConditionType, TestData.Namespaces.TestData, namespaceUris);
         }
 
-#if (!OPCUA_EXCLUDE_InitializationStrings)
+#if !OPCUA_EXCLUDE_InitializationStrings
         /// <summary>
         /// Initializes the instance.
         /// </summary>

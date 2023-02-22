@@ -497,7 +497,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             }
 
             private readonly WriterGroupDataSource _outer;
-            private readonly object _lock = new object();
+            private readonly object _lock = new();
             private Timer _metadataTimer;
             private uint _keyFrameCount;
             private volatile uint _frameCount;
@@ -653,8 +653,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         private readonly ISubscriptionConfig _subscriptionConfig;
         private readonly IVariantEncoderFactory _codec;
         private WriterGroupModel _writerGroup;
-        private SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
-        private string _publisherId;
+        private readonly SemaphoreSlim _lock = new(1, 1);
+        private readonly string _publisherId;
         private int _lastPointerValueChanges;
         private long _valueChangesCount;
         private int _lastPointerDataChanges;
@@ -663,6 +663,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         private long _eventCount;
         private DateTime _lastWriteTimeValueChange = DateTime.MinValue;
         private DateTime _lastWriteTimeDataChange = DateTime.MinValue;
-        private DateTime _startTime = DateTime.UtcNow;
+        private readonly DateTime _startTime = DateTime.UtcNow;
     }
 }

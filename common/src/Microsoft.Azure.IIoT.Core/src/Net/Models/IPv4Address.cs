@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// </summary>
         /// <param name="value"></param>
         public static implicit operator IPv4Address(uint value) =>
-            new IPv4Address((uint)HostToNetworkOrder((int)value));
+            new((uint)HostToNetworkOrder((int)value));
 
         /// <summary>
         /// Convert from long
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// </summary>
         /// <param name="value"></param>
         public static explicit operator IPv4Address(long value) =>
-            new IPv4Address((uint)HostToNetworkOrder((int)value));
+            new((uint)HostToNetworkOrder((int)value));
 
         /// <summary>
         /// Add
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <param name="x"></param>
         /// <returns></returns>
         public static IPv4Address operator +(IPv4Address value, int x) =>
-            new IPv4Address((uint)((uint)value + x));
+            new((uint)((uint)value + x));
 
         /// <summary>
         /// Subtract
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <param name="x"></param>
         /// <returns></returns>
         public static IPv4Address operator -(IPv4Address value, int x) =>
-            new IPv4Address((uint)((uint)value - x));
+            new((uint)((uint)value - x));
 
         /// <summary>
         /// Increment by 1

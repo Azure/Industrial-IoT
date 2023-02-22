@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                             _dataSetFlags2 |= DataSetFlags2EncodingMask.Event;
                             break;
                         case MessageType.Condition:
-                            _dataSetFlags2 |= (DataSetFlags2EncodingMask.Event | (DataSetFlags2EncodingMask)0x4);
+                            _dataSetFlags2 |= DataSetFlags2EncodingMask.Event | (DataSetFlags2EncodingMask)0x4;
                             break;
                         case MessageType.KeyFrame:
                             // Default is key frame

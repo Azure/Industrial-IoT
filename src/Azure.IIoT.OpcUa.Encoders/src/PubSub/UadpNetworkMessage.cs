@@ -998,7 +998,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                     if ((currentChunk.Remaining + headerSize) > available) {
                         break;
                     }
-                    available -= (currentChunk.Remaining + headerSize);
+                    available -= currentChunk.Remaining + headerSize;
                 }
 
                 if (writeSpan.Length != writeCount) {

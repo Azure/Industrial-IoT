@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models {
             }
             return new PublishedNodesEntryModel {
                 EndpointUrl = model.Endpoint.Url,
-                UseSecurity = (model.Endpoint.SecurityMode != SecurityMode.None),
+                UseSecurity = model.Endpoint.SecurityMode != SecurityMode.None,
                 OpcAuthenticationMode = (model.User?.Type ?? CredentialType.None)
                     == CredentialType.None ?
                         OpcAuthenticationMode.Anonymous : OpcAuthenticationMode.UsernamePassword,

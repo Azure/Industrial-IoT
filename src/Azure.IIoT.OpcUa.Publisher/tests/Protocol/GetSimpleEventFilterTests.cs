@@ -197,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             _nodes[(uint)node.NodeId.Identifier] = node;
         }
 
-        private readonly Node _baseObjectTypeNode = new Node() {
+        private readonly Node _baseObjectTypeNode = new() {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.BaseObjectType,
@@ -205,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             NodeClass = Opc.Ua.NodeClass.ObjectType,
             NodeId = ObjectTypeIds.BaseObjectType
         };
-        private readonly Node _baseEventTypeNode = new Node() {
+        private readonly Node _baseEventTypeNode = new() {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.BaseEventType,
@@ -213,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             NodeClass = Opc.Ua.NodeClass.ObjectType,
             NodeId = ObjectTypeIds.BaseEventType
         };
-        private readonly Node _messageNode = new Node() {
+        private readonly Node _messageNode = new() {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.Message,
@@ -222,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.BaseEventType_Message
         };
-        private readonly Node _conditionTypeNode = new Node() {
+        private readonly Node _conditionTypeNode = new() {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.ConditionType,
@@ -230,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             NodeClass = Opc.Ua.NodeClass.ObjectType,
             NodeId = ObjectTypeIds.ConditionType
         };
-        private readonly Node _conditionNameNode = new Node() {
+        private readonly Node _conditionNameNode = new() {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.ConditionName,
@@ -239,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_ConditionName
         };
-        private readonly Node _commentNode = new Node() {
+        private readonly Node _commentNode = new() {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.Comment,
@@ -248,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_Comment
         };
-        private readonly Node _enabledStateNode = new Node() {
+        private readonly Node _enabledStateNode = new() {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.EnabledState,
@@ -257,7 +257,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_EnabledState
         };
-        private readonly Node _idNode = new Node() {
+        private readonly Node _idNode = new() {
             AccessRestrictions = 0,
             Description = null,
             DisplayName = BrowseNames.Id,
@@ -267,6 +267,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
             NodeId = VariableIds.ConditionType_EnabledState_Id
         };
 
-        private readonly Dictionary<uint, Node> _nodes = new Dictionary<uint, Node>();
+        private readonly Dictionary<uint, Node> _nodes = new();
     }
 }

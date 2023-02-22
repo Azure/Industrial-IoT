@@ -712,7 +712,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
 
             private readonly MqttClientAdapter _outer;
-            private readonly Dictionary<string, string> _userProperties = new Dictionary<string, string>();
+            private readonly Dictionary<string, string> _userProperties = new();
         }
 
         /// <summary>
@@ -747,9 +747,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         private readonly TimeSpan _timeout;
         private readonly ILogger _logger;
         private readonly MqttProtocolVersion _protocolVersion;
-        private ManualResetEvent _responseHandle = new ManualResetEvent(false);
-        private ConcurrentDictionary<string, MqttApplicationMessage> _responses
-            = new ConcurrentDictionary<string, MqttApplicationMessage>();
+        private readonly ManualResetEvent _responseHandle = new(false);
+        private readonly ConcurrentDictionary<string, MqttApplicationMessage> _responses
+            = new();
         private DesiredPropertyUpdateCallback _desiredPropertyUpdateCallback;
         private MethodCallback _defaultMethodCallback;
         private int _reconnectCounter;

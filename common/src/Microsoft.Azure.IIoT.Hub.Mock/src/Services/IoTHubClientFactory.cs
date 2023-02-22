@@ -252,7 +252,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     _msg.Dispose();
                 }
 
-                Message _msg = new Message();
+                readonly Message _msg = new();
             }
 
             private MethodCallback _methods;

@@ -159,7 +159,7 @@ namespace TestData {
 
 
 
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
         private Timer _updateTimer;
         private Dictionary<NodeId, HistoryRecord> _records;
 

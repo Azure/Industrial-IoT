@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Model {
     using Xunit;
 
     public class MonitoredItemModelTests {
-        private readonly DataMonitoredItemModel _dataModel = new DataMonitoredItemModel() {
+        private readonly DataMonitoredItemModel _dataModel = new() {
             StartNodeId = "DataStartNodeId",
             AggregateFilter = new AggregateFilterModel() {
                 AggregateConfiguration = new AggregateConfigurationModel() {
@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Model {
             MonitoringMode = MonitoringMode.Sampling,
             RelativePath = new string[] { "DataRelativePath" },
         };
-        private readonly EventMonitoredItemModel _eventModel = new EventMonitoredItemModel() {
+        private readonly EventMonitoredItemModel _eventModel = new() {
             StartNodeId = "EventStartNodeId",
             SamplingInterval = TimeSpan.FromMilliseconds(5000),
             QueueSize = 10,

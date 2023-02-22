@@ -151,8 +151,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
 
             private EventLevel _enabledLevel = EventLevel.LogAlways;
             private readonly EventSourceBroker _listener;
-            private readonly List<EventSourceSubscriber> _subscriptions =
-                new List<EventSourceSubscriber>();
+            private readonly List<EventSourceSubscriber> _subscriptions = new();
         }
 
         /// <summary>
@@ -191,7 +190,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         }
 
         private readonly ConcurrentDictionary<string, EventSourceWrapper> _subscribers =
-            new ConcurrentDictionary<string, EventSourceWrapper>();
+            new();
         private readonly Timer _timer;
     }
 }

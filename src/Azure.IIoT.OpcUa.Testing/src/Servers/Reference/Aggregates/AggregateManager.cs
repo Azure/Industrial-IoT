@@ -200,7 +200,7 @@ namespace Opc.Ua.Aggregates {
             }
         }
 
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly IServerInternal _server;
 #pragma warning restore IDE0052 // Remove unread private members

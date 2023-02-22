@@ -306,34 +306,39 @@ $@"| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageConte
 
         // From published nodes jobs converter
         private static DataSetFieldContentMask BuildDataSetFieldContentMask(
-            bool fullFeaturedMessage) =>
-            DataSetFieldContentMask.StatusCode |
-            DataSetFieldContentMask.SourceTimestamp |
-            (fullFeaturedMessage ?
-                 (DataSetFieldContentMask.ServerTimestamp |
-                  DataSetFieldContentMask.ApplicationUri |
-                  DataSetFieldContentMask.ExtensionFields) : 0) |
-            DataSetFieldContentMask.NodeId |
-            DataSetFieldContentMask.DisplayName |
-            DataSetFieldContentMask.EndpointUrl;
+            bool fullFeaturedMessage) {
+            return
+                DataSetFieldContentMask.StatusCode |
+                DataSetFieldContentMask.SourceTimestamp |
+                (fullFeaturedMessage ?
+                     (DataSetFieldContentMask.ServerTimestamp |
+                      DataSetFieldContentMask.ApplicationUri |
+                      DataSetFieldContentMask.ExtensionFields) : 0) |
+                DataSetFieldContentMask.NodeId |
+                DataSetFieldContentMask.DisplayName |
+                DataSetFieldContentMask.EndpointUrl;
+        }
 
         private static DataSetContentMask BuildDataSetContentMask(
-            bool fullFeaturedMessage, bool reversibleEncoding = false) =>
-            (reversibleEncoding ?
-                 (DataSetContentMask.ReversibleFieldEncoding) : 0) |
-            (fullFeaturedMessage ?
-                 (DataSetContentMask.Timestamp |
-                  DataSetContentMask.DataSetWriterId |
-                  DataSetContentMask.SequenceNumber) : 0) |
-            DataSetContentMask.MetaDataVersion |
-            DataSetContentMask.MajorVersion |
-            DataSetContentMask.MinorVersion |
-            DataSetContentMask.DataSetWriterName |
-            DataSetContentMask.MessageType;
+            bool fullFeaturedMessage, bool reversibleEncoding = false) {
+            return
+                (reversibleEncoding ?
+                     DataSetContentMask.ReversibleFieldEncoding : 0) |
+                (fullFeaturedMessage ?
+                    (DataSetContentMask.Timestamp |
+                     DataSetContentMask.DataSetWriterId |
+                     DataSetContentMask.SequenceNumber) : 0) |
+                DataSetContentMask.MetaDataVersion |
+                DataSetContentMask.MajorVersion |
+                DataSetContentMask.MinorVersion |
+                DataSetContentMask.DataSetWriterName |
+                DataSetContentMask.MessageType;
+        }
 
         private static NetworkMessageContentMask BuildNetworkMessageContentMask(
-            bool isSampleMessage = false) =>
-            (isSampleMessage ? NetworkMessageContentMask.MonitoredItemMessage
+            bool isSampleMessage = false) {
+            return (isSampleMessage ?
+                NetworkMessageContentMask.MonitoredItemMessage
                  : (NetworkMessageContentMask.NetworkMessageHeader |
                     NetworkMessageContentMask.PublisherId |
                     NetworkMessageContentMask.SequenceNumber |
@@ -342,9 +347,9 @@ $@"| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageConte
                     NetworkMessageContentMask.PayloadHeader |
                     NetworkMessageContentMask.DataSetClassId |
                     NetworkMessageContentMask.NetworkMessageNumber)) |
-            NetworkMessageContentMask.DataSetMessageHeader;
+                NetworkMessageContentMask.DataSetMessageHeader;
+        }
 
-        private static Dictionary<(MessagingMode, MessageEncoding), MessagingProfile> kProfiles
-            = new Dictionary<(MessagingMode, MessageEncoding), MessagingProfile>();
+        private static readonly Dictionary<(MessagingMode, MessageEncoding), MessagingProfile> kProfiles = new();
     }
 }

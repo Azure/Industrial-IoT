@@ -453,7 +453,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
 
             private readonly IoTHubServices _outer;
-            private readonly object _lock = new object();
+            private readonly object _lock = new();
         }
 
         /// <summary>
@@ -515,9 +515,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         private readonly SqlQuery _query;
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
         private readonly List<IoTHubDeviceModel> _devices =
-            new List<IoTHubDeviceModel>();
+            new();
         private readonly IJsonSerializer _serializer;
     }
 }

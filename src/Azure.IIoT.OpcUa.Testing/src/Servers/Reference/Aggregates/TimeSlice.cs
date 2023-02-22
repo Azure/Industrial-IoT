@@ -59,7 +59,7 @@ namespace Opc.Ua.Aggregates {
         /// <summary>
         /// Collection of raw points that fall in this TimeSlice.
         /// </summary>
-        protected List<DataValue> Accumulator = new List<DataValue>();
+        protected List<DataValue> Accumulator = new();
 
         /// <summary>
         /// Value and provenance of a value at the earliest time of this slice

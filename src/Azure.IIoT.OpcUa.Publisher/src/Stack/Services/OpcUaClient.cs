@@ -1035,8 +1035,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private EndpointConnectivityState _lastState;
         private bool _disposed;
         private readonly IVariantEncoderFactory _codec;
-        private readonly SemaphoreSlim _connecting = new SemaphoreSlim(1, 1);
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _connecting = new(1, 1);
+        private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly ApplicationConfiguration _configuration;
         private readonly AsyncManualResetEvent _connected;
         private readonly string _sessionName;
@@ -1044,6 +1044,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private readonly ILogger _logger;
         private readonly DateTime _lastActivity = DateTime.UtcNow;
         private readonly ConcurrentDictionary<string, ISubscription> _subscriptions
-            = new ConcurrentDictionary<string, ISubscription>();
+            = new();
     }
 }

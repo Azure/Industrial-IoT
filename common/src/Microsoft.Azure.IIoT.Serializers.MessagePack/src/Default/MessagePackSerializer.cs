@@ -393,7 +393,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
         private class MessagePackVariantFormatterResolver : IFormatterResolver {
 
             public static readonly MessagePackVariantFormatterResolver Instance =
-                new MessagePackVariantFormatterResolver();
+                new();
 
             /// <inheritdoc/>
             public IMessagePackFormatter<T> GetFormatter<T>() {
@@ -466,7 +466,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             }
 
             private readonly ConcurrentDictionary<Type, IMessagePackFormatter> _cache =
-                new ConcurrentDictionary<Type, IMessagePackFormatter>();
+                new();
         }
 
         /// <summary>
@@ -475,7 +475,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
         private class ExceptionFormatterResolver : IFormatterResolver {
 
             public static readonly ExceptionFormatterResolver Instance =
-                new ExceptionFormatterResolver();
+                new();
 
             /// <inheritdoc/>
             public IMessagePackFormatter<T> GetFormatter<T>() {
@@ -515,7 +515,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             }
 
             private readonly ConcurrentDictionary<Type, IMessagePackFormatter> _cache =
-                new ConcurrentDictionary<Type, IMessagePackFormatter>();
+                new();
         }
     }
 }

@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         }
 
         private const string kTargetTypeParameterName = "Autofac.AutowiringPropertyInjector.InstanceType";
-        private static readonly object kSingleton = new object();
+        private static readonly object kSingleton = new();
         private static ILoggerProvider _instance;
         private readonly ILoggerProvider _provider;
     }

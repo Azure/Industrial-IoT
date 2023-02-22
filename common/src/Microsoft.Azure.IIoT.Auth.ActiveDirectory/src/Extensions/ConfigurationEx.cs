@@ -299,7 +299,7 @@ namespace Microsoft.Extensions.Configuration {
                 return secretId.Replace("-", "_").ToUpperInvariant();
             }
 
-            private static readonly object kLock = new object();
+            private static readonly object kLock = new();
             private static Task<KeyVaultConfigurationProvider> _singleton;
 
             private readonly string _keyVaultUri;

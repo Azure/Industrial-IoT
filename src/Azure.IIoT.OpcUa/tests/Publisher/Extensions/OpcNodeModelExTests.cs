@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Tests.Publisher.Config.Models {
                 DeadbandValue = 0.1
             };
 
-            static OpcNodeModel NewNode() => new OpcNodeModel {
+            static OpcNodeModel NewNode() => new() {
                 Id = "id",
                 OpcPublishingIntervalTimespan = TimeSpan.Parse("00:00:01.5"),
                 OpcSamplingIntervalTimespan = TimeSpan.Parse("00:00:02.500"),

@@ -242,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub {
                 extensionFields.TryGetValue(nameof(JsonNetworkMessage.PublisherId), out publisherId);
             }
 
-            withHeader |= (DataSetMessageContentMask != 0);
+            withHeader |= DataSetMessageContentMask != 0;
             if (value != null || dataSetFieldContentMask != 0) {
                 Payload.Clear();
                 Payload.DataSetFieldContentMask = dataSetFieldContentMask;

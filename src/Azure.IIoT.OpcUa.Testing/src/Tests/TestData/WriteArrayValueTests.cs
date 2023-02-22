@@ -1425,6 +1425,6 @@ namespace Azure.IIoT.OpcUa.Testing.Tests {
         private readonly Func<INodeServices<T>> _services;
         private readonly IJsonSerializer _serializer;
         private readonly Opc.Ua.Test.TestDataGenerator _generator =
-            new Opc.Ua.Test.TestDataGenerator();
+            new();
     }
 }

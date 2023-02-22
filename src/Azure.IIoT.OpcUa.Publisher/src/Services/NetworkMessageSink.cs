@@ -78,9 +78,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 () => new Measurement<double>(_messagesSentCount, _tagList), "Messages/day",
                 "Estimated 4kb message chunks used from daily quota.");
         }
-        static Counter<long> kMessagesErrors = Diagnostics.Meter.CreateCounter<long>(
+        static readonly Counter<long> kMessagesErrors = Diagnostics.Meter.CreateCounter<long>(
             "iiot_edge_publisher_failed_iot_messages", "messages", "Number of failures sending a network message.");
-        static Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
+        static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
             "iiot_edge_publisher_messages_duration", "milliseconds", "Histogram of message sending durations.");
 
         private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;

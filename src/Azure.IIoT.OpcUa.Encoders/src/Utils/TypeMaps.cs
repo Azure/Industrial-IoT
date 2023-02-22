@@ -93,9 +93,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils {
         }
 
         private readonly SortedDictionary<uint, string> _forward =
-            new SortedDictionary<uint, string>();
+            new();
         private readonly SortedDictionary<string, uint> _reverse =
-            new SortedDictionary<string, uint>();
+            new();
 
     }
 }

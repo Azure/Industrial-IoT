@@ -618,7 +618,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private readonly IClientServicesConfig _clientConfig;
         private readonly IVariantEncoderFactory _codec;
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients =
-            new ConcurrentDictionary<ConnectionIdentifier, OpcUaClient>();
+            new();
         private readonly SemaphoreSlim _lock;
         private readonly CancellationTokenSource _cts;
         private readonly Task _processor;

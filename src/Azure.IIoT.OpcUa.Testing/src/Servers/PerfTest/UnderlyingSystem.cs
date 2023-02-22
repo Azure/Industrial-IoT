@@ -176,7 +176,7 @@ namespace PerfTest {
             }
         }
 
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
         private int[] _values;
         private int _start;
         private Timer _timer;

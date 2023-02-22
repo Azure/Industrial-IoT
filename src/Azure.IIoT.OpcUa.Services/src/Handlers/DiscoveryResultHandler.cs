@@ -219,9 +219,8 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
 
         private readonly Dictionary<string,
             Dictionary<DateTime, DiscovererDiscoveryResult>> _discovererQueues =
-            new Dictionary<string,
-                Dictionary<DateTime, DiscovererDiscoveryResult>>();
-        private readonly SemaphoreSlim _queueLock = new SemaphoreSlim(1, 1);
+            new();
+        private readonly SemaphoreSlim _queueLock = new(1, 1);
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly IDiscoveryResultProcessor _processor;

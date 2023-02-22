@@ -834,7 +834,7 @@ namespace Opc.Ua.Sample {
                 }
 
                 if (values[8] != null && values[9] != null) {
-                    metadata.Executable = (((bool)values[8]) && ((bool)values[9]));
+                    metadata.Executable = ((bool)values[8]) && ((bool)values[9]);
                 }
 
                 // get instance references.
@@ -1039,7 +1039,7 @@ namespace Opc.Ua.Sample {
                     null,
                     relativePath.ReferenceTypeId,
                     relativePath.IncludeSubtypes,
-                    (relativePath.IsInverse) ? BrowseDirection.Inverse : BrowseDirection.Forward,
+                    relativePath.IsInverse ? BrowseDirection.Inverse : BrowseDirection.Forward,
                     relativePath.TargetName,
                     null,
                     false);
@@ -2735,17 +2735,17 @@ namespace Opc.Ua.Sample {
         #endregion
 
         #region Private Fields
-        private object m_lock = new object();
-        private IServerInternal m_server;
-        private ServerSystemContext m_systemContext;
+        private readonly object m_lock = new();
+        private readonly IServerInternal m_server;
+        private readonly ServerSystemContext m_systemContext;
         private IList<string> m_namespaceUris;
         private ushort[] m_namespaceIndexes;
-        private NodeIdDictionary<NodeState> m_predefinedNodes;
-        private List<NodeState> m_rootNotifiers;
+        private readonly NodeIdDictionary<NodeState> m_predefinedNodes;
+        private readonly List<NodeState> m_rootNotifiers;
 
         private Timer m_samplingTimer;
-        private List<DataChangeMonitoredItem> m_sampledItems;
-        private double m_minimumSamplingInterval;
+        private readonly List<DataChangeMonitoredItem> m_sampledItems;
+        private readonly double m_minimumSamplingInterval;
         #endregion
     }
 }

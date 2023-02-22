@@ -696,14 +696,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery {
         private readonly IEndpointDiscovery _client;
         private readonly Task _runner;
         private readonly Timer _timer;
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly List<DiscoveryRequest> _pending =
-            new List<DiscoveryRequest>();
+            new();
         private readonly BlockingCollection<DiscoveryRequest> _queue =
-            new BlockingCollection<DiscoveryRequest>();
+            new();
         private readonly CancellationTokenSource _cts =
-            new CancellationTokenSource();
-        private DiscoveryRequest _request = new DiscoveryRequest();
+            new();
+        private readonly DiscoveryRequest _request = new();
 
 
         private static readonly string kDiscoveryMetricsPrefix = "iiot_edge_discovery_";

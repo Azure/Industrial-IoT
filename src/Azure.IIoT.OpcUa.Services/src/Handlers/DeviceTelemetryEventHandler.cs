@@ -71,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Services.Handlers {
         }
 
         private readonly ConcurrentQueue<IDeviceTelemetryHandler> _used =
-            new ConcurrentQueue<IDeviceTelemetryHandler>();
+            new();
         private readonly ConcurrentDictionary<string, IDeviceTelemetryHandler> _handlers;
     }
 }

@@ -463,7 +463,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
 #pragma warning restore IDE0069 // Disposable fields should be disposed
         }
 
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cts = new();
         private readonly SemaphoreSlim _lock;
         private readonly int _index;
         private readonly IAsyncProbe _probe;

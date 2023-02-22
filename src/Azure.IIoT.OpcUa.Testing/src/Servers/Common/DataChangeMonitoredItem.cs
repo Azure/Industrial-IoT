@@ -735,15 +735,15 @@ namespace Opc.Ua.Sample {
         #endregion
 
         #region Private Fields
-        private object m_lock = new object();
-        private MonitoredNode m_source;
+        private readonly object m_lock = new();
+        private readonly MonitoredNode m_source;
         private ISubscription m_subscription;
-        private uint m_id;
+        private readonly uint m_id;
         private DataValue m_lastValue;
         private ServiceResult m_lastError;
-        private uint m_attributeId;
+        private readonly uint m_attributeId;
         private NumericRange m_indexRange;
-        private QualifiedName m_dataEncoding;
+        private readonly QualifiedName m_dataEncoding;
         private TimestampsToReturn m_timestampsToReturn;
         private DiagnosticsMasks m_diagnosticsMasks;
         private uint m_clientHandle;

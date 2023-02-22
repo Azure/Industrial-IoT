@@ -169,7 +169,7 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
             // Whether the current thread is processing work items.
             [ThreadStatic]
             private static bool _currentThreadIsProcessingItems;
-            private readonly LinkedList<Task> _tasks = new LinkedList<Task>();
+            private readonly LinkedList<Task> _tasks = new();
             private readonly int _maxDegreeOfParallelism;
             private int _delegatesQueuedOrRunning;
         }

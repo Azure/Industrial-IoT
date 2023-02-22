@@ -115,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 var tooBig = chunks.Count - validChunks;
                 NotificationsDroppedCount += tooBig;
                 if (notificationsPerMessage > tooBig) {
-                    NotificationsProcessedCount += (notificationsPerMessage - tooBig);
+                    NotificationsProcessedCount += notificationsPerMessage - tooBig;
                 }
 
                 //
@@ -350,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         }
 
         private static readonly ConfigurationVersionDataType kEmptyConfiguration =
-            new ConfigurationVersionDataType { MajorVersion = 1u };
+            new() { MajorVersion = 1u };
         private readonly IEngineConfiguration _config;
         private readonly ILogger _logger;
         private uint _sequenceNumber;

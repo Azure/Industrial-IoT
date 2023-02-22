@@ -223,12 +223,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         private readonly MeterListener _meterListener;
         private readonly ILogger _logger;
         private readonly TimeSpan _diagnosticInterval;
-        private DateTime _diagnosticStart = DateTime.UtcNow;
+        private readonly DateTime _diagnosticStart = DateTime.UtcNow;
         private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _diagnostics
-            = new ConcurrentDictionary<string, WriterGroupDiagnosticModel>();
+            = new();
         // TODO: Split this per measurement type to avoid boxing
         private readonly ConcurrentDictionary<string, Action<WriterGroupDiagnosticModel, object>> _bindings
-            = new ConcurrentDictionary<string, Action<WriterGroupDiagnosticModel, object>> {
+            = new() {
                 ["iiot_edge_publisher_sent_iot_messages"] =
                     (d, i) => d.OutgressIoTMessageCount = (long)i,
                 ["iiot_edge_publisher_data_changes"] =

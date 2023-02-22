@@ -283,7 +283,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             private readonly ILogger _logger;
             private readonly MethodInfo _applyMethod;
             private readonly List<CascadingInvoker> _attachedTo =
-                new List<CascadingInvoker>();
+                new();
         }
 
         /// <summary>

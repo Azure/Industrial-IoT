@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
             Logger.Information("Server and client fixture disposed.");
         }
 
-        private static readonly Random kRand = new Random();
+        private static readonly Random kRand = new();
         private static volatile int _nextPort = kRand.Next(53000, 58000);
         private readonly IServerHost _serverHost;
         private readonly TestClientServicesConfig _config;

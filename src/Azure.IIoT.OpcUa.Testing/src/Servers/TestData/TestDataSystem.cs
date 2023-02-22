@@ -548,7 +548,7 @@ namespace TestData {
             public DateTime Timestamp;
         }
 
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
         private readonly ITestDataSystemCallback _callback;
         private readonly Opc.Ua.Test.TestDataGenerator _generator;
         private int _minimumSamplingInterval;

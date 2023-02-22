@@ -1502,7 +1502,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
                         return false;
                     }
                     try {
-                        o = (byte)((BigInteger)raw);
+                        o = (byte)(BigInteger)raw;
                         return true;
                     }
                     catch {
@@ -2012,8 +2012,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// <summary>
         /// Equality comparer
         /// </summary>
-        public static VariantValueComparer Comparer =>
-            new VariantValueComparer();
+        public static VariantValueComparer Comparer => new();
 
         /// <inheritdoc/>
         public class VariantValueComparer : IEqualityComparer<VariantValue>,

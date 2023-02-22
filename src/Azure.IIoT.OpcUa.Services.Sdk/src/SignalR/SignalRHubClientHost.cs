@@ -198,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.SignalR {
             }
         }
 
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly IJsonSerializerSettingsProvider _jsonSettings;
         private readonly IMessagePackFormatterResolverProvider _msgPack;
         private readonly Uri _endpointUri;

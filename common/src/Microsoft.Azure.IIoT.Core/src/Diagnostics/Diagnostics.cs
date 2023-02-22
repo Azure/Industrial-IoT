@@ -28,6 +28,6 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// <summary>
         /// Metrics
         /// </summary>
-        public static readonly Meter Meter = new Meter("Azure.Industrial-IoT", "2.9");
+        public static readonly Meter Meter = new("Azure.Industrial-IoT", "2.9");
     }
 }

@@ -547,7 +547,7 @@ namespace DataAccess {
             }
         }
 
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
         private readonly Dictionary<string, UnderlyingSystemBlock> _blocks;
         private Timer _simulationTimer;
         private long _simulationCounter;

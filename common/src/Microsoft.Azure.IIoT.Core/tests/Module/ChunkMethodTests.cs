@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Module {
             Assert.Equal(expectedResponse, result);
         }
 
-        private static readonly Random kR = new Random();
+        private static readonly Random kR = new();
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

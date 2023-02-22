@@ -33,6 +33,6 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
         }
 
         private static readonly MemCache _cache =
-            new MemCache(typeof(MemoryCache).Name);
+            new(typeof(MemoryCache).Name);
     }
 }

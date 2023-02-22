@@ -328,9 +328,9 @@ namespace Opc.Ua.Sample {
         #endregion
 
         #region Private Fields
-        private IServerInternal m_server;
-        private INodeManager m_nodeManager;
-        private NodeState m_node;
+        private readonly IServerInternal m_server;
+        private readonly INodeManager m_nodeManager;
+        private readonly NodeState m_node;
         private List<IEventMonitoredItem> m_eventSubscriptions;
         private List<DataChangeMonitoredItem> m_monitoredItems;
         #endregion

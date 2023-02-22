@@ -402,8 +402,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly IClientFactory _factory;
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly Dictionary<string, VariantValue> _reported =
-            new Dictionary<string, VariantValue>();
+            new();
     }
 }

@@ -2465,6 +2465,6 @@ Commands and Options
                 );
         }
 
-        private ServiceClient _client;
+        private readonly ServiceClient _client;
     }
 }

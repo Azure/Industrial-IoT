@@ -10,7 +10,7 @@ namespace System.Collections.Generic {
     /// </summary>
     public static class ListEx {
 
-        private static readonly Random rng = new Random();
+        private static readonly Random rng = new();
 
         /// <summary>
         /// Shuffle list

@@ -526,7 +526,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             Assert.Equal(expected, returned);
         }
 
-        private static readonly Random kRand = new Random();
+        private static readonly Random kRand = new();
 
         private MethodRouter GetRouter() {
             return new MethodRouter(_serializer, Log.Logger) {

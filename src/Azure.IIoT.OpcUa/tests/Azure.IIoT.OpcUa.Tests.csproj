@@ -13,6 +13,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+	<PackageReference Include="Furly.Extensions.Newtonsoft" Version="0.3.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\common\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft.csproj" />

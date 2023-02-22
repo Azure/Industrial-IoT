@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <summary>
         /// DateTime value of: “9999-12-31T23:59:59Z”
         /// </summary>
-        private static readonly DateTime kDateTimeMaxJsonValue = new DateTime(3155378975990000000);
+        private static readonly DateTime kDateTimeMaxJsonValue = new(3155378975990000000);
 
         /// <summary>
         /// Convert to OpcUa JSON Encoded Utc string.
