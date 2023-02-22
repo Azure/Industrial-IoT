@@ -23,13 +23,14 @@ namespace Azure.IIoT.OpcUa.Services.WebApi.Runtime {
     using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IWebHostConfig,
+    public class Config : ConfigBase, IWebHostConfig,
         ICorsConfig, IOpenApiConfig, ISignalRServiceConfig, IIoTHubConfig,
         IEventProcessorConfig, IEventHubConsumerConfig, IForwardedHeadersConfig,
         IEventProcessorHostConfig, IRoleConfig {

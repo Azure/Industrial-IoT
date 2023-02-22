@@ -106,12 +106,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Client application id </summary>
         public const string PCS_AAD_PUBLIC_CLIENT_APPID =
             "PCS_AUTH_PUBLIC_CLIENT_APPID";
-        /// <summary> Built in Auth server service application id </summary>
-        public const string PCS_AUTH_SERVICE_CLIENT_APPID =
-            "PCS_AUTH_SERVICE_CLIENT_APPID";
-        /// <summary> Built in Auth server service secret </summary>
-        public const string PCS_AUTH_SERVICE_CLIENT_SECRET =
-            "PCS_AUTH_SERVICE_CLIENT_SECRET";
         /// <summary> Whether to use role based access </summary>
         public const string PCS_AUTH_ROLES =
             "PCS_AUTH_ROLES";
@@ -127,9 +121,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> OPC publisher service endpoint url </summary>
         public const string PCS_PUBLISHER_SERVICE_URL =
             "PCS_PUBLISHER_SERVICE_URL";
-        /// <summary> Events service endpoint url </summary>
-        public const string PCS_EVENTS_SERVICE_URL =
-            "PCS_EVENTS_SERVICE_URL";
         /// <summary> CORS whitelist </summary>
         public const string PCS_CORS_WHITELIST =
             "PCS_CORS_WHITELIST";
@@ -175,8 +166,5 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Resource group </summary>
         public const string PCS_RESOURCE_GROUP =
             "PCS_RESOURCE_GROUP";
-        /// <summary> Log file path environment variable </summary>
-        public const string PCS_LOGS_PATH =
-            "PCS_LOGS_PATH";
     }
 }

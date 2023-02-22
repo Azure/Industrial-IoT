@@ -55,31 +55,5 @@ namespace System.Linq {
                 }
             }
         }
-
-        /// <summary>
-        /// Creates an enumeration with created values
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="factory"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        public static IEnumerable<T> Repeat<T>(Func<T> factory, int count) {
-            for (var i = 0; i < count; i++) {
-                yield return factory();
-            }
-        }
-
-        /// <summary>
-        /// Creates an enumeration with created values
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="factory"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        public static IEnumerable<T> Repeat<T>(Func<int, T> factory, int count) {
-            for (var i = 0; i < count; i++) {
-                yield return factory(i);
-            }
-        }
     }
 }

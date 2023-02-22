@@ -10,12 +10,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime {
     using Microsoft.Azure.IIoT.Hub.Module.Client.Runtime;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class PublisherConfig : DiagnosticsConfig, IModuleConfig, IClientServicesConfig {
+    public class PublisherConfig : ConfigBase, IModuleConfig, IClientServicesConfig {
 
         /// <inheritdoc/>
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;

@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime {
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System.Net;
     using System.Net.Sockets;
@@ -14,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime {
     /// <summary>
     /// Complete api configuration
     /// </summary>
-    public class ApiConfig : DiagnosticsConfig, IServiceApiConfig,
+    public class ApiConfig : ConfigBase, IServiceApiConfig,
         ISignalRClientConfig {
 
         /// <summary>

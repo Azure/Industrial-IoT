@@ -80,41 +80,6 @@ namespace System {
         }
 
         /// <summary>
-        /// Split string using a predicate for each character that
-        /// determines whether the position is a split point.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="predicate"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        public static IEnumerable<string> Split(this string value,
-            Func<char, bool> predicate,
-            StringSplitOptions options = StringSplitOptions.None) {
-            Contract.Assert(value != null);
-            if (predicate == null) {
-                yield return value;
-            }
-            else {
-                var next = 0;
-                for (var c = 0; c < value.Length; c++) {
-                    if (predicate(value[c])) {
-                        var v = value.Substring(next, c - next);
-                        if (options != StringSplitOptions.RemoveEmptyEntries ||
-                            !string.IsNullOrEmpty(v)) {
-                            yield return v;
-                        }
-                        next = c + 1;
-                    }
-                }
-                if (options == StringSplitOptions.RemoveEmptyEntries && next == value.Length) {
-                    yield break;
-                }
-                yield return value.Substring(next);
-            }
-        }
-
-
-        /// <summary>
         /// Removes all whitespace and replaces it with single space.
         /// </summary>
         /// <param name="value"></param>

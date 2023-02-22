@@ -12,26 +12,6 @@ namespace System.Collections.Generic {
     public static class SetEx {
 
         /// <summary>
-        /// Safe set equals
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="seq"></param>
-        /// <param name="that"></param>
-        /// <returns></returns>
-        public static bool RoSetEqualsSafe<T>(this IReadOnlySet<T> seq, IEnumerable<T> that) {
-            if (seq == that) {
-                return true;
-            }
-            if (seq == null || that == null) {
-                if (!(that?.Any() ?? false)) {
-                    return (seq?.Count ?? 0) == 0;
-                }
-                return false;
-            }
-            return seq.SetEquals(that);
-        }
-
-        /// <summary>
         /// Merge enumerable b into set a.
         /// </summary>
         /// <typeparam name="T"></typeparam>

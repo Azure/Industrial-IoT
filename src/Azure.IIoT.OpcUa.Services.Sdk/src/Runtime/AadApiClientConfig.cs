@@ -7,12 +7,13 @@ namespace Azure.IIoT.OpcUa.Services.Sdk.Runtime {
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Auth api client configuration
     /// </summary>
-    public class AadApiClientConfig : DiagnosticsConfig, IOAuthClientConfig {
+    public class AadApiClientConfig : ConfigBase, IOAuthClientConfig {
 
         /// <summary>
         /// Client configuration
