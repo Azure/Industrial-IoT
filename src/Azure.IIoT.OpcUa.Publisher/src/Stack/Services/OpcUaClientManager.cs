@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Client manager
@@ -37,17 +38,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// Create client manager
         /// </summary>
         /// <param name="clientConfig"></param>
-        /// <param name="codec"></param>
+        /// <param name="serializer"></param>
         /// <param name="identity"></param>
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
         public OpcUaClientManager(ILogger logger, IClientServicesConfig clientConfig,
-            IVariantEncoderFactory codec = null, IProcessIdentity identity = null,
+            IJsonSerializer serializer, IProcessIdentity identity = null,
             IMetricsContext metrics = null)
             : this(metrics ?? new EmptyMetricsContext()) {
             _clientConfig = clientConfig ??
                 throw new ArgumentNullException(nameof(clientConfig));
-            _codec = codec ?? new VariantEncoderFactory();
+            _serializer = serializer ??
+                throw new ArgumentNullException(nameof(serializer));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _configuration = _clientConfig.BuildApplicationConfigurationAsync(
@@ -67,10 +69,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
         /// <inheritdoc/>
         public ValueTask<ISubscription> CreateSubscriptionAsync(SubscriptionModel subscription,
-            IVariantEncoderFactory codec, CancellationToken ct) {
+            CancellationToken ct) {
             var client = FindClient(subscription.Id.Connection);
-            return OpcUaSubscription.CreateAsync(this, _clientConfig, codec,
-                subscription, _logger, client ?? _metrics, ct);
+            return OpcUaSubscription.CreateAsync(this, _clientConfig, subscription, _logger,
+                client ?? _metrics, ct);
         }
 
         /// <inheritdoc/>
@@ -139,16 +141,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync(ISession session) {
-            if (session?.Handle is OpcUaClient client) {
-                try {
-                    return await client.GetComplexTypeSystemAsync();
-                }
-                catch (Exception ex) {
-                    _logger.LogError(ex, "Failed to get complex type system from session.");
-                }
+        public ISessionHandle GetSessionHandle(ISession session) {
+            if (session?.Handle is not OpcUaClient client) {
+                throw new ResourceInvalidStateException("Session does not belong to this object.");
             }
-            return null;
+            return client;
         }
 
         /// <inheritdoc/>
@@ -417,7 +414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// <param name="metrics"></param>
         /// <returns></returns>
         private OpcUaClient CreateClient(ConnectionIdentifier id, IMetricsContext metrics) {
-            return new OpcUaClient(_configuration.Result, id, _logger, _codec, metrics) {
+            return new OpcUaClient(_configuration.Result, id, _serializer, _logger, metrics) {
                 KeepAliveInterval = _clientConfig.KeepAliveInterval,
                 SessionLifeTime = _clientConfig.DefaultSessionTimeout
             };
@@ -616,9 +613,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private bool _disposed;
         private readonly ILogger _logger;
         private readonly IClientServicesConfig _clientConfig;
-        private readonly IVariantEncoderFactory _codec;
-        private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients =
-            new();
+        private readonly IJsonSerializer _serializer;
+        private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
         private readonly SemaphoreSlim _lock;
         private readonly CancellationTokenSource _cts;
         private readonly Task _processor;

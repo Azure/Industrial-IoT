@@ -13,11 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders {
     public interface IVariantEncoder {
 
         /// <summary>
-        /// Get serializer in use
-        /// </summary>
-        IJsonSerializer Serializer { get; }
-
-        /// <summary>
         /// Get context
         /// </summary>
         IServiceMessageContext Context { get; }

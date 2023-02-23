@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Subscription implementation
@@ -69,15 +70,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// Subscription
         /// </summary>
         private OpcUaSubscription(ISessionProvider<ConnectionModel> session,
-            IClientServicesConfig config, IVariantEncoderFactory codec,
-            ILogger logger, IMetricsContext metrics)
+            IClientServicesConfig config, ILogger logger, IMetricsContext metrics)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _sessions = session ??
                 throw new ArgumentNullException(nameof(session));
             _config = config ??
                 throw new ArgumentNullException(nameof(config));
-            _codec = codec ??
-                throw new ArgumentNullException(nameof(codec));
             _logger = logger /*?.ForContext<OpcUaSubscription>() TODO: USE loggerFactory here*/ ??
                 throw new ArgumentNullException(nameof(logger));
             _lock = new SemaphoreSlim(1, 1);
@@ -90,21 +88,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// </summary>
         /// <param name="outer"></param>
         /// <param name="config"></param>
-        /// <param name="codec"></param>
         /// <param name="metrics"></param>
         /// <param name="subscription"></param>
         /// <param name="logger"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async ValueTask<ISubscription> CreateAsync(
-            ISessionProvider<ConnectionModel> outer,
-            IClientServicesConfig config, IVariantEncoderFactory codec,
+            ISessionProvider<ConnectionModel> outer, IClientServicesConfig config,
             SubscriptionModel subscription, ILogger logger, IMetricsContext metrics,
             CancellationToken ct = default) {
 
             // Create object
-            var newSubscription = new OpcUaSubscription(outer, config,
-                codec ?? new VariantEncoderFactory(), logger, metrics);
+            var newSubscription = new OpcUaSubscription(outer, config, logger, metrics);
 
             // Initialize
             await newSubscription.UpdateAsync(subscription, ct);
@@ -184,12 +179,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 throw new ArgumentNullException(nameof(subscription));
             }
             if (subscription.Configuration == null) {
-                throw new ArgumentNullException(nameof(subscription.Configuration));
+                throw new ArgumentException("Missing configuration", nameof(subscription));
             }
             if (subscription.Id?.Connection == null) {
-                throw new ArgumentNullException(nameof(subscription.Id));
+                throw new ArgumentException("Missing connection information", nameof(subscription));
             }
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 var previousSubscription = _subscription?.Id;
 
@@ -215,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     // Try and apply configuration. If we fail session will retry
                     // periodically through the session manager
                     //
-                    await ApplyAsyncCore(session.Session).ConfigureAwait(false);
+                    await ApplyInternalAsync(session.Session).ConfigureAwait(false);
                 }
                 catch (Exception ex) {
                     _logger.LogDebug(ex, "Failed to apply changes to subscription.");
@@ -237,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             // This is
             await _lock.WaitAsync().ConfigureAwait(false);
             try {
-                await ApplyAsyncCore(session.Session).ConfigureAwait(false);
+                await ApplyInternalAsync(session.Session).ConfigureAwait(false);
             }
             finally {
                 _lock.Release();
@@ -320,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// </summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        private async Task ApplyAsyncCore(ISession session) {
+        private async Task ApplyInternalAsync(ISession session) {
             try {
                 var rawSubscription = GetInnerSubscription(session);
 
@@ -453,7 +448,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
 
             var noErrorFound = true;
             var count = 0;
-            var codec = _codec.Create(rawSubscription.Session.MessageContext);
+            var sessionHandle = _sessions.GetSessionHandle(rawSubscription.Session);
             if (monitoredItems == null || !monitoredItems.Any()) {
                 // cleanup entire subscription
                 var toCleanupList = currentState.Select(t => t.Item);
@@ -532,7 +527,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 foreach (var toAdd in toAddList) {
                     // Create monitored item
                     try {
-                        toAdd.Create(rawSubscription.Session, codec);
+                        toAdd.Create(rawSubscription.Session, sessionHandle.Codec);
                         if (toAdd.EventTemplate != null) {
                             toAdd.Item.AttributeId = Attributes.EventNotifier;
                         }
@@ -566,7 +561,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             foreach (var toUpdate in currentState.Intersect(desiredState)) {
                 if (toUpdate.MergeWith(rawSubscription.Session?.MessageContext,
                         rawSubscription.Session?.NodeCache, rawSubscription.Session?.TypeTree,
-                        codec, desiredUpdates[toUpdate], out var metadata)) {
+                        sessionHandle.Codec, desiredUpdates[toUpdate], out var metadata)) {
                     _logger.LogTrace("Updating monitored item '{item}'...", toUpdate);
                     count++;
                 }
@@ -617,8 +612,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 // do a sanity check
                 foreach (var monitoredItem in currentlyMonitored.Values) {
                     if (monitoredItem.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled ||
-                        monitoredItem.Item.Status.Error != null &&
-                        StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode)) {
+                        (monitoredItem.Item.Status.Error != null &&
+                        StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode))) {
 
                         monitoredItem.Template.MonitoringMode = Shared.Models.MonitoringMode.Disabled;
                         noErrorFound = false;
@@ -644,7 +639,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     + "'{subscription}'/'{sessionId}'",
                     major, minor, Name, Connection.CreateConnectionId());
 
-                var typeSystem = await _sessions.GetComplexTypeSystemAsync(rawSubscription.Session);
+                var typeSystem = await sessionHandle.GetComplexTypeSystemAsync();
                 var dataTypes = new NodeIdDictionary<DataTypeDescription>();
                 var fields = new FieldMetaDataCollection();
                 foreach (var monitoredItem in currentlyMonitored.Values) {
@@ -688,7 +683,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                     var results = rawSubscription.SetMonitoringMode(change.Key.Value, itemsToChange);
                     if (results != null) {
                         var erroneousResultsCount = results
-                            .Count(r => r == null ? false : StatusCode.IsNotGood(r.StatusCode));
+                            .Count(r => r != null && StatusCode.IsNotGood(r.StatusCode));
 
                         // Check the number of erroneous results and log.
                         if (erroneousResultsCount > 0) {
@@ -1225,7 +1220,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private SubscriptionModel _subscription;
         private readonly ISessionProvider<ConnectionModel> _sessions;
         private readonly IClientServicesConfig _config;
-        private readonly IVariantEncoderFactory _codec;
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;
         private readonly SemaphoreSlim _lock;

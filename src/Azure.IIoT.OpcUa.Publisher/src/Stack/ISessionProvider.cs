@@ -46,11 +46,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         ISessionHandle GetSessionHandle(T connection);
 
         /// <summary>
-        /// Get complex type system from session
+        /// Get a session handle from a session
         /// </summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync(
-            ISession session);
+        ISessionHandle GetSessionHandle(ISession session);
     }
 }

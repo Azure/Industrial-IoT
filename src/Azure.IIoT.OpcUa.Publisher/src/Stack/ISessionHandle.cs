@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
     using Azure.IIoT.OpcUa.Shared.Models;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Client.ComplexTypes;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -50,6 +51,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack {
         /// <param name="subscription"></param>
         /// <returns></returns>
         void UnregisterSubscription(ISubscription subscription);
+
+        /// <summary>
+        /// Get complex type system for the session
+        /// </summary>
+        /// <returns></returns>
+        ValueTask<ComplexTypeSystem> GetComplexTypeSystemAsync();
 
         /// <summary>
         /// Get history capabilities of the server

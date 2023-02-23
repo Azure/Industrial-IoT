@@ -27,10 +27,9 @@ namespace Azure.IIoT.OpcUa.Edge.History {
         }
 
         private HistoryReadValuesTests<ConnectionModel> GetTests() {
-            var codec = new VariantEncoderFactory();
             return new HistoryReadValuesTests<ConnectionModel>(
                 () => new HistoryServices<ConnectionModel>(new NodeServices<ConnectionModel>(_server.Client,
-                    codec, _server.Logger)), new ConnectionModel {
+                    _server.Logger)), new ConnectionModel {
                         Endpoint = new EndpointModel {
                             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                             AlternativeUrls = _hostEntry?.AddressList

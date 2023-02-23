@@ -11,6 +11,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
+    using Furly.Extensions.Serializers;
+    using Autofac.Core.Lifetime;
 
     /// <summary>
     /// Container builder for data set writer jobs
@@ -31,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             if (config is null) {
                 throw new ArgumentNullException(nameof(config));
             }
-            return new WriterGroupScope(this, config);
+            return new WriterGroupScope(this, config, _lifetimeScope.Resolve<IJsonSerializer>());
         }
 
         /// <summary>
@@ -51,7 +53,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="config"></param>
-            public WriterGroupScope(WriterGroupScopeFactory outer, IWriterGroupConfig config) {
+            /// <param name="serializer"></param>
+            public WriterGroupScope(WriterGroupScopeFactory outer, IWriterGroupConfig config,
+                IJsonSerializer serializer) {
                 _writerGroup = config.WriterGroup?.WriterGroupId ?? Constants.DefaultWriterGroupId;
                 _outer = outer;
 
@@ -69,12 +73,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                     // Register job configuration
                     builder.RegisterInstance(config)
                         .AsImplementedInterfaces();
+
                     builder.RegisterInstance(this)
                         .As<IWriterGroupDiagnostics>()
                         .As<IMetricsContext>().SingleInstance();
-
-                    // Register default serializers...
-                    builder.AddNewtonsoftJsonSerializer();
+                    builder.RegisterInstance(serializer)
+                        .As<IJsonSerializer>()
+                        .ExternallyOwned();
 
                     // Register data flow - source, encode, sink
                     builder.RegisterType<WriterGroupDataFlow>()

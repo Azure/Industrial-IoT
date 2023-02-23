@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
     /// <summary>
     /// Writes objects to a json
     /// </summary>
-    public class JsonEncoderEx : IEncoder, IDisposable {
+    public sealed class JsonEncoderEx : IEncoder, IDisposable {
 
         /// <inheritdoc/>
         public EncodingType EncodingType => EncodingType.Json;
@@ -48,17 +48,17 @@ namespace Azure.IIoT.OpcUa.Encoders {
         /// <summary>
         /// Encode using microsoft variant
         /// </summary>
-        public bool UseAdvancedEncoding { get; set; } = false;
+        public bool UseAdvancedEncoding { get; set; }
 
         /// <summary>
         /// Ignore null values
         /// </summary>
-        public bool IgnoreNullValues { get; set; } = false;
+        public bool IgnoreNullValues { get; set; }
 
         /// <summary>
         /// Ignore default primitive values
         /// </summary>
-        public bool IgnoreDefaultValues { get; set; } = false;
+        public bool IgnoreDefaultValues { get; set; }
 
         /// <summary>
         /// State of the writer

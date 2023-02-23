@@ -422,36 +422,38 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             out IoTHubServices registry, int countDevices = -1,
             Func<ApplicationRegistrationModel, ApplicationRegistrationModel> fixup = null,
             bool disable = false) {
-            var fix = new Fixture();
+            var fixture = new Fixture();
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlySet<>), typeof(HashSet<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyList<>), typeof(List<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyDictionary<,>), typeof(Dictionary<,>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyCollection<>), typeof(List<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(VariantValue), typeof(VariantValue)));
+            fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
+                .ForEach(b => fixture.Behaviors.Remove(b));
+            fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            var sitex = site = fixture.Create<string>();
 
-            // Create template applications and endpoints
-            fix.Customizations.Add(new TypeRelay(typeof(VariantValue), typeof(VariantValue)));
-            fix.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-                .ForEach(b => fix.Behaviors.Remove(b));
-            fix.Behaviors.Add(new OmitOnRecursionBehavior());
-            var sitex = site = fix.Create<string>();
-
-            gateway = fix.Create<string>();
+            gateway = fixture.Create<string>();
             var Gateway = (new GatewayModel {
                 SiteId = site,
                 Id = gateway
             }.ToGatewayRegistration().ToDeviceTwin(),
                     new DeviceModel { Id = gateway });
-            var module = fix.Create<string>();
+            var module = fixture.Create<string>();
             var discovererx = discoverer = PublisherModelEx.CreatePublisherId(gateway, module);
             var Discoverer = (new DiscovererModel {
                 SiteId = site,
                 Id = discovererx
             }.ToPublisherRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
-            module = fix.Create<string>();
+            module = fixture.Create<string>();
             var supervisorx = supervisor = PublisherModelEx.CreatePublisherId(gateway, module);
             var Supervisor = (new SupervisorModel {
                 SiteId = site,
                 Id = supervisorx
             }.ToPublisherRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
-            module = fix.Create<string>();
+            module = fixture.Create<string>();
             var publisherx = publisher = PublisherModelEx.CreatePublisherId(gateway, module);
             var Publisher = (new PublisherModel {
                 SiteId = site,
@@ -459,17 +461,17 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
             }.ToPublisherRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
 
-            var template = fix
+            var template = fixture
                 .Build<ApplicationRegistrationModel>()
                 .Without(x => x.Application)
-                .Do(c => c.Application = fix
+                .Do(c => c.Application = fixture
                     .Build<ApplicationInfoModel>()
                     .Without(x => x.NotSeenSince)
                     .With(x => x.SiteId, sitex)
                     .With(x => x.DiscovererId, discovererx)
                     .Create())
                 .Without(x => x.Endpoints)
-                .Do(c => c.Endpoints = fix
+                .Do(c => c.Endpoints = fixture
                     .Build<EndpointRegistrationModel>()
                     .With(x => x.SiteId, sitex)
                     .With(x => x.DiscovererId, discovererx)

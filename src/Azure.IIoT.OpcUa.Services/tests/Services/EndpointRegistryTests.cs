@@ -211,17 +211,21 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         private void CreateEndpointFixtures(out string site, out string super,
             out List<EndpointInfoModel> endpoints, out List<(DeviceTwinModel, DeviceModel)> devices,
             bool noSite = false) {
-            var fix = new Fixture();
-            fix.Customizations.Add(new TypeRelay(typeof(VariantValue), typeof(VariantValue)));
-            fix.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-                .ForEach(b => fix.Behaviors.Remove(b));
-            fix.Behaviors.Add(new OmitOnRecursionBehavior());
-            var sitex = site = noSite ? null : fix.Create<string>();
-            var superx = super = fix.Create<string>();
-            endpoints = fix
+            var fixture = new Fixture();
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlySet<>), typeof(HashSet<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyList<>), typeof(List<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyDictionary<,>), typeof(Dictionary<,>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyCollection<>), typeof(List<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(VariantValue), typeof(VariantValue)));
+            fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
+                .ForEach(b => fixture.Behaviors.Remove(b));
+            fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            var sitex = site = noSite ? null : fixture.Create<string>();
+            var superx = super = fixture.Create<string>();
+            endpoints = fixture
                 .Build<EndpointInfoModel>()
                 .Without(x => x.Registration)
-                .Do(x => x.Registration = fix
+                .Do(x => x.Registration = fixture
                     .Build<EndpointRegistrationModel>()
                     .With(y => y.SiteId, sitex)
                     .Create())

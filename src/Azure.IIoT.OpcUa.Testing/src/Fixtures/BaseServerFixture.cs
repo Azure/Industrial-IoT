@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Serializers.Newtonsoft;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -59,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Testing.Fixtures {
             Logger = Log.Console<BaseServerFixture>(LogLevel.Debug);
             _config = new TestClientServicesConfig();
             _client = new Lazy<OpcUaClientManager>(() => {
-                return new OpcUaClientManager(Logger, _config);
+                return new OpcUaClientManager(Logger, _config, new NewtonsoftJsonSerializer());
             }, false);
             PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
                Guid.NewGuid().ToByteArray().ToBase16String());

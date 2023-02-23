@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromJValue() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(-123.123);
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(-123.123);
@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromJArray() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromArray(-123.123, 124.124, 0.0);
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromJValueTypeNullIsDouble() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(-123.123);
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(-123.123);
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromJArrayTypeNullIsDouble() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromArray(-123.123, 124.124, 0.0);
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromString1() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "-123.123";
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(-123.123);
@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromString2() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "-123";
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(-123.0);
@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromString() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "-123.123, 124.124, 0.0";
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
@@ -92,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromString2() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromString3() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "[]";
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(System.Array.Empty<double>());
@@ -115,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromStringTypeNumberIsDouble() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "-123.123";
             var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(-123.123);
@@ -127,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromStringTypeNumberIsDouble1() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(new Variant[] {
@@ -141,7 +141,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromStringTypeNumberIsDouble2() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "[]";
             var variant = codec.Decode(str, BuiltInType.Number);
             var expected = new Variant(System.Array.Empty<Variant>());
@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromStringTypeNullIsDouble() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "-123.123";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(-123.123);
@@ -163,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
         }
         [Fact]
         public void DecodeEncodeDoubleArrayFromStringTypeNullIsDouble() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "-123.123, 124.124, 0.0";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromStringTypeNullIsDouble2() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
@@ -187,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromStringTypeNullIsNull() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "[]";
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = Variant.Null;
@@ -197,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromQuotedString() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "\"-123.123\"";
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(-123.123);
@@ -210,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromSinglyQuotedString() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "  '-123.123'";
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(-123.123);
@@ -222,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromQuotedString() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = "\"-123.123\",'124.124',\"0.0\"";
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
@@ -234,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromQuotedString2() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = " [\"-123.123\",'124.124',\"0.0\"] ";
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
@@ -246,7 +246,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromVariantJsonTokenTypeVariant() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(new {
                 Type = "Double",
                 Body = -123.123f
@@ -261,7 +261,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonTokenTypeVariant1() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(new {
                 Type = "Double",
                 Body = new double[] { -123.123, 124.124, 0.0 }
@@ -276,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonTokenTypeVariant2() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(new {
                 Type = "Double",
                 Body = System.Array.Empty<double>()
@@ -290,7 +290,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromVariantJsonStringTypeVariant() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new {
                 Type = "Double",
                 Body = -123.123f
@@ -305,7 +305,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonStringTypeVariant() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new {
                 Type = "Double",
                 Body = new double[] { -123.123, 124.124, 0.0 }
@@ -320,7 +320,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromVariantJsonTokenTypeNull() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(new {
                 Type = "Double",
                 Body = -123.123f
@@ -335,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonTokenTypeNull1() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(new {
                 TYPE = "DOUBLE",
                 BODY = new double[] { -123.123, 124.124, 0.0 }
@@ -350,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonTokenTypeNull2() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(new {
                 Type = "Double",
                 Body = System.Array.Empty<double>()
@@ -364,7 +364,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromVariantJsonStringTypeNull() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new {
                 Type = "double",
                 Body = -123.123f
@@ -379,7 +379,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonStringTypeNull() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new {
                 type = "Double",
                 body = new double[] { -123.123, 124.124, 0.0 }
@@ -394,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromVariantJsonTokenTypeNullMsftEncoding() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(new {
                 DataType = "Double",
                 Value = -123.123f
@@ -409,7 +409,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleFromVariantJsonStringTypeVariantMsftEncoding() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new {
                 DataType = "Double",
                 Value = -123.123f
@@ -424,7 +424,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonTokenTypeVariantMsftEncoding() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromObject(new {
                 dataType = "Double",
                 value = new double[] { -123.123, 124.124, 0.0 }
@@ -439,7 +439,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleMatrixFromStringJsonTypeNull() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new double[,,] {
                 { { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 } },
                 { { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 } },
@@ -462,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleMatrixFromStringJsonTypeDouble() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new double[,,] {
                 { { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 } },
                 { { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 } },
@@ -485,7 +485,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleMatrixFromVariantJsonTypeVariant() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new {
                 type = "Double",
                 body = new double[,,] {
@@ -511,7 +511,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleMatrixFromVariantJsonTokenTypeVariantMsftEncoding() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new {
                 dataType = "Double",
                 value = new double[,,] {
@@ -537,7 +537,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleMatrixFromVariantJsonTypeNull() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new {
                 type = "Double",
                 body = new double[,,] {
@@ -563,7 +563,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
 
         [Fact]
         public void DecodeEncodeDoubleMatrixFromVariantJsonTokenTypeNullMsftEncoding() {
-            var codec = new VariantEncoderFactory().Default;
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.SerializeToString(new {
                 dataType = "Double",
                 value = new double[,,] {

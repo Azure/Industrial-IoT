@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
-    public class WriterGroupDataSource : IMessageSource, IDisposable {
+    public sealed class WriterGroupDataSource : IMessageSource, IDisposable {
 
         /// <inheritdoc/>
         public event EventHandler<SubscriptionNotificationModel> OnMessage;
@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// </summary>
         public WriterGroupDataSource(IWriterGroupConfig writerGroupConfig,
             ISubscriptionManager subscriptionManager, ISubscriptionConfig subscriptionConfig,
-            IVariantEncoderFactory codec, IMetricsContext metrics, ILogger logger)
+            IMetricsContext metrics, ILogger logger)
             : this(metrics ?? throw new ArgumentNullException(nameof(metrics))) {
             _writerGroup = writerGroupConfig?.WriterGroup?.Clone() ??
                 throw new ArgumentNullException(nameof(writerGroupConfig.WriterGroup));
@@ -49,8 +49,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 throw new ArgumentNullException(nameof(subscriptionManager));
             _subscriptionConfig = subscriptionConfig ??
                 throw new ArgumentNullException(nameof(subscriptionConfig));
-            _codec = codec ??
-                throw new ArgumentNullException(nameof(codec));
 
             _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
             _publisherId = writerGroupConfig.PublisherId ?? Guid.NewGuid().ToString();
@@ -245,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
                 // management realm
                 //
                 Subscription = await _outer._subscriptionManager.CreateSubscriptionAsync(
-                    _subscriptionInfo, _outer._codec, ct).ConfigureAwait(false);
+                    _subscriptionInfo, ct).ConfigureAwait(false);
 
                 InitializeKeyframeTrigger();
                 InitializeMetaDataTrigger();
@@ -651,7 +649,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         private readonly Dictionary<SubscriptionIdentifier, DataSetWriterSubscription> _subscriptions;
         private readonly ISubscriptionManager _subscriptionManager;
         private readonly ISubscriptionConfig _subscriptionConfig;
-        private readonly IVariantEncoderFactory _codec;
         private WriterGroupModel _writerGroup;
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly string _publisherId;

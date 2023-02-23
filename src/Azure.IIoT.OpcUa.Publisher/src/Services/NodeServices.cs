@@ -30,11 +30,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         /// Create node service
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="codec"></param>
         /// <param name="logger"></param>
-        public NodeServices(ISessionProvider<T> client, IVariantEncoderFactory codec, ILogger logger) {
+        ///
+        public NodeServices(ISessionProvider<T> client, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _codec = codec ?? throw new ArgumentNullException(nameof(codec));
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -1422,7 +1421,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services {
         }
 
         private readonly ILogger _logger;
-        private readonly IVariantEncoderFactory _codec;
         private readonly ISessionProvider<T> _client;
         private static readonly System.Diagnostics.ActivitySource kActivity =
             new(typeof(NodeServices<T>).FullName!);

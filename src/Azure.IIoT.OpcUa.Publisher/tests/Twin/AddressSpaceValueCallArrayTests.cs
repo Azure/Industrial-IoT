@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Edge.Control.Services {
         private CallArrayMethodTests<ConnectionModel> GetTests() {
             return new CallArrayMethodTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client,
-                    new VariantEncoderFactory(), _server.Logger), new ConnectionModel {
+                    _server.Logger), new ConnectionModel {
                         Endpoint = new EndpointModel {
                             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                             AlternativeUrls = _hostEntry?.AddressList

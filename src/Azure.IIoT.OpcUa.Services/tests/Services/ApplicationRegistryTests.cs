@@ -427,14 +427,18 @@ namespace Azure.IIoT.OpcUa.Services.Registry {
         private void CreateAppFixtures(out string site, out string super,
             out List<ApplicationInfoModel> apps, out List<(DeviceTwinModel, DeviceModel)> devices,
             bool noSite = false) {
-            var fix = new Fixture();
-            fix.Customizations.Add(new TypeRelay(typeof(VariantValue), typeof(VariantValue)));
-            fix.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-                .ForEach(b => fix.Behaviors.Remove(b));
-            fix.Behaviors.Add(new OmitOnRecursionBehavior());
-            var sitex = site = noSite ? null : fix.Create<string>();
-            var superx = super = fix.Create<string>();
-            apps = fix
+            var fixture = new Fixture();
+            fixture.Customizations.Add(new TypeRelay(typeof(VariantValue), typeof(VariantValue)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlySet<>), typeof(HashSet<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyList<>), typeof(List<>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyDictionary<,>), typeof(Dictionary<,>)));
+            fixture.Customizations.Add(new TypeRelay(typeof(IReadOnlyCollection<>), typeof(List<>)));
+            fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
+                .ForEach(b => fixture.Behaviors.Remove(b));
+            fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            var sitex = site = noSite ? null : fixture.Create<string>();
+            var superx = super = fixture.Create<string>();
+            apps = fixture
                 .Build<ApplicationInfoModel>()
                 .Without(x => x.NotSeenSince)
                 .With(x => x.SiteId, sitex)

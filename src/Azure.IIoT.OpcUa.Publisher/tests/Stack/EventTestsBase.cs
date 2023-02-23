@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -32,10 +33,8 @@ namespace Azure.IIoT.OpcUa.Encoders {
             INodeCache nodeCache = null,
             IVariantEncoder codec = null) {
 
-            codec ??= messageContext == null
-                    ? new VariantEncoderFactory().Default
-                    : new VariantEncoderFactory().Create(messageContext);
-
+            codec ??= new JsonVariantEncoder(messageContext ?? new ServiceMessageContext(),
+                new NewtonsoftJsonSerializer());
             nodeCache ??= GetNodeCache();
             var monitoredItemWrapper = new OpcUaMonitoredItem(template, Log.Console<OpcUaMonitoredItem>());
             monitoredItemWrapper.Create(

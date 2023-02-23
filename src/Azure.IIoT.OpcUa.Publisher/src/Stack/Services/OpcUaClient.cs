@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -89,15 +90,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="connection"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        /// <param name="codec"></param>
         /// <param name="metrics"></param>
         /// <param name="sessionName"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaClient(ApplicationConfiguration configuration,
-            ConnectionIdentifier connection, ILogger logger,
-            IVariantEncoderFactory codec, IMetricsContext metrics,
-            string? sessionName = null) {
+            ConnectionIdentifier connection, IJsonSerializer serializer,
+            ILogger logger, IMetricsContext metrics, string? sessionName = null) {
 
             if (connection?.Connection?.Endpoint == null) {
                 throw new ArgumentNullException(nameof(connection));
@@ -107,15 +107,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             }
 
             _connection = connection.Connection;
-            _codec = codec;
-            _configuration = configuration;
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+
             _connected = new AsyncManualResetEvent();
             _lastState = EndpointConnectivityState.Connecting;
             _sessionName = sessionName ?? connection.ToString();
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
-
-            Codec = _codec.Default;
+            Codec = CreateCodec();
             TagList = new TagList(metrics.TagList.ToArray().AsSpan()) {
                 { "EndpointUrl", _connection.Endpoint.Url },
                 { "SecurityMode", _connection.Endpoint.SecurityMode }
@@ -177,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 _logger.LogError(ex, "Error creating session {Name}.", _sessionName);
                 _session?.Dispose();
                 _session = null;
-                Codec = _codec.Default;
+                Codec = CreateCodec();
                 connected = false;
             }
             finally {
@@ -402,15 +402,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             return false;
         }
 
-        /// <summary>
-        /// Load complex type system
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync() {
             await _lock.WaitAsync();
             try {
                 _complexTypeSystem ??= LoadComplexTypeSystemAsync();
                 return await _complexTypeSystem.ConfigureAwait(false);
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Failed to get complex type system for session {Name}.",
+                    _sessionName);
+                return null;
             }
             finally {
                 _lock.Release();
@@ -842,7 +844,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
                 UnsetSession();
 
                 // override keep alive interval
-                Codec = _codec.Create(session.MessageContext);
+                Codec = CreateCodec(session.MessageContext);
                 _session = session;
                 _session.KeepAliveInterval = KeepAliveInterval;
                 _complexTypeSystem = LoadComplexTypeSystemAsync();
@@ -873,7 +875,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
             if (noDispose) {
                 return;
             }
-            Codec = _codec.Default;
+            Codec = CreateCodec();
             session.Dispose();
             _logger.LogDebug("Session {Name} disposed.", _sessionName);
         }
@@ -1013,6 +1015,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         }
 
         /// <summary>
+        /// Create codec
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        private IVariantEncoder CreateCodec(IServiceMessageContext? context = null) {
+            return new JsonVariantEncoder(context ?? new ServiceMessageContext(), _serializer);
+        }
+
+        /// <summary>
         /// Create observable metrics
         /// </summary>
         private void InitializeMetrics() {
@@ -1032,10 +1043,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services {
         private Task<ComplexTypeSystem?>? _complexTypeSystem;
         private EndpointConnectivityState _lastState;
         private bool _disposed;
-        private readonly IVariantEncoderFactory _codec;
         private readonly SemaphoreSlim _connecting = new(1, 1);
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly ApplicationConfiguration _configuration;
+        private readonly IJsonSerializer _serializer;
         private readonly AsyncManualResetEvent _connected;
         private readonly string _sessionName;
         private readonly ConnectionModel _connection;

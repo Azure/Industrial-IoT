@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Edge.Control.Services {
 
             return new BrowseServicesTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client,
-                    new VariantEncoderFactory(), _server.Logger), new ConnectionModel {
+                    _server.Logger), new ConnectionModel {
                         Endpoint = new EndpointModel {
                             Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                             AlternativeUrls = _hostEntry?.AddressList
